@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_engine/src/vm/opcode/set/property.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>property.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../../storage.js"></script><script defer src="../../../../../source-script.js"></script><script defer src="../../../../../source-files.js"></script><script defer src="../../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../../boa_engine/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../../boa_engine/index.html"><div class="logo-container">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_engine/src/vm/opcode/set/property.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>property.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../../normalize.css"><link rel="stylesheet" href="../../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../../dark.css" disabled><link rel="stylesheet" href="../../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../../storage.js"></script><script defer src="../../../../../source-script.js"></script><script defer src="../../../../../source-files.js"></script><script defer src="../../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../../boa_engine/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../../boa_engine/index.html"><div class="logo-container">
                     <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../../boa_engine/index.html">
                         <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -222,227 +222,227 @@
 <span id="220">220</span>
 <span id="221">221</span>
 <span id="222">222</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">property</span>::{<span class="ident">PropertyDescriptor</span>, <span class="ident">PropertyKey</span>},
-    <span class="ident">vm</span>::{<span class="ident">opcode::Operation</span>, <span class="ident">ShouldExit</span>},
-    <span class="ident">Context</span>, <span class="ident">JsResult</span>, <span class="ident">JsString</span>,
+</pre><pre class="rust"><code><span class="kw">use crate</span>::{
+    property::{PropertyDescriptor, PropertyKey},
+    vm::{opcode::Operation, ShouldExit},
+    Context, JsResult, JsString,
 };
 
-<span class="doccomment">/// `SetPropertyByName` implements the Opcode Operation for `Opcode::SetPropertyByName`</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Operation:</span>
-<span class="doccomment">///  - Sets a property by name of an object.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">SetPropertyByName</span>;
+<span class="doccomment">/// `SetPropertyByName` implements the Opcode Operation for `Opcode::SetPropertyByName`
+///
+/// Operation:
+///  - Sets a property by name of an object.
+</span><span class="attribute">#[derive(Debug, Clone, Copy)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>SetPropertyByName;
 
-<span class="kw">impl</span> <span class="ident">Operation</span> <span class="kw">for</span> <span class="ident">SetPropertyByName</span> {
-    <span class="kw">const</span> <span class="ident">NAME</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;SetPropertyByName&quot;</span>;
-    <span class="kw">const</span> <span class="ident">INSTRUCTION</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;INST - SetPropertyByName&quot;</span>;
+<span class="kw">impl </span>Operation <span class="kw">for </span>SetPropertyByName {
+    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;SetPropertyByName&quot;</span>;
+    <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - SetPropertyByName&quot;</span>;
 
-    <span class="kw">fn</span> <span class="ident">execute</span>(<span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">ShouldExit</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>();
+    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;ShouldExit&gt; {
+        <span class="kw">let </span>index = context.vm.read::&lt;u32&gt;();
 
-        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">pop</span>();
-        <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">pop</span>();
-        <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">object</span>) <span class="op">=</span> <span class="ident">object</span>.<span class="ident">as_object</span>() {
-            <span class="ident">object</span>.<span class="ident">clone</span>()
-        } <span class="kw">else</span> {
-            <span class="ident">object</span>.<span class="ident">to_object</span>(<span class="ident">context</span>)<span class="question-mark">?</span>
-        };
+        <span class="kw">let </span>value = context.vm.pop();
+        <span class="kw">let </span>object = context.vm.pop();
+        <span class="kw">let </span>object = <span class="kw">if let </span><span class="prelude-val">Some</span>(object) = object.as_object() {
+            object.clone()
+        } <span class="kw">else </span>{
+            object.to_object(context)<span class="question-mark">?
+        </span>};
 
-        <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">frame</span>().<span class="ident">code</span>.<span class="ident">names</span>[<span class="ident">index</span> <span class="kw">as</span> <span class="ident">usize</span>];
-        <span class="kw">let</span> <span class="ident">name</span>: <span class="ident">PropertyKey</span> <span class="op">=</span> <span class="ident">context</span>
-            .<span class="ident">interner</span>()
-            .<span class="ident">resolve_expect</span>(<span class="ident">name</span>.<span class="ident">sym</span>())
-            .<span class="ident">into_common</span>::<span class="op">&lt;</span><span class="ident">JsString</span><span class="op">&gt;</span>(<span class="bool-val">false</span>)
-            .<span class="ident">into</span>();
+        <span class="kw">let </span>name = context.vm.frame().code.names[index <span class="kw">as </span>usize];
+        <span class="kw">let </span>name: PropertyKey = context
+            .interner()
+            .resolve_expect(name.sym())
+            .into_common::&lt;JsString&gt;(<span class="bool-val">false</span>)
+            .into();
 
-        <span class="ident">object</span>.<span class="ident">set</span>(<span class="ident">name</span>, <span class="ident">value</span>.<span class="ident">clone</span>(), <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">frame</span>().<span class="ident">code</span>.<span class="ident">strict</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
-        <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">stack</span>.<span class="ident">push</span>(<span class="ident">value</span>);
-        <span class="prelude-val">Ok</span>(<span class="ident">ShouldExit::False</span>)
+        object.set(name, value.clone(), context.vm.frame().code.strict, context)<span class="question-mark">?</span>;
+        context.vm.stack.push(value);
+        <span class="prelude-val">Ok</span>(ShouldExit::False)
     }
 }
 
-<span class="doccomment">/// `SetPropertyByValue` implements the Opcode Operation for `Opcode::SetPropertyByValue`</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Operation:</span>
-<span class="doccomment">///  - Sets a property by value of an object.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">SetPropertyByValue</span>;
+<span class="doccomment">/// `SetPropertyByValue` implements the Opcode Operation for `Opcode::SetPropertyByValue`
+///
+/// Operation:
+///  - Sets a property by value of an object.
+</span><span class="attribute">#[derive(Debug, Clone, Copy)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>SetPropertyByValue;
 
-<span class="kw">impl</span> <span class="ident">Operation</span> <span class="kw">for</span> <span class="ident">SetPropertyByValue</span> {
-    <span class="kw">const</span> <span class="ident">NAME</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;SetPropertyByValue&quot;</span>;
-    <span class="kw">const</span> <span class="ident">INSTRUCTION</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;INST - SetPropertyByValue&quot;</span>;
+<span class="kw">impl </span>Operation <span class="kw">for </span>SetPropertyByValue {
+    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;SetPropertyByValue&quot;</span>;
+    <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - SetPropertyByValue&quot;</span>;
 
-    <span class="kw">fn</span> <span class="ident">execute</span>(<span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">ShouldExit</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">pop</span>();
-        <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">pop</span>();
-        <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">pop</span>();
-        <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">object</span>) <span class="op">=</span> <span class="ident">object</span>.<span class="ident">as_object</span>() {
-            <span class="ident">object</span>.<span class="ident">clone</span>()
-        } <span class="kw">else</span> {
-            <span class="ident">object</span>.<span class="ident">to_object</span>(<span class="ident">context</span>)<span class="question-mark">?</span>
-        };
+    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;ShouldExit&gt; {
+        <span class="kw">let </span>value = context.vm.pop();
+        <span class="kw">let </span>key = context.vm.pop();
+        <span class="kw">let </span>object = context.vm.pop();
+        <span class="kw">let </span>object = <span class="kw">if let </span><span class="prelude-val">Some</span>(object) = object.as_object() {
+            object.clone()
+        } <span class="kw">else </span>{
+            object.to_object(context)<span class="question-mark">?
+        </span>};
 
-        <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="ident">key</span>.<span class="ident">to_property_key</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
-        <span class="ident">object</span>.<span class="ident">set</span>(<span class="ident">key</span>, <span class="ident">value</span>.<span class="ident">clone</span>(), <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">frame</span>().<span class="ident">code</span>.<span class="ident">strict</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
-        <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">stack</span>.<span class="ident">push</span>(<span class="ident">value</span>);
-        <span class="prelude-val">Ok</span>(<span class="ident">ShouldExit::False</span>)
+        <span class="kw">let </span>key = key.to_property_key(context)<span class="question-mark">?</span>;
+        object.set(key, value.clone(), context.vm.frame().code.strict, context)<span class="question-mark">?</span>;
+        context.vm.stack.push(value);
+        <span class="prelude-val">Ok</span>(ShouldExit::False)
     }
 }
 
-<span class="doccomment">/// `SetPropertyGetterByName` implements the Opcode Operation for `Opcode::SetPropertyGetterByName`</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Operation:</span>
-<span class="doccomment">///  - Sets a getter property by name of an object.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">SetPropertyGetterByName</span>;
+<span class="doccomment">/// `SetPropertyGetterByName` implements the Opcode Operation for `Opcode::SetPropertyGetterByName`
+///
+/// Operation:
+///  - Sets a getter property by name of an object.
+</span><span class="attribute">#[derive(Debug, Clone, Copy)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>SetPropertyGetterByName;
 
-<span class="kw">impl</span> <span class="ident">Operation</span> <span class="kw">for</span> <span class="ident">SetPropertyGetterByName</span> {
-    <span class="kw">const</span> <span class="ident">NAME</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;SetPropertyGetterByName&quot;</span>;
-    <span class="kw">const</span> <span class="ident">INSTRUCTION</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;INST - SetPropertyGetterByName&quot;</span>;
+<span class="kw">impl </span>Operation <span class="kw">for </span>SetPropertyGetterByName {
+    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;SetPropertyGetterByName&quot;</span>;
+    <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - SetPropertyGetterByName&quot;</span>;
 
-    <span class="kw">fn</span> <span class="ident">execute</span>(<span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">ShouldExit</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>();
-        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">pop</span>();
-        <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">pop</span>();
-        <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="ident">object</span>.<span class="ident">to_object</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">frame</span>().<span class="ident">code</span>.<span class="ident">names</span>[<span class="ident">index</span> <span class="kw">as</span> <span class="ident">usize</span>];
-        <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="ident">context</span>
-            .<span class="ident">interner</span>()
-            .<span class="ident">resolve_expect</span>(<span class="ident">name</span>.<span class="ident">sym</span>())
-            .<span class="ident">into_common</span>::<span class="op">&lt;</span><span class="ident">JsString</span><span class="op">&gt;</span>(<span class="bool-val">false</span>)
-            .<span class="ident">into</span>();
-        <span class="kw">let</span> <span class="ident">set</span> <span class="op">=</span> <span class="ident">object</span>
-            .<span class="ident">__get_own_property__</span>(<span class="kw-2">&amp;</span><span class="ident">name</span>, <span class="ident">context</span>)<span class="question-mark">?</span>
-            .<span class="ident">as_ref</span>()
-            .<span class="ident">and_then</span>(<span class="ident">PropertyDescriptor::set</span>)
-            .<span class="ident">cloned</span>();
-        <span class="ident">object</span>.<span class="ident">__define_own_property__</span>(
-            <span class="ident">name</span>,
-            <span class="ident">PropertyDescriptor::builder</span>()
-                .<span class="ident">maybe_get</span>(<span class="prelude-val">Some</span>(<span class="ident">value</span>))
-                .<span class="ident">maybe_set</span>(<span class="ident">set</span>)
-                .<span class="ident">enumerable</span>(<span class="bool-val">true</span>)
-                .<span class="ident">configurable</span>(<span class="bool-val">true</span>)
-                .<span class="ident">build</span>(),
-            <span class="ident">context</span>,
+    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;ShouldExit&gt; {
+        <span class="kw">let </span>index = context.vm.read::&lt;u32&gt;();
+        <span class="kw">let </span>value = context.vm.pop();
+        <span class="kw">let </span>object = context.vm.pop();
+        <span class="kw">let </span>object = object.to_object(context)<span class="question-mark">?</span>;
+        <span class="kw">let </span>name = context.vm.frame().code.names[index <span class="kw">as </span>usize];
+        <span class="kw">let </span>name = context
+            .interner()
+            .resolve_expect(name.sym())
+            .into_common::&lt;JsString&gt;(<span class="bool-val">false</span>)
+            .into();
+        <span class="kw">let </span>set = object
+            .__get_own_property__(<span class="kw-2">&amp;</span>name, context)<span class="question-mark">?
+            </span>.as_ref()
+            .and_then(PropertyDescriptor::set)
+            .cloned();
+        object.__define_own_property__(
+            name,
+            PropertyDescriptor::builder()
+                .maybe_get(<span class="prelude-val">Some</span>(value))
+                .maybe_set(set)
+                .enumerable(<span class="bool-val">true</span>)
+                .configurable(<span class="bool-val">true</span>)
+                .build(),
+            context,
         )<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<span class="ident">ShouldExit::False</span>)
+        <span class="prelude-val">Ok</span>(ShouldExit::False)
     }
 }
 
-<span class="doccomment">/// `SetPropertyGetterByValue` implements the Opcode Operation for `Opcode::SetPropertyGetterByValue`</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Operation:</span>
-<span class="doccomment">///  - Sets a getter property by value of an object.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">SetPropertyGetterByValue</span>;
+<span class="doccomment">/// `SetPropertyGetterByValue` implements the Opcode Operation for `Opcode::SetPropertyGetterByValue`
+///
+/// Operation:
+///  - Sets a getter property by value of an object.
+</span><span class="attribute">#[derive(Debug, Clone, Copy)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>SetPropertyGetterByValue;
 
-<span class="kw">impl</span> <span class="ident">Operation</span> <span class="kw">for</span> <span class="ident">SetPropertyGetterByValue</span> {
-    <span class="kw">const</span> <span class="ident">NAME</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;SetPropertyGetterByValue&quot;</span>;
-    <span class="kw">const</span> <span class="ident">INSTRUCTION</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;INST - SetPropertyGetterByValue&quot;</span>;
+<span class="kw">impl </span>Operation <span class="kw">for </span>SetPropertyGetterByValue {
+    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;SetPropertyGetterByValue&quot;</span>;
+    <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - SetPropertyGetterByValue&quot;</span>;
 
-    <span class="kw">fn</span> <span class="ident">execute</span>(<span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">ShouldExit</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">pop</span>();
-        <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">pop</span>();
-        <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">pop</span>();
-        <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="ident">object</span>.<span class="ident">to_object</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="ident">key</span>.<span class="ident">to_property_key</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">set</span> <span class="op">=</span> <span class="ident">object</span>
-            .<span class="ident">__get_own_property__</span>(<span class="kw-2">&amp;</span><span class="ident">name</span>, <span class="ident">context</span>)<span class="question-mark">?</span>
-            .<span class="ident">as_ref</span>()
-            .<span class="ident">and_then</span>(<span class="ident">PropertyDescriptor::set</span>)
-            .<span class="ident">cloned</span>();
-        <span class="ident">object</span>.<span class="ident">__define_own_property__</span>(
-            <span class="ident">name</span>,
-            <span class="ident">PropertyDescriptor::builder</span>()
-                .<span class="ident">maybe_get</span>(<span class="prelude-val">Some</span>(<span class="ident">value</span>))
-                .<span class="ident">maybe_set</span>(<span class="ident">set</span>)
-                .<span class="ident">enumerable</span>(<span class="bool-val">true</span>)
-                .<span class="ident">configurable</span>(<span class="bool-val">true</span>)
-                .<span class="ident">build</span>(),
-            <span class="ident">context</span>,
+    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;ShouldExit&gt; {
+        <span class="kw">let </span>value = context.vm.pop();
+        <span class="kw">let </span>key = context.vm.pop();
+        <span class="kw">let </span>object = context.vm.pop();
+        <span class="kw">let </span>object = object.to_object(context)<span class="question-mark">?</span>;
+        <span class="kw">let </span>name = key.to_property_key(context)<span class="question-mark">?</span>;
+        <span class="kw">let </span>set = object
+            .__get_own_property__(<span class="kw-2">&amp;</span>name, context)<span class="question-mark">?
+            </span>.as_ref()
+            .and_then(PropertyDescriptor::set)
+            .cloned();
+        object.__define_own_property__(
+            name,
+            PropertyDescriptor::builder()
+                .maybe_get(<span class="prelude-val">Some</span>(value))
+                .maybe_set(set)
+                .enumerable(<span class="bool-val">true</span>)
+                .configurable(<span class="bool-val">true</span>)
+                .build(),
+            context,
         )<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<span class="ident">ShouldExit::False</span>)
+        <span class="prelude-val">Ok</span>(ShouldExit::False)
     }
 }
 
-<span class="doccomment">/// `SetPropertySetterByName` implements the Opcode Operation for `Opcode::SetPropertySetterByName`</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Operation:</span>
-<span class="doccomment">///  - Sets a setter property by name of an object.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">SetPropertySetterByName</span>;
+<span class="doccomment">/// `SetPropertySetterByName` implements the Opcode Operation for `Opcode::SetPropertySetterByName`
+///
+/// Operation:
+///  - Sets a setter property by name of an object.
+</span><span class="attribute">#[derive(Debug, Clone, Copy)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>SetPropertySetterByName;
 
-<span class="kw">impl</span> <span class="ident">Operation</span> <span class="kw">for</span> <span class="ident">SetPropertySetterByName</span> {
-    <span class="kw">const</span> <span class="ident">NAME</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;SetPropertySetterByName&quot;</span>;
-    <span class="kw">const</span> <span class="ident">INSTRUCTION</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;INST - SetPropertySetterByName&quot;</span>;
+<span class="kw">impl </span>Operation <span class="kw">for </span>SetPropertySetterByName {
+    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;SetPropertySetterByName&quot;</span>;
+    <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - SetPropertySetterByName&quot;</span>;
 
-    <span class="kw">fn</span> <span class="ident">execute</span>(<span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">ShouldExit</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>();
-        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">pop</span>();
-        <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">pop</span>();
-        <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="ident">object</span>.<span class="ident">to_object</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">frame</span>().<span class="ident">code</span>.<span class="ident">names</span>[<span class="ident">index</span> <span class="kw">as</span> <span class="ident">usize</span>];
-        <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="ident">context</span>
-            .<span class="ident">interner</span>()
-            .<span class="ident">resolve_expect</span>(<span class="ident">name</span>.<span class="ident">sym</span>())
-            .<span class="ident">into_common</span>::<span class="op">&lt;</span><span class="ident">JsString</span><span class="op">&gt;</span>(<span class="bool-val">false</span>)
-            .<span class="ident">into</span>();
-        <span class="kw">let</span> <span class="ident">get</span> <span class="op">=</span> <span class="ident">object</span>
-            .<span class="ident">__get_own_property__</span>(<span class="kw-2">&amp;</span><span class="ident">name</span>, <span class="ident">context</span>)<span class="question-mark">?</span>
-            .<span class="ident">as_ref</span>()
-            .<span class="ident">and_then</span>(<span class="ident">PropertyDescriptor::get</span>)
-            .<span class="ident">cloned</span>();
-        <span class="ident">object</span>.<span class="ident">__define_own_property__</span>(
-            <span class="ident">name</span>,
-            <span class="ident">PropertyDescriptor::builder</span>()
-                .<span class="ident">maybe_set</span>(<span class="prelude-val">Some</span>(<span class="ident">value</span>))
-                .<span class="ident">maybe_get</span>(<span class="ident">get</span>)
-                .<span class="ident">enumerable</span>(<span class="bool-val">true</span>)
-                .<span class="ident">configurable</span>(<span class="bool-val">true</span>)
-                .<span class="ident">build</span>(),
-            <span class="ident">context</span>,
+    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;ShouldExit&gt; {
+        <span class="kw">let </span>index = context.vm.read::&lt;u32&gt;();
+        <span class="kw">let </span>value = context.vm.pop();
+        <span class="kw">let </span>object = context.vm.pop();
+        <span class="kw">let </span>object = object.to_object(context)<span class="question-mark">?</span>;
+        <span class="kw">let </span>name = context.vm.frame().code.names[index <span class="kw">as </span>usize];
+        <span class="kw">let </span>name = context
+            .interner()
+            .resolve_expect(name.sym())
+            .into_common::&lt;JsString&gt;(<span class="bool-val">false</span>)
+            .into();
+        <span class="kw">let </span>get = object
+            .__get_own_property__(<span class="kw-2">&amp;</span>name, context)<span class="question-mark">?
+            </span>.as_ref()
+            .and_then(PropertyDescriptor::get)
+            .cloned();
+        object.__define_own_property__(
+            name,
+            PropertyDescriptor::builder()
+                .maybe_set(<span class="prelude-val">Some</span>(value))
+                .maybe_get(get)
+                .enumerable(<span class="bool-val">true</span>)
+                .configurable(<span class="bool-val">true</span>)
+                .build(),
+            context,
         )<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<span class="ident">ShouldExit::False</span>)
+        <span class="prelude-val">Ok</span>(ShouldExit::False)
     }
 }
 
-<span class="doccomment">/// `SetPropertySetterByValue` implements the Opcode Operation for `Opcode::SetPropertySetterByValue`</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Operation:</span>
-<span class="doccomment">///  - Sets a setter property by value of an object.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">SetPropertySetterByValue</span>;
+<span class="doccomment">/// `SetPropertySetterByValue` implements the Opcode Operation for `Opcode::SetPropertySetterByValue`
+///
+/// Operation:
+///  - Sets a setter property by value of an object.
+</span><span class="attribute">#[derive(Debug, Clone, Copy)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>SetPropertySetterByValue;
 
-<span class="kw">impl</span> <span class="ident">Operation</span> <span class="kw">for</span> <span class="ident">SetPropertySetterByValue</span> {
-    <span class="kw">const</span> <span class="ident">NAME</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;SetPropertySetterByValue&quot;</span>;
-    <span class="kw">const</span> <span class="ident">INSTRUCTION</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;INST - SetPropertySetterByValue&quot;</span>;
+<span class="kw">impl </span>Operation <span class="kw">for </span>SetPropertySetterByValue {
+    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;SetPropertySetterByValue&quot;</span>;
+    <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - SetPropertySetterByValue&quot;</span>;
 
-    <span class="kw">fn</span> <span class="ident">execute</span>(<span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">ShouldExit</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">pop</span>();
-        <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">pop</span>();
-        <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">pop</span>();
-        <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="ident">object</span>.<span class="ident">to_object</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="ident">key</span>.<span class="ident">to_property_key</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">get</span> <span class="op">=</span> <span class="ident">object</span>
-            .<span class="ident">__get_own_property__</span>(<span class="kw-2">&amp;</span><span class="ident">name</span>, <span class="ident">context</span>)<span class="question-mark">?</span>
-            .<span class="ident">as_ref</span>()
-            .<span class="ident">and_then</span>(<span class="ident">PropertyDescriptor::get</span>)
-            .<span class="ident">cloned</span>();
-        <span class="ident">object</span>.<span class="ident">__define_own_property__</span>(
-            <span class="ident">name</span>,
-            <span class="ident">PropertyDescriptor::builder</span>()
-                .<span class="ident">maybe_set</span>(<span class="prelude-val">Some</span>(<span class="ident">value</span>))
-                .<span class="ident">maybe_get</span>(<span class="ident">get</span>)
-                .<span class="ident">enumerable</span>(<span class="bool-val">true</span>)
-                .<span class="ident">configurable</span>(<span class="bool-val">true</span>)
-                .<span class="ident">build</span>(),
-            <span class="ident">context</span>,
+    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;ShouldExit&gt; {
+        <span class="kw">let </span>value = context.vm.pop();
+        <span class="kw">let </span>key = context.vm.pop();
+        <span class="kw">let </span>object = context.vm.pop();
+        <span class="kw">let </span>object = object.to_object(context)<span class="question-mark">?</span>;
+        <span class="kw">let </span>name = key.to_property_key(context)<span class="question-mark">?</span>;
+        <span class="kw">let </span>get = object
+            .__get_own_property__(<span class="kw-2">&amp;</span>name, context)<span class="question-mark">?
+            </span>.as_ref()
+            .and_then(PropertyDescriptor::get)
+            .cloned();
+        object.__define_own_property__(
+            name,
+            PropertyDescriptor::builder()
+                .maybe_set(<span class="prelude-val">Some</span>(value))
+                .maybe_get(get)
+                .enumerable(<span class="bool-val">true</span>)
+                .configurable(<span class="bool-val">true</span>)
+                .build(),
+            context,
         )<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<span class="ident">ShouldExit::False</span>)
+        <span class="prelude-val">Ok</span>(ShouldExit::False)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0 (a55dd71d5 2022-09-19)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0 (897e37553 2022-11-02)" ></div></body></html>

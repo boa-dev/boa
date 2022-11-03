@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_engine/src/syntax/lexer/token.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>token.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_engine/src/syntax/lexer/token.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>token.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container">
                     <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../boa_engine/index.html">
                         <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -244,249 +244,249 @@
 <span id="242">242</span>
 <span id="243">243</span>
 <span id="244">244</span>
-</pre><pre class="rust"><code><span class="doccomment">//! This module implements all of the [Token]s used in the JavaScript programing language.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! More information:</span>
-<span class="doccomment">//!  - [ECMAScript reference][spec]</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! [spec]: https://tc39.es/ecma262/#sec-tokens</span>
+</pre><pre class="rust"><code><span class="doccomment">//! This module implements all of the [Token]s used in the JavaScript programing language.
+//!
+//! More information:
+//!  - [ECMAScript reference][spec]
+//!
+//! [spec]: https://tc39.es/ecma262/#sec-tokens
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax::lexer::template::TemplateString</span>;
-<span class="kw">use</span> <span class="ident">boa_ast</span>::{<span class="ident">Keyword</span>, <span class="ident">Punctuator</span>, <span class="ident">Span</span>};
-<span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">Sym</span>};
-<span class="kw">use</span> <span class="ident">num_bigint::BigInt</span>;
+</span><span class="kw">use </span><span class="kw">crate</span>::syntax::lexer::template::TemplateString;
+<span class="kw">use </span>boa_ast::{Keyword, Punctuator, Span};
+<span class="kw">use </span>boa_interner::{Interner, Sym};
+<span class="kw">use </span>num_bigint::BigInt;
 
-<span class="doccomment">/// This represents the smallest individual words, phrases, or characters that JavaScript can understand.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [ECMAScript reference][spec]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-tokens</span>
-<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deser&quot;</span>, <span class="ident">derive</span>(<span class="ident">serde::Serialize</span>, <span class="ident">serde::Deserialize</span>))]</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Token</span> {
-    <span class="doccomment">/// The token kind, which contains the actual data of the token.</span>
-    <span class="ident">kind</span>: <span class="ident">TokenKind</span>,
-    <span class="doccomment">/// The token position in the original source code.</span>
-    <span class="ident">span</span>: <span class="ident">Span</span>,
+<span class="doccomment">/// This represents the smallest individual words, phrases, or characters that JavaScript can understand.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-tokens
+</span><span class="attribute">#[cfg_attr(feature = <span class="string">&quot;deser&quot;</span>, derive(serde::Serialize, serde::Deserialize))]
+#[derive(Debug, Clone, PartialEq)]
+</span><span class="kw">pub struct </span>Token {
+    <span class="doccomment">/// The token kind, which contains the actual data of the token.
+    </span>kind: TokenKind,
+    <span class="doccomment">/// The token position in the original source code.
+    </span>span: Span,
 }
 
-<span class="kw">impl</span> <span class="ident">Token</span> {
-    <span class="doccomment">/// Create a new detailed token from the token data, line number and column number</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">kind</span>: <span class="ident">TokenKind</span>, <span class="ident">span</span>: <span class="ident">Span</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> { <span class="ident">kind</span>, <span class="ident">span</span> }
+<span class="kw">impl </span>Token {
+    <span class="doccomment">/// Create a new detailed token from the token data, line number and column number
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>new(kind: TokenKind, span: Span) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{ kind, span }
     }
 
-    <span class="doccomment">/// Gets the kind of the token.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">kind</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">TokenKind</span> {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">kind</span>
+    <span class="doccomment">/// Gets the kind of the token.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>kind(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>TokenKind {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.kind
     }
 
-    <span class="doccomment">/// Gets the token span in the original source code.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">span</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Span</span> {
-        <span class="self">self</span>.<span class="ident">span</span>
+    <span class="doccomment">/// Gets the token span in the original source code.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>span(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Span {
+        <span class="self">self</span>.span
     }
 
-    <span class="doccomment">/// Converts the token to a `String`.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">to_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;</span><span class="ident">Interner</span>) -&gt; <span class="ident">String</span> {
-        <span class="self">self</span>.<span class="ident">kind</span>.<span class="ident">to_string</span>(<span class="ident">interner</span>)
-    }
-}
-
-<span class="doccomment">/// Represents the type different types of numeric literals.</span>
-<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deser&quot;</span>, <span class="ident">derive</span>(<span class="ident">serde::Serialize</span>, <span class="ident">serde::Deserialize</span>))]</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">PartialEq</span>, <span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Numeric</span> {
-    <span class="doccomment">/// A floating point number</span>
-    <span class="ident">Rational</span>(<span class="ident">f64</span>),
-
-    <span class="doccomment">/// An integer</span>
-    <span class="ident">Integer</span>(<span class="ident">i32</span>),
-
-    <span class="comment">// A BigInt</span>
-    <span class="ident">BigInt</span>(<span class="ident">Box</span><span class="op">&lt;</span><span class="ident">BigInt</span><span class="op">&gt;</span>),
-}
-
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Numeric</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">n</span>: <span class="ident">f64</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::Rational</span>(<span class="ident">n</span>)
+    <span class="doccomment">/// Converts the token to a `String`.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>to_string(<span class="kw-2">&amp;</span><span class="self">self</span>, interner: <span class="kw-2">&amp;</span>Interner) -&gt; String {
+        <span class="self">self</span>.kind.to_string(interner)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Numeric</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">n</span>: <span class="ident">i32</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::Integer</span>(<span class="ident">n</span>)
+<span class="doccomment">/// Represents the type different types of numeric literals.
+</span><span class="attribute">#[cfg_attr(feature = <span class="string">&quot;deser&quot;</span>, derive(serde::Serialize, serde::Deserialize))]
+#[derive(Clone, PartialEq, Debug)]
+</span><span class="kw">pub enum </span>Numeric {
+    <span class="doccomment">/// A floating point number
+    </span>Rational(f64),
+
+    <span class="doccomment">/// An integer
+    </span>Integer(i32),
+
+    <span class="comment">// A BigInt
+    </span>BigInt(Box&lt;BigInt&gt;),
+}
+
+<span class="kw">impl </span>From&lt;f64&gt; <span class="kw">for </span>Numeric {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(n: f64) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::Rational(n)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">BigInt</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Numeric</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">n</span>: <span class="ident">BigInt</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::BigInt</span>(<span class="ident">Box::new</span>(<span class="ident">n</span>))
+<span class="kw">impl </span>From&lt;i32&gt; <span class="kw">for </span>Numeric {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(n: i32) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::Integer(n)
     }
 }
 
-<span class="doccomment">/// Represents the type of Token and the data it has inside.</span>
-<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deser&quot;</span>, <span class="ident">derive</span>(<span class="ident">serde::Serialize</span>, <span class="ident">serde::Deserialize</span>))]</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">PartialEq</span>, <span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">TokenKind</span> {
-    <span class="doccomment">/// A boolean literal, which is either `true` or `false`.</span>
-    <span class="ident">BooleanLiteral</span>(<span class="ident">bool</span>),
-
-    <span class="doccomment">/// The end of the file.</span>
-    <span class="ident">EOF</span>,
-
-    <span class="doccomment">/// An identifier.</span>
-    <span class="ident">Identifier</span>(<span class="ident">Sym</span>),
-
-    <span class="doccomment">/// A private identifier.</span>
-    <span class="ident">PrivateIdentifier</span>(<span class="ident">Sym</span>),
-
-    <span class="doccomment">/// A keyword and a flag if the keyword contains unicode escaped chars.</span>
-    <span class="ident">Keyword</span>((<span class="ident">Keyword</span>, <span class="ident">bool</span>)),
-
-    <span class="doccomment">/// A `null` literal.</span>
-    <span class="ident">NullLiteral</span>,
-
-    <span class="doccomment">/// A numeric literal.</span>
-    <span class="ident">NumericLiteral</span>(<span class="ident">Numeric</span>),
-
-    <span class="doccomment">/// A piece of punctuation</span>
-    <span class="ident">Punctuator</span>(<span class="ident">Punctuator</span>),
-
-    <span class="doccomment">/// A string literal.</span>
-    <span class="ident">StringLiteral</span>(<span class="ident">Sym</span>),
-
-    <span class="doccomment">/// A part of a template literal without substitution.</span>
-    <span class="ident">TemplateNoSubstitution</span>(<span class="ident">TemplateString</span>),
-
-    <span class="doccomment">/// The part of a template literal between substitutions</span>
-    <span class="ident">TemplateMiddle</span>(<span class="ident">TemplateString</span>),
-
-    <span class="doccomment">/// A regular expression, consisting of body and flags.</span>
-    <span class="ident">RegularExpressionLiteral</span>(<span class="ident">Sym</span>, <span class="ident">Sym</span>),
-
-    <span class="doccomment">/// Indicates the end of a line (`\n`).</span>
-    <span class="ident">LineTerminator</span>,
-
-    <span class="doccomment">/// Indicates a comment, the content isn&#39;t stored.</span>
-    <span class="ident">Comment</span>,
-}
-
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">TokenKind</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">oth</span>: <span class="ident">bool</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::BooleanLiteral</span>(<span class="ident">oth</span>)
+<span class="kw">impl </span>From&lt;BigInt&gt; <span class="kw">for </span>Numeric {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(n: BigInt) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::BigInt(Box::new(n))
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span>(<span class="ident">Keyword</span>, <span class="ident">bool</span>)<span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">TokenKind</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">kw</span>: (<span class="ident">Keyword</span>, <span class="ident">bool</span>)) -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::Keyword</span>(<span class="ident">kw</span>)
+<span class="doccomment">/// Represents the type of Token and the data it has inside.
+</span><span class="attribute">#[cfg_attr(feature = <span class="string">&quot;deser&quot;</span>, derive(serde::Serialize, serde::Deserialize))]
+#[derive(Clone, PartialEq, Debug)]
+</span><span class="kw">pub enum </span>TokenKind {
+    <span class="doccomment">/// A boolean literal, which is either `true` or `false`.
+    </span>BooleanLiteral(bool),
+
+    <span class="doccomment">/// The end of the file.
+    </span>EOF,
+
+    <span class="doccomment">/// An identifier.
+    </span>Identifier(Sym),
+
+    <span class="doccomment">/// A private identifier.
+    </span>PrivateIdentifier(Sym),
+
+    <span class="doccomment">/// A keyword and a flag if the keyword contains unicode escaped chars.
+    </span>Keyword((Keyword, bool)),
+
+    <span class="doccomment">/// A `null` literal.
+    </span>NullLiteral,
+
+    <span class="doccomment">/// A numeric literal.
+    </span>NumericLiteral(Numeric),
+
+    <span class="doccomment">/// A piece of punctuation
+    </span>Punctuator(Punctuator),
+
+    <span class="doccomment">/// A string literal.
+    </span>StringLiteral(Sym),
+
+    <span class="doccomment">/// A part of a template literal without substitution.
+    </span>TemplateNoSubstitution(TemplateString),
+
+    <span class="doccomment">/// The part of a template literal between substitutions
+    </span>TemplateMiddle(TemplateString),
+
+    <span class="doccomment">/// A regular expression, consisting of body and flags.
+    </span>RegularExpressionLiteral(Sym, Sym),
+
+    <span class="doccomment">/// Indicates the end of a line (`\n`).
+    </span>LineTerminator,
+
+    <span class="doccomment">/// Indicates a comment, the content isn&#39;t stored.
+    </span>Comment,
+}
+
+<span class="kw">impl </span>From&lt;bool&gt; <span class="kw">for </span>TokenKind {
+    <span class="kw">fn </span>from(oth: bool) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::BooleanLiteral(oth)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Punctuator</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">TokenKind</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">punc</span>: <span class="ident">Punctuator</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::Punctuator</span>(<span class="ident">punc</span>)
+<span class="kw">impl </span>From&lt;(Keyword, bool)&gt; <span class="kw">for </span>TokenKind {
+    <span class="kw">fn </span>from(kw: (Keyword, bool)) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::Keyword(kw)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Numeric</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">TokenKind</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">num</span>: <span class="ident">Numeric</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::NumericLiteral</span>(<span class="ident">num</span>)
+<span class="kw">impl </span>From&lt;Punctuator&gt; <span class="kw">for </span>TokenKind {
+    <span class="kw">fn </span>from(punc: Punctuator) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::Punctuator(punc)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">TokenKind</span> {
-    <span class="doccomment">/// Creates a `BooleanLiteral` token kind.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">boolean_literal</span>(<span class="ident">lit</span>: <span class="ident">bool</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::BooleanLiteral</span>(<span class="ident">lit</span>)
+<span class="kw">impl </span>From&lt;Numeric&gt; <span class="kw">for </span>TokenKind {
+    <span class="kw">fn </span>from(num: Numeric) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::NumericLiteral(num)
+    }
+}
+
+<span class="kw">impl </span>TokenKind {
+    <span class="doccomment">/// Creates a `BooleanLiteral` token kind.
+    </span><span class="kw">pub fn </span>boolean_literal(lit: bool) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::BooleanLiteral(lit)
     }
 
-    <span class="doccomment">/// Creates an `EOF` token kind.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">eof</span>() -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::EOF</span>
+    <span class="doccomment">/// Creates an `EOF` token kind.
+    </span><span class="kw">pub fn </span>eof() -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::EOF
     }
 
-    <span class="doccomment">/// Creates an `Identifier` token type.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">identifier</span>(<span class="ident">ident</span>: <span class="ident">Sym</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::Identifier</span>(<span class="ident">ident</span>)
+    <span class="doccomment">/// Creates an `Identifier` token type.
+    </span><span class="kw">pub fn </span>identifier(ident: Sym) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::Identifier(ident)
     }
 
-    <span class="doccomment">/// Creates a `NumericLiteral` token kind.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">numeric_literal</span><span class="op">&lt;</span><span class="ident">L</span><span class="op">&gt;</span>(<span class="ident">lit</span>: <span class="ident">L</span>) -&gt; <span class="self">Self</span>
-    <span class="kw">where</span>
-        <span class="ident">L</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Numeric</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// Creates a `NumericLiteral` token kind.
+    </span><span class="kw">pub fn </span>numeric_literal&lt;L&gt;(lit: L) -&gt; <span class="self">Self
+    </span><span class="kw">where
+        </span>L: Into&lt;Numeric&gt;,
     {
-        <span class="ident"><span class="self">Self</span>::NumericLiteral</span>(<span class="ident">lit</span>.<span class="ident">into</span>())
+        <span class="self">Self</span>::NumericLiteral(lit.into())
     }
 
-    <span class="doccomment">/// Creates a `Punctuator` token type.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">punctuator</span>(<span class="ident">punc</span>: <span class="ident">Punctuator</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::Punctuator</span>(<span class="ident">punc</span>)
+    <span class="doccomment">/// Creates a `Punctuator` token type.
+    </span><span class="kw">pub fn </span>punctuator(punc: Punctuator) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::Punctuator(punc)
     }
 
-    <span class="doccomment">/// Creates a `StringLiteral` token type.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">string_literal</span>(<span class="ident">lit</span>: <span class="ident">Sym</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::StringLiteral</span>(<span class="ident">lit</span>)
+    <span class="doccomment">/// Creates a `StringLiteral` token type.
+    </span><span class="kw">pub fn </span>string_literal(lit: Sym) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::StringLiteral(lit)
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">template_middle</span>(<span class="ident">template_string</span>: <span class="ident">TemplateString</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::TemplateMiddle</span>(<span class="ident">template_string</span>)
+    <span class="kw">pub fn </span>template_middle(template_string: TemplateString) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::TemplateMiddle(template_string)
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">template_no_substitution</span>(<span class="ident">template_string</span>: <span class="ident">TemplateString</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::TemplateNoSubstitution</span>(<span class="ident">template_string</span>)
+    <span class="kw">pub fn </span>template_no_substitution(template_string: TemplateString) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::TemplateNoSubstitution(template_string)
     }
 
-    <span class="doccomment">/// Creates a `RegularExpressionLiteral` token kind.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">regular_expression_literal</span>(<span class="ident">body</span>: <span class="ident">Sym</span>, <span class="ident">flags</span>: <span class="ident">Sym</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::RegularExpressionLiteral</span>(<span class="ident">body</span>, <span class="ident">flags</span>)
+    <span class="doccomment">/// Creates a `RegularExpressionLiteral` token kind.
+    </span><span class="kw">pub fn </span>regular_expression_literal(body: Sym, flags: Sym) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::RegularExpressionLiteral(body, flags)
     }
 
-    <span class="doccomment">/// Creates a `LineTerminator` token kind.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">line_terminator</span>() -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::LineTerminator</span>
+    <span class="doccomment">/// Creates a `LineTerminator` token kind.
+    </span><span class="kw">pub fn </span>line_terminator() -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::LineTerminator
     }
 
-    <span class="doccomment">/// Creates a &#39;Comment&#39; token kind.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">comment</span>() -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::Comment</span>
+    <span class="doccomment">/// Creates a &#39;Comment&#39; token kind.
+    </span><span class="kw">pub fn </span>comment() -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::Comment
     }
 
-    <span class="doccomment">/// Implements the `ToString` functionality for the `TokenKind`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;</span><span class="ident">Interner</span>) -&gt; <span class="ident">String</span> {
-        <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident"><span class="self">Self</span>::BooleanLiteral</span>(<span class="ident">val</span>) =&gt; <span class="ident">val</span>.<span class="ident">to_string</span>(),
-            <span class="ident"><span class="self">Self</span>::EOF</span> =&gt; <span class="string">&quot;end of file&quot;</span>.<span class="ident">to_owned</span>(),
-            <span class="ident"><span class="self">Self</span>::Identifier</span>(<span class="ident">ident</span>) =&gt; <span class="ident">interner</span>.<span class="ident">resolve_expect</span>(<span class="ident">ident</span>).<span class="ident">to_string</span>(),
-            <span class="ident"><span class="self">Self</span>::PrivateIdentifier</span>(<span class="ident">ident</span>) =&gt; <span class="macro">format!</span>(<span class="string">&quot;#{}&quot;</span>, <span class="ident">interner</span>.<span class="ident">resolve_expect</span>(<span class="ident">ident</span>)),
-            <span class="ident"><span class="self">Self</span>::Keyword</span>((<span class="ident">word</span>, <span class="kw">_</span>)) =&gt; <span class="ident">word</span>.<span class="ident">to_string</span>(),
-            <span class="ident"><span class="self">Self</span>::NullLiteral</span> =&gt; <span class="string">&quot;null&quot;</span>.<span class="ident">to_owned</span>(),
-            <span class="ident"><span class="self">Self</span>::NumericLiteral</span>(<span class="ident">Numeric::Rational</span>(<span class="ident">num</span>)) =&gt; <span class="ident">num</span>.<span class="ident">to_string</span>(),
-            <span class="ident"><span class="self">Self</span>::NumericLiteral</span>(<span class="ident">Numeric::Integer</span>(<span class="ident">num</span>)) =&gt; <span class="ident">num</span>.<span class="ident">to_string</span>(),
-            <span class="ident"><span class="self">Self</span>::NumericLiteral</span>(<span class="ident">Numeric::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">num</span>)) =&gt; <span class="macro">format!</span>(<span class="string">&quot;{num}n&quot;</span>),
-            <span class="ident"><span class="self">Self</span>::Punctuator</span>(<span class="ident">punc</span>) =&gt; <span class="ident">punc</span>.<span class="ident">to_string</span>(),
-            <span class="ident"><span class="self">Self</span>::StringLiteral</span>(<span class="ident">lit</span>) =&gt; <span class="ident">interner</span>.<span class="ident">resolve_expect</span>(<span class="ident">lit</span>).<span class="ident">to_string</span>(),
-            <span class="ident"><span class="self">Self</span>::TemplateNoSubstitution</span>(<span class="ident">ts</span>) <span class="op">|</span> <span class="ident"><span class="self">Self</span>::TemplateMiddle</span>(<span class="ident">ts</span>) =&gt; {
-                <span class="ident">interner</span>.<span class="ident">resolve_expect</span>(<span class="ident">ts</span>.<span class="ident">as_raw</span>()).<span class="ident">to_string</span>()
+    <span class="doccomment">/// Implements the `ToString` functionality for the `TokenKind`.
+    </span><span class="kw">pub fn </span>to_string(<span class="kw-2">&amp;</span><span class="self">self</span>, interner: <span class="kw-2">&amp;</span>Interner) -&gt; String {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+            <span class="self">Self</span>::BooleanLiteral(val) =&gt; val.to_string(),
+            <span class="self">Self</span>::EOF =&gt; <span class="string">&quot;end of file&quot;</span>.to_owned(),
+            <span class="self">Self</span>::Identifier(ident) =&gt; interner.resolve_expect(ident).to_string(),
+            <span class="self">Self</span>::PrivateIdentifier(ident) =&gt; <span class="macro">format!</span>(<span class="string">&quot;#{}&quot;</span>, interner.resolve_expect(ident)),
+            <span class="self">Self</span>::Keyword((word, <span class="kw">_</span>)) =&gt; word.to_string(),
+            <span class="self">Self</span>::NullLiteral =&gt; <span class="string">&quot;null&quot;</span>.to_owned(),
+            <span class="self">Self</span>::NumericLiteral(Numeric::Rational(num)) =&gt; num.to_string(),
+            <span class="self">Self</span>::NumericLiteral(Numeric::Integer(num)) =&gt; num.to_string(),
+            <span class="self">Self</span>::NumericLiteral(Numeric::BigInt(<span class="kw-2">ref </span>num)) =&gt; <span class="macro">format!</span>(<span class="string">&quot;{num}n&quot;</span>),
+            <span class="self">Self</span>::Punctuator(punc) =&gt; punc.to_string(),
+            <span class="self">Self</span>::StringLiteral(lit) =&gt; interner.resolve_expect(lit).to_string(),
+            <span class="self">Self</span>::TemplateNoSubstitution(ts) | <span class="self">Self</span>::TemplateMiddle(ts) =&gt; {
+                interner.resolve_expect(ts.as_raw()).to_string()
             }
-            <span class="ident"><span class="self">Self</span>::RegularExpressionLiteral</span>(<span class="ident">body</span>, <span class="ident">flags</span>) =&gt; {
+            <span class="self">Self</span>::RegularExpressionLiteral(body, flags) =&gt; {
                 <span class="macro">format!</span>(
                     <span class="string">&quot;/{}/{}&quot;</span>,
-                    <span class="ident">interner</span>.<span class="ident">resolve_expect</span>(<span class="ident">body</span>),
-                    <span class="ident">interner</span>.<span class="ident">resolve_expect</span>(<span class="ident">flags</span>),
+                    interner.resolve_expect(body),
+                    interner.resolve_expect(flags),
                 )
             }
-            <span class="ident"><span class="self">Self</span>::LineTerminator</span> =&gt; <span class="string">&quot;line terminator&quot;</span>.<span class="ident">to_owned</span>(),
-            <span class="ident"><span class="self">Self</span>::Comment</span> =&gt; <span class="string">&quot;comment&quot;</span>.<span class="ident">to_owned</span>(),
+            <span class="self">Self</span>::LineTerminator =&gt; <span class="string">&quot;line terminator&quot;</span>.to_owned(),
+            <span class="self">Self</span>::Comment =&gt; <span class="string">&quot;comment&quot;</span>.to_owned(),
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0 (a55dd71d5 2022-09-19)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0 (897e37553 2022-11-02)" ></div></body></html>

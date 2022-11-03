@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_engine/src/syntax/parser/expression/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../../storage.js"></script><script defer src="../../../../../source-script.js"></script><script defer src="../../../../../source-files.js"></script><script defer src="../../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../../boa_engine/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../../boa_engine/index.html"><div class="logo-container">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_engine/src/syntax/parser/expression/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../../normalize.css"><link rel="stylesheet" href="../../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../../dark.css" disabled><link rel="stylesheet" href="../../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../../storage.js"></script><script defer src="../../../../../source-script.js"></script><script defer src="../../../../../source-files.js"></script><script defer src="../../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../../boa_engine/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../../boa_engine/index.html"><div class="logo-container">
                     <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../../boa_engine/index.html">
                         <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -757,762 +757,762 @@
 <span id="755">755</span>
 <span id="756">756</span>
 <span id="757">757</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Expression parsing.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! More information:</span>
-<span class="doccomment">//!  - [MDN documentation][mdn]</span>
-<span class="doccomment">//!  - [ECMAScript specification][spec]</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators</span>
-<span class="doccomment">//! [spec]: https://tc39.es/ecma262/#sec-ecmascript-language-expressions</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Expression parsing.
+//!
+//! More information:
+//!  - [MDN documentation][mdn]
+//!  - [ECMAScript specification][spec]
+//!
+//! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators
+//! [spec]: https://tc39.es/ecma262/#sec-ecmascript-language-expressions
 
-<span class="kw">mod</span> <span class="ident">assignment</span>;
-<span class="kw">mod</span> <span class="ident">identifiers</span>;
-<span class="kw">mod</span> <span class="ident">left_hand_side</span>;
-<span class="kw">mod</span> <span class="ident">primary</span>;
-<span class="kw">mod</span> <span class="ident">unary</span>;
-<span class="kw">mod</span> <span class="ident">update</span>;
+</span><span class="kw">mod </span>assignment;
+<span class="kw">mod </span>identifiers;
+<span class="kw">mod </span>left_hand_side;
+<span class="kw">mod </span>primary;
+<span class="kw">mod </span>unary;
+<span class="kw">mod </span>update;
 
-<span class="kw">pub</span>(<span class="kw">in</span> <span class="ident"><span class="kw">crate</span>::syntax::parser</span>) <span class="kw">mod</span> <span class="ident">await_expr</span>;
+<span class="kw">pub</span>(<span class="kw">in </span><span class="kw">crate</span>::syntax::parser) <span class="kw">mod </span>await_expr;
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span>;
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>tests;
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax</span>::{
-    <span class="ident">lexer</span>::{<span class="ident">InputElement</span>, <span class="ident">TokenKind</span>},
-    <span class="ident">parser</span>::{
-        <span class="ident">expression::assignment::ExponentiationExpression</span>, <span class="ident">AllowAwait</span>, <span class="ident">AllowIn</span>, <span class="ident">AllowYield</span>, <span class="ident">Cursor</span>,
-        <span class="ident">ParseError</span>, <span class="ident">ParseResult</span>, <span class="ident">TokenParser</span>,
+<span class="kw">use </span><span class="kw">crate</span>::syntax::{
+    lexer::{InputElement, TokenKind},
+    parser::{
+        expression::assignment::ExponentiationExpression, AllowAwait, AllowIn, AllowYield, Cursor,
+        ParseError, ParseResult, TokenParser,
     },
 };
 
-<span class="kw">use</span> <span class="ident">boa_ast</span>::{
-    <span class="self">self</span> <span class="kw">as</span> <span class="ident">ast</span>,
-    <span class="ident">expression</span>::{
-        <span class="ident">operator</span>::{
-            <span class="ident">binary</span>::{<span class="ident">BinaryOp</span>, <span class="ident">LogicalOp</span>},
-            <span class="ident">Binary</span>,
+<span class="kw">use </span>boa_ast::{
+    <span class="self">self </span><span class="kw">as </span>ast,
+    expression::{
+        operator::{
+            binary::{BinaryOp, LogicalOp},
+            Binary,
         },
-        <span class="ident">Identifier</span>,
+        Identifier,
     },
-    <span class="ident">Keyword</span>, <span class="ident">Position</span>, <span class="ident">Punctuator</span>,
+    Keyword, Position, Punctuator,
 };
-<span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">Sym</span>};
-<span class="kw">use</span> <span class="ident">boa_profiler::Profiler</span>;
-<span class="kw">use</span> <span class="ident">std::io::Read</span>;
+<span class="kw">use </span>boa_interner::{Interner, Sym};
+<span class="kw">use </span>boa_profiler::Profiler;
+<span class="kw">use </span>std::io::Read;
 
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">use</span> <span class="self">self</span>::{<span class="ident">assignment::AssignmentExpression</span>, <span class="ident">primary::Initializer</span>};
-<span class="kw">pub</span>(<span class="kw">in</span> <span class="ident"><span class="kw">crate</span>::syntax::parser</span>) <span class="kw">use</span> {
-    <span class="ident">identifiers</span>::{<span class="ident">BindingIdentifier</span>, <span class="ident">LabelIdentifier</span>},
-    <span class="ident">left_hand_side::LeftHandSideExpression</span>,
-    <span class="ident">primary::object_initializer</span>::{
-        <span class="ident">AsyncGeneratorMethod</span>, <span class="ident">AsyncMethod</span>, <span class="ident">GeneratorMethod</span>, <span class="ident">PropertyName</span>,
+<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">use </span><span class="self">self</span>::{assignment::AssignmentExpression, primary::Initializer};
+<span class="kw">pub</span>(<span class="kw">in </span><span class="kw">crate</span>::syntax::parser) <span class="kw">use </span>{
+    identifiers::{BindingIdentifier, LabelIdentifier},
+    left_hand_side::LeftHandSideExpression,
+    primary::object_initializer::{
+        AsyncGeneratorMethod, AsyncMethod, GeneratorMethod, PropertyName,
     },
 };
 
-<span class="doccomment">/// Generates an expression parser for a number of expressions whose production rules are of the following pattern.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```text</span>
-<span class="doccomment">/// &lt;TargetExpression&gt;[allowed_identifiers]</span>
-<span class="doccomment">///     =&gt; &lt;InnerExpression&gt;[?allowed_identifiers]</span>
-<span class="doccomment">///     =&gt; &lt;TargetExpression&gt;[?allowed_identifiers] &lt;op1&gt; &lt;InnerExpression&gt;[?allowed_identifiers]</span>
-<span class="doccomment">///     =&gt; &lt;TargetExpression&gt;[?allowed_identifiers] &lt;op2&gt; &lt;InnerExpression&gt;[?allowed_identifiers]</span>
-<span class="doccomment">///     ...</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This macro has 2 mandatory identifiers:</span>
-<span class="doccomment">///  - The `$name` identifier is the name of the `TargetExpression` struct that the parser will be implemented for.</span>
-<span class="doccomment">///  - The `$lower` identifier is the name of the `InnerExpression` struct according to the pattern above.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// A list of punctuators (operands between the &lt;TargetExpression&gt; and &lt;InnerExpression&gt;) are passed as the third parameter.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The fifth parameter is an Option&lt;InputElement&gt; which sets the goal symbol to set before parsing (or None to leave it as is).</span>
-<span class="macro">macro_rules!</span> <span class="ident">expression</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">lower</span>:<span class="ident">ident</span>, [$( <span class="macro-nonterminal">$</span><span class="macro-nonterminal">op</span>:<span class="ident">path</span> ),<span class="kw-2">*</span>], [$( <span class="macro-nonterminal">$</span><span class="macro-nonterminal">low_param</span>:<span class="ident">ident</span> ),<span class="kw-2">*</span>], <span class="macro-nonterminal">$</span><span class="macro-nonterminal">goal</span>:<span class="ident">expr</span> ) =&gt; {
-        <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="ident">TokenParser</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>
-        <span class="kw">where</span>
-            <span class="ident">R</span>: <span class="ident">Read</span>
+<span class="doccomment">/// Generates an expression parser for a number of expressions whose production rules are of the following pattern.
+///
+/// ```text
+/// &lt;TargetExpression&gt;[allowed_identifiers]
+///     =&gt; &lt;InnerExpression&gt;[?allowed_identifiers]
+///     =&gt; &lt;TargetExpression&gt;[?allowed_identifiers] &lt;op1&gt; &lt;InnerExpression&gt;[?allowed_identifiers]
+///     =&gt; &lt;TargetExpression&gt;[?allowed_identifiers] &lt;op2&gt; &lt;InnerExpression&gt;[?allowed_identifiers]
+///     ...
+/// ```
+///
+/// This macro has 2 mandatory identifiers:
+///  - The `$name` identifier is the name of the `TargetExpression` struct that the parser will be implemented for.
+///  - The `$lower` identifier is the name of the `InnerExpression` struct according to the pattern above.
+///
+/// A list of punctuators (operands between the &lt;TargetExpression&gt; and &lt;InnerExpression&gt;) are passed as the third parameter.
+///
+/// The fifth parameter is an Option&lt;InputElement&gt; which sets the goal symbol to set before parsing (or None to leave it as is).
+</span><span class="macro">macro_rules! </span>expression {
+    (<span class="macro-nonterminal">$name</span>:ident, <span class="macro-nonterminal">$lower</span>:ident, [$( <span class="macro-nonterminal">$op</span>:path ),<span class="kw-2">*</span>], [$( <span class="macro-nonterminal">$low_param</span>:ident ),<span class="kw-2">*</span>], <span class="macro-nonterminal">$goal</span>:expr ) =&gt; {
+        <span class="kw">impl</span>&lt;R&gt; TokenParser&lt;R&gt; <span class="kw">for </span><span class="macro-nonterminal">$name
+        </span><span class="kw">where
+            </span>R: Read
         {
-            <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">ast::Expression</span>;
+            <span class="kw">type </span>Output = ast::Expression;
 
-            <span class="kw">fn</span> <span class="ident">parse</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">cursor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Interner</span>)-&gt; <span class="ident">ParseResult</span><span class="op">&lt;</span><span class="ident">ast::Expression</span><span class="op">&gt;</span> {
-                <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="macro">stringify!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>), <span class="string">&quot;Parsing&quot;</span>);
+            <span class="kw">fn </span>parse(<span class="kw-2">mut </span><span class="self">self</span>, cursor: <span class="kw-2">&amp;mut </span>Cursor&lt;R&gt;, interner: <span class="kw-2">&amp;mut </span>Interner)-&gt; ParseResult&lt;ast::Expression&gt; {
+                <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="macro">stringify!</span>(<span class="macro-nonterminal">$name</span>), <span class="string">&quot;Parsing&quot;</span>);
 
-                <span class="kw">if</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">goal</span>.<span class="ident">is_some</span>() {
-                    <span class="ident">cursor</span>.<span class="ident">set_goal</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">goal</span>.<span class="ident">unwrap</span>());
+                <span class="kw">if </span><span class="macro-nonterminal">$goal</span>.is_some() {
+                    cursor.set_goal(<span class="macro-nonterminal">$goal</span>.unwrap());
                 }
 
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">lhs</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">lower::new</span>($( <span class="self">self</span>.<span class="macro-nonterminal">$</span><span class="macro-nonterminal">low_param</span> ),<span class="kw-2">*</span>).<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
-                <span class="self">self</span>.<span class="ident">name</span> <span class="op">=</span> <span class="prelude-val">None</span>;
-                <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">tok</span>) <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">0</span>, <span class="ident">interner</span>)<span class="question-mark">?</span> {
-                    <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">tok</span>.<span class="ident">kind</span>() {
-                        <span class="ident">TokenKind::Punctuator</span>(<span class="ident">op</span>) <span class="kw">if</span> $( <span class="ident">op</span> <span class="op">==</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">op</span> )<span class="op">|</span><span class="op">|</span><span class="op">*</span> =&gt; {
-                            <span class="kw">let</span> <span class="ident">_next</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">next</span>(<span class="ident">interner</span>).<span class="ident">expect</span>(<span class="string">&quot;token disappeared&quot;</span>);
-                            <span class="ident">lhs</span> <span class="op">=</span> <span class="ident">Binary::new</span>(
-                                <span class="ident">op</span>.<span class="ident">as_binary_op</span>().<span class="ident">expect</span>(<span class="string">&quot;Could not get binary operation.&quot;</span>),
-                                <span class="ident">lhs</span>,
-                                <span class="macro-nonterminal">$</span><span class="macro-nonterminal">lower::new</span>($( <span class="self">self</span>.<span class="macro-nonterminal">$</span><span class="macro-nonterminal">low_param</span> ),<span class="kw-2">*</span>).<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>
-                            ).<span class="ident">into</span>();
+                <span class="kw">let </span><span class="kw-2">mut </span>lhs = <span class="macro-nonterminal">$lower::new</span>($( <span class="self">self</span>.<span class="macro-nonterminal">$low_param </span>),<span class="kw-2">*</span>).parse(cursor, interner)<span class="question-mark">?</span>;
+                <span class="self">self</span>.name = <span class="prelude-val">None</span>;
+                <span class="kw">while let </span><span class="prelude-val">Some</span>(tok) = cursor.peek(<span class="number">0</span>, interner)<span class="question-mark">? </span>{
+                    <span class="kw">match </span><span class="kw-2">*</span>tok.kind() {
+                        TokenKind::Punctuator(op) <span class="kw">if </span>$( op == <span class="macro-nonterminal">$op </span>)||* =&gt; {
+                            <span class="kw">let </span>_next = cursor.next(interner).expect(<span class="string">&quot;token disappeared&quot;</span>);
+                            lhs = Binary::new(
+                                op.as_binary_op().expect(<span class="string">&quot;Could not get binary operation.&quot;</span>),
+                                lhs,
+                                <span class="macro-nonterminal">$lower::new</span>($( <span class="self">self</span>.<span class="macro-nonterminal">$low_param </span>),<span class="kw-2">*</span>).parse(cursor, interner)<span class="question-mark">?
+                            </span>).into();
                         }
-                        <span class="kw">_</span> =&gt; <span class="kw">break</span>
-                    }
+                        <span class="kw">_ </span>=&gt; <span class="kw">break
+                    </span>}
                 }
 
-                <span class="prelude-val">Ok</span>(<span class="ident">lhs</span>)
+                <span class="prelude-val">Ok</span>(lhs)
             }
         }
     };
 }
 
-<span class="doccomment">/// Expression parsing.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [MDN documentation][mdn]</span>
-<span class="doccomment">///  - [ECMAScript specification][spec]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators</span>
-<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-Expression</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct</span> <span class="ident">Expression</span> {
-    <span class="ident">name</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Identifier</span><span class="op">&gt;</span>,
-    <span class="ident">allow_in</span>: <span class="ident">AllowIn</span>,
-    <span class="ident">allow_yield</span>: <span class="ident">AllowYield</span>,
-    <span class="ident">allow_await</span>: <span class="ident">AllowAwait</span>,
+<span class="doccomment">/// Expression parsing.
+///
+/// More information:
+///  - [MDN documentation][mdn]
+///  - [ECMAScript specification][spec]
+///
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators
+/// [spec]: https://tc39.es/ecma262/#prod-Expression
+</span><span class="attribute">#[derive(Debug, Clone, Copy)]
+</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>Expression {
+    name: <span class="prelude-ty">Option</span>&lt;Identifier&gt;,
+    allow_in: AllowIn,
+    allow_yield: AllowYield,
+    allow_await: AllowAwait,
 }
 
-<span class="kw">impl</span> <span class="ident">Expression</span> {
-    <span class="doccomment">/// Creates a new `Expression` parser.</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">N</span>, <span class="ident">I</span>, <span class="ident">Y</span>, <span class="ident">A</span><span class="op">&gt;</span>(<span class="ident">name</span>: <span class="ident">N</span>, <span class="ident">allow_in</span>: <span class="ident">I</span>, <span class="ident">allow_yield</span>: <span class="ident">Y</span>, <span class="ident">allow_await</span>: <span class="ident">A</span>) -&gt; <span class="self">Self</span>
-    <span class="kw">where</span>
-        <span class="ident">N</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Identifier</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-        <span class="ident">I</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowIn</span><span class="op">&gt;</span>,
-        <span class="ident">Y</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowYield</span><span class="op">&gt;</span>,
-        <span class="ident">A</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowAwait</span><span class="op">&gt;</span>,
+<span class="kw">impl </span>Expression {
+    <span class="doccomment">/// Creates a new `Expression` parser.
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new&lt;N, I, Y, A&gt;(name: N, allow_in: I, allow_yield: Y, allow_await: A) -&gt; <span class="self">Self
+    </span><span class="kw">where
+        </span>N: Into&lt;<span class="prelude-ty">Option</span>&lt;Identifier&gt;&gt;,
+        I: Into&lt;AllowIn&gt;,
+        Y: Into&lt;AllowYield&gt;,
+        A: Into&lt;AllowAwait&gt;,
     {
-        <span class="self">Self</span> {
-            <span class="ident">name</span>: <span class="ident">name</span>.<span class="ident">into</span>(),
-            <span class="ident">allow_in</span>: <span class="ident">allow_in</span>.<span class="ident">into</span>(),
-            <span class="ident">allow_yield</span>: <span class="ident">allow_yield</span>.<span class="ident">into</span>(),
-            <span class="ident">allow_await</span>: <span class="ident">allow_await</span>.<span class="ident">into</span>(),
+        <span class="self">Self </span>{
+            name: name.into(),
+            allow_in: allow_in.into(),
+            allow_yield: allow_yield.into(),
+            allow_await: allow_await.into(),
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="ident">TokenParser</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Expression</span>
-<span class="kw">where</span>
-    <span class="ident">R</span>: <span class="ident">Read</span>,
+<span class="kw">impl</span>&lt;R&gt; TokenParser&lt;R&gt; <span class="kw">for </span>Expression
+<span class="kw">where
+    </span>R: Read,
 {
-    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">ast::Expression</span>;
+    <span class="kw">type </span>Output = ast::Expression;
 
-    <span class="kw">fn</span> <span class="ident">parse</span>(
-        <span class="kw-2">mut</span> <span class="self">self</span>,
-        <span class="ident">cursor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>,
-        <span class="ident">interner</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Interner</span>,
-    ) -&gt; <span class="ident">ParseResult</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;Expression&quot;</span>, <span class="string">&quot;Parsing&quot;</span>);
+    <span class="kw">fn </span>parse(
+        <span class="kw-2">mut </span><span class="self">self</span>,
+        cursor: <span class="kw-2">&amp;mut </span>Cursor&lt;R&gt;,
+        interner: <span class="kw-2">&amp;mut </span>Interner,
+    ) -&gt; ParseResult&lt;<span class="self">Self</span>::Output&gt; {
+        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Expression&quot;</span>, <span class="string">&quot;Parsing&quot;</span>);
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">lhs</span> <span class="op">=</span>
-            <span class="ident">AssignmentExpression::new</span>(<span class="self">self</span>.<span class="ident">name</span>, <span class="self">self</span>.<span class="ident">allow_in</span>, <span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
-                .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
-        <span class="self">self</span>.<span class="ident">name</span> <span class="op">=</span> <span class="prelude-val">None</span>;
-        <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">tok</span>) <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">0</span>, <span class="ident">interner</span>)<span class="question-mark">?</span> {
-            <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">tok</span>.<span class="ident">kind</span>() {
-                <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::Comma</span>) =&gt; {
-                    <span class="kw">if</span> <span class="ident">cursor</span>
-                        .<span class="ident">peek</span>(<span class="number">1</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>
-                        .<span class="ident">ok_or</span>(<span class="ident">ParseError::AbruptEnd</span>)<span class="question-mark">?</span>
-                        .<span class="ident">kind</span>()
-                        <span class="op">==</span> <span class="kw-2">&amp;</span><span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::CloseParen</span>)
+        <span class="kw">let </span><span class="kw-2">mut </span>lhs =
+            AssignmentExpression::new(<span class="self">self</span>.name, <span class="self">self</span>.allow_in, <span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await)
+                .parse(cursor, interner)<span class="question-mark">?</span>;
+        <span class="self">self</span>.name = <span class="prelude-val">None</span>;
+        <span class="kw">while let </span><span class="prelude-val">Some</span>(tok) = cursor.peek(<span class="number">0</span>, interner)<span class="question-mark">? </span>{
+            <span class="kw">match </span><span class="kw-2">*</span>tok.kind() {
+                TokenKind::Punctuator(Punctuator::Comma) =&gt; {
+                    <span class="kw">if </span>cursor
+                        .peek(<span class="number">1</span>, interner)<span class="question-mark">?
+                        </span>.ok_or(ParseError::AbruptEnd)<span class="question-mark">?
+                        </span>.kind()
+                        == <span class="kw-2">&amp;</span>TokenKind::Punctuator(Punctuator::CloseParen)
                     {
-                        <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">lhs</span>);
+                        <span class="kw">return </span><span class="prelude-val">Ok</span>(lhs);
                     }
 
-                    <span class="kw">if</span> <span class="ident">cursor</span>
-                        .<span class="ident">peek</span>(<span class="number">1</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>
-                        .<span class="ident">ok_or</span>(<span class="ident">ParseError::AbruptEnd</span>)<span class="question-mark">?</span>
-                        .<span class="ident">kind</span>()
-                        <span class="op">==</span> <span class="kw-2">&amp;</span><span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::Spread</span>)
+                    <span class="kw">if </span>cursor
+                        .peek(<span class="number">1</span>, interner)<span class="question-mark">?
+                        </span>.ok_or(ParseError::AbruptEnd)<span class="question-mark">?
+                        </span>.kind()
+                        == <span class="kw-2">&amp;</span>TokenKind::Punctuator(Punctuator::Spread)
                     {
-                        <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">lhs</span>);
+                        <span class="kw">return </span><span class="prelude-val">Ok</span>(lhs);
                     }
 
-                    <span class="kw">let</span> <span class="ident">_next</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">next</span>(<span class="ident">interner</span>).<span class="ident">expect</span>(<span class="string">&quot;token disappeared&quot;</span>);
+                    <span class="kw">let </span>_next = cursor.next(interner).expect(<span class="string">&quot;token disappeared&quot;</span>);
 
-                    <span class="ident">lhs</span> <span class="op">=</span> <span class="ident">Binary::new</span>(
-                        <span class="ident">Punctuator::Comma</span>
-                            .<span class="ident">as_binary_op</span>()
-                            .<span class="ident">expect</span>(<span class="string">&quot;Could not get binary operation.&quot;</span>),
-                        <span class="ident">lhs</span>,
-                        <span class="ident">AssignmentExpression::new</span>(
-                            <span class="self">self</span>.<span class="ident">name</span>,
-                            <span class="self">self</span>.<span class="ident">allow_in</span>,
-                            <span class="self">self</span>.<span class="ident">allow_yield</span>,
-                            <span class="self">self</span>.<span class="ident">allow_await</span>,
+                    lhs = Binary::new(
+                        Punctuator::Comma
+                            .as_binary_op()
+                            .expect(<span class="string">&quot;Could not get binary operation.&quot;</span>),
+                        lhs,
+                        AssignmentExpression::new(
+                            <span class="self">self</span>.name,
+                            <span class="self">self</span>.allow_in,
+                            <span class="self">self</span>.allow_yield,
+                            <span class="self">self</span>.allow_await,
                         )
-                        .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>,
+                        .parse(cursor, interner)<span class="question-mark">?</span>,
                     )
-                    .<span class="ident">into</span>();
+                    .into();
                 }
-                <span class="kw">_</span> =&gt; <span class="kw">break</span>,
+                <span class="kw">_ </span>=&gt; <span class="kw">break</span>,
             }
         }
 
-        <span class="prelude-val">Ok</span>(<span class="ident">lhs</span>)
+        <span class="prelude-val">Ok</span>(lhs)
     }
 }
 
-<span class="doccomment">/// Parses a logical expression expression.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [MDN documentation][mdn]</span>
-<span class="doccomment">///  - [ECMAScript specification][spec]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Logical_Operators</span>
-<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-ShortCircuitExpression</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
-<span class="kw">struct</span> <span class="ident">ShortCircuitExpression</span> {
-    <span class="ident">name</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Identifier</span><span class="op">&gt;</span>,
-    <span class="ident">allow_in</span>: <span class="ident">AllowIn</span>,
-    <span class="ident">allow_yield</span>: <span class="ident">AllowYield</span>,
-    <span class="ident">allow_await</span>: <span class="ident">AllowAwait</span>,
-    <span class="ident">previous</span>: <span class="ident">PreviousExpr</span>,
+<span class="doccomment">/// Parses a logical expression expression.
+///
+/// More information:
+///  - [MDN documentation][mdn]
+///  - [ECMAScript specification][spec]
+///
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Logical_Operators
+/// [spec]: https://tc39.es/ecma262/#prod-ShortCircuitExpression
+</span><span class="attribute">#[derive(Debug, Clone, Copy)]
+</span><span class="kw">struct </span>ShortCircuitExpression {
+    name: <span class="prelude-ty">Option</span>&lt;Identifier&gt;,
+    allow_in: AllowIn,
+    allow_yield: AllowYield,
+    allow_await: AllowAwait,
+    previous: PreviousExpr,
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="kw">enum</span> <span class="ident">PreviousExpr</span> {
+<span class="attribute">#[derive(Debug, Clone, Copy, PartialEq)]
+</span><span class="kw">enum </span>PreviousExpr {
     <span class="prelude-val">None</span>,
-    <span class="ident">Logical</span>,
-    <span class="ident">Coalesce</span>,
+    Logical,
+    Coalesce,
 }
 
-<span class="kw">impl</span> <span class="ident">ShortCircuitExpression</span> {
-    <span class="doccomment">/// Creates a new `ShortCircuitExpression` parser.</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">N</span>, <span class="ident">I</span>, <span class="ident">Y</span>, <span class="ident">A</span><span class="op">&gt;</span>(<span class="ident">name</span>: <span class="ident">N</span>, <span class="ident">allow_in</span>: <span class="ident">I</span>, <span class="ident">allow_yield</span>: <span class="ident">Y</span>, <span class="ident">allow_await</span>: <span class="ident">A</span>) -&gt; <span class="self">Self</span>
-    <span class="kw">where</span>
-        <span class="ident">N</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Identifier</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-        <span class="ident">I</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowIn</span><span class="op">&gt;</span>,
-        <span class="ident">Y</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowYield</span><span class="op">&gt;</span>,
-        <span class="ident">A</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowAwait</span><span class="op">&gt;</span>,
+<span class="kw">impl </span>ShortCircuitExpression {
+    <span class="doccomment">/// Creates a new `ShortCircuitExpression` parser.
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new&lt;N, I, Y, A&gt;(name: N, allow_in: I, allow_yield: Y, allow_await: A) -&gt; <span class="self">Self
+    </span><span class="kw">where
+        </span>N: Into&lt;<span class="prelude-ty">Option</span>&lt;Identifier&gt;&gt;,
+        I: Into&lt;AllowIn&gt;,
+        Y: Into&lt;AllowYield&gt;,
+        A: Into&lt;AllowAwait&gt;,
     {
-        <span class="self">Self</span> {
-            <span class="ident">name</span>: <span class="ident">name</span>.<span class="ident">into</span>(),
-            <span class="ident">allow_in</span>: <span class="ident">allow_in</span>.<span class="ident">into</span>(),
-            <span class="ident">allow_yield</span>: <span class="ident">allow_yield</span>.<span class="ident">into</span>(),
-            <span class="ident">allow_await</span>: <span class="ident">allow_await</span>.<span class="ident">into</span>(),
-            <span class="ident">previous</span>: <span class="ident">PreviousExpr::None</span>,
+        <span class="self">Self </span>{
+            name: name.into(),
+            allow_in: allow_in.into(),
+            allow_yield: allow_yield.into(),
+            allow_await: allow_await.into(),
+            previous: PreviousExpr::None,
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">with_previous</span><span class="op">&lt;</span><span class="ident">N</span>, <span class="ident">I</span>, <span class="ident">Y</span>, <span class="ident">A</span><span class="op">&gt;</span>(
-        <span class="ident">name</span>: <span class="ident">N</span>,
-        <span class="ident">allow_in</span>: <span class="ident">I</span>,
-        <span class="ident">allow_yield</span>: <span class="ident">Y</span>,
-        <span class="ident">allow_await</span>: <span class="ident">A</span>,
-        <span class="ident">previous</span>: <span class="ident">PreviousExpr</span>,
-    ) -&gt; <span class="self">Self</span>
-    <span class="kw">where</span>
-        <span class="ident">N</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Identifier</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-        <span class="ident">I</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowIn</span><span class="op">&gt;</span>,
-        <span class="ident">Y</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowYield</span><span class="op">&gt;</span>,
-        <span class="ident">A</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowAwait</span><span class="op">&gt;</span>,
+    <span class="kw">fn </span>with_previous&lt;N, I, Y, A&gt;(
+        name: N,
+        allow_in: I,
+        allow_yield: Y,
+        allow_await: A,
+        previous: PreviousExpr,
+    ) -&gt; <span class="self">Self
+    </span><span class="kw">where
+        </span>N: Into&lt;<span class="prelude-ty">Option</span>&lt;Identifier&gt;&gt;,
+        I: Into&lt;AllowIn&gt;,
+        Y: Into&lt;AllowYield&gt;,
+        A: Into&lt;AllowAwait&gt;,
     {
-        <span class="self">Self</span> {
-            <span class="ident">name</span>: <span class="ident">name</span>.<span class="ident">into</span>(),
-            <span class="ident">allow_in</span>: <span class="ident">allow_in</span>.<span class="ident">into</span>(),
-            <span class="ident">allow_yield</span>: <span class="ident">allow_yield</span>.<span class="ident">into</span>(),
-            <span class="ident">allow_await</span>: <span class="ident">allow_await</span>.<span class="ident">into</span>(),
-            <span class="ident">previous</span>,
+        <span class="self">Self </span>{
+            name: name.into(),
+            allow_in: allow_in.into(),
+            allow_yield: allow_yield.into(),
+            allow_await: allow_await.into(),
+            previous,
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="ident">TokenParser</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ShortCircuitExpression</span>
-<span class="kw">where</span>
-    <span class="ident">R</span>: <span class="ident">Read</span>,
+<span class="kw">impl</span>&lt;R&gt; TokenParser&lt;R&gt; <span class="kw">for </span>ShortCircuitExpression
+<span class="kw">where
+    </span>R: Read,
 {
-    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">ast::Expression</span>;
+    <span class="kw">type </span>Output = ast::Expression;
 
-    <span class="kw">fn</span> <span class="ident">parse</span>(<span class="self">self</span>, <span class="ident">cursor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Interner</span>) -&gt; <span class="ident">ParseResult</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;ShortCircuitExpression&quot;</span>, <span class="string">&quot;Parsing&quot;</span>);
+    <span class="kw">fn </span>parse(<span class="self">self</span>, cursor: <span class="kw-2">&amp;mut </span>Cursor&lt;R&gt;, interner: <span class="kw-2">&amp;mut </span>Interner) -&gt; ParseResult&lt;<span class="self">Self</span>::Output&gt; {
+        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;ShortCircuitExpression&quot;</span>, <span class="string">&quot;Parsing&quot;</span>);
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">current_node</span> <span class="op">=</span>
-            <span class="ident">BitwiseORExpression::new</span>(<span class="self">self</span>.<span class="ident">name</span>, <span class="self">self</span>.<span class="ident">allow_in</span>, <span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
-                .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">previous</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">previous</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>current_node =
+            BitwiseORExpression::new(<span class="self">self</span>.name, <span class="self">self</span>.allow_in, <span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await)
+                .parse(cursor, interner)<span class="question-mark">?</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>previous = <span class="self">self</span>.previous;
 
-        <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">tok</span>) <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">0</span>, <span class="ident">interner</span>)<span class="question-mark">?</span> {
-            <span class="kw">match</span> <span class="ident">tok</span>.<span class="ident">kind</span>() {
-                <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::BoolAnd</span>) =&gt; {
-                    <span class="kw">if</span> <span class="ident">previous</span> <span class="op">==</span> <span class="ident">PreviousExpr::Coalesce</span> {
-                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::expected</span>(
-                            [<span class="string">&quot;??&quot;</span>.<span class="ident">to_owned</span>()],
-                            <span class="ident">tok</span>.<span class="ident">to_string</span>(<span class="ident">interner</span>), <span class="ident">tok</span>.<span class="ident">span</span>(),
+        <span class="kw">while let </span><span class="prelude-val">Some</span>(tok) = cursor.peek(<span class="number">0</span>, interner)<span class="question-mark">? </span>{
+            <span class="kw">match </span>tok.kind() {
+                TokenKind::Punctuator(Punctuator::BoolAnd) =&gt; {
+                    <span class="kw">if </span>previous == PreviousExpr::Coalesce {
+                        <span class="kw">return </span><span class="prelude-val">Err</span>(ParseError::expected(
+                            [<span class="string">&quot;??&quot;</span>.to_owned()],
+                            tok.to_string(interner), tok.span(),
                             <span class="string">&quot;logical expression (cannot use &#39;??&#39; without parentheses within &#39;||&#39; or &#39;&amp;&amp;&#39;)&quot;</span>,
                         ));
                     }
-                    <span class="kw">let</span> <span class="ident">_next</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">next</span>(<span class="ident">interner</span>)<span class="question-mark">?</span>.<span class="ident">expect</span>(<span class="string">&quot;&#39;&amp;&amp;&#39; expected&quot;</span>);
-                    <span class="ident">previous</span> <span class="op">=</span> <span class="ident">PreviousExpr::Logical</span>;
-                    <span class="kw">let</span> <span class="ident">rhs</span> <span class="op">=</span> <span class="ident">BitwiseORExpression::new</span>(
-                        <span class="self">self</span>.<span class="ident">name</span>,
-                        <span class="self">self</span>.<span class="ident">allow_in</span>,
-                        <span class="self">self</span>.<span class="ident">allow_yield</span>,
-                        <span class="self">self</span>.<span class="ident">allow_await</span>,
+                    <span class="kw">let </span>_next = cursor.next(interner)<span class="question-mark">?</span>.expect(<span class="string">&quot;&#39;&amp;&amp;&#39; expected&quot;</span>);
+                    previous = PreviousExpr::Logical;
+                    <span class="kw">let </span>rhs = BitwiseORExpression::new(
+                        <span class="self">self</span>.name,
+                        <span class="self">self</span>.allow_in,
+                        <span class="self">self</span>.allow_yield,
+                        <span class="self">self</span>.allow_await,
                     )
-                    .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
+                    .parse(cursor, interner)<span class="question-mark">?</span>;
 
-                    <span class="ident">current_node</span> <span class="op">=</span>
-                        <span class="ident">Binary::new</span>(<span class="ident">BinaryOp::Logical</span>(<span class="ident">LogicalOp::And</span>), <span class="ident">current_node</span>, <span class="ident">rhs</span>).<span class="ident">into</span>();
+                    current_node =
+                        Binary::new(BinaryOp::Logical(LogicalOp::And), current_node, rhs).into();
                 }
-                <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::BoolOr</span>) =&gt; {
-                    <span class="kw">if</span> <span class="ident">previous</span> <span class="op">==</span> <span class="ident">PreviousExpr::Coalesce</span> {
-                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::expected</span>(
-                            [<span class="string">&quot;??&quot;</span>.<span class="ident">to_owned</span>()],
-                            <span class="ident">tok</span>.<span class="ident">to_string</span>(<span class="ident">interner</span>), <span class="ident">tok</span>.<span class="ident">span</span>(),
+                TokenKind::Punctuator(Punctuator::BoolOr) =&gt; {
+                    <span class="kw">if </span>previous == PreviousExpr::Coalesce {
+                        <span class="kw">return </span><span class="prelude-val">Err</span>(ParseError::expected(
+                            [<span class="string">&quot;??&quot;</span>.to_owned()],
+                            tok.to_string(interner), tok.span(),
                             <span class="string">&quot;logical expression (cannot use &#39;??&#39; without parentheses within &#39;||&#39; or &#39;&amp;&amp;&#39;)&quot;</span>,
                         ));
                     }
-                    <span class="kw">let</span> <span class="ident">_next</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">next</span>(<span class="ident">interner</span>)<span class="question-mark">?</span>.<span class="ident">expect</span>(<span class="string">&quot;&#39;||&#39; expected&quot;</span>);
-                    <span class="ident">previous</span> <span class="op">=</span> <span class="ident">PreviousExpr::Logical</span>;
-                    <span class="kw">let</span> <span class="ident">rhs</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::with_previous</span>(
-                        <span class="self">self</span>.<span class="ident">name</span>,
-                        <span class="self">self</span>.<span class="ident">allow_in</span>,
-                        <span class="self">self</span>.<span class="ident">allow_yield</span>,
-                        <span class="self">self</span>.<span class="ident">allow_await</span>,
-                        <span class="ident">PreviousExpr::Logical</span>,
+                    <span class="kw">let </span>_next = cursor.next(interner)<span class="question-mark">?</span>.expect(<span class="string">&quot;&#39;||&#39; expected&quot;</span>);
+                    previous = PreviousExpr::Logical;
+                    <span class="kw">let </span>rhs = <span class="self">Self</span>::with_previous(
+                        <span class="self">self</span>.name,
+                        <span class="self">self</span>.allow_in,
+                        <span class="self">self</span>.allow_yield,
+                        <span class="self">self</span>.allow_await,
+                        PreviousExpr::Logical,
                     )
-                    .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
-                    <span class="ident">current_node</span> <span class="op">=</span>
-                        <span class="ident">Binary::new</span>(<span class="ident">BinaryOp::Logical</span>(<span class="ident">LogicalOp::Or</span>), <span class="ident">current_node</span>, <span class="ident">rhs</span>).<span class="ident">into</span>();
+                    .parse(cursor, interner)<span class="question-mark">?</span>;
+                    current_node =
+                        Binary::new(BinaryOp::Logical(LogicalOp::Or), current_node, rhs).into();
                 }
-                <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::Coalesce</span>) =&gt; {
-                    <span class="kw">if</span> <span class="ident">previous</span> <span class="op">==</span> <span class="ident">PreviousExpr::Logical</span> {
-                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::expected</span>(
-                            [<span class="string">&quot;&amp;&amp;&quot;</span>.<span class="ident">to_owned</span>(), <span class="string">&quot;||&quot;</span>.<span class="ident">to_owned</span>()],
-                            <span class="ident">tok</span>.<span class="ident">to_string</span>(<span class="ident">interner</span>),
-                            <span class="ident">tok</span>.<span class="ident">span</span>(),
+                TokenKind::Punctuator(Punctuator::Coalesce) =&gt; {
+                    <span class="kw">if </span>previous == PreviousExpr::Logical {
+                        <span class="kw">return </span><span class="prelude-val">Err</span>(ParseError::expected(
+                            [<span class="string">&quot;&amp;&amp;&quot;</span>.to_owned(), <span class="string">&quot;||&quot;</span>.to_owned()],
+                            tok.to_string(interner),
+                            tok.span(),
                             <span class="string">&quot;cannot use &#39;??&#39; unparenthesized within &#39;||&#39; or &#39;&amp;&amp;&#39;&quot;</span>,
                         ));
                     }
-                    <span class="kw">let</span> <span class="ident">_next</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">next</span>(<span class="ident">interner</span>)<span class="question-mark">?</span>.<span class="ident">expect</span>(<span class="string">&quot;&#39;??&#39; expected&quot;</span>);
-                    <span class="ident">previous</span> <span class="op">=</span> <span class="ident">PreviousExpr::Coalesce</span>;
-                    <span class="kw">let</span> <span class="ident">rhs</span> <span class="op">=</span> <span class="ident">BitwiseORExpression::new</span>(
-                        <span class="self">self</span>.<span class="ident">name</span>,
-                        <span class="self">self</span>.<span class="ident">allow_in</span>,
-                        <span class="self">self</span>.<span class="ident">allow_yield</span>,
-                        <span class="self">self</span>.<span class="ident">allow_await</span>,
+                    <span class="kw">let </span>_next = cursor.next(interner)<span class="question-mark">?</span>.expect(<span class="string">&quot;&#39;??&#39; expected&quot;</span>);
+                    previous = PreviousExpr::Coalesce;
+                    <span class="kw">let </span>rhs = BitwiseORExpression::new(
+                        <span class="self">self</span>.name,
+                        <span class="self">self</span>.allow_in,
+                        <span class="self">self</span>.allow_yield,
+                        <span class="self">self</span>.allow_await,
                     )
-                    .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
-                    <span class="ident">current_node</span> <span class="op">=</span>
-                        <span class="ident">Binary::new</span>(<span class="ident">BinaryOp::Logical</span>(<span class="ident">LogicalOp::Coalesce</span>), <span class="ident">current_node</span>, <span class="ident">rhs</span>)
-                            .<span class="ident">into</span>();
+                    .parse(cursor, interner)<span class="question-mark">?</span>;
+                    current_node =
+                        Binary::new(BinaryOp::Logical(LogicalOp::Coalesce), current_node, rhs)
+                            .into();
                 }
-                <span class="kw">_</span> =&gt; <span class="kw">break</span>,
+                <span class="kw">_ </span>=&gt; <span class="kw">break</span>,
             }
         }
-        <span class="prelude-val">Ok</span>(<span class="ident">current_node</span>)
+        <span class="prelude-val">Ok</span>(current_node)
     }
 }
 
-<span class="doccomment">/// Parses a bitwise `OR` expression.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [MDN documentation][mdn]</span>
-<span class="doccomment">///  - [ECMAScript specification][spec]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Bitwise_Operators#Bitwise_OR</span>
-<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-BitwiseORExpression</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
-<span class="kw">struct</span> <span class="ident">BitwiseORExpression</span> {
-    <span class="ident">name</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Identifier</span><span class="op">&gt;</span>,
-    <span class="ident">allow_in</span>: <span class="ident">AllowIn</span>,
-    <span class="ident">allow_yield</span>: <span class="ident">AllowYield</span>,
-    <span class="ident">allow_await</span>: <span class="ident">AllowAwait</span>,
+<span class="doccomment">/// Parses a bitwise `OR` expression.
+///
+/// More information:
+///  - [MDN documentation][mdn]
+///  - [ECMAScript specification][spec]
+///
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Bitwise_Operators#Bitwise_OR
+/// [spec]: https://tc39.es/ecma262/#prod-BitwiseORExpression
+</span><span class="attribute">#[derive(Debug, Clone, Copy)]
+</span><span class="kw">struct </span>BitwiseORExpression {
+    name: <span class="prelude-ty">Option</span>&lt;Identifier&gt;,
+    allow_in: AllowIn,
+    allow_yield: AllowYield,
+    allow_await: AllowAwait,
 }
 
-<span class="kw">impl</span> <span class="ident">BitwiseORExpression</span> {
-    <span class="doccomment">/// Creates a new `BitwiseORExpression` parser.</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">N</span>, <span class="ident">I</span>, <span class="ident">Y</span>, <span class="ident">A</span><span class="op">&gt;</span>(<span class="ident">name</span>: <span class="ident">N</span>, <span class="ident">allow_in</span>: <span class="ident">I</span>, <span class="ident">allow_yield</span>: <span class="ident">Y</span>, <span class="ident">allow_await</span>: <span class="ident">A</span>) -&gt; <span class="self">Self</span>
-    <span class="kw">where</span>
-        <span class="ident">N</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Identifier</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-        <span class="ident">I</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowIn</span><span class="op">&gt;</span>,
-        <span class="ident">Y</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowYield</span><span class="op">&gt;</span>,
-        <span class="ident">A</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowAwait</span><span class="op">&gt;</span>,
+<span class="kw">impl </span>BitwiseORExpression {
+    <span class="doccomment">/// Creates a new `BitwiseORExpression` parser.
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new&lt;N, I, Y, A&gt;(name: N, allow_in: I, allow_yield: Y, allow_await: A) -&gt; <span class="self">Self
+    </span><span class="kw">where
+        </span>N: Into&lt;<span class="prelude-ty">Option</span>&lt;Identifier&gt;&gt;,
+        I: Into&lt;AllowIn&gt;,
+        Y: Into&lt;AllowYield&gt;,
+        A: Into&lt;AllowAwait&gt;,
     {
-        <span class="self">Self</span> {
-            <span class="ident">name</span>: <span class="ident">name</span>.<span class="ident">into</span>(),
-            <span class="ident">allow_in</span>: <span class="ident">allow_in</span>.<span class="ident">into</span>(),
-            <span class="ident">allow_yield</span>: <span class="ident">allow_yield</span>.<span class="ident">into</span>(),
-            <span class="ident">allow_await</span>: <span class="ident">allow_await</span>.<span class="ident">into</span>(),
+        <span class="self">Self </span>{
+            name: name.into(),
+            allow_in: allow_in.into(),
+            allow_yield: allow_yield.into(),
+            allow_await: allow_await.into(),
         }
     }
 }
 
 <span class="macro">expression!</span>(
-    <span class="ident">BitwiseORExpression</span>,
-    <span class="ident">BitwiseXORExpression</span>,
-    [<span class="ident">Punctuator::Or</span>],
-    [<span class="ident">name</span>, <span class="ident">allow_in</span>, <span class="ident">allow_yield</span>, <span class="ident">allow_await</span>],
-    <span class="prelude-val">None</span>::<span class="op">&lt;</span><span class="ident">InputElement</span><span class="op">&gt;</span>
+    BitwiseORExpression,
+    BitwiseXORExpression,
+    [Punctuator::Or],
+    [name, allow_in, allow_yield, allow_await],
+    <span class="prelude-val">None</span>::&lt;InputElement&gt;
 );
 
-<span class="doccomment">/// Parses a bitwise `XOR` expression.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [MDN documentation][mdn]</span>
-<span class="doccomment">///  - [ECMAScript specification][spec]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Bitwise_Operators#Bitwise_XOR</span>
-<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-BitwiseXORExpression</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
-<span class="kw">struct</span> <span class="ident">BitwiseXORExpression</span> {
-    <span class="ident">name</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Identifier</span><span class="op">&gt;</span>,
-    <span class="ident">allow_in</span>: <span class="ident">AllowIn</span>,
-    <span class="ident">allow_yield</span>: <span class="ident">AllowYield</span>,
-    <span class="ident">allow_await</span>: <span class="ident">AllowAwait</span>,
+<span class="doccomment">/// Parses a bitwise `XOR` expression.
+///
+/// More information:
+///  - [MDN documentation][mdn]
+///  - [ECMAScript specification][spec]
+///
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Bitwise_Operators#Bitwise_XOR
+/// [spec]: https://tc39.es/ecma262/#prod-BitwiseXORExpression
+</span><span class="attribute">#[derive(Debug, Clone, Copy)]
+</span><span class="kw">struct </span>BitwiseXORExpression {
+    name: <span class="prelude-ty">Option</span>&lt;Identifier&gt;,
+    allow_in: AllowIn,
+    allow_yield: AllowYield,
+    allow_await: AllowAwait,
 }
 
-<span class="kw">impl</span> <span class="ident">BitwiseXORExpression</span> {
-    <span class="doccomment">/// Creates a new `BitwiseXORExpression` parser.</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">N</span>, <span class="ident">I</span>, <span class="ident">Y</span>, <span class="ident">A</span><span class="op">&gt;</span>(<span class="ident">name</span>: <span class="ident">N</span>, <span class="ident">allow_in</span>: <span class="ident">I</span>, <span class="ident">allow_yield</span>: <span class="ident">Y</span>, <span class="ident">allow_await</span>: <span class="ident">A</span>) -&gt; <span class="self">Self</span>
-    <span class="kw">where</span>
-        <span class="ident">N</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Identifier</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-        <span class="ident">I</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowIn</span><span class="op">&gt;</span>,
-        <span class="ident">Y</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowYield</span><span class="op">&gt;</span>,
-        <span class="ident">A</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowAwait</span><span class="op">&gt;</span>,
+<span class="kw">impl </span>BitwiseXORExpression {
+    <span class="doccomment">/// Creates a new `BitwiseXORExpression` parser.
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new&lt;N, I, Y, A&gt;(name: N, allow_in: I, allow_yield: Y, allow_await: A) -&gt; <span class="self">Self
+    </span><span class="kw">where
+        </span>N: Into&lt;<span class="prelude-ty">Option</span>&lt;Identifier&gt;&gt;,
+        I: Into&lt;AllowIn&gt;,
+        Y: Into&lt;AllowYield&gt;,
+        A: Into&lt;AllowAwait&gt;,
     {
-        <span class="self">Self</span> {
-            <span class="ident">name</span>: <span class="ident">name</span>.<span class="ident">into</span>(),
-            <span class="ident">allow_in</span>: <span class="ident">allow_in</span>.<span class="ident">into</span>(),
-            <span class="ident">allow_yield</span>: <span class="ident">allow_yield</span>.<span class="ident">into</span>(),
-            <span class="ident">allow_await</span>: <span class="ident">allow_await</span>.<span class="ident">into</span>(),
+        <span class="self">Self </span>{
+            name: name.into(),
+            allow_in: allow_in.into(),
+            allow_yield: allow_yield.into(),
+            allow_await: allow_await.into(),
         }
     }
 }
 
 <span class="macro">expression!</span>(
-    <span class="ident">BitwiseXORExpression</span>,
-    <span class="ident">BitwiseANDExpression</span>,
-    [<span class="ident">Punctuator::Xor</span>],
-    [<span class="ident">name</span>, <span class="ident">allow_in</span>, <span class="ident">allow_yield</span>, <span class="ident">allow_await</span>],
-    <span class="prelude-val">None</span>::<span class="op">&lt;</span><span class="ident">InputElement</span><span class="op">&gt;</span>
+    BitwiseXORExpression,
+    BitwiseANDExpression,
+    [Punctuator::Xor],
+    [name, allow_in, allow_yield, allow_await],
+    <span class="prelude-val">None</span>::&lt;InputElement&gt;
 );
 
-<span class="doccomment">/// Parses a bitwise `AND` expression.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [MDN documentation][mdn]</span>
-<span class="doccomment">///  - [ECMAScript specification][spec]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Bitwise_Operators#Bitwise_AND</span>
-<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-BitwiseANDExpression</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
-<span class="kw">struct</span> <span class="ident">BitwiseANDExpression</span> {
-    <span class="ident">name</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Identifier</span><span class="op">&gt;</span>,
-    <span class="ident">allow_in</span>: <span class="ident">AllowIn</span>,
-    <span class="ident">allow_yield</span>: <span class="ident">AllowYield</span>,
-    <span class="ident">allow_await</span>: <span class="ident">AllowAwait</span>,
+<span class="doccomment">/// Parses a bitwise `AND` expression.
+///
+/// More information:
+///  - [MDN documentation][mdn]
+///  - [ECMAScript specification][spec]
+///
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Bitwise_Operators#Bitwise_AND
+/// [spec]: https://tc39.es/ecma262/#prod-BitwiseANDExpression
+</span><span class="attribute">#[derive(Debug, Clone, Copy)]
+</span><span class="kw">struct </span>BitwiseANDExpression {
+    name: <span class="prelude-ty">Option</span>&lt;Identifier&gt;,
+    allow_in: AllowIn,
+    allow_yield: AllowYield,
+    allow_await: AllowAwait,
 }
 
-<span class="kw">impl</span> <span class="ident">BitwiseANDExpression</span> {
-    <span class="doccomment">/// Creates a new `BitwiseANDExpression` parser.</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">N</span>, <span class="ident">I</span>, <span class="ident">Y</span>, <span class="ident">A</span><span class="op">&gt;</span>(<span class="ident">name</span>: <span class="ident">N</span>, <span class="ident">allow_in</span>: <span class="ident">I</span>, <span class="ident">allow_yield</span>: <span class="ident">Y</span>, <span class="ident">allow_await</span>: <span class="ident">A</span>) -&gt; <span class="self">Self</span>
-    <span class="kw">where</span>
-        <span class="ident">N</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Identifier</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-        <span class="ident">I</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowIn</span><span class="op">&gt;</span>,
-        <span class="ident">Y</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowYield</span><span class="op">&gt;</span>,
-        <span class="ident">A</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowAwait</span><span class="op">&gt;</span>,
+<span class="kw">impl </span>BitwiseANDExpression {
+    <span class="doccomment">/// Creates a new `BitwiseANDExpression` parser.
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new&lt;N, I, Y, A&gt;(name: N, allow_in: I, allow_yield: Y, allow_await: A) -&gt; <span class="self">Self
+    </span><span class="kw">where
+        </span>N: Into&lt;<span class="prelude-ty">Option</span>&lt;Identifier&gt;&gt;,
+        I: Into&lt;AllowIn&gt;,
+        Y: Into&lt;AllowYield&gt;,
+        A: Into&lt;AllowAwait&gt;,
     {
-        <span class="self">Self</span> {
-            <span class="ident">name</span>: <span class="ident">name</span>.<span class="ident">into</span>(),
-            <span class="ident">allow_in</span>: <span class="ident">allow_in</span>.<span class="ident">into</span>(),
-            <span class="ident">allow_yield</span>: <span class="ident">allow_yield</span>.<span class="ident">into</span>(),
-            <span class="ident">allow_await</span>: <span class="ident">allow_await</span>.<span class="ident">into</span>(),
+        <span class="self">Self </span>{
+            name: name.into(),
+            allow_in: allow_in.into(),
+            allow_yield: allow_yield.into(),
+            allow_await: allow_await.into(),
         }
     }
 }
 
 <span class="macro">expression!</span>(
-    <span class="ident">BitwiseANDExpression</span>,
-    <span class="ident">EqualityExpression</span>,
-    [<span class="ident">Punctuator::And</span>],
-    [<span class="ident">name</span>, <span class="ident">allow_in</span>, <span class="ident">allow_yield</span>, <span class="ident">allow_await</span>],
-    <span class="prelude-val">None</span>::<span class="op">&lt;</span><span class="ident">InputElement</span><span class="op">&gt;</span>
+    BitwiseANDExpression,
+    EqualityExpression,
+    [Punctuator::And],
+    [name, allow_in, allow_yield, allow_await],
+    <span class="prelude-val">None</span>::&lt;InputElement&gt;
 );
 
-<span class="doccomment">/// Parses an equality expression.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [MDN documentation][mdn]</span>
-<span class="doccomment">///  - [ECMAScript specification][spec]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Comparison_Operators#Equality_operators</span>
-<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-equality-operators</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
-<span class="kw">struct</span> <span class="ident">EqualityExpression</span> {
-    <span class="ident">name</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Identifier</span><span class="op">&gt;</span>,
-    <span class="ident">allow_in</span>: <span class="ident">AllowIn</span>,
-    <span class="ident">allow_yield</span>: <span class="ident">AllowYield</span>,
-    <span class="ident">allow_await</span>: <span class="ident">AllowAwait</span>,
+<span class="doccomment">/// Parses an equality expression.
+///
+/// More information:
+///  - [MDN documentation][mdn]
+///  - [ECMAScript specification][spec]
+///
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Comparison_Operators#Equality_operators
+/// [spec]: https://tc39.es/ecma262/#sec-equality-operators
+</span><span class="attribute">#[derive(Debug, Clone, Copy)]
+</span><span class="kw">struct </span>EqualityExpression {
+    name: <span class="prelude-ty">Option</span>&lt;Identifier&gt;,
+    allow_in: AllowIn,
+    allow_yield: AllowYield,
+    allow_await: AllowAwait,
 }
 
-<span class="kw">impl</span> <span class="ident">EqualityExpression</span> {
-    <span class="doccomment">/// Creates a new `EqualityExpression` parser.</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">N</span>, <span class="ident">I</span>, <span class="ident">Y</span>, <span class="ident">A</span><span class="op">&gt;</span>(<span class="ident">name</span>: <span class="ident">N</span>, <span class="ident">allow_in</span>: <span class="ident">I</span>, <span class="ident">allow_yield</span>: <span class="ident">Y</span>, <span class="ident">allow_await</span>: <span class="ident">A</span>) -&gt; <span class="self">Self</span>
-    <span class="kw">where</span>
-        <span class="ident">N</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Identifier</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-        <span class="ident">I</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowIn</span><span class="op">&gt;</span>,
-        <span class="ident">Y</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowYield</span><span class="op">&gt;</span>,
-        <span class="ident">A</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowAwait</span><span class="op">&gt;</span>,
+<span class="kw">impl </span>EqualityExpression {
+    <span class="doccomment">/// Creates a new `EqualityExpression` parser.
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new&lt;N, I, Y, A&gt;(name: N, allow_in: I, allow_yield: Y, allow_await: A) -&gt; <span class="self">Self
+    </span><span class="kw">where
+        </span>N: Into&lt;<span class="prelude-ty">Option</span>&lt;Identifier&gt;&gt;,
+        I: Into&lt;AllowIn&gt;,
+        Y: Into&lt;AllowYield&gt;,
+        A: Into&lt;AllowAwait&gt;,
     {
-        <span class="self">Self</span> {
-            <span class="ident">name</span>: <span class="ident">name</span>.<span class="ident">into</span>(),
-            <span class="ident">allow_in</span>: <span class="ident">allow_in</span>.<span class="ident">into</span>(),
-            <span class="ident">allow_yield</span>: <span class="ident">allow_yield</span>.<span class="ident">into</span>(),
-            <span class="ident">allow_await</span>: <span class="ident">allow_await</span>.<span class="ident">into</span>(),
+        <span class="self">Self </span>{
+            name: name.into(),
+            allow_in: allow_in.into(),
+            allow_yield: allow_yield.into(),
+            allow_await: allow_await.into(),
         }
     }
 }
 
 <span class="macro">expression!</span>(
-    <span class="ident">EqualityExpression</span>,
-    <span class="ident">RelationalExpression</span>,
+    EqualityExpression,
+    RelationalExpression,
     [
-        <span class="ident">Punctuator::Eq</span>,
-        <span class="ident">Punctuator::NotEq</span>,
-        <span class="ident">Punctuator::StrictEq</span>,
-        <span class="ident">Punctuator::StrictNotEq</span>
+        Punctuator::Eq,
+        Punctuator::NotEq,
+        Punctuator::StrictEq,
+        Punctuator::StrictNotEq
     ],
-    [<span class="ident">name</span>, <span class="ident">allow_in</span>, <span class="ident">allow_yield</span>, <span class="ident">allow_await</span>],
-    <span class="prelude-val">None</span>::<span class="op">&lt;</span><span class="ident">InputElement</span><span class="op">&gt;</span>
+    [name, allow_in, allow_yield, allow_await],
+    <span class="prelude-val">None</span>::&lt;InputElement&gt;
 );
 
-<span class="doccomment">/// Parses a relational expression.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [MDN documentation][mdn]</span>
-<span class="doccomment">///  - [ECMAScript specification][spec]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Comparison_Operators#Relational_operators</span>
-<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-relational-operators</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
-<span class="kw">struct</span> <span class="ident">RelationalExpression</span> {
-    <span class="ident">name</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Identifier</span><span class="op">&gt;</span>,
-    <span class="ident">allow_in</span>: <span class="ident">AllowIn</span>,
-    <span class="ident">allow_yield</span>: <span class="ident">AllowYield</span>,
-    <span class="ident">allow_await</span>: <span class="ident">AllowAwait</span>,
+<span class="doccomment">/// Parses a relational expression.
+///
+/// More information:
+///  - [MDN documentation][mdn]
+///  - [ECMAScript specification][spec]
+///
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Comparison_Operators#Relational_operators
+/// [spec]: https://tc39.es/ecma262/#sec-relational-operators
+</span><span class="attribute">#[derive(Debug, Clone, Copy)]
+</span><span class="kw">struct </span>RelationalExpression {
+    name: <span class="prelude-ty">Option</span>&lt;Identifier&gt;,
+    allow_in: AllowIn,
+    allow_yield: AllowYield,
+    allow_await: AllowAwait,
 }
 
-<span class="kw">impl</span> <span class="ident">RelationalExpression</span> {
-    <span class="doccomment">/// Creates a new `RelationalExpression` parser.</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">N</span>, <span class="ident">I</span>, <span class="ident">Y</span>, <span class="ident">A</span><span class="op">&gt;</span>(<span class="ident">name</span>: <span class="ident">N</span>, <span class="ident">allow_in</span>: <span class="ident">I</span>, <span class="ident">allow_yield</span>: <span class="ident">Y</span>, <span class="ident">allow_await</span>: <span class="ident">A</span>) -&gt; <span class="self">Self</span>
-    <span class="kw">where</span>
-        <span class="ident">N</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Identifier</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-        <span class="ident">I</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowIn</span><span class="op">&gt;</span>,
-        <span class="ident">Y</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowYield</span><span class="op">&gt;</span>,
-        <span class="ident">A</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowAwait</span><span class="op">&gt;</span>,
+<span class="kw">impl </span>RelationalExpression {
+    <span class="doccomment">/// Creates a new `RelationalExpression` parser.
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new&lt;N, I, Y, A&gt;(name: N, allow_in: I, allow_yield: Y, allow_await: A) -&gt; <span class="self">Self
+    </span><span class="kw">where
+        </span>N: Into&lt;<span class="prelude-ty">Option</span>&lt;Identifier&gt;&gt;,
+        I: Into&lt;AllowIn&gt;,
+        Y: Into&lt;AllowYield&gt;,
+        A: Into&lt;AllowAwait&gt;,
     {
-        <span class="self">Self</span> {
-            <span class="ident">name</span>: <span class="ident">name</span>.<span class="ident">into</span>(),
-            <span class="ident">allow_in</span>: <span class="ident">allow_in</span>.<span class="ident">into</span>(),
-            <span class="ident">allow_yield</span>: <span class="ident">allow_yield</span>.<span class="ident">into</span>(),
-            <span class="ident">allow_await</span>: <span class="ident">allow_await</span>.<span class="ident">into</span>(),
+        <span class="self">Self </span>{
+            name: name.into(),
+            allow_in: allow_in.into(),
+            allow_yield: allow_yield.into(),
+            allow_await: allow_await.into(),
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="ident">TokenParser</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">RelationalExpression</span>
-<span class="kw">where</span>
-    <span class="ident">R</span>: <span class="ident">Read</span>,
+<span class="kw">impl</span>&lt;R&gt; TokenParser&lt;R&gt; <span class="kw">for </span>RelationalExpression
+<span class="kw">where
+    </span>R: Read,
 {
-    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">ast::Expression</span>;
+    <span class="kw">type </span>Output = ast::Expression;
 
-    <span class="kw">fn</span> <span class="ident">parse</span>(<span class="self">self</span>, <span class="ident">cursor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Interner</span>) -&gt; <span class="ident">ParseResult</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;Relation Expression&quot;</span>, <span class="string">&quot;Parsing&quot;</span>);
+    <span class="kw">fn </span>parse(<span class="self">self</span>, cursor: <span class="kw-2">&amp;mut </span>Cursor&lt;R&gt;, interner: <span class="kw-2">&amp;mut </span>Interner) -&gt; ParseResult&lt;<span class="self">Self</span>::Output&gt; {
+        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Relation Expression&quot;</span>, <span class="string">&quot;Parsing&quot;</span>);
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">lhs</span> <span class="op">=</span> <span class="ident">ShiftExpression::new</span>(<span class="self">self</span>.<span class="ident">name</span>, <span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
-            .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
-        <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">tok</span>) <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">0</span>, <span class="ident">interner</span>)<span class="question-mark">?</span> {
-            <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">tok</span>.<span class="ident">kind</span>() {
-                <span class="ident">TokenKind::Punctuator</span>(<span class="ident">op</span>)
-                    <span class="kw">if</span> <span class="ident">op</span> <span class="op">==</span> <span class="ident">Punctuator::LessThan</span>
-                        <span class="op">|</span><span class="op">|</span> <span class="ident">op</span> <span class="op">==</span> <span class="ident">Punctuator::GreaterThan</span>
-                        <span class="op">|</span><span class="op">|</span> <span class="ident">op</span> <span class="op">==</span> <span class="ident">Punctuator::LessThanOrEq</span>
-                        <span class="op">|</span><span class="op">|</span> <span class="ident">op</span> <span class="op">==</span> <span class="ident">Punctuator::GreaterThanOrEq</span> =&gt;
+        <span class="kw">let </span><span class="kw-2">mut </span>lhs = ShiftExpression::new(<span class="self">self</span>.name, <span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await)
+            .parse(cursor, interner)<span class="question-mark">?</span>;
+        <span class="kw">while let </span><span class="prelude-val">Some</span>(tok) = cursor.peek(<span class="number">0</span>, interner)<span class="question-mark">? </span>{
+            <span class="kw">match </span><span class="kw-2">*</span>tok.kind() {
+                TokenKind::Punctuator(op)
+                    <span class="kw">if </span>op == Punctuator::LessThan
+                        || op == Punctuator::GreaterThan
+                        || op == Punctuator::LessThanOrEq
+                        || op == Punctuator::GreaterThanOrEq =&gt;
                 {
-                    <span class="kw">let</span> <span class="ident">_next</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">next</span>(<span class="ident">interner</span>).<span class="ident">expect</span>(<span class="string">&quot;token disappeared&quot;</span>);
-                    <span class="ident">lhs</span> <span class="op">=</span> <span class="ident">Binary::new</span>(
-                        <span class="ident">op</span>.<span class="ident">as_binary_op</span>().<span class="ident">expect</span>(<span class="string">&quot;Could not get binary operation.&quot;</span>),
-                        <span class="ident">lhs</span>,
-                        <span class="ident">ShiftExpression::new</span>(<span class="self">self</span>.<span class="ident">name</span>, <span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
-                            .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>,
+                    <span class="kw">let </span>_next = cursor.next(interner).expect(<span class="string">&quot;token disappeared&quot;</span>);
+                    lhs = Binary::new(
+                        op.as_binary_op().expect(<span class="string">&quot;Could not get binary operation.&quot;</span>),
+                        lhs,
+                        ShiftExpression::new(<span class="self">self</span>.name, <span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await)
+                            .parse(cursor, interner)<span class="question-mark">?</span>,
                     )
-                    .<span class="ident">into</span>();
+                    .into();
                 }
-                <span class="ident">TokenKind::Keyword</span>((<span class="ident">Keyword::InstanceOf</span> <span class="op">|</span> <span class="ident">Keyword::In</span>, <span class="bool-val">true</span>)) =&gt; {
-                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::general</span>(
+                TokenKind::Keyword((Keyword::InstanceOf | Keyword::In, <span class="bool-val">true</span>)) =&gt; {
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(ParseError::general(
                         <span class="string">&quot;Keyword must not contain escaped characters&quot;</span>,
-                        <span class="ident">tok</span>.<span class="ident">span</span>().<span class="ident">start</span>(),
+                        tok.span().start(),
                     ));
                 }
-                <span class="ident">TokenKind::Keyword</span>((<span class="ident">op</span>, <span class="bool-val">false</span>))
-                    <span class="kw">if</span> <span class="ident">op</span> <span class="op">==</span> <span class="ident">Keyword::InstanceOf</span>
-                        <span class="op">|</span><span class="op">|</span> (<span class="ident">op</span> <span class="op">==</span> <span class="ident">Keyword::In</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">allow_in</span> <span class="op">==</span> <span class="ident">AllowIn</span>(<span class="bool-val">true</span>)) =&gt;
+                TokenKind::Keyword((op, <span class="bool-val">false</span>))
+                    <span class="kw">if </span>op == Keyword::InstanceOf
+                        || (op == Keyword::In &amp;&amp; <span class="self">self</span>.allow_in == AllowIn(<span class="bool-val">true</span>)) =&gt;
                 {
-                    <span class="kw">let</span> <span class="ident">_next</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">next</span>(<span class="ident">interner</span>).<span class="ident">expect</span>(<span class="string">&quot;token disappeared&quot;</span>);
-                    <span class="ident">lhs</span> <span class="op">=</span> <span class="ident">Binary::new</span>(
-                        <span class="ident">op</span>.<span class="ident">as_binary_op</span>().<span class="ident">expect</span>(<span class="string">&quot;Could not get binary operation.&quot;</span>),
-                        <span class="ident">lhs</span>,
-                        <span class="ident">ShiftExpression::new</span>(<span class="self">self</span>.<span class="ident">name</span>, <span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
-                            .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>,
+                    <span class="kw">let </span>_next = cursor.next(interner).expect(<span class="string">&quot;token disappeared&quot;</span>);
+                    lhs = Binary::new(
+                        op.as_binary_op().expect(<span class="string">&quot;Could not get binary operation.&quot;</span>),
+                        lhs,
+                        ShiftExpression::new(<span class="self">self</span>.name, <span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await)
+                            .parse(cursor, interner)<span class="question-mark">?</span>,
                     )
-                    .<span class="ident">into</span>();
+                    .into();
                 }
-                <span class="kw">_</span> =&gt; <span class="kw">break</span>,
+                <span class="kw">_ </span>=&gt; <span class="kw">break</span>,
             }
         }
 
-        <span class="prelude-val">Ok</span>(<span class="ident">lhs</span>)
+        <span class="prelude-val">Ok</span>(lhs)
     }
 }
 
-<span class="doccomment">/// Parses a bitwise shift expression.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [MDN documentation][mdn]</span>
-<span class="doccomment">///  - [ECMAScript specification][spec]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Bitwise_Operators#Bitwise_shift_operators</span>
-<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-bitwise-shift-operators</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
-<span class="kw">struct</span> <span class="ident">ShiftExpression</span> {
-    <span class="ident">name</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Identifier</span><span class="op">&gt;</span>,
-    <span class="ident">allow_yield</span>: <span class="ident">AllowYield</span>,
-    <span class="ident">allow_await</span>: <span class="ident">AllowAwait</span>,
+<span class="doccomment">/// Parses a bitwise shift expression.
+///
+/// More information:
+///  - [MDN documentation][mdn]
+///  - [ECMAScript specification][spec]
+///
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Bitwise_Operators#Bitwise_shift_operators
+/// [spec]: https://tc39.es/ecma262/#sec-bitwise-shift-operators
+</span><span class="attribute">#[derive(Debug, Clone, Copy)]
+</span><span class="kw">struct </span>ShiftExpression {
+    name: <span class="prelude-ty">Option</span>&lt;Identifier&gt;,
+    allow_yield: AllowYield,
+    allow_await: AllowAwait,
 }
 
-<span class="kw">impl</span> <span class="ident">ShiftExpression</span> {
-    <span class="doccomment">/// Creates a new `ShiftExpression` parser.</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">N</span>, <span class="ident">Y</span>, <span class="ident">A</span><span class="op">&gt;</span>(<span class="ident">name</span>: <span class="ident">N</span>, <span class="ident">allow_yield</span>: <span class="ident">Y</span>, <span class="ident">allow_await</span>: <span class="ident">A</span>) -&gt; <span class="self">Self</span>
-    <span class="kw">where</span>
-        <span class="ident">N</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Identifier</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-        <span class="ident">Y</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowYield</span><span class="op">&gt;</span>,
-        <span class="ident">A</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowAwait</span><span class="op">&gt;</span>,
+<span class="kw">impl </span>ShiftExpression {
+    <span class="doccomment">/// Creates a new `ShiftExpression` parser.
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new&lt;N, Y, A&gt;(name: N, allow_yield: Y, allow_await: A) -&gt; <span class="self">Self
+    </span><span class="kw">where
+        </span>N: Into&lt;<span class="prelude-ty">Option</span>&lt;Identifier&gt;&gt;,
+        Y: Into&lt;AllowYield&gt;,
+        A: Into&lt;AllowAwait&gt;,
     {
-        <span class="self">Self</span> {
-            <span class="ident">name</span>: <span class="ident">name</span>.<span class="ident">into</span>(),
-            <span class="ident">allow_yield</span>: <span class="ident">allow_yield</span>.<span class="ident">into</span>(),
-            <span class="ident">allow_await</span>: <span class="ident">allow_await</span>.<span class="ident">into</span>(),
+        <span class="self">Self </span>{
+            name: name.into(),
+            allow_yield: allow_yield.into(),
+            allow_await: allow_await.into(),
         }
     }
 }
 
 <span class="macro">expression!</span>(
-    <span class="ident">ShiftExpression</span>,
-    <span class="ident">AdditiveExpression</span>,
+    ShiftExpression,
+    AdditiveExpression,
     [
-        <span class="ident">Punctuator::LeftSh</span>,
-        <span class="ident">Punctuator::RightSh</span>,
-        <span class="ident">Punctuator::URightSh</span>
+        Punctuator::LeftSh,
+        Punctuator::RightSh,
+        Punctuator::URightSh
     ],
-    [<span class="ident">name</span>, <span class="ident">allow_yield</span>, <span class="ident">allow_await</span>],
-    <span class="prelude-val">None</span>::<span class="op">&lt;</span><span class="ident">InputElement</span><span class="op">&gt;</span>
+    [name, allow_yield, allow_await],
+    <span class="prelude-val">None</span>::&lt;InputElement&gt;
 );
 
-<span class="doccomment">/// Parses an additive expression.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This can be either an addition or a subtraction.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [MDN documentation][mdn]</span>
-<span class="doccomment">///  - [ECMAScript specification][spec]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Arithmetic_Operators</span>
-<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-additive-operators</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
-<span class="kw">struct</span> <span class="ident">AdditiveExpression</span> {
-    <span class="ident">name</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Identifier</span><span class="op">&gt;</span>,
-    <span class="ident">allow_yield</span>: <span class="ident">AllowYield</span>,
-    <span class="ident">allow_await</span>: <span class="ident">AllowAwait</span>,
+<span class="doccomment">/// Parses an additive expression.
+///
+/// This can be either an addition or a subtraction.
+///
+/// More information:
+///  - [MDN documentation][mdn]
+///  - [ECMAScript specification][spec]
+///
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Arithmetic_Operators
+/// [spec]: https://tc39.es/ecma262/#sec-additive-operators
+</span><span class="attribute">#[derive(Debug, Clone, Copy)]
+</span><span class="kw">struct </span>AdditiveExpression {
+    name: <span class="prelude-ty">Option</span>&lt;Identifier&gt;,
+    allow_yield: AllowYield,
+    allow_await: AllowAwait,
 }
 
-<span class="kw">impl</span> <span class="ident">AdditiveExpression</span> {
-    <span class="doccomment">/// Creates a new `AdditiveExpression` parser.</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">N</span>, <span class="ident">Y</span>, <span class="ident">A</span><span class="op">&gt;</span>(<span class="ident">name</span>: <span class="ident">N</span>, <span class="ident">allow_yield</span>: <span class="ident">Y</span>, <span class="ident">allow_await</span>: <span class="ident">A</span>) -&gt; <span class="self">Self</span>
-    <span class="kw">where</span>
-        <span class="ident">N</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Identifier</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-        <span class="ident">Y</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowYield</span><span class="op">&gt;</span>,
-        <span class="ident">A</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowAwait</span><span class="op">&gt;</span>,
+<span class="kw">impl </span>AdditiveExpression {
+    <span class="doccomment">/// Creates a new `AdditiveExpression` parser.
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new&lt;N, Y, A&gt;(name: N, allow_yield: Y, allow_await: A) -&gt; <span class="self">Self
+    </span><span class="kw">where
+        </span>N: Into&lt;<span class="prelude-ty">Option</span>&lt;Identifier&gt;&gt;,
+        Y: Into&lt;AllowYield&gt;,
+        A: Into&lt;AllowAwait&gt;,
     {
-        <span class="self">Self</span> {
-            <span class="ident">name</span>: <span class="ident">name</span>.<span class="ident">into</span>(),
-            <span class="ident">allow_yield</span>: <span class="ident">allow_yield</span>.<span class="ident">into</span>(),
-            <span class="ident">allow_await</span>: <span class="ident">allow_await</span>.<span class="ident">into</span>(),
+        <span class="self">Self </span>{
+            name: name.into(),
+            allow_yield: allow_yield.into(),
+            allow_await: allow_await.into(),
         }
     }
 }
 
 <span class="macro">expression!</span>(
-    <span class="ident">AdditiveExpression</span>,
-    <span class="ident">MultiplicativeExpression</span>,
-    [<span class="ident">Punctuator::Add</span>, <span class="ident">Punctuator::Sub</span>],
-    [<span class="ident">name</span>, <span class="ident">allow_yield</span>, <span class="ident">allow_await</span>],
-    <span class="prelude-val">None</span>::<span class="op">&lt;</span><span class="ident">InputElement</span><span class="op">&gt;</span>
+    AdditiveExpression,
+    MultiplicativeExpression,
+    [Punctuator::Add, Punctuator::Sub],
+    [name, allow_yield, allow_await],
+    <span class="prelude-val">None</span>::&lt;InputElement&gt;
 );
 
-<span class="doccomment">/// Parses a multiplicative expression.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This can be either a multiplication, division or a modulo (remainder) expression.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [MDN documentation][mdn]</span>
-<span class="doccomment">///  - [ECMAScript specification][spec]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Arithmetic_Operators#Division</span>
-<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-multiplicative-operators</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
-<span class="kw">struct</span> <span class="ident">MultiplicativeExpression</span> {
-    <span class="ident">name</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Identifier</span><span class="op">&gt;</span>,
-    <span class="ident">allow_yield</span>: <span class="ident">AllowYield</span>,
-    <span class="ident">allow_await</span>: <span class="ident">AllowAwait</span>,
+<span class="doccomment">/// Parses a multiplicative expression.
+///
+/// This can be either a multiplication, division or a modulo (remainder) expression.
+///
+/// More information:
+///  - [MDN documentation][mdn]
+///  - [ECMAScript specification][spec]
+///
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Arithmetic_Operators#Division
+/// [spec]: https://tc39.es/ecma262/#sec-multiplicative-operators
+</span><span class="attribute">#[derive(Debug, Clone, Copy)]
+</span><span class="kw">struct </span>MultiplicativeExpression {
+    name: <span class="prelude-ty">Option</span>&lt;Identifier&gt;,
+    allow_yield: AllowYield,
+    allow_await: AllowAwait,
 }
 
-<span class="kw">impl</span> <span class="ident">MultiplicativeExpression</span> {
-    <span class="doccomment">/// Creates a new `MultiplicativeExpression` parser.</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">N</span>, <span class="ident">Y</span>, <span class="ident">A</span><span class="op">&gt;</span>(<span class="ident">name</span>: <span class="ident">N</span>, <span class="ident">allow_yield</span>: <span class="ident">Y</span>, <span class="ident">allow_await</span>: <span class="ident">A</span>) -&gt; <span class="self">Self</span>
-    <span class="kw">where</span>
-        <span class="ident">N</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Identifier</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-        <span class="ident">Y</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowYield</span><span class="op">&gt;</span>,
-        <span class="ident">A</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowAwait</span><span class="op">&gt;</span>,
+<span class="kw">impl </span>MultiplicativeExpression {
+    <span class="doccomment">/// Creates a new `MultiplicativeExpression` parser.
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new&lt;N, Y, A&gt;(name: N, allow_yield: Y, allow_await: A) -&gt; <span class="self">Self
+    </span><span class="kw">where
+        </span>N: Into&lt;<span class="prelude-ty">Option</span>&lt;Identifier&gt;&gt;,
+        Y: Into&lt;AllowYield&gt;,
+        A: Into&lt;AllowAwait&gt;,
     {
-        <span class="self">Self</span> {
-            <span class="ident">name</span>: <span class="ident">name</span>.<span class="ident">into</span>(),
-            <span class="ident">allow_yield</span>: <span class="ident">allow_yield</span>.<span class="ident">into</span>(),
-            <span class="ident">allow_await</span>: <span class="ident">allow_await</span>.<span class="ident">into</span>(),
+        <span class="self">Self </span>{
+            name: name.into(),
+            allow_yield: allow_yield.into(),
+            allow_await: allow_await.into(),
         }
     }
 }
 
 <span class="macro">expression!</span>(
-    <span class="ident">MultiplicativeExpression</span>,
-    <span class="ident">ExponentiationExpression</span>,
-    [<span class="ident">Punctuator::Mul</span>, <span class="ident">Punctuator::Div</span>, <span class="ident">Punctuator::Mod</span>],
-    [<span class="ident">name</span>, <span class="ident">allow_yield</span>, <span class="ident">allow_await</span>],
-    <span class="prelude-val">Some</span>(<span class="ident">InputElement::Div</span>)
+    MultiplicativeExpression,
+    ExponentiationExpression,
+    [Punctuator::Mul, Punctuator::Div, Punctuator::Mod],
+    [name, allow_yield, allow_await],
+    <span class="prelude-val">Some</span>(InputElement::Div)
 );
 
-<span class="doccomment">/// Returns an error if `arguments` or `eval` are used as identifier in strict mode.</span>
-<span class="kw">fn</span> <span class="ident">check_strict_arguments_or_eval</span>(<span class="ident">ident</span>: <span class="ident">Identifier</span>, <span class="ident">position</span>: <span class="ident">Position</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">ParseError</span><span class="op">&gt;</span> {
-    <span class="kw">match</span> <span class="ident">ident</span>.<span class="ident">sym</span>() {
-        <span class="ident">Sym::ARGUMENTS</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">ParseError::general</span>(
+<span class="doccomment">/// Returns an error if `arguments` or `eval` are used as identifier in strict mode.
+</span><span class="kw">fn </span>check_strict_arguments_or_eval(ident: Identifier, position: Position) -&gt; <span class="prelude-ty">Result</span>&lt;(), ParseError&gt; {
+    <span class="kw">match </span>ident.sym() {
+        Sym::ARGUMENTS =&gt; <span class="prelude-val">Err</span>(ParseError::general(
             <span class="string">&quot;unexpected identifier &#39;arguments&#39; in strict mode&quot;</span>,
-            <span class="ident">position</span>,
+            position,
         )),
-        <span class="ident">Sym::EVAL</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">ParseError::general</span>(
+        Sym::EVAL =&gt; <span class="prelude-val">Err</span>(ParseError::general(
             <span class="string">&quot;unexpected identifier &#39;eval&#39; in strict mode&quot;</span>,
-            <span class="ident">position</span>,
+            position,
         )),
-        <span class="kw">_</span> =&gt; <span class="prelude-val">Ok</span>(()),
+        <span class="kw">_ </span>=&gt; <span class="prelude-val">Ok</span>(()),
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0 (a55dd71d5 2022-09-19)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0 (897e37553 2022-11-02)" ></div></body></html>

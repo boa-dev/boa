@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_engine/src/builtins/async_generator/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_engine/src/builtins/async_generator/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container">
                     <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../boa_engine/index.html">
                         <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -771,770 +771,770 @@
 <span id="769">769</span>
 <span id="770">770</span>
 <span id="771">771</span>
-</pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `AsyncGenerator` object.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! More information:</span>
-<span class="doccomment">//!  - [ECMAScript reference][spec]</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! [spec]: https://tc39.es/ecma262/#sec-asyncgenerator-objects</span>
+</pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `AsyncGenerator` object.
+//!
+//! More information:
+//!  - [ECMAScript reference][spec]
+//!
+//! [spec]: https://tc39.es/ecma262/#sec-asyncgenerator-objects
 
-<span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">builtins</span>::{
-        <span class="ident">generator::GeneratorContext</span>, <span class="ident">iterable::create_iter_result_object</span>,
-        <span class="ident">promise::if_abrupt_reject_promise</span>, <span class="ident">promise::PromiseCapability</span>, <span class="ident">BuiltIn</span>, <span class="ident">JsArgs</span>, <span class="ident">Promise</span>,
+</span><span class="kw">use crate</span>::{
+    builtins::{
+        generator::GeneratorContext, iterable::create_iter_result_object,
+        promise::if_abrupt_reject_promise, promise::PromiseCapability, BuiltIn, JsArgs, Promise,
     },
-    <span class="ident">error::JsNativeError</span>,
-    <span class="ident">object</span>::{<span class="ident">ConstructorBuilder</span>, <span class="ident">FunctionBuilder</span>, <span class="ident">JsObject</span>, <span class="ident">ObjectData</span>},
-    <span class="ident">property</span>::{<span class="ident">Attribute</span>, <span class="ident">PropertyDescriptor</span>},
-    <span class="ident">symbol::WellKnownSymbols</span>,
-    <span class="ident">value::JsValue</span>,
-    <span class="ident">vm::GeneratorResumeKind</span>,
-    <span class="ident">Context</span>, <span class="ident">JsError</span>, <span class="ident">JsResult</span>,
+    error::JsNativeError,
+    object::{ConstructorBuilder, FunctionBuilder, JsObject, ObjectData},
+    property::{Attribute, PropertyDescriptor},
+    symbol::WellKnownSymbols,
+    value::JsValue,
+    vm::GeneratorResumeKind,
+    Context, JsError, JsResult,
 };
-<span class="kw">use</span> <span class="ident">boa_gc</span>::{<span class="ident">Cell</span>, <span class="ident">Finalize</span>, <span class="ident">Gc</span>, <span class="ident">Trace</span>};
-<span class="kw">use</span> <span class="ident">boa_profiler::Profiler</span>;
-<span class="kw">use</span> <span class="ident">std::collections::VecDeque</span>;
+<span class="kw">use </span>boa_gc::{Cell, Finalize, Gc, Trace};
+<span class="kw">use </span>boa_profiler::Profiler;
+<span class="kw">use </span>std::collections::VecDeque;
 
-<span class="doccomment">/// Indicates the state of an async generator.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum</span> <span class="ident">AsyncGeneratorState</span> {
-    <span class="ident">Undefined</span>,
-    <span class="ident">SuspendedStart</span>,
-    <span class="ident">SuspendedYield</span>,
-    <span class="ident">Executing</span>,
-    <span class="ident">AwaitingReturn</span>,
-    <span class="ident">Completed</span>,
+<span class="doccomment">/// Indicates the state of an async generator.
+</span><span class="attribute">#[derive(Debug, Clone, Copy, PartialEq)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum </span>AsyncGeneratorState {
+    Undefined,
+    SuspendedStart,
+    SuspendedYield,
+    Executing,
+    AwaitingReturn,
+    Completed,
 }
 
-<span class="doccomment">/// `AsyncGeneratorRequest Records`</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [ECMAScript reference][spec]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-asyncgeneratorrequest-records</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Finalize</span>, <span class="ident">Trace</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">AsyncGeneratorRequest</span> {
-    <span class="doccomment">/// The `[[Completion]]` slot.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">completion</span>: (<span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span>, <span class="ident">bool</span>),
+<span class="doccomment">/// `AsyncGeneratorRequest Records`
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-asyncgeneratorrequest-records
+</span><span class="attribute">#[derive(Debug, Clone, Finalize, Trace)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>AsyncGeneratorRequest {
+    <span class="doccomment">/// The `[[Completion]]` slot.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) completion: (JsResult&lt;JsValue&gt;, bool),
 
-    <span class="doccomment">/// The `[[Capability]]` slot.</span>
-    <span class="ident">capability</span>: <span class="ident">PromiseCapability</span>,
+    <span class="doccomment">/// The `[[Capability]]` slot.
+    </span>capability: PromiseCapability,
 }
 
-<span class="doccomment">/// The internal representation on an `AsyncGenerator` object.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Finalize</span>, <span class="ident">Trace</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">AsyncGenerator</span> {
-    <span class="doccomment">/// The `[[AsyncGeneratorState]]` internal slot.</span>
-    <span class="attribute">#[<span class="ident">unsafe_ignore_trace</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">state</span>: <span class="ident">AsyncGeneratorState</span>,
+<span class="doccomment">/// The internal representation on an `AsyncGenerator` object.
+</span><span class="attribute">#[derive(Debug, Clone, Finalize, Trace)]
+</span><span class="kw">pub struct </span>AsyncGenerator {
+    <span class="doccomment">/// The `[[AsyncGeneratorState]]` internal slot.
+    </span><span class="attribute">#[unsafe_ignore_trace]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) state: AsyncGeneratorState,
 
-    <span class="doccomment">/// The `[[AsyncGeneratorContext]]` internal slot.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">context</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Gc</span><span class="op">&lt;</span><span class="ident">Cell</span><span class="op">&lt;</span><span class="ident">GeneratorContext</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// The `[[AsyncGeneratorContext]]` internal slot.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) context: <span class="prelude-ty">Option</span>&lt;Gc&lt;Cell&lt;GeneratorContext&gt;&gt;&gt;,
 
-    <span class="doccomment">/// The `[[AsyncGeneratorQueue]]` internal slot.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">queue</span>: <span class="ident">VecDeque</span><span class="op">&lt;</span><span class="ident">AsyncGeneratorRequest</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// The `[[AsyncGeneratorQueue]]` internal slot.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) queue: VecDeque&lt;AsyncGeneratorRequest&gt;,
 }
 
-<span class="kw">impl</span> <span class="ident">BuiltIn</span> <span class="kw">for</span> <span class="ident">AsyncGenerator</span> {
-    <span class="kw">const</span> <span class="ident">NAME</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;AsyncGenerator&quot;</span>;
+<span class="kw">impl </span>BuiltIn <span class="kw">for </span>AsyncGenerator {
+    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;AsyncGenerator&quot;</span>;
 
-    <span class="kw">fn</span> <span class="ident">init</span>(<span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="ident"><span class="self">Self</span>::NAME</span>, <span class="string">&quot;init&quot;</span>);
+    <span class="kw">fn </span>init(context: <span class="kw-2">&amp;mut </span>Context) -&gt; <span class="prelude-ty">Option</span>&lt;JsValue&gt; {
+        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="self">Self</span>::NAME, <span class="string">&quot;init&quot;</span>);
 
-        <span class="kw">let</span> <span class="ident">iterator_prototype</span> <span class="op">=</span> <span class="ident">context</span>
-            .<span class="ident">intrinsics</span>()
-            .<span class="ident">objects</span>()
-            .<span class="ident">iterator_prototypes</span>()
-            .<span class="ident">async_iterator_prototype</span>();
+        <span class="kw">let </span>iterator_prototype = context
+            .intrinsics()
+            .objects()
+            .iterator_prototypes()
+            .async_iterator_prototype();
 
-        <span class="kw">let</span> <span class="ident">generator_function_prototype</span> <span class="op">=</span> <span class="ident">context</span>
-            .<span class="ident">intrinsics</span>()
-            .<span class="ident">constructors</span>()
-            .<span class="ident">async_generator_function</span>()
-            .<span class="ident">prototype</span>();
+        <span class="kw">let </span>generator_function_prototype = context
+            .intrinsics()
+            .constructors()
+            .async_generator_function()
+            .prototype();
 
-        <span class="ident">ConstructorBuilder::with_standard_constructor</span>(
-            <span class="ident">context</span>,
-            <span class="ident"><span class="self">Self</span>::constructor</span>,
-            <span class="ident">context</span>
-                .<span class="ident">intrinsics</span>()
-                .<span class="ident">constructors</span>()
-                .<span class="ident">async_generator</span>()
-                .<span class="ident">clone</span>(),
+        ConstructorBuilder::with_standard_constructor(
+            context,
+            <span class="self">Self</span>::constructor,
+            context
+                .intrinsics()
+                .constructors()
+                .async_generator()
+                .clone(),
         )
-        .<span class="ident">name</span>(<span class="ident"><span class="self">Self</span>::NAME</span>)
-        .<span class="ident">length</span>(<span class="number">0</span>)
-        .<span class="ident">property</span>(
-            <span class="ident">WellKnownSymbols::to_string_tag</span>(),
-            <span class="ident"><span class="self">Self</span>::NAME</span>,
-            <span class="ident">Attribute::READONLY</span> <span class="op">|</span> <span class="ident">Attribute::NON_ENUMERABLE</span> <span class="op">|</span> <span class="ident">Attribute::CONFIGURABLE</span>,
+        .name(<span class="self">Self</span>::NAME)
+        .length(<span class="number">0</span>)
+        .property(
+            WellKnownSymbols::to_string_tag(),
+            <span class="self">Self</span>::NAME,
+            Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
         )
-        .<span class="ident">method</span>(<span class="ident"><span class="self">Self</span>::next</span>, <span class="string">&quot;next&quot;</span>, <span class="number">1</span>)
-        .<span class="ident">method</span>(<span class="self">Self</span>::<span class="ident">r#return</span>, <span class="string">&quot;return&quot;</span>, <span class="number">1</span>)
-        .<span class="ident">method</span>(<span class="ident"><span class="self">Self</span>::throw</span>, <span class="string">&quot;throw&quot;</span>, <span class="number">1</span>)
-        .<span class="ident">inherit</span>(<span class="ident">iterator_prototype</span>)
-        .<span class="ident">build</span>();
+        .method(<span class="self">Self</span>::next, <span class="string">&quot;next&quot;</span>, <span class="number">1</span>)
+        .method(<span class="self">Self</span>::r#return, <span class="string">&quot;return&quot;</span>, <span class="number">1</span>)
+        .method(<span class="self">Self</span>::throw, <span class="string">&quot;throw&quot;</span>, <span class="number">1</span>)
+        .inherit(iterator_prototype)
+        .build();
 
-        <span class="ident">context</span>
-            .<span class="ident">intrinsics</span>()
-            .<span class="ident">constructors</span>()
-            .<span class="ident">async_generator</span>()
-            .<span class="ident">prototype</span>
-            .<span class="ident">insert_property</span>(
+        context
+            .intrinsics()
+            .constructors()
+            .async_generator()
+            .prototype
+            .insert_property(
                 <span class="string">&quot;constructor&quot;</span>,
-                <span class="ident">PropertyDescriptor::builder</span>()
-                    .<span class="ident">value</span>(<span class="ident">generator_function_prototype</span>)
-                    .<span class="ident">writable</span>(<span class="bool-val">false</span>)
-                    .<span class="ident">enumerable</span>(<span class="bool-val">false</span>)
-                    .<span class="ident">configurable</span>(<span class="bool-val">true</span>),
+                PropertyDescriptor::builder()
+                    .value(generator_function_prototype)
+                    .writable(<span class="bool-val">false</span>)
+                    .enumerable(<span class="bool-val">false</span>)
+                    .configurable(<span class="bool-val">true</span>),
             );
 
-        <span class="prelude-val">None</span>
-    }
+        <span class="prelude-val">None
+    </span>}
 }
 
-<span class="kw">impl</span> <span class="ident">AsyncGenerator</span> {
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::unnecessary_wraps</span>)]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">constructor</span>(
-        <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
-        <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">prototype</span> <span class="op">=</span> <span class="ident">context</span>
-            .<span class="ident">intrinsics</span>()
-            .<span class="ident">constructors</span>()
-            .<span class="ident">async_generator</span>()
-            .<span class="ident">prototype</span>();
+<span class="kw">impl </span>AsyncGenerator {
+    <span class="attribute">#[allow(clippy::unnecessary_wraps)]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>constructor(
+        <span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue,
+        <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue],
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="kw">let </span>prototype = context
+            .intrinsics()
+            .constructors()
+            .async_generator()
+            .prototype();
 
-        <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="ident">JsObject::from_proto_and_data</span>(
-            <span class="ident">prototype</span>,
-            <span class="ident">ObjectData::async_generator</span>(<span class="self">Self</span> {
-                <span class="ident">state</span>: <span class="ident">AsyncGeneratorState::Undefined</span>,
-                <span class="ident">context</span>: <span class="prelude-val">None</span>,
-                <span class="ident">queue</span>: <span class="ident">VecDeque::new</span>(),
+        <span class="kw">let </span>this = JsObject::from_proto_and_data(
+            prototype,
+            ObjectData::async_generator(<span class="self">Self </span>{
+                state: AsyncGeneratorState::Undefined,
+                context: <span class="prelude-val">None</span>,
+                queue: VecDeque::new(),
             }),
         );
 
-        <span class="prelude-val">Ok</span>(<span class="ident">this</span>.<span class="ident">into</span>())
+        <span class="prelude-val">Ok</span>(this.into())
     }
 
-    <span class="doccomment">/// `AsyncGenerator.prototype.next ( value )`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-asyncgenerator-prototype-next</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">next</span>(
-        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
-        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="comment">// 1. Let generator be the this value.</span>
-        <span class="kw">let</span> <span class="ident">generator</span> <span class="op">=</span> <span class="ident">this</span>;
+    <span class="doccomment">/// `AsyncGenerator.prototype.next ( value )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-asyncgenerator-prototype-next
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>next(
+        this: <span class="kw-2">&amp;</span>JsValue,
+        args: <span class="kw-2">&amp;</span>[JsValue],
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="comment">// 1. Let generator be the this value.
+        </span><span class="kw">let </span>generator = this;
 
-        <span class="comment">// 2. Let promiseCapability be ! NewPromiseCapability(%Promise%).</span>
-        <span class="kw">let</span> <span class="ident">promise_capability</span> <span class="op">=</span> <span class="ident">PromiseCapability::new</span>(
-            <span class="kw-2">&amp;</span><span class="ident">context</span>
-                .<span class="ident">intrinsics</span>()
-                .<span class="ident">constructors</span>()
-                .<span class="ident">promise</span>()
-                .<span class="ident">constructor</span>()
-                .<span class="ident">into</span>(),
-            <span class="ident">context</span>,
+        <span class="comment">// 2. Let promiseCapability be ! NewPromiseCapability(%Promise%).
+        </span><span class="kw">let </span>promise_capability = PromiseCapability::new(
+            <span class="kw-2">&amp;</span>context
+                .intrinsics()
+                .constructors()
+                .promise()
+                .constructor()
+                .into(),
+            context,
         )
-        .<span class="ident">expect</span>(<span class="string">&quot;cannot fail with promise constructor&quot;</span>);
+        .expect(<span class="string">&quot;cannot fail with promise constructor&quot;</span>);
 
-        <span class="comment">// 3. Let result be Completion(AsyncGeneratorValidate(generator, empty)).</span>
-        <span class="comment">// 4. IfAbruptRejectPromise(result, promiseCapability).</span>
-        <span class="kw">let</span> <span class="ident">generator_object</span>: <span class="ident">JsResult</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">generator</span>.<span class="ident">as_object</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-            <span class="ident">JsNativeError::typ</span>()
-                .<span class="ident">with_message</span>(<span class="string">&quot;generator resumed on non generator object&quot;</span>)
-                .<span class="ident">into</span>()
+        <span class="comment">// 3. Let result be Completion(AsyncGeneratorValidate(generator, empty)).
+        // 4. IfAbruptRejectPromise(result, promiseCapability).
+        </span><span class="kw">let </span>generator_object: JsResult&lt;<span class="kw">_</span>&gt; = generator.as_object().ok_or_else(|| {
+            JsNativeError::typ()
+                .with_message(<span class="string">&quot;generator resumed on non generator object&quot;</span>)
+                .into()
         });
-        <span class="macro">if_abrupt_reject_promise!</span>(<span class="ident">generator_object</span>, <span class="ident">promise_capability</span>, <span class="ident">context</span>);
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">generator_obj_mut</span> <span class="op">=</span> <span class="ident">generator_object</span>.<span class="ident">borrow_mut</span>();
-        <span class="kw">let</span> <span class="ident">generator</span>: <span class="ident">JsResult</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">generator_obj_mut</span>.<span class="ident">as_async_generator_mut</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-            <span class="ident">JsNativeError::typ</span>()
-                .<span class="ident">with_message</span>(<span class="string">&quot;generator resumed on non generator object&quot;</span>)
-                .<span class="ident">into</span>()
+        <span class="macro">if_abrupt_reject_promise!</span>(generator_object, promise_capability, context);
+        <span class="kw">let </span><span class="kw-2">mut </span>generator_obj_mut = generator_object.borrow_mut();
+        <span class="kw">let </span>generator: JsResult&lt;<span class="kw">_</span>&gt; = generator_obj_mut.as_async_generator_mut().ok_or_else(|| {
+            JsNativeError::typ()
+                .with_message(<span class="string">&quot;generator resumed on non generator object&quot;</span>)
+                .into()
         });
-        <span class="macro">if_abrupt_reject_promise!</span>(<span class="ident">generator</span>, <span class="ident">promise_capability</span>, <span class="ident">context</span>);
+        <span class="macro">if_abrupt_reject_promise!</span>(generator, promise_capability, context);
 
-        <span class="comment">// 5. Let state be generator.[[AsyncGeneratorState]].</span>
-        <span class="kw">let</span> <span class="ident">state</span> <span class="op">=</span> <span class="ident">generator</span>.<span class="ident">state</span>;
+        <span class="comment">// 5. Let state be generator.[[AsyncGeneratorState]].
+        </span><span class="kw">let </span>state = generator.state;
 
-        <span class="comment">// 6. If state is completed, then</span>
-        <span class="kw">if</span> <span class="ident">state</span> <span class="op">==</span> <span class="ident">AsyncGeneratorState::Completed</span> {
-            <span class="ident">drop</span>(<span class="ident">generator_obj_mut</span>);
+        <span class="comment">// 6. If state is completed, then
+        </span><span class="kw">if </span>state == AsyncGeneratorState::Completed {
+            drop(generator_obj_mut);
 
-            <span class="comment">// a. Let iteratorResult be CreateIterResultObject(undefined, true).</span>
-            <span class="kw">let</span> <span class="ident">iterator_result</span> <span class="op">=</span> <span class="ident">create_iter_result_object</span>(<span class="ident">JsValue::undefined</span>(), <span class="bool-val">true</span>, <span class="ident">context</span>);
+            <span class="comment">// a. Let iteratorResult be CreateIterResultObject(undefined, true).
+            </span><span class="kw">let </span>iterator_result = create_iter_result_object(JsValue::undefined(), <span class="bool-val">true</span>, context);
 
-            <span class="comment">// b. Perform ! Call(promiseCapability.[[Resolve]], undefined, « iteratorResult »).</span>
-            <span class="ident">promise_capability</span>
-                .<span class="ident">resolve</span>()
-                .<span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="ident">JsValue::undefined</span>(), <span class="kw-2">&amp;</span>[<span class="ident">iterator_result</span>], <span class="ident">context</span>)
-                .<span class="ident">expect</span>(<span class="string">&quot;cannot fail per spec&quot;</span>);
+            <span class="comment">// b. Perform ! Call(promiseCapability.[[Resolve]], undefined, « iteratorResult »).
+            </span>promise_capability
+                .resolve()
+                .call(<span class="kw-2">&amp;</span>JsValue::undefined(), <span class="kw-2">&amp;</span>[iterator_result], context)
+                .expect(<span class="string">&quot;cannot fail per spec&quot;</span>);
 
-            <span class="comment">// c. Return promiseCapability.[[Promise]].</span>
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">promise_capability</span>.<span class="ident">promise</span>().<span class="ident">clone</span>().<span class="ident">into</span>());
+            <span class="comment">// c. Return promiseCapability.[[Promise]].
+            </span><span class="kw">return </span><span class="prelude-val">Ok</span>(promise_capability.promise().clone().into());
         }
 
-        <span class="comment">// 7. Let completion be NormalCompletion(value).</span>
-        <span class="kw">let</span> <span class="ident">completion</span> <span class="op">=</span> (<span class="prelude-val">Ok</span>(<span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>).<span class="ident">clone</span>()), <span class="bool-val">false</span>);
+        <span class="comment">// 7. Let completion be NormalCompletion(value).
+        </span><span class="kw">let </span>completion = (<span class="prelude-val">Ok</span>(args.get_or_undefined(<span class="number">0</span>).clone()), <span class="bool-val">false</span>);
 
-        <span class="comment">// 8. Perform AsyncGeneratorEnqueue(generator, completion, promiseCapability).</span>
-        <span class="ident">generator</span>.<span class="ident">enqueue</span>(<span class="ident">completion</span>.<span class="ident">clone</span>(), <span class="ident">promise_capability</span>.<span class="ident">clone</span>());
+        <span class="comment">// 8. Perform AsyncGeneratorEnqueue(generator, completion, promiseCapability).
+        </span>generator.enqueue(completion.clone(), promise_capability.clone());
 
-        <span class="comment">// 9. If state is either suspendedStart or suspendedYield, then</span>
-        <span class="kw">if</span> <span class="ident">state</span> <span class="op">==</span> <span class="ident">AsyncGeneratorState::SuspendedStart</span>
-            <span class="op">|</span><span class="op">|</span> <span class="ident">state</span> <span class="op">==</span> <span class="ident">AsyncGeneratorState::SuspendedYield</span>
+        <span class="comment">// 9. If state is either suspendedStart or suspendedYield, then
+        </span><span class="kw">if </span>state == AsyncGeneratorState::SuspendedStart
+            || state == AsyncGeneratorState::SuspendedYield
         {
-            <span class="comment">// a. Perform AsyncGeneratorResume(generator, completion).</span>
-            <span class="kw">let</span> <span class="ident">generator_context</span> <span class="op">=</span> <span class="ident">generator</span>
-                .<span class="ident">context</span>
-                .<span class="ident">clone</span>()
-                .<span class="ident">expect</span>(<span class="string">&quot;generator context cannot be empty here&quot;</span>);
+            <span class="comment">// a. Perform AsyncGeneratorResume(generator, completion).
+            </span><span class="kw">let </span>generator_context = generator
+                .context
+                .clone()
+                .expect(<span class="string">&quot;generator context cannot be empty here&quot;</span>);
 
-            <span class="ident">drop</span>(<span class="ident">generator_obj_mut</span>);
+            drop(generator_obj_mut);
 
-            <span class="ident"><span class="self">Self</span>::resume</span>(
-                <span class="ident">generator_object</span>,
-                <span class="ident">state</span>,
-                <span class="kw-2">&amp;</span><span class="ident">generator_context</span>,
-                <span class="ident">completion</span>,
-                <span class="ident">context</span>,
+            <span class="self">Self</span>::resume(
+                generator_object,
+                state,
+                <span class="kw-2">&amp;</span>generator_context,
+                completion,
+                context,
             );
         }
 
-        <span class="comment">// 11. Return promiseCapability.[[Promise]].</span>
-        <span class="prelude-val">Ok</span>(<span class="ident">promise_capability</span>.<span class="ident">promise</span>().<span class="ident">clone</span>().<span class="ident">into</span>())
+        <span class="comment">// 11. Return promiseCapability.[[Promise]].
+        </span><span class="prelude-val">Ok</span>(promise_capability.promise().clone().into())
     }
 
-    <span class="doccomment">/// `AsyncGenerator.prototype.return ( value )`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-asyncgenerator-prototype-return</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">r#return</span>(
-        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
-        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="comment">// 1. Let generator be the this value.</span>
-        <span class="kw">let</span> <span class="ident">generator</span> <span class="op">=</span> <span class="ident">this</span>;
+    <span class="doccomment">/// `AsyncGenerator.prototype.return ( value )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-asyncgenerator-prototype-return
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>r#return(
+        this: <span class="kw-2">&amp;</span>JsValue,
+        args: <span class="kw-2">&amp;</span>[JsValue],
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="comment">// 1. Let generator be the this value.
+        </span><span class="kw">let </span>generator = this;
 
-        <span class="comment">// 2. Let promiseCapability be ! NewPromiseCapability(%Promise%).</span>
-        <span class="kw">let</span> <span class="ident">promise_capability</span> <span class="op">=</span> <span class="ident">PromiseCapability::new</span>(
-            <span class="kw-2">&amp;</span><span class="ident">context</span>
-                .<span class="ident">intrinsics</span>()
-                .<span class="ident">constructors</span>()
-                .<span class="ident">promise</span>()
-                .<span class="ident">constructor</span>()
-                .<span class="ident">into</span>(),
-            <span class="ident">context</span>,
+        <span class="comment">// 2. Let promiseCapability be ! NewPromiseCapability(%Promise%).
+        </span><span class="kw">let </span>promise_capability = PromiseCapability::new(
+            <span class="kw-2">&amp;</span>context
+                .intrinsics()
+                .constructors()
+                .promise()
+                .constructor()
+                .into(),
+            context,
         )
-        .<span class="ident">expect</span>(<span class="string">&quot;cannot fail with promise constructor&quot;</span>);
+        .expect(<span class="string">&quot;cannot fail with promise constructor&quot;</span>);
 
-        <span class="comment">// 3. Let result be Completion(AsyncGeneratorValidate(generator, empty)).</span>
-        <span class="comment">// 4. IfAbruptRejectPromise(result, promiseCapability).</span>
-        <span class="kw">let</span> <span class="ident">generator_object</span>: <span class="ident">JsResult</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">generator</span>.<span class="ident">as_object</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-            <span class="ident">JsNativeError::typ</span>()
-                .<span class="ident">with_message</span>(<span class="string">&quot;generator resumed on non generator object&quot;</span>)
-                .<span class="ident">into</span>()
+        <span class="comment">// 3. Let result be Completion(AsyncGeneratorValidate(generator, empty)).
+        // 4. IfAbruptRejectPromise(result, promiseCapability).
+        </span><span class="kw">let </span>generator_object: JsResult&lt;<span class="kw">_</span>&gt; = generator.as_object().ok_or_else(|| {
+            JsNativeError::typ()
+                .with_message(<span class="string">&quot;generator resumed on non generator object&quot;</span>)
+                .into()
         });
-        <span class="macro">if_abrupt_reject_promise!</span>(<span class="ident">generator_object</span>, <span class="ident">promise_capability</span>, <span class="ident">context</span>);
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">generator_obj_mut</span> <span class="op">=</span> <span class="ident">generator_object</span>.<span class="ident">borrow_mut</span>();
-        <span class="kw">let</span> <span class="ident">generator</span>: <span class="ident">JsResult</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">generator_obj_mut</span>.<span class="ident">as_async_generator_mut</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-            <span class="ident">JsNativeError::typ</span>()
-                .<span class="ident">with_message</span>(<span class="string">&quot;generator resumed on non generator object&quot;</span>)
-                .<span class="ident">into</span>()
+        <span class="macro">if_abrupt_reject_promise!</span>(generator_object, promise_capability, context);
+        <span class="kw">let </span><span class="kw-2">mut </span>generator_obj_mut = generator_object.borrow_mut();
+        <span class="kw">let </span>generator: JsResult&lt;<span class="kw">_</span>&gt; = generator_obj_mut.as_async_generator_mut().ok_or_else(|| {
+            JsNativeError::typ()
+                .with_message(<span class="string">&quot;generator resumed on non generator object&quot;</span>)
+                .into()
         });
-        <span class="macro">if_abrupt_reject_promise!</span>(<span class="ident">generator</span>, <span class="ident">promise_capability</span>, <span class="ident">context</span>);
+        <span class="macro">if_abrupt_reject_promise!</span>(generator, promise_capability, context);
 
-        <span class="comment">// 5. Let completion be Completion Record { [[Type]]: return, [[Value]]: value, [[Target]]: empty }.</span>
-        <span class="kw">let</span> <span class="ident">completion</span> <span class="op">=</span> (<span class="prelude-val">Ok</span>(<span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>).<span class="ident">clone</span>()), <span class="bool-val">true</span>);
+        <span class="comment">// 5. Let completion be Completion Record { [[Type]]: return, [[Value]]: value, [[Target]]: empty }.
+        </span><span class="kw">let </span>completion = (<span class="prelude-val">Ok</span>(args.get_or_undefined(<span class="number">0</span>).clone()), <span class="bool-val">true</span>);
 
-        <span class="comment">// 6. Perform AsyncGeneratorEnqueue(generator, completion, promiseCapability).</span>
-        <span class="ident">generator</span>.<span class="ident">enqueue</span>(<span class="ident">completion</span>.<span class="ident">clone</span>(), <span class="ident">promise_capability</span>.<span class="ident">clone</span>());
+        <span class="comment">// 6. Perform AsyncGeneratorEnqueue(generator, completion, promiseCapability).
+        </span>generator.enqueue(completion.clone(), promise_capability.clone());
 
-        <span class="comment">// 7. Let state be generator.[[AsyncGeneratorState]].</span>
-        <span class="kw">let</span> <span class="ident">state</span> <span class="op">=</span> <span class="ident">generator</span>.<span class="ident">state</span>;
+        <span class="comment">// 7. Let state be generator.[[AsyncGeneratorState]].
+        </span><span class="kw">let </span>state = generator.state;
 
-        <span class="comment">// 8. If state is either suspendedStart or completed, then</span>
-        <span class="kw">if</span> <span class="ident">state</span> <span class="op">==</span> <span class="ident">AsyncGeneratorState::SuspendedStart</span> <span class="op">|</span><span class="op">|</span> <span class="ident">state</span> <span class="op">==</span> <span class="ident">AsyncGeneratorState::Completed</span> {
-            <span class="comment">// a. Set generator.[[AsyncGeneratorState]] to awaiting-return.</span>
-            <span class="ident">generator</span>.<span class="ident">state</span> <span class="op">=</span> <span class="ident">AsyncGeneratorState::AwaitingReturn</span>;
+        <span class="comment">// 8. If state is either suspendedStart or completed, then
+        </span><span class="kw">if </span>state == AsyncGeneratorState::SuspendedStart || state == AsyncGeneratorState::Completed {
+            <span class="comment">// a. Set generator.[[AsyncGeneratorState]] to awaiting-return.
+            </span>generator.state = AsyncGeneratorState::AwaitingReturn;
 
-            <span class="comment">// b. Perform ! AsyncGeneratorAwaitReturn(generator).</span>
-            <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <span class="ident">generator</span>
-                .<span class="ident">queue</span>
-                .<span class="ident">front</span>()
-                .<span class="ident">cloned</span>()
-                .<span class="ident">expect</span>(<span class="string">&quot;queue cannot be empty here&quot;</span>);
-            <span class="ident">drop</span>(<span class="ident">generator_obj_mut</span>);
-            <span class="kw">let</span> (<span class="ident">completion</span>, <span class="kw">_</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">next</span>.<span class="ident">completion</span>;
-            <span class="ident"><span class="self">Self</span>::await_return</span>(<span class="ident">generator_object</span>.<span class="ident">clone</span>(), <span class="ident">completion</span>.<span class="ident">clone</span>(), <span class="ident">context</span>);
+            <span class="comment">// b. Perform ! AsyncGeneratorAwaitReturn(generator).
+            </span><span class="kw">let </span>next = generator
+                .queue
+                .front()
+                .cloned()
+                .expect(<span class="string">&quot;queue cannot be empty here&quot;</span>);
+            drop(generator_obj_mut);
+            <span class="kw">let </span>(completion, <span class="kw">_</span>) = <span class="kw-2">&amp;</span>next.completion;
+            <span class="self">Self</span>::await_return(generator_object.clone(), completion.clone(), context);
         }
-        <span class="comment">// 9. Else if state is suspendedYield, then</span>
-        <span class="kw">else</span> <span class="kw">if</span> <span class="ident">state</span> <span class="op">==</span> <span class="ident">AsyncGeneratorState::SuspendedYield</span> {
-            <span class="comment">// a. Perform AsyncGeneratorResume(generator, completion).</span>
-            <span class="kw">let</span> <span class="ident">generator_context</span> <span class="op">=</span> <span class="ident">generator</span>
-                .<span class="ident">context</span>
-                .<span class="ident">clone</span>()
-                .<span class="ident">expect</span>(<span class="string">&quot;generator context cannot be empty here&quot;</span>);
+        <span class="comment">// 9. Else if state is suspendedYield, then
+        </span><span class="kw">else if </span>state == AsyncGeneratorState::SuspendedYield {
+            <span class="comment">// a. Perform AsyncGeneratorResume(generator, completion).
+            </span><span class="kw">let </span>generator_context = generator
+                .context
+                .clone()
+                .expect(<span class="string">&quot;generator context cannot be empty here&quot;</span>);
 
-            <span class="ident">drop</span>(<span class="ident">generator_obj_mut</span>);
-            <span class="ident"><span class="self">Self</span>::resume</span>(
-                <span class="ident">generator_object</span>,
-                <span class="ident">state</span>,
-                <span class="kw-2">&amp;</span><span class="ident">generator_context</span>,
-                <span class="ident">completion</span>,
-                <span class="ident">context</span>,
+            drop(generator_obj_mut);
+            <span class="self">Self</span>::resume(
+                generator_object,
+                state,
+                <span class="kw-2">&amp;</span>generator_context,
+                completion,
+                context,
             );
         }
 
-        <span class="comment">// 11. Return promiseCapability.[[Promise]].</span>
-        <span class="prelude-val">Ok</span>(<span class="ident">promise_capability</span>.<span class="ident">promise</span>().<span class="ident">clone</span>().<span class="ident">into</span>())
+        <span class="comment">// 11. Return promiseCapability.[[Promise]].
+        </span><span class="prelude-val">Ok</span>(promise_capability.promise().clone().into())
     }
 
-    <span class="doccomment">/// `AsyncGenerator.prototype.throw ( exception )`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-asyncgenerator-prototype-throw</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">throw</span>(
-        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
-        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="comment">// 1. Let generator be the this value.</span>
-        <span class="kw">let</span> <span class="ident">generator</span> <span class="op">=</span> <span class="ident">this</span>;
+    <span class="doccomment">/// `AsyncGenerator.prototype.throw ( exception )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-asyncgenerator-prototype-throw
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>throw(
+        this: <span class="kw-2">&amp;</span>JsValue,
+        args: <span class="kw-2">&amp;</span>[JsValue],
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="comment">// 1. Let generator be the this value.
+        </span><span class="kw">let </span>generator = this;
 
-        <span class="comment">// 2. Let promiseCapability be ! NewPromiseCapability(%Promise%).</span>
-        <span class="kw">let</span> <span class="ident">promise_capability</span> <span class="op">=</span> <span class="ident">PromiseCapability::new</span>(
-            <span class="kw-2">&amp;</span><span class="ident">context</span>
-                .<span class="ident">intrinsics</span>()
-                .<span class="ident">constructors</span>()
-                .<span class="ident">promise</span>()
-                .<span class="ident">constructor</span>()
-                .<span class="ident">into</span>(),
-            <span class="ident">context</span>,
+        <span class="comment">// 2. Let promiseCapability be ! NewPromiseCapability(%Promise%).
+        </span><span class="kw">let </span>promise_capability = PromiseCapability::new(
+            <span class="kw-2">&amp;</span>context
+                .intrinsics()
+                .constructors()
+                .promise()
+                .constructor()
+                .into(),
+            context,
         )
-        .<span class="ident">expect</span>(<span class="string">&quot;cannot fail with promise constructor&quot;</span>);
+        .expect(<span class="string">&quot;cannot fail with promise constructor&quot;</span>);
 
-        <span class="comment">// 3. Let result be Completion(AsyncGeneratorValidate(generator, empty)).</span>
-        <span class="comment">// 4. IfAbruptRejectPromise(result, promiseCapability).</span>
-        <span class="kw">let</span> <span class="ident">generator_object</span>: <span class="ident">JsResult</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">generator</span>.<span class="ident">as_object</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-            <span class="ident">JsNativeError::typ</span>()
-                .<span class="ident">with_message</span>(<span class="string">&quot;generator resumed on non generator object&quot;</span>)
-                .<span class="ident">into</span>()
+        <span class="comment">// 3. Let result be Completion(AsyncGeneratorValidate(generator, empty)).
+        // 4. IfAbruptRejectPromise(result, promiseCapability).
+        </span><span class="kw">let </span>generator_object: JsResult&lt;<span class="kw">_</span>&gt; = generator.as_object().ok_or_else(|| {
+            JsNativeError::typ()
+                .with_message(<span class="string">&quot;generator resumed on non generator object&quot;</span>)
+                .into()
         });
-        <span class="macro">if_abrupt_reject_promise!</span>(<span class="ident">generator_object</span>, <span class="ident">promise_capability</span>, <span class="ident">context</span>);
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">generator_obj_mut</span> <span class="op">=</span> <span class="ident">generator_object</span>.<span class="ident">borrow_mut</span>();
-        <span class="kw">let</span> <span class="ident">generator</span>: <span class="ident">JsResult</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">generator_obj_mut</span>.<span class="ident">as_async_generator_mut</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-            <span class="ident">JsNativeError::typ</span>()
-                .<span class="ident">with_message</span>(<span class="string">&quot;generator resumed on non generator object&quot;</span>)
-                .<span class="ident">into</span>()
+        <span class="macro">if_abrupt_reject_promise!</span>(generator_object, promise_capability, context);
+        <span class="kw">let </span><span class="kw-2">mut </span>generator_obj_mut = generator_object.borrow_mut();
+        <span class="kw">let </span>generator: JsResult&lt;<span class="kw">_</span>&gt; = generator_obj_mut.as_async_generator_mut().ok_or_else(|| {
+            JsNativeError::typ()
+                .with_message(<span class="string">&quot;generator resumed on non generator object&quot;</span>)
+                .into()
         });
-        <span class="macro">if_abrupt_reject_promise!</span>(<span class="ident">generator</span>, <span class="ident">promise_capability</span>, <span class="ident">context</span>);
+        <span class="macro">if_abrupt_reject_promise!</span>(generator, promise_capability, context);
 
-        <span class="comment">// 5. Let state be generator.[[AsyncGeneratorState]].</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">state</span> <span class="op">=</span> <span class="ident">generator</span>.<span class="ident">state</span>;
+        <span class="comment">// 5. Let state be generator.[[AsyncGeneratorState]].
+        </span><span class="kw">let </span><span class="kw-2">mut </span>state = generator.state;
 
-        <span class="comment">// 6. If state is suspendedStart, then</span>
-        <span class="kw">if</span> <span class="ident">state</span> <span class="op">==</span> <span class="ident">AsyncGeneratorState::SuspendedStart</span> {
-            <span class="comment">// a. Set generator.[[AsyncGeneratorState]] to completed.</span>
-            <span class="ident">generator</span>.<span class="ident">state</span> <span class="op">=</span> <span class="ident">AsyncGeneratorState::Completed</span>;
+        <span class="comment">// 6. If state is suspendedStart, then
+        </span><span class="kw">if </span>state == AsyncGeneratorState::SuspendedStart {
+            <span class="comment">// a. Set generator.[[AsyncGeneratorState]] to completed.
+            </span>generator.state = AsyncGeneratorState::Completed;
 
-            <span class="comment">// b. Set state to completed.</span>
-            <span class="ident">state</span> <span class="op">=</span> <span class="ident">AsyncGeneratorState::Completed</span>;
+            <span class="comment">// b. Set state to completed.
+            </span>state = AsyncGeneratorState::Completed;
         }
 
-        <span class="comment">// 7. If state is completed, then</span>
-        <span class="kw">if</span> <span class="ident">state</span> <span class="op">==</span> <span class="ident">AsyncGeneratorState::Completed</span> {
-            <span class="ident">drop</span>(<span class="ident">generator_obj_mut</span>);
+        <span class="comment">// 7. If state is completed, then
+        </span><span class="kw">if </span>state == AsyncGeneratorState::Completed {
+            drop(generator_obj_mut);
 
-            <span class="comment">// a. Perform ! Call(promiseCapability.[[Reject]], undefined, « exception »).</span>
-            <span class="ident">promise_capability</span>
-                .<span class="ident">reject</span>()
-                .<span class="ident">call</span>(
-                    <span class="kw-2">&amp;</span><span class="ident">JsValue::undefined</span>(),
-                    <span class="kw-2">&amp;</span>[<span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>).<span class="ident">clone</span>()],
-                    <span class="ident">context</span>,
+            <span class="comment">// a. Perform ! Call(promiseCapability.[[Reject]], undefined, « exception »).
+            </span>promise_capability
+                .reject()
+                .call(
+                    <span class="kw-2">&amp;</span>JsValue::undefined(),
+                    <span class="kw-2">&amp;</span>[args.get_or_undefined(<span class="number">0</span>).clone()],
+                    context,
                 )
-                .<span class="ident">expect</span>(<span class="string">&quot;cannot fail per spec&quot;</span>);
+                .expect(<span class="string">&quot;cannot fail per spec&quot;</span>);
 
-            <span class="comment">// b. Return promiseCapability.[[Promise]].</span>
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">promise_capability</span>.<span class="ident">promise</span>().<span class="ident">clone</span>().<span class="ident">into</span>());
+            <span class="comment">// b. Return promiseCapability.[[Promise]].
+            </span><span class="kw">return </span><span class="prelude-val">Ok</span>(promise_capability.promise().clone().into());
         }
 
-        <span class="comment">// 8. Let completion be ThrowCompletion(exception).</span>
-        <span class="kw">let</span> <span class="ident">completion</span> <span class="op">=</span> (
-            <span class="prelude-val">Err</span>(<span class="ident">JsError::from_opaque</span>(<span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>).<span class="ident">clone</span>())),
+        <span class="comment">// 8. Let completion be ThrowCompletion(exception).
+        </span><span class="kw">let </span>completion = (
+            <span class="prelude-val">Err</span>(JsError::from_opaque(args.get_or_undefined(<span class="number">0</span>).clone())),
             <span class="bool-val">false</span>,
         );
 
-        <span class="comment">// 9. Perform AsyncGeneratorEnqueue(generator, completion, promiseCapability).</span>
-        <span class="ident">generator</span>.<span class="ident">enqueue</span>(<span class="ident">completion</span>.<span class="ident">clone</span>(), <span class="ident">promise_capability</span>.<span class="ident">clone</span>());
+        <span class="comment">// 9. Perform AsyncGeneratorEnqueue(generator, completion, promiseCapability).
+        </span>generator.enqueue(completion.clone(), promise_capability.clone());
 
-        <span class="comment">// 10. If state is suspendedYield, then</span>
-        <span class="kw">if</span> <span class="ident">state</span> <span class="op">==</span> <span class="ident">AsyncGeneratorState::SuspendedYield</span> {
-            <span class="kw">let</span> <span class="ident">generator_context</span> <span class="op">=</span> <span class="ident">generator</span>
-                .<span class="ident">context</span>
-                .<span class="ident">clone</span>()
-                .<span class="ident">expect</span>(<span class="string">&quot;generator context cannot be empty here&quot;</span>);
-            <span class="ident">drop</span>(<span class="ident">generator_obj_mut</span>);
+        <span class="comment">// 10. If state is suspendedYield, then
+        </span><span class="kw">if </span>state == AsyncGeneratorState::SuspendedYield {
+            <span class="kw">let </span>generator_context = generator
+                .context
+                .clone()
+                .expect(<span class="string">&quot;generator context cannot be empty here&quot;</span>);
+            drop(generator_obj_mut);
 
-            <span class="comment">// a. Perform AsyncGeneratorResume(generator, completion).</span>
-            <span class="ident"><span class="self">Self</span>::resume</span>(
-                <span class="ident">generator_object</span>,
-                <span class="ident">state</span>,
-                <span class="kw-2">&amp;</span><span class="ident">generator_context</span>,
-                <span class="ident">completion</span>,
-                <span class="ident">context</span>,
+            <span class="comment">// a. Perform AsyncGeneratorResume(generator, completion).
+            </span><span class="self">Self</span>::resume(
+                generator_object,
+                state,
+                <span class="kw-2">&amp;</span>generator_context,
+                completion,
+                context,
             );
         }
 
-        <span class="comment">// 12. Return promiseCapability.[[Promise]].</span>
-        <span class="prelude-val">Ok</span>(<span class="ident">promise_capability</span>.<span class="ident">promise</span>().<span class="ident">clone</span>().<span class="ident">into</span>())
+        <span class="comment">// 12. Return promiseCapability.[[Promise]].
+        </span><span class="prelude-val">Ok</span>(promise_capability.promise().clone().into())
     }
 
-    <span class="doccomment">/// `AsyncGeneratorEnqueue ( generator, completion, promiseCapability )`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-asyncgeneratorenqueue</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">enqueue</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">completion</span>: (<span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span>, <span class="ident">bool</span>),
-        <span class="ident">promise_capability</span>: <span class="ident">PromiseCapability</span>,
+    <span class="doccomment">/// `AsyncGeneratorEnqueue ( generator, completion, promiseCapability )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-asyncgeneratorenqueue
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>enqueue(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        completion: (JsResult&lt;JsValue&gt;, bool),
+        promise_capability: PromiseCapability,
     ) {
-        <span class="comment">// 1. Let request be AsyncGeneratorRequest { [[Completion]]: completion, [[Capability]]: promiseCapability }.</span>
-        <span class="kw">let</span> <span class="ident">request</span> <span class="op">=</span> <span class="ident">AsyncGeneratorRequest</span> {
-            <span class="ident">completion</span>,
-            <span class="ident">capability</span>: <span class="ident">promise_capability</span>,
+        <span class="comment">// 1. Let request be AsyncGeneratorRequest { [[Completion]]: completion, [[Capability]]: promiseCapability }.
+        </span><span class="kw">let </span>request = AsyncGeneratorRequest {
+            completion,
+            capability: promise_capability,
         };
 
-        <span class="comment">// 2. Append request to the end of generator.[[AsyncGeneratorQueue]].</span>
-        <span class="self">self</span>.<span class="ident">queue</span>.<span class="ident">push_back</span>(<span class="ident">request</span>);
+        <span class="comment">// 2. Append request to the end of generator.[[AsyncGeneratorQueue]].
+        </span><span class="self">self</span>.queue.push_back(request);
     }
 
-    <span class="doccomment">/// `AsyncGeneratorCompleteStep ( generator, completion, done [ , realm ] )`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-asyncgeneratorcompletestep</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">complete_step</span>(
-        <span class="ident">next</span>: <span class="kw-2">&amp;</span><span class="ident">AsyncGeneratorRequest</span>,
-        <span class="ident">completion</span>: <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span>,
-        <span class="ident">done</span>: <span class="ident">bool</span>,
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
+    <span class="doccomment">/// `AsyncGeneratorCompleteStep ( generator, completion, done [ , realm ] )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-asyncgeneratorcompletestep
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>complete_step(
+        next: <span class="kw-2">&amp;</span>AsyncGeneratorRequest,
+        completion: JsResult&lt;JsValue&gt;,
+        done: bool,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) {
-        <span class="comment">// 1. Let queue be generator.[[AsyncGeneratorQueue]].</span>
-        <span class="comment">// 2. Assert: queue is not empty.</span>
-        <span class="comment">// 3. Let next be the first element of queue.</span>
-        <span class="comment">// 4. Remove the first element from queue.</span>
-        <span class="comment">// 5. Let promiseCapability be next.[[Capability]].</span>
-        <span class="kw">let</span> <span class="ident">promise_capability</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">next</span>.<span class="ident">capability</span>;
+        <span class="comment">// 1. Let queue be generator.[[AsyncGeneratorQueue]].
+        // 2. Assert: queue is not empty.
+        // 3. Let next be the first element of queue.
+        // 4. Remove the first element from queue.
+        // 5. Let promiseCapability be next.[[Capability]].
+        </span><span class="kw">let </span>promise_capability = <span class="kw-2">&amp;</span>next.capability;
 
-        <span class="comment">// 6. Let value be completion.[[Value]].</span>
-        <span class="kw">match</span> <span class="ident">completion</span> {
-            <span class="comment">// 7. If completion.[[Type]] is throw, then</span>
-            <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; {
-                <span class="comment">// a. Perform ! Call(promiseCapability.[[Reject]], undefined, « value »).</span>
-                <span class="ident">promise_capability</span>
-                    .<span class="ident">reject</span>()
-                    .<span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="ident">JsValue::undefined</span>(), <span class="kw-2">&amp;</span>[<span class="ident">e</span>.<span class="ident">to_opaque</span>(<span class="ident">context</span>)], <span class="ident">context</span>)
-                    .<span class="ident">expect</span>(<span class="string">&quot;cannot fail per spec&quot;</span>);
+        <span class="comment">// 6. Let value be completion.[[Value]].
+        </span><span class="kw">match </span>completion {
+            <span class="comment">// 7. If completion.[[Type]] is throw, then
+            </span><span class="prelude-val">Err</span>(e) =&gt; {
+                <span class="comment">// a. Perform ! Call(promiseCapability.[[Reject]], undefined, « value »).
+                </span>promise_capability
+                    .reject()
+                    .call(<span class="kw-2">&amp;</span>JsValue::undefined(), <span class="kw-2">&amp;</span>[e.to_opaque(context)], context)
+                    .expect(<span class="string">&quot;cannot fail per spec&quot;</span>);
             }
-            <span class="comment">// 8. Else,</span>
-            <span class="prelude-val">Ok</span>(<span class="ident">value</span>) =&gt; {
-                <span class="comment">// a. Assert: completion.[[Type]] is normal.</span>
+            <span class="comment">// 8. Else,
+            </span><span class="prelude-val">Ok</span>(value) =&gt; {
+                <span class="comment">// a. Assert: completion.[[Type]] is normal.
 
-                <span class="comment">// TODO: Realm handling not implemented yet.</span>
-                <span class="comment">// b. If realm is present, then</span>
-                <span class="comment">// i. Let oldRealm be the running execution context&#39;s Realm.</span>
-                <span class="comment">// ii. Set the running execution context&#39;s Realm to realm.</span>
-                <span class="comment">// iii. Let iteratorResult be CreateIterResultObject(value, done).</span>
-                <span class="comment">// iv. Set the running execution context&#39;s Realm to oldRealm.</span>
-                <span class="comment">// c. Else,</span>
-                <span class="comment">// i. Let iteratorResult be CreateIterResultObject(value, done).</span>
-                <span class="kw">let</span> <span class="ident">iterator_result</span> <span class="op">=</span> <span class="ident">create_iter_result_object</span>(<span class="ident">value</span>, <span class="ident">done</span>, <span class="ident">context</span>);
+                // TODO: Realm handling not implemented yet.
+                // b. If realm is present, then
+                // i. Let oldRealm be the running execution context&#39;s Realm.
+                // ii. Set the running execution context&#39;s Realm to realm.
+                // iii. Let iteratorResult be CreateIterResultObject(value, done).
+                // iv. Set the running execution context&#39;s Realm to oldRealm.
+                // c. Else,
+                // i. Let iteratorResult be CreateIterResultObject(value, done).
+                </span><span class="kw">let </span>iterator_result = create_iter_result_object(value, done, context);
 
-                <span class="comment">// d. Perform ! Call(promiseCapability.[[Resolve]], undefined, « iteratorResult »).</span>
-                <span class="ident">promise_capability</span>
-                    .<span class="ident">resolve</span>()
-                    .<span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="ident">JsValue::undefined</span>(), <span class="kw-2">&amp;</span>[<span class="ident">iterator_result</span>], <span class="ident">context</span>)
-                    .<span class="ident">expect</span>(<span class="string">&quot;cannot fail per spec&quot;</span>);
+                <span class="comment">// d. Perform ! Call(promiseCapability.[[Resolve]], undefined, « iteratorResult »).
+                </span>promise_capability
+                    .resolve()
+                    .call(<span class="kw-2">&amp;</span>JsValue::undefined(), <span class="kw-2">&amp;</span>[iterator_result], context)
+                    .expect(<span class="string">&quot;cannot fail per spec&quot;</span>);
             }
         }
     }
 
-    <span class="doccomment">/// `AsyncGeneratorResume ( generator, completion )`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-asyncgeneratorresume</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">resume</span>(
-        <span class="ident">generator</span>: <span class="kw-2">&amp;</span><span class="ident">JsObject</span>,
-        <span class="ident">state</span>: <span class="ident">AsyncGeneratorState</span>,
-        <span class="ident">generator_context</span>: <span class="kw-2">&amp;</span><span class="ident">Gc</span><span class="op">&lt;</span><span class="ident">Cell</span><span class="op">&lt;</span><span class="ident">GeneratorContext</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-        <span class="ident">completion</span>: (<span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span>, <span class="ident">bool</span>),
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
+    <span class="doccomment">/// `AsyncGeneratorResume ( generator, completion )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-asyncgeneratorresume
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>resume(
+        generator: <span class="kw-2">&amp;</span>JsObject,
+        state: AsyncGeneratorState,
+        generator_context: <span class="kw-2">&amp;</span>Gc&lt;Cell&lt;GeneratorContext&gt;&gt;,
+        completion: (JsResult&lt;JsValue&gt;, bool),
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) {
-        <span class="comment">// 1. Assert: generator.[[AsyncGeneratorState]] is either suspendedStart or suspendedYield.</span>
-        <span class="macro">assert!</span>(
-            <span class="ident">state</span> <span class="op">==</span> <span class="ident">AsyncGeneratorState::SuspendedStart</span>
-                <span class="op">|</span><span class="op">|</span> <span class="ident">state</span> <span class="op">==</span> <span class="ident">AsyncGeneratorState::SuspendedYield</span>
+        <span class="comment">// 1. Assert: generator.[[AsyncGeneratorState]] is either suspendedStart or suspendedYield.
+        </span><span class="macro">assert!</span>(
+            state == AsyncGeneratorState::SuspendedStart
+                || state == AsyncGeneratorState::SuspendedYield
         );
 
-        <span class="comment">// 2. Let genContext be generator.[[AsyncGeneratorContext]].</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">generator_context_mut</span> <span class="op">=</span> <span class="ident">generator_context</span>.<span class="ident">borrow_mut</span>();
+        <span class="comment">// 2. Let genContext be generator.[[AsyncGeneratorContext]].
+        </span><span class="kw">let </span><span class="kw-2">mut </span>generator_context_mut = generator_context.borrow_mut();
 
-        <span class="comment">// 3. Let callerContext be the running execution context.</span>
-        <span class="comment">// 4. Suspend callerContext.</span>
+        <span class="comment">// 3. Let callerContext be the running execution context.
+        // 4. Suspend callerContext.
 
-        <span class="comment">// 5. Set generator.[[AsyncGeneratorState]] to executing.</span>
-        <span class="ident">generator</span>
-            .<span class="ident">borrow_mut</span>()
-            .<span class="ident">as_async_generator_mut</span>()
-            .<span class="ident">expect</span>(<span class="string">&quot;already checked before&quot;</span>)
-            .<span class="ident">state</span> <span class="op">=</span> <span class="ident">AsyncGeneratorState::Executing</span>;
+        // 5. Set generator.[[AsyncGeneratorState]] to executing.
+        </span>generator
+            .borrow_mut()
+            .as_async_generator_mut()
+            .expect(<span class="string">&quot;already checked before&quot;</span>)
+            .state = AsyncGeneratorState::Executing;
 
-        <span class="comment">// 6. Push genContext onto the execution context stack; genContext is now the running execution context.</span>
-        <span class="ident">std::mem::swap</span>(
-            <span class="kw-2">&amp;mut</span> <span class="ident">context</span>.<span class="ident">realm</span>.<span class="ident">environments</span>,
-            <span class="kw-2">&amp;mut</span> <span class="ident">generator_context_mut</span>.<span class="ident">environments</span>,
+        <span class="comment">// 6. Push genContext onto the execution context stack; genContext is now the running execution context.
+        </span>std::mem::swap(
+            <span class="kw-2">&amp;mut </span>context.realm.environments,
+            <span class="kw-2">&amp;mut </span>generator_context_mut.environments,
         );
-        <span class="ident">std::mem::swap</span>(<span class="kw-2">&amp;mut</span> <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">stack</span>, <span class="kw-2">&amp;mut</span> <span class="ident">generator_context_mut</span>.<span class="ident">stack</span>);
-        <span class="ident">context</span>
-            .<span class="ident">vm</span>
-            .<span class="ident">push_frame</span>(<span class="ident">generator_context_mut</span>.<span class="ident">call_frame</span>.<span class="ident">clone</span>());
+        std::mem::swap(<span class="kw-2">&amp;mut </span>context.vm.stack, <span class="kw-2">&amp;mut </span>generator_context_mut.stack);
+        context
+            .vm
+            .push_frame(generator_context_mut.call_frame.clone());
 
-        <span class="comment">// 7. Resume the suspended evaluation of genContext using completion as the result of the operation that suspended it. Let result be the Completion Record returned by the resumed computation.</span>
-        <span class="kw">match</span> <span class="ident">completion</span> {
-            (<span class="prelude-val">Ok</span>(<span class="ident">value</span>), <span class="ident">r#return</span>) =&gt; {
-                <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">push</span>(<span class="ident">value</span>);
-                <span class="kw">if</span> <span class="ident">r#return</span> {
-                    <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">frame_mut</span>().<span class="ident">generator_resume_kind</span> <span class="op">=</span> <span class="ident">GeneratorResumeKind::Return</span>;
-                } <span class="kw">else</span> {
-                    <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">frame_mut</span>().<span class="ident">generator_resume_kind</span> <span class="op">=</span> <span class="ident">GeneratorResumeKind::Normal</span>;
+        <span class="comment">// 7. Resume the suspended evaluation of genContext using completion as the result of the operation that suspended it. Let result be the Completion Record returned by the resumed computation.
+        </span><span class="kw">match </span>completion {
+            (<span class="prelude-val">Ok</span>(value), r#return) =&gt; {
+                context.vm.push(value);
+                <span class="kw">if </span>r#return {
+                    context.vm.frame_mut().generator_resume_kind = GeneratorResumeKind::Return;
+                } <span class="kw">else </span>{
+                    context.vm.frame_mut().generator_resume_kind = GeneratorResumeKind::Normal;
                 }
             }
-            (<span class="prelude-val">Err</span>(<span class="ident">value</span>), <span class="kw">_</span>) =&gt; {
-                <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">value</span>.<span class="ident">to_opaque</span>(<span class="ident">context</span>);
-                <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">push</span>(<span class="ident">value</span>);
-                <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">frame_mut</span>().<span class="ident">generator_resume_kind</span> <span class="op">=</span> <span class="ident">GeneratorResumeKind::Throw</span>;
+            (<span class="prelude-val">Err</span>(value), <span class="kw">_</span>) =&gt; {
+                <span class="kw">let </span>value = value.to_opaque(context);
+                context.vm.push(value);
+                context.vm.frame_mut().generator_resume_kind = GeneratorResumeKind::Throw;
             }
         }
-        <span class="ident">drop</span>(<span class="ident">generator_context_mut</span>);
-        <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">run</span>();
+        drop(generator_context_mut);
+        <span class="kw">let </span>result = context.run();
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">generator_context_mut</span> <span class="op">=</span> <span class="ident">generator_context</span>.<span class="ident">borrow_mut</span>();
-        <span class="ident">std::mem::swap</span>(
-            <span class="kw-2">&amp;mut</span> <span class="ident">context</span>.<span class="ident">realm</span>.<span class="ident">environments</span>,
-            <span class="kw-2">&amp;mut</span> <span class="ident">generator_context_mut</span>.<span class="ident">environments</span>,
+        <span class="kw">let </span><span class="kw-2">mut </span>generator_context_mut = generator_context.borrow_mut();
+        std::mem::swap(
+            <span class="kw-2">&amp;mut </span>context.realm.environments,
+            <span class="kw-2">&amp;mut </span>generator_context_mut.environments,
         );
-        <span class="ident">std::mem::swap</span>(<span class="kw-2">&amp;mut</span> <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">stack</span>, <span class="kw-2">&amp;mut</span> <span class="ident">generator_context_mut</span>.<span class="ident">stack</span>);
-        <span class="ident">generator_context_mut</span>.<span class="ident">call_frame</span> <span class="op">=</span>
-            <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">pop_frame</span>().<span class="ident">expect</span>(<span class="string">&quot;generator frame must exist&quot;</span>);
-        <span class="ident">drop</span>(<span class="ident">generator_context_mut</span>);
+        std::mem::swap(<span class="kw-2">&amp;mut </span>context.vm.stack, <span class="kw-2">&amp;mut </span>generator_context_mut.stack);
+        generator_context_mut.call_frame =
+            context.vm.pop_frame().expect(<span class="string">&quot;generator frame must exist&quot;</span>);
+        drop(generator_context_mut);
 
-        <span class="comment">// 8. Assert: result is never an abrupt completion.</span>
-        <span class="macro">assert!</span>(<span class="ident">result</span>.<span class="ident">is_ok</span>());
+        <span class="comment">// 8. Assert: result is never an abrupt completion.
+        </span><span class="macro">assert!</span>(result.is_ok());
 
-        <span class="comment">// 9. Assert: When we return here, genContext has already been removed from the execution context stack and callerContext is the currently running execution context.</span>
-        <span class="comment">// 10. Return unused.</span>
-    }
+        <span class="comment">// 9. Assert: When we return here, genContext has already been removed from the execution context stack and callerContext is the currently running execution context.
+        // 10. Return unused.
+    </span>}
 
-    <span class="doccomment">/// `AsyncGeneratorAwaitReturn ( generator )`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-asyncgeneratorawaitreturn</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">await_return</span>(
-        <span class="ident">generator</span>: <span class="ident">JsObject</span>,
-        <span class="ident">completion</span>: <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span>,
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
+    <span class="doccomment">/// `AsyncGeneratorAwaitReturn ( generator )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-asyncgeneratorawaitreturn
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>await_return(
+        generator: JsObject,
+        completion: JsResult&lt;JsValue&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) {
-        <span class="comment">// 1. Let queue be generator.[[AsyncGeneratorQueue]].</span>
-        <span class="comment">// 2. Assert: queue is not empty.</span>
-        <span class="comment">// 3. Let next be the first element of queue.</span>
-        <span class="comment">// 4. Let completion be Completion(next.[[Completion]]).</span>
+        <span class="comment">// 1. Let queue be generator.[[AsyncGeneratorQueue]].
+        // 2. Assert: queue is not empty.
+        // 3. Let next be the first element of queue.
+        // 4. Let completion be Completion(next.[[Completion]]).
 
-        <span class="comment">// 5. Assert: completion.[[Type]] is return.</span>
-        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">completion</span>.<span class="ident">expect</span>(<span class="string">&quot;completion must be a return completion&quot;</span>);
+        // 5. Assert: completion.[[Type]] is return.
+        </span><span class="kw">let </span>value = completion.expect(<span class="string">&quot;completion must be a return completion&quot;</span>);
 
-        <span class="comment">// Note: The spec is currently broken here.</span>
-        <span class="comment">// See: https://github.com/tc39/ecma262/pull/2683</span>
+        <span class="comment">// Note: The spec is currently broken here.
+        // See: https://github.com/tc39/ecma262/pull/2683
 
-        <span class="comment">// 6. Let promise be ? PromiseResolve(%Promise%, completion.[[Value]]).</span>
-        <span class="kw">let</span> <span class="ident">promise_completion</span> <span class="op">=</span> <span class="ident">Promise::promise_resolve</span>(
-            <span class="ident">context</span>.<span class="ident">intrinsics</span>().<span class="ident">constructors</span>().<span class="ident">promise</span>().<span class="ident">constructor</span>(),
-            <span class="ident">value</span>,
-            <span class="ident">context</span>,
+        // 6. Let promise be ? PromiseResolve(%Promise%, completion.[[Value]]).
+        </span><span class="kw">let </span>promise_completion = Promise::promise_resolve(
+            context.intrinsics().constructors().promise().constructor(),
+            value,
+            context,
         );
 
-        <span class="kw">let</span> <span class="ident">promise</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">promise_completion</span> {
-            <span class="prelude-val">Ok</span>(<span class="ident">value</span>) =&gt; <span class="ident">value</span>,
-            <span class="prelude-val">Err</span>(<span class="ident">value</span>) =&gt; {
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">generator_borrow_mut</span> <span class="op">=</span> <span class="ident">generator</span>.<span class="ident">borrow_mut</span>();
-                <span class="kw">let</span> <span class="ident">gen</span> <span class="op">=</span> <span class="ident">generator_borrow_mut</span>
-                    .<span class="ident">as_async_generator_mut</span>()
-                    .<span class="ident">expect</span>(<span class="string">&quot;already checked before&quot;</span>);
-                <span class="ident">gen</span>.<span class="ident">state</span> <span class="op">=</span> <span class="ident">AsyncGeneratorState::Completed</span>;
-                <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <span class="ident">gen</span>.<span class="ident">queue</span>.<span class="ident">pop_front</span>().<span class="ident">expect</span>(<span class="string">&quot;queue must not be empty&quot;</span>);
-                <span class="ident">drop</span>(<span class="ident">generator_borrow_mut</span>);
-                <span class="ident"><span class="self">Self</span>::complete_step</span>(<span class="kw-2">&amp;</span><span class="ident">next</span>, <span class="prelude-val">Err</span>(<span class="ident">value</span>), <span class="bool-val">true</span>, <span class="ident">context</span>);
-                <span class="ident"><span class="self">Self</span>::drain_queue</span>(<span class="kw-2">&amp;</span><span class="ident">generator</span>, <span class="ident">context</span>);
+        <span class="kw">let </span>promise = <span class="kw">match </span>promise_completion {
+            <span class="prelude-val">Ok</span>(value) =&gt; value,
+            <span class="prelude-val">Err</span>(value) =&gt; {
+                <span class="kw">let </span><span class="kw-2">mut </span>generator_borrow_mut = generator.borrow_mut();
+                <span class="kw">let </span>gen = generator_borrow_mut
+                    .as_async_generator_mut()
+                    .expect(<span class="string">&quot;already checked before&quot;</span>);
+                gen.state = AsyncGeneratorState::Completed;
+                <span class="kw">let </span>next = gen.queue.pop_front().expect(<span class="string">&quot;queue must not be empty&quot;</span>);
+                drop(generator_borrow_mut);
+                <span class="self">Self</span>::complete_step(<span class="kw-2">&amp;</span>next, <span class="prelude-val">Err</span>(value), <span class="bool-val">true</span>, context);
+                <span class="self">Self</span>::drain_queue(<span class="kw-2">&amp;</span>generator, context);
                 <span class="kw">return</span>;
             }
         };
 
-        <span class="comment">// 7. Let fulfilledClosure be a new Abstract Closure with parameters (value) that captures generator and performs the following steps when called:</span>
-        <span class="comment">// 8. Let onFulfilled be CreateBuiltinFunction(fulfilledClosure, 1, &quot;&quot;, « »).</span>
-        <span class="kw">let</span> <span class="ident">on_fulfilled</span> <span class="op">=</span> <span class="ident">FunctionBuilder::closure_with_captures</span>(
-            <span class="ident">context</span>,
-            <span class="op">|</span><span class="ident">_this</span>, <span class="ident">args</span>, <span class="ident">generator</span>, <span class="ident">context</span><span class="op">|</span> {
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">generator_borrow_mut</span> <span class="op">=</span> <span class="ident">generator</span>.<span class="ident">borrow_mut</span>();
-                <span class="kw">let</span> <span class="ident">gen</span> <span class="op">=</span> <span class="ident">generator_borrow_mut</span>
-                    .<span class="ident">as_async_generator_mut</span>()
-                    .<span class="ident">expect</span>(<span class="string">&quot;already checked before&quot;</span>);
+        <span class="comment">// 7. Let fulfilledClosure be a new Abstract Closure with parameters (value) that captures generator and performs the following steps when called:
+        // 8. Let onFulfilled be CreateBuiltinFunction(fulfilledClosure, 1, &quot;&quot;, « »).
+        </span><span class="kw">let </span>on_fulfilled = FunctionBuilder::closure_with_captures(
+            context,
+            |_this, args, generator, context| {
+                <span class="kw">let </span><span class="kw-2">mut </span>generator_borrow_mut = generator.borrow_mut();
+                <span class="kw">let </span>gen = generator_borrow_mut
+                    .as_async_generator_mut()
+                    .expect(<span class="string">&quot;already checked before&quot;</span>);
 
-                <span class="comment">// a. Set generator.[[AsyncGeneratorState]] to completed.</span>
-                <span class="ident">gen</span>.<span class="ident">state</span> <span class="op">=</span> <span class="ident">AsyncGeneratorState::Completed</span>;
+                <span class="comment">// a. Set generator.[[AsyncGeneratorState]] to completed.
+                </span>gen.state = AsyncGeneratorState::Completed;
 
-                <span class="comment">// b. Let result be NormalCompletion(value).</span>
-                <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="prelude-val">Ok</span>(<span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>).<span class="ident">clone</span>());
+                <span class="comment">// b. Let result be NormalCompletion(value).
+                </span><span class="kw">let </span>result = <span class="prelude-val">Ok</span>(args.get_or_undefined(<span class="number">0</span>).clone());
 
-                <span class="comment">// c. Perform AsyncGeneratorCompleteStep(generator, result, true).</span>
-                <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <span class="ident">gen</span>.<span class="ident">queue</span>.<span class="ident">pop_front</span>().<span class="ident">expect</span>(<span class="string">&quot;must have one entry&quot;</span>);
-                <span class="ident">drop</span>(<span class="ident">generator_borrow_mut</span>);
-                <span class="ident"><span class="self">Self</span>::complete_step</span>(<span class="kw-2">&amp;</span><span class="ident">next</span>, <span class="ident">result</span>, <span class="bool-val">true</span>, <span class="ident">context</span>);
+                <span class="comment">// c. Perform AsyncGeneratorCompleteStep(generator, result, true).
+                </span><span class="kw">let </span>next = gen.queue.pop_front().expect(<span class="string">&quot;must have one entry&quot;</span>);
+                drop(generator_borrow_mut);
+                <span class="self">Self</span>::complete_step(<span class="kw-2">&amp;</span>next, result, <span class="bool-val">true</span>, context);
 
-                <span class="comment">// d. Perform AsyncGeneratorDrainQueue(generator).</span>
-                <span class="ident"><span class="self">Self</span>::drain_queue</span>(<span class="ident">generator</span>, <span class="ident">context</span>);
+                <span class="comment">// d. Perform AsyncGeneratorDrainQueue(generator).
+                </span><span class="self">Self</span>::drain_queue(generator, context);
 
-                <span class="comment">// e. Return undefined.</span>
-                <span class="prelude-val">Ok</span>(<span class="ident">JsValue::undefined</span>())
+                <span class="comment">// e. Return undefined.
+                </span><span class="prelude-val">Ok</span>(JsValue::undefined())
             },
-            <span class="ident">generator</span>.<span class="ident">clone</span>(),
+            generator.clone(),
         )
-        .<span class="ident">name</span>(<span class="string">&quot;&quot;</span>)
-        .<span class="ident">length</span>(<span class="number">1</span>)
-        .<span class="ident">build</span>();
+        .name(<span class="string">&quot;&quot;</span>)
+        .length(<span class="number">1</span>)
+        .build();
 
-        <span class="comment">// 9. Let rejectedClosure be a new Abstract Closure with parameters (reason) that captures generator and performs the following steps when called:</span>
-        <span class="comment">// 10. Let onRejected be CreateBuiltinFunction(rejectedClosure, 1, &quot;&quot;, « »).</span>
-        <span class="kw">let</span> <span class="ident">on_rejected</span> <span class="op">=</span> <span class="ident">FunctionBuilder::closure_with_captures</span>(
-            <span class="ident">context</span>,
-            <span class="op">|</span><span class="ident">_this</span>, <span class="ident">args</span>, <span class="ident">generator</span>, <span class="ident">context</span><span class="op">|</span> {
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">generator_borrow_mut</span> <span class="op">=</span> <span class="ident">generator</span>.<span class="ident">borrow_mut</span>();
-                <span class="kw">let</span> <span class="ident">gen</span> <span class="op">=</span> <span class="ident">generator_borrow_mut</span>
-                    .<span class="ident">as_async_generator_mut</span>()
-                    .<span class="ident">expect</span>(<span class="string">&quot;already checked before&quot;</span>);
+        <span class="comment">// 9. Let rejectedClosure be a new Abstract Closure with parameters (reason) that captures generator and performs the following steps when called:
+        // 10. Let onRejected be CreateBuiltinFunction(rejectedClosure, 1, &quot;&quot;, « »).
+        </span><span class="kw">let </span>on_rejected = FunctionBuilder::closure_with_captures(
+            context,
+            |_this, args, generator, context| {
+                <span class="kw">let </span><span class="kw-2">mut </span>generator_borrow_mut = generator.borrow_mut();
+                <span class="kw">let </span>gen = generator_borrow_mut
+                    .as_async_generator_mut()
+                    .expect(<span class="string">&quot;already checked before&quot;</span>);
 
-                <span class="comment">// a. Set generator.[[AsyncGeneratorState]] to completed.</span>
-                <span class="ident">gen</span>.<span class="ident">state</span> <span class="op">=</span> <span class="ident">AsyncGeneratorState::Completed</span>;
+                <span class="comment">// a. Set generator.[[AsyncGeneratorState]] to completed.
+                </span>gen.state = AsyncGeneratorState::Completed;
 
-                <span class="comment">// b. Let result be ThrowCompletion(reason).</span>
-                <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="prelude-val">Err</span>(<span class="ident">JsError::from_opaque</span>(<span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>).<span class="ident">clone</span>()));
+                <span class="comment">// b. Let result be ThrowCompletion(reason).
+                </span><span class="kw">let </span>result = <span class="prelude-val">Err</span>(JsError::from_opaque(args.get_or_undefined(<span class="number">0</span>).clone()));
 
-                <span class="comment">// c. Perform AsyncGeneratorCompleteStep(generator, result, true).</span>
-                <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <span class="ident">gen</span>.<span class="ident">queue</span>.<span class="ident">pop_front</span>().<span class="ident">expect</span>(<span class="string">&quot;must have one entry&quot;</span>);
-                <span class="ident">drop</span>(<span class="ident">generator_borrow_mut</span>);
-                <span class="ident"><span class="self">Self</span>::complete_step</span>(<span class="kw-2">&amp;</span><span class="ident">next</span>, <span class="ident">result</span>, <span class="bool-val">true</span>, <span class="ident">context</span>);
+                <span class="comment">// c. Perform AsyncGeneratorCompleteStep(generator, result, true).
+                </span><span class="kw">let </span>next = gen.queue.pop_front().expect(<span class="string">&quot;must have one entry&quot;</span>);
+                drop(generator_borrow_mut);
+                <span class="self">Self</span>::complete_step(<span class="kw-2">&amp;</span>next, result, <span class="bool-val">true</span>, context);
 
-                <span class="comment">// d. Perform AsyncGeneratorDrainQueue(generator).</span>
-                <span class="ident"><span class="self">Self</span>::drain_queue</span>(<span class="ident">generator</span>, <span class="ident">context</span>);
+                <span class="comment">// d. Perform AsyncGeneratorDrainQueue(generator).
+                </span><span class="self">Self</span>::drain_queue(generator, context);
 
-                <span class="comment">// e. Return undefined.</span>
-                <span class="prelude-val">Ok</span>(<span class="ident">JsValue::undefined</span>())
+                <span class="comment">// e. Return undefined.
+                </span><span class="prelude-val">Ok</span>(JsValue::undefined())
             },
-            <span class="ident">generator</span>,
+            generator,
         )
-        .<span class="ident">name</span>(<span class="string">&quot;&quot;</span>)
-        .<span class="ident">length</span>(<span class="number">1</span>)
-        .<span class="ident">build</span>();
+        .name(<span class="string">&quot;&quot;</span>)
+        .length(<span class="number">1</span>)
+        .build();
 
-        <span class="comment">// 11. Perform PerformPromiseThen(promise, onFulfilled, onRejected).</span>
-        <span class="kw">let</span> <span class="ident">promise_obj</span> <span class="op">=</span> <span class="ident">promise</span>
-            .<span class="ident">as_object</span>()
-            .<span class="ident">expect</span>(<span class="string">&quot;constructed promise must be a promise&quot;</span>);
-        <span class="ident">promise_obj</span>
-            .<span class="ident">borrow_mut</span>()
-            .<span class="ident">as_promise_mut</span>()
-            .<span class="ident">expect</span>(<span class="string">&quot;constructed promise must be a promise&quot;</span>)
-            .<span class="ident">perform_promise_then</span>(<span class="kw-2">&amp;</span><span class="ident">on_fulfilled</span>.<span class="ident">into</span>(), <span class="kw-2">&amp;</span><span class="ident">on_rejected</span>.<span class="ident">into</span>(), <span class="prelude-val">None</span>, <span class="ident">context</span>);
+        <span class="comment">// 11. Perform PerformPromiseThen(promise, onFulfilled, onRejected).
+        </span><span class="kw">let </span>promise_obj = promise
+            .as_object()
+            .expect(<span class="string">&quot;constructed promise must be a promise&quot;</span>);
+        promise_obj
+            .borrow_mut()
+            .as_promise_mut()
+            .expect(<span class="string">&quot;constructed promise must be a promise&quot;</span>)
+            .perform_promise_then(<span class="kw-2">&amp;</span>on_fulfilled.into(), <span class="kw-2">&amp;</span>on_rejected.into(), <span class="prelude-val">None</span>, context);
     }
 
-    <span class="doccomment">/// `AsyncGeneratorDrainQueue ( generator )`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-asyncgeneratordrainqueue</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">drain_queue</span>(<span class="ident">generator</span>: <span class="kw-2">&amp;</span><span class="ident">JsObject</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">generator_borrow_mut</span> <span class="op">=</span> <span class="ident">generator</span>.<span class="ident">borrow_mut</span>();
-        <span class="kw">let</span> <span class="ident">gen</span> <span class="op">=</span> <span class="ident">generator_borrow_mut</span>
-            .<span class="ident">as_async_generator_mut</span>()
-            .<span class="ident">expect</span>(<span class="string">&quot;already checked before&quot;</span>);
+    <span class="doccomment">/// `AsyncGeneratorDrainQueue ( generator )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-asyncgeneratordrainqueue
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>drain_queue(generator: <span class="kw-2">&amp;</span>JsObject, context: <span class="kw-2">&amp;mut </span>Context) {
+        <span class="kw">let </span><span class="kw-2">mut </span>generator_borrow_mut = generator.borrow_mut();
+        <span class="kw">let </span>gen = generator_borrow_mut
+            .as_async_generator_mut()
+            .expect(<span class="string">&quot;already checked before&quot;</span>);
 
-        <span class="comment">// 1. Assert: generator.[[AsyncGeneratorState]] is completed.</span>
-        <span class="macro">assert_eq!</span>(<span class="ident">gen</span>.<span class="ident">state</span>, <span class="ident">AsyncGeneratorState::Completed</span>);
+        <span class="comment">// 1. Assert: generator.[[AsyncGeneratorState]] is completed.
+        </span><span class="macro">assert_eq!</span>(gen.state, AsyncGeneratorState::Completed);
 
-        <span class="comment">// 2. Let queue be generator.[[AsyncGeneratorQueue]].</span>
-        <span class="kw">let</span> <span class="ident">queue</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="ident">gen</span>.<span class="ident">queue</span>;
+        <span class="comment">// 2. Let queue be generator.[[AsyncGeneratorQueue]].
+        </span><span class="kw">let </span>queue = <span class="kw-2">&amp;mut </span>gen.queue;
 
-        <span class="comment">// 3. If queue is empty, return unused.</span>
-        <span class="kw">if</span> <span class="ident">queue</span>.<span class="ident">is_empty</span>() {
+        <span class="comment">// 3. If queue is empty, return unused.
+        </span><span class="kw">if </span>queue.is_empty() {
             <span class="kw">return</span>;
         }
 
-        <span class="comment">// 4. Let done be false.</span>
-        <span class="comment">// 5. Repeat, while done is false,</span>
-        <span class="kw">loop</span> {
-            <span class="comment">// a. Let next be the first element of queue.</span>
-            <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <span class="ident">queue</span>.<span class="ident">front</span>().<span class="ident">expect</span>(<span class="string">&quot;must have entry&quot;</span>);
+        <span class="comment">// 4. Let done be false.
+        // 5. Repeat, while done is false,
+        </span><span class="kw">loop </span>{
+            <span class="comment">// a. Let next be the first element of queue.
+            </span><span class="kw">let </span>next = queue.front().expect(<span class="string">&quot;must have entry&quot;</span>);
 
-            <span class="comment">// b. Let completion be Completion(next.[[Completion]]).</span>
-            <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">next</span>.<span class="ident">completion</span> {
-                <span class="comment">// c. If completion.[[Type]] is return, then</span>
-                (<span class="ident">completion</span>, <span class="bool-val">true</span>) =&gt; {
-                    <span class="comment">// i. Set generator.[[AsyncGeneratorState]] to awaiting-return.</span>
-                    <span class="ident">gen</span>.<span class="ident">state</span> <span class="op">=</span> <span class="ident">AsyncGeneratorState::AwaitingReturn</span>;
+            <span class="comment">// b. Let completion be Completion(next.[[Completion]]).
+            </span><span class="kw">match </span><span class="kw-2">&amp;</span>next.completion {
+                <span class="comment">// c. If completion.[[Type]] is return, then
+                </span>(completion, <span class="bool-val">true</span>) =&gt; {
+                    <span class="comment">// i. Set generator.[[AsyncGeneratorState]] to awaiting-return.
+                    </span>gen.state = AsyncGeneratorState::AwaitingReturn;
 
-                    <span class="comment">// ii. Perform ! AsyncGeneratorAwaitReturn(generator).</span>
-                    <span class="kw">let</span> <span class="ident">completion</span> <span class="op">=</span> <span class="ident">completion</span>.<span class="ident">clone</span>();
-                    <span class="ident">drop</span>(<span class="ident">generator_borrow_mut</span>);
-                    <span class="ident"><span class="self">Self</span>::await_return</span>(<span class="ident">generator</span>.<span class="ident">clone</span>(), <span class="ident">completion</span>, <span class="ident">context</span>);
+                    <span class="comment">// ii. Perform ! AsyncGeneratorAwaitReturn(generator).
+                    </span><span class="kw">let </span>completion = completion.clone();
+                    drop(generator_borrow_mut);
+                    <span class="self">Self</span>::await_return(generator.clone(), completion, context);
 
-                    <span class="comment">// iii. Set done to true.</span>
-                    <span class="kw">break</span>;
+                    <span class="comment">// iii. Set done to true.
+                    </span><span class="kw">break</span>;
                 }
-                <span class="comment">// d. Else,</span>
-                (<span class="ident">completion</span>, <span class="bool-val">false</span>) =&gt; {
-                    <span class="comment">// i. If completion.[[Type]] is normal, then</span>
-                    <span class="kw">let</span> <span class="ident">completion</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">completion</span>.<span class="ident">is_ok</span>() {
-                        <span class="comment">// 1. Set completion to NormalCompletion(undefined).</span>
-                        <span class="prelude-val">Ok</span>(<span class="ident">JsValue::undefined</span>())
-                    } <span class="kw">else</span> {
-                        <span class="ident">completion</span>.<span class="ident">clone</span>()
+                <span class="comment">// d. Else,
+                </span>(completion, <span class="bool-val">false</span>) =&gt; {
+                    <span class="comment">// i. If completion.[[Type]] is normal, then
+                    </span><span class="kw">let </span>completion = <span class="kw">if </span>completion.is_ok() {
+                        <span class="comment">// 1. Set completion to NormalCompletion(undefined).
+                        </span><span class="prelude-val">Ok</span>(JsValue::undefined())
+                    } <span class="kw">else </span>{
+                        completion.clone()
                     };
 
-                    <span class="comment">// ii. Perform AsyncGeneratorCompleteStep(generator, completion, true).</span>
-                    <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <span class="ident">queue</span>.<span class="ident">pop_front</span>().<span class="ident">expect</span>(<span class="string">&quot;must have entry&quot;</span>);
-                    <span class="ident"><span class="self">Self</span>::complete_step</span>(<span class="kw-2">&amp;</span><span class="ident">next</span>, <span class="ident">completion</span>, <span class="bool-val">true</span>, <span class="ident">context</span>);
+                    <span class="comment">// ii. Perform AsyncGeneratorCompleteStep(generator, completion, true).
+                    </span><span class="kw">let </span>next = queue.pop_front().expect(<span class="string">&quot;must have entry&quot;</span>);
+                    <span class="self">Self</span>::complete_step(<span class="kw-2">&amp;</span>next, completion, <span class="bool-val">true</span>, context);
 
-                    <span class="comment">// iii. If queue is empty, set done to true.</span>
-                    <span class="kw">if</span> <span class="ident">queue</span>.<span class="ident">is_empty</span>() {
+                    <span class="comment">// iii. If queue is empty, set done to true.
+                    </span><span class="kw">if </span>queue.is_empty() {
                         <span class="kw">break</span>;
                     }
                 }
@@ -1543,4 +1543,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0 (a55dd71d5 2022-09-19)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0 (897e37553 2022-11-02)" ></div></body></html>

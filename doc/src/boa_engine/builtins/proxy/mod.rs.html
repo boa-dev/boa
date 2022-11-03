@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_engine/src/builtins/proxy/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_engine/src/builtins/proxy/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container">
                     <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../boa_engine/index.html">
                         <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -191,196 +191,196 @@
 <span id="189">189</span>
 <span id="190">190</span>
 <span id="191">191</span>
-</pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `Proxy` object.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! The `Proxy` object enables you to create a proxy for another object,</span>
-<span class="doccomment">//! which can intercept and redefine fundamental operations for that object.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! More information:</span>
-<span class="doccomment">//!  - [ECMAScript reference][spec]</span>
-<span class="doccomment">//!  - [MDN documentation][mdn]</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! [spec]: https://tc39.es/ecma262/#sec-proxy-objects</span>
-<span class="doccomment">//! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy</span>
+</pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `Proxy` object.
+//!
+//! The `Proxy` object enables you to create a proxy for another object,
+//! which can intercept and redefine fundamental operations for that object.
+//!
+//! More information:
+//!  - [ECMAScript reference][spec]
+//!  - [MDN documentation][mdn]
+//!
+//! [spec]: https://tc39.es/ecma262/#sec-proxy-objects
+//! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy
 
-<span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">builtins</span>::{<span class="ident">BuiltIn</span>, <span class="ident">JsArgs</span>},
-    <span class="ident">error::JsNativeError</span>,
-    <span class="ident">object</span>::{<span class="ident">ConstructorBuilder</span>, <span class="ident">FunctionBuilder</span>, <span class="ident">JsFunction</span>, <span class="ident">JsObject</span>, <span class="ident">ObjectData</span>},
-    <span class="ident">Context</span>, <span class="ident">JsResult</span>, <span class="ident">JsValue</span>,
+</span><span class="kw">use crate</span>::{
+    builtins::{BuiltIn, JsArgs},
+    error::JsNativeError,
+    object::{ConstructorBuilder, FunctionBuilder, JsFunction, JsObject, ObjectData},
+    Context, JsResult, JsValue,
 };
-<span class="kw">use</span> <span class="ident">boa_gc</span>::{<span class="ident">Finalize</span>, <span class="ident">Trace</span>};
-<span class="kw">use</span> <span class="ident">boa_profiler::Profiler</span>;
-<span class="kw">use</span> <span class="ident">tap</span>::{<span class="ident">Conv</span>, <span class="ident">Pipe</span>};
-<span class="doccomment">/// Javascript `Proxy` object.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Trace</span>, <span class="ident">Finalize</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Proxy</span> {
-    <span class="comment">// (target, handler)</span>
-    <span class="ident">data</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">JsObject</span>, <span class="ident">JsObject</span>)<span class="op">&gt;</span>,
+<span class="kw">use </span>boa_gc::{Finalize, Trace};
+<span class="kw">use </span>boa_profiler::Profiler;
+<span class="kw">use </span>tap::{Conv, Pipe};
+<span class="doccomment">/// Javascript `Proxy` object.
+</span><span class="attribute">#[derive(Debug, Clone, Trace, Finalize)]
+</span><span class="kw">pub struct </span>Proxy {
+    <span class="comment">// (target, handler)
+    </span>data: <span class="prelude-ty">Option</span>&lt;(JsObject, JsObject)&gt;,
 }
 
-<span class="kw">impl</span> <span class="ident">BuiltIn</span> <span class="kw">for</span> <span class="ident">Proxy</span> {
-    <span class="kw">const</span> <span class="ident">NAME</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;Proxy&quot;</span>;
+<span class="kw">impl </span>BuiltIn <span class="kw">for </span>Proxy {
+    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;Proxy&quot;</span>;
 
-    <span class="kw">fn</span> <span class="ident">init</span>(<span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="ident"><span class="self">Self</span>::NAME</span>, <span class="string">&quot;init&quot;</span>);
+    <span class="kw">fn </span>init(context: <span class="kw-2">&amp;mut </span>Context) -&gt; <span class="prelude-ty">Option</span>&lt;JsValue&gt; {
+        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="self">Self</span>::NAME, <span class="string">&quot;init&quot;</span>);
 
-        <span class="ident">ConstructorBuilder::with_standard_constructor</span>(
-            <span class="ident">context</span>,
-            <span class="ident"><span class="self">Self</span>::constructor</span>,
-            <span class="ident">context</span>.<span class="ident">intrinsics</span>().<span class="ident">constructors</span>().<span class="ident">proxy</span>().<span class="ident">clone</span>(),
+        ConstructorBuilder::with_standard_constructor(
+            context,
+            <span class="self">Self</span>::constructor,
+            context.intrinsics().constructors().proxy().clone(),
         )
-        .<span class="ident">name</span>(<span class="ident"><span class="self">Self</span>::NAME</span>)
-        .<span class="ident">length</span>(<span class="ident"><span class="self">Self</span>::LENGTH</span>)
-        .<span class="ident">has_prototype_property</span>(<span class="bool-val">false</span>)
-        .<span class="ident">static_method</span>(<span class="ident"><span class="self">Self</span>::revocable</span>, <span class="string">&quot;revocable&quot;</span>, <span class="number">2</span>)
-        .<span class="ident">build</span>()
-        .<span class="ident">conv</span>::<span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span>()
-        .<span class="ident">pipe</span>(<span class="prelude-val">Some</span>)
+        .name(<span class="self">Self</span>::NAME)
+        .length(<span class="self">Self</span>::LENGTH)
+        .has_prototype_property(<span class="bool-val">false</span>)
+        .static_method(<span class="self">Self</span>::revocable, <span class="string">&quot;revocable&quot;</span>, <span class="number">2</span>)
+        .build()
+        .conv::&lt;JsValue&gt;()
+        .pipe(<span class="prelude-val">Some</span>)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Proxy</span> {
-    <span class="kw">const</span> <span class="ident">LENGTH</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">2</span>;
+<span class="kw">impl </span>Proxy {
+    <span class="kw">const </span>LENGTH: usize = <span class="number">2</span>;
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">target</span>: <span class="ident">JsObject</span>, <span class="ident">handler</span>: <span class="ident">JsObject</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">data</span>: <span class="prelude-val">Some</span>((<span class="ident">target</span>, <span class="ident">handler</span>)),
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(target: JsObject, handler: JsObject) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            data: <span class="prelude-val">Some</span>((target, handler)),
         }
     }
 
-    <span class="doccomment">/// This is an internal method only built for usage in the proxy internal methods.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// It returns the (target, handler) of the proxy.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">try_data</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span>(<span class="ident">JsObject</span>, <span class="ident">JsObject</span>)<span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">data</span>.<span class="ident">clone</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-            <span class="ident">JsNativeError::typ</span>()
-                .<span class="ident">with_message</span>(<span class="string">&quot;Proxy object has empty handler and target&quot;</span>)
-                .<span class="ident">into</span>()
+    <span class="doccomment">/// This is an internal method only built for usage in the proxy internal methods.
+    ///
+    /// It returns the (target, handler) of the proxy.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>try_data(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsResult&lt;(JsObject, JsObject)&gt; {
+        <span class="self">self</span>.data.clone().ok_or_else(|| {
+            JsNativeError::typ()
+                .with_message(<span class="string">&quot;Proxy object has empty handler and target&quot;</span>)
+                .into()
         })
     }
 
-    <span class="doccomment">/// `28.2.1.1 Proxy ( target, handler )`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-proxy-target-handler</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">constructor</span>(
-        <span class="ident">new_target</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
-        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="comment">// 1. If NewTarget is undefined, throw a TypeError exception.</span>
-        <span class="kw">if</span> <span class="ident">new_target</span>.<span class="ident">is_undefined</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
-                .<span class="ident">with_message</span>(<span class="string">&quot;Proxy constructor called on undefined new target&quot;</span>)
-                .<span class="ident">into</span>());
+    <span class="doccomment">/// `28.2.1.1 Proxy ( target, handler )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-proxy-target-handler
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>constructor(
+        new_target: <span class="kw-2">&amp;</span>JsValue,
+        args: <span class="kw-2">&amp;</span>[JsValue],
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="comment">// 1. If NewTarget is undefined, throw a TypeError exception.
+        </span><span class="kw">if </span>new_target.is_undefined() {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
+                .with_message(<span class="string">&quot;Proxy constructor called on undefined new target&quot;</span>)
+                .into());
         }
 
-        <span class="comment">// 2. Return ? ProxyCreate(target, handler).</span>
-        <span class="ident"><span class="self">Self</span>::create</span>(<span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>), <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">1</span>), <span class="ident">context</span>).<span class="ident">map</span>(<span class="ident">JsValue::from</span>)
+        <span class="comment">// 2. Return ? ProxyCreate(target, handler).
+        </span><span class="self">Self</span>::create(args.get_or_undefined(<span class="number">0</span>), args.get_or_undefined(<span class="number">1</span>), context).map(JsValue::from)
     }
 
-    <span class="comment">// `10.5.14 ProxyCreate ( target, handler )`</span>
-    <span class="comment">//</span>
-    <span class="comment">// More information:</span>
-    <span class="comment">//  - [ECMAScript reference][spec]</span>
-    <span class="comment">//</span>
-    <span class="comment">// [spec]: https://tc39.es/ecma262/#sec-proxycreate</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">create</span>(
-        <span class="ident">target</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
-        <span class="ident">handler</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsObject</span><span class="op">&gt;</span> {
-        <span class="comment">// 1. If Type(target) is not Object, throw a TypeError exception.</span>
-        <span class="kw">let</span> <span class="ident">target</span> <span class="op">=</span> <span class="ident">target</span>.<span class="ident">as_object</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-            <span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="string">&quot;Proxy constructor called with non-object target&quot;</span>)
+    <span class="comment">// `10.5.14 ProxyCreate ( target, handler )`
+    //
+    // More information:
+    //  - [ECMAScript reference][spec]
+    //
+    // [spec]: https://tc39.es/ecma262/#sec-proxycreate
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>create(
+        target: <span class="kw-2">&amp;</span>JsValue,
+        handler: <span class="kw-2">&amp;</span>JsValue,
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;JsObject&gt; {
+        <span class="comment">// 1. If Type(target) is not Object, throw a TypeError exception.
+        </span><span class="kw">let </span>target = target.as_object().ok_or_else(|| {
+            JsNativeError::typ().with_message(<span class="string">&quot;Proxy constructor called with non-object target&quot;</span>)
         })<span class="question-mark">?</span>;
 
-        <span class="comment">// 2. If Type(handler) is not Object, throw a TypeError exception.</span>
-        <span class="kw">let</span> <span class="ident">handler</span> <span class="op">=</span> <span class="ident">handler</span>.<span class="ident">as_object</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-            <span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="string">&quot;Proxy constructor called with non-object handler&quot;</span>)
+        <span class="comment">// 2. If Type(handler) is not Object, throw a TypeError exception.
+        </span><span class="kw">let </span>handler = handler.as_object().ok_or_else(|| {
+            JsNativeError::typ().with_message(<span class="string">&quot;Proxy constructor called with non-object handler&quot;</span>)
         })<span class="question-mark">?</span>;
 
-        <span class="comment">// 3. Let P be ! MakeBasicObject(« [[ProxyHandler]], [[ProxyTarget]] »).</span>
-        <span class="comment">// 4. Set P&#39;s essential internal methods, except for [[Call]] and [[Construct]], to the definitions specified in 10.5.</span>
-        <span class="comment">// 5. If IsCallable(target) is true, then</span>
-        <span class="comment">// a. Set P.[[Call]] as specified in 10.5.12.</span>
-        <span class="comment">// b. If IsConstructor(target) is true, then</span>
-        <span class="comment">// i. Set P.[[Construct]] as specified in 10.5.13.</span>
-        <span class="comment">// 6. Set P.[[ProxyTarget]] to target.</span>
-        <span class="comment">// 7. Set P.[[ProxyHandler]] to handler.</span>
-        <span class="kw">let</span> <span class="ident">p</span> <span class="op">=</span> <span class="ident">JsObject::from_proto_and_data</span>(
-            <span class="ident">context</span>.<span class="ident">intrinsics</span>().<span class="ident">constructors</span>().<span class="ident">object</span>().<span class="ident">prototype</span>(),
-            <span class="ident">ObjectData::proxy</span>(
-                <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">target</span>.<span class="ident">clone</span>(), <span class="ident">handler</span>.<span class="ident">clone</span>()),
-                <span class="ident">target</span>.<span class="ident">is_callable</span>(),
-                <span class="ident">target</span>.<span class="ident">is_constructor</span>(),
+        <span class="comment">// 3. Let P be ! MakeBasicObject(« [[ProxyHandler]], [[ProxyTarget]] »).
+        // 4. Set P&#39;s essential internal methods, except for [[Call]] and [[Construct]], to the definitions specified in 10.5.
+        // 5. If IsCallable(target) is true, then
+        // a. Set P.[[Call]] as specified in 10.5.12.
+        // b. If IsConstructor(target) is true, then
+        // i. Set P.[[Construct]] as specified in 10.5.13.
+        // 6. Set P.[[ProxyTarget]] to target.
+        // 7. Set P.[[ProxyHandler]] to handler.
+        </span><span class="kw">let </span>p = JsObject::from_proto_and_data(
+            context.intrinsics().constructors().object().prototype(),
+            ObjectData::proxy(
+                <span class="self">Self</span>::new(target.clone(), handler.clone()),
+                target.is_callable(),
+                target.is_constructor(),
             ),
         );
 
-        <span class="comment">// 8. Return P.</span>
-        <span class="prelude-val">Ok</span>(<span class="ident">p</span>)
+        <span class="comment">// 8. Return P.
+        </span><span class="prelude-val">Ok</span>(p)
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">revoker</span>(<span class="ident">proxy</span>: <span class="ident">JsObject</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsFunction</span> {
-        <span class="comment">// 3. Let revoker be ! CreateBuiltinFunction(revokerClosure, 0, &quot;&quot;, « [[RevocableProxy]] »).</span>
-        <span class="comment">// 4. Set revoker.[[RevocableProxy]] to p.</span>
-        <span class="ident">FunctionBuilder::closure_with_captures</span>(
-            <span class="ident">context</span>,
-            <span class="op">|</span><span class="kw">_</span>, <span class="kw">_</span>, <span class="ident">revocable_proxy</span>, <span class="kw">_</span><span class="op">|</span> {
-                <span class="comment">// a. Let F be the active function object.</span>
-                <span class="comment">// b. Let p be F.[[RevocableProxy]].</span>
-                <span class="comment">// d. Set F.[[RevocableProxy]] to null.</span>
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">p</span>) <span class="op">=</span> <span class="ident">revocable_proxy</span>.<span class="ident">take</span>() {
-                    <span class="comment">// e. Assert: p is a Proxy object.</span>
-                    <span class="comment">// f. Set p.[[ProxyTarget]] to null.</span>
-                    <span class="comment">// g. Set p.[[ProxyHandler]] to null.</span>
-                    <span class="ident">p</span>.<span class="ident">borrow_mut</span>()
-                        .<span class="ident">as_proxy_mut</span>()
-                        .<span class="ident">expect</span>(<span class="string">&quot;[[RevocableProxy]] must be a proxy object&quot;</span>)
-                        .<span class="ident">data</span> <span class="op">=</span> <span class="prelude-val">None</span>;
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>revoker(proxy: JsObject, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsFunction {
+        <span class="comment">// 3. Let revoker be ! CreateBuiltinFunction(revokerClosure, 0, &quot;&quot;, « [[RevocableProxy]] »).
+        // 4. Set revoker.[[RevocableProxy]] to p.
+        </span>FunctionBuilder::closure_with_captures(
+            context,
+            |<span class="kw">_</span>, <span class="kw">_</span>, revocable_proxy, <span class="kw">_</span>| {
+                <span class="comment">// a. Let F be the active function object.
+                // b. Let p be F.[[RevocableProxy]].
+                // d. Set F.[[RevocableProxy]] to null.
+                </span><span class="kw">if let </span><span class="prelude-val">Some</span>(p) = revocable_proxy.take() {
+                    <span class="comment">// e. Assert: p is a Proxy object.
+                    // f. Set p.[[ProxyTarget]] to null.
+                    // g. Set p.[[ProxyHandler]] to null.
+                    </span>p.borrow_mut()
+                        .as_proxy_mut()
+                        .expect(<span class="string">&quot;[[RevocableProxy]] must be a proxy object&quot;</span>)
+                        .data = <span class="prelude-val">None</span>;
                 }
 
-                <span class="comment">// c. If p is null, return undefined.</span>
-                <span class="comment">// h. Return undefined.</span>
-                <span class="prelude-val">Ok</span>(<span class="ident">JsValue::undefined</span>())
+                <span class="comment">// c. If p is null, return undefined.
+                // h. Return undefined.
+                </span><span class="prelude-val">Ok</span>(JsValue::undefined())
             },
-            <span class="prelude-val">Some</span>(<span class="ident">proxy</span>),
+            <span class="prelude-val">Some</span>(proxy),
         )
-        .<span class="ident">build</span>()
+        .build()
     }
 
-    <span class="doccomment">/// `28.2.2.1 Proxy.revocable ( target, handler )`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-proxy.revocable</span>
-    <span class="kw">fn</span> <span class="ident">revocable</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="comment">// 1. Let p be ? ProxyCreate(target, handler).</span>
-        <span class="kw">let</span> <span class="ident">p</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::create</span>(<span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>), <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">1</span>), <span class="ident">context</span>)<span class="question-mark">?</span>;
+    <span class="doccomment">/// `28.2.2.1 Proxy.revocable ( target, handler )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-proxy.revocable
+    </span><span class="kw">fn </span>revocable(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="comment">// 1. Let p be ? ProxyCreate(target, handler).
+        </span><span class="kw">let </span>p = <span class="self">Self</span>::create(args.get_or_undefined(<span class="number">0</span>), args.get_or_undefined(<span class="number">1</span>), context)<span class="question-mark">?</span>;
 
-        <span class="comment">// Revoker creation steps on `Proxy::revoker`</span>
-        <span class="kw">let</span> <span class="ident">revoker</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::revoker</span>(<span class="ident">p</span>.<span class="ident">clone</span>(), <span class="ident">context</span>);
+        <span class="comment">// Revoker creation steps on `Proxy::revoker`
+        </span><span class="kw">let </span>revoker = <span class="self">Self</span>::revoker(p.clone(), context);
 
-        <span class="comment">// 5. Let result be ! OrdinaryObjectCreate(%Object.prototype%).</span>
-        <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">construct_object</span>();
+        <span class="comment">// 5. Let result be ! OrdinaryObjectCreate(%Object.prototype%).
+        </span><span class="kw">let </span>result = context.construct_object();
 
-        <span class="comment">// 6. Perform ! CreateDataPropertyOrThrow(result, &quot;proxy&quot;, p).</span>
-        <span class="ident">result</span>
-            .<span class="ident">create_data_property_or_throw</span>(<span class="string">&quot;proxy&quot;</span>, <span class="ident">p</span>, <span class="ident">context</span>)
-            .<span class="ident">expect</span>(<span class="string">&quot;CreateDataPropertyOrThrow cannot fail here&quot;</span>);
+        <span class="comment">// 6. Perform ! CreateDataPropertyOrThrow(result, &quot;proxy&quot;, p).
+        </span>result
+            .create_data_property_or_throw(<span class="string">&quot;proxy&quot;</span>, p, context)
+            .expect(<span class="string">&quot;CreateDataPropertyOrThrow cannot fail here&quot;</span>);
 
-        <span class="comment">// 7. Perform ! CreateDataPropertyOrThrow(result, &quot;revoke&quot;, revoker).</span>
-        <span class="ident">result</span>
-            .<span class="ident">create_data_property_or_throw</span>(<span class="string">&quot;revoke&quot;</span>, <span class="ident">revoker</span>, <span class="ident">context</span>)
-            .<span class="ident">expect</span>(<span class="string">&quot;CreateDataPropertyOrThrow cannot fail here&quot;</span>);
+        <span class="comment">// 7. Perform ! CreateDataPropertyOrThrow(result, &quot;revoke&quot;, revoker).
+        </span>result
+            .create_data_property_or_throw(<span class="string">&quot;revoke&quot;</span>, revoker, context)
+            .expect(<span class="string">&quot;CreateDataPropertyOrThrow cannot fail here&quot;</span>);
 
-        <span class="comment">// 8. Return result.</span>
-        <span class="prelude-val">Ok</span>(<span class="ident">result</span>.<span class="ident">into</span>())
+        <span class="comment">// 8. Return result.
+        </span><span class="prelude-val">Ok</span>(result.into())
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0 (a55dd71d5 2022-09-19)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0 (897e37553 2022-11-02)" ></div></body></html>

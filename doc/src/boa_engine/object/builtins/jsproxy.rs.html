@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_engine/src/object/builtins/jsproxy.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>jsproxy.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_engine/src/object/builtins/jsproxy.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>jsproxy.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container">
                     <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../boa_engine/index.html">
                         <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -480,485 +480,485 @@
 <span id="478">478</span>
 <span id="479">479</span>
 <span id="480">480</span>
-</pre><pre class="rust"><code><span class="doccomment">//! This module implements a wrapper for the `Proxy` Builtin JavaScript Object</span>
-<span class="kw">use</span> <span class="ident">boa_gc</span>::{<span class="ident">Finalize</span>, <span class="ident">Trace</span>};
+</pre><pre class="rust"><code><span class="doccomment">//! This module implements a wrapper for the `Proxy` Builtin JavaScript Object
+</span><span class="kw">use </span>boa_gc::{Finalize, Trace};
 
-<span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">builtins</span>::{<span class="ident">function::NativeFunctionSignature</span>, <span class="ident">Proxy</span>},
-    <span class="ident">object</span>::{<span class="ident">FunctionBuilder</span>, <span class="ident">JsObject</span>, <span class="ident">JsObjectType</span>, <span class="ident">ObjectData</span>},
-    <span class="ident">Context</span>, <span class="ident">JsResult</span>, <span class="ident">JsValue</span>,
+<span class="kw">use crate</span>::{
+    builtins::{function::NativeFunctionSignature, Proxy},
+    object::{FunctionBuilder, JsObject, JsObjectType, ObjectData},
+    Context, JsResult, JsValue,
 };
 
-<span class="kw">use</span> <span class="ident"><span class="kw">super</span>::JsFunction</span>;
+<span class="kw">use </span><span class="kw">super</span>::JsFunction;
 
-<span class="doccomment">/// JavaScript [`Proxy`][proxy] rust object.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This is a wrapper type for the [`Proxy`][proxy] API that allows customizing</span>
-<span class="doccomment">/// essential behaviour for an object, like [property accesses][get] or the</span>
-<span class="doccomment">/// [`delete`][delete] operator.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The only way to construct this type is to use the [`JsProxyBuilder`] type; also</span>
-<span class="doccomment">/// accessible from [`JsProxy::builder`].</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [get]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy/Proxy/get</span>
-<span class="doccomment">/// [delete]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy/Proxy/deleteProperty</span>
-<span class="doccomment">/// [proxy]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Trace</span>, <span class="ident">Finalize</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">JsProxy</span> {
-    <span class="ident">inner</span>: <span class="ident">JsObject</span>,
+<span class="doccomment">/// JavaScript [`Proxy`][proxy] rust object.
+///
+/// This is a wrapper type for the [`Proxy`][proxy] API that allows customizing
+/// essential behaviour for an object, like [property accesses][get] or the
+/// [`delete`][delete] operator.
+///
+/// The only way to construct this type is to use the [`JsProxyBuilder`] type; also
+/// accessible from [`JsProxy::builder`].
+///
+/// [get]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy/Proxy/get
+/// [delete]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy/Proxy/deleteProperty
+/// [proxy]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy
+</span><span class="attribute">#[derive(Debug, Clone, Trace, Finalize)]
+</span><span class="kw">pub struct </span>JsProxy {
+    inner: JsObject,
 }
 
-<span class="kw">impl</span> <span class="ident">JsProxy</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">builder</span>(<span class="ident">target</span>: <span class="ident">JsObject</span>) -&gt; <span class="ident">JsProxyBuilder</span> {
-        <span class="ident">JsProxyBuilder::new</span>(<span class="ident">target</span>)
+<span class="kw">impl </span>JsProxy {
+    <span class="kw">pub fn </span>builder(target: JsObject) -&gt; JsProxyBuilder {
+        JsProxyBuilder::new(target)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">JsProxy</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">JsObject</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">o</span>: <span class="ident">JsProxy</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">o</span>.<span class="ident">inner</span>.<span class="ident">clone</span>()
+<span class="kw">impl </span>From&lt;JsProxy&gt; <span class="kw">for </span>JsObject {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(o: JsProxy) -&gt; <span class="self">Self </span>{
+        o.inner.clone()
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">JsProxy</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">JsValue</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">o</span>: <span class="ident">JsProxy</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">o</span>.<span class="ident">inner</span>.<span class="ident">clone</span>().<span class="ident">into</span>()
+<span class="kw">impl </span>From&lt;JsProxy&gt; <span class="kw">for </span>JsValue {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(o: JsProxy) -&gt; <span class="self">Self </span>{
+        o.inner.clone().into()
     }
 }
 
-<span class="kw">impl</span> <span class="ident">std::ops::Deref</span> <span class="kw">for</span> <span class="ident">JsProxy</span> {
-    <span class="kw">type</span> <span class="ident">Target</span> <span class="op">=</span> <span class="ident">JsObject</span>;
+<span class="kw">impl </span>std::ops::Deref <span class="kw">for </span>JsProxy {
+    <span class="kw">type </span>Target = JsObject;
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">deref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::Target</span> {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">inner</span>
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="self">Self</span>::Target {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.inner
     }
 }
 
-<span class="kw">impl</span> <span class="ident">JsObjectType</span> <span class="kw">for</span> <span class="ident">JsProxy</span> {}
+<span class="kw">impl </span>JsObjectType <span class="kw">for </span>JsProxy {}
 
-<span class="doccomment">/// JavaScript [`Proxy`][proxy] rust object that can be disabled.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Safe interface for the [`Proxy.revocable`][revocable] method that creates a</span>
-<span class="doccomment">/// proxy that can be disabled using the [`JsRevocableProxy::revoke`] method.</span>
-<span class="doccomment">/// The internal proxy is accessible using the [`Deref`][`std::ops::Deref`] operator.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The only way to construct this type is to use the [`JsProxyBuilder`] type; also</span>
-<span class="doccomment">/// accessible from [`JsProxy::builder`]; with the [`JsProxyBuilder::build_revocable`]</span>
-<span class="doccomment">/// method.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [proxy]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy</span>
-<span class="doccomment">/// [revocable]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy/revocable</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Trace</span>, <span class="ident">Finalize</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">JsRevocableProxy</span> {
-    <span class="ident">proxy</span>: <span class="ident">JsProxy</span>,
-    <span class="ident">revoker</span>: <span class="ident">JsFunction</span>,
+<span class="doccomment">/// JavaScript [`Proxy`][proxy] rust object that can be disabled.
+///
+/// Safe interface for the [`Proxy.revocable`][revocable] method that creates a
+/// proxy that can be disabled using the [`JsRevocableProxy::revoke`] method.
+/// The internal proxy is accessible using the [`Deref`][`std::ops::Deref`] operator.
+///
+/// The only way to construct this type is to use the [`JsProxyBuilder`] type; also
+/// accessible from [`JsProxy::builder`]; with the [`JsProxyBuilder::build_revocable`]
+/// method.
+///
+/// [proxy]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy
+/// [revocable]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy/revocable
+</span><span class="attribute">#[derive(Debug, Trace, Finalize)]
+</span><span class="kw">pub struct </span>JsRevocableProxy {
+    proxy: JsProxy,
+    revoker: JsFunction,
 }
 
-<span class="kw">impl</span> <span class="ident">JsRevocableProxy</span> {
-    <span class="doccomment">/// Disables the traps of the internal `proxy` object, essentially</span>
-    <span class="doccomment">/// making it unusable and throwing `TypeError`s for all the traps.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">revoke</span>(<span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">revoker</span>.<span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="ident">JsValue::undefined</span>(), <span class="kw-2">&amp;</span>[], <span class="ident">context</span>)<span class="question-mark">?</span>;
+<span class="kw">impl </span>JsRevocableProxy {
+    <span class="doccomment">/// Disables the traps of the internal `proxy` object, essentially
+    /// making it unusable and throwing `TypeError`s for all the traps.
+    </span><span class="kw">pub fn </span>revoke(<span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;()&gt; {
+        <span class="self">self</span>.revoker.call(<span class="kw-2">&amp;</span>JsValue::undefined(), <span class="kw-2">&amp;</span>[], context)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(())
     }
 }
 
-<span class="kw">impl</span> <span class="ident">std::ops::Deref</span> <span class="kw">for</span> <span class="ident">JsRevocableProxy</span> {
-    <span class="kw">type</span> <span class="ident">Target</span> <span class="op">=</span> <span class="ident">JsProxy</span>;
+<span class="kw">impl </span>std::ops::Deref <span class="kw">for </span>JsRevocableProxy {
+    <span class="kw">type </span>Target = JsProxy;
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">deref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::Target</span> {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">proxy</span>
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="self">Self</span>::Target {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.proxy
     }
 }
 
-<span class="doccomment">/// Utility builder to create [`JsProxy`] objects from native functions.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This builder can be used when you need to create [`Proxy`] objects</span>
-<span class="doccomment">/// from Rust instead of Javascript, which should generate faster</span>
-<span class="doccomment">/// trap functions than its Javascript counterparts.</span>
-<span class="attribute">#[<span class="ident">must_use</span>]</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">JsProxyBuilder</span> {
-    <span class="ident">target</span>: <span class="ident">JsObject</span>,
-    <span class="ident">apply</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NativeFunctionSignature</span><span class="op">&gt;</span>,
-    <span class="ident">construct</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NativeFunctionSignature</span><span class="op">&gt;</span>,
-    <span class="ident">define_property</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NativeFunctionSignature</span><span class="op">&gt;</span>,
-    <span class="ident">delete_property</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NativeFunctionSignature</span><span class="op">&gt;</span>,
-    <span class="ident">get</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NativeFunctionSignature</span><span class="op">&gt;</span>,
-    <span class="ident">get_own_property_descriptor</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NativeFunctionSignature</span><span class="op">&gt;</span>,
-    <span class="ident">get_prototype_of</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NativeFunctionSignature</span><span class="op">&gt;</span>,
-    <span class="ident">has</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NativeFunctionSignature</span><span class="op">&gt;</span>,
-    <span class="ident">is_extensible</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NativeFunctionSignature</span><span class="op">&gt;</span>,
-    <span class="ident">own_keys</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NativeFunctionSignature</span><span class="op">&gt;</span>,
-    <span class="ident">prevent_extensions</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NativeFunctionSignature</span><span class="op">&gt;</span>,
-    <span class="ident">set</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NativeFunctionSignature</span><span class="op">&gt;</span>,
-    <span class="ident">set_prototype_of</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NativeFunctionSignature</span><span class="op">&gt;</span>,
+<span class="doccomment">/// Utility builder to create [`JsProxy`] objects from native functions.
+///
+/// This builder can be used when you need to create [`Proxy`] objects
+/// from Rust instead of Javascript, which should generate faster
+/// trap functions than its Javascript counterparts.
+</span><span class="attribute">#[must_use]
+#[derive(Clone)]
+</span><span class="kw">pub struct </span>JsProxyBuilder {
+    target: JsObject,
+    apply: <span class="prelude-ty">Option</span>&lt;NativeFunctionSignature&gt;,
+    construct: <span class="prelude-ty">Option</span>&lt;NativeFunctionSignature&gt;,
+    define_property: <span class="prelude-ty">Option</span>&lt;NativeFunctionSignature&gt;,
+    delete_property: <span class="prelude-ty">Option</span>&lt;NativeFunctionSignature&gt;,
+    get: <span class="prelude-ty">Option</span>&lt;NativeFunctionSignature&gt;,
+    get_own_property_descriptor: <span class="prelude-ty">Option</span>&lt;NativeFunctionSignature&gt;,
+    get_prototype_of: <span class="prelude-ty">Option</span>&lt;NativeFunctionSignature&gt;,
+    has: <span class="prelude-ty">Option</span>&lt;NativeFunctionSignature&gt;,
+    is_extensible: <span class="prelude-ty">Option</span>&lt;NativeFunctionSignature&gt;,
+    own_keys: <span class="prelude-ty">Option</span>&lt;NativeFunctionSignature&gt;,
+    prevent_extensions: <span class="prelude-ty">Option</span>&lt;NativeFunctionSignature&gt;,
+    set: <span class="prelude-ty">Option</span>&lt;NativeFunctionSignature&gt;,
+    set_prototype_of: <span class="prelude-ty">Option</span>&lt;NativeFunctionSignature&gt;,
 }
 
-<span class="kw">impl</span> <span class="ident">std::fmt::Debug</span> <span class="kw">for</span> <span class="ident">JsProxyBuilder</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">std::fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">std::fmt::Result</span> {
-        <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-        <span class="kw">struct</span> <span class="ident">NativeFunction</span>;
-        <span class="ident">f</span>.<span class="ident">debug_struct</span>(<span class="string">&quot;ProxyBuilder&quot;</span>)
-            .<span class="ident">field</span>(<span class="string">&quot;target&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">target</span>)
-            .<span class="ident">field</span>(<span class="string">&quot;apply&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">apply</span>.<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">NativeFunction</span>))
-            .<span class="ident">field</span>(<span class="string">&quot;construct&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">construct</span>.<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">NativeFunction</span>))
-            .<span class="ident">field</span>(
+<span class="kw">impl </span>std::fmt::Debug <span class="kw">for </span>JsProxyBuilder {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
+        <span class="attribute">#[derive(Debug)]
+        </span><span class="kw">struct </span>NativeFunction;
+        f.debug_struct(<span class="string">&quot;ProxyBuilder&quot;</span>)
+            .field(<span class="string">&quot;target&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.target)
+            .field(<span class="string">&quot;apply&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.apply.map(|<span class="kw">_</span>| NativeFunction))
+            .field(<span class="string">&quot;construct&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.construct.map(|<span class="kw">_</span>| NativeFunction))
+            .field(
                 <span class="string">&quot;define_property&quot;</span>,
-                <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">define_property</span>.<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">NativeFunction</span>),
+                <span class="kw-2">&amp;</span><span class="self">self</span>.define_property.map(|<span class="kw">_</span>| NativeFunction),
             )
-            .<span class="ident">field</span>(
+            .field(
                 <span class="string">&quot;delete_property&quot;</span>,
-                <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">delete_property</span>.<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">NativeFunction</span>),
+                <span class="kw-2">&amp;</span><span class="self">self</span>.delete_property.map(|<span class="kw">_</span>| NativeFunction),
             )
-            .<span class="ident">field</span>(<span class="string">&quot;get&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">get</span>.<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">NativeFunction</span>))
-            .<span class="ident">field</span>(
+            .field(<span class="string">&quot;get&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.get.map(|<span class="kw">_</span>| NativeFunction))
+            .field(
                 <span class="string">&quot;get_own_property_descriptor&quot;</span>,
-                <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">get_own_property_descriptor</span>.<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">NativeFunction</span>),
+                <span class="kw-2">&amp;</span><span class="self">self</span>.get_own_property_descriptor.map(|<span class="kw">_</span>| NativeFunction),
             )
-            .<span class="ident">field</span>(
+            .field(
                 <span class="string">&quot;get_prototype_of&quot;</span>,
-                <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">get_prototype_of</span>.<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">NativeFunction</span>),
+                <span class="kw-2">&amp;</span><span class="self">self</span>.get_prototype_of.map(|<span class="kw">_</span>| NativeFunction),
             )
-            .<span class="ident">field</span>(<span class="string">&quot;has&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">has</span>.<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">NativeFunction</span>))
-            .<span class="ident">field</span>(<span class="string">&quot;is_extensible&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">is_extensible</span>.<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">NativeFunction</span>))
-            .<span class="ident">field</span>(<span class="string">&quot;own_keys&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">own_keys</span>.<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">NativeFunction</span>))
-            .<span class="ident">field</span>(
+            .field(<span class="string">&quot;has&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.has.map(|<span class="kw">_</span>| NativeFunction))
+            .field(<span class="string">&quot;is_extensible&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.is_extensible.map(|<span class="kw">_</span>| NativeFunction))
+            .field(<span class="string">&quot;own_keys&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.own_keys.map(|<span class="kw">_</span>| NativeFunction))
+            .field(
                 <span class="string">&quot;prevent_extensions&quot;</span>,
-                <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">prevent_extensions</span>.<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">NativeFunction</span>),
+                <span class="kw-2">&amp;</span><span class="self">self</span>.prevent_extensions.map(|<span class="kw">_</span>| NativeFunction),
             )
-            .<span class="ident">field</span>(<span class="string">&quot;set&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">set</span>.<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">NativeFunction</span>))
-            .<span class="ident">field</span>(
+            .field(<span class="string">&quot;set&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.set.map(|<span class="kw">_</span>| NativeFunction))
+            .field(
                 <span class="string">&quot;set_prototype_of&quot;</span>,
-                <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">set_prototype_of</span>.<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">NativeFunction</span>),
+                <span class="kw-2">&amp;</span><span class="self">self</span>.set_prototype_of.map(|<span class="kw">_</span>| NativeFunction),
             )
-            .<span class="ident">finish</span>()
+            .finish()
     }
 }
 
-<span class="kw">impl</span> <span class="ident">JsProxyBuilder</span> {
-    <span class="doccomment">/// Create a new `ProxyBuilder` with every trap set to `undefined`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">target</span>: <span class="ident">JsObject</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">target</span>,
-            <span class="ident">apply</span>: <span class="prelude-val">None</span>,
-            <span class="ident">construct</span>: <span class="prelude-val">None</span>,
-            <span class="ident">define_property</span>: <span class="prelude-val">None</span>,
-            <span class="ident">delete_property</span>: <span class="prelude-val">None</span>,
-            <span class="ident">get</span>: <span class="prelude-val">None</span>,
-            <span class="ident">get_own_property_descriptor</span>: <span class="prelude-val">None</span>,
-            <span class="ident">get_prototype_of</span>: <span class="prelude-val">None</span>,
-            <span class="ident">has</span>: <span class="prelude-val">None</span>,
-            <span class="ident">is_extensible</span>: <span class="prelude-val">None</span>,
-            <span class="ident">own_keys</span>: <span class="prelude-val">None</span>,
-            <span class="ident">prevent_extensions</span>: <span class="prelude-val">None</span>,
-            <span class="ident">set</span>: <span class="prelude-val">None</span>,
-            <span class="ident">set_prototype_of</span>: <span class="prelude-val">None</span>,
+<span class="kw">impl </span>JsProxyBuilder {
+    <span class="doccomment">/// Create a new `ProxyBuilder` with every trap set to `undefined`.
+    </span><span class="kw">pub fn </span>new(target: JsObject) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            target,
+            apply: <span class="prelude-val">None</span>,
+            construct: <span class="prelude-val">None</span>,
+            define_property: <span class="prelude-val">None</span>,
+            delete_property: <span class="prelude-val">None</span>,
+            get: <span class="prelude-val">None</span>,
+            get_own_property_descriptor: <span class="prelude-val">None</span>,
+            get_prototype_of: <span class="prelude-val">None</span>,
+            has: <span class="prelude-val">None</span>,
+            is_extensible: <span class="prelude-val">None</span>,
+            own_keys: <span class="prelude-val">None</span>,
+            prevent_extensions: <span class="prelude-val">None</span>,
+            set: <span class="prelude-val">None</span>,
+            set_prototype_of: <span class="prelude-val">None</span>,
         }
     }
 
-    <span class="doccomment">/// Set the `apply` proxy trap to the specified native function.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Note</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If the `target` object is not a function, then `apply` will be ignored</span>
-    <span class="doccomment">/// when trying to call the proxy, which will throw a type error.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy/Proxy/apply</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">apply</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">apply</span>: <span class="ident">NativeFunctionSignature</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">self</span>.<span class="ident">apply</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">apply</span>);
-        <span class="self">self</span>
-    }
+    <span class="doccomment">/// Set the `apply` proxy trap to the specified native function.
+    ///
+    /// More information:
+    ///
+    /// - [MDN documentation][mdn]
+    ///
+    /// # Note
+    ///
+    /// If the `target` object is not a function, then `apply` will be ignored
+    /// when trying to call the proxy, which will throw a type error.
+    ///
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy/Proxy/apply
+    </span><span class="kw">pub fn </span>apply(<span class="kw-2">mut </span><span class="self">self</span>, apply: NativeFunctionSignature) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.apply = <span class="prelude-val">Some</span>(apply);
+        <span class="self">self
+    </span>}
 
-    <span class="doccomment">/// Set the `construct` proxy trap to the specified native function.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Note</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If the `target` object is not a constructor, then `construct` will be ignored</span>
-    <span class="doccomment">/// when trying to construct an object using the proxy, which will throw a type error.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy/Proxy/construct</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">construct</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">construct</span>: <span class="ident">NativeFunctionSignature</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">self</span>.<span class="ident">construct</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">construct</span>);
-        <span class="self">self</span>
-    }
+    <span class="doccomment">/// Set the `construct` proxy trap to the specified native function.
+    ///
+    /// More information:
+    ///
+    /// - [MDN documentation][mdn]
+    ///
+    /// # Note
+    ///
+    /// If the `target` object is not a constructor, then `construct` will be ignored
+    /// when trying to construct an object using the proxy, which will throw a type error.
+    ///
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy/Proxy/construct
+    </span><span class="kw">pub fn </span>construct(<span class="kw-2">mut </span><span class="self">self</span>, construct: NativeFunctionSignature) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.construct = <span class="prelude-val">Some</span>(construct);
+        <span class="self">self
+    </span>}
 
-    <span class="doccomment">/// Set the `defineProperty` proxy trap to the specified native function.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy/Proxy/defineProperty</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">define_property</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">define_property</span>: <span class="ident">NativeFunctionSignature</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">self</span>.<span class="ident">define_property</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">define_property</span>);
-        <span class="self">self</span>
-    }
+    <span class="doccomment">/// Set the `defineProperty` proxy trap to the specified native function.
+    ///
+    /// More information:
+    ///
+    /// - [MDN documentation][mdn]
+    ///
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy/Proxy/defineProperty
+    </span><span class="kw">pub fn </span>define_property(<span class="kw-2">mut </span><span class="self">self</span>, define_property: NativeFunctionSignature) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.define_property = <span class="prelude-val">Some</span>(define_property);
+        <span class="self">self
+    </span>}
 
-    <span class="doccomment">/// Set the `deleteProperty` proxy trap to the specified native function.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy/Proxy/deleteProperty</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">delete_property</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">delete_property</span>: <span class="ident">NativeFunctionSignature</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">self</span>.<span class="ident">delete_property</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">delete_property</span>);
-        <span class="self">self</span>
-    }
+    <span class="doccomment">/// Set the `deleteProperty` proxy trap to the specified native function.
+    ///
+    /// More information:
+    ///
+    /// - [MDN documentation][mdn]
+    ///
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy/Proxy/deleteProperty
+    </span><span class="kw">pub fn </span>delete_property(<span class="kw-2">mut </span><span class="self">self</span>, delete_property: NativeFunctionSignature) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.delete_property = <span class="prelude-val">Some</span>(delete_property);
+        <span class="self">self
+    </span>}
 
-    <span class="doccomment">/// Set the `get` proxy trap to the specified native function.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy/Proxy/get</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">get</span>: <span class="ident">NativeFunctionSignature</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">self</span>.<span class="ident">get</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">get</span>);
-        <span class="self">self</span>
-    }
+    <span class="doccomment">/// Set the `get` proxy trap to the specified native function.
+    ///
+    /// More information:
+    ///
+    /// - [MDN documentation][mdn]
+    ///
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy/Proxy/get
+    </span><span class="kw">pub fn </span>get(<span class="kw-2">mut </span><span class="self">self</span>, get: NativeFunctionSignature) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.get = <span class="prelude-val">Some</span>(get);
+        <span class="self">self
+    </span>}
 
-    <span class="doccomment">/// Set the `getOwnPropertyDescriptor` proxy trap to the specified native function.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy/Proxy/getOwnPropertyDescriptor</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_own_property_descriptor</span>(
-        <span class="kw-2">mut</span> <span class="self">self</span>,
-        <span class="ident">get_own_property_descriptor</span>: <span class="ident">NativeFunctionSignature</span>,
-    ) -&gt; <span class="self">Self</span> {
-        <span class="self">self</span>.<span class="ident">get_own_property_descriptor</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">get_own_property_descriptor</span>);
-        <span class="self">self</span>
-    }
+    <span class="doccomment">/// Set the `getOwnPropertyDescriptor` proxy trap to the specified native function.
+    ///
+    /// More information:
+    ///
+    /// - [MDN documentation][mdn]
+    ///
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy/Proxy/getOwnPropertyDescriptor
+    </span><span class="kw">pub fn </span>get_own_property_descriptor(
+        <span class="kw-2">mut </span><span class="self">self</span>,
+        get_own_property_descriptor: NativeFunctionSignature,
+    ) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.get_own_property_descriptor = <span class="prelude-val">Some</span>(get_own_property_descriptor);
+        <span class="self">self
+    </span>}
 
-    <span class="doccomment">/// Set the `getPrototypeOf` proxy trap to the specified native function.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy/Proxy/getPrototypeOf</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_prototype_of</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">get_prototype_of</span>: <span class="ident">NativeFunctionSignature</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">self</span>.<span class="ident">get_prototype_of</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">get_prototype_of</span>);
-        <span class="self">self</span>
-    }
+    <span class="doccomment">/// Set the `getPrototypeOf` proxy trap to the specified native function.
+    ///
+    /// More information:
+    ///
+    /// - [MDN documentation][mdn]
+    ///
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy/Proxy/getPrototypeOf
+    </span><span class="kw">pub fn </span>get_prototype_of(<span class="kw-2">mut </span><span class="self">self</span>, get_prototype_of: NativeFunctionSignature) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.get_prototype_of = <span class="prelude-val">Some</span>(get_prototype_of);
+        <span class="self">self
+    </span>}
 
-    <span class="doccomment">/// Set the `has` proxy trap to the specified native function.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy/Proxy/has</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">has</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">has</span>: <span class="ident">NativeFunctionSignature</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">self</span>.<span class="ident">has</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">has</span>);
-        <span class="self">self</span>
-    }
+    <span class="doccomment">/// Set the `has` proxy trap to the specified native function.
+    ///
+    /// More information:
+    ///
+    /// - [MDN documentation][mdn]
+    ///
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy/Proxy/has
+    </span><span class="kw">pub fn </span>has(<span class="kw-2">mut </span><span class="self">self</span>, has: NativeFunctionSignature) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.has = <span class="prelude-val">Some</span>(has);
+        <span class="self">self
+    </span>}
 
-    <span class="doccomment">/// Set the `isExtensible` proxy trap to the specified native function.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy/Proxy/isExtensible</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_extensible</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">is_extensible</span>: <span class="ident">NativeFunctionSignature</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">self</span>.<span class="ident">is_extensible</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">is_extensible</span>);
-        <span class="self">self</span>
-    }
+    <span class="doccomment">/// Set the `isExtensible` proxy trap to the specified native function.
+    ///
+    /// More information:
+    ///
+    /// - [MDN documentation][mdn]
+    ///
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy/Proxy/isExtensible
+    </span><span class="kw">pub fn </span>is_extensible(<span class="kw-2">mut </span><span class="self">self</span>, is_extensible: NativeFunctionSignature) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.is_extensible = <span class="prelude-val">Some</span>(is_extensible);
+        <span class="self">self
+    </span>}
 
-    <span class="doccomment">/// Set the `ownKeys` proxy trap to the specified native function.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy/Proxy/ownKeys</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">own_keys</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">own_keys</span>: <span class="ident">NativeFunctionSignature</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">self</span>.<span class="ident">own_keys</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">own_keys</span>);
-        <span class="self">self</span>
-    }
+    <span class="doccomment">/// Set the `ownKeys` proxy trap to the specified native function.
+    ///
+    /// More information:
+    ///
+    /// - [MDN documentation][mdn]
+    ///
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy/Proxy/ownKeys
+    </span><span class="kw">pub fn </span>own_keys(<span class="kw-2">mut </span><span class="self">self</span>, own_keys: NativeFunctionSignature) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.own_keys = <span class="prelude-val">Some</span>(own_keys);
+        <span class="self">self
+    </span>}
 
-    <span class="doccomment">/// Set the `preventExtensions` proxy trap to the specified native function.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy/Proxy/preventExtensions</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">prevent_extensions</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">prevent_extensions</span>: <span class="ident">NativeFunctionSignature</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">self</span>.<span class="ident">prevent_extensions</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">prevent_extensions</span>);
-        <span class="self">self</span>
-    }
+    <span class="doccomment">/// Set the `preventExtensions` proxy trap to the specified native function.
+    ///
+    /// More information:
+    ///
+    /// - [MDN documentation][mdn]
+    ///
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy/Proxy/preventExtensions
+    </span><span class="kw">pub fn </span>prevent_extensions(<span class="kw-2">mut </span><span class="self">self</span>, prevent_extensions: NativeFunctionSignature) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.prevent_extensions = <span class="prelude-val">Some</span>(prevent_extensions);
+        <span class="self">self
+    </span>}
 
-    <span class="doccomment">/// Set the `set` proxy trap to the specified native function.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy/Proxy/set</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">set</span>: <span class="ident">NativeFunctionSignature</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">self</span>.<span class="ident">set</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">set</span>);
-        <span class="self">self</span>
-    }
+    <span class="doccomment">/// Set the `set` proxy trap to the specified native function.
+    ///
+    /// More information:
+    ///
+    /// - [MDN documentation][mdn]
+    ///
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy/Proxy/set
+    </span><span class="kw">pub fn </span>set(<span class="kw-2">mut </span><span class="self">self</span>, set: NativeFunctionSignature) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.set = <span class="prelude-val">Some</span>(set);
+        <span class="self">self
+    </span>}
 
-    <span class="doccomment">/// Set the `setPrototypeOf` proxy trap to the specified native function.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy/Proxy/setPrototypeOf</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_prototype_of</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">set_prototype_of</span>: <span class="ident">NativeFunctionSignature</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">self</span>.<span class="ident">set_prototype_of</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">set_prototype_of</span>);
-        <span class="self">self</span>
-    }
+    <span class="doccomment">/// Set the `setPrototypeOf` proxy trap to the specified native function.
+    ///
+    /// More information:
+    ///
+    /// - [MDN documentation][mdn]
+    ///
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy/Proxy/setPrototypeOf
+    </span><span class="kw">pub fn </span>set_prototype_of(<span class="kw-2">mut </span><span class="self">self</span>, set_prototype_of: NativeFunctionSignature) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.set_prototype_of = <span class="prelude-val">Some</span>(set_prototype_of);
+        <span class="self">self
+    </span>}
 
-    <span class="doccomment">/// Build a [`JsObject`] of kind [`Proxy`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Equivalent to the `Proxy ( target, handler )` constructor, but returns a</span>
-    <span class="doccomment">/// [`JsObject`] in case there&#39;s a need to manipulate the returned object</span>
-    <span class="doccomment">/// inside Rust code.</span>
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build</span>(<span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsProxy</span> {
-        <span class="kw">let</span> <span class="ident">handler</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">construct_object</span>();
+    <span class="doccomment">/// Build a [`JsObject`] of kind [`Proxy`].
+    ///
+    /// Equivalent to the `Proxy ( target, handler )` constructor, but returns a
+    /// [`JsObject`] in case there&#39;s a need to manipulate the returned object
+    /// inside Rust code.
+    </span><span class="attribute">#[must_use]
+    </span><span class="kw">pub fn </span>build(<span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsProxy {
+        <span class="kw">let </span>handler = context.construct_object();
 
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">apply</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">apply</span> {
-            <span class="kw">let</span> <span class="ident">f</span> <span class="op">=</span> <span class="ident">FunctionBuilder::native</span>(<span class="ident">context</span>, <span class="ident">apply</span>).<span class="ident">length</span>(<span class="number">3</span>).<span class="ident">build</span>();
-            <span class="ident">handler</span>
-                .<span class="ident">create_data_property_or_throw</span>(<span class="string">&quot;apply&quot;</span>, <span class="ident">f</span>, <span class="ident">context</span>)
-                .<span class="ident">expect</span>(<span class="string">&quot;new object should be writable&quot;</span>);
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(apply) = <span class="self">self</span>.apply {
+            <span class="kw">let </span>f = FunctionBuilder::native(context, apply).length(<span class="number">3</span>).build();
+            handler
+                .create_data_property_or_throw(<span class="string">&quot;apply&quot;</span>, f, context)
+                .expect(<span class="string">&quot;new object should be writable&quot;</span>);
         }
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">construct</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">construct</span> {
-            <span class="kw">let</span> <span class="ident">f</span> <span class="op">=</span> <span class="ident">FunctionBuilder::native</span>(<span class="ident">context</span>, <span class="ident">construct</span>)
-                .<span class="ident">length</span>(<span class="number">3</span>)
-                .<span class="ident">build</span>();
-            <span class="ident">handler</span>
-                .<span class="ident">create_data_property_or_throw</span>(<span class="string">&quot;construct&quot;</span>, <span class="ident">f</span>, <span class="ident">context</span>)
-                .<span class="ident">expect</span>(<span class="string">&quot;new object should be writable&quot;</span>);
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(construct) = <span class="self">self</span>.construct {
+            <span class="kw">let </span>f = FunctionBuilder::native(context, construct)
+                .length(<span class="number">3</span>)
+                .build();
+            handler
+                .create_data_property_or_throw(<span class="string">&quot;construct&quot;</span>, f, context)
+                .expect(<span class="string">&quot;new object should be writable&quot;</span>);
         }
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">define_property</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">define_property</span> {
-            <span class="kw">let</span> <span class="ident">f</span> <span class="op">=</span> <span class="ident">FunctionBuilder::native</span>(<span class="ident">context</span>, <span class="ident">define_property</span>)
-                .<span class="ident">length</span>(<span class="number">3</span>)
-                .<span class="ident">build</span>();
-            <span class="ident">handler</span>
-                .<span class="ident">create_data_property_or_throw</span>(<span class="string">&quot;defineProperty&quot;</span>, <span class="ident">f</span>, <span class="ident">context</span>)
-                .<span class="ident">expect</span>(<span class="string">&quot;new object should be writable&quot;</span>);
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(define_property) = <span class="self">self</span>.define_property {
+            <span class="kw">let </span>f = FunctionBuilder::native(context, define_property)
+                .length(<span class="number">3</span>)
+                .build();
+            handler
+                .create_data_property_or_throw(<span class="string">&quot;defineProperty&quot;</span>, f, context)
+                .expect(<span class="string">&quot;new object should be writable&quot;</span>);
         }
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">delete_property</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">delete_property</span> {
-            <span class="kw">let</span> <span class="ident">f</span> <span class="op">=</span> <span class="ident">FunctionBuilder::native</span>(<span class="ident">context</span>, <span class="ident">delete_property</span>)
-                .<span class="ident">length</span>(<span class="number">2</span>)
-                .<span class="ident">build</span>();
-            <span class="ident">handler</span>
-                .<span class="ident">create_data_property_or_throw</span>(<span class="string">&quot;deleteProperty&quot;</span>, <span class="ident">f</span>, <span class="ident">context</span>)
-                .<span class="ident">expect</span>(<span class="string">&quot;new object should be writable&quot;</span>);
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(delete_property) = <span class="self">self</span>.delete_property {
+            <span class="kw">let </span>f = FunctionBuilder::native(context, delete_property)
+                .length(<span class="number">2</span>)
+                .build();
+            handler
+                .create_data_property_or_throw(<span class="string">&quot;deleteProperty&quot;</span>, f, context)
+                .expect(<span class="string">&quot;new object should be writable&quot;</span>);
         }
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">get</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">get</span> {
-            <span class="kw">let</span> <span class="ident">f</span> <span class="op">=</span> <span class="ident">FunctionBuilder::native</span>(<span class="ident">context</span>, <span class="ident">get</span>).<span class="ident">length</span>(<span class="number">3</span>).<span class="ident">build</span>();
-            <span class="ident">handler</span>
-                .<span class="ident">create_data_property_or_throw</span>(<span class="string">&quot;get&quot;</span>, <span class="ident">f</span>, <span class="ident">context</span>)
-                .<span class="ident">expect</span>(<span class="string">&quot;new object should be writable&quot;</span>);
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(get) = <span class="self">self</span>.get {
+            <span class="kw">let </span>f = FunctionBuilder::native(context, get).length(<span class="number">3</span>).build();
+            handler
+                .create_data_property_or_throw(<span class="string">&quot;get&quot;</span>, f, context)
+                .expect(<span class="string">&quot;new object should be writable&quot;</span>);
         }
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">get_own_property_descriptor</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_own_property_descriptor</span> {
-            <span class="kw">let</span> <span class="ident">f</span> <span class="op">=</span> <span class="ident">FunctionBuilder::native</span>(<span class="ident">context</span>, <span class="ident">get_own_property_descriptor</span>)
-                .<span class="ident">length</span>(<span class="number">2</span>)
-                .<span class="ident">build</span>();
-            <span class="ident">handler</span>
-                .<span class="ident">create_data_property_or_throw</span>(<span class="string">&quot;getOwnPropertyDescriptor&quot;</span>, <span class="ident">f</span>, <span class="ident">context</span>)
-                .<span class="ident">expect</span>(<span class="string">&quot;new object should be writable&quot;</span>);
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(get_own_property_descriptor) = <span class="self">self</span>.get_own_property_descriptor {
+            <span class="kw">let </span>f = FunctionBuilder::native(context, get_own_property_descriptor)
+                .length(<span class="number">2</span>)
+                .build();
+            handler
+                .create_data_property_or_throw(<span class="string">&quot;getOwnPropertyDescriptor&quot;</span>, f, context)
+                .expect(<span class="string">&quot;new object should be writable&quot;</span>);
         }
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">get_prototype_of</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_prototype_of</span> {
-            <span class="kw">let</span> <span class="ident">f</span> <span class="op">=</span> <span class="ident">FunctionBuilder::native</span>(<span class="ident">context</span>, <span class="ident">get_prototype_of</span>)
-                .<span class="ident">length</span>(<span class="number">1</span>)
-                .<span class="ident">build</span>();
-            <span class="ident">handler</span>
-                .<span class="ident">create_data_property_or_throw</span>(<span class="string">&quot;getPrototypeOf&quot;</span>, <span class="ident">f</span>, <span class="ident">context</span>)
-                .<span class="ident">expect</span>(<span class="string">&quot;new object should be writable&quot;</span>);
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(get_prototype_of) = <span class="self">self</span>.get_prototype_of {
+            <span class="kw">let </span>f = FunctionBuilder::native(context, get_prototype_of)
+                .length(<span class="number">1</span>)
+                .build();
+            handler
+                .create_data_property_or_throw(<span class="string">&quot;getPrototypeOf&quot;</span>, f, context)
+                .expect(<span class="string">&quot;new object should be writable&quot;</span>);
         }
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">has</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">has</span> {
-            <span class="kw">let</span> <span class="ident">f</span> <span class="op">=</span> <span class="ident">FunctionBuilder::native</span>(<span class="ident">context</span>, <span class="ident">has</span>).<span class="ident">length</span>(<span class="number">2</span>).<span class="ident">build</span>();
-            <span class="ident">handler</span>
-                .<span class="ident">create_data_property_or_throw</span>(<span class="string">&quot;has&quot;</span>, <span class="ident">f</span>, <span class="ident">context</span>)
-                .<span class="ident">expect</span>(<span class="string">&quot;new object should be writable&quot;</span>);
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(has) = <span class="self">self</span>.has {
+            <span class="kw">let </span>f = FunctionBuilder::native(context, has).length(<span class="number">2</span>).build();
+            handler
+                .create_data_property_or_throw(<span class="string">&quot;has&quot;</span>, f, context)
+                .expect(<span class="string">&quot;new object should be writable&quot;</span>);
         }
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">is_extensible</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">is_extensible</span> {
-            <span class="kw">let</span> <span class="ident">f</span> <span class="op">=</span> <span class="ident">FunctionBuilder::native</span>(<span class="ident">context</span>, <span class="ident">is_extensible</span>)
-                .<span class="ident">length</span>(<span class="number">1</span>)
-                .<span class="ident">build</span>();
-            <span class="ident">handler</span>
-                .<span class="ident">create_data_property_or_throw</span>(<span class="string">&quot;isExtensible&quot;</span>, <span class="ident">f</span>, <span class="ident">context</span>)
-                .<span class="ident">expect</span>(<span class="string">&quot;new object should be writable&quot;</span>);
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(is_extensible) = <span class="self">self</span>.is_extensible {
+            <span class="kw">let </span>f = FunctionBuilder::native(context, is_extensible)
+                .length(<span class="number">1</span>)
+                .build();
+            handler
+                .create_data_property_or_throw(<span class="string">&quot;isExtensible&quot;</span>, f, context)
+                .expect(<span class="string">&quot;new object should be writable&quot;</span>);
         }
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">own_keys</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">own_keys</span> {
-            <span class="kw">let</span> <span class="ident">f</span> <span class="op">=</span> <span class="ident">FunctionBuilder::native</span>(<span class="ident">context</span>, <span class="ident">own_keys</span>).<span class="ident">length</span>(<span class="number">1</span>).<span class="ident">build</span>();
-            <span class="ident">handler</span>
-                .<span class="ident">create_data_property_or_throw</span>(<span class="string">&quot;ownKeys&quot;</span>, <span class="ident">f</span>, <span class="ident">context</span>)
-                .<span class="ident">expect</span>(<span class="string">&quot;new object should be writable&quot;</span>);
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(own_keys) = <span class="self">self</span>.own_keys {
+            <span class="kw">let </span>f = FunctionBuilder::native(context, own_keys).length(<span class="number">1</span>).build();
+            handler
+                .create_data_property_or_throw(<span class="string">&quot;ownKeys&quot;</span>, f, context)
+                .expect(<span class="string">&quot;new object should be writable&quot;</span>);
         }
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">prevent_extensions</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">prevent_extensions</span> {
-            <span class="kw">let</span> <span class="ident">f</span> <span class="op">=</span> <span class="ident">FunctionBuilder::native</span>(<span class="ident">context</span>, <span class="ident">prevent_extensions</span>)
-                .<span class="ident">length</span>(<span class="number">1</span>)
-                .<span class="ident">build</span>();
-            <span class="ident">handler</span>
-                .<span class="ident">create_data_property_or_throw</span>(<span class="string">&quot;preventExtensions&quot;</span>, <span class="ident">f</span>, <span class="ident">context</span>)
-                .<span class="ident">expect</span>(<span class="string">&quot;new object should be writable&quot;</span>);
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(prevent_extensions) = <span class="self">self</span>.prevent_extensions {
+            <span class="kw">let </span>f = FunctionBuilder::native(context, prevent_extensions)
+                .length(<span class="number">1</span>)
+                .build();
+            handler
+                .create_data_property_or_throw(<span class="string">&quot;preventExtensions&quot;</span>, f, context)
+                .expect(<span class="string">&quot;new object should be writable&quot;</span>);
         }
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">set</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">set</span> {
-            <span class="kw">let</span> <span class="ident">f</span> <span class="op">=</span> <span class="ident">FunctionBuilder::native</span>(<span class="ident">context</span>, <span class="ident">set</span>).<span class="ident">length</span>(<span class="number">4</span>).<span class="ident">build</span>();
-            <span class="ident">handler</span>
-                .<span class="ident">create_data_property_or_throw</span>(<span class="string">&quot;set&quot;</span>, <span class="ident">f</span>, <span class="ident">context</span>)
-                .<span class="ident">expect</span>(<span class="string">&quot;new object should be writable&quot;</span>);
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(set) = <span class="self">self</span>.set {
+            <span class="kw">let </span>f = FunctionBuilder::native(context, set).length(<span class="number">4</span>).build();
+            handler
+                .create_data_property_or_throw(<span class="string">&quot;set&quot;</span>, f, context)
+                .expect(<span class="string">&quot;new object should be writable&quot;</span>);
         }
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">set_prototype_of</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">set_prototype_of</span> {
-            <span class="kw">let</span> <span class="ident">f</span> <span class="op">=</span> <span class="ident">FunctionBuilder::native</span>(<span class="ident">context</span>, <span class="ident">set_prototype_of</span>)
-                .<span class="ident">length</span>(<span class="number">2</span>)
-                .<span class="ident">build</span>();
-            <span class="ident">handler</span>
-                .<span class="ident">create_data_property_or_throw</span>(<span class="string">&quot;setPrototypeOf&quot;</span>, <span class="ident">f</span>, <span class="ident">context</span>)
-                .<span class="ident">expect</span>(<span class="string">&quot;new object should be writable&quot;</span>);
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(set_prototype_of) = <span class="self">self</span>.set_prototype_of {
+            <span class="kw">let </span>f = FunctionBuilder::native(context, set_prototype_of)
+                .length(<span class="number">2</span>)
+                .build();
+            handler
+                .create_data_property_or_throw(<span class="string">&quot;setPrototypeOf&quot;</span>, f, context)
+                .expect(<span class="string">&quot;new object should be writable&quot;</span>);
         }
 
-        <span class="kw">let</span> <span class="ident">callable</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">target</span>.<span class="ident">is_callable</span>();
-        <span class="kw">let</span> <span class="ident">constructor</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">target</span>.<span class="ident">is_constructor</span>();
+        <span class="kw">let </span>callable = <span class="self">self</span>.target.is_callable();
+        <span class="kw">let </span>constructor = <span class="self">self</span>.target.is_constructor();
 
-        <span class="kw">let</span> <span class="ident">proxy</span> <span class="op">=</span> <span class="ident">JsObject::from_proto_and_data</span>(
-            <span class="ident">context</span>.<span class="ident">intrinsics</span>().<span class="ident">constructors</span>().<span class="ident">object</span>().<span class="ident">prototype</span>(),
-            <span class="ident">ObjectData::proxy</span>(<span class="ident">Proxy::new</span>(<span class="self">self</span>.<span class="ident">target</span>, <span class="ident">handler</span>), <span class="ident">callable</span>, <span class="ident">constructor</span>),
+        <span class="kw">let </span>proxy = JsObject::from_proto_and_data(
+            context.intrinsics().constructors().object().prototype(),
+            ObjectData::proxy(Proxy::new(<span class="self">self</span>.target, handler), callable, constructor),
         );
 
-        <span class="ident">JsProxy</span> { <span class="ident">inner</span>: <span class="ident">proxy</span> }
+        JsProxy { inner: proxy }
     }
 
-    <span class="doccomment">/// Builds a [`JsObject`] of kind [`Proxy`] and a [`JsFunction`] that, when</span>
-    <span class="doccomment">/// called, disables the proxy of the object.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Equivalent to the `Proxy.revocable ( target, handler )` static method,</span>
-    <span class="doccomment">/// but returns a [`JsObject`] for the proxy and a [`JsFunction`] for the</span>
-    <span class="doccomment">/// revoker in case there&#39;s a need to manipulate the returned objects</span>
-    <span class="doccomment">/// inside Rust code.</span>
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build_revocable</span>(<span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsRevocableProxy</span> {
-        <span class="kw">let</span> <span class="ident">proxy</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">build</span>(<span class="ident">context</span>);
-        <span class="kw">let</span> <span class="ident">revoker</span> <span class="op">=</span> <span class="ident">Proxy::revoker</span>(<span class="ident">proxy</span>.<span class="ident">inner</span>.<span class="ident">clone</span>(), <span class="ident">context</span>);
+    <span class="doccomment">/// Builds a [`JsObject`] of kind [`Proxy`] and a [`JsFunction`] that, when
+    /// called, disables the proxy of the object.
+    ///
+    /// Equivalent to the `Proxy.revocable ( target, handler )` static method,
+    /// but returns a [`JsObject`] for the proxy and a [`JsFunction`] for the
+    /// revoker in case there&#39;s a need to manipulate the returned objects
+    /// inside Rust code.
+    </span><span class="attribute">#[must_use]
+    </span><span class="kw">pub fn </span>build_revocable(<span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsRevocableProxy {
+        <span class="kw">let </span>proxy = <span class="self">self</span>.build(context);
+        <span class="kw">let </span>revoker = Proxy::revoker(proxy.inner.clone(), context);
 
-        <span class="ident">JsRevocableProxy</span> { <span class="ident">proxy</span>, <span class="ident">revoker</span> }
+        JsRevocableProxy { proxy, revoker }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0 (a55dd71d5 2022-09-19)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0 (897e37553 2022-11-02)" ></div></body></html>

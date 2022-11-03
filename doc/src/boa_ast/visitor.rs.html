@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_ast/src/visitor.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>visitor.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../boa_ast/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../boa_ast/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../boa_ast/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_ast/src/visitor.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>visitor.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../boa_ast/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../boa_ast/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../boa_ast/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -272,279 +272,279 @@
 <span id="272">272</span>
 <span id="273">273</span>
 <span id="274">274</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Javascript Abstract Syntax Tree visitors.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! This module contains visitors which can be used to inspect or modify AST nodes. This allows for</span>
-<span class="doccomment">//! fine-grained manipulation of ASTs for analysis, rewriting, or instrumentation.</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Javascript Abstract Syntax Tree visitors.
+//!
+//! This module contains visitors which can be used to inspect or modify AST nodes. This allows for
+//! fine-grained manipulation of ASTs for analysis, rewriting, or instrumentation.
 
-<span class="doccomment">/// `Try`-like conditional unwrapping of `ControlFlow`.</span>
-<span class="attribute">#[<span class="ident">macro_export</span>]</span>
-<span class="macro">macro_rules!</span> <span class="ident">try_break</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">expr</span>:<span class="ident">expr</span>) =&gt; {
-        <span class="kw">match</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">expr</span> {
-            <span class="ident">core::ops::ControlFlow::Continue</span>(<span class="ident">c</span>) =&gt; <span class="ident">c</span>,
-            <span class="ident">core::ops::ControlFlow::Break</span>(<span class="ident">b</span>) =&gt; <span class="kw">return</span> <span class="ident">core::ops::ControlFlow::Break</span>(<span class="ident">b</span>),
+/// `Try`-like conditional unwrapping of `ControlFlow`.
+</span><span class="attribute">#[macro_export]
+</span><span class="macro">macro_rules! </span>try_break {
+    (<span class="macro-nonterminal">$expr</span>:expr) =&gt; {
+        <span class="kw">match </span><span class="macro-nonterminal">$expr </span>{
+            core::ops::ControlFlow::Continue(c) =&gt; c,
+            core::ops::ControlFlow::Break(b) =&gt; <span class="kw">return </span>core::ops::ControlFlow::Break(b),
         }
     };
 }
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::declaration</span>::{
-    <span class="ident">Binding</span>, <span class="ident">Declaration</span>, <span class="ident">LexicalDeclaration</span>, <span class="ident">VarDeclaration</span>, <span class="ident">Variable</span>, <span class="ident">VariableList</span>,
+<span class="kw">use </span><span class="kw">crate</span>::declaration::{
+    Binding, Declaration, LexicalDeclaration, VarDeclaration, Variable, VariableList,
 };
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::expression::access</span>::{
-    <span class="ident">PrivatePropertyAccess</span>, <span class="ident">PropertyAccess</span>, <span class="ident">PropertyAccessField</span>, <span class="ident">SimplePropertyAccess</span>,
-    <span class="ident">SuperPropertyAccess</span>,
+<span class="kw">use </span><span class="kw">crate</span>::expression::access::{
+    PrivatePropertyAccess, PropertyAccess, PropertyAccessField, SimplePropertyAccess,
+    SuperPropertyAccess,
 };
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::expression::literal</span>::{
-    <span class="ident">ArrayLiteral</span>, <span class="ident">Literal</span>, <span class="ident">ObjectLiteral</span>, <span class="ident">TemplateElement</span>, <span class="ident">TemplateLiteral</span>,
+<span class="kw">use </span><span class="kw">crate</span>::expression::literal::{
+    ArrayLiteral, Literal, ObjectLiteral, TemplateElement, TemplateLiteral,
 };
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::expression::operator::assign</span>::{<span class="ident">Assign</span>, <span class="ident">AssignTarget</span>};
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::expression::operator</span>::{<span class="ident">Binary</span>, <span class="ident">Conditional</span>, <span class="ident">Unary</span>};
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::expression</span>::{
-    <span class="ident">Await</span>, <span class="ident">Call</span>, <span class="ident">Expression</span>, <span class="ident">Identifier</span>, <span class="ident">New</span>, <span class="ident">Optional</span>, <span class="ident">OptionalOperation</span>, <span class="ident">OptionalOperationKind</span>,
-    <span class="ident">Spread</span>, <span class="ident">SuperCall</span>, <span class="ident">TaggedTemplate</span>, <span class="ident">Yield</span>,
+<span class="kw">use </span><span class="kw">crate</span>::expression::operator::assign::{Assign, AssignTarget};
+<span class="kw">use </span><span class="kw">crate</span>::expression::operator::{Binary, Conditional, Unary};
+<span class="kw">use </span><span class="kw">crate</span>::expression::{
+    Await, Call, Expression, Identifier, New, Optional, OptionalOperation, OptionalOperationKind,
+    Spread, SuperCall, TaggedTemplate, Yield,
 };
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::function</span>::{
-    <span class="ident">ArrowFunction</span>, <span class="ident">AsyncFunction</span>, <span class="ident">AsyncGenerator</span>, <span class="ident">Class</span>, <span class="ident">ClassElement</span>, <span class="ident">FormalParameter</span>,
-    <span class="ident">FormalParameterList</span>, <span class="ident">Function</span>, <span class="ident">Generator</span>,
+<span class="kw">use </span><span class="kw">crate</span>::function::{
+    ArrowFunction, AsyncFunction, AsyncGenerator, Class, ClassElement, FormalParameter,
+    FormalParameterList, Function, Generator,
 };
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::pattern</span>::{
-    <span class="ident">ArrayPattern</span>, <span class="ident">ArrayPatternElement</span>, <span class="ident">ObjectPattern</span>, <span class="ident">ObjectPatternElement</span>, <span class="ident">Pattern</span>,
+<span class="kw">use </span><span class="kw">crate</span>::pattern::{
+    ArrayPattern, ArrayPatternElement, ObjectPattern, ObjectPatternElement, Pattern,
 };
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::property</span>::{<span class="ident">MethodDefinition</span>, <span class="ident">PropertyDefinition</span>, <span class="ident">PropertyName</span>};
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::statement::iteration</span>::{
-    <span class="ident">Break</span>, <span class="ident">Continue</span>, <span class="ident">DoWhileLoop</span>, <span class="ident">ForInLoop</span>, <span class="ident">ForLoop</span>, <span class="ident">ForLoopInitializer</span>, <span class="ident">ForOfLoop</span>,
-    <span class="ident">IterableLoopInitializer</span>, <span class="ident">WhileLoop</span>,
+<span class="kw">use </span><span class="kw">crate</span>::property::{MethodDefinition, PropertyDefinition, PropertyName};
+<span class="kw">use </span><span class="kw">crate</span>::statement::iteration::{
+    Break, Continue, DoWhileLoop, ForInLoop, ForLoop, ForLoopInitializer, ForOfLoop,
+    IterableLoopInitializer, WhileLoop,
 };
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::statement</span>::{
-    <span class="ident">Block</span>, <span class="ident">Case</span>, <span class="ident">Catch</span>, <span class="ident">Finally</span>, <span class="ident">If</span>, <span class="ident">Labelled</span>, <span class="ident">LabelledItem</span>, <span class="ident">Return</span>, <span class="ident">Statement</span>, <span class="ident">Switch</span>, <span class="ident">Throw</span>, <span class="ident">Try</span>,
+<span class="kw">use </span><span class="kw">crate</span>::statement::{
+    Block, Case, Catch, Finally, If, Labelled, LabelledItem, Return, Statement, Switch, Throw, Try,
 };
-<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">StatementList</span>, <span class="ident">StatementListItem</span>};
-<span class="kw">use</span> <span class="ident">boa_interner::Sym</span>;
+<span class="kw">use crate</span>::{StatementList, StatementListItem};
+<span class="kw">use </span>boa_interner::Sym;
 
-<span class="doccomment">/// Creates the default visit function implementation for a particular type</span>
-<span class="macro">macro_rules!</span> <span class="ident">define_visit</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">fn_name</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">type_name</span>:<span class="ident">ident</span>) =&gt; {
-        <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="macro">concat!</span>(<span class="string">&quot;Visits a `&quot;</span>, <span class="macro">stringify!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">type_name</span>), <span class="string">&quot;` with this visitor&quot;</span>)]</span>
-        <span class="attribute">#[<span class="ident">must_use</span>]</span>
-        <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">fn_name</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">node</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">type_name</span>) -&gt; <span class="ident">core::ops::ControlFlow</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::BreakTy</span><span class="op">&gt;</span> {
-            <span class="ident">node</span>.<span class="ident">visit_with</span>(<span class="self">self</span>)
+<span class="doccomment">/// Creates the default visit function implementation for a particular type
+</span><span class="macro">macro_rules! </span>define_visit {
+    (<span class="macro-nonterminal">$fn_name</span>:ident, <span class="macro-nonterminal">$type_name</span>:ident) =&gt; {
+        <span class="attribute">#[doc = <span class="macro">concat!</span>(<span class="string">&quot;Visits a `&quot;</span>, <span class="macro">stringify!</span>(<span class="macro-nonterminal">$type_name</span>), <span class="string">&quot;` with this visitor&quot;</span>)]
+        #[must_use]
+        </span><span class="kw">fn </span><span class="macro-nonterminal">$fn_name</span>(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span><span class="macro-nonterminal">$type_name</span>) -&gt; core::ops::ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
+            node.visit_with(<span class="self">self</span>)
         }
     };
 }
 
-<span class="doccomment">/// Creates the default mutable visit function implementation for a particular type</span>
-<span class="macro">macro_rules!</span> <span class="ident">define_visit_mut</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">fn_name</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">type_name</span>:<span class="ident">ident</span>) =&gt; {
-        <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="macro">concat!</span>(<span class="string">&quot;Visits a `&quot;</span>, <span class="macro">stringify!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">type_name</span>), <span class="string">&quot;` with this visitor, mutably&quot;</span>)]</span>
-        <span class="attribute">#[<span class="ident">must_use</span>]</span>
-        <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">fn_name</span>(
-            <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-            <span class="ident">node</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast</span> <span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">type_name</span>,
-        ) -&gt; <span class="ident">core::ops::ControlFlow</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::BreakTy</span><span class="op">&gt;</span> {
-            <span class="ident">node</span>.<span class="ident">visit_with_mut</span>(<span class="self">self</span>)
+<span class="doccomment">/// Creates the default mutable visit function implementation for a particular type
+</span><span class="macro">macro_rules! </span>define_visit_mut {
+    (<span class="macro-nonterminal">$fn_name</span>:ident, <span class="macro-nonterminal">$type_name</span>:ident) =&gt; {
+        <span class="attribute">#[doc = <span class="macro">concat!</span>(<span class="string">&quot;Visits a `&quot;</span>, <span class="macro">stringify!</span>(<span class="macro-nonterminal">$type_name</span>), <span class="string">&quot;` with this visitor, mutably&quot;</span>)]
+        #[must_use]
+        </span><span class="kw">fn </span><span class="macro-nonterminal">$fn_name</span>(
+            <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+            node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span><span class="kw-2">mut </span><span class="macro-nonterminal">$type_name</span>,
+        ) -&gt; core::ops::ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
+            node.visit_with_mut(<span class="self">self</span>)
         }
     };
 }
 
-<span class="doccomment">/// Represents an AST visitor.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This implementation is based largely on [chalk](https://github.com/rust-lang/chalk/blob/23d39c90ceb9242fbd4c43e9368e813e7c2179f7/chalk-ir/src/visit.rs)&#39;s</span>
-<span class="doccomment">/// visitor pattern.</span>
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;ast</span><span class="op">&gt;</span>: <span class="ident">Sized</span> {
-    <span class="doccomment">/// Type which will be propagated from the visitor if completing early.</span>
-    <span class="kw">type</span> <span class="ident">BreakTy</span>;
+<span class="doccomment">/// Represents an AST visitor.
+///
+/// This implementation is based largely on [chalk](https://github.com/rust-lang/chalk/blob/23d39c90ceb9242fbd4c43e9368e813e7c2179f7/chalk-ir/src/visit.rs)&#39;s
+/// visitor pattern.
+</span><span class="kw">pub trait </span>Visitor&lt;<span class="lifetime">&#39;ast</span>&gt;: Sized {
+    <span class="doccomment">/// Type which will be propagated from the visitor if completing early.
+    </span><span class="kw">type </span>BreakTy;
 
-    <span class="macro">define_visit!</span>(<span class="ident">visit_statement_list</span>, <span class="ident">StatementList</span>);
-    <span class="macro">define_visit!</span>(<span class="ident">visit_statement_list_item</span>, <span class="ident">StatementListItem</span>);
-    <span class="macro">define_visit!</span>(<span class="ident">visit_statement</span>, <span class="ident">Statement</span>);
-    <span class="macro">define_visit!</span>(<span class="ident">visit_declaration</span>, <span class="ident">Declaration</span>);
-    <span class="macro">define_visit!</span>(<span class="ident">visit_function</span>, <span class="ident">Function</span>);
-    <span class="macro">define_visit!</span>(<span class="ident">visit_generator</span>, <span class="ident">Generator</span>);
-    <span class="macro">define_visit!</span>(<span class="ident">visit_async_function</span>, <span class="ident">AsyncFunction</span>);
-    <span class="macro">define_visit!</span>(<span class="ident">visit_async_generator</span>, <span class="ident">AsyncGenerator</span>);
-    <span class="macro">define_visit!</span>(<span class="ident">visit_class</span>, <span class="ident">Class</span>);
-    <span class="macro">define_visit!</span>(<span class="ident">visit_lexical_declaration</span>, <span class="ident">LexicalDeclaration</span>);
-    <span class="macro">define_visit!</span>(<span class="ident">visit_block</span>, <span class="ident">Block</span>);
-    <span class="macro">define_visit!</span>(<span class="ident">visit_var_declaration</span>, <span class="ident">VarDeclaration</span>);
-    <span class="macro">define_visit!</span>(<span class="ident">visit_expression</span>, <span class="ident">Expression</span>);
-    <span class="macro">define_visit!</span>(<span class="ident">visit_if</span>, <span class="ident">If</span>);
-    <span class="macro">define_visit!</span>(<span class="ident">visit_do_while_loop</span>, <span class="ident">DoWhileLoop</span>);
-    <span class="macro">define_visit!</span>(<span class="ident">visit_while_loop</span>, <span class="ident">WhileLoop</span>);
-    <span class="macro">define_visit!</span>(<span class="ident">visit_for_loop</span>, <span class="ident">ForLoop</span>);
-    <span class="macro">define_visit!</span>(<span class="ident">visit_for_in_loop</span>, <span class="ident">ForInLoop</span>);
-    <span class="macro">define_visit!</span>(<span class="ident">visit_for_of_loop</span>, <span class="ident">ForOfLoop</span>);
-    <span class="macro">define_visit!</span>(<span class="ident">visit_switch</span>, <span class="ident">Switch</span>);
-    <span class="macro">define_visit!</span>(<span class="ident">visit_continue</span>, <span class="ident">Continue</span>);
-    <span class="macro">define_visit!</span>(<span class="ident">visit_break</span>, <span class="ident">Break</span>);
-    <span class="macro">define_visit!</span>(<span class="ident">visit_return</span>, <span class="ident">Return</span>);
-    <span class="macro">define_visit!</span>(<span class="ident">visit_labelled</span>, <span class="ident">Labelled</span>);
-    <span class="macro">define_visit!</span>(<span class="ident">visit_throw</span>, <span class="ident">Throw</span>);
-    <span class="macro">define_visit!</span>(<span class="ident">visit_try</span>, <span class="ident">Try</span>);
-    <span class="macro">define_visit!</span>(<span class="ident">visit_identifier</span>, <span class="ident">Identifier</span>);
-    <span class="macro">define_visit!</span>(<span class="ident">visit_formal_parameter_list</span>, <span class="ident">FormalParameterList</span>);
-    <span class="macro">define_visit!</span>(<span class="ident">visit_class_element</span>, <span class="ident">ClassElement</span>);
-    <span class="macro">define_visit!</span>(<span class="ident">visit_variable_list</span>, <span class="ident">VariableList</span>);
-    <span class="macro">define_visit!</span>(<span class="ident">visit_variable</span>, <span class="ident">Variable</span>);
-    <span class="macro">define_visit!</span>(<span class="ident">visit_binding</span>, <span class="ident">Binding</span>);
-    <span class="macro">define_visit!</span>(<span class="ident">visit_pattern</span>, <span class="ident">Pattern</span>);
-    <span class="macro">define_visit!</span>(<span class="ident">visit_literal</span>, <span class="ident">Literal</span>);
-    <span class="macro">define_visit!</span>(<span class="ident">visit_array_literal</span>, <span class="ident">ArrayLiteral</span>);
-    <span class="macro">define_visit!</span>(<span class="ident">visit_object_literal</span>, <span class="ident">ObjectLiteral</span>);
-    <span class="macro">define_visit!</span>(<span class="ident">visit_spread</span>, <span class="ident">Spread</span>);
-    <span class="macro">define_visit!</span>(<span class="ident">visit_arrow_function</span>, <span class="ident">ArrowFunction</span>);
-    <span class="macro">define_visit!</span>(<span class="ident">visit_template_literal</span>, <span class="ident">TemplateLiteral</span>);
-    <span class="macro">define_visit!</span>(<span class="ident">visit_property_access</span>, <span class="ident">PropertyAccess</span>);
-    <span class="macro">define_visit!</span>(<span class="ident">visit_new</span>, <span class="ident">New</span>);
-    <span class="macro">define_visit!</span>(<span class="ident">visit_call</span>, <span class="ident">Call</span>);
-    <span class="macro">define_visit!</span>(<span class="ident">visit_super_call</span>, <span class="ident">SuperCall</span>);
-    <span class="macro">define_visit!</span>(<span class="ident">visit_optional</span>, <span class="ident">Optional</span>);
-    <span class="macro">define_visit!</span>(<span class="ident">visit_tagged_template</span>, <span class="ident">TaggedTemplate</span>);
-    <span class="macro">define_visit!</span>(<span class="ident">visit_assign</span>, <span class="ident">Assign</span>);
-    <span class="macro">define_visit!</span>(<span class="ident">visit_unary</span>, <span class="ident">Unary</span>);
-    <span class="macro">define_visit!</span>(<span class="ident">visit_binary</span>, <span class="ident">Binary</span>);
-    <span class="macro">define_visit!</span>(<span class="ident">visit_conditional</span>, <span class="ident">Conditional</span>);
-    <span class="macro">define_visit!</span>(<span class="ident">visit_await</span>, <span class="ident">Await</span>);
-    <span class="macro">define_visit!</span>(<span class="ident">visit_yield</span>, <span class="ident">Yield</span>);
-    <span class="macro">define_visit!</span>(<span class="ident">visit_for_loop_initializer</span>, <span class="ident">ForLoopInitializer</span>);
-    <span class="macro">define_visit!</span>(<span class="ident">visit_iterable_loop_initializer</span>, <span class="ident">IterableLoopInitializer</span>);
-    <span class="macro">define_visit!</span>(<span class="ident">visit_case</span>, <span class="ident">Case</span>);
-    <span class="macro">define_visit!</span>(<span class="ident">visit_sym</span>, <span class="ident">Sym</span>);
-    <span class="macro">define_visit!</span>(<span class="ident">visit_labelled_item</span>, <span class="ident">LabelledItem</span>);
-    <span class="macro">define_visit!</span>(<span class="ident">visit_catch</span>, <span class="ident">Catch</span>);
-    <span class="macro">define_visit!</span>(<span class="ident">visit_finally</span>, <span class="ident">Finally</span>);
-    <span class="macro">define_visit!</span>(<span class="ident">visit_formal_parameter</span>, <span class="ident">FormalParameter</span>);
-    <span class="macro">define_visit!</span>(<span class="ident">visit_property_name</span>, <span class="ident">PropertyName</span>);
-    <span class="macro">define_visit!</span>(<span class="ident">visit_method_definition</span>, <span class="ident">MethodDefinition</span>);
-    <span class="macro">define_visit!</span>(<span class="ident">visit_object_pattern</span>, <span class="ident">ObjectPattern</span>);
-    <span class="macro">define_visit!</span>(<span class="ident">visit_array_pattern</span>, <span class="ident">ArrayPattern</span>);
-    <span class="macro">define_visit!</span>(<span class="ident">visit_property_definition</span>, <span class="ident">PropertyDefinition</span>);
-    <span class="macro">define_visit!</span>(<span class="ident">visit_template_element</span>, <span class="ident">TemplateElement</span>);
-    <span class="macro">define_visit!</span>(<span class="ident">visit_simple_property_access</span>, <span class="ident">SimplePropertyAccess</span>);
-    <span class="macro">define_visit!</span>(<span class="ident">visit_private_property_access</span>, <span class="ident">PrivatePropertyAccess</span>);
-    <span class="macro">define_visit!</span>(<span class="ident">visit_super_property_access</span>, <span class="ident">SuperPropertyAccess</span>);
-    <span class="macro">define_visit!</span>(<span class="ident">visit_optional_operation</span>, <span class="ident">OptionalOperation</span>);
-    <span class="macro">define_visit!</span>(<span class="ident">visit_assign_target</span>, <span class="ident">AssignTarget</span>);
-    <span class="macro">define_visit!</span>(<span class="ident">visit_object_pattern_element</span>, <span class="ident">ObjectPatternElement</span>);
-    <span class="macro">define_visit!</span>(<span class="ident">visit_array_pattern_element</span>, <span class="ident">ArrayPatternElement</span>);
-    <span class="macro">define_visit!</span>(<span class="ident">visit_property_access_field</span>, <span class="ident">PropertyAccessField</span>);
-    <span class="macro">define_visit!</span>(<span class="ident">visit_optional_operation_kind</span>, <span class="ident">OptionalOperationKind</span>);
+    <span class="macro">define_visit!</span>(visit_statement_list, StatementList);
+    <span class="macro">define_visit!</span>(visit_statement_list_item, StatementListItem);
+    <span class="macro">define_visit!</span>(visit_statement, Statement);
+    <span class="macro">define_visit!</span>(visit_declaration, Declaration);
+    <span class="macro">define_visit!</span>(visit_function, Function);
+    <span class="macro">define_visit!</span>(visit_generator, Generator);
+    <span class="macro">define_visit!</span>(visit_async_function, AsyncFunction);
+    <span class="macro">define_visit!</span>(visit_async_generator, AsyncGenerator);
+    <span class="macro">define_visit!</span>(visit_class, Class);
+    <span class="macro">define_visit!</span>(visit_lexical_declaration, LexicalDeclaration);
+    <span class="macro">define_visit!</span>(visit_block, Block);
+    <span class="macro">define_visit!</span>(visit_var_declaration, VarDeclaration);
+    <span class="macro">define_visit!</span>(visit_expression, Expression);
+    <span class="macro">define_visit!</span>(visit_if, If);
+    <span class="macro">define_visit!</span>(visit_do_while_loop, DoWhileLoop);
+    <span class="macro">define_visit!</span>(visit_while_loop, WhileLoop);
+    <span class="macro">define_visit!</span>(visit_for_loop, ForLoop);
+    <span class="macro">define_visit!</span>(visit_for_in_loop, ForInLoop);
+    <span class="macro">define_visit!</span>(visit_for_of_loop, ForOfLoop);
+    <span class="macro">define_visit!</span>(visit_switch, Switch);
+    <span class="macro">define_visit!</span>(visit_continue, Continue);
+    <span class="macro">define_visit!</span>(visit_break, Break);
+    <span class="macro">define_visit!</span>(visit_return, Return);
+    <span class="macro">define_visit!</span>(visit_labelled, Labelled);
+    <span class="macro">define_visit!</span>(visit_throw, Throw);
+    <span class="macro">define_visit!</span>(visit_try, Try);
+    <span class="macro">define_visit!</span>(visit_identifier, Identifier);
+    <span class="macro">define_visit!</span>(visit_formal_parameter_list, FormalParameterList);
+    <span class="macro">define_visit!</span>(visit_class_element, ClassElement);
+    <span class="macro">define_visit!</span>(visit_variable_list, VariableList);
+    <span class="macro">define_visit!</span>(visit_variable, Variable);
+    <span class="macro">define_visit!</span>(visit_binding, Binding);
+    <span class="macro">define_visit!</span>(visit_pattern, Pattern);
+    <span class="macro">define_visit!</span>(visit_literal, Literal);
+    <span class="macro">define_visit!</span>(visit_array_literal, ArrayLiteral);
+    <span class="macro">define_visit!</span>(visit_object_literal, ObjectLiteral);
+    <span class="macro">define_visit!</span>(visit_spread, Spread);
+    <span class="macro">define_visit!</span>(visit_arrow_function, ArrowFunction);
+    <span class="macro">define_visit!</span>(visit_template_literal, TemplateLiteral);
+    <span class="macro">define_visit!</span>(visit_property_access, PropertyAccess);
+    <span class="macro">define_visit!</span>(visit_new, New);
+    <span class="macro">define_visit!</span>(visit_call, Call);
+    <span class="macro">define_visit!</span>(visit_super_call, SuperCall);
+    <span class="macro">define_visit!</span>(visit_optional, Optional);
+    <span class="macro">define_visit!</span>(visit_tagged_template, TaggedTemplate);
+    <span class="macro">define_visit!</span>(visit_assign, Assign);
+    <span class="macro">define_visit!</span>(visit_unary, Unary);
+    <span class="macro">define_visit!</span>(visit_binary, Binary);
+    <span class="macro">define_visit!</span>(visit_conditional, Conditional);
+    <span class="macro">define_visit!</span>(visit_await, Await);
+    <span class="macro">define_visit!</span>(visit_yield, Yield);
+    <span class="macro">define_visit!</span>(visit_for_loop_initializer, ForLoopInitializer);
+    <span class="macro">define_visit!</span>(visit_iterable_loop_initializer, IterableLoopInitializer);
+    <span class="macro">define_visit!</span>(visit_case, Case);
+    <span class="macro">define_visit!</span>(visit_sym, Sym);
+    <span class="macro">define_visit!</span>(visit_labelled_item, LabelledItem);
+    <span class="macro">define_visit!</span>(visit_catch, Catch);
+    <span class="macro">define_visit!</span>(visit_finally, Finally);
+    <span class="macro">define_visit!</span>(visit_formal_parameter, FormalParameter);
+    <span class="macro">define_visit!</span>(visit_property_name, PropertyName);
+    <span class="macro">define_visit!</span>(visit_method_definition, MethodDefinition);
+    <span class="macro">define_visit!</span>(visit_object_pattern, ObjectPattern);
+    <span class="macro">define_visit!</span>(visit_array_pattern, ArrayPattern);
+    <span class="macro">define_visit!</span>(visit_property_definition, PropertyDefinition);
+    <span class="macro">define_visit!</span>(visit_template_element, TemplateElement);
+    <span class="macro">define_visit!</span>(visit_simple_property_access, SimplePropertyAccess);
+    <span class="macro">define_visit!</span>(visit_private_property_access, PrivatePropertyAccess);
+    <span class="macro">define_visit!</span>(visit_super_property_access, SuperPropertyAccess);
+    <span class="macro">define_visit!</span>(visit_optional_operation, OptionalOperation);
+    <span class="macro">define_visit!</span>(visit_assign_target, AssignTarget);
+    <span class="macro">define_visit!</span>(visit_object_pattern_element, ObjectPatternElement);
+    <span class="macro">define_visit!</span>(visit_array_pattern_element, ArrayPatternElement);
+    <span class="macro">define_visit!</span>(visit_property_access_field, PropertyAccessField);
+    <span class="macro">define_visit!</span>(visit_optional_operation_kind, OptionalOperationKind);
 }
 
-<span class="doccomment">/// Represents an AST visitor which can modify AST content.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This implementation is based largely on [chalk](https://github.com/rust-lang/chalk/blob/23d39c90ceb9242fbd4c43e9368e813e7c2179f7/chalk-ir/src/visit.rs)&#39;s</span>
-<span class="doccomment">/// visitor pattern.</span>
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">VisitorMut</span><span class="op">&lt;</span><span class="lifetime">&#39;ast</span><span class="op">&gt;</span>: <span class="ident">Sized</span> {
-    <span class="doccomment">/// Type which will be propagated from the visitor if completing early.</span>
-    <span class="kw">type</span> <span class="ident">BreakTy</span>;
+<span class="doccomment">/// Represents an AST visitor which can modify AST content.
+///
+/// This implementation is based largely on [chalk](https://github.com/rust-lang/chalk/blob/23d39c90ceb9242fbd4c43e9368e813e7c2179f7/chalk-ir/src/visit.rs)&#39;s
+/// visitor pattern.
+</span><span class="kw">pub trait </span>VisitorMut&lt;<span class="lifetime">&#39;ast</span>&gt;: Sized {
+    <span class="doccomment">/// Type which will be propagated from the visitor if completing early.
+    </span><span class="kw">type </span>BreakTy;
 
-    <span class="macro">define_visit_mut!</span>(<span class="ident">visit_statement_list_mut</span>, <span class="ident">StatementList</span>);
-    <span class="macro">define_visit_mut!</span>(<span class="ident">visit_statement_list_item_mut</span>, <span class="ident">StatementListItem</span>);
-    <span class="macro">define_visit_mut!</span>(<span class="ident">visit_statement_mut</span>, <span class="ident">Statement</span>);
-    <span class="macro">define_visit_mut!</span>(<span class="ident">visit_declaration_mut</span>, <span class="ident">Declaration</span>);
-    <span class="macro">define_visit_mut!</span>(<span class="ident">visit_function_mut</span>, <span class="ident">Function</span>);
-    <span class="macro">define_visit_mut!</span>(<span class="ident">visit_generator_mut</span>, <span class="ident">Generator</span>);
-    <span class="macro">define_visit_mut!</span>(<span class="ident">visit_async_function_mut</span>, <span class="ident">AsyncFunction</span>);
-    <span class="macro">define_visit_mut!</span>(<span class="ident">visit_async_generator_mut</span>, <span class="ident">AsyncGenerator</span>);
-    <span class="macro">define_visit_mut!</span>(<span class="ident">visit_class_mut</span>, <span class="ident">Class</span>);
-    <span class="macro">define_visit_mut!</span>(<span class="ident">visit_lexical_declaration_mut</span>, <span class="ident">LexicalDeclaration</span>);
-    <span class="macro">define_visit_mut!</span>(<span class="ident">visit_block_mut</span>, <span class="ident">Block</span>);
-    <span class="macro">define_visit_mut!</span>(<span class="ident">visit_var_declaration_mut</span>, <span class="ident">VarDeclaration</span>);
-    <span class="macro">define_visit_mut!</span>(<span class="ident">visit_expression_mut</span>, <span class="ident">Expression</span>);
-    <span class="macro">define_visit_mut!</span>(<span class="ident">visit_if_mut</span>, <span class="ident">If</span>);
-    <span class="macro">define_visit_mut!</span>(<span class="ident">visit_do_while_loop_mut</span>, <span class="ident">DoWhileLoop</span>);
-    <span class="macro">define_visit_mut!</span>(<span class="ident">visit_while_loop_mut</span>, <span class="ident">WhileLoop</span>);
-    <span class="macro">define_visit_mut!</span>(<span class="ident">visit_for_loop_mut</span>, <span class="ident">ForLoop</span>);
-    <span class="macro">define_visit_mut!</span>(<span class="ident">visit_for_in_loop_mut</span>, <span class="ident">ForInLoop</span>);
-    <span class="macro">define_visit_mut!</span>(<span class="ident">visit_for_of_loop_mut</span>, <span class="ident">ForOfLoop</span>);
-    <span class="macro">define_visit_mut!</span>(<span class="ident">visit_switch_mut</span>, <span class="ident">Switch</span>);
-    <span class="macro">define_visit_mut!</span>(<span class="ident">visit_continue_mut</span>, <span class="ident">Continue</span>);
-    <span class="macro">define_visit_mut!</span>(<span class="ident">visit_break_mut</span>, <span class="ident">Break</span>);
-    <span class="macro">define_visit_mut!</span>(<span class="ident">visit_return_mut</span>, <span class="ident">Return</span>);
-    <span class="macro">define_visit_mut!</span>(<span class="ident">visit_labelled_mut</span>, <span class="ident">Labelled</span>);
-    <span class="macro">define_visit_mut!</span>(<span class="ident">visit_throw_mut</span>, <span class="ident">Throw</span>);
-    <span class="macro">define_visit_mut!</span>(<span class="ident">visit_try_mut</span>, <span class="ident">Try</span>);
-    <span class="macro">define_visit_mut!</span>(<span class="ident">visit_identifier_mut</span>, <span class="ident">Identifier</span>);
-    <span class="macro">define_visit_mut!</span>(<span class="ident">visit_formal_parameter_list_mut</span>, <span class="ident">FormalParameterList</span>);
-    <span class="macro">define_visit_mut!</span>(<span class="ident">visit_class_element_mut</span>, <span class="ident">ClassElement</span>);
-    <span class="macro">define_visit_mut!</span>(<span class="ident">visit_variable_list_mut</span>, <span class="ident">VariableList</span>);
-    <span class="macro">define_visit_mut!</span>(<span class="ident">visit_variable_mut</span>, <span class="ident">Variable</span>);
-    <span class="macro">define_visit_mut!</span>(<span class="ident">visit_binding_mut</span>, <span class="ident">Binding</span>);
-    <span class="macro">define_visit_mut!</span>(<span class="ident">visit_pattern_mut</span>, <span class="ident">Pattern</span>);
-    <span class="macro">define_visit_mut!</span>(<span class="ident">visit_literal_mut</span>, <span class="ident">Literal</span>);
-    <span class="macro">define_visit_mut!</span>(<span class="ident">visit_array_literal_mut</span>, <span class="ident">ArrayLiteral</span>);
-    <span class="macro">define_visit_mut!</span>(<span class="ident">visit_object_literal_mut</span>, <span class="ident">ObjectLiteral</span>);
-    <span class="macro">define_visit_mut!</span>(<span class="ident">visit_spread_mut</span>, <span class="ident">Spread</span>);
-    <span class="macro">define_visit_mut!</span>(<span class="ident">visit_arrow_function_mut</span>, <span class="ident">ArrowFunction</span>);
-    <span class="macro">define_visit_mut!</span>(<span class="ident">visit_template_literal_mut</span>, <span class="ident">TemplateLiteral</span>);
-    <span class="macro">define_visit_mut!</span>(<span class="ident">visit_property_access_mut</span>, <span class="ident">PropertyAccess</span>);
-    <span class="macro">define_visit_mut!</span>(<span class="ident">visit_new_mut</span>, <span class="ident">New</span>);
-    <span class="macro">define_visit_mut!</span>(<span class="ident">visit_call_mut</span>, <span class="ident">Call</span>);
-    <span class="macro">define_visit_mut!</span>(<span class="ident">visit_super_call_mut</span>, <span class="ident">SuperCall</span>);
-    <span class="macro">define_visit_mut!</span>(<span class="ident">visit_optional_mut</span>, <span class="ident">Optional</span>);
-    <span class="macro">define_visit_mut!</span>(<span class="ident">visit_tagged_template_mut</span>, <span class="ident">TaggedTemplate</span>);
-    <span class="macro">define_visit_mut!</span>(<span class="ident">visit_assign_mut</span>, <span class="ident">Assign</span>);
-    <span class="macro">define_visit_mut!</span>(<span class="ident">visit_unary_mut</span>, <span class="ident">Unary</span>);
-    <span class="macro">define_visit_mut!</span>(<span class="ident">visit_binary_mut</span>, <span class="ident">Binary</span>);
-    <span class="macro">define_visit_mut!</span>(<span class="ident">visit_conditional_mut</span>, <span class="ident">Conditional</span>);
-    <span class="macro">define_visit_mut!</span>(<span class="ident">visit_await_mut</span>, <span class="ident">Await</span>);
-    <span class="macro">define_visit_mut!</span>(<span class="ident">visit_yield_mut</span>, <span class="ident">Yield</span>);
-    <span class="macro">define_visit_mut!</span>(<span class="ident">visit_for_loop_initializer_mut</span>, <span class="ident">ForLoopInitializer</span>);
-    <span class="macro">define_visit_mut!</span>(<span class="ident">visit_iterable_loop_initializer_mut</span>, <span class="ident">IterableLoopInitializer</span>);
-    <span class="macro">define_visit_mut!</span>(<span class="ident">visit_case_mut</span>, <span class="ident">Case</span>);
-    <span class="macro">define_visit_mut!</span>(<span class="ident">visit_sym_mut</span>, <span class="ident">Sym</span>);
-    <span class="macro">define_visit_mut!</span>(<span class="ident">visit_labelled_item_mut</span>, <span class="ident">LabelledItem</span>);
-    <span class="macro">define_visit_mut!</span>(<span class="ident">visit_catch_mut</span>, <span class="ident">Catch</span>);
-    <span class="macro">define_visit_mut!</span>(<span class="ident">visit_finally_mut</span>, <span class="ident">Finally</span>);
-    <span class="macro">define_visit_mut!</span>(<span class="ident">visit_formal_parameter_mut</span>, <span class="ident">FormalParameter</span>);
-    <span class="macro">define_visit_mut!</span>(<span class="ident">visit_property_name_mut</span>, <span class="ident">PropertyName</span>);
-    <span class="macro">define_visit_mut!</span>(<span class="ident">visit_method_definition_mut</span>, <span class="ident">MethodDefinition</span>);
-    <span class="macro">define_visit_mut!</span>(<span class="ident">visit_object_pattern_mut</span>, <span class="ident">ObjectPattern</span>);
-    <span class="macro">define_visit_mut!</span>(<span class="ident">visit_array_pattern_mut</span>, <span class="ident">ArrayPattern</span>);
-    <span class="macro">define_visit_mut!</span>(<span class="ident">visit_property_definition_mut</span>, <span class="ident">PropertyDefinition</span>);
-    <span class="macro">define_visit_mut!</span>(<span class="ident">visit_template_element_mut</span>, <span class="ident">TemplateElement</span>);
-    <span class="macro">define_visit_mut!</span>(<span class="ident">visit_simple_property_access_mut</span>, <span class="ident">SimplePropertyAccess</span>);
-    <span class="macro">define_visit_mut!</span>(<span class="ident">visit_private_property_access_mut</span>, <span class="ident">PrivatePropertyAccess</span>);
-    <span class="macro">define_visit_mut!</span>(<span class="ident">visit_super_property_access_mut</span>, <span class="ident">SuperPropertyAccess</span>);
-    <span class="macro">define_visit_mut!</span>(<span class="ident">visit_optional_operation_mut</span>, <span class="ident">OptionalOperation</span>);
-    <span class="macro">define_visit_mut!</span>(<span class="ident">visit_assign_target_mut</span>, <span class="ident">AssignTarget</span>);
-    <span class="macro">define_visit_mut!</span>(<span class="ident">visit_object_pattern_element_mut</span>, <span class="ident">ObjectPatternElement</span>);
-    <span class="macro">define_visit_mut!</span>(<span class="ident">visit_array_pattern_element_mut</span>, <span class="ident">ArrayPatternElement</span>);
-    <span class="macro">define_visit_mut!</span>(<span class="ident">visit_property_access_field_mut</span>, <span class="ident">PropertyAccessField</span>);
-    <span class="macro">define_visit_mut!</span>(<span class="ident">visit_optional_operation_kind_mut</span>, <span class="ident">OptionalOperationKind</span>);
+    <span class="macro">define_visit_mut!</span>(visit_statement_list_mut, StatementList);
+    <span class="macro">define_visit_mut!</span>(visit_statement_list_item_mut, StatementListItem);
+    <span class="macro">define_visit_mut!</span>(visit_statement_mut, Statement);
+    <span class="macro">define_visit_mut!</span>(visit_declaration_mut, Declaration);
+    <span class="macro">define_visit_mut!</span>(visit_function_mut, Function);
+    <span class="macro">define_visit_mut!</span>(visit_generator_mut, Generator);
+    <span class="macro">define_visit_mut!</span>(visit_async_function_mut, AsyncFunction);
+    <span class="macro">define_visit_mut!</span>(visit_async_generator_mut, AsyncGenerator);
+    <span class="macro">define_visit_mut!</span>(visit_class_mut, Class);
+    <span class="macro">define_visit_mut!</span>(visit_lexical_declaration_mut, LexicalDeclaration);
+    <span class="macro">define_visit_mut!</span>(visit_block_mut, Block);
+    <span class="macro">define_visit_mut!</span>(visit_var_declaration_mut, VarDeclaration);
+    <span class="macro">define_visit_mut!</span>(visit_expression_mut, Expression);
+    <span class="macro">define_visit_mut!</span>(visit_if_mut, If);
+    <span class="macro">define_visit_mut!</span>(visit_do_while_loop_mut, DoWhileLoop);
+    <span class="macro">define_visit_mut!</span>(visit_while_loop_mut, WhileLoop);
+    <span class="macro">define_visit_mut!</span>(visit_for_loop_mut, ForLoop);
+    <span class="macro">define_visit_mut!</span>(visit_for_in_loop_mut, ForInLoop);
+    <span class="macro">define_visit_mut!</span>(visit_for_of_loop_mut, ForOfLoop);
+    <span class="macro">define_visit_mut!</span>(visit_switch_mut, Switch);
+    <span class="macro">define_visit_mut!</span>(visit_continue_mut, Continue);
+    <span class="macro">define_visit_mut!</span>(visit_break_mut, Break);
+    <span class="macro">define_visit_mut!</span>(visit_return_mut, Return);
+    <span class="macro">define_visit_mut!</span>(visit_labelled_mut, Labelled);
+    <span class="macro">define_visit_mut!</span>(visit_throw_mut, Throw);
+    <span class="macro">define_visit_mut!</span>(visit_try_mut, Try);
+    <span class="macro">define_visit_mut!</span>(visit_identifier_mut, Identifier);
+    <span class="macro">define_visit_mut!</span>(visit_formal_parameter_list_mut, FormalParameterList);
+    <span class="macro">define_visit_mut!</span>(visit_class_element_mut, ClassElement);
+    <span class="macro">define_visit_mut!</span>(visit_variable_list_mut, VariableList);
+    <span class="macro">define_visit_mut!</span>(visit_variable_mut, Variable);
+    <span class="macro">define_visit_mut!</span>(visit_binding_mut, Binding);
+    <span class="macro">define_visit_mut!</span>(visit_pattern_mut, Pattern);
+    <span class="macro">define_visit_mut!</span>(visit_literal_mut, Literal);
+    <span class="macro">define_visit_mut!</span>(visit_array_literal_mut, ArrayLiteral);
+    <span class="macro">define_visit_mut!</span>(visit_object_literal_mut, ObjectLiteral);
+    <span class="macro">define_visit_mut!</span>(visit_spread_mut, Spread);
+    <span class="macro">define_visit_mut!</span>(visit_arrow_function_mut, ArrowFunction);
+    <span class="macro">define_visit_mut!</span>(visit_template_literal_mut, TemplateLiteral);
+    <span class="macro">define_visit_mut!</span>(visit_property_access_mut, PropertyAccess);
+    <span class="macro">define_visit_mut!</span>(visit_new_mut, New);
+    <span class="macro">define_visit_mut!</span>(visit_call_mut, Call);
+    <span class="macro">define_visit_mut!</span>(visit_super_call_mut, SuperCall);
+    <span class="macro">define_visit_mut!</span>(visit_optional_mut, Optional);
+    <span class="macro">define_visit_mut!</span>(visit_tagged_template_mut, TaggedTemplate);
+    <span class="macro">define_visit_mut!</span>(visit_assign_mut, Assign);
+    <span class="macro">define_visit_mut!</span>(visit_unary_mut, Unary);
+    <span class="macro">define_visit_mut!</span>(visit_binary_mut, Binary);
+    <span class="macro">define_visit_mut!</span>(visit_conditional_mut, Conditional);
+    <span class="macro">define_visit_mut!</span>(visit_await_mut, Await);
+    <span class="macro">define_visit_mut!</span>(visit_yield_mut, Yield);
+    <span class="macro">define_visit_mut!</span>(visit_for_loop_initializer_mut, ForLoopInitializer);
+    <span class="macro">define_visit_mut!</span>(visit_iterable_loop_initializer_mut, IterableLoopInitializer);
+    <span class="macro">define_visit_mut!</span>(visit_case_mut, Case);
+    <span class="macro">define_visit_mut!</span>(visit_sym_mut, Sym);
+    <span class="macro">define_visit_mut!</span>(visit_labelled_item_mut, LabelledItem);
+    <span class="macro">define_visit_mut!</span>(visit_catch_mut, Catch);
+    <span class="macro">define_visit_mut!</span>(visit_finally_mut, Finally);
+    <span class="macro">define_visit_mut!</span>(visit_formal_parameter_mut, FormalParameter);
+    <span class="macro">define_visit_mut!</span>(visit_property_name_mut, PropertyName);
+    <span class="macro">define_visit_mut!</span>(visit_method_definition_mut, MethodDefinition);
+    <span class="macro">define_visit_mut!</span>(visit_object_pattern_mut, ObjectPattern);
+    <span class="macro">define_visit_mut!</span>(visit_array_pattern_mut, ArrayPattern);
+    <span class="macro">define_visit_mut!</span>(visit_property_definition_mut, PropertyDefinition);
+    <span class="macro">define_visit_mut!</span>(visit_template_element_mut, TemplateElement);
+    <span class="macro">define_visit_mut!</span>(visit_simple_property_access_mut, SimplePropertyAccess);
+    <span class="macro">define_visit_mut!</span>(visit_private_property_access_mut, PrivatePropertyAccess);
+    <span class="macro">define_visit_mut!</span>(visit_super_property_access_mut, SuperPropertyAccess);
+    <span class="macro">define_visit_mut!</span>(visit_optional_operation_mut, OptionalOperation);
+    <span class="macro">define_visit_mut!</span>(visit_assign_target_mut, AssignTarget);
+    <span class="macro">define_visit_mut!</span>(visit_object_pattern_element_mut, ObjectPatternElement);
+    <span class="macro">define_visit_mut!</span>(visit_array_pattern_element_mut, ArrayPatternElement);
+    <span class="macro">define_visit_mut!</span>(visit_property_access_field_mut, PropertyAccessField);
+    <span class="macro">define_visit_mut!</span>(visit_optional_operation_kind_mut, OptionalOperationKind);
 }
 
-<span class="doccomment">/// Denotes that a type may be visited, providing a method which allows a visitor to traverse its</span>
-<span class="doccomment">/// private fields.</span>
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">VisitWith</span> {
-    <span class="doccomment">/// Visit this node with the provided visitor.</span>
-    <span class="kw">fn</span> <span class="ident">visit_with</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">V</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>, <span class="ident">visitor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">V</span>) -&gt; <span class="ident">core::ops::ControlFlow</span><span class="op">&lt;</span><span class="ident">V::BreakTy</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">V</span>: <span class="ident">Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>;
+<span class="doccomment">/// Denotes that a type may be visited, providing a method which allows a visitor to traverse its
+/// private fields.
+</span><span class="kw">pub trait </span>VisitWith {
+    <span class="doccomment">/// Visit this node with the provided visitor.
+    </span><span class="kw">fn </span>visit_with&lt;<span class="lifetime">&#39;a</span>, V&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>, visitor: <span class="kw-2">&amp;mut </span>V) -&gt; core::ops::ControlFlow&lt;V::BreakTy&gt;
+    <span class="kw">where
+        </span>V: Visitor&lt;<span class="lifetime">&#39;a</span>&gt;;
 
-    <span class="doccomment">/// Visit this node with the provided visitor mutably, allowing the visitor to modify private</span>
-    <span class="doccomment">/// fields.</span>
-    <span class="kw">fn</span> <span class="ident">visit_with_mut</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">V</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">visitor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">V</span>) -&gt; <span class="ident">core::ops::ControlFlow</span><span class="op">&lt;</span><span class="ident">V::BreakTy</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">V</span>: <span class="ident">VisitorMut</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>;
+    <span class="doccomment">/// Visit this node with the provided visitor mutably, allowing the visitor to modify private
+    /// fields.
+    </span><span class="kw">fn </span>visit_with_mut&lt;<span class="lifetime">&#39;a</span>, V&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="self">self</span>, visitor: <span class="kw-2">&amp;mut </span>V) -&gt; core::ops::ControlFlow&lt;V::BreakTy&gt;
+    <span class="kw">where
+        </span>V: VisitorMut&lt;<span class="lifetime">&#39;a</span>&gt;;
 }
 
-<span class="comment">// implementation for Sym as it is out-of-crate</span>
-<span class="kw">impl</span> <span class="ident">VisitWith</span> <span class="kw">for</span> <span class="ident">Sym</span> {
-    <span class="kw">fn</span> <span class="ident">visit_with</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">V</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>, <span class="ident">_visitor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">V</span>) -&gt; <span class="ident">core::ops::ControlFlow</span><span class="op">&lt;</span><span class="ident">V::BreakTy</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">V</span>: <span class="ident">Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
+<span class="comment">// implementation for Sym as it is out-of-crate
+</span><span class="kw">impl </span>VisitWith <span class="kw">for </span>Sym {
+    <span class="kw">fn </span>visit_with&lt;<span class="lifetime">&#39;a</span>, V&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>, _visitor: <span class="kw-2">&amp;mut </span>V) -&gt; core::ops::ControlFlow&lt;V::BreakTy&gt;
+    <span class="kw">where
+        </span>V: Visitor&lt;<span class="lifetime">&#39;a</span>&gt;,
     {
-        <span class="ident">core::ops::ControlFlow::Continue</span>(())
+        core::ops::ControlFlow::Continue(())
     }
 
-    <span class="kw">fn</span> <span class="ident">visit_with_mut</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">V</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">_visitor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">V</span>) -&gt; <span class="ident">core::ops::ControlFlow</span><span class="op">&lt;</span><span class="ident">V::BreakTy</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">V</span>: <span class="ident">VisitorMut</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
+    <span class="kw">fn </span>visit_with_mut&lt;<span class="lifetime">&#39;a</span>, V&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="self">self</span>, _visitor: <span class="kw-2">&amp;mut </span>V) -&gt; core::ops::ControlFlow&lt;V::BreakTy&gt;
+    <span class="kw">where
+        </span>V: VisitorMut&lt;<span class="lifetime">&#39;a</span>&gt;,
     {
-        <span class="ident">core::ops::ControlFlow::Continue</span>(())
+        core::ops::ControlFlow::Continue(())
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="boa_ast" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0 (a55dd71d5 2022-09-19)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="boa_ast" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0 (897e37553 2022-11-02)" ></div></body></html>

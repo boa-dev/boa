@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_engine/src/builtins/symbol/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_engine/src/builtins/symbol/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container">
                     <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../boa_engine/index.html">
                         <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -343,348 +343,348 @@
 <span id="341">341</span>
 <span id="342">342</span>
 <span id="343">343</span>
-</pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `Symbol` object.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! The data type symbol is a primitive data type.</span>
-<span class="doccomment">//! The `Symbol()` function returns a value of type symbol, has static properties that expose</span>
-<span class="doccomment">//! several members of built-in objects, has static methods that expose the global symbol registry,</span>
-<span class="doccomment">//! and resembles a built-in object class, but is incomplete as a constructor because it does not</span>
-<span class="doccomment">//! support the syntax &quot;`new Symbol()`&quot;.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! Every symbol value returned from `Symbol()` is unique.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! More information:</span>
-<span class="doccomment">//! - [MDN documentation][mdn]</span>
-<span class="doccomment">//! - [ECMAScript reference][spec]</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! [spec]: https://tc39.es/ecma262/#sec-symbol-value</span>
-<span class="doccomment">//! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol</span>
+</pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `Symbol` object.
+//!
+//! The data type symbol is a primitive data type.
+//! The `Symbol()` function returns a value of type symbol, has static properties that expose
+//! several members of built-in objects, has static methods that expose the global symbol registry,
+//! and resembles a built-in object class, but is incomplete as a constructor because it does not
+//! support the syntax &quot;`new Symbol()`&quot;.
+//!
+//! Every symbol value returned from `Symbol()` is unique.
+//!
+//! More information:
+//! - [MDN documentation][mdn]
+//! - [ECMAScript reference][spec]
+//!
+//! [spec]: https://tc39.es/ecma262/#sec-symbol-value
+//! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span>;
+</span><span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>tests;
 
-<span class="kw">use</span> <span class="ident"><span class="kw">super</span>::JsArgs</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">builtins::BuiltIn</span>,
-    <span class="ident">error::JsNativeError</span>,
-    <span class="ident">object</span>::{<span class="ident">ConstructorBuilder</span>, <span class="ident">FunctionBuilder</span>},
-    <span class="ident">property::Attribute</span>,
-    <span class="ident">symbol</span>::{<span class="ident">JsSymbol</span>, <span class="ident">WellKnownSymbols</span>},
-    <span class="ident">value::JsValue</span>,
-    <span class="ident">Context</span>, <span class="ident">JsResult</span>, <span class="ident">JsString</span>,
+<span class="kw">use </span><span class="kw">super</span>::JsArgs;
+<span class="kw">use crate</span>::{
+    builtins::BuiltIn,
+    error::JsNativeError,
+    object::{ConstructorBuilder, FunctionBuilder},
+    property::Attribute,
+    symbol::{JsSymbol, WellKnownSymbols},
+    value::JsValue,
+    Context, JsResult, JsString,
 };
-<span class="kw">use</span> <span class="ident">boa_profiler::Profiler</span>;
-<span class="kw">use</span> <span class="ident">rustc_hash::FxHashMap</span>;
-<span class="kw">use</span> <span class="ident">std::cell::RefCell</span>;
-<span class="kw">use</span> <span class="ident">tap</span>::{<span class="ident">Conv</span>, <span class="ident">Pipe</span>};
+<span class="kw">use </span>boa_profiler::Profiler;
+<span class="kw">use </span>rustc_hash::FxHashMap;
+<span class="kw">use </span>std::cell::RefCell;
+<span class="kw">use </span>tap::{Conv, Pipe};
 
-<span class="macro">thread_local!</span> {
-    <span class="kw">static</span> <span class="ident">GLOBAL_SYMBOL_REGISTRY</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="ident">GlobalSymbolRegistry</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">RefCell::new</span>(<span class="ident">GlobalSymbolRegistry::new</span>());
+<span class="macro">thread_local! </span>{
+    <span class="kw">static </span>GLOBAL_SYMBOL_REGISTRY: RefCell&lt;GlobalSymbolRegistry&gt; = RefCell::new(GlobalSymbolRegistry::new());
 }
 
-<span class="kw">struct</span> <span class="ident">GlobalSymbolRegistry</span> {
-    <span class="ident">keys</span>: <span class="ident">FxHashMap</span><span class="op">&lt;</span><span class="ident">JsString</span>, <span class="ident">JsSymbol</span><span class="op">&gt;</span>,
-    <span class="ident">symbols</span>: <span class="ident">FxHashMap</span><span class="op">&lt;</span><span class="ident">JsSymbol</span>, <span class="ident">JsString</span><span class="op">&gt;</span>,
+<span class="kw">struct </span>GlobalSymbolRegistry {
+    keys: FxHashMap&lt;JsString, JsSymbol&gt;,
+    symbols: FxHashMap&lt;JsSymbol, JsString&gt;,
 }
 
-<span class="kw">impl</span> <span class="ident">GlobalSymbolRegistry</span> {
-    <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">keys</span>: <span class="ident">FxHashMap::default</span>(),
-            <span class="ident">symbols</span>: <span class="ident">FxHashMap::default</span>(),
+<span class="kw">impl </span>GlobalSymbolRegistry {
+    <span class="kw">fn </span>new() -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            keys: FxHashMap::default(),
+            symbols: FxHashMap::default(),
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">get_or_insert_key</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">key</span>: <span class="ident">JsString</span>) -&gt; <span class="ident">JsSymbol</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">symbol</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">keys</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">key</span>) {
-            <span class="kw">return</span> <span class="ident">symbol</span>.<span class="ident">clone</span>();
+    <span class="kw">fn </span>get_or_insert_key(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: JsString) -&gt; JsSymbol {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(symbol) = <span class="self">self</span>.keys.get(<span class="kw-2">&amp;</span>key) {
+            <span class="kw">return </span>symbol.clone();
         }
 
-        <span class="kw">let</span> <span class="ident">symbol</span> <span class="op">=</span> <span class="ident">JsSymbol::new</span>(<span class="prelude-val">Some</span>(<span class="ident">key</span>.<span class="ident">clone</span>()));
-        <span class="self">self</span>.<span class="ident">keys</span>.<span class="ident">insert</span>(<span class="ident">key</span>.<span class="ident">clone</span>(), <span class="ident">symbol</span>.<span class="ident">clone</span>());
-        <span class="self">self</span>.<span class="ident">symbols</span>.<span class="ident">insert</span>(<span class="ident">symbol</span>.<span class="ident">clone</span>(), <span class="ident">key</span>);
-        <span class="ident">symbol</span>
+        <span class="kw">let </span>symbol = JsSymbol::new(<span class="prelude-val">Some</span>(key.clone()));
+        <span class="self">self</span>.keys.insert(key.clone(), symbol.clone());
+        <span class="self">self</span>.symbols.insert(symbol.clone(), key);
+        symbol
     }
 
-    <span class="kw">fn</span> <span class="ident">get_symbol</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">sym</span>: <span class="kw-2">&amp;</span><span class="ident">JsSymbol</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JsString</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">key</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">symbols</span>.<span class="ident">get</span>(<span class="ident">sym</span>) {
-            <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident">key</span>.<span class="ident">clone</span>());
+    <span class="kw">fn </span>get_symbol(<span class="kw-2">&amp;</span><span class="self">self</span>, sym: <span class="kw-2">&amp;</span>JsSymbol) -&gt; <span class="prelude-ty">Option</span>&lt;JsString&gt; {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(key) = <span class="self">self</span>.symbols.get(sym) {
+            <span class="kw">return </span><span class="prelude-val">Some</span>(key.clone());
         }
 
-        <span class="prelude-val">None</span>
-    }
+        <span class="prelude-val">None
+    </span>}
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Symbol</span>;
+<span class="attribute">#[derive(Debug, Clone, Copy)]
+</span><span class="kw">pub struct </span>Symbol;
 
-<span class="kw">impl</span> <span class="ident">BuiltIn</span> <span class="kw">for</span> <span class="ident">Symbol</span> {
-    <span class="kw">const</span> <span class="ident">NAME</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;Symbol&quot;</span>;
+<span class="kw">impl </span>BuiltIn <span class="kw">for </span>Symbol {
+    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;Symbol&quot;</span>;
 
-    <span class="kw">fn</span> <span class="ident">init</span>(<span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="ident"><span class="self">Self</span>::NAME</span>, <span class="string">&quot;init&quot;</span>);
+    <span class="kw">fn </span>init(context: <span class="kw-2">&amp;mut </span>Context) -&gt; <span class="prelude-ty">Option</span>&lt;JsValue&gt; {
+        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="self">Self</span>::NAME, <span class="string">&quot;init&quot;</span>);
 
-        <span class="kw">let</span> <span class="ident">symbol_async_iterator</span> <span class="op">=</span> <span class="ident">WellKnownSymbols::async_iterator</span>();
-        <span class="kw">let</span> <span class="ident">symbol_has_instance</span> <span class="op">=</span> <span class="ident">WellKnownSymbols::has_instance</span>();
-        <span class="kw">let</span> <span class="ident">symbol_is_concat_spreadable</span> <span class="op">=</span> <span class="ident">WellKnownSymbols::is_concat_spreadable</span>();
-        <span class="kw">let</span> <span class="ident">symbol_iterator</span> <span class="op">=</span> <span class="ident">WellKnownSymbols::iterator</span>();
-        <span class="kw">let</span> <span class="ident">symbol_match</span> <span class="op">=</span> <span class="ident">WellKnownSymbols</span>::<span class="ident">r#match</span>();
-        <span class="kw">let</span> <span class="ident">symbol_match_all</span> <span class="op">=</span> <span class="ident">WellKnownSymbols::match_all</span>();
-        <span class="kw">let</span> <span class="ident">symbol_replace</span> <span class="op">=</span> <span class="ident">WellKnownSymbols::replace</span>();
-        <span class="kw">let</span> <span class="ident">symbol_search</span> <span class="op">=</span> <span class="ident">WellKnownSymbols::search</span>();
-        <span class="kw">let</span> <span class="ident">symbol_species</span> <span class="op">=</span> <span class="ident">WellKnownSymbols::species</span>();
-        <span class="kw">let</span> <span class="ident">symbol_split</span> <span class="op">=</span> <span class="ident">WellKnownSymbols::split</span>();
-        <span class="kw">let</span> <span class="ident">symbol_to_primitive</span> <span class="op">=</span> <span class="ident">WellKnownSymbols::to_primitive</span>();
-        <span class="kw">let</span> <span class="ident">symbol_to_string_tag</span> <span class="op">=</span> <span class="ident">WellKnownSymbols::to_string_tag</span>();
-        <span class="kw">let</span> <span class="ident">symbol_unscopables</span> <span class="op">=</span> <span class="ident">WellKnownSymbols::unscopables</span>();
+        <span class="kw">let </span>symbol_async_iterator = WellKnownSymbols::async_iterator();
+        <span class="kw">let </span>symbol_has_instance = WellKnownSymbols::has_instance();
+        <span class="kw">let </span>symbol_is_concat_spreadable = WellKnownSymbols::is_concat_spreadable();
+        <span class="kw">let </span>symbol_iterator = WellKnownSymbols::iterator();
+        <span class="kw">let </span>symbol_match = WellKnownSymbols::r#match();
+        <span class="kw">let </span>symbol_match_all = WellKnownSymbols::match_all();
+        <span class="kw">let </span>symbol_replace = WellKnownSymbols::replace();
+        <span class="kw">let </span>symbol_search = WellKnownSymbols::search();
+        <span class="kw">let </span>symbol_species = WellKnownSymbols::species();
+        <span class="kw">let </span>symbol_split = WellKnownSymbols::split();
+        <span class="kw">let </span>symbol_to_primitive = WellKnownSymbols::to_primitive();
+        <span class="kw">let </span>symbol_to_string_tag = WellKnownSymbols::to_string_tag();
+        <span class="kw">let </span>symbol_unscopables = WellKnownSymbols::unscopables();
 
-        <span class="kw">let</span> <span class="ident">attribute</span> <span class="op">=</span> <span class="ident">Attribute::READONLY</span> <span class="op">|</span> <span class="ident">Attribute::NON_ENUMERABLE</span> <span class="op">|</span> <span class="ident">Attribute::PERMANENT</span>;
+        <span class="kw">let </span>attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT;
 
-        <span class="kw">let</span> <span class="ident">to_primitive</span> <span class="op">=</span> <span class="ident">FunctionBuilder::native</span>(<span class="ident">context</span>, <span class="ident"><span class="self">Self</span>::to_primitive</span>)
-            .<span class="ident">name</span>(<span class="string">&quot;[Symbol.toPrimitive]&quot;</span>)
-            .<span class="ident">length</span>(<span class="number">1</span>)
-            .<span class="ident">constructor</span>(<span class="bool-val">false</span>)
-            .<span class="ident">build</span>();
+        <span class="kw">let </span>to_primitive = FunctionBuilder::native(context, <span class="self">Self</span>::to_primitive)
+            .name(<span class="string">&quot;[Symbol.toPrimitive]&quot;</span>)
+            .length(<span class="number">1</span>)
+            .constructor(<span class="bool-val">false</span>)
+            .build();
 
-        <span class="kw">let</span> <span class="ident">get_description</span> <span class="op">=</span> <span class="ident">FunctionBuilder::native</span>(<span class="ident">context</span>, <span class="ident"><span class="self">Self</span>::get_description</span>)
-            .<span class="ident">name</span>(<span class="string">&quot;get description&quot;</span>)
-            .<span class="ident">constructor</span>(<span class="bool-val">false</span>)
-            .<span class="ident">build</span>();
+        <span class="kw">let </span>get_description = FunctionBuilder::native(context, <span class="self">Self</span>::get_description)
+            .name(<span class="string">&quot;get description&quot;</span>)
+            .constructor(<span class="bool-val">false</span>)
+            .build();
 
-        <span class="ident">ConstructorBuilder::with_standard_constructor</span>(
-            <span class="ident">context</span>,
-            <span class="ident"><span class="self">Self</span>::constructor</span>,
-            <span class="ident">context</span>.<span class="ident">intrinsics</span>().<span class="ident">constructors</span>().<span class="ident">symbol</span>().<span class="ident">clone</span>(),
+        ConstructorBuilder::with_standard_constructor(
+            context,
+            <span class="self">Self</span>::constructor,
+            context.intrinsics().constructors().symbol().clone(),
         )
-        .<span class="ident">name</span>(<span class="ident"><span class="self">Self</span>::NAME</span>)
-        .<span class="ident">length</span>(<span class="ident"><span class="self">Self</span>::LENGTH</span>)
-        .<span class="ident">callable</span>(<span class="bool-val">true</span>)
-        .<span class="ident">constructor</span>(<span class="bool-val">true</span>)
-        .<span class="ident">static_method</span>(<span class="ident"><span class="self">Self</span>::for_</span>, <span class="string">&quot;for&quot;</span>, <span class="number">1</span>)
-        .<span class="ident">static_method</span>(<span class="ident"><span class="self">Self</span>::key_for</span>, <span class="string">&quot;keyFor&quot;</span>, <span class="number">1</span>)
-        .<span class="ident">static_property</span>(<span class="string">&quot;asyncIterator&quot;</span>, <span class="ident">symbol_async_iterator</span>, <span class="ident">attribute</span>)
-        .<span class="ident">static_property</span>(<span class="string">&quot;hasInstance&quot;</span>, <span class="ident">symbol_has_instance</span>, <span class="ident">attribute</span>)
-        .<span class="ident">static_property</span>(<span class="string">&quot;isConcatSpreadable&quot;</span>, <span class="ident">symbol_is_concat_spreadable</span>, <span class="ident">attribute</span>)
-        .<span class="ident">static_property</span>(<span class="string">&quot;iterator&quot;</span>, <span class="ident">symbol_iterator</span>, <span class="ident">attribute</span>)
-        .<span class="ident">static_property</span>(<span class="string">&quot;match&quot;</span>, <span class="ident">symbol_match</span>, <span class="ident">attribute</span>)
-        .<span class="ident">static_property</span>(<span class="string">&quot;matchAll&quot;</span>, <span class="ident">symbol_match_all</span>, <span class="ident">attribute</span>)
-        .<span class="ident">static_property</span>(<span class="string">&quot;replace&quot;</span>, <span class="ident">symbol_replace</span>, <span class="ident">attribute</span>)
-        .<span class="ident">static_property</span>(<span class="string">&quot;search&quot;</span>, <span class="ident">symbol_search</span>, <span class="ident">attribute</span>)
-        .<span class="ident">static_property</span>(<span class="string">&quot;species&quot;</span>, <span class="ident">symbol_species</span>, <span class="ident">attribute</span>)
-        .<span class="ident">static_property</span>(<span class="string">&quot;split&quot;</span>, <span class="ident">symbol_split</span>, <span class="ident">attribute</span>)
-        .<span class="ident">static_property</span>(<span class="string">&quot;toPrimitive&quot;</span>, <span class="ident">symbol_to_primitive</span>.<span class="ident">clone</span>(), <span class="ident">attribute</span>)
-        .<span class="ident">static_property</span>(<span class="string">&quot;toStringTag&quot;</span>, <span class="ident">symbol_to_string_tag</span>.<span class="ident">clone</span>(), <span class="ident">attribute</span>)
-        .<span class="ident">static_property</span>(<span class="string">&quot;unscopables&quot;</span>, <span class="ident">symbol_unscopables</span>, <span class="ident">attribute</span>)
-        .<span class="ident">method</span>(<span class="ident"><span class="self">Self</span>::to_string</span>, <span class="string">&quot;toString&quot;</span>, <span class="number">0</span>)
-        .<span class="ident">method</span>(<span class="ident"><span class="self">Self</span>::value_of</span>, <span class="string">&quot;valueOf&quot;</span>, <span class="number">0</span>)
-        .<span class="ident">accessor</span>(
+        .name(<span class="self">Self</span>::NAME)
+        .length(<span class="self">Self</span>::LENGTH)
+        .callable(<span class="bool-val">true</span>)
+        .constructor(<span class="bool-val">true</span>)
+        .static_method(<span class="self">Self</span>::for_, <span class="string">&quot;for&quot;</span>, <span class="number">1</span>)
+        .static_method(<span class="self">Self</span>::key_for, <span class="string">&quot;keyFor&quot;</span>, <span class="number">1</span>)
+        .static_property(<span class="string">&quot;asyncIterator&quot;</span>, symbol_async_iterator, attribute)
+        .static_property(<span class="string">&quot;hasInstance&quot;</span>, symbol_has_instance, attribute)
+        .static_property(<span class="string">&quot;isConcatSpreadable&quot;</span>, symbol_is_concat_spreadable, attribute)
+        .static_property(<span class="string">&quot;iterator&quot;</span>, symbol_iterator, attribute)
+        .static_property(<span class="string">&quot;match&quot;</span>, symbol_match, attribute)
+        .static_property(<span class="string">&quot;matchAll&quot;</span>, symbol_match_all, attribute)
+        .static_property(<span class="string">&quot;replace&quot;</span>, symbol_replace, attribute)
+        .static_property(<span class="string">&quot;search&quot;</span>, symbol_search, attribute)
+        .static_property(<span class="string">&quot;species&quot;</span>, symbol_species, attribute)
+        .static_property(<span class="string">&quot;split&quot;</span>, symbol_split, attribute)
+        .static_property(<span class="string">&quot;toPrimitive&quot;</span>, symbol_to_primitive.clone(), attribute)
+        .static_property(<span class="string">&quot;toStringTag&quot;</span>, symbol_to_string_tag.clone(), attribute)
+        .static_property(<span class="string">&quot;unscopables&quot;</span>, symbol_unscopables, attribute)
+        .method(<span class="self">Self</span>::to_string, <span class="string">&quot;toString&quot;</span>, <span class="number">0</span>)
+        .method(<span class="self">Self</span>::value_of, <span class="string">&quot;valueOf&quot;</span>, <span class="number">0</span>)
+        .accessor(
             <span class="string">&quot;description&quot;</span>,
-            <span class="prelude-val">Some</span>(<span class="ident">get_description</span>),
+            <span class="prelude-val">Some</span>(get_description),
             <span class="prelude-val">None</span>,
-            <span class="ident">Attribute::CONFIGURABLE</span> <span class="op">|</span> <span class="ident">Attribute::NON_ENUMERABLE</span>,
+            Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE,
         )
-        .<span class="ident">property</span>(
-            <span class="ident">symbol_to_string_tag</span>,
-            <span class="ident"><span class="self">Self</span>::NAME</span>,
-            <span class="ident">Attribute::READONLY</span> <span class="op">|</span> <span class="ident">Attribute::NON_ENUMERABLE</span> <span class="op">|</span> <span class="ident">Attribute::CONFIGURABLE</span>,
+        .property(
+            symbol_to_string_tag,
+            <span class="self">Self</span>::NAME,
+            Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
         )
-        .<span class="ident">property</span>(
-            <span class="ident">symbol_to_primitive</span>,
-            <span class="ident">to_primitive</span>,
-            <span class="ident">Attribute::READONLY</span> <span class="op">|</span> <span class="ident">Attribute::NON_ENUMERABLE</span> <span class="op">|</span> <span class="ident">Attribute::CONFIGURABLE</span>,
+        .property(
+            symbol_to_primitive,
+            to_primitive,
+            Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
         )
-        .<span class="ident">build</span>()
-        .<span class="ident">conv</span>::<span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span>()
-        .<span class="ident">pipe</span>(<span class="prelude-val">Some</span>)
+        .build()
+        .conv::&lt;JsValue&gt;()
+        .pipe(<span class="prelude-val">Some</span>)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Symbol</span> {
-    <span class="doccomment">/// The amount of arguments this function object takes.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const</span> <span class="ident">LENGTH</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">0</span>;
+<span class="kw">impl </span>Symbol {
+    <span class="doccomment">/// The amount of arguments this function object takes.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>LENGTH: usize = <span class="number">0</span>;
 
-    <span class="doccomment">/// The `Symbol()` constructor returns a value of type symbol.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// It is incomplete as a constructor because it does not support</span>
-    <span class="doccomment">/// the syntax `new Symbol()` and it is not intended to be subclassed.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">/// - [ECMAScript reference][spec]</span>
-    <span class="doccomment">/// - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-symbol-description</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol/Symbol</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">constructor</span>(
-        <span class="ident">new_target</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
-        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="comment">// 1. If NewTarget is not undefined, throw a TypeError exception.</span>
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">new_target</span>.<span class="ident">is_undefined</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
-                .<span class="ident">with_message</span>(<span class="string">&quot;Symbol is not a constructor&quot;</span>)
-                .<span class="ident">into</span>());
+    <span class="doccomment">/// The `Symbol()` constructor returns a value of type symbol.
+    ///
+    /// It is incomplete as a constructor because it does not support
+    /// the syntax `new Symbol()` and it is not intended to be subclassed.
+    ///
+    /// More information:
+    /// - [ECMAScript reference][spec]
+    /// - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-symbol-description
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol/Symbol
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>constructor(
+        new_target: <span class="kw-2">&amp;</span>JsValue,
+        args: <span class="kw-2">&amp;</span>[JsValue],
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="comment">// 1. If NewTarget is not undefined, throw a TypeError exception.
+        </span><span class="kw">if </span>!new_target.is_undefined() {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
+                .with_message(<span class="string">&quot;Symbol is not a constructor&quot;</span>)
+                .into());
         }
 
-        <span class="comment">// 2. If description is undefined, let descString be undefined.</span>
-        <span class="comment">// 3. Else, let descString be ? ToString(description).</span>
-        <span class="kw">let</span> <span class="ident">description</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>) {
-            <span class="prelude-val">Some</span>(<span class="ident">value</span>) <span class="kw">if</span> <span class="op">!</span><span class="ident">value</span>.<span class="ident">is_undefined</span>() =&gt; <span class="prelude-val">Some</span>(<span class="ident">value</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>),
-            <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
+        <span class="comment">// 2. If description is undefined, let descString be undefined.
+        // 3. Else, let descString be ? ToString(description).
+        </span><span class="kw">let </span>description = <span class="kw">match </span>args.get(<span class="number">0</span>) {
+            <span class="prelude-val">Some</span>(value) <span class="kw">if </span>!value.is_undefined() =&gt; <span class="prelude-val">Some</span>(value.to_string(context)<span class="question-mark">?</span>),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         };
 
-        <span class="comment">// 4. Return a new unique Symbol value whose [[Description]] value is descString.</span>
-        <span class="prelude-val">Ok</span>(<span class="ident">JsSymbol::new</span>(<span class="ident">description</span>).<span class="ident">into</span>())
+        <span class="comment">// 4. Return a new unique Symbol value whose [[Description]] value is descString.
+        </span><span class="prelude-val">Ok</span>(JsSymbol::new(description).into())
     }
 
-    <span class="kw">fn</span> <span class="ident">this_symbol_value</span>(<span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsSymbol</span><span class="op">&gt;</span> {
-        <span class="ident">value</span>
-            .<span class="ident">as_symbol</span>()
-            .<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">value</span>.<span class="ident">as_object</span>().<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">obj</span><span class="op">|</span> <span class="ident">obj</span>.<span class="ident">borrow</span>().<span class="ident">as_symbol</span>()))
-            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-                <span class="ident">JsNativeError::typ</span>()
-                    .<span class="ident">with_message</span>(<span class="string">&quot;&#39;this&#39; is not a Symbol&quot;</span>)
-                    .<span class="ident">into</span>()
+    <span class="kw">fn </span>this_symbol_value(value: <span class="kw-2">&amp;</span>JsValue) -&gt; JsResult&lt;JsSymbol&gt; {
+        value
+            .as_symbol()
+            .or_else(|| value.as_object().and_then(|obj| obj.borrow().as_symbol()))
+            .ok_or_else(|| {
+                JsNativeError::typ()
+                    .with_message(<span class="string">&quot;&#39;this&#39; is not a Symbol&quot;</span>)
+                    .into()
             })
     }
 
-    <span class="doccomment">/// `Symbol.prototype.toString()`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This method returns a string representing the specified `Symbol` object.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">/// - [MDN documentation][mdn]</span>
-    <span class="doccomment">/// - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-symbol.prototype.tostring</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol/toString</span>
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::wrong_self_convention</span>)]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">to_string</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="kw">_</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="comment">// 1. Let sym be ? thisSymbolValue(this value).</span>
-        <span class="kw">let</span> <span class="ident">symbol</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::this_symbol_value</span>(<span class="ident">this</span>)<span class="question-mark">?</span>;
+    <span class="doccomment">/// `Symbol.prototype.toString()`
+    ///
+    /// This method returns a string representing the specified `Symbol` object.
+    ///
+    /// More information:
+    /// - [MDN documentation][mdn]
+    /// - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-symbol.prototype.tostring
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol/toString
+    </span><span class="attribute">#[allow(clippy::wrong_self_convention)]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>to_string(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="comment">// 1. Let sym be ? thisSymbolValue(this value).
+        </span><span class="kw">let </span>symbol = <span class="self">Self</span>::this_symbol_value(this)<span class="question-mark">?</span>;
 
-        <span class="comment">// 2. Return SymbolDescriptiveString(sym).</span>
-        <span class="prelude-val">Ok</span>(<span class="ident">symbol</span>.<span class="ident">descriptive_string</span>().<span class="ident">into</span>())
+        <span class="comment">// 2. Return SymbolDescriptiveString(sym).
+        </span><span class="prelude-val">Ok</span>(symbol.descriptive_string().into())
     }
 
-    <span class="doccomment">/// `Symbol.prototype.valueOf()`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This method returns a `Symbol` that is the primitive value of the specified `Symbol` object.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">/// - [MDN documentation][mdn]</span>
-    <span class="doccomment">/// - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol/valueOf</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-symbol.prototype.valueof</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">value_of</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="kw">_</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="comment">// 1. Return ? thisSymbolValue(this value).</span>
-        <span class="kw">let</span> <span class="ident">symbol</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::this_symbol_value</span>(<span class="ident">this</span>)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<span class="ident">JsValue::Symbol</span>(<span class="ident">symbol</span>))
+    <span class="doccomment">/// `Symbol.prototype.valueOf()`
+    ///
+    /// This method returns a `Symbol` that is the primitive value of the specified `Symbol` object.
+    ///
+    /// More information:
+    /// - [MDN documentation][mdn]
+    /// - [ECMAScript reference][spec]
+    ///
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol/valueOf
+    /// [spec]: https://tc39.es/ecma262/#sec-symbol.prototype.valueof
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>value_of(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="comment">// 1. Return ? thisSymbolValue(this value).
+        </span><span class="kw">let </span>symbol = <span class="self">Self</span>::this_symbol_value(this)<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(JsValue::Symbol(symbol))
     }
 
-    <span class="doccomment">/// `get Symbol.prototype.description`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This accessor returns the description of the `Symbol` object.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">/// - [MDN documentation][mdn]</span>
-    <span class="doccomment">/// - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-symbol.prototype.description</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol/description</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_description</span>(
-        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
-        <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
-        <span class="kw">_</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">symbol</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::this_symbol_value</span>(<span class="ident">this</span>)<span class="question-mark">?</span>;
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">description</span>) <span class="op">=</span> <span class="ident">symbol</span>.<span class="ident">description</span>() {
-            <span class="prelude-val">Ok</span>(<span class="ident">description</span>.<span class="ident">clone</span>().<span class="ident">into</span>())
-        } <span class="kw">else</span> {
-            <span class="prelude-val">Ok</span>(<span class="ident">JsValue::undefined</span>())
+    <span class="doccomment">/// `get Symbol.prototype.description`
+    ///
+    /// This accessor returns the description of the `Symbol` object.
+    ///
+    /// More information:
+    /// - [MDN documentation][mdn]
+    /// - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-symbol.prototype.description
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol/description
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_description(
+        this: <span class="kw-2">&amp;</span>JsValue,
+        <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue],
+        <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="kw">let </span>symbol = <span class="self">Self</span>::this_symbol_value(this)<span class="question-mark">?</span>;
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>description) = symbol.description() {
+            <span class="prelude-val">Ok</span>(description.clone().into())
+        } <span class="kw">else </span>{
+            <span class="prelude-val">Ok</span>(JsValue::undefined())
         }
     }
 
-    <span class="doccomment">/// `Symbol.for( key )`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">/// - [MDN documentation][mdn]</span>
-    <span class="doccomment">/// - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-symbol.prototype.for</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol/for</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">for_</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="comment">// 1. Let stringKey be ? ToString(key).</span>
-        <span class="kw">let</span> <span class="ident">string_key</span> <span class="op">=</span> <span class="ident">args</span>
-            .<span class="ident">get</span>(<span class="number">0</span>)
-            .<span class="ident">cloned</span>()
-            .<span class="ident">unwrap_or_default</span>()
-            .<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
-        <span class="comment">// 2. For each element e of the GlobalSymbolRegistry List, do</span>
-        <span class="comment">//     a. If SameValue(e.[[Key]], stringKey) is true, return e.[[Symbol]].</span>
-        <span class="comment">// 3. Assert: GlobalSymbolRegistry does not currently contain an entry for stringKey.</span>
-        <span class="comment">// 4. Let newSymbol be a new unique Symbol value whose [[Description]] value is stringKey.</span>
-        <span class="comment">// 5. Append the Record { [[Key]]: stringKey, [[Symbol]]: newSymbol } to the GlobalSymbolRegistry List.</span>
-        <span class="comment">// 6. Return newSymbol.</span>
-        <span class="prelude-val">Ok</span>(<span class="ident">GLOBAL_SYMBOL_REGISTRY</span>
-            .<span class="ident">with</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">registry</span><span class="op">|</span> {
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">registry</span> <span class="op">=</span> <span class="ident">registry</span>.<span class="ident">borrow_mut</span>();
-                <span class="ident">registry</span>.<span class="ident">get_or_insert_key</span>(<span class="ident">string_key</span>)
+    <span class="doccomment">/// `Symbol.for( key )`
+    ///
+    /// More information:
+    /// - [MDN documentation][mdn]
+    /// - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-symbol.prototype.for
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol/for
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>for_(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="comment">// 1. Let stringKey be ? ToString(key).
+        </span><span class="kw">let </span>string_key = args
+            .get(<span class="number">0</span>)
+            .cloned()
+            .unwrap_or_default()
+            .to_string(context)<span class="question-mark">?</span>;
+        <span class="comment">// 2. For each element e of the GlobalSymbolRegistry List, do
+        //     a. If SameValue(e.[[Key]], stringKey) is true, return e.[[Symbol]].
+        // 3. Assert: GlobalSymbolRegistry does not currently contain an entry for stringKey.
+        // 4. Let newSymbol be a new unique Symbol value whose [[Description]] value is stringKey.
+        // 5. Append the Record { [[Key]]: stringKey, [[Symbol]]: newSymbol } to the GlobalSymbolRegistry List.
+        // 6. Return newSymbol.
+        </span><span class="prelude-val">Ok</span>(GLOBAL_SYMBOL_REGISTRY
+            .with(<span class="kw">move </span>|registry| {
+                <span class="kw">let </span><span class="kw-2">mut </span>registry = registry.borrow_mut();
+                registry.get_or_insert_key(string_key)
             })
-            .<span class="ident">into</span>())
+            .into())
     }
 
-    <span class="doccomment">/// `Symbol.keyFor( sym )`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">/// - [MDN documentation][mdn]</span>
-    <span class="doccomment">/// - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-symbol.prototype.keyfor</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol/keyFor</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">key_for</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="kw">_</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">sym</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>);
-        <span class="comment">// 1. If Type(sym) is not Symbol, throw a TypeError exception.</span>
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">sym</span>) <span class="op">=</span> <span class="ident">sym</span>.<span class="ident">as_symbol</span>() {
-            <span class="comment">// 2. For each element e of the GlobalSymbolRegistry List (see 20.4.2.2), do</span>
-            <span class="comment">//     a. If SameValue(e.[[Symbol]], sym) is true, return e.[[Key]].</span>
-            <span class="comment">// 3. Assert: GlobalSymbolRegistry does not currently contain an entry for sym.</span>
-            <span class="comment">// 4. Return undefined.</span>
-            <span class="kw">let</span> <span class="ident">symbol</span> <span class="op">=</span> <span class="ident">GLOBAL_SYMBOL_REGISTRY</span>.<span class="ident">with</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">registry</span><span class="op">|</span> {
-                <span class="kw">let</span> <span class="ident">registry</span> <span class="op">=</span> <span class="ident">registry</span>.<span class="ident">borrow</span>();
-                <span class="ident">registry</span>.<span class="ident">get_symbol</span>(<span class="kw-2">&amp;</span><span class="ident">sym</span>)
+    <span class="doccomment">/// `Symbol.keyFor( sym )`
+    ///
+    ///
+    /// More information:
+    /// - [MDN documentation][mdn]
+    /// - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-symbol.prototype.keyfor
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol/keyFor
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>key_for(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="kw">let </span>sym = args.get_or_undefined(<span class="number">0</span>);
+        <span class="comment">// 1. If Type(sym) is not Symbol, throw a TypeError exception.
+        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(sym) = sym.as_symbol() {
+            <span class="comment">// 2. For each element e of the GlobalSymbolRegistry List (see 20.4.2.2), do
+            //     a. If SameValue(e.[[Symbol]], sym) is true, return e.[[Key]].
+            // 3. Assert: GlobalSymbolRegistry does not currently contain an entry for sym.
+            // 4. Return undefined.
+            </span><span class="kw">let </span>symbol = GLOBAL_SYMBOL_REGISTRY.with(<span class="kw">move </span>|registry| {
+                <span class="kw">let </span>registry = registry.borrow();
+                registry.get_symbol(<span class="kw-2">&amp;</span>sym)
             });
 
-            <span class="prelude-val">Ok</span>(<span class="ident">symbol</span>.<span class="ident">map</span>(<span class="ident">JsValue::from</span>).<span class="ident">unwrap_or_default</span>())
-        } <span class="kw">else</span> {
-            <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
-                .<span class="ident">with_message</span>(<span class="string">&quot;Symbol.keyFor: sym is not a symbol&quot;</span>)
-                .<span class="ident">into</span>())
+            <span class="prelude-val">Ok</span>(symbol.map(JsValue::from).unwrap_or_default())
+        } <span class="kw">else </span>{
+            <span class="prelude-val">Err</span>(JsNativeError::typ()
+                .with_message(<span class="string">&quot;Symbol.keyFor: sym is not a symbol&quot;</span>)
+                .into())
         }
     }
 
-    <span class="doccomment">/// `Symbol.prototype [ @@toPrimitive ]`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function is called by ECMAScript language operators to convert a Symbol object to a primitive value.</span>
-    <span class="doccomment">/// NOTE: The argument is ignored</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">/// - [MDN documentation][mdn]</span>
-    <span class="doccomment">/// - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/multipage/#sec-symbol.prototype-@@toprimitive</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol/@@toPrimitive</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">to_primitive</span>(
-        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
-        <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
-        <span class="kw">_</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">sym</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::this_symbol_value</span>(<span class="ident">this</span>)<span class="question-mark">?</span>;
-        <span class="comment">// 1. Return ? thisSymbolValue(this value).</span>
-        <span class="prelude-val">Ok</span>(<span class="ident">sym</span>.<span class="ident">into</span>())
+    <span class="doccomment">/// `Symbol.prototype [ @@toPrimitive ]`
+    ///
+    /// This function is called by ECMAScript language operators to convert a Symbol object to a primitive value.
+    /// NOTE: The argument is ignored
+    ///
+    /// More information:
+    /// - [MDN documentation][mdn]
+    /// - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/multipage/#sec-symbol.prototype-@@toprimitive
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol/@@toPrimitive
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>to_primitive(
+        this: <span class="kw-2">&amp;</span>JsValue,
+        <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue],
+        <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="kw">let </span>sym = <span class="self">Self</span>::this_symbol_value(this)<span class="question-mark">?</span>;
+        <span class="comment">// 1. Return ? thisSymbolValue(this value).
+        </span><span class="prelude-val">Ok</span>(sym.into())
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0 (a55dd71d5 2022-09-19)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0 (897e37553 2022-11-02)" ></div></body></html>

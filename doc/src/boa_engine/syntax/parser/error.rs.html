@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_engine/src/syntax/parser/error.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>error.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_engine/src/syntax/parser/error.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>error.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container">
                     <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../boa_engine/index.html">
                         <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -205,210 +205,210 @@
 <span id="203">203</span>
 <span id="204">204</span>
 <span id="205">205</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Error and result implementation for the parser.</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Error and result implementation for the parser.
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax::lexer::Error</span> <span class="kw">as</span> <span class="ident">LexError</span>;
+</span><span class="kw">use </span><span class="kw">crate</span>::syntax::lexer::Error <span class="kw">as </span>LexError;
 
-<span class="kw">use</span> <span class="ident">boa_ast</span>::{<span class="ident">Position</span>, <span class="ident">Span</span>};
-<span class="kw">use</span> <span class="ident">std::fmt</span>;
+<span class="kw">use </span>boa_ast::{Position, Span};
+<span class="kw">use </span>std::fmt;
 
-<span class="doccomment">/// Result of a parsing operation.</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">ParseResult</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">ParseError</span><span class="op">&gt;</span>;
+<span class="doccomment">/// Result of a parsing operation.
+</span><span class="kw">pub type </span>ParseResult&lt;T&gt; = <span class="prelude-ty">Result</span>&lt;T, ParseError&gt;;
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">trait</span> <span class="ident">ErrorContext</span> {
-    <span class="kw">fn</span> <span class="ident">context</span>(<span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>) -&gt; <span class="self">Self</span>;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">trait </span>ErrorContext {
+    <span class="kw">fn </span>context(<span class="self">self</span>, context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str) -&gt; <span class="self">Self</span>;
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">ErrorContext</span> <span class="kw">for</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">ParseError</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">context</span>(<span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">self</span>.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">e</span>.<span class="ident">context</span>(<span class="ident">context</span>))
+<span class="kw">impl</span>&lt;T&gt; ErrorContext <span class="kw">for </span><span class="prelude-ty">Result</span>&lt;T, ParseError&gt; {
+    <span class="kw">fn </span>context(<span class="self">self</span>, context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.map_err(|e| e.context(context))
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">LexError</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ParseError</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">e</span>: <span class="ident">LexError</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::lex</span>(<span class="ident">e</span>)
+<span class="kw">impl </span>From&lt;LexError&gt; <span class="kw">for </span>ParseError {
+    <span class="kw">fn </span>from(e: LexError) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::lex(e)
     }
 }
 
-<span class="doccomment">/// `ParseError` is an enum which represents errors encounted during parsing an expression</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">ParseError</span> {
-    <span class="doccomment">/// When it expected a certain kind of token, but got another as part of something</span>
-    <span class="ident">Expected</span> {
-        <span class="ident">expected</span>: <span class="ident">Box</span><span class="op">&lt;</span>[<span class="ident">String</span>]<span class="op">&gt;</span>,
-        <span class="ident">found</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>,
-        <span class="ident">span</span>: <span class="ident">Span</span>,
-        <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>,
+<span class="doccomment">/// `ParseError` is an enum which represents errors encounted during parsing an expression
+</span><span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub enum </span>ParseError {
+    <span class="doccomment">/// When it expected a certain kind of token, but got another as part of something
+    </span>Expected {
+        expected: Box&lt;[String]&gt;,
+        found: Box&lt;str&gt;,
+        span: Span,
+        context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
     },
-    <span class="doccomment">/// When a token is unexpected</span>
-    <span class="ident">Unexpected</span> {
-        <span class="ident">found</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>,
-        <span class="ident">span</span>: <span class="ident">Span</span>,
-        <span class="ident">message</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// When a token is unexpected
+    </span>Unexpected {
+        found: Box&lt;str&gt;,
+        span: Span,
+        message: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt;,
     },
-    <span class="doccomment">/// When there is an abrupt end to the parsing</span>
-    <span class="ident">AbruptEnd</span>,
-    <span class="doccomment">/// A lexing error.</span>
-    <span class="ident">Lex</span> { <span class="ident">err</span>: <span class="ident">LexError</span> },
-    <span class="doccomment">/// Catch all General Error</span>
-    <span class="ident">General</span> {
-        <span class="ident">message</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>,
-        <span class="ident">position</span>: <span class="ident">Position</span>,
+    <span class="doccomment">/// When there is an abrupt end to the parsing
+    </span>AbruptEnd,
+    <span class="doccomment">/// A lexing error.
+    </span>Lex { err: LexError },
+    <span class="doccomment">/// Catch all General Error
+    </span>General {
+        message: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        position: Position,
     },
-    <span class="doccomment">/// Unimplemented syntax error</span>
-    <span class="ident">Unimplemented</span> {
-        <span class="ident">message</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>,
-        <span class="ident">position</span>: <span class="ident">Position</span>,
+    <span class="doccomment">/// Unimplemented syntax error
+    </span>Unimplemented {
+        message: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        position: Position,
     },
 }
 
-<span class="kw">impl</span> <span class="ident">ParseError</span> {
-    <span class="doccomment">/// Changes the context of the error, if any.</span>
-    <span class="kw">fn</span> <span class="ident">context</span>(<span class="self">self</span>, <span class="ident">new_context</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>) -&gt; <span class="self">Self</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident"><span class="self">Self</span>::Expected</span> {
-                <span class="ident">expected</span>,
-                <span class="ident">found</span>,
-                <span class="ident">span</span>,
+<span class="kw">impl </span>ParseError {
+    <span class="doccomment">/// Changes the context of the error, if any.
+    </span><span class="kw">fn </span>context(<span class="self">self</span>, new_context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str) -&gt; <span class="self">Self </span>{
+        <span class="kw">match </span><span class="self">self </span>{
+            <span class="self">Self</span>::Expected {
+                expected,
+                found,
+                span,
                 ..
-            } =&gt; <span class="ident"><span class="self">Self</span>::expected</span>(<span class="ident">expected</span>, <span class="ident">found</span>, <span class="ident">span</span>, <span class="ident">new_context</span>),
-            <span class="ident">e</span> =&gt; <span class="ident">e</span>,
+            } =&gt; <span class="self">Self</span>::expected(expected, found, span, new_context),
+            e =&gt; e,
         }
     }
 
-    <span class="doccomment">/// Creates an `Expected` parsing error.</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">expected</span><span class="op">&lt;</span><span class="ident">E</span>, <span class="ident">F</span><span class="op">&gt;</span>(<span class="ident">expected</span>: <span class="ident">E</span>, <span class="ident">found</span>: <span class="ident">F</span>, <span class="ident">span</span>: <span class="ident">Span</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>) -&gt; <span class="self">Self</span>
-    <span class="kw">where</span>
-        <span class="ident">E</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span>[<span class="ident">String</span>]<span class="op">&gt;</span><span class="op">&gt;</span>,
-        <span class="ident">F</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// Creates an `Expected` parsing error.
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>expected&lt;E, F&gt;(expected: E, found: F, span: Span, context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str) -&gt; <span class="self">Self
+    </span><span class="kw">where
+        </span>E: Into&lt;Box&lt;[String]&gt;&gt;,
+        F: Into&lt;Box&lt;str&gt;&gt;,
     {
-        <span class="ident"><span class="self">Self</span>::Expected</span> {
-            <span class="ident">expected</span>: <span class="ident">expected</span>.<span class="ident">into</span>(),
-            <span class="ident">found</span>: <span class="ident">found</span>.<span class="ident">into</span>(),
-            <span class="ident">span</span>,
-            <span class="ident">context</span>,
+        <span class="self">Self</span>::Expected {
+            expected: expected.into(),
+            found: found.into(),
+            span,
+            context,
         }
     }
 
-    <span class="doccomment">/// Creates an `Expected` parsing error.</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">unexpected</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">C</span><span class="op">&gt;</span>(<span class="ident">found</span>: <span class="ident">F</span>, <span class="ident">span</span>: <span class="ident">Span</span>, <span class="ident">message</span>: <span class="ident">C</span>) -&gt; <span class="self">Self</span>
-    <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-        <span class="ident">C</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// Creates an `Expected` parsing error.
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>unexpected&lt;F, C&gt;(found: F, span: Span, message: C) -&gt; <span class="self">Self
+    </span><span class="kw">where
+        </span>F: Into&lt;Box&lt;str&gt;&gt;,
+        C: Into&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt;&gt;,
     {
-        <span class="ident"><span class="self">Self</span>::Unexpected</span> {
-            <span class="ident">found</span>: <span class="ident">found</span>.<span class="ident">into</span>(),
-            <span class="ident">span</span>,
-            <span class="ident">message</span>: <span class="ident">message</span>.<span class="ident">into</span>(),
+        <span class="self">Self</span>::Unexpected {
+            found: found.into(),
+            span,
+            message: message.into(),
         }
     }
 
-    <span class="doccomment">/// Creates a &quot;general&quot; parsing error.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">general</span>(<span class="ident">message</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>, <span class="ident">position</span>: <span class="ident">Position</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::General</span> { <span class="ident">message</span>, <span class="ident">position</span> }
+    <span class="doccomment">/// Creates a &quot;general&quot; parsing error.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>general(message: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str, position: Position) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::General { message, position }
     }
 
-    <span class="doccomment">/// Creates a &quot;general&quot; parsing error with the specific error message for a wrong function declaration in non-strict mode.</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">wrong_function_declaration_non_strict</span>(<span class="ident">position</span>: <span class="ident">Position</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::General</span> {
-            <span class="ident">message</span>: <span class="string">&quot;In non-strict mode code, functions can only be declared at top level, inside a block, or as the body of an if statement.&quot;</span>,
-            <span class="ident">position</span>
+    <span class="doccomment">/// Creates a &quot;general&quot; parsing error with the specific error message for a wrong function declaration in non-strict mode.
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>wrong_function_declaration_non_strict(position: Position) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::General {
+            message: <span class="string">&quot;In non-strict mode code, functions can only be declared at top level, inside a block, or as the body of an if statement.&quot;</span>,
+            position
         }
     }
 
-    <span class="doccomment">/// Creates a &quot;general&quot; parsing error with the specific error message for a wrong function declaration with label.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">wrong_labelled_function_declaration</span>(<span class="ident">position</span>: <span class="ident">Position</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::General</span> {
-            <span class="ident">message</span>: <span class="string">&quot;Labelled functions can only be declared at top level or inside a block&quot;</span>,
-            <span class="ident">position</span>,
+    <span class="doccomment">/// Creates a &quot;general&quot; parsing error with the specific error message for a wrong function declaration with label.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>wrong_labelled_function_declaration(position: Position) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::General {
+            message: <span class="string">&quot;Labelled functions can only be declared at top level or inside a block&quot;</span>,
+            position,
         }
     }
 
-    <span class="doccomment">/// Creates a parsing error from a lexing error.</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">lex</span>(<span class="ident">e</span>: <span class="ident">LexError</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::Lex</span> { <span class="ident">err</span>: <span class="ident">e</span> }
+    <span class="doccomment">/// Creates a parsing error from a lexing error.
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>lex(e: LexError) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::Lex { err: e }
     }
 
-    <span class="doccomment">/// Creates a new `Unimplemented` parsing error.</span>
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">dead_code</span>)]</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">unimplemented</span>(<span class="ident">message</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>, <span class="ident">position</span>: <span class="ident">Position</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::Unimplemented</span> { <span class="ident">message</span>, <span class="ident">position</span> }
+    <span class="doccomment">/// Creates a new `Unimplemented` parsing error.
+    </span><span class="attribute">#[allow(dead_code)]
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>unimplemented(message: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str, position: Position) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::Unimplemented { message, position }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">fmt::Display</span> <span class="kw">for</span> <span class="ident">ParseError</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident"><span class="self">Self</span>::Expected</span> {
-                <span class="ident">expected</span>,
-                <span class="ident">found</span>,
-                <span class="ident">span</span>,
-                <span class="ident">context</span>,
+<span class="kw">impl </span>fmt::Display <span class="kw">for </span>ParseError {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="kw">match </span><span class="self">self </span>{
+            <span class="self">Self</span>::Expected {
+                expected,
+                found,
+                span,
+                context,
             } =&gt; <span class="macro">write!</span>(
-                <span class="ident">f</span>,
+                f,
                 <span class="string">&quot;expected {}, got &#39;{found}&#39; in {context} at line {}, col {}&quot;</span>,
-                <span class="kw">if</span> <span class="ident">expected</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">1</span> {
+                <span class="kw">if </span>expected.len() == <span class="number">1 </span>{
                     <span class="macro">format!</span>(
                         <span class="string">&quot;token &#39;{}&#39;&quot;</span>,
-                        <span class="ident">expected</span>.<span class="ident">first</span>().<span class="ident">expect</span>(<span class="string">&quot;already checked that length is 1&quot;</span>)
+                        expected.first().expect(<span class="string">&quot;already checked that length is 1&quot;</span>)
                     )
-                } <span class="kw">else</span> {
+                } <span class="kw">else </span>{
                     <span class="macro">format!</span>(
                         <span class="string">&quot;one of {}&quot;</span>,
-                        <span class="ident">expected</span>
-                            .<span class="ident">iter</span>()
-                            .<span class="ident">enumerate</span>()
-                            .<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">i</span>, <span class="ident">t</span>)<span class="op">|</span> {
+                        expected
+                            .iter()
+                            .enumerate()
+                            .map(|(i, t)| {
                                 <span class="macro">format!</span>(
                                     <span class="string">&quot;{}&#39;{t}&#39;&quot;</span>,
-                                    <span class="kw">if</span> <span class="ident">i</span> <span class="op">==</span> <span class="number">0</span> {
-                                        <span class="string">&quot;&quot;</span>
-                                    } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">i</span> <span class="op">==</span> <span class="ident">expected</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="number">1</span> {
-                                        <span class="string">&quot; or &quot;</span>
-                                    } <span class="kw">else</span> {
-                                        <span class="string">&quot;, &quot;</span>
-                                    },
+                                    <span class="kw">if </span>i == <span class="number">0 </span>{
+                                        <span class="string">&quot;&quot;
+                                    </span>} <span class="kw">else if </span>i == expected.len() - <span class="number">1 </span>{
+                                        <span class="string">&quot; or &quot;
+                                    </span>} <span class="kw">else </span>{
+                                        <span class="string">&quot;, &quot;
+                                    </span>},
                                 )
                             })
-                            .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>()
+                            .collect::&lt;String&gt;()
                     )
                 },
-                <span class="ident">span</span>.<span class="ident">start</span>().<span class="ident">line_number</span>(),
-                <span class="ident">span</span>.<span class="ident">start</span>().<span class="ident">column_number</span>()
+                span.start().line_number(),
+                span.start().column_number()
             ),
-            <span class="ident"><span class="self">Self</span>::Unexpected</span> {
-                <span class="ident">found</span>,
-                <span class="ident">span</span>,
-                <span class="ident">message</span>,
+            <span class="self">Self</span>::Unexpected {
+                found,
+                span,
+                message,
             } =&gt; <span class="macro">write!</span>(
-                <span class="ident">f</span>,
+                f,
                 <span class="string">&quot;unexpected token &#39;{found}&#39;{} at line {}, col {}&quot;</span>,
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">m</span>) <span class="op">=</span> <span class="ident">message</span> {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(m) = message {
                     <span class="macro">format!</span>(<span class="string">&quot;, {m}&quot;</span>)
-                } <span class="kw">else</span> {
-                    <span class="ident">String::new</span>()
+                } <span class="kw">else </span>{
+                    String::new()
                 },
-                <span class="ident">span</span>.<span class="ident">start</span>().<span class="ident">line_number</span>(),
-                <span class="ident">span</span>.<span class="ident">start</span>().<span class="ident">column_number</span>()
+                span.start().line_number(),
+                span.start().column_number()
             ),
-            <span class="ident"><span class="self">Self</span>::AbruptEnd</span> =&gt; <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;abrupt end&quot;</span>),
-            <span class="ident"><span class="self">Self</span>::General</span> { <span class="ident">message</span>, <span class="ident">position</span> } =&gt; <span class="macro">write!</span>(
-                <span class="ident">f</span>,
+            <span class="self">Self</span>::AbruptEnd =&gt; f.write_str(<span class="string">&quot;abrupt end&quot;</span>),
+            <span class="self">Self</span>::General { message, position } =&gt; <span class="macro">write!</span>(
+                f,
                 <span class="string">&quot;{message} at line {}, col {}&quot;</span>,
-                <span class="ident">position</span>.<span class="ident">line_number</span>(),
-                <span class="ident">position</span>.<span class="ident">column_number</span>()
+                position.line_number(),
+                position.column_number()
             ),
-            <span class="ident"><span class="self">Self</span>::Lex</span> { <span class="ident">err</span> } =&gt; <span class="ident">fmt::Display::fmt</span>(<span class="ident">err</span>, <span class="ident">f</span>),
-            <span class="ident"><span class="self">Self</span>::Unimplemented</span> { <span class="ident">message</span>, <span class="ident">position</span> } =&gt; <span class="macro">write!</span>(
-                <span class="ident">f</span>,
+            <span class="self">Self</span>::Lex { err } =&gt; fmt::Display::fmt(err, f),
+            <span class="self">Self</span>::Unimplemented { message, position } =&gt; <span class="macro">write!</span>(
+                f,
                 <span class="string">&quot;{message} not yet implemented at line {}, col {}&quot;</span>,
-                <span class="ident">position</span>.<span class="ident">line_number</span>(),
-                <span class="ident">position</span>.<span class="ident">column_number</span>()
+                position.line_number(),
+                position.column_number()
             ),
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0 (a55dd71d5 2022-09-19)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0 (897e37553 2022-11-02)" ></div></body></html>

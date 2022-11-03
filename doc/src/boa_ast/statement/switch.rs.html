@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_ast/src/statement/switch.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>switch.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../boa_ast/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../boa_ast/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../boa_ast/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_ast/src/statement/switch.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>switch.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../boa_ast/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../boa_ast/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../boa_ast/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -185,242 +185,192 @@
 <span id="185">185</span>
 <span id="186">186</span>
 <span id="187">187</span>
-<span id="188">188</span>
-<span id="189">189</span>
-<span id="190">190</span>
-<span id="191">191</span>
-<span id="192">192</span>
-<span id="193">193</span>
-<span id="194">194</span>
-<span id="195">195</span>
-<span id="196">196</span>
-<span id="197">197</span>
-<span id="198">198</span>
-<span id="199">199</span>
-<span id="200">200</span>
-<span id="201">201</span>
-<span id="202">202</span>
-<span id="203">203</span>
-<span id="204">204</span>
-<span id="205">205</span>
-<span id="206">206</span>
-<span id="207">207</span>
-<span id="208">208</span>
-<span id="209">209</span>
-<span id="210">210</span>
-<span id="211">211</span>
-<span id="212">212</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Switch node.</span>
-<span class="doccomment">//!</span>
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::try_break</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::visitor</span>::{<span class="ident">VisitWith</span>, <span class="ident">Visitor</span>, <span class="ident">VisitorMut</span>};
-<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">expression::Expression</span>, <span class="ident">statement::Statement</span>, <span class="ident">StatementList</span>};
-<span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">ToIndentedString</span>, <span class="ident">ToInternedString</span>};
-<span class="kw">use</span> <span class="ident">core::ops::ControlFlow</span>;
+</pre><pre class="rust"><code><span class="doccomment">//! Switch node.
+//!
+</span><span class="kw">use crate</span>::{
+    expression::Expression,
+    statement::Statement,
+    try_break,
+    visitor::{VisitWith, Visitor, VisitorMut},
+    StatementList,
+};
+<span class="kw">use </span>boa_interner::{Interner, ToIndentedString, ToInternedString};
+<span class="kw">use </span>core::ops::ControlFlow;
 
-<span class="kw">use</span> <span class="ident"><span class="kw">super</span>::ContainsSymbol</span>;
-
-<span class="doccomment">/// A case clause inside a [`Switch`] statement, as defined by the [spec].</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Even though every [`Case`] body is a [`StatementList`], it doesn&#39;t create a new lexical</span>
-<span class="doccomment">/// environment. This means any variable declared in a `Case` will be considered as part of the</span>
-<span class="doccomment">/// lexical environment of the parent [`Switch`] block.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-CaseClause</span>
-<span class="doccomment">/// [truthy]: https://developer.mozilla.org/en-US/docs/Glossary/Truthy</span>
-<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>, <span class="ident">derive</span>(<span class="ident">serde::Serialize</span>, <span class="ident">serde::Deserialize</span>))]</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Case</span> {
-    <span class="ident">condition</span>: <span class="ident">Expression</span>,
-    <span class="ident">body</span>: <span class="ident">StatementList</span>,
+<span class="doccomment">/// A case clause inside a [`Switch`] statement, as defined by the [spec].
+///
+/// Even though every [`Case`] body is a [`StatementList`], it doesn&#39;t create a new lexical
+/// environment. This means any variable declared in a `Case` will be considered as part of the
+/// lexical environment of the parent [`Switch`] block.
+///
+/// [spec]: https://tc39.es/ecma262/#prod-CaseClause
+/// [truthy]: https://developer.mozilla.org/en-US/docs/Glossary/Truthy
+</span><span class="attribute">#[cfg_attr(feature = <span class="string">&quot;serde&quot;</span>, derive(serde::Serialize, serde::Deserialize))]
+#[derive(Clone, Debug, PartialEq)]
+</span><span class="kw">pub struct </span>Case {
+    condition: Expression,
+    body: StatementList,
 }
 
-<span class="kw">impl</span> <span class="ident">Case</span> {
-    <span class="doccomment">/// Creates a `Case` AST node.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">condition</span>: <span class="ident">Expression</span>, <span class="ident">body</span>: <span class="ident">StatementList</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> { <span class="ident">condition</span>, <span class="ident">body</span> }
+<span class="kw">impl </span>Case {
+    <span class="doccomment">/// Creates a `Case` AST node.
+    </span><span class="attribute">#[inline]
+    #[must_use]
+    </span><span class="kw">pub fn </span>new(condition: Expression, body: StatementList) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{ condition, body }
     }
 
-    <span class="doccomment">/// Gets the condition of the case.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">condition</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">Expression</span> {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">condition</span>
+    <span class="doccomment">/// Gets the condition of the case.
+    </span><span class="attribute">#[inline]
+    #[must_use]
+    </span><span class="kw">pub fn </span>condition(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Expression {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.condition
     }
 
-    <span class="doccomment">/// Gets the statement listin the body of the case.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">body</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">StatementList</span> {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">body</span>
-    }
-
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">contains_arguments</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">condition</span>.<span class="ident">contains_arguments</span>() <span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">body</span>.<span class="ident">contains_arguments</span>()
-    }
-
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">symbol</span>: <span class="ident">ContainsSymbol</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">condition</span>.<span class="ident">contains</span>(<span class="ident">symbol</span>)
-            <span class="op">|</span><span class="op">|</span> <span class="self">self</span>
-                .<span class="ident">body</span>
-                .<span class="ident">statements</span>()
-                .<span class="ident">iter</span>()
-                .<span class="ident">any</span>(<span class="op">|</span><span class="ident">stmt</span><span class="op">|</span> <span class="ident">stmt</span>.<span class="ident">contains</span>(<span class="ident">symbol</span>))
+    <span class="doccomment">/// Gets the statement listin the body of the case.
+    </span><span class="attribute">#[inline]
+    #[must_use]
+    </span><span class="kw">pub fn </span>body(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StatementList {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.body
     }
 }
 
-<span class="kw">impl</span> <span class="ident">VisitWith</span> <span class="kw">for</span> <span class="ident">Case</span> {
-    <span class="kw">fn</span> <span class="ident">visit_with</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">V</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>, <span class="ident">visitor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">V</span>) -&gt; <span class="ident">ControlFlow</span><span class="op">&lt;</span><span class="ident">V::BreakTy</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">V</span>: <span class="ident">Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
+<span class="kw">impl </span>VisitWith <span class="kw">for </span>Case {
+    <span class="kw">fn </span>visit_with&lt;<span class="lifetime">&#39;a</span>, V&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>, visitor: <span class="kw-2">&amp;mut </span>V) -&gt; ControlFlow&lt;V::BreakTy&gt;
+    <span class="kw">where
+        </span>V: Visitor&lt;<span class="lifetime">&#39;a</span>&gt;,
     {
-        <span class="macro">try_break!</span>(<span class="ident">visitor</span>.<span class="ident">visit_expression</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">condition</span>));
-        <span class="ident">visitor</span>.<span class="ident">visit_statement_list</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">body</span>)
+        <span class="macro">try_break!</span>(visitor.visit_expression(<span class="kw-2">&amp;</span><span class="self">self</span>.condition));
+        visitor.visit_statement_list(<span class="kw-2">&amp;</span><span class="self">self</span>.body)
     }
 
-    <span class="kw">fn</span> <span class="ident">visit_with_mut</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">V</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">visitor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">V</span>) -&gt; <span class="ident">ControlFlow</span><span class="op">&lt;</span><span class="ident">V::BreakTy</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">V</span>: <span class="ident">VisitorMut</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
+    <span class="kw">fn </span>visit_with_mut&lt;<span class="lifetime">&#39;a</span>, V&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="self">self</span>, visitor: <span class="kw-2">&amp;mut </span>V) -&gt; ControlFlow&lt;V::BreakTy&gt;
+    <span class="kw">where
+        </span>V: VisitorMut&lt;<span class="lifetime">&#39;a</span>&gt;,
     {
-        <span class="macro">try_break!</span>(<span class="ident">visitor</span>.<span class="ident">visit_expression_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">condition</span>));
-        <span class="ident">visitor</span>.<span class="ident">visit_statement_list_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">body</span>)
+        <span class="macro">try_break!</span>(visitor.visit_expression_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>.condition));
+        visitor.visit_statement_list_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>.body)
     }
 }
 
-<span class="doccomment">/// The `switch` statement evaluates an expression, matching the expression&#39;s value to a case</span>
-<span class="doccomment">/// clause, and executes statements associated with that case, as well as statements in cases</span>
-<span class="doccomment">/// that follow the matching case.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// A `switch` statement first evaluates its expression. It then looks for the first case</span>
-<span class="doccomment">/// clause whose expression evaluates to the same value as the result of the input expression</span>
-<span class="doccomment">/// (using the strict comparison, `===`) and transfers control to that clause, executing the</span>
-<span class="doccomment">/// associated statements. (If multiple cases match the provided value, the first case that</span>
-<span class="doccomment">/// matches is selected, even if the cases are not equal to each other.)</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [ECMAScript reference][spec]</span>
-<span class="doccomment">///  - [MDN documentation][mdn]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-SwitchStatement</span>
-<span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/switch</span>
-<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>, <span class="ident">derive</span>(<span class="ident">serde::Serialize</span>, <span class="ident">serde::Deserialize</span>))]</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Switch</span> {
-    <span class="ident">val</span>: <span class="ident">Expression</span>,
-    <span class="ident">cases</span>: <span class="ident">Box</span><span class="op">&lt;</span>[<span class="ident">Case</span>]<span class="op">&gt;</span>,
-    <span class="ident">default</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">StatementList</span><span class="op">&gt;</span>,
+<span class="doccomment">/// The `switch` statement evaluates an expression, matching the expression&#39;s value to a case
+/// clause, and executes statements associated with that case, as well as statements in cases
+/// that follow the matching case.
+///
+/// A `switch` statement first evaluates its expression. It then looks for the first case
+/// clause whose expression evaluates to the same value as the result of the input expression
+/// (using the strict comparison, `===`) and transfers control to that clause, executing the
+/// associated statements. (If multiple cases match the provided value, the first case that
+/// matches is selected, even if the cases are not equal to each other.)
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///  - [MDN documentation][mdn]
+///
+/// [spec]: https://tc39.es/ecma262/#prod-SwitchStatement
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/switch
+</span><span class="attribute">#[cfg_attr(feature = <span class="string">&quot;serde&quot;</span>, derive(serde::Serialize, serde::Deserialize))]
+#[derive(Clone, Debug, PartialEq)]
+</span><span class="kw">pub struct </span>Switch {
+    val: Expression,
+    cases: Box&lt;[Case]&gt;,
+    default: <span class="prelude-ty">Option</span>&lt;StatementList&gt;,
 }
 
-<span class="kw">impl</span> <span class="ident">Switch</span> {
-    <span class="doccomment">/// Creates a `Switch` AST node.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">val</span>: <span class="ident">Expression</span>, <span class="ident">cases</span>: <span class="ident">Box</span><span class="op">&lt;</span>[<span class="ident">Case</span>]<span class="op">&gt;</span>, <span class="ident">default</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">StatementList</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">val</span>,
-            <span class="ident">cases</span>,
-            <span class="ident">default</span>,
+<span class="kw">impl </span>Switch {
+    <span class="doccomment">/// Creates a `Switch` AST node.
+    </span><span class="attribute">#[inline]
+    #[must_use]
+    </span><span class="kw">pub fn </span>new(val: Expression, cases: Box&lt;[Case]&gt;, default: <span class="prelude-ty">Option</span>&lt;StatementList&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            val,
+            cases,
+            default,
         }
     }
 
-    <span class="doccomment">/// Gets the value to switch.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">val</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">Expression</span> {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">val</span>
+    <span class="doccomment">/// Gets the value to switch.
+    </span><span class="attribute">#[inline]
+    #[must_use]
+    </span><span class="kw">pub fn </span>val(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Expression {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.val
     }
 
-    <span class="doccomment">/// Gets the list of cases for the switch statement.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cases</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<span class="ident">Case</span>] {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">cases</span>
+    <span class="doccomment">/// Gets the list of cases for the switch statement.
+    </span><span class="attribute">#[inline]
+    #[must_use]
+    </span><span class="kw">pub fn </span>cases(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[Case] {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.cases
     }
 
-    <span class="doccomment">/// Gets the default statement list, if any.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">default</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">StatementList</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">default</span>.<span class="ident">as_ref</span>()
-    }
-
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">contains_arguments</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">val</span>.<span class="ident">contains_arguments</span>()
-            <span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">cases</span>.<span class="ident">iter</span>().<span class="ident">any</span>(<span class="ident">Case::contains_arguments</span>)
-            <span class="op">|</span><span class="op">|</span> <span class="macro">matches!</span>(<span class="self">self</span>.<span class="ident">default</span>, <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">stmts</span>) <span class="kw">if</span> <span class="ident">stmts</span>.<span class="ident">contains_arguments</span>())
-    }
-
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">symbol</span>: <span class="ident">ContainsSymbol</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">val</span>.<span class="ident">contains</span>(<span class="ident">symbol</span>) <span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">cases</span>.<span class="ident">iter</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">case</span><span class="op">|</span> <span class="ident">case</span>.<span class="ident">contains</span>(<span class="ident">symbol</span>))
+    <span class="doccomment">/// Gets the default statement list, if any.
+    </span><span class="attribute">#[inline]
+    #[must_use]
+    </span><span class="kw">pub fn </span>default(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>StatementList&gt; {
+        <span class="self">self</span>.default.as_ref()
     }
 }
 
-<span class="kw">impl</span> <span class="ident">ToIndentedString</span> <span class="kw">for</span> <span class="ident">Switch</span> {
-    <span class="kw">fn</span> <span class="ident">to_indented_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;</span><span class="ident">Interner</span>, <span class="ident">indentation</span>: <span class="ident">usize</span>) -&gt; <span class="ident">String</span> {
-        <span class="kw">let</span> <span class="ident">indent</span> <span class="op">=</span> <span class="string">&quot;    &quot;</span>.<span class="ident">repeat</span>(<span class="ident">indentation</span>);
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <span class="macro">format!</span>(<span class="string">&quot;switch ({}) {{\n&quot;</span>, <span class="self">self</span>.<span class="ident">val</span>().<span class="ident">to_interned_string</span>(<span class="ident">interner</span>));
-        <span class="kw">for</span> <span class="ident">e</span> <span class="kw">in</span> <span class="self">self</span>.<span class="ident">cases</span>().<span class="ident">iter</span>() {
-            <span class="ident">buf</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(
+<span class="kw">impl </span>ToIndentedString <span class="kw">for </span>Switch {
+    <span class="kw">fn </span>to_indented_string(<span class="kw-2">&amp;</span><span class="self">self</span>, interner: <span class="kw-2">&amp;</span>Interner, indentation: usize) -&gt; String {
+        <span class="kw">let </span>indent = <span class="string">&quot;    &quot;</span>.repeat(indentation);
+        <span class="kw">let </span><span class="kw-2">mut </span>buf = <span class="macro">format!</span>(<span class="string">&quot;switch ({}) {{\n&quot;</span>, <span class="self">self</span>.val().to_interned_string(interner));
+        <span class="kw">for </span>e <span class="kw">in </span><span class="self">self</span>.cases().iter() {
+            buf.push_str(<span class="kw-2">&amp;</span><span class="macro">format!</span>(
                 <span class="string">&quot;{}    case {}:\n{}&quot;</span>,
-                <span class="ident">indent</span>,
-                <span class="ident">e</span>.<span class="ident">condition</span>().<span class="ident">to_interned_string</span>(<span class="ident">interner</span>),
-                <span class="ident">e</span>.<span class="ident">body</span>().<span class="ident">to_indented_string</span>(<span class="ident">interner</span>, <span class="ident">indentation</span> <span class="op">+</span> <span class="number">2</span>)
+                indent,
+                e.condition().to_interned_string(interner),
+                e.body().to_indented_string(interner, indentation + <span class="number">2</span>)
             ));
         }
 
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">default</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">default</span> {
-            <span class="ident">buf</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>default) = <span class="self">self</span>.default {
+            buf.push_str(<span class="kw-2">&amp;</span><span class="macro">format!</span>(
                 <span class="string">&quot;{indent}    default:\n{}&quot;</span>,
-                <span class="ident">default</span>.<span class="ident">to_indented_string</span>(<span class="ident">interner</span>, <span class="ident">indentation</span> <span class="op">+</span> <span class="number">2</span>)
+                default.to_indented_string(interner, indentation + <span class="number">2</span>)
             ));
         }
-        <span class="ident">buf</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;{indent}}}&quot;</span>));
+        buf.push_str(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;{indent}}}&quot;</span>));
 
-        <span class="ident">buf</span>
+        buf
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Switch</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Statement</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">switch</span>: <span class="ident">Switch</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::Switch</span>(<span class="ident">switch</span>)
+<span class="kw">impl </span>From&lt;Switch&gt; <span class="kw">for </span>Statement {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(switch: Switch) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::Switch(switch)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">VisitWith</span> <span class="kw">for</span> <span class="ident">Switch</span> {
-    <span class="kw">fn</span> <span class="ident">visit_with</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">V</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>, <span class="ident">visitor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">V</span>) -&gt; <span class="ident">ControlFlow</span><span class="op">&lt;</span><span class="ident">V::BreakTy</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">V</span>: <span class="ident">Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
+<span class="kw">impl </span>VisitWith <span class="kw">for </span>Switch {
+    <span class="kw">fn </span>visit_with&lt;<span class="lifetime">&#39;a</span>, V&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>, visitor: <span class="kw-2">&amp;mut </span>V) -&gt; ControlFlow&lt;V::BreakTy&gt;
+    <span class="kw">where
+        </span>V: Visitor&lt;<span class="lifetime">&#39;a</span>&gt;,
     {
-        <span class="macro">try_break!</span>(<span class="ident">visitor</span>.<span class="ident">visit_expression</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">val</span>));
-        <span class="kw">for</span> <span class="ident">case</span> <span class="kw">in</span> <span class="self">self</span>.<span class="ident">cases</span>.<span class="ident">iter</span>() {
-            <span class="macro">try_break!</span>(<span class="ident">visitor</span>.<span class="ident">visit_case</span>(<span class="ident">case</span>));
+        <span class="macro">try_break!</span>(visitor.visit_expression(<span class="kw-2">&amp;</span><span class="self">self</span>.val));
+        <span class="kw">for </span>case <span class="kw">in </span><span class="self">self</span>.cases.iter() {
+            <span class="macro">try_break!</span>(visitor.visit_case(case));
         }
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">sl</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">default</span> {
-            <span class="macro">try_break!</span>(<span class="ident">visitor</span>.<span class="ident">visit_statement_list</span>(<span class="ident">sl</span>));
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(sl) = <span class="kw-2">&amp;</span><span class="self">self</span>.default {
+            <span class="macro">try_break!</span>(visitor.visit_statement_list(sl));
         }
-        <span class="ident">ControlFlow::Continue</span>(())
+        ControlFlow::Continue(())
     }
 
-    <span class="kw">fn</span> <span class="ident">visit_with_mut</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">V</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">visitor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">V</span>) -&gt; <span class="ident">ControlFlow</span><span class="op">&lt;</span><span class="ident">V::BreakTy</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">V</span>: <span class="ident">VisitorMut</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
+    <span class="kw">fn </span>visit_with_mut&lt;<span class="lifetime">&#39;a</span>, V&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="self">self</span>, visitor: <span class="kw-2">&amp;mut </span>V) -&gt; ControlFlow&lt;V::BreakTy&gt;
+    <span class="kw">where
+        </span>V: VisitorMut&lt;<span class="lifetime">&#39;a</span>&gt;,
     {
-        <span class="macro">try_break!</span>(<span class="ident">visitor</span>.<span class="ident">visit_expression_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">val</span>));
-        <span class="kw">for</span> <span class="ident">case</span> <span class="kw">in</span> <span class="self">self</span>.<span class="ident">cases</span>.<span class="ident">iter_mut</span>() {
-            <span class="macro">try_break!</span>(<span class="ident">visitor</span>.<span class="ident">visit_case_mut</span>(<span class="ident">case</span>));
+        <span class="macro">try_break!</span>(visitor.visit_expression_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>.val));
+        <span class="kw">for </span>case <span class="kw">in </span><span class="self">self</span>.cases.iter_mut() {
+            <span class="macro">try_break!</span>(visitor.visit_case_mut(case));
         }
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">sl</span>) <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">default</span> {
-            <span class="macro">try_break!</span>(<span class="ident">visitor</span>.<span class="ident">visit_statement_list_mut</span>(<span class="ident">sl</span>));
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(sl) = <span class="kw-2">&amp;mut </span><span class="self">self</span>.default {
+            <span class="macro">try_break!</span>(visitor.visit_statement_list_mut(sl));
         }
-        <span class="ident">ControlFlow::Continue</span>(())
+        ControlFlow::Continue(())
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="boa_ast" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0 (a55dd71d5 2022-09-19)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="boa_ast" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0 (897e37553 2022-11-02)" ></div></body></html>

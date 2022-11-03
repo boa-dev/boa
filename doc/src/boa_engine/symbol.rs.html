@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_engine/src/symbol.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>symbol.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../boa_engine/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../boa_engine/index.html"><div class="logo-container">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_engine/src/symbol.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>symbol.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../boa_engine/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../boa_engine/index.html"><div class="logo-container">
                     <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../boa_engine/index.html">
                         <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -350,355 +350,355 @@
 <span id="348">348</span>
 <span id="349">349</span>
 <span id="350">350</span>
-</pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `Symbol` object.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! The data type symbol is a primitive data type.</span>
-<span class="doccomment">//! The `Symbol()` function returns a value of type symbol, has static properties that expose</span>
-<span class="doccomment">//! several members of built-in objects, has static methods that expose the global symbol registry,</span>
-<span class="doccomment">//! and resembles a built-in object class, but is incomplete as a constructor because it does not</span>
-<span class="doccomment">//! support the syntax &quot;`new Symbol()`&quot;.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! Every symbol value returned from `Symbol()` is unique.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! More information:</span>
-<span class="doccomment">//! - [MDN documentation][mdn]</span>
-<span class="doccomment">//! - [ECMAScript reference][spec]</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! [spec]: https://tc39.es/ecma262/#sec-symbol-value</span>
-<span class="doccomment">//! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol</span>
+</pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `Symbol` object.
+//!
+//! The data type symbol is a primitive data type.
+//! The `Symbol()` function returns a value of type symbol, has static properties that expose
+//! several members of built-in objects, has static methods that expose the global symbol registry,
+//! and resembles a built-in object class, but is incomplete as a constructor because it does not
+//! support the syntax &quot;`new Symbol()`&quot;.
+//!
+//! Every symbol value returned from `Symbol()` is unique.
+//!
+//! More information:
+//! - [MDN documentation][mdn]
+//! - [ECMAScript reference][spec]
+//!
+//! [spec]: https://tc39.es/ecma262/#sec-symbol-value
+//! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol
 
-<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">js_string</span>, <span class="ident">string::utf16</span>, <span class="ident">JsString</span>};
-<span class="kw">use</span> <span class="ident">boa_gc</span>::{<span class="ident">unsafe_empty_trace</span>, <span class="ident">Finalize</span>, <span class="ident">Trace</span>};
-<span class="kw">use</span> <span class="ident">std</span>::{
-    <span class="ident">cell::Cell</span>,
-    <span class="ident">hash</span>::{<span class="ident">Hash</span>, <span class="ident">Hasher</span>},
-    <span class="ident">rc::Rc</span>,
+</span><span class="kw">use crate</span>::{js_string, string::utf16, JsString};
+<span class="kw">use </span>boa_gc::{unsafe_empty_trace, Finalize, Trace};
+<span class="kw">use </span>std::{
+    cell::Cell,
+    hash::{Hash, Hasher},
+    rc::Rc,
 };
 
-<span class="doccomment">/// A structure that contains the JavaScript well known symbols.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Examples</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">/// # use boa_engine::symbol::WellKnownSymbols;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// let iterator = WellKnownSymbols::iterator();</span>
-<span class="doccomment">/// assert_eq!(iterator.description().unwrap().to_std_string_escaped(), &quot;Symbol.iterator&quot;);</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">/// This is equivalent to `let iterator = Symbol.iterator` in JavaScript.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">WellKnownSymbols</span> {
-    <span class="ident">async_iterator</span>: <span class="ident">JsSymbol</span>,
-    <span class="ident">has_instance</span>: <span class="ident">JsSymbol</span>,
-    <span class="ident">is_concat_spreadable</span>: <span class="ident">JsSymbol</span>,
-    <span class="ident">iterator</span>: <span class="ident">JsSymbol</span>,
-    <span class="ident">r#match</span>: <span class="ident">JsSymbol</span>,
-    <span class="ident">match_all</span>: <span class="ident">JsSymbol</span>,
-    <span class="ident">replace</span>: <span class="ident">JsSymbol</span>,
-    <span class="ident">search</span>: <span class="ident">JsSymbol</span>,
-    <span class="ident">species</span>: <span class="ident">JsSymbol</span>,
-    <span class="ident">split</span>: <span class="ident">JsSymbol</span>,
-    <span class="ident">to_primitive</span>: <span class="ident">JsSymbol</span>,
-    <span class="ident">to_string_tag</span>: <span class="ident">JsSymbol</span>,
-    <span class="ident">unscopables</span>: <span class="ident">JsSymbol</span>,
+<span class="doccomment">/// A structure that contains the JavaScript well known symbols.
+///
+/// # Examples
+/// ```
+/// # use boa_engine::symbol::WellKnownSymbols;
+///
+/// let iterator = WellKnownSymbols::iterator();
+/// assert_eq!(iterator.description().unwrap().to_std_string_escaped(), &quot;Symbol.iterator&quot;);
+/// ```
+/// This is equivalent to `let iterator = Symbol.iterator` in JavaScript.
+</span><span class="attribute">#[derive(Debug, Clone)]
+</span><span class="kw">pub struct </span>WellKnownSymbols {
+    async_iterator: JsSymbol,
+    has_instance: JsSymbol,
+    is_concat_spreadable: JsSymbol,
+    iterator: JsSymbol,
+    r#match: JsSymbol,
+    match_all: JsSymbol,
+    replace: JsSymbol,
+    search: JsSymbol,
+    species: JsSymbol,
+    split: JsSymbol,
+    to_primitive: JsSymbol,
+    to_string_tag: JsSymbol,
+    unscopables: JsSymbol,
 }
 
-<span class="doccomment">/// Reserved number of symbols.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This is where the well known symbol live</span>
-<span class="doccomment">/// and internal engine symbols.</span>
-<span class="kw">const</span> <span class="ident">RESERVED_SYMBOL_HASHES</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="number">128</span>;
+<span class="doccomment">/// Reserved number of symbols.
+///
+/// This is where the well known symbol live
+/// and internal engine symbols.
+</span><span class="kw">const </span>RESERVED_SYMBOL_HASHES: u64 = <span class="number">128</span>;
 
-<span class="macro">thread_local!</span> {
-    <span class="doccomment">/// Cached well known symbols</span>
-    <span class="kw">static</span> <span class="ident">WELL_KNOW_SYMBOLS</span>: <span class="ident">WellKnownSymbols</span> <span class="op">=</span> <span class="ident">WellKnownSymbols::new</span>();
+<span class="macro">thread_local! </span>{
+    <span class="doccomment">/// Cached well known symbols
+    </span><span class="kw">static </span>WELL_KNOW_SYMBOLS: WellKnownSymbols = WellKnownSymbols::new();
 
-    <span class="doccomment">/// Symbol hash.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// For now this is an incremented u64 number.</span>
-    <span class="kw">static</span> <span class="ident">SYMBOL_HASH_COUNT</span>: <span class="ident">Cell</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Cell::new</span>(<span class="ident">RESERVED_SYMBOL_HASHES</span>);
+    <span class="doccomment">/// Symbol hash.
+    ///
+    /// For now this is an incremented u64 number.
+    </span><span class="kw">static </span>SYMBOL_HASH_COUNT: Cell&lt;u64&gt; = Cell::new(RESERVED_SYMBOL_HASHES);
 }
 
-<span class="kw">impl</span> <span class="ident">WellKnownSymbols</span> {
-    <span class="doccomment">/// Create the well known symbols.</span>
-    <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">count</span> <span class="op">=</span> <span class="number">0</span>;
+<span class="kw">impl </span>WellKnownSymbols {
+    <span class="doccomment">/// Create the well known symbols.
+    </span><span class="kw">fn </span>new() -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span><span class="kw-2">mut </span>count = <span class="number">0</span>;
 
-        <span class="kw">let</span> <span class="ident">async_iterator</span> <span class="op">=</span> <span class="ident">JsSymbol::with_hash</span>(<span class="ident">count</span>, <span class="prelude-val">Some</span>(<span class="string">&quot;Symbol.asyncIterator&quot;</span>.<span class="ident">into</span>()));
-        <span class="ident">count</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-        <span class="kw">let</span> <span class="ident">has_instance</span> <span class="op">=</span> <span class="ident">JsSymbol::with_hash</span>(<span class="ident">count</span>, <span class="prelude-val">Some</span>(<span class="string">&quot;Symbol.hasInstance&quot;</span>.<span class="ident">into</span>()));
-        <span class="ident">count</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-        <span class="kw">let</span> <span class="ident">is_concat_spreadable</span> <span class="op">=</span>
-            <span class="ident">JsSymbol::with_hash</span>(<span class="ident">count</span>, <span class="prelude-val">Some</span>(<span class="string">&quot;Symbol.isConcatSpreadable&quot;</span>.<span class="ident">into</span>()));
-        <span class="ident">count</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-        <span class="kw">let</span> <span class="ident">iterator</span> <span class="op">=</span> <span class="ident">JsSymbol::with_hash</span>(<span class="ident">count</span>, <span class="prelude-val">Some</span>(<span class="string">&quot;Symbol.iterator&quot;</span>.<span class="ident">into</span>()));
-        <span class="ident">count</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-        <span class="kw">let</span> <span class="ident">match_</span> <span class="op">=</span> <span class="ident">JsSymbol::with_hash</span>(<span class="ident">count</span>, <span class="prelude-val">Some</span>(<span class="string">&quot;Symbol.match&quot;</span>.<span class="ident">into</span>()));
-        <span class="ident">count</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-        <span class="kw">let</span> <span class="ident">match_all</span> <span class="op">=</span> <span class="ident">JsSymbol::with_hash</span>(<span class="ident">count</span>, <span class="prelude-val">Some</span>(<span class="string">&quot;Symbol.matchAll&quot;</span>.<span class="ident">into</span>()));
-        <span class="ident">count</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-        <span class="kw">let</span> <span class="ident">replace</span> <span class="op">=</span> <span class="ident">JsSymbol::with_hash</span>(<span class="ident">count</span>, <span class="prelude-val">Some</span>(<span class="string">&quot;Symbol.replace&quot;</span>.<span class="ident">into</span>()));
-        <span class="ident">count</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-        <span class="kw">let</span> <span class="ident">search</span> <span class="op">=</span> <span class="ident">JsSymbol::with_hash</span>(<span class="ident">count</span>, <span class="prelude-val">Some</span>(<span class="string">&quot;Symbol.search&quot;</span>.<span class="ident">into</span>()));
-        <span class="ident">count</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-        <span class="kw">let</span> <span class="ident">species</span> <span class="op">=</span> <span class="ident">JsSymbol::with_hash</span>(<span class="ident">count</span>, <span class="prelude-val">Some</span>(<span class="string">&quot;Symbol.species&quot;</span>.<span class="ident">into</span>()));
-        <span class="ident">count</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-        <span class="kw">let</span> <span class="ident">split</span> <span class="op">=</span> <span class="ident">JsSymbol::with_hash</span>(<span class="ident">count</span>, <span class="prelude-val">Some</span>(<span class="string">&quot;Symbol.split&quot;</span>.<span class="ident">into</span>()));
-        <span class="ident">count</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-        <span class="kw">let</span> <span class="ident">to_primitive</span> <span class="op">=</span> <span class="ident">JsSymbol::with_hash</span>(<span class="ident">count</span>, <span class="prelude-val">Some</span>(<span class="string">&quot;Symbol.toPrimitive&quot;</span>.<span class="ident">into</span>()));
-        <span class="ident">count</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-        <span class="kw">let</span> <span class="ident">to_string_tag</span> <span class="op">=</span> <span class="ident">JsSymbol::with_hash</span>(<span class="ident">count</span>, <span class="prelude-val">Some</span>(<span class="string">&quot;Symbol.toStringTag&quot;</span>.<span class="ident">into</span>()));
-        <span class="ident">count</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-        <span class="kw">let</span> <span class="ident">unscopables</span> <span class="op">=</span> <span class="ident">JsSymbol::with_hash</span>(<span class="ident">count</span>, <span class="prelude-val">Some</span>(<span class="string">&quot;Symbol.unscopables&quot;</span>.<span class="ident">into</span>()));
+        <span class="kw">let </span>async_iterator = JsSymbol::with_hash(count, <span class="prelude-val">Some</span>(<span class="string">&quot;Symbol.asyncIterator&quot;</span>.into()));
+        count += <span class="number">1</span>;
+        <span class="kw">let </span>has_instance = JsSymbol::with_hash(count, <span class="prelude-val">Some</span>(<span class="string">&quot;Symbol.hasInstance&quot;</span>.into()));
+        count += <span class="number">1</span>;
+        <span class="kw">let </span>is_concat_spreadable =
+            JsSymbol::with_hash(count, <span class="prelude-val">Some</span>(<span class="string">&quot;Symbol.isConcatSpreadable&quot;</span>.into()));
+        count += <span class="number">1</span>;
+        <span class="kw">let </span>iterator = JsSymbol::with_hash(count, <span class="prelude-val">Some</span>(<span class="string">&quot;Symbol.iterator&quot;</span>.into()));
+        count += <span class="number">1</span>;
+        <span class="kw">let </span>match_ = JsSymbol::with_hash(count, <span class="prelude-val">Some</span>(<span class="string">&quot;Symbol.match&quot;</span>.into()));
+        count += <span class="number">1</span>;
+        <span class="kw">let </span>match_all = JsSymbol::with_hash(count, <span class="prelude-val">Some</span>(<span class="string">&quot;Symbol.matchAll&quot;</span>.into()));
+        count += <span class="number">1</span>;
+        <span class="kw">let </span>replace = JsSymbol::with_hash(count, <span class="prelude-val">Some</span>(<span class="string">&quot;Symbol.replace&quot;</span>.into()));
+        count += <span class="number">1</span>;
+        <span class="kw">let </span>search = JsSymbol::with_hash(count, <span class="prelude-val">Some</span>(<span class="string">&quot;Symbol.search&quot;</span>.into()));
+        count += <span class="number">1</span>;
+        <span class="kw">let </span>species = JsSymbol::with_hash(count, <span class="prelude-val">Some</span>(<span class="string">&quot;Symbol.species&quot;</span>.into()));
+        count += <span class="number">1</span>;
+        <span class="kw">let </span>split = JsSymbol::with_hash(count, <span class="prelude-val">Some</span>(<span class="string">&quot;Symbol.split&quot;</span>.into()));
+        count += <span class="number">1</span>;
+        <span class="kw">let </span>to_primitive = JsSymbol::with_hash(count, <span class="prelude-val">Some</span>(<span class="string">&quot;Symbol.toPrimitive&quot;</span>.into()));
+        count += <span class="number">1</span>;
+        <span class="kw">let </span>to_string_tag = JsSymbol::with_hash(count, <span class="prelude-val">Some</span>(<span class="string">&quot;Symbol.toStringTag&quot;</span>.into()));
+        count += <span class="number">1</span>;
+        <span class="kw">let </span>unscopables = JsSymbol::with_hash(count, <span class="prelude-val">Some</span>(<span class="string">&quot;Symbol.unscopables&quot;</span>.into()));
 
-        <span class="self">Self</span> {
-            <span class="ident">async_iterator</span>,
-            <span class="ident">has_instance</span>,
-            <span class="ident">is_concat_spreadable</span>,
-            <span class="ident">iterator</span>,
-            <span class="ident">r#match</span>: <span class="ident">match_</span>,
-            <span class="ident">match_all</span>,
-            <span class="ident">replace</span>,
-            <span class="ident">search</span>,
-            <span class="ident">species</span>,
-            <span class="ident">split</span>,
-            <span class="ident">to_primitive</span>,
-            <span class="ident">to_string_tag</span>,
-            <span class="ident">unscopables</span>,
+        <span class="self">Self </span>{
+            async_iterator,
+            has_instance,
+            is_concat_spreadable,
+            iterator,
+            r#match: match_,
+            match_all,
+            replace,
+            search,
+            species,
+            split,
+            to_primitive,
+            to_string_tag,
+            unscopables,
         }
     }
 
-    <span class="doccomment">/// The `Symbol.asyncIterator` well known symbol.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// A method that returns the default `AsyncIterator` for an object.</span>
-    <span class="doccomment">/// Called by the semantics of the `for-await-of` statement.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">async_iterator</span>() -&gt; <span class="ident">JsSymbol</span> {
-        <span class="ident">WELL_KNOW_SYMBOLS</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">symbols</span><span class="op">|</span> <span class="ident">symbols</span>.<span class="ident">async_iterator</span>.<span class="ident">clone</span>())
+    <span class="doccomment">/// The `Symbol.asyncIterator` well known symbol.
+    ///
+    /// A method that returns the default `AsyncIterator` for an object.
+    /// Called by the semantics of the `for-await-of` statement.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>async_iterator() -&gt; JsSymbol {
+        WELL_KNOW_SYMBOLS.with(|symbols| symbols.async_iterator.clone())
     }
 
-    <span class="doccomment">/// The `Symbol.hasInstance` well known symbol.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// A method that determines if a `constructor` object</span>
-    <span class="doccomment">/// recognizes an object as one of the `constructor`&#39;s instances.</span>
-    <span class="doccomment">/// Called by the semantics of the instanceof operator.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">has_instance</span>() -&gt; <span class="ident">JsSymbol</span> {
-        <span class="ident">WELL_KNOW_SYMBOLS</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">symbols</span><span class="op">|</span> <span class="ident">symbols</span>.<span class="ident">has_instance</span>.<span class="ident">clone</span>())
+    <span class="doccomment">/// The `Symbol.hasInstance` well known symbol.
+    ///
+    /// A method that determines if a `constructor` object
+    /// recognizes an object as one of the `constructor`&#39;s instances.
+    /// Called by the semantics of the instanceof operator.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>has_instance() -&gt; JsSymbol {
+        WELL_KNOW_SYMBOLS.with(|symbols| symbols.has_instance.clone())
     }
 
-    <span class="doccomment">/// The `Symbol.isConcatSpreadable` well known symbol.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// A Boolean valued property that if `true` indicates that</span>
-    <span class="doccomment">/// an object should be flattened to its array elements</span>
-    <span class="doccomment">/// by `Array.prototype.concat`.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_concat_spreadable</span>() -&gt; <span class="ident">JsSymbol</span> {
-        <span class="ident">WELL_KNOW_SYMBOLS</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">symbols</span><span class="op">|</span> <span class="ident">symbols</span>.<span class="ident">is_concat_spreadable</span>.<span class="ident">clone</span>())
+    <span class="doccomment">/// The `Symbol.isConcatSpreadable` well known symbol.
+    ///
+    /// A Boolean valued property that if `true` indicates that
+    /// an object should be flattened to its array elements
+    /// by `Array.prototype.concat`.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>is_concat_spreadable() -&gt; JsSymbol {
+        WELL_KNOW_SYMBOLS.with(|symbols| symbols.is_concat_spreadable.clone())
     }
 
-    <span class="doccomment">/// The `Symbol.iterator` well known symbol.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// A method that returns the default Iterator for an object.</span>
-    <span class="doccomment">/// Called by the semantics of the `for-of` statement.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">iterator</span>() -&gt; <span class="ident">JsSymbol</span> {
-        <span class="ident">WELL_KNOW_SYMBOLS</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">symbols</span><span class="op">|</span> <span class="ident">symbols</span>.<span class="ident">iterator</span>.<span class="ident">clone</span>())
+    <span class="doccomment">/// The `Symbol.iterator` well known symbol.
+    ///
+    /// A method that returns the default Iterator for an object.
+    /// Called by the semantics of the `for-of` statement.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>iterator() -&gt; JsSymbol {
+        WELL_KNOW_SYMBOLS.with(|symbols| symbols.iterator.clone())
     }
 
-    <span class="doccomment">/// The `Symbol.match` well known symbol.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// A regular expression method that matches the regular expression</span>
-    <span class="doccomment">/// against a string. Called by the `String.prototype.match` method.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">r#match</span>() -&gt; <span class="ident">JsSymbol</span> {
-        <span class="ident">WELL_KNOW_SYMBOLS</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">symbols</span><span class="op">|</span> <span class="ident">symbols</span>.<span class="ident">r#match</span>.<span class="ident">clone</span>())
+    <span class="doccomment">/// The `Symbol.match` well known symbol.
+    ///
+    /// A regular expression method that matches the regular expression
+    /// against a string. Called by the `String.prototype.match` method.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>r#match() -&gt; JsSymbol {
+        WELL_KNOW_SYMBOLS.with(|symbols| symbols.r#match.clone())
     }
 
-    <span class="doccomment">/// The `Symbol.matchAll` well known symbol.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// A regular expression method that returns an iterator, that yields</span>
-    <span class="doccomment">/// matches of the regular expression against a string.</span>
-    <span class="doccomment">/// Called by the `String.prototype.matchAll` method.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">match_all</span>() -&gt; <span class="ident">JsSymbol</span> {
-        <span class="ident">WELL_KNOW_SYMBOLS</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">symbols</span><span class="op">|</span> <span class="ident">symbols</span>.<span class="ident">match_all</span>.<span class="ident">clone</span>())
+    <span class="doccomment">/// The `Symbol.matchAll` well known symbol.
+    ///
+    /// A regular expression method that returns an iterator, that yields
+    /// matches of the regular expression against a string.
+    /// Called by the `String.prototype.matchAll` method.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>match_all() -&gt; JsSymbol {
+        WELL_KNOW_SYMBOLS.with(|symbols| symbols.match_all.clone())
     }
 
-    <span class="doccomment">/// The `Symbol.replace` well known symbol.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// A regular expression method that replaces matched substrings</span>
-    <span class="doccomment">/// of a string. Called by the `String.prototype.replace` method.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">replace</span>() -&gt; <span class="ident">JsSymbol</span> {
-        <span class="ident">WELL_KNOW_SYMBOLS</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">symbols</span><span class="op">|</span> <span class="ident">symbols</span>.<span class="ident">replace</span>.<span class="ident">clone</span>())
+    <span class="doccomment">/// The `Symbol.replace` well known symbol.
+    ///
+    /// A regular expression method that replaces matched substrings
+    /// of a string. Called by the `String.prototype.replace` method.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>replace() -&gt; JsSymbol {
+        WELL_KNOW_SYMBOLS.with(|symbols| symbols.replace.clone())
     }
 
-    <span class="doccomment">/// The `Symbol.search` well known symbol.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// A regular expression method that returns the index within a</span>
-    <span class="doccomment">/// string that matches the regular expression.</span>
-    <span class="doccomment">/// Called by the `String.prototype.search` method.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">search</span>() -&gt; <span class="ident">JsSymbol</span> {
-        <span class="ident">WELL_KNOW_SYMBOLS</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">symbols</span><span class="op">|</span> <span class="ident">symbols</span>.<span class="ident">search</span>.<span class="ident">clone</span>())
+    <span class="doccomment">/// The `Symbol.search` well known symbol.
+    ///
+    /// A regular expression method that returns the index within a
+    /// string that matches the regular expression.
+    /// Called by the `String.prototype.search` method.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>search() -&gt; JsSymbol {
+        WELL_KNOW_SYMBOLS.with(|symbols| symbols.search.clone())
     }
 
-    <span class="doccomment">/// The `Symbol.species` well known symbol.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// A function valued property that is the `constructor` function</span>
-    <span class="doccomment">/// that is used to create derived objects.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">species</span>() -&gt; <span class="ident">JsSymbol</span> {
-        <span class="ident">WELL_KNOW_SYMBOLS</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">symbols</span><span class="op">|</span> <span class="ident">symbols</span>.<span class="ident">species</span>.<span class="ident">clone</span>())
+    <span class="doccomment">/// The `Symbol.species` well known symbol.
+    ///
+    /// A function valued property that is the `constructor` function
+    /// that is used to create derived objects.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>species() -&gt; JsSymbol {
+        WELL_KNOW_SYMBOLS.with(|symbols| symbols.species.clone())
     }
 
-    <span class="doccomment">/// The `Symbol.split` well known symbol.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// A regular expression method that splits a string at the indices</span>
-    <span class="doccomment">/// that match the regular expression.</span>
-    <span class="doccomment">/// Called by the `String.prototype.split` method.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">split</span>() -&gt; <span class="ident">JsSymbol</span> {
-        <span class="ident">WELL_KNOW_SYMBOLS</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">symbols</span><span class="op">|</span> <span class="ident">symbols</span>.<span class="ident">split</span>.<span class="ident">clone</span>())
+    <span class="doccomment">/// The `Symbol.split` well known symbol.
+    ///
+    /// A regular expression method that splits a string at the indices
+    /// that match the regular expression.
+    /// Called by the `String.prototype.split` method.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>split() -&gt; JsSymbol {
+        WELL_KNOW_SYMBOLS.with(|symbols| symbols.split.clone())
     }
 
-    <span class="doccomment">/// The `Symbol.toPrimitive` well known symbol.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// A method that converts an object to a corresponding primitive value.</span>
-    <span class="doccomment">/// Called by the `ToPrimitive` (`Value::to_primitive`) abstract operation.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_primitive</span>() -&gt; <span class="ident">JsSymbol</span> {
-        <span class="ident">WELL_KNOW_SYMBOLS</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">symbols</span><span class="op">|</span> <span class="ident">symbols</span>.<span class="ident">to_primitive</span>.<span class="ident">clone</span>())
+    <span class="doccomment">/// The `Symbol.toPrimitive` well known symbol.
+    ///
+    /// A method that converts an object to a corresponding primitive value.
+    /// Called by the `ToPrimitive` (`Value::to_primitive`) abstract operation.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>to_primitive() -&gt; JsSymbol {
+        WELL_KNOW_SYMBOLS.with(|symbols| symbols.to_primitive.clone())
     }
 
-    <span class="doccomment">/// The `Symbol.toStringTag` well known symbol.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// A String valued property that is used in the creation of the default</span>
-    <span class="doccomment">/// string description of an object.</span>
-    <span class="doccomment">/// Accessed by the built-in method `Object.prototype.toString`.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_string_tag</span>() -&gt; <span class="ident">JsSymbol</span> {
-        <span class="ident">WELL_KNOW_SYMBOLS</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">symbols</span><span class="op">|</span> <span class="ident">symbols</span>.<span class="ident">to_string_tag</span>.<span class="ident">clone</span>())
+    <span class="doccomment">/// The `Symbol.toStringTag` well known symbol.
+    ///
+    /// A String valued property that is used in the creation of the default
+    /// string description of an object.
+    /// Accessed by the built-in method `Object.prototype.toString`.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>to_string_tag() -&gt; JsSymbol {
+        WELL_KNOW_SYMBOLS.with(|symbols| symbols.to_string_tag.clone())
     }
 
-    <span class="doccomment">/// The `Symbol.unscopables` well known symbol.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// An object valued property whose own and inherited property names are property</span>
-    <span class="doccomment">/// names that are excluded from the `with` environment bindings of the associated object.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">unscopables</span>() -&gt; <span class="ident">JsSymbol</span> {
-        <span class="ident">WELL_KNOW_SYMBOLS</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">symbols</span><span class="op">|</span> <span class="ident">symbols</span>.<span class="ident">unscopables</span>.<span class="ident">clone</span>())
+    <span class="doccomment">/// The `Symbol.unscopables` well known symbol.
+    ///
+    /// An object valued property whose own and inherited property names are property
+    /// names that are excluded from the `with` environment bindings of the associated object.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>unscopables() -&gt; JsSymbol {
+        WELL_KNOW_SYMBOLS.with(|symbols| symbols.unscopables.clone())
     }
 }
 
-<span class="doccomment">/// The inner representation of a JavaScript symbol.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
-<span class="kw">struct</span> <span class="ident">Inner</span> {
-    <span class="ident">hash</span>: <span class="ident">u64</span>,
-    <span class="ident">description</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JsString</span><span class="op">&gt;</span>,
+<span class="doccomment">/// The inner representation of a JavaScript symbol.
+</span><span class="attribute">#[derive(Debug, Clone)]
+</span><span class="kw">struct </span>Inner {
+    hash: u64,
+    description: <span class="prelude-ty">Option</span>&lt;JsString&gt;,
 }
 
-<span class="doccomment">/// This represents a JavaScript symbol primitive.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Finalize</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">JsSymbol</span> {
-    <span class="ident">inner</span>: <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">Inner</span><span class="op">&gt;</span>,
+<span class="doccomment">/// This represents a JavaScript symbol primitive.
+</span><span class="attribute">#[derive(Debug, Clone, Finalize)]
+</span><span class="kw">pub struct </span>JsSymbol {
+    inner: Rc&lt;Inner&gt;,
 }
 
-<span class="comment">// Safety: JsSymbol does not contain any objects which needs to be traced,</span>
-<span class="comment">// so this is safe.</span>
-<span class="kw">unsafe</span> <span class="kw">impl</span> <span class="ident">Trace</span> <span class="kw">for</span> <span class="ident">JsSymbol</span> {
+<span class="comment">// Safety: JsSymbol does not contain any objects which needs to be traced,
+// so this is safe.
+</span><span class="kw">unsafe impl </span>Trace <span class="kw">for </span>JsSymbol {
     <span class="macro">unsafe_empty_trace!</span>();
 }
 
-<span class="kw">impl</span> <span class="ident">JsSymbol</span> {
-    <span class="doccomment">/// Create a new symbol.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">description</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JsString</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="ident">hash</span> <span class="op">=</span> <span class="ident">SYMBOL_HASH_COUNT</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">count</span><span class="op">|</span> {
-            <span class="kw">let</span> <span class="ident">hash</span> <span class="op">=</span> <span class="ident">count</span>.<span class="ident">get</span>();
-            <span class="ident">count</span>.<span class="ident">set</span>(<span class="ident">hash</span> <span class="op">+</span> <span class="number">1</span>);
-            <span class="ident">hash</span>
+<span class="kw">impl </span>JsSymbol {
+    <span class="doccomment">/// Create a new symbol.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>new(description: <span class="prelude-ty">Option</span>&lt;JsString&gt;) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>hash = SYMBOL_HASH_COUNT.with(|count| {
+            <span class="kw">let </span>hash = count.get();
+            count.set(hash + <span class="number">1</span>);
+            hash
         });
 
-        <span class="self">Self</span> {
-            <span class="ident">inner</span>: <span class="ident">Rc::new</span>(<span class="ident">Inner</span> { <span class="ident">hash</span>, <span class="ident">description</span> }),
+        <span class="self">Self </span>{
+            inner: Rc::new(Inner { hash, description }),
         }
     }
 
-    <span class="doccomment">/// Create a new symbol with a specified hash and description.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">with_hash</span>(<span class="ident">hash</span>: <span class="ident">u64</span>, <span class="ident">description</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JsString</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">inner</span>: <span class="ident">Rc::new</span>(<span class="ident">Inner</span> { <span class="ident">hash</span>, <span class="ident">description</span> }),
+    <span class="doccomment">/// Create a new symbol with a specified hash and description.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">fn </span>with_hash(hash: u64, description: <span class="prelude-ty">Option</span>&lt;JsString&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            inner: Rc::new(Inner { hash, description }),
         }
     }
 
-    <span class="doccomment">/// Returns the `Symbol`s description.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">description</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JsString</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">description</span>.<span class="ident">clone</span>()
+    <span class="doccomment">/// Returns the `Symbol`s description.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>description(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;JsString&gt; {
+        <span class="self">self</span>.inner.description.clone()
     }
 
-    <span class="doccomment">/// Returns the `Symbol`s hash.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The hash is guaranteed to be unique.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">hash</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">u64</span> {
-        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">hash</span>
+    <span class="doccomment">/// Returns the `Symbol`s hash.
+    ///
+    /// The hash is guaranteed to be unique.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>hash(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64 {
+        <span class="self">self</span>.inner.hash
     }
 
-    <span class="doccomment">/// Abstract operation `SymbolDescriptiveString ( sym )`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More info:</span>
-    <span class="doccomment">/// - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-symboldescriptivestring</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">descriptive_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">JsString</span> {
-        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">description</span>.<span class="ident">as_ref</span>().<span class="ident">map_or_else</span>(
-            <span class="op">|</span><span class="op">|</span> <span class="macro">js_string!</span>(<span class="string">&quot;Symbol()&quot;</span>),
-            <span class="op">|</span><span class="ident">desc</span><span class="op">|</span> <span class="macro">js_string!</span>(<span class="macro">utf16!</span>(<span class="string">&quot;Symbol(&quot;</span>), <span class="ident">desc</span>, <span class="macro">utf16!</span>(<span class="string">&quot;)&quot;</span>)),
+    <span class="doccomment">/// Abstract operation `SymbolDescriptiveString ( sym )`
+    ///
+    /// More info:
+    /// - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-symboldescriptivestring
+    </span><span class="kw">pub fn </span>descriptive_string(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsString {
+        <span class="self">self</span>.inner.description.as_ref().map_or_else(
+            || <span class="macro">js_string!</span>(<span class="string">&quot;Symbol()&quot;</span>),
+            |desc| <span class="macro">js_string!</span>(<span class="macro">utf16!</span>(<span class="string">&quot;Symbol(&quot;</span>), desc, <span class="macro">utf16!</span>(<span class="string">&quot;)&quot;</span>)),
         )
     }
 }
 
-<span class="kw">impl</span> <span class="ident">std::fmt::Display</span> <span class="kw">for</span> <span class="ident">JsSymbol</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">std::fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">std::fmt::Result</span> {
-        <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">description</span> {
-            <span class="prelude-val">Some</span>(<span class="ident">desc</span>) =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;Symbol({})&quot;</span>, <span class="ident">desc</span>.<span class="ident">to_std_string_escaped</span>()),
-            <span class="prelude-val">None</span> =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;Symbol()&quot;</span>),
+<span class="kw">impl </span>std::fmt::Display <span class="kw">for </span>JsSymbol {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
+        <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.inner.description {
+            <span class="prelude-val">Some</span>(desc) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;Symbol({})&quot;</span>, desc.to_std_string_escaped()),
+            <span class="prelude-val">None </span>=&gt; <span class="macro">write!</span>(f, <span class="string">&quot;Symbol()&quot;</span>),
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Eq</span> <span class="kw">for</span> <span class="ident">JsSymbol</span> {}
+<span class="kw">impl </span>Eq <span class="kw">for </span>JsSymbol {}
 
-<span class="kw">impl</span> <span class="ident">PartialEq</span> <span class="kw">for</span> <span class="ident">JsSymbol</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">hash</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">inner</span>.<span class="ident">hash</span>
+<span class="kw">impl </span>PartialEq <span class="kw">for </span>JsSymbol {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; bool {
+        <span class="self">self</span>.inner.hash == other.inner.hash
     }
 }
 
-<span class="kw">impl</span> <span class="ident">PartialOrd</span> <span class="kw">for</span> <span class="ident">JsSymbol</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">partial_cmp</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">std::cmp::Ordering</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">hash</span>.<span class="ident">partial_cmp</span>(<span class="kw-2">&amp;</span><span class="ident">other</span>.<span class="ident">inner</span>.<span class="ident">hash</span>)
+<span class="kw">impl </span>PartialOrd <span class="kw">for </span>JsSymbol {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>partial_cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;std::cmp::Ordering&gt; {
+        <span class="self">self</span>.inner.hash.partial_cmp(<span class="kw-2">&amp;</span>other.inner.hash)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Ord</span> <span class="kw">for</span> <span class="ident">JsSymbol</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">cmp</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">std::cmp::Ordering</span> {
-        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">hash</span>.<span class="ident">cmp</span>(<span class="kw-2">&amp;</span><span class="ident">other</span>.<span class="ident">inner</span>.<span class="ident">hash</span>)
+<span class="kw">impl </span>Ord <span class="kw">for </span>JsSymbol {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; std::cmp::Ordering {
+        <span class="self">self</span>.inner.hash.cmp(<span class="kw-2">&amp;</span>other.inner.hash)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">JsSymbol</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span>: <span class="ident">Hasher</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;mut</span> <span class="ident">H</span>) {
-        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">hash</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
+<span class="kw">impl </span>Hash <span class="kw">for </span>JsSymbol {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>hash&lt;H: Hasher&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, state: <span class="kw-2">&amp;mut </span>H) {
+        <span class="self">self</span>.inner.hash.hash(state);
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0 (a55dd71d5 2022-09-19)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0 (897e37553 2022-11-02)" ></div></body></html>

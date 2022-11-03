@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_ast/src/statement/try.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>try.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../boa_ast/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../boa_ast/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../boa_ast/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_ast/src/statement/try.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>try.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../boa_ast/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../boa_ast/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../boa_ast/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -250,363 +250,257 @@
 <span id="250">250</span>
 <span id="251">251</span>
 <span id="252">252</span>
-<span id="253">253</span>
-<span id="254">254</span>
-<span id="255">255</span>
-<span id="256">256</span>
-<span id="257">257</span>
-<span id="258">258</span>
-<span id="259">259</span>
-<span id="260">260</span>
-<span id="261">261</span>
-<span id="262">262</span>
-<span id="263">263</span>
-<span id="264">264</span>
-<span id="265">265</span>
-<span id="266">266</span>
-<span id="267">267</span>
-<span id="268">268</span>
-<span id="269">269</span>
-<span id="270">270</span>
-<span id="271">271</span>
-<span id="272">272</span>
-<span id="273">273</span>
-<span id="274">274</span>
-<span id="275">275</span>
-<span id="276">276</span>
-<span id="277">277</span>
-<span id="278">278</span>
-<span id="279">279</span>
-<span id="280">280</span>
-<span id="281">281</span>
-<span id="282">282</span>
-<span id="283">283</span>
-<span id="284">284</span>
-<span id="285">285</span>
-<span id="286">286</span>
-<span id="287">287</span>
-<span id="288">288</span>
-<span id="289">289</span>
-<span id="290">290</span>
-<span id="291">291</span>
-<span id="292">292</span>
-<span id="293">293</span>
-<span id="294">294</span>
-<span id="295">295</span>
-<span id="296">296</span>
-<span id="297">297</span>
-<span id="298">298</span>
-<span id="299">299</span>
-<span id="300">300</span>
-<span id="301">301</span>
-<span id="302">302</span>
-<span id="303">303</span>
-<span id="304">304</span>
-<span id="305">305</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Error handling statements</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Error handling statements
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::try_break</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::visitor</span>::{<span class="ident">VisitWith</span>, <span class="ident">Visitor</span>, <span class="ident">VisitorMut</span>};
-<span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">declaration::Binding</span>,
-    <span class="ident">statement</span>::{<span class="ident">Block</span>, <span class="ident">Statement</span>},
-    <span class="ident">StatementListItem</span>,
+</span><span class="kw">use </span><span class="kw">crate</span>::try_break;
+<span class="kw">use </span><span class="kw">crate</span>::visitor::{VisitWith, Visitor, VisitorMut};
+<span class="kw">use crate</span>::{
+    declaration::Binding,
+    statement::{Block, Statement},
 };
-<span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">ToIndentedString</span>, <span class="ident">ToInternedString</span>};
-<span class="kw">use</span> <span class="ident">core::ops::ControlFlow</span>;
+<span class="kw">use </span>boa_interner::{Interner, ToIndentedString, ToInternedString};
+<span class="kw">use </span>core::ops::ControlFlow;
 
-<span class="kw">use</span> <span class="ident"><span class="kw">super</span>::ContainsSymbol</span>;
-
-<span class="doccomment">/// The `try...catch` statement marks a block of statements to try and specifies a response</span>
-<span class="doccomment">/// should an exception be thrown.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The `try` statement consists of a `try`-block, which contains one or more statements. `{}`</span>
-<span class="doccomment">/// must always be used, even for single statements. At least one `catch`-block, or a</span>
-<span class="doccomment">/// `finally`-block, must be present.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [ECMAScript reference][spec]</span>
-<span class="doccomment">///  - [MDN documentation][mdn]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-TryStatement</span>
-<span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/try...catch</span>
-<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>, <span class="ident">derive</span>(<span class="ident">serde::Serialize</span>, <span class="ident">serde::Deserialize</span>))]</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Try</span> {
-    <span class="ident">block</span>: <span class="ident">Block</span>,
-    <span class="ident">handler</span>: <span class="ident">ErrorHandler</span>,
+<span class="doccomment">/// The `try...catch` statement marks a block of statements to try and specifies a response
+/// should an exception be thrown.
+///
+/// The `try` statement consists of a `try`-block, which contains one or more statements. `{}`
+/// must always be used, even for single statements. At least one `catch`-block, or a
+/// `finally`-block, must be present.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///  - [MDN documentation][mdn]
+///
+/// [spec]: https://tc39.es/ecma262/#prod-TryStatement
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/try...catch
+</span><span class="attribute">#[cfg_attr(feature = <span class="string">&quot;serde&quot;</span>, derive(serde::Serialize, serde::Deserialize))]
+#[derive(Clone, Debug, PartialEq)]
+</span><span class="kw">pub struct </span>Try {
+    block: Block,
+    handler: ErrorHandler,
 }
 
-<span class="doccomment">/// The type of error handler in a [`Try`] statement.</span>
-<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>, <span class="ident">derive</span>(<span class="ident">serde::Serialize</span>, <span class="ident">serde::Deserialize</span>))]</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">ErrorHandler</span> {
-    <span class="doccomment">/// A [`Catch`] error handler.</span>
-    <span class="ident">Catch</span>(<span class="ident">Catch</span>),
-    <span class="doccomment">/// A [`Finally`] error handler.</span>
-    <span class="ident">Finally</span>(<span class="ident">Finally</span>),
-    <span class="doccomment">/// A [`Catch`] and [`Finally`] error handler.</span>
-    <span class="ident">Full</span>(<span class="ident">Catch</span>, <span class="ident">Finally</span>),
+<span class="doccomment">/// The type of error handler in a [`Try`] statement.
+</span><span class="attribute">#[cfg_attr(feature = <span class="string">&quot;serde&quot;</span>, derive(serde::Serialize, serde::Deserialize))]
+#[derive(Clone, Debug, PartialEq)]
+</span><span class="kw">pub enum </span>ErrorHandler {
+    <span class="doccomment">/// A [`Catch`] error handler.
+    </span>Catch(Catch),
+    <span class="doccomment">/// A [`Finally`] error handler.
+    </span>Finally(Finally),
+    <span class="doccomment">/// A [`Catch`] and [`Finally`] error handler.
+    </span>Full(Catch, Finally),
 }
 
-<span class="kw">impl</span> <span class="ident">Try</span> {
-    <span class="doccomment">/// Creates a new `Try` AST node.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">block</span>: <span class="ident">Block</span>, <span class="ident">handler</span>: <span class="ident">ErrorHandler</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> { <span class="ident">block</span>, <span class="ident">handler</span> }
+<span class="kw">impl </span>Try {
+    <span class="doccomment">/// Creates a new `Try` AST node.
+    </span><span class="attribute">#[inline]
+    #[must_use]
+    </span><span class="kw">pub fn </span>new(block: Block, handler: ErrorHandler) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{ block, handler }
     }
 
-    <span class="doccomment">/// Gets the `try` block.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">block</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">Block</span> {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">block</span>
+    <span class="doccomment">/// Gets the `try` block.
+    </span><span class="attribute">#[inline]
+    #[must_use]
+    </span><span class="kw">pub fn </span>block(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Block {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.block
     }
 
-    <span class="doccomment">/// Gets the `catch` block, if any.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">catch</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Catch</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">handler</span> {
-            <span class="ident">ErrorHandler::Catch</span>(<span class="ident">c</span>) <span class="op">|</span> <span class="ident">ErrorHandler::Full</span>(<span class="ident">c</span>, <span class="kw">_</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">c</span>),
-            <span class="ident">ErrorHandler::Finally</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
+    <span class="doccomment">/// Gets the `catch` block, if any.
+    </span><span class="attribute">#[inline]
+    #[must_use]
+    </span><span class="kw">pub fn </span>catch(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Catch&gt; {
+        <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.handler {
+            ErrorHandler::Catch(c) | ErrorHandler::Full(c, <span class="kw">_</span>) =&gt; <span class="prelude-val">Some</span>(c),
+            ErrorHandler::Finally(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
         }
     }
 
-    <span class="doccomment">/// Gets the `finally` block, if any.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">finally</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Finally</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">handler</span> {
-            <span class="ident">ErrorHandler::Finally</span>(<span class="ident">f</span>) <span class="op">|</span> <span class="ident">ErrorHandler::Full</span>(<span class="kw">_</span>, <span class="ident">f</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">f</span>),
-            <span class="ident">ErrorHandler::Catch</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
+    <span class="doccomment">/// Gets the `finally` block, if any.
+    </span><span class="attribute">#[inline]
+    #[must_use]
+    </span><span class="kw">pub fn </span>finally(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Finally&gt; {
+        <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.handler {
+            ErrorHandler::Finally(f) | ErrorHandler::Full(<span class="kw">_</span>, f) =&gt; <span class="prelude-val">Some</span>(f),
+            ErrorHandler::Catch(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
         }
-    }
-
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">contains_arguments</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">block</span>.<span class="ident">contains_arguments</span>()
-            <span class="op">|</span><span class="op">|</span> <span class="macro">matches!</span>(<span class="self">self</span>.<span class="ident">catch</span>(), <span class="prelude-val">Some</span>(<span class="ident">catch</span>) <span class="kw">if</span> <span class="ident">catch</span>.<span class="ident">contains_arguments</span>())
-            <span class="op">|</span><span class="op">|</span> <span class="macro">matches!</span>(<span class="self">self</span>.<span class="ident">finally</span>(), <span class="prelude-val">Some</span>(<span class="ident">finally</span>) <span class="kw">if</span> <span class="ident">finally</span>.<span class="ident">contains_arguments</span>())
-    }
-
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">symbol</span>: <span class="ident">ContainsSymbol</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">block</span>.<span class="ident">contains</span>(<span class="ident">symbol</span>)
-            <span class="op">|</span><span class="op">|</span> <span class="macro">matches!</span>(<span class="self">self</span>.<span class="ident">catch</span>(), <span class="prelude-val">Some</span>(<span class="ident">catch</span>) <span class="kw">if</span> <span class="ident">catch</span>.<span class="ident">contains</span>(<span class="ident">symbol</span>))
-            <span class="op">|</span><span class="op">|</span> <span class="macro">matches!</span>(<span class="self">self</span>.<span class="ident">finally</span>(), <span class="prelude-val">Some</span>(<span class="ident">finally</span>) <span class="kw">if</span> <span class="ident">finally</span>.<span class="ident">contains</span>(<span class="ident">symbol</span>))
     }
 }
 
-<span class="kw">impl</span> <span class="ident">ToIndentedString</span> <span class="kw">for</span> <span class="ident">Try</span> {
-    <span class="kw">fn</span> <span class="ident">to_indented_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;</span><span class="ident">Interner</span>, <span class="ident">indentation</span>: <span class="ident">usize</span>) -&gt; <span class="ident">String</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <span class="macro">format!</span>(
+<span class="kw">impl </span>ToIndentedString <span class="kw">for </span>Try {
+    <span class="kw">fn </span>to_indented_string(<span class="kw-2">&amp;</span><span class="self">self</span>, interner: <span class="kw-2">&amp;</span>Interner, indentation: usize) -&gt; String {
+        <span class="kw">let </span><span class="kw-2">mut </span>buf = <span class="macro">format!</span>(
             <span class="string">&quot;{}try {}&quot;</span>,
-            <span class="string">&quot;    &quot;</span>.<span class="ident">repeat</span>(<span class="ident">indentation</span>),
-            <span class="self">self</span>.<span class="ident">block</span>.<span class="ident">to_indented_string</span>(<span class="ident">interner</span>, <span class="ident">indentation</span>)
+            <span class="string">&quot;    &quot;</span>.repeat(indentation),
+            <span class="self">self</span>.block.to_indented_string(interner, indentation)
         );
 
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">catch</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">catch</span>() {
-            <span class="ident">buf</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="ident">catch</span>.<span class="ident">to_indented_string</span>(<span class="ident">interner</span>, <span class="ident">indentation</span>));
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(catch) = <span class="self">self</span>.catch() {
+            buf.push_str(<span class="kw-2">&amp;</span>catch.to_indented_string(interner, indentation));
         }
 
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">finally</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">finally</span>() {
-            <span class="ident">buf</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="ident">finally</span>.<span class="ident">to_indented_string</span>(<span class="ident">interner</span>, <span class="ident">indentation</span>));
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(finally) = <span class="self">self</span>.finally() {
+            buf.push_str(<span class="kw-2">&amp;</span>finally.to_indented_string(interner, indentation));
         }
-        <span class="ident">buf</span>
+        buf
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Try</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Statement</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">try_catch</span>: <span class="ident">Try</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::Try</span>(<span class="ident">try_catch</span>)
+<span class="kw">impl </span>From&lt;Try&gt; <span class="kw">for </span>Statement {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(try_catch: Try) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::Try(try_catch)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">VisitWith</span> <span class="kw">for</span> <span class="ident">Try</span> {
-    <span class="kw">fn</span> <span class="ident">visit_with</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">V</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>, <span class="ident">visitor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">V</span>) -&gt; <span class="ident">ControlFlow</span><span class="op">&lt;</span><span class="ident">V::BreakTy</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">V</span>: <span class="ident">Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
+<span class="kw">impl </span>VisitWith <span class="kw">for </span>Try {
+    <span class="kw">fn </span>visit_with&lt;<span class="lifetime">&#39;a</span>, V&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>, visitor: <span class="kw-2">&amp;mut </span>V) -&gt; ControlFlow&lt;V::BreakTy&gt;
+    <span class="kw">where
+        </span>V: Visitor&lt;<span class="lifetime">&#39;a</span>&gt;,
     {
-        <span class="macro">try_break!</span>(<span class="ident">visitor</span>.<span class="ident">visit_block</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">block</span>));
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">catch</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">catch</span>() {
-            <span class="macro">try_break!</span>(<span class="ident">visitor</span>.<span class="ident">visit_catch</span>(<span class="ident">catch</span>));
+        <span class="macro">try_break!</span>(visitor.visit_block(<span class="kw-2">&amp;</span><span class="self">self</span>.block));
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(catch) = <span class="kw-2">&amp;</span><span class="self">self</span>.catch() {
+            <span class="macro">try_break!</span>(visitor.visit_catch(catch));
         }
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">finally</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">finally</span>() {
-            <span class="macro">try_break!</span>(<span class="ident">visitor</span>.<span class="ident">visit_finally</span>(<span class="ident">finally</span>));
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(finally) = <span class="kw-2">&amp;</span><span class="self">self</span>.finally() {
+            <span class="macro">try_break!</span>(visitor.visit_finally(finally));
         }
-        <span class="ident">ControlFlow::Continue</span>(())
+        ControlFlow::Continue(())
     }
 
-    <span class="kw">fn</span> <span class="ident">visit_with_mut</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">V</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">visitor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">V</span>) -&gt; <span class="ident">ControlFlow</span><span class="op">&lt;</span><span class="ident">V::BreakTy</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">V</span>: <span class="ident">VisitorMut</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
+    <span class="kw">fn </span>visit_with_mut&lt;<span class="lifetime">&#39;a</span>, V&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="self">self</span>, visitor: <span class="kw-2">&amp;mut </span>V) -&gt; ControlFlow&lt;V::BreakTy&gt;
+    <span class="kw">where
+        </span>V: VisitorMut&lt;<span class="lifetime">&#39;a</span>&gt;,
     {
-        <span class="macro">try_break!</span>(<span class="ident">visitor</span>.<span class="ident">visit_block_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">block</span>));
-        <span class="kw">match</span> <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">handler</span> {
-            <span class="ident">ErrorHandler::Catch</span>(<span class="ident">c</span>) =&gt; <span class="macro">try_break!</span>(<span class="ident">visitor</span>.<span class="ident">visit_catch_mut</span>(<span class="ident">c</span>)),
-            <span class="ident">ErrorHandler::Finally</span>(<span class="ident">f</span>) =&gt; <span class="macro">try_break!</span>(<span class="ident">visitor</span>.<span class="ident">visit_finally_mut</span>(<span class="ident">f</span>)),
-            <span class="ident">ErrorHandler::Full</span>(<span class="ident">c</span>, <span class="ident">f</span>) =&gt; {
-                <span class="macro">try_break!</span>(<span class="ident">visitor</span>.<span class="ident">visit_catch_mut</span>(<span class="ident">c</span>));
-                <span class="macro">try_break!</span>(<span class="ident">visitor</span>.<span class="ident">visit_finally_mut</span>(<span class="ident">f</span>));
+        <span class="macro">try_break!</span>(visitor.visit_block_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>.block));
+        <span class="kw">match </span><span class="kw-2">&amp;mut </span><span class="self">self</span>.handler {
+            ErrorHandler::Catch(c) =&gt; <span class="macro">try_break!</span>(visitor.visit_catch_mut(c)),
+            ErrorHandler::Finally(f) =&gt; <span class="macro">try_break!</span>(visitor.visit_finally_mut(f)),
+            ErrorHandler::Full(c, f) =&gt; {
+                <span class="macro">try_break!</span>(visitor.visit_catch_mut(c));
+                <span class="macro">try_break!</span>(visitor.visit_finally_mut(f));
             }
         }
-        <span class="ident">ControlFlow::Continue</span>(())
+        ControlFlow::Continue(())
     }
 }
 
-<span class="doccomment">/// Catch block.</span>
-<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>, <span class="ident">derive</span>(<span class="ident">serde::Serialize</span>, <span class="ident">serde::Deserialize</span>))]</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Catch</span> {
-    <span class="ident">parameter</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Binding</span><span class="op">&gt;</span>,
-    <span class="ident">block</span>: <span class="ident">Block</span>,
+<span class="doccomment">/// Catch block.
+</span><span class="attribute">#[cfg_attr(feature = <span class="string">&quot;serde&quot;</span>, derive(serde::Serialize, serde::Deserialize))]
+#[derive(Clone, Debug, PartialEq)]
+</span><span class="kw">pub struct </span>Catch {
+    parameter: <span class="prelude-ty">Option</span>&lt;Binding&gt;,
+    block: Block,
 }
 
-<span class="kw">impl</span> <span class="ident">Catch</span> {
-    <span class="doccomment">/// Creates a new catch block.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">parameter</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Binding</span><span class="op">&gt;</span>, <span class="ident">block</span>: <span class="ident">Block</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> { <span class="ident">parameter</span>, <span class="ident">block</span> }
+<span class="kw">impl </span>Catch {
+    <span class="doccomment">/// Creates a new catch block.
+    </span><span class="attribute">#[inline]
+    #[must_use]
+    </span><span class="kw">pub fn </span>new(parameter: <span class="prelude-ty">Option</span>&lt;Binding&gt;, block: Block) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{ parameter, block }
     }
 
-    <span class="doccomment">/// Gets the parameter of the catch block.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parameter</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Binding</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">parameter</span>.<span class="ident">as_ref</span>()
+    <span class="doccomment">/// Gets the parameter of the catch block.
+    </span><span class="attribute">#[inline]
+    #[must_use]
+    </span><span class="kw">pub fn </span>parameter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Binding&gt; {
+        <span class="self">self</span>.parameter.as_ref()
     }
 
-    <span class="doccomment">/// Retrieves the catch execution block.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">block</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">Block</span> {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">block</span>
-    }
-
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">contains_arguments</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">block</span>
-            .<span class="ident">statement_list</span>()
-            .<span class="ident">statements</span>()
-            .<span class="ident">iter</span>()
-            .<span class="ident">any</span>(<span class="ident">StatementListItem::contains_arguments</span>)
-    }
-
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">symbol</span>: <span class="ident">ContainsSymbol</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">block</span>
-            .<span class="ident">statement_list</span>()
-            .<span class="ident">statements</span>()
-            .<span class="ident">iter</span>()
-            .<span class="ident">any</span>(<span class="op">|</span><span class="ident">stmt</span><span class="op">|</span> <span class="ident">stmt</span>.<span class="ident">contains</span>(<span class="ident">symbol</span>))
+    <span class="doccomment">/// Retrieves the catch execution block.
+    </span><span class="attribute">#[inline]
+    #[must_use]
+    </span><span class="kw">pub fn </span>block(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Block {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.block
     }
 }
 
-<span class="kw">impl</span> <span class="ident">ToIndentedString</span> <span class="kw">for</span> <span class="ident">Catch</span> {
-    <span class="kw">fn</span> <span class="ident">to_indented_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;</span><span class="ident">Interner</span>, <span class="ident">indentation</span>: <span class="ident">usize</span>) -&gt; <span class="ident">String</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <span class="string">&quot; catch&quot;</span>.<span class="ident">to_owned</span>();
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">param</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">parameter</span> {
-            <span class="ident">buf</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;({})&quot;</span>, <span class="ident">param</span>.<span class="ident">to_interned_string</span>(<span class="ident">interner</span>)));
+<span class="kw">impl </span>ToIndentedString <span class="kw">for </span>Catch {
+    <span class="kw">fn </span>to_indented_string(<span class="kw-2">&amp;</span><span class="self">self</span>, interner: <span class="kw-2">&amp;</span>Interner, indentation: usize) -&gt; String {
+        <span class="kw">let </span><span class="kw-2">mut </span>buf = <span class="string">&quot; catch&quot;</span>.to_owned();
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>param) = <span class="self">self</span>.parameter {
+            buf.push_str(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;({})&quot;</span>, param.to_interned_string(interner)));
         }
-        <span class="ident">buf</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(
+        buf.push_str(<span class="kw-2">&amp;</span><span class="macro">format!</span>(
             <span class="string">&quot; {}&quot;</span>,
-            <span class="self">self</span>.<span class="ident">block</span>.<span class="ident">to_indented_string</span>(<span class="ident">interner</span>, <span class="ident">indentation</span>)
+            <span class="self">self</span>.block.to_indented_string(interner, indentation)
         ));
 
-        <span class="ident">buf</span>
+        buf
     }
 }
 
-<span class="kw">impl</span> <span class="ident">VisitWith</span> <span class="kw">for</span> <span class="ident">Catch</span> {
-    <span class="kw">fn</span> <span class="ident">visit_with</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">V</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>, <span class="ident">visitor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">V</span>) -&gt; <span class="ident">ControlFlow</span><span class="op">&lt;</span><span class="ident">V::BreakTy</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">V</span>: <span class="ident">Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
+<span class="kw">impl </span>VisitWith <span class="kw">for </span>Catch {
+    <span class="kw">fn </span>visit_with&lt;<span class="lifetime">&#39;a</span>, V&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>, visitor: <span class="kw-2">&amp;mut </span>V) -&gt; ControlFlow&lt;V::BreakTy&gt;
+    <span class="kw">where
+        </span>V: Visitor&lt;<span class="lifetime">&#39;a</span>&gt;,
     {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">binding</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">parameter</span> {
-            <span class="macro">try_break!</span>(<span class="ident">visitor</span>.<span class="ident">visit_binding</span>(<span class="ident">binding</span>));
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(binding) = <span class="kw-2">&amp;</span><span class="self">self</span>.parameter {
+            <span class="macro">try_break!</span>(visitor.visit_binding(binding));
         }
-        <span class="ident">visitor</span>.<span class="ident">visit_block</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">block</span>)
+        visitor.visit_block(<span class="kw-2">&amp;</span><span class="self">self</span>.block)
     }
 
-    <span class="kw">fn</span> <span class="ident">visit_with_mut</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">V</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">visitor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">V</span>) -&gt; <span class="ident">ControlFlow</span><span class="op">&lt;</span><span class="ident">V::BreakTy</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">V</span>: <span class="ident">VisitorMut</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
+    <span class="kw">fn </span>visit_with_mut&lt;<span class="lifetime">&#39;a</span>, V&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="self">self</span>, visitor: <span class="kw-2">&amp;mut </span>V) -&gt; ControlFlow&lt;V::BreakTy&gt;
+    <span class="kw">where
+        </span>V: VisitorMut&lt;<span class="lifetime">&#39;a</span>&gt;,
     {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">binding</span>) <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">parameter</span> {
-            <span class="macro">try_break!</span>(<span class="ident">visitor</span>.<span class="ident">visit_binding_mut</span>(<span class="ident">binding</span>));
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(binding) = <span class="kw-2">&amp;mut </span><span class="self">self</span>.parameter {
+            <span class="macro">try_break!</span>(visitor.visit_binding_mut(binding));
         }
-        <span class="ident">visitor</span>.<span class="ident">visit_block_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">block</span>)
+        visitor.visit_block_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>.block)
     }
 }
 
-<span class="doccomment">/// Finally block.</span>
-<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>, <span class="ident">derive</span>(<span class="ident">serde::Serialize</span>, <span class="ident">serde::Deserialize</span>))]</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Finally</span> {
-    <span class="ident">block</span>: <span class="ident">Block</span>,
+<span class="doccomment">/// Finally block.
+</span><span class="attribute">#[cfg_attr(feature = <span class="string">&quot;serde&quot;</span>, derive(serde::Serialize, serde::Deserialize))]
+#[derive(Clone, Debug, PartialEq)]
+</span><span class="kw">pub struct </span>Finally {
+    block: Block,
 }
 
-<span class="kw">impl</span> <span class="ident">Finally</span> {
-    <span class="doccomment">/// Gets the finally block.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">block</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">Block</span> {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">block</span>
-    }
-
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">contains_arguments</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">block</span>
-            .<span class="ident">statement_list</span>()
-            .<span class="ident">statements</span>()
-            .<span class="ident">iter</span>()
-            .<span class="ident">any</span>(<span class="ident">StatementListItem::contains_arguments</span>)
-    }
-
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">symbol</span>: <span class="ident">ContainsSymbol</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">block</span>
-            .<span class="ident">statement_list</span>()
-            .<span class="ident">statements</span>()
-            .<span class="ident">iter</span>()
-            .<span class="ident">any</span>(<span class="op">|</span><span class="ident">stmt</span><span class="op">|</span> <span class="ident">stmt</span>.<span class="ident">contains</span>(<span class="ident">symbol</span>))
+<span class="kw">impl </span>Finally {
+    <span class="doccomment">/// Gets the finally block.
+    </span><span class="attribute">#[inline]
+    #[must_use]
+    </span><span class="kw">pub fn </span>block(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Block {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.block
     }
 }
 
-<span class="kw">impl</span> <span class="ident">ToIndentedString</span> <span class="kw">for</span> <span class="ident">Finally</span> {
-    <span class="kw">fn</span> <span class="ident">to_indented_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;</span><span class="ident">Interner</span>, <span class="ident">indentation</span>: <span class="ident">usize</span>) -&gt; <span class="ident">String</span> {
+<span class="kw">impl </span>ToIndentedString <span class="kw">for </span>Finally {
+    <span class="kw">fn </span>to_indented_string(<span class="kw-2">&amp;</span><span class="self">self</span>, interner: <span class="kw-2">&amp;</span>Interner, indentation: usize) -&gt; String {
         <span class="macro">format!</span>(
             <span class="string">&quot; finally {}&quot;</span>,
-            <span class="self">self</span>.<span class="ident">block</span>.<span class="ident">to_indented_string</span>(<span class="ident">interner</span>, <span class="ident">indentation</span>)
+            <span class="self">self</span>.block.to_indented_string(interner, indentation)
         )
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Finally</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">block</span>: <span class="ident">Block</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> { <span class="ident">block</span> }
+<span class="kw">impl </span>From&lt;Block&gt; <span class="kw">for </span>Finally {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(block: Block) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{ block }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">VisitWith</span> <span class="kw">for</span> <span class="ident">Finally</span> {
-    <span class="kw">fn</span> <span class="ident">visit_with</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">V</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>, <span class="ident">visitor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">V</span>) -&gt; <span class="ident">ControlFlow</span><span class="op">&lt;</span><span class="ident">V::BreakTy</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">V</span>: <span class="ident">Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
+<span class="kw">impl </span>VisitWith <span class="kw">for </span>Finally {
+    <span class="kw">fn </span>visit_with&lt;<span class="lifetime">&#39;a</span>, V&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>, visitor: <span class="kw-2">&amp;mut </span>V) -&gt; ControlFlow&lt;V::BreakTy&gt;
+    <span class="kw">where
+        </span>V: Visitor&lt;<span class="lifetime">&#39;a</span>&gt;,
     {
-        <span class="ident">visitor</span>.<span class="ident">visit_block</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">block</span>)
+        visitor.visit_block(<span class="kw-2">&amp;</span><span class="self">self</span>.block)
     }
 
-    <span class="kw">fn</span> <span class="ident">visit_with_mut</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">V</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">visitor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">V</span>) -&gt; <span class="ident">ControlFlow</span><span class="op">&lt;</span><span class="ident">V::BreakTy</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">V</span>: <span class="ident">VisitorMut</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
+    <span class="kw">fn </span>visit_with_mut&lt;<span class="lifetime">&#39;a</span>, V&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="self">self</span>, visitor: <span class="kw-2">&amp;mut </span>V) -&gt; ControlFlow&lt;V::BreakTy&gt;
+    <span class="kw">where
+        </span>V: VisitorMut&lt;<span class="lifetime">&#39;a</span>&gt;,
     {
-        <span class="ident">visitor</span>.<span class="ident">visit_block_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">block</span>)
+        visitor.visit_block_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>.block)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="boa_ast" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0 (a55dd71d5 2022-09-19)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="boa_ast" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0 (897e37553 2022-11-02)" ></div></body></html>

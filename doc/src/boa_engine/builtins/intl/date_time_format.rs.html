@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_engine/src/builtins/intl/date_time_format.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>date_time_format.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_engine/src/builtins/intl/date_time_format.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>date_time_format.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container">
                     <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../boa_engine/index.html">
                         <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -242,247 +242,247 @@
 <span id="240">240</span>
 <span id="241">241</span>
 <span id="242">242</span>
-</pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `Intl.DateTimeFormat` object.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! `Intl.DateTimeFormat` is a built-in object that has properties and methods for date and time i18n.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! More information:</span>
-<span class="doccomment">//!  - [ECMAScript reference][spec]</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! [spec]: https://tc39.es/ecma402/#datetimeformat-objects</span>
+</pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `Intl.DateTimeFormat` object.
+//!
+//! `Intl.DateTimeFormat` is a built-in object that has properties and methods for date and time i18n.
+//!
+//! More information:
+//!  - [ECMAScript reference][spec]
+//!
+//! [spec]: https://tc39.es/ecma402/#datetimeformat-objects
 
-<span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">context::intrinsics::StandardConstructors</span>,
-    <span class="ident">error::JsNativeError</span>,
-    <span class="ident">js_string</span>,
-    <span class="ident">object</span>::{
-        <span class="ident">internal_methods::get_prototype_from_constructor</span>, <span class="ident">ConstructorBuilder</span>, <span class="ident">JsFunction</span>, <span class="ident">JsObject</span>,
-        <span class="ident">ObjectData</span>,
+</span><span class="kw">use crate</span>::{
+    context::intrinsics::StandardConstructors,
+    error::JsNativeError,
+    js_string,
+    object::{
+        internal_methods::get_prototype_from_constructor, ConstructorBuilder, JsFunction, JsObject,
+        ObjectData,
     },
-    <span class="ident">Context</span>, <span class="ident">JsResult</span>, <span class="ident">JsString</span>, <span class="ident">JsValue</span>,
+    Context, JsResult, JsString, JsValue,
 };
 
-<span class="kw">use</span> <span class="ident">boa_gc</span>::{<span class="ident">Finalize</span>, <span class="ident">Trace</span>};
-<span class="kw">use</span> <span class="ident">boa_profiler::Profiler</span>;
+<span class="kw">use </span>boa_gc::{Finalize, Trace};
+<span class="kw">use </span>boa_profiler::Profiler;
 
-<span class="doccomment">/// JavaScript `Intl.DateTimeFormat` object.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Trace</span>, <span class="ident">Finalize</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">DateTimeFormat</span> {
-    <span class="ident">initialized_date_time_format</span>: <span class="ident">bool</span>,
-    <span class="ident">locale</span>: <span class="ident">JsString</span>,
-    <span class="ident">calendar</span>: <span class="ident">JsString</span>,
-    <span class="ident">numbering_system</span>: <span class="ident">JsString</span>,
-    <span class="ident">time_zone</span>: <span class="ident">JsString</span>,
-    <span class="ident">weekday</span>: <span class="ident">JsString</span>,
-    <span class="ident">era</span>: <span class="ident">JsString</span>,
-    <span class="ident">year</span>: <span class="ident">JsString</span>,
-    <span class="ident">month</span>: <span class="ident">JsString</span>,
-    <span class="ident">day</span>: <span class="ident">JsString</span>,
-    <span class="ident">day_period</span>: <span class="ident">JsString</span>,
-    <span class="ident">hour</span>: <span class="ident">JsString</span>,
-    <span class="ident">minute</span>: <span class="ident">JsString</span>,
-    <span class="ident">second</span>: <span class="ident">JsString</span>,
-    <span class="ident">fractional_second_digits</span>: <span class="ident">JsString</span>,
-    <span class="ident">time_zone_name</span>: <span class="ident">JsString</span>,
-    <span class="ident">hour_cycle</span>: <span class="ident">JsString</span>,
-    <span class="ident">pattern</span>: <span class="ident">JsString</span>,
-    <span class="ident">bound_format</span>: <span class="ident">JsString</span>,
+<span class="doccomment">/// JavaScript `Intl.DateTimeFormat` object.
+</span><span class="attribute">#[derive(Debug, Clone, Trace, Finalize)]
+</span><span class="kw">pub struct </span>DateTimeFormat {
+    initialized_date_time_format: bool,
+    locale: JsString,
+    calendar: JsString,
+    numbering_system: JsString,
+    time_zone: JsString,
+    weekday: JsString,
+    era: JsString,
+    year: JsString,
+    month: JsString,
+    day: JsString,
+    day_period: JsString,
+    hour: JsString,
+    minute: JsString,
+    second: JsString,
+    fractional_second_digits: JsString,
+    time_zone_name: JsString,
+    hour_cycle: JsString,
+    pattern: JsString,
+    bound_format: JsString,
 }
 
-<span class="kw">impl</span> <span class="ident">DateTimeFormat</span> {
-    <span class="kw">const</span> <span class="ident">NAME</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;DateTimeFormat&quot;</span>;
+<span class="kw">impl </span>DateTimeFormat {
+    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;DateTimeFormat&quot;</span>;
 
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">init</span>(<span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsFunction</span> {
-        <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="ident"><span class="self">Self</span>::NAME</span>, <span class="string">&quot;init&quot;</span>);
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>init(context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsFunction {
+        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="self">Self</span>::NAME, <span class="string">&quot;init&quot;</span>);
 
-        <span class="ident">ConstructorBuilder::new</span>(<span class="ident">context</span>, <span class="ident"><span class="self">Self</span>::constructor</span>)
-            .<span class="ident">name</span>(<span class="ident"><span class="self">Self</span>::NAME</span>)
-            .<span class="ident">length</span>(<span class="number">0</span>)
-            .<span class="ident">build</span>()
+        ConstructorBuilder::new(context, <span class="self">Self</span>::constructor)
+            .name(<span class="self">Self</span>::NAME)
+            .length(<span class="number">0</span>)
+            .build()
     }
 }
 
-<span class="kw">impl</span> <span class="ident">DateTimeFormat</span> {
-    <span class="doccomment">/// The `Intl.DateTimeFormat` constructor is the `%DateTimeFormat%` intrinsic object and a standard built-in property of the `Intl` object.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma402/#datetimeformat-objects</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">constructor</span>(
-        <span class="ident">new_target</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
-        <span class="ident">_args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="comment">// 1. If NewTarget is undefined, let newTarget be the active function object, else let newTarget be NewTarget.</span>
-        <span class="kw">let</span> <span class="ident">prototype</span> <span class="op">=</span> <span class="ident">get_prototype_from_constructor</span>(
-            <span class="ident">new_target</span>,
-            <span class="ident">StandardConstructors::date_time_format</span>,
-            <span class="ident">context</span>,
+<span class="kw">impl </span>DateTimeFormat {
+    <span class="doccomment">/// The `Intl.DateTimeFormat` constructor is the `%DateTimeFormat%` intrinsic object and a standard built-in property of the `Intl` object.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma402/#datetimeformat-objects
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>constructor(
+        new_target: <span class="kw-2">&amp;</span>JsValue,
+        _args: <span class="kw-2">&amp;</span>[JsValue],
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="comment">// 1. If NewTarget is undefined, let newTarget be the active function object, else let newTarget be NewTarget.
+        </span><span class="kw">let </span>prototype = get_prototype_from_constructor(
+            new_target,
+            StandardConstructors::date_time_format,
+            context,
         )<span class="question-mark">?</span>;
-        <span class="comment">// 2. Let dateTimeFormat be ? OrdinaryCreateFromConstructor(newTarget, &quot;%DateTimeFormat.prototype%&quot;,</span>
-        <span class="comment">// « [[InitializedDateTimeFormat]], [[Locale]], [[Calendar]], [[NumberingSystem]], [[TimeZone]], [[Weekday]],</span>
-        <span class="comment">// [[Era]], [[Year]], [[Month]], [[Day]], [[DayPeriod]], [[Hour]], [[Minute]], [[Second]],</span>
-        <span class="comment">// [[FractionalSecondDigits]], [[TimeZoneName]], [[HourCycle]], [[Pattern]], [[BoundFormat]] »).</span>
-        <span class="kw">let</span> <span class="ident">date_time_format</span> <span class="op">=</span> <span class="ident">JsObject::from_proto_and_data</span>(
-            <span class="ident">prototype</span>,
-            <span class="ident">ObjectData::date_time_format</span>(<span class="ident">Box::new</span>(<span class="self">Self</span> {
-                <span class="ident">initialized_date_time_format</span>: <span class="bool-val">true</span>,
-                <span class="ident">locale</span>: <span class="macro">js_string!</span>(<span class="string">&quot;en-US&quot;</span>),
-                <span class="ident">calendar</span>: <span class="macro">js_string!</span>(<span class="string">&quot;gregory&quot;</span>),
-                <span class="ident">numbering_system</span>: <span class="macro">js_string!</span>(<span class="string">&quot;arab&quot;</span>),
-                <span class="ident">time_zone</span>: <span class="macro">js_string!</span>(<span class="string">&quot;UTC&quot;</span>),
-                <span class="ident">weekday</span>: <span class="macro">js_string!</span>(<span class="string">&quot;narrow&quot;</span>),
-                <span class="ident">era</span>: <span class="macro">js_string!</span>(<span class="string">&quot;narrow&quot;</span>),
-                <span class="ident">year</span>: <span class="macro">js_string!</span>(<span class="string">&quot;numeric&quot;</span>),
-                <span class="ident">month</span>: <span class="macro">js_string!</span>(<span class="string">&quot;narrow&quot;</span>),
-                <span class="ident">day</span>: <span class="macro">js_string!</span>(<span class="string">&quot;numeric&quot;</span>),
-                <span class="ident">day_period</span>: <span class="macro">js_string!</span>(<span class="string">&quot;narrow&quot;</span>),
-                <span class="ident">hour</span>: <span class="macro">js_string!</span>(<span class="string">&quot;numeric&quot;</span>),
-                <span class="ident">minute</span>: <span class="macro">js_string!</span>(<span class="string">&quot;numeric&quot;</span>),
-                <span class="ident">second</span>: <span class="macro">js_string!</span>(<span class="string">&quot;numeric&quot;</span>),
-                <span class="ident">fractional_second_digits</span>: <span class="macro">js_string!</span>(<span class="string">&quot;&quot;</span>),
-                <span class="ident">time_zone_name</span>: <span class="macro">js_string!</span>(<span class="string">&quot;&quot;</span>),
-                <span class="ident">hour_cycle</span>: <span class="macro">js_string!</span>(<span class="string">&quot;h24&quot;</span>),
-                <span class="ident">pattern</span>: <span class="macro">js_string!</span>(<span class="string">&quot;{hour}:{minute}&quot;</span>),
-                <span class="ident">bound_format</span>: <span class="macro">js_string!</span>(<span class="string">&quot;undefined&quot;</span>),
+        <span class="comment">// 2. Let dateTimeFormat be ? OrdinaryCreateFromConstructor(newTarget, &quot;%DateTimeFormat.prototype%&quot;,
+        // « [[InitializedDateTimeFormat]], [[Locale]], [[Calendar]], [[NumberingSystem]], [[TimeZone]], [[Weekday]],
+        // [[Era]], [[Year]], [[Month]], [[Day]], [[DayPeriod]], [[Hour]], [[Minute]], [[Second]],
+        // [[FractionalSecondDigits]], [[TimeZoneName]], [[HourCycle]], [[Pattern]], [[BoundFormat]] »).
+        </span><span class="kw">let </span>date_time_format = JsObject::from_proto_and_data(
+            prototype,
+            ObjectData::date_time_format(Box::new(<span class="self">Self </span>{
+                initialized_date_time_format: <span class="bool-val">true</span>,
+                locale: <span class="macro">js_string!</span>(<span class="string">&quot;en-US&quot;</span>),
+                calendar: <span class="macro">js_string!</span>(<span class="string">&quot;gregory&quot;</span>),
+                numbering_system: <span class="macro">js_string!</span>(<span class="string">&quot;arab&quot;</span>),
+                time_zone: <span class="macro">js_string!</span>(<span class="string">&quot;UTC&quot;</span>),
+                weekday: <span class="macro">js_string!</span>(<span class="string">&quot;narrow&quot;</span>),
+                era: <span class="macro">js_string!</span>(<span class="string">&quot;narrow&quot;</span>),
+                year: <span class="macro">js_string!</span>(<span class="string">&quot;numeric&quot;</span>),
+                month: <span class="macro">js_string!</span>(<span class="string">&quot;narrow&quot;</span>),
+                day: <span class="macro">js_string!</span>(<span class="string">&quot;numeric&quot;</span>),
+                day_period: <span class="macro">js_string!</span>(<span class="string">&quot;narrow&quot;</span>),
+                hour: <span class="macro">js_string!</span>(<span class="string">&quot;numeric&quot;</span>),
+                minute: <span class="macro">js_string!</span>(<span class="string">&quot;numeric&quot;</span>),
+                second: <span class="macro">js_string!</span>(<span class="string">&quot;numeric&quot;</span>),
+                fractional_second_digits: <span class="macro">js_string!</span>(<span class="string">&quot;&quot;</span>),
+                time_zone_name: <span class="macro">js_string!</span>(<span class="string">&quot;&quot;</span>),
+                hour_cycle: <span class="macro">js_string!</span>(<span class="string">&quot;h24&quot;</span>),
+                pattern: <span class="macro">js_string!</span>(<span class="string">&quot;{hour}:{minute}&quot;</span>),
+                bound_format: <span class="macro">js_string!</span>(<span class="string">&quot;undefined&quot;</span>),
             })),
         );
 
-        <span class="comment">// TODO 3. Perform ? InitializeDateTimeFormat(dateTimeFormat, locales, options).</span>
-        <span class="comment">// TODO 4. If the implementation supports the normative optional constructor mode of 4.3 Note 1, then</span>
-        <span class="comment">// TODO a. Let this be the this value.</span>
-        <span class="comment">// TODO b. Return ? ChainDateTimeFormat(dateTimeFormat, NewTarget, this).</span>
+        <span class="comment">// TODO 3. Perform ? InitializeDateTimeFormat(dateTimeFormat, locales, options).
+        // TODO 4. If the implementation supports the normative optional constructor mode of 4.3 Note 1, then
+        // TODO a. Let this be the this value.
+        // TODO b. Return ? ChainDateTimeFormat(dateTimeFormat, NewTarget, this).
 
-        <span class="comment">// 5. Return dateTimeFormat.</span>
-        <span class="prelude-val">Ok</span>(<span class="ident">date_time_format</span>.<span class="ident">into</span>())
+        // 5. Return dateTimeFormat.
+        </span><span class="prelude-val">Ok</span>(date_time_format.into())
     }
 }
 
-<span class="doccomment">/// Represents the `required` and `defaults` arguments in the abstract operation</span>
-<span class="doccomment">/// `toDateTimeOptions`.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Since `required` and `defaults` differ only in the `any` and `all` variants,</span>
-<span class="doccomment">/// we combine both in a single variant `AnyAll`.</span>
-<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused</span>)]</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum</span> <span class="ident">DateTimeReqs</span> {
-    <span class="ident">Date</span>,
-    <span class="ident">Time</span>,
-    <span class="ident">AnyAll</span>,
+<span class="doccomment">/// Represents the `required` and `defaults` arguments in the abstract operation
+/// `toDateTimeOptions`.
+///
+/// Since `required` and `defaults` differ only in the `any` and `all` variants,
+/// we combine both in a single variant `AnyAll`.
+</span><span class="attribute">#[allow(unused)]
+#[derive(Debug, PartialEq)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum </span>DateTimeReqs {
+    Date,
+    Time,
+    AnyAll,
 }
 
-<span class="doccomment">/// The abstract operation `toDateTimeOptions` is called with arguments `options`, `required` and</span>
-<span class="doccomment">/// `defaults`.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [ECMAScript reference][spec]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [spec]: https://tc39.es/ecma402/#sec-todatetimeoptions</span>
-<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">to_date_time_options</span>(
-    <span class="ident">options</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
-    <span class="ident">required</span>: <span class="kw-2">&amp;</span><span class="ident">DateTimeReqs</span>,
-    <span class="ident">defaults</span>: <span class="kw-2">&amp;</span><span class="ident">DateTimeReqs</span>,
-    <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsObject</span><span class="op">&gt;</span> {
-    <span class="comment">// 1. If options is undefined, let options be null;</span>
-    <span class="comment">// otherwise let options be ? ToObject(options).</span>
-    <span class="comment">// 2. Let options be ! OrdinaryObjectCreate(options).</span>
-    <span class="kw">let</span> <span class="ident">options</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">options</span>.<span class="ident">is_undefined</span>() {
-        <span class="prelude-val">None</span>
-    } <span class="kw">else</span> {
-        <span class="prelude-val">Some</span>(<span class="ident">options</span>.<span class="ident">to_object</span>(<span class="ident">context</span>)<span class="question-mark">?</span>)
+<span class="doccomment">/// The abstract operation `toDateTimeOptions` is called with arguments `options`, `required` and
+/// `defaults`.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma402/#sec-todatetimeoptions
+</span><span class="attribute">#[allow(unused)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>to_date_time_options(
+    options: <span class="kw-2">&amp;</span>JsValue,
+    required: <span class="kw-2">&amp;</span>DateTimeReqs,
+    defaults: <span class="kw-2">&amp;</span>DateTimeReqs,
+    context: <span class="kw-2">&amp;mut </span>Context,
+) -&gt; JsResult&lt;JsObject&gt; {
+    <span class="comment">// 1. If options is undefined, let options be null;
+    // otherwise let options be ? ToObject(options).
+    // 2. Let options be ! OrdinaryObjectCreate(options).
+    </span><span class="kw">let </span>options = <span class="kw">if </span>options.is_undefined() {
+        <span class="prelude-val">None
+    </span>} <span class="kw">else </span>{
+        <span class="prelude-val">Some</span>(options.to_object(context)<span class="question-mark">?</span>)
     };
-    <span class="kw">let</span> <span class="ident">options</span> <span class="op">=</span> <span class="ident">JsObject::from_proto_and_data</span>(<span class="ident">options</span>, <span class="ident">ObjectData::ordinary</span>());
+    <span class="kw">let </span>options = JsObject::from_proto_and_data(options, ObjectData::ordinary());
 
-    <span class="comment">// 3. Let needDefaults be true.</span>
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">need_defaults</span> <span class="op">=</span> <span class="bool-val">true</span>;
+    <span class="comment">// 3. Let needDefaults be true.
+    </span><span class="kw">let </span><span class="kw-2">mut </span>need_defaults = <span class="bool-val">true</span>;
 
-    <span class="comment">// 4. If required is &quot;date&quot; or &quot;any&quot;, then</span>
-    <span class="kw">if</span> [<span class="ident">DateTimeReqs::Date</span>, <span class="ident">DateTimeReqs::AnyAll</span>].<span class="ident">contains</span>(<span class="ident">required</span>) {
-        <span class="comment">// a. For each property name prop of « &quot;weekday&quot;, &quot;year&quot;, &quot;month&quot;, &quot;day&quot; », do</span>
-        <span class="kw">for</span> <span class="ident">property</span> <span class="kw">in</span> [<span class="string">&quot;weekday&quot;</span>, <span class="string">&quot;year&quot;</span>, <span class="string">&quot;month&quot;</span>, <span class="string">&quot;day&quot;</span>] {
-            <span class="comment">// i. Let value be ? Get(options, prop).</span>
-            <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">options</span>.<span class="ident">get</span>(<span class="ident">property</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+    <span class="comment">// 4. If required is &quot;date&quot; or &quot;any&quot;, then
+    </span><span class="kw">if </span>[DateTimeReqs::Date, DateTimeReqs::AnyAll].contains(required) {
+        <span class="comment">// a. For each property name prop of « &quot;weekday&quot;, &quot;year&quot;, &quot;month&quot;, &quot;day&quot; », do
+        </span><span class="kw">for </span>property <span class="kw">in </span>[<span class="string">&quot;weekday&quot;</span>, <span class="string">&quot;year&quot;</span>, <span class="string">&quot;month&quot;</span>, <span class="string">&quot;day&quot;</span>] {
+            <span class="comment">// i. Let value be ? Get(options, prop).
+            </span><span class="kw">let </span>value = options.get(property, context)<span class="question-mark">?</span>;
 
-            <span class="comment">// ii. If value is not undefined, let needDefaults be false.</span>
-            <span class="kw">if</span> <span class="op">!</span><span class="ident">value</span>.<span class="ident">is_undefined</span>() {
-                <span class="ident">need_defaults</span> <span class="op">=</span> <span class="bool-val">false</span>;
+            <span class="comment">// ii. If value is not undefined, let needDefaults be false.
+            </span><span class="kw">if </span>!value.is_undefined() {
+                need_defaults = <span class="bool-val">false</span>;
             }
         }
     }
 
-    <span class="comment">// 5. If required is &quot;time&quot; or &quot;any&quot;, then</span>
-    <span class="kw">if</span> [<span class="ident">DateTimeReqs::Time</span>, <span class="ident">DateTimeReqs::AnyAll</span>].<span class="ident">contains</span>(<span class="ident">required</span>) {
-        <span class="comment">// a. For each property name prop of « &quot;dayPeriod&quot;, &quot;hour&quot;, &quot;minute&quot;, &quot;second&quot;,</span>
-        <span class="comment">// &quot;fractionalSecondDigits&quot; », do</span>
-        <span class="kw">for</span> <span class="ident">property</span> <span class="kw">in</span> [
+    <span class="comment">// 5. If required is &quot;time&quot; or &quot;any&quot;, then
+    </span><span class="kw">if </span>[DateTimeReqs::Time, DateTimeReqs::AnyAll].contains(required) {
+        <span class="comment">// a. For each property name prop of « &quot;dayPeriod&quot;, &quot;hour&quot;, &quot;minute&quot;, &quot;second&quot;,
+        // &quot;fractionalSecondDigits&quot; », do
+        </span><span class="kw">for </span>property <span class="kw">in </span>[
             <span class="string">&quot;dayPeriod&quot;</span>,
             <span class="string">&quot;hour&quot;</span>,
             <span class="string">&quot;minute&quot;</span>,
             <span class="string">&quot;second&quot;</span>,
             <span class="string">&quot;fractionalSecondDigits&quot;</span>,
         ] {
-            <span class="comment">// i. Let value be ? Get(options, prop).</span>
-            <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">options</span>.<span class="ident">get</span>(<span class="ident">property</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+            <span class="comment">// i. Let value be ? Get(options, prop).
+            </span><span class="kw">let </span>value = options.get(property, context)<span class="question-mark">?</span>;
 
-            <span class="comment">// ii. If value is not undefined, let needDefaults be false.</span>
-            <span class="kw">if</span> <span class="op">!</span><span class="ident">value</span>.<span class="ident">is_undefined</span>() {
-                <span class="ident">need_defaults</span> <span class="op">=</span> <span class="bool-val">false</span>;
+            <span class="comment">// ii. If value is not undefined, let needDefaults be false.
+            </span><span class="kw">if </span>!value.is_undefined() {
+                need_defaults = <span class="bool-val">false</span>;
             }
         }
     }
 
-    <span class="comment">// 6. Let dateStyle be ? Get(options, &quot;dateStyle&quot;).</span>
-    <span class="kw">let</span> <span class="ident">date_style</span> <span class="op">=</span> <span class="ident">options</span>.<span class="ident">get</span>(<span class="string">&quot;dateStyle&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+    <span class="comment">// 6. Let dateStyle be ? Get(options, &quot;dateStyle&quot;).
+    </span><span class="kw">let </span>date_style = options.get(<span class="string">&quot;dateStyle&quot;</span>, context)<span class="question-mark">?</span>;
 
-    <span class="comment">// 7. Let timeStyle be ? Get(options, &quot;timeStyle&quot;).</span>
-    <span class="kw">let</span> <span class="ident">time_style</span> <span class="op">=</span> <span class="ident">options</span>.<span class="ident">get</span>(<span class="string">&quot;timeStyle&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+    <span class="comment">// 7. Let timeStyle be ? Get(options, &quot;timeStyle&quot;).
+    </span><span class="kw">let </span>time_style = options.get(<span class="string">&quot;timeStyle&quot;</span>, context)<span class="question-mark">?</span>;
 
-    <span class="comment">// 8. If dateStyle is not undefined or timeStyle is not undefined, let needDefaults be false.</span>
-    <span class="kw">if</span> <span class="op">!</span><span class="ident">date_style</span>.<span class="ident">is_undefined</span>() <span class="op">|</span><span class="op">|</span> <span class="op">!</span><span class="ident">time_style</span>.<span class="ident">is_undefined</span>() {
-        <span class="ident">need_defaults</span> <span class="op">=</span> <span class="bool-val">false</span>;
+    <span class="comment">// 8. If dateStyle is not undefined or timeStyle is not undefined, let needDefaults be false.
+    </span><span class="kw">if </span>!date_style.is_undefined() || !time_style.is_undefined() {
+        need_defaults = <span class="bool-val">false</span>;
     }
 
-    <span class="comment">// 9. If required is &quot;date&quot; and timeStyle is not undefined, then</span>
-    <span class="kw">if</span> <span class="ident">required</span> <span class="op">==</span> <span class="kw-2">&amp;</span><span class="ident">DateTimeReqs::Date</span> <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">time_style</span>.<span class="ident">is_undefined</span>() {
-        <span class="comment">// a. Throw a TypeError exception.</span>
-        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
-            .<span class="ident">with_message</span>(<span class="string">&quot;&#39;date&#39; is required, but timeStyle was defined&quot;</span>)
-            .<span class="ident">into</span>());
+    <span class="comment">// 9. If required is &quot;date&quot; and timeStyle is not undefined, then
+    </span><span class="kw">if </span>required == <span class="kw-2">&amp;</span>DateTimeReqs::Date &amp;&amp; !time_style.is_undefined() {
+        <span class="comment">// a. Throw a TypeError exception.
+        </span><span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
+            .with_message(<span class="string">&quot;&#39;date&#39; is required, but timeStyle was defined&quot;</span>)
+            .into());
     }
 
-    <span class="comment">// 10. If required is &quot;time&quot; and dateStyle is not undefined, then</span>
-    <span class="kw">if</span> <span class="ident">required</span> <span class="op">==</span> <span class="kw-2">&amp;</span><span class="ident">DateTimeReqs::Time</span> <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">date_style</span>.<span class="ident">is_undefined</span>() {
-        <span class="comment">// a. Throw a TypeError exception.</span>
-        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
-            .<span class="ident">with_message</span>(<span class="string">&quot;&#39;time&#39; is required, but dateStyle was defined&quot;</span>)
-            .<span class="ident">into</span>());
+    <span class="comment">// 10. If required is &quot;time&quot; and dateStyle is not undefined, then
+    </span><span class="kw">if </span>required == <span class="kw-2">&amp;</span>DateTimeReqs::Time &amp;&amp; !date_style.is_undefined() {
+        <span class="comment">// a. Throw a TypeError exception.
+        </span><span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
+            .with_message(<span class="string">&quot;&#39;time&#39; is required, but dateStyle was defined&quot;</span>)
+            .into());
     }
 
-    <span class="comment">// 11. If needDefaults is true and defaults is either &quot;date&quot; or &quot;all&quot;, then</span>
-    <span class="kw">if</span> <span class="ident">need_defaults</span> <span class="op">&amp;&amp;</span> [<span class="ident">DateTimeReqs::Date</span>, <span class="ident">DateTimeReqs::AnyAll</span>].<span class="ident">contains</span>(<span class="ident">defaults</span>) {
-        <span class="comment">// a. For each property name prop of « &quot;year&quot;, &quot;month&quot;, &quot;day&quot; », do</span>
-        <span class="kw">for</span> <span class="ident">property</span> <span class="kw">in</span> [<span class="string">&quot;year&quot;</span>, <span class="string">&quot;month&quot;</span>, <span class="string">&quot;day&quot;</span>] {
-            <span class="comment">// i. Perform ? CreateDataPropertyOrThrow(options, prop, &quot;numeric&quot;).</span>
-            <span class="ident">options</span>.<span class="ident">create_data_property_or_throw</span>(<span class="ident">property</span>, <span class="string">&quot;numeric&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+    <span class="comment">// 11. If needDefaults is true and defaults is either &quot;date&quot; or &quot;all&quot;, then
+    </span><span class="kw">if </span>need_defaults &amp;&amp; [DateTimeReqs::Date, DateTimeReqs::AnyAll].contains(defaults) {
+        <span class="comment">// a. For each property name prop of « &quot;year&quot;, &quot;month&quot;, &quot;day&quot; », do
+        </span><span class="kw">for </span>property <span class="kw">in </span>[<span class="string">&quot;year&quot;</span>, <span class="string">&quot;month&quot;</span>, <span class="string">&quot;day&quot;</span>] {
+            <span class="comment">// i. Perform ? CreateDataPropertyOrThrow(options, prop, &quot;numeric&quot;).
+            </span>options.create_data_property_or_throw(property, <span class="string">&quot;numeric&quot;</span>, context)<span class="question-mark">?</span>;
         }
     }
 
-    <span class="comment">// 12. If needDefaults is true and defaults is either &quot;time&quot; or &quot;all&quot;, then</span>
-    <span class="kw">if</span> <span class="ident">need_defaults</span> <span class="op">&amp;&amp;</span> [<span class="ident">DateTimeReqs::Time</span>, <span class="ident">DateTimeReqs::AnyAll</span>].<span class="ident">contains</span>(<span class="ident">defaults</span>) {
-        <span class="comment">// a. For each property name prop of « &quot;hour&quot;, &quot;minute&quot;, &quot;second&quot; », do</span>
-        <span class="kw">for</span> <span class="ident">property</span> <span class="kw">in</span> [<span class="string">&quot;hour&quot;</span>, <span class="string">&quot;minute&quot;</span>, <span class="string">&quot;second&quot;</span>] {
-            <span class="comment">// i. Perform ? CreateDataPropertyOrThrow(options, prop, &quot;numeric&quot;).</span>
-            <span class="ident">options</span>.<span class="ident">create_data_property_or_throw</span>(<span class="ident">property</span>, <span class="string">&quot;numeric&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+    <span class="comment">// 12. If needDefaults is true and defaults is either &quot;time&quot; or &quot;all&quot;, then
+    </span><span class="kw">if </span>need_defaults &amp;&amp; [DateTimeReqs::Time, DateTimeReqs::AnyAll].contains(defaults) {
+        <span class="comment">// a. For each property name prop of « &quot;hour&quot;, &quot;minute&quot;, &quot;second&quot; », do
+        </span><span class="kw">for </span>property <span class="kw">in </span>[<span class="string">&quot;hour&quot;</span>, <span class="string">&quot;minute&quot;</span>, <span class="string">&quot;second&quot;</span>] {
+            <span class="comment">// i. Perform ? CreateDataPropertyOrThrow(options, prop, &quot;numeric&quot;).
+            </span>options.create_data_property_or_throw(property, <span class="string">&quot;numeric&quot;</span>, context)<span class="question-mark">?</span>;
         }
     }
 
-    <span class="comment">// 13. Return options.</span>
-    <span class="prelude-val">Ok</span>(<span class="ident">options</span>)
+    <span class="comment">// 13. Return options.
+    </span><span class="prelude-val">Ok</span>(options)
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0 (a55dd71d5 2022-09-19)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0 (897e37553 2022-11-02)" ></div></body></html>

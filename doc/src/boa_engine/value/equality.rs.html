@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_engine/src/value/equality.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>equality.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../boa_engine/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../boa_engine/index.html"><div class="logo-container">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_engine/src/value/equality.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>equality.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../boa_engine/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../boa_engine/index.html"><div class="logo-container">
                     <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../boa_engine/index.html">
                         <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -200,205 +200,205 @@
 <span id="198">198</span>
 <span id="199">199</span>
 <span id="200">200</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">JsBigInt</span>, <span class="ident">JsObject</span>, <span class="ident">JsResult</span>, <span class="ident">JsValue</span>, <span class="ident">PreferredType</span>};
-<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">builtins::Number</span>, <span class="ident">Context</span>};
+</pre><pre class="rust"><code><span class="kw">use super</span>::{JsBigInt, JsObject, JsResult, JsValue, PreferredType};
+<span class="kw">use crate</span>::{builtins::Number, Context};
 
-<span class="kw">impl</span> <span class="ident">JsValue</span> {
-    <span class="doccomment">/// Strict equality comparison.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This method is executed when doing strict equality comparisons with the `===` operator.</span>
-    <span class="doccomment">/// For more information, check &lt;https://tc39.es/ecma262/#sec-strict-equality-comparison&gt;.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">strict_equals</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="comment">// 1. If Type(x) is different from Type(y), return false.</span>
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">get_type</span>() <span class="op">!</span><span class="op">=</span> <span class="ident">other</span>.<span class="ident">get_type</span>() {
-            <span class="kw">return</span> <span class="bool-val">false</span>;
+<span class="kw">impl </span>JsValue {
+    <span class="doccomment">/// Strict equality comparison.
+    ///
+    /// This method is executed when doing strict equality comparisons with the `===` operator.
+    /// For more information, check &lt;https://tc39.es/ecma262/#sec-strict-equality-comparison&gt;.
+    </span><span class="kw">pub fn </span>strict_equals(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; bool {
+        <span class="comment">// 1. If Type(x) is different from Type(y), return false.
+        </span><span class="kw">if </span><span class="self">self</span>.get_type() != other.get_type() {
+            <span class="kw">return </span><span class="bool-val">false</span>;
         }
 
-        <span class="kw">match</span> (<span class="self">self</span>, <span class="ident">other</span>) {
-            <span class="comment">// 2. If Type(x) is Number or BigInt, then</span>
-            <span class="comment">//    a. Return ! Type(x)::equal(x, y).</span>
-            (<span class="ident"><span class="self">Self</span>::BigInt</span>(<span class="ident">x</span>), <span class="ident"><span class="self">Self</span>::BigInt</span>(<span class="ident">y</span>)) =&gt; <span class="ident">JsBigInt::equal</span>(<span class="ident">x</span>, <span class="ident">y</span>),
-            (<span class="ident"><span class="self">Self</span>::Rational</span>(<span class="ident">x</span>), <span class="ident"><span class="self">Self</span>::Rational</span>(<span class="ident">y</span>)) =&gt; <span class="ident">Number::equal</span>(<span class="kw-2">*</span><span class="ident">x</span>, <span class="kw-2">*</span><span class="ident">y</span>),
-            (<span class="ident"><span class="self">Self</span>::Rational</span>(<span class="ident">x</span>), <span class="ident"><span class="self">Self</span>::Integer</span>(<span class="ident">y</span>)) =&gt; <span class="ident">Number::equal</span>(<span class="kw-2">*</span><span class="ident">x</span>, <span class="ident">f64::from</span>(<span class="kw-2">*</span><span class="ident">y</span>)),
-            (<span class="ident"><span class="self">Self</span>::Integer</span>(<span class="ident">x</span>), <span class="ident"><span class="self">Self</span>::Rational</span>(<span class="ident">y</span>)) =&gt; <span class="ident">Number::equal</span>(<span class="ident">f64::from</span>(<span class="kw-2">*</span><span class="ident">x</span>), <span class="kw-2">*</span><span class="ident">y</span>),
-            (<span class="ident"><span class="self">Self</span>::Integer</span>(<span class="ident">x</span>), <span class="ident"><span class="self">Self</span>::Integer</span>(<span class="ident">y</span>)) =&gt; <span class="ident">x</span> <span class="op">==</span> <span class="ident">y</span>,
+        <span class="kw">match </span>(<span class="self">self</span>, other) {
+            <span class="comment">// 2. If Type(x) is Number or BigInt, then
+            //    a. Return ! Type(x)::equal(x, y).
+            </span>(<span class="self">Self</span>::BigInt(x), <span class="self">Self</span>::BigInt(y)) =&gt; JsBigInt::equal(x, y),
+            (<span class="self">Self</span>::Rational(x), <span class="self">Self</span>::Rational(y)) =&gt; Number::equal(<span class="kw-2">*</span>x, <span class="kw-2">*</span>y),
+            (<span class="self">Self</span>::Rational(x), <span class="self">Self</span>::Integer(y)) =&gt; Number::equal(<span class="kw-2">*</span>x, f64::from(<span class="kw-2">*</span>y)),
+            (<span class="self">Self</span>::Integer(x), <span class="self">Self</span>::Rational(y)) =&gt; Number::equal(f64::from(<span class="kw-2">*</span>x), <span class="kw-2">*</span>y),
+            (<span class="self">Self</span>::Integer(x), <span class="self">Self</span>::Integer(y)) =&gt; x == y,
 
-            <span class="comment">//Null has to be handled specially because &quot;typeof null&quot; returns object and if we managed</span>
-            <span class="comment">//this without a special case we would compare self and other as if they were actually</span>
-            <span class="comment">//objects which unfortunately fails</span>
-            <span class="comment">//Specification Link: https://tc39.es/ecma262/#sec-typeof-operator</span>
-            (<span class="ident"><span class="self">Self</span>::Null</span>, <span class="ident"><span class="self">Self</span>::Null</span>) =&gt; <span class="bool-val">true</span>,
+            <span class="comment">//Null has to be handled specially because &quot;typeof null&quot; returns object and if we managed
+            //this without a special case we would compare self and other as if they were actually
+            //objects which unfortunately fails
+            //Specification Link: https://tc39.es/ecma262/#sec-typeof-operator
+            </span>(<span class="self">Self</span>::Null, <span class="self">Self</span>::Null) =&gt; <span class="bool-val">true</span>,
 
-            <span class="comment">// 3. Return ! SameValueNonNumeric(x, y).</span>
-            (<span class="kw">_</span>, <span class="kw">_</span>) =&gt; <span class="ident"><span class="self">Self</span>::same_value_non_numeric</span>(<span class="self">self</span>, <span class="ident">other</span>),
+            <span class="comment">// 3. Return ! SameValueNonNumeric(x, y).
+            </span>(<span class="kw">_</span>, <span class="kw">_</span>) =&gt; <span class="self">Self</span>::same_value_non_numeric(<span class="self">self</span>, other),
         }
     }
 
-    <span class="doccomment">/// Abstract equality comparison.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This method is executed when doing abstract equality comparisons with the `==` operator.</span>
-    <span class="doccomment">///  For more information, check &lt;https://tc39.es/ecma262/#sec-abstract-equality-comparison&gt;</span>
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::float_cmp</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">equals</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
-        <span class="comment">// 1. If Type(x) is the same as Type(y), then</span>
-        <span class="comment">//     a. Return the result of performing Strict Equality Comparison x === y.</span>
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">get_type</span>() <span class="op">==</span> <span class="ident">other</span>.<span class="ident">get_type</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="self">self</span>.<span class="ident">strict_equals</span>(<span class="ident">other</span>));
+    <span class="doccomment">/// Abstract equality comparison.
+    ///
+    /// This method is executed when doing abstract equality comparisons with the `==` operator.
+    ///  For more information, check &lt;https://tc39.es/ecma262/#sec-abstract-equality-comparison&gt;
+    </span><span class="attribute">#[allow(clippy::float_cmp)]
+    </span><span class="kw">pub fn </span>equals(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;bool&gt; {
+        <span class="comment">// 1. If Type(x) is the same as Type(y), then
+        //     a. Return the result of performing Strict Equality Comparison x === y.
+        </span><span class="kw">if </span><span class="self">self</span>.get_type() == other.get_type() {
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="self">self</span>.strict_equals(other));
         }
 
-        <span class="prelude-val">Ok</span>(<span class="kw">match</span> (<span class="self">self</span>, <span class="ident">other</span>) {
-            <span class="comment">// 2. If x is null and y is undefined, return true.</span>
-            <span class="comment">// 3. If x is undefined and y is null, return true.</span>
-            (<span class="ident"><span class="self">Self</span>::Null</span>, <span class="ident"><span class="self">Self</span>::Undefined</span>) <span class="op">|</span> (<span class="ident"><span class="self">Self</span>::Undefined</span>, <span class="ident"><span class="self">Self</span>::Null</span>) =&gt; <span class="bool-val">true</span>,
+        <span class="prelude-val">Ok</span>(<span class="kw">match </span>(<span class="self">self</span>, other) {
+            <span class="comment">// 2. If x is null and y is undefined, return true.
+            // 3. If x is undefined and y is null, return true.
+            </span>(<span class="self">Self</span>::Null, <span class="self">Self</span>::Undefined) | (<span class="self">Self</span>::Undefined, <span class="self">Self</span>::Null) =&gt; <span class="bool-val">true</span>,
 
-            <span class="comment">// 3. If Type(x) is Number and Type(y) is String, return the result of the comparison x == ! ToNumber(y).</span>
-            <span class="comment">// 4. If Type(x) is String and Type(y) is Number, return the result of the comparison ! ToNumber(x) == y.</span>
-            <span class="comment">//</span>
-            <span class="comment">// https://github.com/rust-lang/rust/issues/54883</span>
-            (<span class="ident"><span class="self">Self</span>::Integer</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident"><span class="self">Self</span>::Rational</span>(<span class="kw">_</span>), <span class="ident"><span class="self">Self</span>::String</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident"><span class="self">Self</span>::Boolean</span>(<span class="kw">_</span>))
-            <span class="op">|</span> (<span class="ident"><span class="self">Self</span>::String</span>(<span class="kw">_</span>), <span class="ident"><span class="self">Self</span>::Integer</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident"><span class="self">Self</span>::Rational</span>(<span class="kw">_</span>)) =&gt; {
-                <span class="kw">let</span> <span class="ident">x</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">to_number</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
-                <span class="kw">let</span> <span class="ident">y</span> <span class="op">=</span> <span class="ident">other</span>.<span class="ident">to_number</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
-                <span class="ident">Number::equal</span>(<span class="ident">x</span>, <span class="ident">y</span>)
+            <span class="comment">// 3. If Type(x) is Number and Type(y) is String, return the result of the comparison x == ! ToNumber(y).
+            // 4. If Type(x) is String and Type(y) is Number, return the result of the comparison ! ToNumber(x) == y.
+            //
+            // https://github.com/rust-lang/rust/issues/54883
+            </span>(<span class="self">Self</span>::Integer(<span class="kw">_</span>) | <span class="self">Self</span>::Rational(<span class="kw">_</span>), <span class="self">Self</span>::String(<span class="kw">_</span>) | <span class="self">Self</span>::Boolean(<span class="kw">_</span>))
+            | (<span class="self">Self</span>::String(<span class="kw">_</span>), <span class="self">Self</span>::Integer(<span class="kw">_</span>) | <span class="self">Self</span>::Rational(<span class="kw">_</span>)) =&gt; {
+                <span class="kw">let </span>x = <span class="self">self</span>.to_number(context)<span class="question-mark">?</span>;
+                <span class="kw">let </span>y = other.to_number(context)<span class="question-mark">?</span>;
+                Number::equal(x, y)
             }
 
-            <span class="comment">// 6. If Type(x) is BigInt and Type(y) is String, then</span>
-            <span class="comment">//    a. Let n be ! StringToBigInt(y).</span>
-            <span class="comment">//    b. If n is NaN, return false.</span>
-            <span class="comment">//    c. Return the result of the comparison x == n.</span>
-            (<span class="ident"><span class="self">Self</span>::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">a</span>), <span class="ident"><span class="self">Self</span>::String</span>(<span class="kw-2">ref</span> <span class="ident">b</span>)) =&gt; <span class="kw">match</span> <span class="ident">b</span>.<span class="ident">to_big_int</span>() {
-                <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">b</span>) =&gt; <span class="ident">a</span> <span class="op">==</span> <span class="ident">b</span>,
-                <span class="prelude-val">None</span> =&gt; <span class="bool-val">false</span>,
+            <span class="comment">// 6. If Type(x) is BigInt and Type(y) is String, then
+            //    a. Let n be ! StringToBigInt(y).
+            //    b. If n is NaN, return false.
+            //    c. Return the result of the comparison x == n.
+            </span>(<span class="self">Self</span>::BigInt(<span class="kw-2">ref </span>a), <span class="self">Self</span>::String(<span class="kw-2">ref </span>b)) =&gt; <span class="kw">match </span>b.to_big_int() {
+                <span class="prelude-val">Some</span>(<span class="kw-2">ref </span>b) =&gt; a == b,
+                <span class="prelude-val">None </span>=&gt; <span class="bool-val">false</span>,
             },
 
-            <span class="comment">// 7. If Type(x) is String and Type(y) is BigInt, return the result of the comparison y == x.</span>
-            (<span class="ident"><span class="self">Self</span>::String</span>(<span class="kw-2">ref</span> <span class="ident">a</span>), <span class="ident"><span class="self">Self</span>::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">b</span>)) =&gt; <span class="kw">match</span> <span class="ident">a</span>.<span class="ident">to_big_int</span>() {
-                <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">a</span>) =&gt; <span class="ident">a</span> <span class="op">==</span> <span class="ident">b</span>,
-                <span class="prelude-val">None</span> =&gt; <span class="bool-val">false</span>,
+            <span class="comment">// 7. If Type(x) is String and Type(y) is BigInt, return the result of the comparison y == x.
+            </span>(<span class="self">Self</span>::String(<span class="kw-2">ref </span>a), <span class="self">Self</span>::BigInt(<span class="kw-2">ref </span>b)) =&gt; <span class="kw">match </span>a.to_big_int() {
+                <span class="prelude-val">Some</span>(<span class="kw-2">ref </span>a) =&gt; a == b,
+                <span class="prelude-val">None </span>=&gt; <span class="bool-val">false</span>,
             },
 
-            <span class="comment">// 8. If Type(x) is Boolean, return the result of the comparison ! ToNumber(x) == y.</span>
-            (<span class="ident"><span class="self">Self</span>::Boolean</span>(<span class="ident">x</span>), <span class="kw">_</span>) =&gt; <span class="kw">return</span> <span class="ident">other</span>.<span class="ident">equals</span>(<span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">i32::from</span>(<span class="kw-2">*</span><span class="ident">x</span>)), <span class="ident">context</span>),
+            <span class="comment">// 8. If Type(x) is Boolean, return the result of the comparison ! ToNumber(x) == y.
+            </span>(<span class="self">Self</span>::Boolean(x), <span class="kw">_</span>) =&gt; <span class="kw">return </span>other.equals(<span class="kw-2">&amp;</span><span class="self">Self</span>::new(i32::from(<span class="kw-2">*</span>x)), context),
 
-            <span class="comment">// 9. If Type(y) is Boolean, return the result of the comparison x == ! ToNumber(y).</span>
-            (<span class="kw">_</span>, <span class="ident"><span class="self">Self</span>::Boolean</span>(<span class="ident">y</span>)) =&gt; <span class="kw">return</span> <span class="self">self</span>.<span class="ident">equals</span>(<span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">i32::from</span>(<span class="kw-2">*</span><span class="ident">y</span>)), <span class="ident">context</span>),
+            <span class="comment">// 9. If Type(y) is Boolean, return the result of the comparison x == ! ToNumber(y).
+            </span>(<span class="kw">_</span>, <span class="self">Self</span>::Boolean(y)) =&gt; <span class="kw">return </span><span class="self">self</span>.equals(<span class="kw-2">&amp;</span><span class="self">Self</span>::new(i32::from(<span class="kw-2">*</span>y)), context),
 
-            <span class="comment">// 10. If Type(x) is either String, Number, BigInt, or Symbol and Type(y) is Object, return the result</span>
-            <span class="comment">// of the comparison x == ? ToPrimitive(y).</span>
-            (
-                <span class="ident"><span class="self">Self</span>::Object</span>(<span class="kw">_</span>),
-                <span class="ident"><span class="self">Self</span>::String</span>(<span class="kw">_</span>)
-                <span class="op">|</span> <span class="ident"><span class="self">Self</span>::Rational</span>(<span class="kw">_</span>)
-                <span class="op">|</span> <span class="ident"><span class="self">Self</span>::Integer</span>(<span class="kw">_</span>)
-                <span class="op">|</span> <span class="ident"><span class="self">Self</span>::BigInt</span>(<span class="kw">_</span>)
-                <span class="op">|</span> <span class="ident"><span class="self">Self</span>::Symbol</span>(<span class="kw">_</span>),
+            <span class="comment">// 10. If Type(x) is either String, Number, BigInt, or Symbol and Type(y) is Object, return the result
+            // of the comparison x == ? ToPrimitive(y).
+            </span>(
+                <span class="self">Self</span>::Object(<span class="kw">_</span>),
+                <span class="self">Self</span>::String(<span class="kw">_</span>)
+                | <span class="self">Self</span>::Rational(<span class="kw">_</span>)
+                | <span class="self">Self</span>::Integer(<span class="kw">_</span>)
+                | <span class="self">Self</span>::BigInt(<span class="kw">_</span>)
+                | <span class="self">Self</span>::Symbol(<span class="kw">_</span>),
             ) =&gt; {
-                <span class="kw">let</span> <span class="ident">primitive</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">to_primitive</span>(<span class="ident">context</span>, <span class="ident">PreferredType::Default</span>)<span class="question-mark">?</span>;
-                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">primitive</span>
-                    .<span class="ident">equals</span>(<span class="ident">other</span>, <span class="ident">context</span>)
-                    .<span class="ident">expect</span>(<span class="string">&quot;should not fail according to spec&quot;</span>));
+                <span class="kw">let </span>primitive = <span class="self">self</span>.to_primitive(context, PreferredType::Default)<span class="question-mark">?</span>;
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(primitive
+                    .equals(other, context)
+                    .expect(<span class="string">&quot;should not fail according to spec&quot;</span>));
             }
 
-            <span class="comment">// 11. If Type(x) is Object and Type(y) is either String, Number, BigInt, or Symbol, return the result</span>
-            <span class="comment">// of the comparison ? ToPrimitive(x) == y.</span>
-            (
-                <span class="ident"><span class="self">Self</span>::String</span>(<span class="kw">_</span>)
-                <span class="op">|</span> <span class="ident"><span class="self">Self</span>::Rational</span>(<span class="kw">_</span>)
-                <span class="op">|</span> <span class="ident"><span class="self">Self</span>::Integer</span>(<span class="kw">_</span>)
-                <span class="op">|</span> <span class="ident"><span class="self">Self</span>::BigInt</span>(<span class="kw">_</span>)
-                <span class="op">|</span> <span class="ident"><span class="self">Self</span>::Symbol</span>(<span class="kw">_</span>),
-                <span class="ident"><span class="self">Self</span>::Object</span>(<span class="kw">_</span>),
+            <span class="comment">// 11. If Type(x) is Object and Type(y) is either String, Number, BigInt, or Symbol, return the result
+            // of the comparison ? ToPrimitive(x) == y.
+            </span>(
+                <span class="self">Self</span>::String(<span class="kw">_</span>)
+                | <span class="self">Self</span>::Rational(<span class="kw">_</span>)
+                | <span class="self">Self</span>::Integer(<span class="kw">_</span>)
+                | <span class="self">Self</span>::BigInt(<span class="kw">_</span>)
+                | <span class="self">Self</span>::Symbol(<span class="kw">_</span>),
+                <span class="self">Self</span>::Object(<span class="kw">_</span>),
             ) =&gt; {
-                <span class="kw">let</span> <span class="ident">primitive</span> <span class="op">=</span> <span class="ident">other</span>.<span class="ident">to_primitive</span>(<span class="ident">context</span>, <span class="ident">PreferredType::Default</span>)<span class="question-mark">?</span>;
-                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">primitive</span>
-                    .<span class="ident">equals</span>(<span class="self">self</span>, <span class="ident">context</span>)
-                    .<span class="ident">expect</span>(<span class="string">&quot;should not fail according to spec&quot;</span>));
+                <span class="kw">let </span>primitive = other.to_primitive(context, PreferredType::Default)<span class="question-mark">?</span>;
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(primitive
+                    .equals(<span class="self">self</span>, context)
+                    .expect(<span class="string">&quot;should not fail according to spec&quot;</span>));
             }
 
-            <span class="comment">// 12. If Type(x) is BigInt and Type(y) is Number, or if Type(x) is Number and Type(y) is BigInt, then</span>
-            <span class="comment">//    a. If x or y are any of NaN, +∞, or -∞, return false.</span>
-            <span class="comment">//    b. If the mathematical value of x is equal to the mathematical value of y, return true; otherwise return false.</span>
-            (<span class="ident"><span class="self">Self</span>::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">a</span>), <span class="ident"><span class="self">Self</span>::Rational</span>(<span class="kw-2">ref</span> <span class="ident">b</span>)) =&gt; <span class="ident">a</span> <span class="op">==</span> <span class="ident">b</span>,
-            (<span class="ident"><span class="self">Self</span>::Rational</span>(<span class="kw-2">ref</span> <span class="ident">a</span>), <span class="ident"><span class="self">Self</span>::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">b</span>)) =&gt; <span class="ident">a</span> <span class="op">==</span> <span class="ident">b</span>,
-            (<span class="ident"><span class="self">Self</span>::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">a</span>), <span class="ident"><span class="self">Self</span>::Integer</span>(<span class="kw-2">ref</span> <span class="ident">b</span>)) =&gt; <span class="ident">a</span> <span class="op">==</span> <span class="ident">b</span>,
-            (<span class="ident"><span class="self">Self</span>::Integer</span>(<span class="kw-2">ref</span> <span class="ident">a</span>), <span class="ident"><span class="self">Self</span>::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">b</span>)) =&gt; <span class="ident">a</span> <span class="op">==</span> <span class="ident">b</span>,
+            <span class="comment">// 12. If Type(x) is BigInt and Type(y) is Number, or if Type(x) is Number and Type(y) is BigInt, then
+            //    a. If x or y are any of NaN, +∞, or -∞, return false.
+            //    b. If the mathematical value of x is equal to the mathematical value of y, return true; otherwise return false.
+            </span>(<span class="self">Self</span>::BigInt(<span class="kw-2">ref </span>a), <span class="self">Self</span>::Rational(<span class="kw-2">ref </span>b)) =&gt; a == b,
+            (<span class="self">Self</span>::Rational(<span class="kw-2">ref </span>a), <span class="self">Self</span>::BigInt(<span class="kw-2">ref </span>b)) =&gt; a == b,
+            (<span class="self">Self</span>::BigInt(<span class="kw-2">ref </span>a), <span class="self">Self</span>::Integer(<span class="kw-2">ref </span>b)) =&gt; a == b,
+            (<span class="self">Self</span>::Integer(<span class="kw-2">ref </span>a), <span class="self">Self</span>::BigInt(<span class="kw-2">ref </span>b)) =&gt; a == b,
 
-            <span class="comment">// 13. Return false.</span>
-            <span class="kw">_</span> =&gt; <span class="bool-val">false</span>,
+            <span class="comment">// 13. Return false.
+            </span><span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
         })
     }
 
-    <span class="doccomment">/// The internal comparison abstract operation SameValue(x, y),</span>
-    <span class="doccomment">/// where x and y are ECMAScript language values, produces true or false.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-samevalue</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">same_value</span>(<span class="ident">x</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>, <span class="ident">y</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="comment">// 1. If Type(x) is different from Type(y), return false.</span>
-        <span class="kw">if</span> <span class="ident">x</span>.<span class="ident">get_type</span>() <span class="op">!</span><span class="op">=</span> <span class="ident">y</span>.<span class="ident">get_type</span>() {
-            <span class="kw">return</span> <span class="bool-val">false</span>;
+    <span class="doccomment">/// The internal comparison abstract operation SameValue(x, y),
+    /// where x and y are ECMAScript language values, produces true or false.
+    ///
+    /// More information:
+    ///  - [ECMAScript][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-samevalue
+    </span><span class="kw">pub fn </span>same_value(x: <span class="kw-2">&amp;</span><span class="self">Self</span>, y: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; bool {
+        <span class="comment">// 1. If Type(x) is different from Type(y), return false.
+        </span><span class="kw">if </span>x.get_type() != y.get_type() {
+            <span class="kw">return </span><span class="bool-val">false</span>;
         }
 
-        <span class="kw">match</span> (<span class="ident">x</span>, <span class="ident">y</span>) {
-            <span class="comment">// 2. If Type(x) is Number or BigInt, then</span>
-            <span class="comment">//    a. Return ! Type(x)::SameValue(x, y).</span>
-            (<span class="ident"><span class="self">Self</span>::BigInt</span>(<span class="ident">x</span>), <span class="ident"><span class="self">Self</span>::BigInt</span>(<span class="ident">y</span>)) =&gt; <span class="ident">JsBigInt::same_value</span>(<span class="ident">x</span>, <span class="ident">y</span>),
-            (<span class="ident"><span class="self">Self</span>::Rational</span>(<span class="ident">x</span>), <span class="ident"><span class="self">Self</span>::Rational</span>(<span class="ident">y</span>)) =&gt; <span class="ident">Number::same_value</span>(<span class="kw-2">*</span><span class="ident">x</span>, <span class="kw-2">*</span><span class="ident">y</span>),
-            (<span class="ident"><span class="self">Self</span>::Rational</span>(<span class="ident">x</span>), <span class="ident"><span class="self">Self</span>::Integer</span>(<span class="ident">y</span>)) =&gt; <span class="ident">Number::same_value</span>(<span class="kw-2">*</span><span class="ident">x</span>, <span class="ident">f64::from</span>(<span class="kw-2">*</span><span class="ident">y</span>)),
-            (<span class="ident"><span class="self">Self</span>::Integer</span>(<span class="ident">x</span>), <span class="ident"><span class="self">Self</span>::Rational</span>(<span class="ident">y</span>)) =&gt; <span class="ident">Number::same_value</span>(<span class="ident">f64::from</span>(<span class="kw-2">*</span><span class="ident">x</span>), <span class="kw-2">*</span><span class="ident">y</span>),
-            (<span class="ident"><span class="self">Self</span>::Integer</span>(<span class="ident">x</span>), <span class="ident"><span class="self">Self</span>::Integer</span>(<span class="ident">y</span>)) =&gt; <span class="ident">x</span> <span class="op">==</span> <span class="ident">y</span>,
+        <span class="kw">match </span>(x, y) {
+            <span class="comment">// 2. If Type(x) is Number or BigInt, then
+            //    a. Return ! Type(x)::SameValue(x, y).
+            </span>(<span class="self">Self</span>::BigInt(x), <span class="self">Self</span>::BigInt(y)) =&gt; JsBigInt::same_value(x, y),
+            (<span class="self">Self</span>::Rational(x), <span class="self">Self</span>::Rational(y)) =&gt; Number::same_value(<span class="kw-2">*</span>x, <span class="kw-2">*</span>y),
+            (<span class="self">Self</span>::Rational(x), <span class="self">Self</span>::Integer(y)) =&gt; Number::same_value(<span class="kw-2">*</span>x, f64::from(<span class="kw-2">*</span>y)),
+            (<span class="self">Self</span>::Integer(x), <span class="self">Self</span>::Rational(y)) =&gt; Number::same_value(f64::from(<span class="kw-2">*</span>x), <span class="kw-2">*</span>y),
+            (<span class="self">Self</span>::Integer(x), <span class="self">Self</span>::Integer(y)) =&gt; x == y,
 
-            <span class="comment">// 3. Return ! SameValueNonNumeric(x, y).</span>
-            (<span class="kw">_</span>, <span class="kw">_</span>) =&gt; <span class="ident"><span class="self">Self</span>::same_value_non_numeric</span>(<span class="ident">x</span>, <span class="ident">y</span>),
-        }
-    }
-
-    <span class="doccomment">/// The internal comparison abstract operation `SameValueZero(x, y)`,</span>
-    <span class="doccomment">/// where `x` and `y` are ECMAScript language values, produces `true` or `false`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// `SameValueZero` differs from `SameValue` only in its treatment of `+0` and `-0`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-samevaluezero</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">same_value_zero</span>(<span class="ident">x</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>, <span class="ident">y</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="kw">if</span> <span class="ident">x</span>.<span class="ident">get_type</span>() <span class="op">!</span><span class="op">=</span> <span class="ident">y</span>.<span class="ident">get_type</span>() {
-            <span class="kw">return</span> <span class="bool-val">false</span>;
-        }
-
-        <span class="kw">match</span> (<span class="ident">x</span>, <span class="ident">y</span>) {
-            <span class="comment">// 2. If Type(x) is Number or BigInt, then</span>
-            <span class="comment">//    a. Return ! Type(x)::SameValueZero(x, y).</span>
-            (<span class="ident">JsValue::BigInt</span>(<span class="ident">x</span>), <span class="ident">JsValue::BigInt</span>(<span class="ident">y</span>)) =&gt; <span class="ident">JsBigInt::same_value_zero</span>(<span class="ident">x</span>, <span class="ident">y</span>),
-
-            (<span class="ident">JsValue::Rational</span>(<span class="ident">x</span>), <span class="ident">JsValue::Rational</span>(<span class="ident">y</span>)) =&gt; <span class="ident">Number::same_value_zero</span>(<span class="kw-2">*</span><span class="ident">x</span>, <span class="kw-2">*</span><span class="ident">y</span>),
-            (<span class="ident">JsValue::Rational</span>(<span class="ident">x</span>), <span class="ident">JsValue::Integer</span>(<span class="ident">y</span>)) =&gt; {
-                <span class="ident">Number::same_value_zero</span>(<span class="kw-2">*</span><span class="ident">x</span>, <span class="ident">f64::from</span>(<span class="kw-2">*</span><span class="ident">y</span>))
-            }
-            (<span class="ident">JsValue::Integer</span>(<span class="ident">x</span>), <span class="ident">JsValue::Rational</span>(<span class="ident">y</span>)) =&gt; {
-                <span class="ident">Number::same_value_zero</span>(<span class="ident">f64::from</span>(<span class="kw-2">*</span><span class="ident">x</span>), <span class="kw-2">*</span><span class="ident">y</span>)
-            }
-            (<span class="ident">JsValue::Integer</span>(<span class="ident">x</span>), <span class="ident">JsValue::Integer</span>(<span class="ident">y</span>)) =&gt; <span class="ident">x</span> <span class="op">==</span> <span class="ident">y</span>,
-
-            <span class="comment">// 3. Return ! SameValueNonNumeric(x, y).</span>
-            (<span class="kw">_</span>, <span class="kw">_</span>) =&gt; <span class="ident"><span class="self">Self</span>::same_value_non_numeric</span>(<span class="ident">x</span>, <span class="ident">y</span>),
+            <span class="comment">// 3. Return ! SameValueNonNumeric(x, y).
+            </span>(<span class="kw">_</span>, <span class="kw">_</span>) =&gt; <span class="self">Self</span>::same_value_non_numeric(x, y),
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">same_value_non_numeric</span>(<span class="ident">x</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>, <span class="ident">y</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="macro">debug_assert!</span>(<span class="ident">x</span>.<span class="ident">get_type</span>() <span class="op">==</span> <span class="ident">y</span>.<span class="ident">get_type</span>());
-        <span class="kw">match</span> (<span class="ident">x</span>, <span class="ident">y</span>) {
-            (<span class="ident"><span class="self">Self</span>::Null</span>, <span class="ident"><span class="self">Self</span>::Null</span>) <span class="op">|</span> (<span class="ident"><span class="self">Self</span>::Undefined</span>, <span class="ident"><span class="self">Self</span>::Undefined</span>) =&gt; <span class="bool-val">true</span>,
-            (<span class="ident"><span class="self">Self</span>::String</span>(<span class="kw-2">ref</span> <span class="ident">x</span>), <span class="ident"><span class="self">Self</span>::String</span>(<span class="kw-2">ref</span> <span class="ident">y</span>)) =&gt; <span class="ident">x</span> <span class="op">==</span> <span class="ident">y</span>,
-            (<span class="ident"><span class="self">Self</span>::Boolean</span>(<span class="ident">x</span>), <span class="ident"><span class="self">Self</span>::Boolean</span>(<span class="ident">y</span>)) =&gt; <span class="ident">x</span> <span class="op">==</span> <span class="ident">y</span>,
-            (<span class="ident"><span class="self">Self</span>::Object</span>(<span class="kw-2">ref</span> <span class="ident">x</span>), <span class="ident"><span class="self">Self</span>::Object</span>(<span class="kw-2">ref</span> <span class="ident">y</span>)) =&gt; <span class="ident">JsObject::equals</span>(<span class="ident">x</span>, <span class="ident">y</span>),
-            (<span class="ident"><span class="self">Self</span>::Symbol</span>(<span class="kw-2">ref</span> <span class="ident">x</span>), <span class="ident"><span class="self">Self</span>::Symbol</span>(<span class="kw-2">ref</span> <span class="ident">y</span>)) =&gt; <span class="ident">x</span> <span class="op">==</span> <span class="ident">y</span>,
-            <span class="kw">_</span> =&gt; <span class="bool-val">false</span>,
+    <span class="doccomment">/// The internal comparison abstract operation `SameValueZero(x, y)`,
+    /// where `x` and `y` are ECMAScript language values, produces `true` or `false`.
+    ///
+    /// `SameValueZero` differs from `SameValue` only in its treatment of `+0` and `-0`.
+    ///
+    /// More information:
+    ///  - [ECMAScript][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-samevaluezero
+    </span><span class="kw">pub fn </span>same_value_zero(x: <span class="kw-2">&amp;</span><span class="self">Self</span>, y: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; bool {
+        <span class="kw">if </span>x.get_type() != y.get_type() {
+            <span class="kw">return </span><span class="bool-val">false</span>;
+        }
+
+        <span class="kw">match </span>(x, y) {
+            <span class="comment">// 2. If Type(x) is Number or BigInt, then
+            //    a. Return ! Type(x)::SameValueZero(x, y).
+            </span>(JsValue::BigInt(x), JsValue::BigInt(y)) =&gt; JsBigInt::same_value_zero(x, y),
+
+            (JsValue::Rational(x), JsValue::Rational(y)) =&gt; Number::same_value_zero(<span class="kw-2">*</span>x, <span class="kw-2">*</span>y),
+            (JsValue::Rational(x), JsValue::Integer(y)) =&gt; {
+                Number::same_value_zero(<span class="kw-2">*</span>x, f64::from(<span class="kw-2">*</span>y))
+            }
+            (JsValue::Integer(x), JsValue::Rational(y)) =&gt; {
+                Number::same_value_zero(f64::from(<span class="kw-2">*</span>x), <span class="kw-2">*</span>y)
+            }
+            (JsValue::Integer(x), JsValue::Integer(y)) =&gt; x == y,
+
+            <span class="comment">// 3. Return ! SameValueNonNumeric(x, y).
+            </span>(<span class="kw">_</span>, <span class="kw">_</span>) =&gt; <span class="self">Self</span>::same_value_non_numeric(x, y),
+        }
+    }
+
+    <span class="kw">fn </span>same_value_non_numeric(x: <span class="kw-2">&amp;</span><span class="self">Self</span>, y: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; bool {
+        <span class="macro">debug_assert!</span>(x.get_type() == y.get_type());
+        <span class="kw">match </span>(x, y) {
+            (<span class="self">Self</span>::Null, <span class="self">Self</span>::Null) | (<span class="self">Self</span>::Undefined, <span class="self">Self</span>::Undefined) =&gt; <span class="bool-val">true</span>,
+            (<span class="self">Self</span>::String(<span class="kw-2">ref </span>x), <span class="self">Self</span>::String(<span class="kw-2">ref </span>y)) =&gt; x == y,
+            (<span class="self">Self</span>::Boolean(x), <span class="self">Self</span>::Boolean(y)) =&gt; x == y,
+            (<span class="self">Self</span>::Object(<span class="kw-2">ref </span>x), <span class="self">Self</span>::Object(<span class="kw-2">ref </span>y)) =&gt; JsObject::equals(x, y),
+            (<span class="self">Self</span>::Symbol(<span class="kw-2">ref </span>x), <span class="self">Self</span>::Symbol(<span class="kw-2">ref </span>y)) =&gt; x == y,
+            <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0 (a55dd71d5 2022-09-19)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0 (897e37553 2022-11-02)" ></div></body></html>

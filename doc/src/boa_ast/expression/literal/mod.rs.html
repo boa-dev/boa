@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_ast/src/expression/literal/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../boa_ast/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../boa_ast/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../boa_ast/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_ast/src/expression/literal/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../boa_ast/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../boa_ast/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../boa_ast/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -210,217 +210,217 @@
 <span id="210">210</span>
 <span id="211">211</span>
 <span id="212">212</span>
-</pre><pre class="rust"><code><span class="doccomment">//! This module contains all literal expressions, which represents the primitive values in JavaScript.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! More information:</span>
-<span class="doccomment">//!  - [ECMAScript reference][spec]</span>
-<span class="doccomment">//!  - [MDN documentation][mdn]</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! [spec]: https://tc39.es/ecma262/#sec-primary-expression-literals</span>
-<span class="doccomment">//! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Grammar_and_types#Literals</span>
+</pre><pre class="rust"><code><span class="doccomment">//! This module contains all literal expressions, which represents the primitive values in JavaScript.
+//!
+//! More information:
+//!  - [ECMAScript reference][spec]
+//!  - [MDN documentation][mdn]
+//!
+//! [spec]: https://tc39.es/ecma262/#sec-primary-expression-literals
+//! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Grammar_and_types#Literals
 
-<span class="kw">mod</span> <span class="ident">array</span>;
-<span class="kw">mod</span> <span class="ident">object</span>;
-<span class="kw">mod</span> <span class="ident">template</span>;
+</span><span class="kw">mod </span>array;
+<span class="kw">mod </span>object;
+<span class="kw">mod </span>template;
 
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">array::ArrayLiteral</span>;
-<span class="kw">use</span> <span class="ident">core::ops::ControlFlow</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">object::ObjectLiteral</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">template</span>::{<span class="ident">TemplateElement</span>, <span class="ident">TemplateLiteral</span>};
+<span class="kw">pub use </span>array::ArrayLiteral;
+<span class="kw">use </span>core::ops::ControlFlow;
+<span class="kw">pub use </span>object::ObjectLiteral;
+<span class="kw">pub use </span>template::{TemplateElement, TemplateLiteral};
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::visitor</span>::{<span class="ident">VisitWith</span>, <span class="ident">Visitor</span>, <span class="ident">VisitorMut</span>};
-<span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">Sym</span>, <span class="ident">ToInternedString</span>};
-<span class="kw">use</span> <span class="ident">num_bigint::BigInt</span>;
+<span class="kw">use </span><span class="kw">crate</span>::visitor::{VisitWith, Visitor, VisitorMut};
+<span class="kw">use </span>boa_interner::{Interner, Sym, ToInternedString};
+<span class="kw">use </span>num_bigint::BigInt;
 
-<span class="kw">use</span> <span class="ident"><span class="kw">super</span>::Expression</span>;
+<span class="kw">use </span><span class="kw">super</span>::Expression;
 
-<span class="doccomment">/// Literals represent values in JavaScript.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// These are fixed values **not variables** that you literally provide in your script.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [ECMAScript reference][spec]</span>
-<span class="doccomment">///  - [MDN documentation][mdn]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-primary-expression-literals</span>
-<span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Grammar_and_types#Literals</span>
-<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>, <span class="ident">derive</span>(<span class="ident">serde::Serialize</span>, <span class="ident">serde::Deserialize</span>))]</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Literal</span> {
-    <span class="doccomment">/// A string literal is zero or more characters enclosed in double (`&quot;`) or single (`&#39;`) quotation marks.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// A string must be delimited by quotation marks of the same type (that is, either both single quotation marks, or both double quotation marks).</span>
-    <span class="doccomment">/// You can call any of the String object&#39;s methods on a string literal value.</span>
-    <span class="doccomment">/// JavaScript automatically converts the string literal to a temporary String object,</span>
-    <span class="doccomment">/// calls the method, then discards the temporary String object.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-terms-and-definitions-string-value</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Grammar_and_types#String_literals</span>
-    <span class="ident">String</span>(<span class="ident">Sym</span>),
+<span class="doccomment">/// Literals represent values in JavaScript.
+///
+/// These are fixed values **not variables** that you literally provide in your script.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///  - [MDN documentation][mdn]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-primary-expression-literals
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Grammar_and_types#Literals
+</span><span class="attribute">#[cfg_attr(feature = <span class="string">&quot;serde&quot;</span>, derive(serde::Serialize, serde::Deserialize))]
+#[derive(Clone, Debug, PartialEq)]
+</span><span class="kw">pub enum </span>Literal {
+    <span class="doccomment">/// A string literal is zero or more characters enclosed in double (`&quot;`) or single (`&#39;`) quotation marks.
+    ///
+    /// A string must be delimited by quotation marks of the same type (that is, either both single quotation marks, or both double quotation marks).
+    /// You can call any of the String object&#39;s methods on a string literal value.
+    /// JavaScript automatically converts the string literal to a temporary String object,
+    /// calls the method, then discards the temporary String object.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-terms-and-definitions-string-value
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Grammar_and_types#String_literals
+    </span>String(Sym),
 
-    <span class="doccomment">/// A floating-point number literal.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The exponent part is an &quot;`e`&quot; or &quot;`E`&quot; followed by an integer, which can be signed (preceded by &quot;`+`&quot; or &quot;`-`&quot;).</span>
-    <span class="doccomment">/// A floating-point literal must have at least one digit, and either a decimal point or &quot;`e`&quot; (or &quot;`E`&quot;).</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-terms-and-definitions-number-value</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Grammar_and_types#Floating-point_literals</span>
-    <span class="ident">Num</span>(<span class="ident">f64</span>),
+    <span class="doccomment">/// A floating-point number literal.
+    ///
+    /// The exponent part is an &quot;`e`&quot; or &quot;`E`&quot; followed by an integer, which can be signed (preceded by &quot;`+`&quot; or &quot;`-`&quot;).
+    /// A floating-point literal must have at least one digit, and either a decimal point or &quot;`e`&quot; (or &quot;`E`&quot;).
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-terms-and-definitions-number-value
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Grammar_and_types#Floating-point_literals
+    </span>Num(f64),
 
-    <span class="doccomment">/// Integer types can be expressed in decimal (base 10), hexadecimal (base 16), octal (base 8) and binary (base 2).</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-terms-and-definitions-number-value</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Grammar_and_types#Numeric_literals</span>
-    <span class="ident">Int</span>(<span class="ident">i32</span>),
+    <span class="doccomment">/// Integer types can be expressed in decimal (base 10), hexadecimal (base 16), octal (base 8) and binary (base 2).
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-terms-and-definitions-number-value
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Grammar_and_types#Numeric_literals
+    </span>Int(i32),
 
-    <span class="doccomment">/// BigInt provides a way to represent whole numbers larger than the largest number JavaScript</span>
-    <span class="doccomment">/// can reliably represent with the `Number` primitive.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-terms-and-definitions-bigint-value</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Grammar_and_types#Numeric_literals</span>
-    <span class="ident">BigInt</span>(<span class="ident">Box</span><span class="op">&lt;</span><span class="ident">BigInt</span><span class="op">&gt;</span>),
+    <span class="doccomment">/// BigInt provides a way to represent whole numbers larger than the largest number JavaScript
+    /// can reliably represent with the `Number` primitive.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-terms-and-definitions-bigint-value
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Grammar_and_types#Numeric_literals
+    </span>BigInt(Box&lt;BigInt&gt;),
 
-    <span class="doccomment">/// The Boolean type has two literal values: `true` and `false`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The Boolean object is a wrapper around the primitive Boolean data type.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-terms-and-definitions-boolean-value</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Grammar_and_types#Boolean_literals</span>
-    <span class="ident">Bool</span>(<span class="ident">bool</span>),
+    <span class="doccomment">/// The Boolean type has two literal values: `true` and `false`.
+    ///
+    /// The Boolean object is a wrapper around the primitive Boolean data type.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-terms-and-definitions-boolean-value
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Grammar_and_types#Boolean_literals
+    </span>Bool(bool),
 
-    <span class="doccomment">/// In JavaScript, `null` is marked as one of the primitive values, cause it&#39;s behaviour is seemingly primitive.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// In computer science, a null value represents a reference that points,</span>
-    <span class="doccomment">/// generally intentionally, to a nonexistent or invalid object or address.</span>
-    <span class="doccomment">/// The meaning of a null reference varies among language implementations.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-null-value</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Glossary/null</span>
-    <span class="ident">Null</span>,
+    <span class="doccomment">/// In JavaScript, `null` is marked as one of the primitive values, cause it&#39;s behaviour is seemingly primitive.
+    ///
+    /// In computer science, a null value represents a reference that points,
+    /// generally intentionally, to a nonexistent or invalid object or address.
+    /// The meaning of a null reference varies among language implementations.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-null-value
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Glossary/null
+    </span>Null,
 
-    <span class="doccomment">/// The `undefined` is a primitive value automatically assigned to variables that have just been declared, or to formal arguments for which there are no actual arguments.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-undefined</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Glossary/undefined</span>
-    <span class="ident">Undefined</span>,
+    <span class="doccomment">/// The `undefined` is a primitive value automatically assigned to variables that have just been declared, or to formal arguments for which there are no actual arguments.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-undefined
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Glossary/undefined
+    </span>Undefined,
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Sym</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Literal</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">string</span>: <span class="ident">Sym</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::String</span>(<span class="ident">string</span>)
+<span class="kw">impl </span>From&lt;Sym&gt; <span class="kw">for </span>Literal {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(string: Sym) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::String(string)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Literal</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">num</span>: <span class="ident">f64</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::Num</span>(<span class="ident">num</span>)
+<span class="kw">impl </span>From&lt;f64&gt; <span class="kw">for </span>Literal {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(num: f64) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::Num(num)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Literal</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">i</span>: <span class="ident">i32</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::Int</span>(<span class="ident">i</span>)
+<span class="kw">impl </span>From&lt;i32&gt; <span class="kw">for </span>Literal {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(i: i32) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::Int(i)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">BigInt</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Literal</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">i</span>: <span class="ident">BigInt</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::BigInt</span>(<span class="ident">Box::new</span>(<span class="ident">i</span>))
+<span class="kw">impl </span>From&lt;BigInt&gt; <span class="kw">for </span>Literal {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(i: BigInt) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::BigInt(Box::new(i))
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">BigInt</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Literal</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">i</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">BigInt</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::BigInt</span>(<span class="ident">i</span>)
+<span class="kw">impl </span>From&lt;Box&lt;BigInt&gt;&gt; <span class="kw">for </span>Literal {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(i: Box&lt;BigInt&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::BigInt(i)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Literal</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">b</span>: <span class="ident">bool</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::Bool</span>(<span class="ident">b</span>)
+<span class="kw">impl </span>From&lt;bool&gt; <span class="kw">for </span>Literal {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(b: bool) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::Bool(b)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Literal</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Expression</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">lit</span>: <span class="ident">Literal</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">Expression::Literal</span>(<span class="ident">lit</span>)
+<span class="kw">impl </span>From&lt;Literal&gt; <span class="kw">for </span>Expression {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(lit: Literal) -&gt; <span class="self">Self </span>{
+        Expression::Literal(lit)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">ToInternedString</span> <span class="kw">for</span> <span class="ident">Literal</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">to_interned_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;</span><span class="ident">Interner</span>) -&gt; <span class="ident">String</span> {
-        <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident"><span class="self">Self</span>::String</span>(<span class="ident">st</span>) =&gt; {
-                <span class="macro">format!</span>(<span class="string">&quot;\&quot;{}\&quot;&quot;</span>, <span class="ident">interner</span>.<span class="ident">resolve_expect</span>(<span class="ident">st</span>))
+<span class="kw">impl </span>ToInternedString <span class="kw">for </span>Literal {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>to_interned_string(<span class="kw-2">&amp;</span><span class="self">self</span>, interner: <span class="kw-2">&amp;</span>Interner) -&gt; String {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+            <span class="self">Self</span>::String(st) =&gt; {
+                <span class="macro">format!</span>(<span class="string">&quot;\&quot;{}\&quot;&quot;</span>, interner.resolve_expect(st))
             }
-            <span class="ident"><span class="self">Self</span>::Num</span>(<span class="ident">num</span>) =&gt; <span class="ident">num</span>.<span class="ident">to_string</span>(),
-            <span class="ident"><span class="self">Self</span>::Int</span>(<span class="ident">num</span>) =&gt; <span class="ident">num</span>.<span class="ident">to_string</span>(),
-            <span class="ident"><span class="self">Self</span>::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">num</span>) =&gt; <span class="ident">num</span>.<span class="ident">to_string</span>(),
-            <span class="ident"><span class="self">Self</span>::Bool</span>(<span class="ident">v</span>) =&gt; <span class="ident">v</span>.<span class="ident">to_string</span>(),
-            <span class="ident"><span class="self">Self</span>::Null</span> =&gt; <span class="string">&quot;null&quot;</span>.<span class="ident">to_owned</span>(),
-            <span class="ident"><span class="self">Self</span>::Undefined</span> =&gt; <span class="string">&quot;undefined&quot;</span>.<span class="ident">to_owned</span>(),
+            <span class="self">Self</span>::Num(num) =&gt; num.to_string(),
+            <span class="self">Self</span>::Int(num) =&gt; num.to_string(),
+            <span class="self">Self</span>::BigInt(<span class="kw-2">ref </span>num) =&gt; num.to_string(),
+            <span class="self">Self</span>::Bool(v) =&gt; v.to_string(),
+            <span class="self">Self</span>::Null =&gt; <span class="string">&quot;null&quot;</span>.to_owned(),
+            <span class="self">Self</span>::Undefined =&gt; <span class="string">&quot;undefined&quot;</span>.to_owned(),
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">VisitWith</span> <span class="kw">for</span> <span class="ident">Literal</span> {
-    <span class="kw">fn</span> <span class="ident">visit_with</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">V</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>, <span class="ident">visitor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">V</span>) -&gt; <span class="ident">ControlFlow</span><span class="op">&lt;</span><span class="ident">V::BreakTy</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">V</span>: <span class="ident">Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
+<span class="kw">impl </span>VisitWith <span class="kw">for </span>Literal {
+    <span class="kw">fn </span>visit_with&lt;<span class="lifetime">&#39;a</span>, V&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>, visitor: <span class="kw-2">&amp;mut </span>V) -&gt; ControlFlow&lt;V::BreakTy&gt;
+    <span class="kw">where
+        </span>V: Visitor&lt;<span class="lifetime">&#39;a</span>&gt;,
     {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Literal::String</span>(<span class="ident">sym</span>) <span class="op">=</span> <span class="self">self</span> {
-            <span class="ident">visitor</span>.<span class="ident">visit_sym</span>(<span class="ident">sym</span>)
-        } <span class="kw">else</span> {
-            <span class="ident">ControlFlow::Continue</span>(())
+        <span class="kw">if let </span>Literal::String(sym) = <span class="self">self </span>{
+            visitor.visit_sym(sym)
+        } <span class="kw">else </span>{
+            ControlFlow::Continue(())
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">visit_with_mut</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">V</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">visitor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">V</span>) -&gt; <span class="ident">ControlFlow</span><span class="op">&lt;</span><span class="ident">V::BreakTy</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">V</span>: <span class="ident">VisitorMut</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
+    <span class="kw">fn </span>visit_with_mut&lt;<span class="lifetime">&#39;a</span>, V&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="self">self</span>, visitor: <span class="kw-2">&amp;mut </span>V) -&gt; ControlFlow&lt;V::BreakTy&gt;
+    <span class="kw">where
+        </span>V: VisitorMut&lt;<span class="lifetime">&#39;a</span>&gt;,
     {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Literal::String</span>(<span class="ident">sym</span>) <span class="op">=</span> <span class="self">self</span> {
-            <span class="ident">visitor</span>.<span class="ident">visit_sym_mut</span>(<span class="ident">sym</span>)
-        } <span class="kw">else</span> {
-            <span class="ident">ControlFlow::Continue</span>(())
+        <span class="kw">if let </span>Literal::String(sym) = <span class="self">self </span>{
+            visitor.visit_sym_mut(sym)
+        } <span class="kw">else </span>{
+            ControlFlow::Continue(())
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="boa_ast" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0 (a55dd71d5 2022-09-19)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="boa_ast" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0 (897e37553 2022-11-02)" ></div></body></html>

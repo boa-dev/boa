@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_engine/src/builtins/console/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_engine/src/builtins/console/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container">
                     <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../boa_engine/index.html">
                         <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -595,600 +595,600 @@
 <span id="593">593</span>
 <span id="594">594</span>
 <span id="595">595</span>
-</pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `console` object.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! The `console` object can be accessed from any global object.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! The specifics of how it works varies from browser to browser, but there is a de facto set of features that are typically provided.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! More information:</span>
-<span class="doccomment">//!  - [MDN documentation][mdn]</span>
-<span class="doccomment">//!  - [WHATWG `console` specification][spec]</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! [spec]: https://console.spec.whatwg.org/</span>
-<span class="doccomment">//! [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/Console</span>
+</pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `console` object.
+//!
+//! The `console` object can be accessed from any global object.
+//!
+//! The specifics of how it works varies from browser to browser, but there is a de facto set of features that are typically provided.
+//!
+//! More information:
+//!  - [MDN documentation][mdn]
+//!  - [WHATWG `console` specification][spec]
+//!
+//! [spec]: https://console.spec.whatwg.org/
+//! [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/Console
 
-<span class="attribute">#![<span class="ident">allow</span>(<span class="ident">clippy::print_stdout</span>)]</span>
+</span><span class="attribute">#![allow(clippy::print_stdout)]
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span>;
+#[cfg(test)]
+</span><span class="kw">mod </span>tests;
 
-<span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">builtins</span>::{<span class="ident">BuiltIn</span>, <span class="ident">JsArgs</span>},
-    <span class="ident">object::ObjectInitializer</span>,
-    <span class="ident">value</span>::{<span class="ident">display::display_obj</span>, <span class="ident">JsValue</span>, <span class="ident">Numeric</span>},
-    <span class="ident">Context</span>, <span class="ident">JsResult</span>, <span class="ident">JsString</span>,
+<span class="kw">use crate</span>::{
+    builtins::{BuiltIn, JsArgs},
+    object::ObjectInitializer,
+    value::{display::display_obj, JsValue, Numeric},
+    Context, JsResult, JsString,
 };
-<span class="kw">use</span> <span class="ident">boa_profiler::Profiler</span>;
-<span class="kw">use</span> <span class="ident">rustc_hash::FxHashMap</span>;
-<span class="kw">use</span> <span class="ident">std::time::SystemTime</span>;
-<span class="kw">use</span> <span class="ident">tap</span>::{<span class="ident">Conv</span>, <span class="ident">Pipe</span>};
+<span class="kw">use </span>boa_profiler::Profiler;
+<span class="kw">use </span>rustc_hash::FxHashMap;
+<span class="kw">use </span>std::time::SystemTime;
+<span class="kw">use </span>tap::{Conv, Pipe};
 
-<span class="doccomment">/// This represents the different types of log messages.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">LogMessage</span> {
-    <span class="ident">Log</span>(<span class="ident">String</span>),
-    <span class="ident">Info</span>(<span class="ident">String</span>),
-    <span class="ident">Warn</span>(<span class="ident">String</span>),
-    <span class="ident">Error</span>(<span class="ident">String</span>),
+<span class="doccomment">/// This represents the different types of log messages.
+</span><span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub enum </span>LogMessage {
+    Log(String),
+    Info(String),
+    Warn(String),
+    Error(String),
 }
 
-<span class="doccomment">/// Helper function for logging messages.</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">logger</span>(<span class="ident">msg</span>: <span class="ident">LogMessage</span>, <span class="ident">console_state</span>: <span class="kw-2">&amp;</span><span class="ident">Console</span>) {
-    <span class="kw">let</span> <span class="ident">indent</span> <span class="op">=</span> <span class="number">2</span> <span class="op">*</span> <span class="ident">console_state</span>.<span class="ident">groups</span>.<span class="ident">len</span>();
+<span class="doccomment">/// Helper function for logging messages.
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>logger(msg: LogMessage, console_state: <span class="kw-2">&amp;</span>Console) {
+    <span class="kw">let </span>indent = <span class="number">2 </span>* console_state.groups.len();
 
-    <span class="kw">match</span> <span class="ident">msg</span> {
-        <span class="ident">LogMessage::Error</span>(<span class="ident">msg</span>) =&gt; {
+    <span class="kw">match </span>msg {
+        LogMessage::Error(msg) =&gt; {
             <span class="macro">eprintln!</span>(<span class="string">&quot;{msg:&gt;indent$}&quot;</span>);
         }
-        <span class="ident">LogMessage::Log</span>(<span class="ident">msg</span>) <span class="op">|</span> <span class="ident">LogMessage::Info</span>(<span class="ident">msg</span>) <span class="op">|</span> <span class="ident">LogMessage::Warn</span>(<span class="ident">msg</span>) =&gt; {
+        LogMessage::Log(msg) | LogMessage::Info(msg) | LogMessage::Warn(msg) =&gt; {
             <span class="macro">println!</span>(<span class="string">&quot;{msg:&gt;indent$}&quot;</span>);
         }
     }
 }
 
-<span class="doccomment">/// This represents the `console` formatter.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">formatter</span>(<span class="ident">data</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">target</span> <span class="op">=</span> <span class="ident">data</span>
-        .<span class="ident">get</span>(<span class="number">0</span>)
-        .<span class="ident">cloned</span>()
-        .<span class="ident">unwrap_or_default</span>()
-        .<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+<span class="doccomment">/// This represents the `console` formatter.
+</span><span class="kw">pub fn </span>formatter(data: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;String&gt; {
+    <span class="kw">let </span>target = data
+        .get(<span class="number">0</span>)
+        .cloned()
+        .unwrap_or_default()
+        .to_string(context)<span class="question-mark">?</span>;
 
-    <span class="kw">match</span> <span class="ident">data</span>.<span class="ident">len</span>() {
-        <span class="number">0</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">String::new</span>()),
-        <span class="number">1</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">target</span>.<span class="ident">to_std_string_escaped</span>()),
-        <span class="kw">_</span> =&gt; {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">formatted</span> <span class="op">=</span> <span class="ident">String::new</span>();
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">arg_index</span> <span class="op">=</span> <span class="number">1</span>;
-            <span class="kw">let</span> <span class="ident">target</span> <span class="op">=</span> <span class="ident">target</span>.<span class="ident">to_std_string_escaped</span>();
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">chars</span> <span class="op">=</span> <span class="ident">target</span>.<span class="ident">chars</span>();
-            <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">c</span>) <span class="op">=</span> <span class="ident">chars</span>.<span class="ident">next</span>() {
-                <span class="kw">if</span> <span class="ident">c</span> <span class="op">==</span> <span class="string">&#39;%&#39;</span> {
-                    <span class="kw">let</span> <span class="ident">fmt</span> <span class="op">=</span> <span class="ident">chars</span>.<span class="ident">next</span>().<span class="ident">unwrap_or</span>(<span class="string">&#39;%&#39;</span>);
-                    <span class="kw">match</span> <span class="ident">fmt</span> {
-                        <span class="comment">/* integer */</span>
-                        <span class="string">&#39;d&#39;</span> <span class="op">|</span> <span class="string">&#39;i&#39;</span> =&gt; {
-                            <span class="kw">let</span> <span class="ident">arg</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">data</span>.<span class="ident">get_or_undefined</span>(<span class="ident">arg_index</span>).<span class="ident">to_numeric</span>(<span class="ident">context</span>)<span class="question-mark">?</span> {
-                                <span class="ident">Numeric::Number</span>(<span class="ident">r</span>) =&gt; (<span class="ident">r</span>.<span class="ident">floor</span>() <span class="op">+</span> <span class="number">0.0</span>).<span class="ident">to_string</span>(),
-                                <span class="ident">Numeric::BigInt</span>(<span class="ident">int</span>) =&gt; <span class="ident">int</span>.<span class="ident">to_string</span>(),
+    <span class="kw">match </span>data.len() {
+        <span class="number">0 </span>=&gt; <span class="prelude-val">Ok</span>(String::new()),
+        <span class="number">1 </span>=&gt; <span class="prelude-val">Ok</span>(target.to_std_string_escaped()),
+        <span class="kw">_ </span>=&gt; {
+            <span class="kw">let </span><span class="kw-2">mut </span>formatted = String::new();
+            <span class="kw">let </span><span class="kw-2">mut </span>arg_index = <span class="number">1</span>;
+            <span class="kw">let </span>target = target.to_std_string_escaped();
+            <span class="kw">let </span><span class="kw-2">mut </span>chars = target.chars();
+            <span class="kw">while let </span><span class="prelude-val">Some</span>(c) = chars.next() {
+                <span class="kw">if </span>c == <span class="string">&#39;%&#39; </span>{
+                    <span class="kw">let </span>fmt = chars.next().unwrap_or(<span class="string">&#39;%&#39;</span>);
+                    <span class="kw">match </span>fmt {
+                        <span class="comment">/* integer */
+                        </span><span class="string">&#39;d&#39; </span>| <span class="string">&#39;i&#39; </span>=&gt; {
+                            <span class="kw">let </span>arg = <span class="kw">match </span>data.get_or_undefined(arg_index).to_numeric(context)<span class="question-mark">? </span>{
+                                Numeric::Number(r) =&gt; (r.floor() + <span class="number">0.0</span>).to_string(),
+                                Numeric::BigInt(int) =&gt; int.to_string(),
                             };
-                            <span class="ident">formatted</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="ident">arg</span>);
-                            <span class="ident">arg_index</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+                            formatted.push_str(<span class="kw-2">&amp;</span>arg);
+                            arg_index += <span class="number">1</span>;
                         }
-                        <span class="comment">/* float */</span>
-                        <span class="string">&#39;f&#39;</span> =&gt; {
-                            <span class="kw">let</span> <span class="ident">arg</span> <span class="op">=</span> <span class="ident">data</span>.<span class="ident">get_or_undefined</span>(<span class="ident">arg_index</span>).<span class="ident">to_number</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
-                            <span class="ident">formatted</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;{arg:.6}&quot;</span>));
-                            <span class="ident">arg_index</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+                        <span class="comment">/* float */
+                        </span><span class="string">&#39;f&#39; </span>=&gt; {
+                            <span class="kw">let </span>arg = data.get_or_undefined(arg_index).to_number(context)<span class="question-mark">?</span>;
+                            formatted.push_str(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;{arg:.6}&quot;</span>));
+                            arg_index += <span class="number">1</span>;
                         }
-                        <span class="comment">/* object, FIXME: how to render this properly? */</span>
-                        <span class="string">&#39;o&#39;</span> <span class="op">|</span> <span class="string">&#39;O&#39;</span> =&gt; {
-                            <span class="kw">let</span> <span class="ident">arg</span> <span class="op">=</span> <span class="ident">data</span>.<span class="ident">get_or_undefined</span>(<span class="ident">arg_index</span>);
-                            <span class="ident">formatted</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="ident">arg</span>.<span class="ident">display</span>().<span class="ident">to_string</span>());
-                            <span class="ident">arg_index</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+                        <span class="comment">/* object, FIXME: how to render this properly? */
+                        </span><span class="string">&#39;o&#39; </span>| <span class="string">&#39;O&#39; </span>=&gt; {
+                            <span class="kw">let </span>arg = data.get_or_undefined(arg_index);
+                            formatted.push_str(<span class="kw-2">&amp;</span>arg.display().to_string());
+                            arg_index += <span class="number">1</span>;
                         }
-                        <span class="comment">/* string */</span>
-                        <span class="string">&#39;s&#39;</span> =&gt; {
-                            <span class="kw">let</span> <span class="ident">arg</span> <span class="op">=</span> <span class="ident">data</span>
-                                .<span class="ident">get</span>(<span class="ident">arg_index</span>)
-                                .<span class="ident">cloned</span>()
-                                .<span class="ident">unwrap_or_default</span>()
-                                .<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>
-                                .<span class="ident">to_std_string_escaped</span>();
-                            <span class="ident">formatted</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="ident">arg</span>);
-                            <span class="ident">arg_index</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+                        <span class="comment">/* string */
+                        </span><span class="string">&#39;s&#39; </span>=&gt; {
+                            <span class="kw">let </span>arg = data
+                                .get(arg_index)
+                                .cloned()
+                                .unwrap_or_default()
+                                .to_string(context)<span class="question-mark">?
+                                </span>.to_std_string_escaped();
+                            formatted.push_str(<span class="kw-2">&amp;</span>arg);
+                            arg_index += <span class="number">1</span>;
                         }
-                        <span class="string">&#39;%&#39;</span> =&gt; <span class="ident">formatted</span>.<span class="ident">push</span>(<span class="string">&#39;%&#39;</span>),
-                        <span class="comment">/* TODO: %c is not implemented */</span>
-                        <span class="ident">c</span> =&gt; {
-                            <span class="ident">formatted</span>.<span class="ident">push</span>(<span class="string">&#39;%&#39;</span>);
-                            <span class="ident">formatted</span>.<span class="ident">push</span>(<span class="ident">c</span>);
+                        <span class="string">&#39;%&#39; </span>=&gt; formatted.push(<span class="string">&#39;%&#39;</span>),
+                        <span class="comment">/* TODO: %c is not implemented */
+                        </span>c =&gt; {
+                            formatted.push(<span class="string">&#39;%&#39;</span>);
+                            formatted.push(c);
                         }
                     }
-                } <span class="kw">else</span> {
-                    <span class="ident">formatted</span>.<span class="ident">push</span>(<span class="ident">c</span>);
+                } <span class="kw">else </span>{
+                    formatted.push(c);
                 };
             }
 
-            <span class="comment">/* unformatted data */</span>
-            <span class="kw">for</span> <span class="ident">rest</span> <span class="kw">in</span> <span class="ident">data</span>.<span class="ident">iter</span>().<span class="ident">skip</span>(<span class="ident">arg_index</span>) {
-                <span class="ident">formatted</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(
+            <span class="comment">/* unformatted data */
+            </span><span class="kw">for </span>rest <span class="kw">in </span>data.iter().skip(arg_index) {
+                formatted.push_str(<span class="kw-2">&amp;</span><span class="macro">format!</span>(
                     <span class="string">&quot; {}&quot;</span>,
-                    <span class="ident">rest</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">to_std_string_escaped</span>()
+                    rest.to_string(context)<span class="question-mark">?</span>.to_std_string_escaped()
                 ));
             }
 
-            <span class="prelude-val">Ok</span>(<span class="ident">formatted</span>)
+            <span class="prelude-val">Ok</span>(formatted)
         }
     }
 }
 
-<span class="doccomment">/// This is the internal console object state.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Default</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">Console</span> {
-    <span class="ident">count_map</span>: <span class="ident">FxHashMap</span><span class="op">&lt;</span><span class="ident">JsString</span>, <span class="ident">u32</span><span class="op">&gt;</span>,
-    <span class="ident">timer_map</span>: <span class="ident">FxHashMap</span><span class="op">&lt;</span><span class="ident">JsString</span>, <span class="ident">u128</span><span class="op">&gt;</span>,
-    <span class="ident">groups</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
+<span class="doccomment">/// This is the internal console object state.
+</span><span class="attribute">#[derive(Debug, Default)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Console {
+    count_map: FxHashMap&lt;JsString, u32&gt;,
+    timer_map: FxHashMap&lt;JsString, u128&gt;,
+    groups: Vec&lt;String&gt;,
 }
 
-<span class="kw">impl</span> <span class="ident">BuiltIn</span> <span class="kw">for</span> <span class="ident">Console</span> {
-    <span class="kw">const</span> <span class="ident">NAME</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;console&quot;</span>;
+<span class="kw">impl </span>BuiltIn <span class="kw">for </span>Console {
+    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;console&quot;</span>;
 
-    <span class="kw">fn</span> <span class="ident">init</span>(<span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="ident"><span class="self">Self</span>::NAME</span>, <span class="string">&quot;init&quot;</span>);
-        <span class="ident">ObjectInitializer::new</span>(<span class="ident">context</span>)
-            .<span class="ident">function</span>(<span class="ident"><span class="self">Self</span>::assert</span>, <span class="string">&quot;assert&quot;</span>, <span class="number">0</span>)
-            .<span class="ident">function</span>(<span class="ident"><span class="self">Self</span>::clear</span>, <span class="string">&quot;clear&quot;</span>, <span class="number">0</span>)
-            .<span class="ident">function</span>(<span class="ident"><span class="self">Self</span>::debug</span>, <span class="string">&quot;debug&quot;</span>, <span class="number">0</span>)
-            .<span class="ident">function</span>(<span class="ident"><span class="self">Self</span>::error</span>, <span class="string">&quot;error&quot;</span>, <span class="number">0</span>)
-            .<span class="ident">function</span>(<span class="ident"><span class="self">Self</span>::info</span>, <span class="string">&quot;info&quot;</span>, <span class="number">0</span>)
-            .<span class="ident">function</span>(<span class="ident"><span class="self">Self</span>::log</span>, <span class="string">&quot;log&quot;</span>, <span class="number">0</span>)
-            .<span class="ident">function</span>(<span class="ident"><span class="self">Self</span>::trace</span>, <span class="string">&quot;trace&quot;</span>, <span class="number">0</span>)
-            .<span class="ident">function</span>(<span class="ident"><span class="self">Self</span>::warn</span>, <span class="string">&quot;warn&quot;</span>, <span class="number">0</span>)
-            .<span class="ident">function</span>(<span class="ident"><span class="self">Self</span>::error</span>, <span class="string">&quot;exception&quot;</span>, <span class="number">0</span>)
-            .<span class="ident">function</span>(<span class="ident"><span class="self">Self</span>::count</span>, <span class="string">&quot;count&quot;</span>, <span class="number">0</span>)
-            .<span class="ident">function</span>(<span class="ident"><span class="self">Self</span>::count_reset</span>, <span class="string">&quot;countReset&quot;</span>, <span class="number">0</span>)
-            .<span class="ident">function</span>(<span class="ident"><span class="self">Self</span>::group</span>, <span class="string">&quot;group&quot;</span>, <span class="number">0</span>)
-            .<span class="ident">function</span>(<span class="ident"><span class="self">Self</span>::group</span>, <span class="string">&quot;groupCollapsed&quot;</span>, <span class="number">0</span>)
-            .<span class="ident">function</span>(<span class="ident"><span class="self">Self</span>::group_end</span>, <span class="string">&quot;groupEnd&quot;</span>, <span class="number">0</span>)
-            .<span class="ident">function</span>(<span class="ident"><span class="self">Self</span>::time</span>, <span class="string">&quot;time&quot;</span>, <span class="number">0</span>)
-            .<span class="ident">function</span>(<span class="ident"><span class="self">Self</span>::time_log</span>, <span class="string">&quot;timeLog&quot;</span>, <span class="number">0</span>)
-            .<span class="ident">function</span>(<span class="ident"><span class="self">Self</span>::time_end</span>, <span class="string">&quot;timeEnd&quot;</span>, <span class="number">0</span>)
-            .<span class="ident">function</span>(<span class="ident"><span class="self">Self</span>::dir</span>, <span class="string">&quot;dir&quot;</span>, <span class="number">0</span>)
-            .<span class="ident">function</span>(<span class="ident"><span class="self">Self</span>::dir</span>, <span class="string">&quot;dirxml&quot;</span>, <span class="number">0</span>)
-            .<span class="ident">build</span>()
-            .<span class="ident">conv</span>::<span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span>()
-            .<span class="ident">pipe</span>(<span class="prelude-val">Some</span>)
+    <span class="kw">fn </span>init(context: <span class="kw-2">&amp;mut </span>Context) -&gt; <span class="prelude-ty">Option</span>&lt;JsValue&gt; {
+        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="self">Self</span>::NAME, <span class="string">&quot;init&quot;</span>);
+        ObjectInitializer::new(context)
+            .function(<span class="self">Self</span>::assert, <span class="string">&quot;assert&quot;</span>, <span class="number">0</span>)
+            .function(<span class="self">Self</span>::clear, <span class="string">&quot;clear&quot;</span>, <span class="number">0</span>)
+            .function(<span class="self">Self</span>::debug, <span class="string">&quot;debug&quot;</span>, <span class="number">0</span>)
+            .function(<span class="self">Self</span>::error, <span class="string">&quot;error&quot;</span>, <span class="number">0</span>)
+            .function(<span class="self">Self</span>::info, <span class="string">&quot;info&quot;</span>, <span class="number">0</span>)
+            .function(<span class="self">Self</span>::log, <span class="string">&quot;log&quot;</span>, <span class="number">0</span>)
+            .function(<span class="self">Self</span>::trace, <span class="string">&quot;trace&quot;</span>, <span class="number">0</span>)
+            .function(<span class="self">Self</span>::warn, <span class="string">&quot;warn&quot;</span>, <span class="number">0</span>)
+            .function(<span class="self">Self</span>::error, <span class="string">&quot;exception&quot;</span>, <span class="number">0</span>)
+            .function(<span class="self">Self</span>::count, <span class="string">&quot;count&quot;</span>, <span class="number">0</span>)
+            .function(<span class="self">Self</span>::count_reset, <span class="string">&quot;countReset&quot;</span>, <span class="number">0</span>)
+            .function(<span class="self">Self</span>::group, <span class="string">&quot;group&quot;</span>, <span class="number">0</span>)
+            .function(<span class="self">Self</span>::group, <span class="string">&quot;groupCollapsed&quot;</span>, <span class="number">0</span>)
+            .function(<span class="self">Self</span>::group_end, <span class="string">&quot;groupEnd&quot;</span>, <span class="number">0</span>)
+            .function(<span class="self">Self</span>::time, <span class="string">&quot;time&quot;</span>, <span class="number">0</span>)
+            .function(<span class="self">Self</span>::time_log, <span class="string">&quot;timeLog&quot;</span>, <span class="number">0</span>)
+            .function(<span class="self">Self</span>::time_end, <span class="string">&quot;timeEnd&quot;</span>, <span class="number">0</span>)
+            .function(<span class="self">Self</span>::dir, <span class="string">&quot;dir&quot;</span>, <span class="number">0</span>)
+            .function(<span class="self">Self</span>::dir, <span class="string">&quot;dirxml&quot;</span>, <span class="number">0</span>)
+            .build()
+            .conv::&lt;JsValue&gt;()
+            .pipe(<span class="prelude-val">Some</span>)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Console</span> {
-    <span class="doccomment">/// The name of the object.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const</span> <span class="ident">NAME</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;console&quot;</span>;
+<span class="kw">impl </span>Console {
+    <span class="doccomment">/// The name of the object.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;console&quot;</span>;
 
-    <span class="doccomment">/// `console.assert(condition, ...data)`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Prints a JavaScript value to the standard error if first argument evaluates to `false` or there</span>
-    <span class="doccomment">/// were no arguments.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///  - [WHATWG `console` specification][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://console.spec.whatwg.org/#assert</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/assert</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">assert</span>(
-        <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
-        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">assertion</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">map_or</span>(<span class="bool-val">false</span>, <span class="ident">JsValue::to_boolean</span>);
+    <span class="doccomment">/// `console.assert(condition, ...data)`
+    ///
+    /// Prints a JavaScript value to the standard error if first argument evaluates to `false` or there
+    /// were no arguments.
+    ///
+    /// More information:
+    ///  - [MDN documentation][mdn]
+    ///  - [WHATWG `console` specification][spec]
+    ///
+    /// [spec]: https://console.spec.whatwg.org/#assert
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/assert
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>assert(
+        <span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue,
+        args: <span class="kw-2">&amp;</span>[JsValue],
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="kw">let </span>assertion = args.get(<span class="number">0</span>).map_or(<span class="bool-val">false</span>, JsValue::to_boolean);
 
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">assertion</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">args</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">iter</span>().<span class="ident">skip</span>(<span class="number">1</span>).<span class="ident">cloned</span>().<span class="ident">collect</span>();
-            <span class="kw">let</span> <span class="ident">message</span> <span class="op">=</span> <span class="string">&quot;Assertion failed&quot;</span>.<span class="ident">to_string</span>();
-            <span class="kw">if</span> <span class="ident">args</span>.<span class="ident">is_empty</span>() {
-                <span class="ident">args</span>.<span class="ident">push</span>(<span class="ident">JsValue::new</span>(<span class="ident">message</span>));
-            } <span class="kw">else</span> <span class="kw">if</span> <span class="op">!</span><span class="ident">args</span>[<span class="number">0</span>].<span class="ident">is_string</span>() {
-                <span class="ident">args</span>.<span class="ident">insert</span>(<span class="number">0</span>, <span class="ident">JsValue::new</span>(<span class="ident">message</span>));
-            } <span class="kw">else</span> {
-                <span class="kw">let</span> <span class="ident">concat</span> <span class="op">=</span> <span class="macro">format!</span>(<span class="string">&quot;{message}: {}&quot;</span>, <span class="ident">args</span>[<span class="number">0</span>].<span class="ident">display</span>());
-                <span class="ident">args</span>[<span class="number">0</span>] <span class="op">=</span> <span class="ident">JsValue::new</span>(<span class="ident">concat</span>);
+        <span class="kw">if </span>!assertion {
+            <span class="kw">let </span><span class="kw-2">mut </span>args: Vec&lt;JsValue&gt; = args.iter().skip(<span class="number">1</span>).cloned().collect();
+            <span class="kw">let </span>message = <span class="string">&quot;Assertion failed&quot;</span>.to_string();
+            <span class="kw">if </span>args.is_empty() {
+                args.push(JsValue::new(message));
+            } <span class="kw">else if </span>!args[<span class="number">0</span>].is_string() {
+                args.insert(<span class="number">0</span>, JsValue::new(message));
+            } <span class="kw">else </span>{
+                <span class="kw">let </span>concat = <span class="macro">format!</span>(<span class="string">&quot;{message}: {}&quot;</span>, args[<span class="number">0</span>].display());
+                args[<span class="number">0</span>] = JsValue::new(concat);
             }
 
-            <span class="ident">logger</span>(
-                <span class="ident">LogMessage::Error</span>(<span class="ident">formatter</span>(<span class="kw-2">&amp;</span><span class="ident">args</span>, <span class="ident">context</span>)<span class="question-mark">?</span>),
-                <span class="ident">context</span>.<span class="ident">console</span>(),
+            logger(
+                LogMessage::Error(formatter(<span class="kw-2">&amp;</span>args, context)<span class="question-mark">?</span>),
+                context.console(),
             );
         }
 
-        <span class="prelude-val">Ok</span>(<span class="ident">JsValue::undefined</span>())
+        <span class="prelude-val">Ok</span>(JsValue::undefined())
     }
 
-    <span class="doccomment">/// `console.clear()`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Removes all groups and clears console if possible.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///  - [WHATWG `console` specification][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://console.spec.whatwg.org/#clear</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/clear</span>
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::unnecessary_wraps</span>)]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">clear</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="ident">context</span>.<span class="ident">console_mut</span>().<span class="ident">groups</span>.<span class="ident">clear</span>();
-        <span class="prelude-val">Ok</span>(<span class="ident">JsValue::undefined</span>())
+    <span class="doccomment">/// `console.clear()`
+    ///
+    /// Removes all groups and clears console if possible.
+    ///
+    /// More information:
+    ///  - [MDN documentation][mdn]
+    ///  - [WHATWG `console` specification][spec]
+    ///
+    /// [spec]: https://console.spec.whatwg.org/#clear
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/clear
+    </span><span class="attribute">#[allow(clippy::unnecessary_wraps)]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>clear(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+        context.console_mut().groups.clear();
+        <span class="prelude-val">Ok</span>(JsValue::undefined())
     }
 
-    <span class="doccomment">/// `console.debug(...data)`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Prints a JavaScript values with &quot;debug&quot; logLevel.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///  - [WHATWG `console` specification][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://console.spec.whatwg.org/#debug</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/debug</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">debug</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="ident">logger</span>(
-            <span class="ident">LogMessage::Log</span>(<span class="ident">formatter</span>(<span class="ident">args</span>, <span class="ident">context</span>)<span class="question-mark">?</span>),
-            <span class="ident">context</span>.<span class="ident">console</span>(),
+    <span class="doccomment">/// `console.debug(...data)`
+    ///
+    /// Prints a JavaScript values with &quot;debug&quot; logLevel.
+    ///
+    /// More information:
+    ///  - [MDN documentation][mdn]
+    ///  - [WHATWG `console` specification][spec]
+    ///
+    /// [spec]: https://console.spec.whatwg.org/#debug
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/debug
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>debug(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+        logger(
+            LogMessage::Log(formatter(args, context)<span class="question-mark">?</span>),
+            context.console(),
         );
-        <span class="prelude-val">Ok</span>(<span class="ident">JsValue::undefined</span>())
+        <span class="prelude-val">Ok</span>(JsValue::undefined())
     }
 
-    <span class="doccomment">/// `console.error(...data)`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Prints a JavaScript values with &quot;error&quot; logLevel.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///  - [WHATWG `console` specification][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://console.spec.whatwg.org/#error</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/error</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">error</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="ident">logger</span>(
-            <span class="ident">LogMessage::Error</span>(<span class="ident">formatter</span>(<span class="ident">args</span>, <span class="ident">context</span>)<span class="question-mark">?</span>),
-            <span class="ident">context</span>.<span class="ident">console</span>(),
+    <span class="doccomment">/// `console.error(...data)`
+    ///
+    /// Prints a JavaScript values with &quot;error&quot; logLevel.
+    ///
+    /// More information:
+    ///  - [MDN documentation][mdn]
+    ///  - [WHATWG `console` specification][spec]
+    ///
+    /// [spec]: https://console.spec.whatwg.org/#error
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/error
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>error(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+        logger(
+            LogMessage::Error(formatter(args, context)<span class="question-mark">?</span>),
+            context.console(),
         );
-        <span class="prelude-val">Ok</span>(<span class="ident">JsValue::undefined</span>())
+        <span class="prelude-val">Ok</span>(JsValue::undefined())
     }
 
-    <span class="doccomment">/// `console.info(...data)`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Prints a JavaScript values with &quot;info&quot; logLevel.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///  - [WHATWG `console` specification][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://console.spec.whatwg.org/#info</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/info</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">info</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="ident">logger</span>(
-            <span class="ident">LogMessage::Info</span>(<span class="ident">formatter</span>(<span class="ident">args</span>, <span class="ident">context</span>)<span class="question-mark">?</span>),
-            <span class="ident">context</span>.<span class="ident">console</span>(),
+    <span class="doccomment">/// `console.info(...data)`
+    ///
+    /// Prints a JavaScript values with &quot;info&quot; logLevel.
+    ///
+    /// More information:
+    ///  - [MDN documentation][mdn]
+    ///  - [WHATWG `console` specification][spec]
+    ///
+    /// [spec]: https://console.spec.whatwg.org/#info
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/info
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>info(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+        logger(
+            LogMessage::Info(formatter(args, context)<span class="question-mark">?</span>),
+            context.console(),
         );
-        <span class="prelude-val">Ok</span>(<span class="ident">JsValue::undefined</span>())
+        <span class="prelude-val">Ok</span>(JsValue::undefined())
     }
 
-    <span class="doccomment">/// `console.log(...data)`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Prints a JavaScript values with &quot;log&quot; logLevel.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///  - [WHATWG `console` specification][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://console.spec.whatwg.org/#log</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/log</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">log</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="ident">logger</span>(
-            <span class="ident">LogMessage::Log</span>(<span class="ident">formatter</span>(<span class="ident">args</span>, <span class="ident">context</span>)<span class="question-mark">?</span>),
-            <span class="ident">context</span>.<span class="ident">console</span>(),
+    <span class="doccomment">/// `console.log(...data)`
+    ///
+    /// Prints a JavaScript values with &quot;log&quot; logLevel.
+    ///
+    /// More information:
+    ///  - [MDN documentation][mdn]
+    ///  - [WHATWG `console` specification][spec]
+    ///
+    /// [spec]: https://console.spec.whatwg.org/#log
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/log
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>log(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+        logger(
+            LogMessage::Log(formatter(args, context)<span class="question-mark">?</span>),
+            context.console(),
         );
-        <span class="prelude-val">Ok</span>(<span class="ident">JsValue::undefined</span>())
+        <span class="prelude-val">Ok</span>(JsValue::undefined())
     }
 
-    <span class="kw">fn</span> <span class="ident">get_stack_trace</span>(<span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">stack_trace</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> <span class="op">=</span> <span class="macro">vec!</span>[];
+    <span class="kw">fn </span>get_stack_trace(context: <span class="kw-2">&amp;mut </span>Context) -&gt; Vec&lt;String&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>stack_trace: Vec&lt;String&gt; = <span class="macro">vec!</span>[];
 
-        <span class="kw">for</span> <span class="ident">frame</span> <span class="kw">in</span> <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">frames</span>.<span class="ident">iter</span>().<span class="ident">rev</span>() {
-            <span class="ident">stack_trace</span>.<span class="ident">push</span>(
-                <span class="ident">context</span>
-                    .<span class="ident">interner</span>()
-                    .<span class="ident">resolve_expect</span>(<span class="ident">frame</span>.<span class="ident">code</span>.<span class="ident">name</span>)
-                    .<span class="ident">to_string</span>(),
+        <span class="kw">for </span>frame <span class="kw">in </span>context.vm.frames.iter().rev() {
+            stack_trace.push(
+                context
+                    .interner()
+                    .resolve_expect(frame.code.name)
+                    .to_string(),
             );
         }
 
-        <span class="ident">stack_trace</span>
+        stack_trace
     }
 
-    <span class="doccomment">/// `console.trace(...data)`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Prints a stack trace with &quot;trace&quot; logLevel, optionally labelled by data.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///  - [WHATWG `console` specification][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://console.spec.whatwg.org/#trace</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/trace</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">trace</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">args</span>.<span class="ident">is_empty</span>() {
-            <span class="ident">logger</span>(
-                <span class="ident">LogMessage::Log</span>(<span class="ident">formatter</span>(<span class="ident">args</span>, <span class="ident">context</span>)<span class="question-mark">?</span>),
-                <span class="ident">context</span>.<span class="ident">console</span>(),
+    <span class="doccomment">/// `console.trace(...data)`
+    ///
+    /// Prints a stack trace with &quot;trace&quot; logLevel, optionally labelled by data.
+    ///
+    /// More information:
+    ///  - [MDN documentation][mdn]
+    ///  - [WHATWG `console` specification][spec]
+    ///
+    /// [spec]: https://console.spec.whatwg.org/#trace
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/trace
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>trace(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="kw">if </span>!args.is_empty() {
+            logger(
+                LogMessage::Log(formatter(args, context)<span class="question-mark">?</span>),
+                context.console(),
             );
 
-            <span class="kw">let</span> <span class="ident">stack_trace_dump</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::get_stack_trace</span>(<span class="ident">context</span>).<span class="ident">join</span>(<span class="string">&quot;\n&quot;</span>);
-            <span class="ident">logger</span>(<span class="ident">LogMessage::Log</span>(<span class="ident">stack_trace_dump</span>), <span class="ident">context</span>.<span class="ident">console</span>());
+            <span class="kw">let </span>stack_trace_dump = <span class="self">Self</span>::get_stack_trace(context).join(<span class="string">&quot;\n&quot;</span>);
+            logger(LogMessage::Log(stack_trace_dump), context.console());
         }
 
-        <span class="prelude-val">Ok</span>(<span class="ident">JsValue::undefined</span>())
+        <span class="prelude-val">Ok</span>(JsValue::undefined())
     }
 
-    <span class="doccomment">/// `console.warn(...data)`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Prints a JavaScript values with &quot;warn&quot; logLevel.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///  - [WHATWG `console` specification][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://console.spec.whatwg.org/#warn</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/warn</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">warn</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="ident">logger</span>(
-            <span class="ident">LogMessage::Warn</span>(<span class="ident">formatter</span>(<span class="ident">args</span>, <span class="ident">context</span>)<span class="question-mark">?</span>),
-            <span class="ident">context</span>.<span class="ident">console</span>(),
+    <span class="doccomment">/// `console.warn(...data)`
+    ///
+    /// Prints a JavaScript values with &quot;warn&quot; logLevel.
+    ///
+    /// More information:
+    ///  - [MDN documentation][mdn]
+    ///  - [WHATWG `console` specification][spec]
+    ///
+    /// [spec]: https://console.spec.whatwg.org/#warn
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/warn
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>warn(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+        logger(
+            LogMessage::Warn(formatter(args, context)<span class="question-mark">?</span>),
+            context.console(),
         );
-        <span class="prelude-val">Ok</span>(<span class="ident">JsValue::undefined</span>())
+        <span class="prelude-val">Ok</span>(JsValue::undefined())
     }
 
-    <span class="doccomment">/// `console.count(label)`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Prints number of times the function was called with that particular label.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///  - [WHATWG `console` specification][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://console.spec.whatwg.org/#count</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/count</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">count</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">label</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>) {
-            <span class="prelude-val">Some</span>(<span class="ident">value</span>) =&gt; <span class="ident">value</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>,
-            <span class="prelude-val">None</span> =&gt; <span class="string">&quot;default&quot;</span>.<span class="ident">into</span>(),
+    <span class="doccomment">/// `console.count(label)`
+    ///
+    /// Prints number of times the function was called with that particular label.
+    ///
+    /// More information:
+    ///  - [MDN documentation][mdn]
+    ///  - [WHATWG `console` specification][spec]
+    ///
+    /// [spec]: https://console.spec.whatwg.org/#count
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/count
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>count(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="kw">let </span>label = <span class="kw">match </span>args.get(<span class="number">0</span>) {
+            <span class="prelude-val">Some</span>(value) =&gt; value.to_string(context)<span class="question-mark">?</span>,
+            <span class="prelude-val">None </span>=&gt; <span class="string">&quot;default&quot;</span>.into(),
         };
 
-        <span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <span class="macro">format!</span>(<span class="string">&quot;count {}:&quot;</span>, <span class="ident">label</span>.<span class="ident">to_std_string_escaped</span>());
-        <span class="kw">let</span> <span class="ident">c</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">console_mut</span>().<span class="ident">count_map</span>.<span class="ident">entry</span>(<span class="ident">label</span>).<span class="ident">or_insert</span>(<span class="number">0</span>);
-        <span class="kw-2">*</span><span class="ident">c</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+        <span class="kw">let </span>msg = <span class="macro">format!</span>(<span class="string">&quot;count {}:&quot;</span>, label.to_std_string_escaped());
+        <span class="kw">let </span>c = context.console_mut().count_map.entry(label).or_insert(<span class="number">0</span>);
+        <span class="kw-2">*</span>c += <span class="number">1</span>;
 
-        <span class="ident">logger</span>(<span class="ident">LogMessage::Info</span>(<span class="macro">format!</span>(<span class="string">&quot;{msg} {c}&quot;</span>)), <span class="ident">context</span>.<span class="ident">console</span>());
-        <span class="prelude-val">Ok</span>(<span class="ident">JsValue::undefined</span>())
+        logger(LogMessage::Info(<span class="macro">format!</span>(<span class="string">&quot;{msg} {c}&quot;</span>)), context.console());
+        <span class="prelude-val">Ok</span>(JsValue::undefined())
     }
 
-    <span class="doccomment">/// `console.countReset(label)`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Resets the counter for label.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///  - [WHATWG `console` specification][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://console.spec.whatwg.org/#countreset</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/countReset</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">count_reset</span>(
-        <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
-        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">label</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>) {
-            <span class="prelude-val">Some</span>(<span class="ident">value</span>) =&gt; <span class="ident">value</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>,
-            <span class="prelude-val">None</span> =&gt; <span class="string">&quot;default&quot;</span>.<span class="ident">into</span>(),
+    <span class="doccomment">/// `console.countReset(label)`
+    ///
+    /// Resets the counter for label.
+    ///
+    /// More information:
+    ///  - [MDN documentation][mdn]
+    ///  - [WHATWG `console` specification][spec]
+    ///
+    /// [spec]: https://console.spec.whatwg.org/#countreset
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/countReset
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>count_reset(
+        <span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue,
+        args: <span class="kw-2">&amp;</span>[JsValue],
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="kw">let </span>label = <span class="kw">match </span>args.get(<span class="number">0</span>) {
+            <span class="prelude-val">Some</span>(value) =&gt; value.to_string(context)<span class="question-mark">?</span>,
+            <span class="prelude-val">None </span>=&gt; <span class="string">&quot;default&quot;</span>.into(),
         };
 
-        <span class="ident">context</span>.<span class="ident">console_mut</span>().<span class="ident">count_map</span>.<span class="ident">remove</span>(<span class="kw-2">&amp;</span><span class="ident">label</span>);
+        context.console_mut().count_map.remove(<span class="kw-2">&amp;</span>label);
 
-        <span class="ident">logger</span>(
-            <span class="ident">LogMessage::Warn</span>(<span class="macro">format!</span>(<span class="string">&quot;countReset {}&quot;</span>, <span class="ident">label</span>.<span class="ident">to_std_string_escaped</span>())),
-            <span class="ident">context</span>.<span class="ident">console</span>(),
+        logger(
+            LogMessage::Warn(<span class="macro">format!</span>(<span class="string">&quot;countReset {}&quot;</span>, label.to_std_string_escaped())),
+            context.console(),
         );
 
-        <span class="prelude-val">Ok</span>(<span class="ident">JsValue::undefined</span>())
+        <span class="prelude-val">Ok</span>(JsValue::undefined())
     }
 
-    <span class="doccomment">/// Returns current system time in ms.</span>
-    <span class="kw">fn</span> <span class="ident">system_time_in_ms</span>() -&gt; <span class="ident">u128</span> {
-        <span class="kw">let</span> <span class="ident">now</span> <span class="op">=</span> <span class="ident">SystemTime::now</span>();
-        <span class="ident">now</span>.<span class="ident">duration_since</span>(<span class="ident">SystemTime::UNIX_EPOCH</span>)
-            .<span class="ident">expect</span>(<span class="string">&quot;negative duration&quot;</span>)
-            .<span class="ident">as_millis</span>()
+    <span class="doccomment">/// Returns current system time in ms.
+    </span><span class="kw">fn </span>system_time_in_ms() -&gt; u128 {
+        <span class="kw">let </span>now = SystemTime::now();
+        now.duration_since(SystemTime::UNIX_EPOCH)
+            .expect(<span class="string">&quot;negative duration&quot;</span>)
+            .as_millis()
     }
 
-    <span class="doccomment">/// `console.time(label)`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Starts the timer for given label.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///  - [WHATWG `console` specification][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://console.spec.whatwg.org/#time</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/time</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">time</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">label</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>) {
-            <span class="prelude-val">Some</span>(<span class="ident">value</span>) =&gt; <span class="ident">value</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>,
-            <span class="prelude-val">None</span> =&gt; <span class="string">&quot;default&quot;</span>.<span class="ident">into</span>(),
+    <span class="doccomment">/// `console.time(label)`
+    ///
+    /// Starts the timer for given label.
+    ///
+    /// More information:
+    ///  - [MDN documentation][mdn]
+    ///  - [WHATWG `console` specification][spec]
+    ///
+    /// [spec]: https://console.spec.whatwg.org/#time
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/time
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>time(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="kw">let </span>label = <span class="kw">match </span>args.get(<span class="number">0</span>) {
+            <span class="prelude-val">Some</span>(value) =&gt; value.to_string(context)<span class="question-mark">?</span>,
+            <span class="prelude-val">None </span>=&gt; <span class="string">&quot;default&quot;</span>.into(),
         };
 
-        <span class="kw">if</span> <span class="ident">context</span>.<span class="ident">console</span>().<span class="ident">timer_map</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">label</span>).<span class="ident">is_some</span>() {
-            <span class="ident">logger</span>(
-                <span class="ident">LogMessage::Warn</span>(<span class="macro">format!</span>(
+        <span class="kw">if </span>context.console().timer_map.get(<span class="kw-2">&amp;</span>label).is_some() {
+            logger(
+                LogMessage::Warn(<span class="macro">format!</span>(
                     <span class="string">&quot;Timer &#39;{}&#39; already exist&quot;</span>,
-                    <span class="ident">label</span>.<span class="ident">to_std_string_escaped</span>()
+                    label.to_std_string_escaped()
                 )),
-                <span class="ident">context</span>.<span class="ident">console</span>(),
+                context.console(),
             );
-        } <span class="kw">else</span> {
-            <span class="kw">let</span> <span class="ident">time</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::system_time_in_ms</span>();
-            <span class="ident">context</span>.<span class="ident">console_mut</span>().<span class="ident">timer_map</span>.<span class="ident">insert</span>(<span class="ident">label</span>, <span class="ident">time</span>);
+        } <span class="kw">else </span>{
+            <span class="kw">let </span>time = <span class="self">Self</span>::system_time_in_ms();
+            context.console_mut().timer_map.insert(label, time);
         }
 
-        <span class="prelude-val">Ok</span>(<span class="ident">JsValue::undefined</span>())
+        <span class="prelude-val">Ok</span>(JsValue::undefined())
     }
 
-    <span class="doccomment">/// `console.timeLog(label, ...data)`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Prints elapsed time for timer with given label.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///  - [WHATWG `console` specification][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://console.spec.whatwg.org/#timelog</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/timeLog</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">time_log</span>(
-        <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
-        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">label</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>) {
-            <span class="prelude-val">Some</span>(<span class="ident">value</span>) =&gt; <span class="ident">value</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>,
-            <span class="prelude-val">None</span> =&gt; <span class="string">&quot;default&quot;</span>.<span class="ident">into</span>(),
+    <span class="doccomment">/// `console.timeLog(label, ...data)`
+    ///
+    /// Prints elapsed time for timer with given label.
+    ///
+    /// More information:
+    ///  - [MDN documentation][mdn]
+    ///  - [WHATWG `console` specification][spec]
+    ///
+    /// [spec]: https://console.spec.whatwg.org/#timelog
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/timeLog
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>time_log(
+        <span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue,
+        args: <span class="kw-2">&amp;</span>[JsValue],
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="kw">let </span>label = <span class="kw">match </span>args.get(<span class="number">0</span>) {
+            <span class="prelude-val">Some</span>(value) =&gt; value.to_string(context)<span class="question-mark">?</span>,
+            <span class="prelude-val">None </span>=&gt; <span class="string">&quot;default&quot;</span>.into(),
         };
 
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">t</span>) <span class="op">=</span> <span class="ident">context</span>.<span class="ident">console</span>().<span class="ident">timer_map</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">label</span>) {
-            <span class="kw">let</span> <span class="ident">time</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::system_time_in_ms</span>();
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">concat</span> <span class="op">=</span> <span class="macro">format!</span>(<span class="string">&quot;{}: {} ms&quot;</span>, <span class="ident">label</span>.<span class="ident">to_std_string_escaped</span>(), <span class="ident">time</span> <span class="op">-</span> <span class="ident">t</span>);
-            <span class="kw">for</span> <span class="ident">msg</span> <span class="kw">in</span> <span class="ident">args</span>.<span class="ident">iter</span>().<span class="ident">skip</span>(<span class="number">1</span>) {
-                <span class="ident">concat</span> <span class="op">=</span> <span class="ident">concat</span> <span class="op">+</span> <span class="string">&quot; &quot;</span> <span class="op">+</span> <span class="kw-2">&amp;</span><span class="ident">msg</span>.<span class="ident">display</span>().<span class="ident">to_string</span>();
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(t) = context.console().timer_map.get(<span class="kw-2">&amp;</span>label) {
+            <span class="kw">let </span>time = <span class="self">Self</span>::system_time_in_ms();
+            <span class="kw">let </span><span class="kw-2">mut </span>concat = <span class="macro">format!</span>(<span class="string">&quot;{}: {} ms&quot;</span>, label.to_std_string_escaped(), time - t);
+            <span class="kw">for </span>msg <span class="kw">in </span>args.iter().skip(<span class="number">1</span>) {
+                concat = concat + <span class="string">&quot; &quot; </span>+ <span class="kw-2">&amp;</span>msg.display().to_string();
             }
-            <span class="ident">logger</span>(<span class="ident">LogMessage::Log</span>(<span class="ident">concat</span>), <span class="ident">context</span>.<span class="ident">console</span>());
-        } <span class="kw">else</span> {
-            <span class="ident">logger</span>(
-                <span class="ident">LogMessage::Warn</span>(<span class="macro">format!</span>(
+            logger(LogMessage::Log(concat), context.console());
+        } <span class="kw">else </span>{
+            logger(
+                LogMessage::Warn(<span class="macro">format!</span>(
                     <span class="string">&quot;Timer &#39;{}&#39; doesn&#39;t exist&quot;</span>,
-                    <span class="ident">label</span>.<span class="ident">to_std_string_escaped</span>()
+                    label.to_std_string_escaped()
                 )),
-                <span class="ident">context</span>.<span class="ident">console</span>(),
+                context.console(),
             );
         }
 
-        <span class="prelude-val">Ok</span>(<span class="ident">JsValue::undefined</span>())
+        <span class="prelude-val">Ok</span>(JsValue::undefined())
     }
 
-    <span class="doccomment">/// `console.timeEnd(label)`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Removes the timer with given label.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///  - [WHATWG `console` specification][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://console.spec.whatwg.org/#timeend</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/timeEnd</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">time_end</span>(
-        <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
-        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">label</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>) {
-            <span class="prelude-val">Some</span>(<span class="ident">value</span>) =&gt; <span class="ident">value</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>,
-            <span class="prelude-val">None</span> =&gt; <span class="string">&quot;default&quot;</span>.<span class="ident">into</span>(),
+    <span class="doccomment">/// `console.timeEnd(label)`
+    ///
+    /// Removes the timer with given label.
+    ///
+    /// More information:
+    ///  - [MDN documentation][mdn]
+    ///  - [WHATWG `console` specification][spec]
+    ///
+    /// [spec]: https://console.spec.whatwg.org/#timeend
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/timeEnd
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>time_end(
+        <span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue,
+        args: <span class="kw-2">&amp;</span>[JsValue],
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="kw">let </span>label = <span class="kw">match </span>args.get(<span class="number">0</span>) {
+            <span class="prelude-val">Some</span>(value) =&gt; value.to_string(context)<span class="question-mark">?</span>,
+            <span class="prelude-val">None </span>=&gt; <span class="string">&quot;default&quot;</span>.into(),
         };
 
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">t</span>) <span class="op">=</span> <span class="ident">context</span>.<span class="ident">console_mut</span>().<span class="ident">timer_map</span>.<span class="ident">remove</span>(<span class="kw-2">&amp;</span><span class="ident">label</span>) {
-            <span class="kw">let</span> <span class="ident">time</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::system_time_in_ms</span>();
-            <span class="ident">logger</span>(
-                <span class="ident">LogMessage::Info</span>(<span class="macro">format!</span>(
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(t) = context.console_mut().timer_map.remove(<span class="kw-2">&amp;</span>label) {
+            <span class="kw">let </span>time = <span class="self">Self</span>::system_time_in_ms();
+            logger(
+                LogMessage::Info(<span class="macro">format!</span>(
                     <span class="string">&quot;{}: {} ms - timer removed&quot;</span>,
-                    <span class="ident">label</span>.<span class="ident">to_std_string_escaped</span>(),
-                    <span class="ident">time</span> <span class="op">-</span> <span class="ident">t</span>
+                    label.to_std_string_escaped(),
+                    time - t
                 )),
-                <span class="ident">context</span>.<span class="ident">console</span>(),
+                context.console(),
             );
-        } <span class="kw">else</span> {
-            <span class="ident">logger</span>(
-                <span class="ident">LogMessage::Warn</span>(<span class="macro">format!</span>(
+        } <span class="kw">else </span>{
+            logger(
+                LogMessage::Warn(<span class="macro">format!</span>(
                     <span class="string">&quot;Timer &#39;{}&#39; doesn&#39;t exist&quot;</span>,
-                    <span class="ident">label</span>.<span class="ident">to_std_string_escaped</span>()
+                    label.to_std_string_escaped()
                 )),
-                <span class="ident">context</span>.<span class="ident">console</span>(),
+                context.console(),
             );
         }
 
-        <span class="prelude-val">Ok</span>(<span class="ident">JsValue::undefined</span>())
+        <span class="prelude-val">Ok</span>(JsValue::undefined())
     }
 
-    <span class="doccomment">/// `console.group(...data)`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Adds new group with name from formatted data to stack.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///  - [WHATWG `console` specification][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://console.spec.whatwg.org/#group</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/group</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">group</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">group_label</span> <span class="op">=</span> <span class="ident">formatter</span>(<span class="ident">args</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+    <span class="doccomment">/// `console.group(...data)`
+    ///
+    /// Adds new group with name from formatted data to stack.
+    ///
+    /// More information:
+    ///  - [MDN documentation][mdn]
+    ///  - [WHATWG `console` specification][spec]
+    ///
+    /// [spec]: https://console.spec.whatwg.org/#group
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/group
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>group(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="kw">let </span>group_label = formatter(args, context)<span class="question-mark">?</span>;
 
-        <span class="ident">logger</span>(
-            <span class="ident">LogMessage::Info</span>(<span class="macro">format!</span>(<span class="string">&quot;group: {group_label}&quot;</span>)),
-            <span class="ident">context</span>.<span class="ident">console</span>(),
+        logger(
+            LogMessage::Info(<span class="macro">format!</span>(<span class="string">&quot;group: {group_label}&quot;</span>)),
+            context.console(),
         );
-        <span class="ident">context</span>.<span class="ident">console_mut</span>().<span class="ident">groups</span>.<span class="ident">push</span>(<span class="ident">group_label</span>);
+        context.console_mut().groups.push(group_label);
 
-        <span class="prelude-val">Ok</span>(<span class="ident">JsValue::undefined</span>())
+        <span class="prelude-val">Ok</span>(JsValue::undefined())
     }
 
-    <span class="doccomment">/// `console.groupEnd(label)`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Removes the last group from the stack.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///  - [WHATWG `console` specification][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://console.spec.whatwg.org/#groupend</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/groupEnd</span>
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::unnecessary_wraps</span>)]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">group_end</span>(
-        <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
-        <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="ident">context</span>.<span class="ident">console_mut</span>().<span class="ident">groups</span>.<span class="ident">pop</span>();
+    <span class="doccomment">/// `console.groupEnd(label)`
+    ///
+    /// Removes the last group from the stack.
+    ///
+    /// More information:
+    ///  - [MDN documentation][mdn]
+    ///  - [WHATWG `console` specification][spec]
+    ///
+    /// [spec]: https://console.spec.whatwg.org/#groupend
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/groupEnd
+    </span><span class="attribute">#[allow(clippy::unnecessary_wraps)]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>group_end(
+        <span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue,
+        <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue],
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;JsValue&gt; {
+        context.console_mut().groups.pop();
 
-        <span class="prelude-val">Ok</span>(<span class="ident">JsValue::undefined</span>())
+        <span class="prelude-val">Ok</span>(JsValue::undefined())
     }
 
-    <span class="doccomment">/// `console.dir(item, options)`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Prints info about item</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///  - [WHATWG `console` specification][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://console.spec.whatwg.org/#dir</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/dir</span>
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::unnecessary_wraps</span>)]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">dir</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="ident">logger</span>(
-            <span class="ident">LogMessage::Info</span>(<span class="ident">display_obj</span>(<span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>), <span class="bool-val">true</span>)),
-            <span class="ident">context</span>.<span class="ident">console</span>(),
+    <span class="doccomment">/// `console.dir(item, options)`
+    ///
+    /// Prints info about item
+    ///
+    /// More information:
+    ///  - [MDN documentation][mdn]
+    ///  - [WHATWG `console` specification][spec]
+    ///
+    /// [spec]: https://console.spec.whatwg.org/#dir
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/dir
+    </span><span class="attribute">#[allow(clippy::unnecessary_wraps)]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>dir(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+        logger(
+            LogMessage::Info(display_obj(args.get_or_undefined(<span class="number">0</span>), <span class="bool-val">true</span>)),
+            context.console(),
         );
-        <span class="prelude-val">Ok</span>(<span class="ident">JsValue::undefined</span>())
+        <span class="prelude-val">Ok</span>(JsValue::undefined())
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0 (a55dd71d5 2022-09-19)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0 (897e37553 2022-11-02)" ></div></body></html>

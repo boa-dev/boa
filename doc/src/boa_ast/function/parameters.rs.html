@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_ast/src/function/parameters.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>parameters.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../boa_ast/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../boa_ast/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../boa_ast/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_ast/src/function/parameters.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>parameters.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../boa_ast/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../boa_ast/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../boa_ast/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -289,396 +289,296 @@
 <span id="289">289</span>
 <span id="290">290</span>
 <span id="291">291</span>
-<span id="292">292</span>
-<span id="293">293</span>
-<span id="294">294</span>
-<span id="295">295</span>
-<span id="296">296</span>
-<span id="297">297</span>
-<span id="298">298</span>
-<span id="299">299</span>
-<span id="300">300</span>
-<span id="301">301</span>
-<span id="302">302</span>
-<span id="303">303</span>
-<span id="304">304</span>
-<span id="305">305</span>
-<span id="306">306</span>
-<span id="307">307</span>
-<span id="308">308</span>
-<span id="309">309</span>
-<span id="310">310</span>
-<span id="311">311</span>
-<span id="312">312</span>
-<span id="313">313</span>
-<span id="314">314</span>
-<span id="315">315</span>
-<span id="316">316</span>
-<span id="317">317</span>
-<span id="318">318</span>
-<span id="319">319</span>
-<span id="320">320</span>
-<span id="321">321</span>
-<span id="322">322</span>
-<span id="323">323</span>
-<span id="324">324</span>
-<span id="325">325</span>
-<span id="326">326</span>
-<span id="327">327</span>
-<span id="328">328</span>
-<span id="329">329</span>
-<span id="330">330</span>
-<span id="331">331</span>
-<span id="332">332</span>
-<span id="333">333</span>
-<span id="334">334</span>
-<span id="335">335</span>
-<span id="336">336</span>
-<span id="337">337</span>
-<span id="338">338</span>
-<span id="339">339</span>
-<span id="340">340</span>
-<span id="341">341</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">declaration</span>::{<span class="ident">Binding</span>, <span class="ident">Variable</span>},
-    <span class="ident">expression</span>::{<span class="ident">Expression</span>, <span class="ident">Identifier</span>},
-    <span class="ident">pattern::Pattern</span>,
-    <span class="ident">try_break</span>,
-    <span class="ident">visitor</span>::{<span class="ident">VisitWith</span>, <span class="ident">Visitor</span>, <span class="ident">VisitorMut</span>},
-    <span class="ident">ContainsSymbol</span>,
+</pre><pre class="rust"><code><span class="kw">use crate</span>::{
+    declaration::{Binding, Variable},
+    expression::{Expression, Identifier},
+    pattern::Pattern,
+    try_break,
+    visitor::{VisitWith, Visitor, VisitorMut},
 };
-<span class="kw">use</span> <span class="ident">bitflags::bitflags</span>;
-<span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">Sym</span>, <span class="ident">ToInternedString</span>};
-<span class="kw">use</span> <span class="ident">core::ops::ControlFlow</span>;
-<span class="kw">use</span> <span class="ident">rustc_hash::FxHashSet</span>;
+<span class="kw">use </span>bitflags::bitflags;
+<span class="kw">use </span>boa_interner::{Interner, Sym, ToInternedString};
+<span class="kw">use </span>core::ops::ControlFlow;
+<span class="kw">use </span>rustc_hash::FxHashSet;
 
-<span class="doccomment">/// A list of `FormalParameter`s that describes the parameters of a function, as defined by the [spec].</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-FormalParameterList</span>
-<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>, <span class="ident">derive</span>(<span class="ident">serde::Serialize</span>, <span class="ident">serde::Deserialize</span>))]</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Default</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">FormalParameterList</span> {
-    <span class="ident">parameters</span>: <span class="ident">Box</span><span class="op">&lt;</span>[<span class="ident">FormalParameter</span>]<span class="op">&gt;</span>,
-    <span class="ident">flags</span>: <span class="ident">FormalParameterListFlags</span>,
-    <span class="ident">length</span>: <span class="ident">u32</span>,
+<span class="doccomment">/// A list of `FormalParameter`s that describes the parameters of a function, as defined by the [spec].
+///
+/// [spec]: https://tc39.es/ecma262/#prod-FormalParameterList
+</span><span class="attribute">#[cfg_attr(feature = <span class="string">&quot;serde&quot;</span>, derive(serde::Serialize, serde::Deserialize))]
+#[derive(Clone, Debug, Default, PartialEq)]
+</span><span class="kw">pub struct </span>FormalParameterList {
+    parameters: Box&lt;[FormalParameter]&gt;,
+    flags: FormalParameterListFlags,
+    length: u32,
 }
 
-<span class="kw">impl</span> <span class="ident">FormalParameterList</span> {
-    <span class="doccomment">/// Creates a new empty formal parameter list.</span>
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">parameters</span>: <span class="ident">Box::new</span>([]),
-            <span class="ident">flags</span>: <span class="ident">FormalParameterListFlags::default</span>(),
-            <span class="ident">length</span>: <span class="number">0</span>,
+<span class="kw">impl </span>FormalParameterList {
+    <span class="doccomment">/// Creates a new empty formal parameter list.
+    </span><span class="attribute">#[must_use]
+    </span><span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            parameters: Box::new([]),
+            flags: FormalParameterListFlags::default(),
+            length: <span class="number">0</span>,
         }
     }
 
-    <span class="doccomment">/// Creates a `FormalParameterList` from a list of [`FormalParameter`]s.</span>
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_parameters</span>(<span class="ident">parameters</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">FormalParameter</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">flags</span> <span class="op">=</span> <span class="ident">FormalParameterListFlags::default</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">length</span> <span class="op">=</span> <span class="number">0</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">names</span> <span class="op">=</span> <span class="ident">FxHashSet::default</span>();
+    <span class="doccomment">/// Creates a `FormalParameterList` from a list of [`FormalParameter`]s.
+    </span><span class="attribute">#[must_use]
+    </span><span class="kw">pub fn </span>from_parameters(parameters: Vec&lt;FormalParameter&gt;) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span><span class="kw-2">mut </span>flags = FormalParameterListFlags::default();
+        <span class="kw">let </span><span class="kw-2">mut </span>length = <span class="number">0</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>names = FxHashSet::default();
 
-        <span class="kw">for</span> <span class="ident">parameter</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">parameters</span> {
-            <span class="kw">let</span> <span class="ident">parameter_names</span> <span class="op">=</span> <span class="ident">parameter</span>.<span class="ident">names</span>();
+        <span class="kw">for </span>parameter <span class="kw">in </span><span class="kw-2">&amp;</span>parameters {
+            <span class="kw">let </span>parameter_names = parameter.names();
 
-            <span class="kw">for</span> <span class="ident">name</span> <span class="kw">in</span> <span class="ident">parameter_names</span> {
-                <span class="kw">if</span> <span class="ident">name</span> <span class="op">==</span> <span class="ident">Sym::ARGUMENTS</span> {
-                    <span class="ident">flags</span> <span class="op">|</span><span class="op">=</span> <span class="ident">FormalParameterListFlags::HAS_ARGUMENTS</span>;
+            <span class="kw">for </span>name <span class="kw">in </span>parameter_names {
+                <span class="kw">if </span>name == Sym::ARGUMENTS {
+                    flags |= FormalParameterListFlags::HAS_ARGUMENTS;
                 }
-                <span class="kw">if</span> <span class="ident">names</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">name</span>) {
-                    <span class="ident">flags</span> <span class="op">|</span><span class="op">=</span> <span class="ident">FormalParameterListFlags::HAS_DUPLICATES</span>;
-                } <span class="kw">else</span> {
-                    <span class="ident">names</span>.<span class="ident">insert</span>(<span class="ident">name</span>);
+                <span class="kw">if </span>names.contains(<span class="kw-2">&amp;</span>name) {
+                    flags |= FormalParameterListFlags::HAS_DUPLICATES;
+                } <span class="kw">else </span>{
+                    names.insert(name);
                 }
             }
 
-            <span class="kw">if</span> <span class="ident">parameter</span>.<span class="ident">is_rest_param</span>() {
-                <span class="ident">flags</span> <span class="op">|</span><span class="op">=</span> <span class="ident">FormalParameterListFlags::HAS_REST_PARAMETER</span>;
+            <span class="kw">if </span>parameter.is_rest_param() {
+                flags |= FormalParameterListFlags::HAS_REST_PARAMETER;
             }
-            <span class="kw">if</span> <span class="ident">parameter</span>.<span class="ident">init</span>().<span class="ident">is_some</span>() {
-                <span class="ident">flags</span> <span class="op">|</span><span class="op">=</span> <span class="ident">FormalParameterListFlags::HAS_EXPRESSIONS</span>;
+            <span class="kw">if </span>parameter.init().is_some() {
+                flags |= FormalParameterListFlags::HAS_EXPRESSIONS;
             }
-            <span class="kw">if</span> <span class="ident">parameter</span>.<span class="ident">is_rest_param</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">parameter</span>.<span class="ident">init</span>().<span class="ident">is_some</span>() <span class="op">|</span><span class="op">|</span> <span class="op">!</span><span class="ident">parameter</span>.<span class="ident">is_identifier</span>()
+            <span class="kw">if </span>parameter.is_rest_param() || parameter.init().is_some() || !parameter.is_identifier()
             {
-                <span class="ident">flags</span>.<span class="ident">remove</span>(<span class="ident">FormalParameterListFlags::IS_SIMPLE</span>);
+                flags.remove(FormalParameterListFlags::IS_SIMPLE);
             }
-            <span class="kw">if</span> <span class="op">!</span>(<span class="ident">flags</span>.<span class="ident">contains</span>(<span class="ident">FormalParameterListFlags::HAS_EXPRESSIONS</span>)
-                <span class="op">|</span><span class="op">|</span> <span class="ident">parameter</span>.<span class="ident">is_rest_param</span>()
-                <span class="op">|</span><span class="op">|</span> <span class="ident">parameter</span>.<span class="ident">init</span>().<span class="ident">is_some</span>())
+            <span class="kw">if </span>!(flags.contains(FormalParameterListFlags::HAS_EXPRESSIONS)
+                || parameter.is_rest_param()
+                || parameter.init().is_some())
             {
-                <span class="ident">length</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+                length += <span class="number">1</span>;
             }
         }
 
-        <span class="self">Self</span> {
-            <span class="ident">parameters</span>: <span class="ident">parameters</span>.<span class="ident">into</span>(),
-            <span class="ident">flags</span>,
-            <span class="ident">length</span>,
+        <span class="self">Self </span>{
+            parameters: parameters.into(),
+            flags,
+            length,
         }
     }
 
-    <span class="doccomment">/// Returns the length of the parameter list.</span>
-    <span class="doccomment">/// Note that this is not equal to the length of the parameters slice.</span>
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">length</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">u32</span> {
-        <span class="self">self</span>.<span class="ident">length</span>
+    <span class="doccomment">/// Returns the length of the parameter list.
+    /// Note that this is not equal to the length of the parameters slice.
+    </span><span class="attribute">#[must_use]
+    </span><span class="kw">pub fn </span>length(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u32 {
+        <span class="self">self</span>.length
     }
 
-    <span class="doccomment">/// Returns the parameter list flags.</span>
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">flags</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">FormalParameterListFlags</span> {
-        <span class="self">self</span>.<span class="ident">flags</span>
+    <span class="doccomment">/// Returns the parameter list flags.
+    </span><span class="attribute">#[must_use]
+    </span><span class="kw">pub fn </span>flags(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; FormalParameterListFlags {
+        <span class="self">self</span>.flags
     }
 
-    <span class="doccomment">/// Indicates if the parameter list is simple.</span>
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_simple</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">flags</span>.<span class="ident">contains</span>(<span class="ident">FormalParameterListFlags::IS_SIMPLE</span>)
+    <span class="doccomment">/// Indicates if the parameter list is simple.
+    </span><span class="attribute">#[must_use]
+    </span><span class="kw">pub fn </span>is_simple(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.flags.contains(FormalParameterListFlags::IS_SIMPLE)
     }
 
-    <span class="doccomment">/// Indicates if the parameter list has duplicate parameters.</span>
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">has_duplicates</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">flags</span>
-            .<span class="ident">contains</span>(<span class="ident">FormalParameterListFlags::HAS_DUPLICATES</span>)
+    <span class="doccomment">/// Indicates if the parameter list has duplicate parameters.
+    </span><span class="attribute">#[must_use]
+    </span><span class="kw">pub fn </span>has_duplicates(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.flags
+            .contains(FormalParameterListFlags::HAS_DUPLICATES)
     }
 
-    <span class="doccomment">/// Indicates if the parameter list has a rest parameter.</span>
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">has_rest_parameter</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">flags</span>
-            .<span class="ident">contains</span>(<span class="ident">FormalParameterListFlags::HAS_REST_PARAMETER</span>)
+    <span class="doccomment">/// Indicates if the parameter list has a rest parameter.
+    </span><span class="attribute">#[must_use]
+    </span><span class="kw">pub fn </span>has_rest_parameter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.flags
+            .contains(FormalParameterListFlags::HAS_REST_PARAMETER)
     }
 
-    <span class="doccomment">/// Indicates if the parameter list has expressions in it&#39;s parameters.</span>
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">has_expressions</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">flags</span>
-            .<span class="ident">contains</span>(<span class="ident">FormalParameterListFlags::HAS_EXPRESSIONS</span>)
+    <span class="doccomment">/// Indicates if the parameter list has expressions in it&#39;s parameters.
+    </span><span class="attribute">#[must_use]
+    </span><span class="kw">pub fn </span>has_expressions(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.flags
+            .contains(FormalParameterListFlags::HAS_EXPRESSIONS)
     }
 
-    <span class="doccomment">/// Indicates if the parameter list has parameters named &#39;arguments&#39;.</span>
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">has_arguments</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">flags</span>.<span class="ident">contains</span>(<span class="ident">FormalParameterListFlags::HAS_ARGUMENTS</span>)
-    }
-
-    <span class="doccomment">/// Check if the any of the parameters contains a yield expression.</span>
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">contains_yield_expression</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="kw">for</span> <span class="ident">parameter</span> <span class="kw">in</span> <span class="self">self</span>.<span class="ident">parameters</span>.<span class="ident">iter</span>() {
-            <span class="kw">if</span> <span class="ident">parameter</span>
-                .<span class="ident">variable</span>()
-                .<span class="ident">contains</span>(<span class="ident">ContainsSymbol::YieldExpression</span>)
-            {
-                <span class="kw">return</span> <span class="bool-val">true</span>;
-            }
-        }
-        <span class="bool-val">false</span>
-    }
-
-    <span class="doccomment">/// Check if the any of the parameters contains a await expression.</span>
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">contains_await_expression</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="kw">for</span> <span class="ident">parameter</span> <span class="kw">in</span> <span class="self">self</span>.<span class="ident">parameters</span>.<span class="ident">iter</span>() {
-            <span class="kw">if</span> <span class="ident">parameter</span>
-                .<span class="ident">variable</span>()
-                .<span class="ident">contains</span>(<span class="ident">ContainsSymbol::AwaitExpression</span>)
-            {
-                <span class="kw">return</span> <span class="bool-val">true</span>;
-            }
-        }
-        <span class="bool-val">false</span>
-    }
-
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">contains_arguments</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">parameters</span>
-            .<span class="ident">iter</span>()
-            .<span class="ident">any</span>(<span class="ident">FormalParameter::contains_arguments</span>)
-    }
-
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">symbol</span>: <span class="ident">ContainsSymbol</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">parameters</span>.<span class="ident">iter</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">param</span><span class="op">|</span> <span class="ident">param</span>.<span class="ident">contains</span>(<span class="ident">symbol</span>))
+    <span class="doccomment">/// Indicates if the parameter list has parameters named &#39;arguments&#39;.
+    </span><span class="attribute">#[must_use]
+    </span><span class="kw">pub fn </span>has_arguments(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.flags.contains(FormalParameterListFlags::HAS_ARGUMENTS)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">FormalParameter</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">FormalParameterList</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">parameters</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">FormalParameter</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::from_parameters</span>(<span class="ident">parameters</span>)
+<span class="kw">impl </span>From&lt;Vec&lt;FormalParameter&gt;&gt; <span class="kw">for </span>FormalParameterList {
+    <span class="kw">fn </span>from(parameters: Vec&lt;FormalParameter&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::from_parameters(parameters)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">FormalParameter</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">FormalParameterList</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">parameter</span>: <span class="ident">FormalParameter</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::from_parameters</span>(<span class="macro">vec!</span>[<span class="ident">parameter</span>])
+<span class="kw">impl </span>From&lt;FormalParameter&gt; <span class="kw">for </span>FormalParameterList {
+    <span class="kw">fn </span>from(parameter: FormalParameter) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::from_parameters(<span class="macro">vec!</span>[parameter])
     }
 }
 
-<span class="kw">impl</span> <span class="ident">AsRef</span><span class="op">&lt;</span>[<span class="ident">FormalParameter</span>]<span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">FormalParameterList</span> {
-    <span class="kw">fn</span> <span class="ident">as_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<span class="ident">FormalParameter</span>] {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">parameters</span>
+<span class="kw">impl </span>AsRef&lt;[FormalParameter]&gt; <span class="kw">for </span>FormalParameterList {
+    <span class="kw">fn </span>as_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[FormalParameter] {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.parameters
     }
 }
 
-<span class="kw">impl</span> <span class="ident">VisitWith</span> <span class="kw">for</span> <span class="ident">FormalParameterList</span> {
-    <span class="kw">fn</span> <span class="ident">visit_with</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">V</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>, <span class="ident">visitor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">V</span>) -&gt; <span class="ident">ControlFlow</span><span class="op">&lt;</span><span class="ident">V::BreakTy</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">V</span>: <span class="ident">Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
+<span class="kw">impl </span>VisitWith <span class="kw">for </span>FormalParameterList {
+    <span class="kw">fn </span>visit_with&lt;<span class="lifetime">&#39;a</span>, V&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>, visitor: <span class="kw-2">&amp;mut </span>V) -&gt; ControlFlow&lt;V::BreakTy&gt;
+    <span class="kw">where
+        </span>V: Visitor&lt;<span class="lifetime">&#39;a</span>&gt;,
     {
-        <span class="kw">for</span> <span class="ident">parameter</span> <span class="kw">in</span> <span class="self">self</span>.<span class="ident">parameters</span>.<span class="ident">iter</span>() {
-            <span class="macro">try_break!</span>(<span class="ident">visitor</span>.<span class="ident">visit_formal_parameter</span>(<span class="ident">parameter</span>));
+        <span class="kw">for </span>parameter <span class="kw">in </span><span class="self">self</span>.parameters.iter() {
+            <span class="macro">try_break!</span>(visitor.visit_formal_parameter(parameter));
         }
-        <span class="ident">ControlFlow::Continue</span>(())
+        ControlFlow::Continue(())
     }
 
-    <span class="kw">fn</span> <span class="ident">visit_with_mut</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">V</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">visitor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">V</span>) -&gt; <span class="ident">ControlFlow</span><span class="op">&lt;</span><span class="ident">V::BreakTy</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">V</span>: <span class="ident">VisitorMut</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
+    <span class="kw">fn </span>visit_with_mut&lt;<span class="lifetime">&#39;a</span>, V&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="self">self</span>, visitor: <span class="kw-2">&amp;mut </span>V) -&gt; ControlFlow&lt;V::BreakTy&gt;
+    <span class="kw">where
+        </span>V: VisitorMut&lt;<span class="lifetime">&#39;a</span>&gt;,
     {
-        <span class="kw">for</span> <span class="ident">parameter</span> <span class="kw">in</span> <span class="self">self</span>.<span class="ident">parameters</span>.<span class="ident">iter_mut</span>() {
-            <span class="macro">try_break!</span>(<span class="ident">visitor</span>.<span class="ident">visit_formal_parameter_mut</span>(<span class="ident">parameter</span>));
+        <span class="kw">for </span>parameter <span class="kw">in </span><span class="self">self</span>.parameters.iter_mut() {
+            <span class="macro">try_break!</span>(visitor.visit_formal_parameter_mut(parameter));
         }
-        <span class="comment">// TODO recompute flags</span>
-        <span class="ident">ControlFlow::Continue</span>(())
+        <span class="comment">// TODO recompute flags
+        </span>ControlFlow::Continue(())
     }
 }
 
-<span class="macro">bitflags!</span> {
-    <span class="doccomment">/// Flags for a [`FormalParameterList`].</span>
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::unsafe_derive_deserialize</span>)]</span>
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>, <span class="ident">derive</span>(<span class="ident">serde::Serialize</span>, <span class="ident">serde::Deserialize</span>))]</span>
-    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">FormalParameterListFlags</span>: <span class="ident">u8</span> {
-        <span class="doccomment">/// Has only identifier parameters with no initialization expressions.</span>
-        <span class="kw">const</span> <span class="ident">IS_SIMPLE</span> <span class="op">=</span> <span class="number">0b0000_0001</span>;
-        <span class="doccomment">/// Has any duplicate parameters.</span>
-        <span class="kw">const</span> <span class="ident">HAS_DUPLICATES</span> <span class="op">=</span> <span class="number">0b0000_0010</span>;
-        <span class="doccomment">/// Has a rest parameter.</span>
-        <span class="kw">const</span> <span class="ident">HAS_REST_PARAMETER</span> <span class="op">=</span> <span class="number">0b0000_0100</span>;
-        <span class="doccomment">/// Has any initialization expression.</span>
-        <span class="kw">const</span> <span class="ident">HAS_EXPRESSIONS</span> <span class="op">=</span> <span class="number">0b0000_1000</span>;
-        <span class="doccomment">/// Has an argument with the name `arguments`.</span>
-        <span class="kw">const</span> <span class="ident">HAS_ARGUMENTS</span> <span class="op">=</span> <span class="number">0b0001_0000</span>;
+<span class="macro">bitflags! </span>{
+    <span class="doccomment">/// Flags for a [`FormalParameterList`].
+    </span><span class="attribute">#[allow(clippy::unsafe_derive_deserialize)]
+    #[cfg_attr(feature = <span class="string">&quot;serde&quot;</span>, derive(serde::Serialize, serde::Deserialize))]
+    </span><span class="kw">pub struct </span>FormalParameterListFlags: u8 {
+        <span class="doccomment">/// Has only identifier parameters with no initialization expressions.
+        </span><span class="kw">const </span>IS_SIMPLE = <span class="number">0b0000_0001</span>;
+        <span class="doccomment">/// Has any duplicate parameters.
+        </span><span class="kw">const </span>HAS_DUPLICATES = <span class="number">0b0000_0010</span>;
+        <span class="doccomment">/// Has a rest parameter.
+        </span><span class="kw">const </span>HAS_REST_PARAMETER = <span class="number">0b0000_0100</span>;
+        <span class="doccomment">/// Has any initialization expression.
+        </span><span class="kw">const </span>HAS_EXPRESSIONS = <span class="number">0b0000_1000</span>;
+        <span class="doccomment">/// Has an argument with the name `arguments`.
+        </span><span class="kw">const </span>HAS_ARGUMENTS = <span class="number">0b0001_0000</span>;
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">FormalParameterListFlags</span> {
-    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::empty</span>().<span class="ident">union</span>(<span class="ident"><span class="self">Self</span>::IS_SIMPLE</span>)
+<span class="kw">impl </span>Default <span class="kw">for </span>FormalParameterListFlags {
+    <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::empty().union(<span class="self">Self</span>::IS_SIMPLE)
     }
 }
 
-<span class="doccomment">/// &quot;Formal parameter&quot; is a fancy way of saying &quot;function parameter&quot;.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// In the declaration of a function, the parameters must be identifiers,</span>
-<span class="doccomment">/// not any value like numbers, strings, or objects.</span>
-<span class="doccomment">/// ```text</span>
-<span class="doccomment">/// function foo(formalParameter1, formalParameter2) {</span>
-<span class="doccomment">/// }</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [ECMAScript reference][spec]</span>
-<span class="doccomment">///  - [MDN documentation][mdn]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-FormalParameter</span>
-<span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Errors/Missing_formal_parameter</span>
-<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>, <span class="ident">derive</span>(<span class="ident">serde::Serialize</span>, <span class="ident">serde::Deserialize</span>))]</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">FormalParameter</span> {
-    <span class="ident">variable</span>: <span class="ident">Variable</span>,
-    <span class="ident">is_rest_param</span>: <span class="ident">bool</span>,
+<span class="doccomment">/// &quot;Formal parameter&quot; is a fancy way of saying &quot;function parameter&quot;.
+///
+/// In the declaration of a function, the parameters must be identifiers,
+/// not any value like numbers, strings, or objects.
+/// ```text
+/// function foo(formalParameter1, formalParameter2) {
+/// }
+/// ```
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///  - [MDN documentation][mdn]
+///
+/// [spec]: https://tc39.es/ecma262/#prod-FormalParameter
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Errors/Missing_formal_parameter
+</span><span class="attribute">#[cfg_attr(feature = <span class="string">&quot;serde&quot;</span>, derive(serde::Serialize, serde::Deserialize))]
+#[derive(Clone, Debug, PartialEq)]
+</span><span class="kw">pub struct </span>FormalParameter {
+    variable: Variable,
+    is_rest_param: bool,
 }
 
-<span class="kw">impl</span> <span class="ident">FormalParameter</span> {
-    <span class="doccomment">/// Creates a new formal parameter.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">D</span><span class="op">&gt;</span>(<span class="ident">variable</span>: <span class="ident">D</span>, <span class="ident">is_rest_param</span>: <span class="ident">bool</span>) -&gt; <span class="self">Self</span>
-    <span class="kw">where</span>
-        <span class="ident">D</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Variable</span><span class="op">&gt;</span>,
+<span class="kw">impl </span>FormalParameter {
+    <span class="doccomment">/// Creates a new formal parameter.
+    </span><span class="kw">pub fn </span>new&lt;D&gt;(variable: D, is_rest_param: bool) -&gt; <span class="self">Self
+    </span><span class="kw">where
+        </span>D: Into&lt;Variable&gt;,
     {
-        <span class="self">Self</span> {
-            <span class="ident">variable</span>: <span class="ident">variable</span>.<span class="ident">into</span>(),
-            <span class="ident">is_rest_param</span>,
+        <span class="self">Self </span>{
+            variable: variable.into(),
+            is_rest_param,
         }
     }
 
-    <span class="doccomment">/// Gets the name of the formal parameter.</span>
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">names</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Identifier</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">variable</span>.<span class="ident">binding</span>() {
-            <span class="ident">Binding::Identifier</span>(<span class="ident">ident</span>) =&gt; <span class="macro">vec!</span>[<span class="kw-2">*</span><span class="ident">ident</span>],
-            <span class="ident">Binding::Pattern</span>(<span class="ident">pattern</span>) =&gt; <span class="kw">match</span> <span class="ident">pattern</span> {
-                <span class="ident">Pattern::Object</span>(<span class="ident">object_pattern</span>) =&gt; <span class="ident">object_pattern</span>.<span class="ident">idents</span>(),
+    <span class="doccomment">/// Gets the name of the formal parameter.
+    </span><span class="attribute">#[must_use]
+    </span><span class="kw">pub fn </span>names(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;Identifier&gt; {
+        <span class="kw">match </span><span class="self">self</span>.variable.binding() {
+            Binding::Identifier(ident) =&gt; <span class="macro">vec!</span>[<span class="kw-2">*</span>ident],
+            Binding::Pattern(pattern) =&gt; <span class="kw">match </span>pattern {
+                Pattern::Object(object_pattern) =&gt; object_pattern.idents(),
 
-                <span class="ident">Pattern::Array</span>(<span class="ident">array_pattern</span>) =&gt; <span class="ident">array_pattern</span>.<span class="ident">idents</span>(),
+                Pattern::Array(array_pattern) =&gt; array_pattern.idents(),
             },
         }
     }
 
-    <span class="doccomment">/// Gets the variable of the formal parameter</span>
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">variable</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">Variable</span> {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">variable</span>
+    <span class="doccomment">/// Gets the variable of the formal parameter
+    </span><span class="attribute">#[must_use]
+    </span><span class="kw">pub fn </span>variable(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Variable {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.variable
     }
 
-    <span class="doccomment">/// Gets the initialization node of the formal parameter, if any.</span>
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">init</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Expression</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">variable</span>.<span class="ident">init</span>()
+    <span class="doccomment">/// Gets the initialization node of the formal parameter, if any.
+    </span><span class="attribute">#[must_use]
+    </span><span class="kw">pub fn </span>init(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Expression&gt; {
+        <span class="self">self</span>.variable.init()
     }
 
-    <span class="doccomment">/// Returns `true` if the parameter is a rest parameter.</span>
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_rest_param</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">is_rest_param</span>
+    <span class="doccomment">/// Returns `true` if the parameter is a rest parameter.
+    </span><span class="attribute">#[must_use]
+    </span><span class="kw">pub fn </span>is_rest_param(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.is_rest_param
     }
 
-    <span class="doccomment">/// Returns `true` if the parameter is a simple [`Identifier`].</span>
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_identifier</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="macro">matches!</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">variable</span>.<span class="ident">binding</span>(), <span class="ident">Binding::Identifier</span>(<span class="kw">_</span>))
-    }
-
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">contains_arguments</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">variable</span>.<span class="ident">contains_arguments</span>()
-    }
-
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">symbol</span>: <span class="ident">ContainsSymbol</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">variable</span>.<span class="ident">contains</span>(<span class="ident">symbol</span>)
+    <span class="doccomment">/// Returns `true` if the parameter is a simple [`Identifier`].
+    </span><span class="attribute">#[must_use]
+    </span><span class="kw">pub fn </span>is_identifier(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="macro">matches!</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.variable.binding(), Binding::Identifier(<span class="kw">_</span>))
     }
 }
 
-<span class="kw">impl</span> <span class="ident">ToInternedString</span> <span class="kw">for</span> <span class="ident">FormalParameter</span> {
-    <span class="kw">fn</span> <span class="ident">to_interned_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;</span><span class="ident">Interner</span>) -&gt; <span class="ident">String</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_rest_param</span> {
-            <span class="string">&quot;...&quot;</span>.<span class="ident">to_owned</span>()
-        } <span class="kw">else</span> {
-            <span class="ident">String::new</span>()
+<span class="kw">impl </span>ToInternedString <span class="kw">for </span>FormalParameter {
+    <span class="kw">fn </span>to_interned_string(<span class="kw-2">&amp;</span><span class="self">self</span>, interner: <span class="kw-2">&amp;</span>Interner) -&gt; String {
+        <span class="kw">let </span><span class="kw-2">mut </span>buf = <span class="kw">if </span><span class="self">self</span>.is_rest_param {
+            <span class="string">&quot;...&quot;</span>.to_owned()
+        } <span class="kw">else </span>{
+            String::new()
         };
-        <span class="ident">buf</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">variable</span>.<span class="ident">to_interned_string</span>(<span class="ident">interner</span>));
-        <span class="ident">buf</span>
+        buf.push_str(<span class="kw-2">&amp;</span><span class="self">self</span>.variable.to_interned_string(interner));
+        buf
     }
 }
 
-<span class="kw">impl</span> <span class="ident">VisitWith</span> <span class="kw">for</span> <span class="ident">FormalParameter</span> {
-    <span class="kw">fn</span> <span class="ident">visit_with</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">V</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>, <span class="ident">visitor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">V</span>) -&gt; <span class="ident">ControlFlow</span><span class="op">&lt;</span><span class="ident">V::BreakTy</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">V</span>: <span class="ident">Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
+<span class="kw">impl </span>VisitWith <span class="kw">for </span>FormalParameter {
+    <span class="kw">fn </span>visit_with&lt;<span class="lifetime">&#39;a</span>, V&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>, visitor: <span class="kw-2">&amp;mut </span>V) -&gt; ControlFlow&lt;V::BreakTy&gt;
+    <span class="kw">where
+        </span>V: Visitor&lt;<span class="lifetime">&#39;a</span>&gt;,
     {
-        <span class="ident">visitor</span>.<span class="ident">visit_variable</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">variable</span>)
+        visitor.visit_variable(<span class="kw-2">&amp;</span><span class="self">self</span>.variable)
     }
 
-    <span class="kw">fn</span> <span class="ident">visit_with_mut</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">V</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">visitor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">V</span>) -&gt; <span class="ident">ControlFlow</span><span class="op">&lt;</span><span class="ident">V::BreakTy</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">V</span>: <span class="ident">VisitorMut</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
+    <span class="kw">fn </span>visit_with_mut&lt;<span class="lifetime">&#39;a</span>, V&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="self">self</span>, visitor: <span class="kw-2">&amp;mut </span>V) -&gt; ControlFlow&lt;V::BreakTy&gt;
+    <span class="kw">where
+        </span>V: VisitorMut&lt;<span class="lifetime">&#39;a</span>&gt;,
     {
-        <span class="ident">visitor</span>.<span class="ident">visit_variable_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">variable</span>)
+        visitor.visit_variable_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>.variable)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="boa_ast" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0 (a55dd71d5 2022-09-19)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="boa_ast" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0 (897e37553 2022-11-02)" ></div></body></html>

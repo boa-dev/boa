@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_engine/src/value/operations.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>operations.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../boa_engine/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../boa_engine/index.html"><div class="logo-container">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_engine/src/value/operations.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>operations.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../boa_engine/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../boa_engine/index.html"><div class="logo-container">
                     <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../boa_engine/index.html">
                         <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -667,570 +667,570 @@
 <span id="665">665</span>
 <span id="666">666</span>
 <span id="667">667</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">builtins</span>::{
-        <span class="ident">number</span>::{<span class="ident">f64_to_int32</span>, <span class="ident">f64_to_uint32</span>},
-        <span class="ident">Number</span>,
+</pre><pre class="rust"><code><span class="kw">use crate</span>::{
+    builtins::{
+        number::{f64_to_int32, f64_to_uint32},
+        Number,
     },
-    <span class="ident">error::JsNativeError</span>,
-    <span class="ident">js_string</span>,
-    <span class="ident">value</span>::{<span class="ident">Numeric</span>, <span class="ident">PreferredType</span>, <span class="ident">WellKnownSymbols</span>},
-    <span class="ident">Context</span>, <span class="ident">JsBigInt</span>, <span class="ident">JsResult</span>, <span class="ident">JsValue</span>,
+    error::JsNativeError,
+    js_string,
+    value::{Numeric, PreferredType, WellKnownSymbols},
+    Context, JsBigInt, JsResult, JsValue,
 };
 
-<span class="kw">impl</span> <span class="ident">JsValue</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="kw">match</span> (<span class="self">self</span>, <span class="ident">other</span>) {
-            <span class="comment">// Fast path:</span>
-            <span class="comment">// Numeric add</span>
-            (<span class="ident"><span class="self">Self</span>::Integer</span>(<span class="ident">x</span>), <span class="ident"><span class="self">Self</span>::Integer</span>(<span class="ident">y</span>)) =&gt; <span class="ident">x</span>
-                .<span class="ident">checked_add</span>(<span class="kw-2">*</span><span class="ident">y</span>)
-                .<span class="ident">map_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">f64::from</span>(<span class="kw-2">*</span><span class="ident">x</span>) <span class="op">+</span> <span class="ident">f64::from</span>(<span class="kw-2">*</span><span class="ident">y</span>)), <span class="ident"><span class="self">Self</span>::new</span>),
-            (<span class="ident"><span class="self">Self</span>::Rational</span>(<span class="ident">x</span>), <span class="ident"><span class="self">Self</span>::Rational</span>(<span class="ident">y</span>)) =&gt; <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">x</span> <span class="op">+</span> <span class="ident">y</span>),
-            (<span class="ident"><span class="self">Self</span>::Integer</span>(<span class="ident">x</span>), <span class="ident"><span class="self">Self</span>::Rational</span>(<span class="ident">y</span>)) =&gt; <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">f64::from</span>(<span class="kw-2">*</span><span class="ident">x</span>) <span class="op">+</span> <span class="ident">y</span>),
-            (<span class="ident"><span class="self">Self</span>::Rational</span>(<span class="ident">x</span>), <span class="ident"><span class="self">Self</span>::Integer</span>(<span class="ident">y</span>)) =&gt; <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">x</span> <span class="op">+</span> <span class="ident">f64::from</span>(<span class="kw-2">*</span><span class="ident">y</span>)),
-            (<span class="ident"><span class="self">Self</span>::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">x</span>), <span class="ident"><span class="self">Self</span>::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">y</span>)) =&gt; <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">JsBigInt::add</span>(<span class="ident">x</span>, <span class="ident">y</span>)),
+<span class="kw">impl </span>JsValue {
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>add(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
+        <span class="prelude-val">Ok</span>(<span class="kw">match </span>(<span class="self">self</span>, other) {
+            <span class="comment">// Fast path:
+            // Numeric add
+            </span>(<span class="self">Self</span>::Integer(x), <span class="self">Self</span>::Integer(y)) =&gt; x
+                .checked_add(<span class="kw-2">*</span>y)
+                .map_or_else(|| <span class="self">Self</span>::new(f64::from(<span class="kw-2">*</span>x) + f64::from(<span class="kw-2">*</span>y)), <span class="self">Self</span>::new),
+            (<span class="self">Self</span>::Rational(x), <span class="self">Self</span>::Rational(y)) =&gt; <span class="self">Self</span>::new(x + y),
+            (<span class="self">Self</span>::Integer(x), <span class="self">Self</span>::Rational(y)) =&gt; <span class="self">Self</span>::new(f64::from(<span class="kw-2">*</span>x) + y),
+            (<span class="self">Self</span>::Rational(x), <span class="self">Self</span>::Integer(y)) =&gt; <span class="self">Self</span>::new(x + f64::from(<span class="kw-2">*</span>y)),
+            (<span class="self">Self</span>::BigInt(<span class="kw-2">ref </span>x), <span class="self">Self</span>::BigInt(<span class="kw-2">ref </span>y)) =&gt; <span class="self">Self</span>::new(JsBigInt::add(x, y)),
 
-            <span class="comment">// String concat</span>
-            (<span class="ident"><span class="self">Self</span>::String</span>(<span class="kw-2">ref</span> <span class="ident">x</span>), <span class="ident"><span class="self">Self</span>::String</span>(<span class="kw-2">ref</span> <span class="ident">y</span>)) =&gt; <span class="ident"><span class="self">Self</span>::from</span>(<span class="macro">js_string!</span>(<span class="ident">x</span>, <span class="ident">y</span>)),
+            <span class="comment">// String concat
+            </span>(<span class="self">Self</span>::String(<span class="kw-2">ref </span>x), <span class="self">Self</span>::String(<span class="kw-2">ref </span>y)) =&gt; <span class="self">Self</span>::from(<span class="macro">js_string!</span>(x, y)),
 
-            <span class="comment">// Slow path:</span>
-            (<span class="kw">_</span>, <span class="kw">_</span>) =&gt; <span class="kw">match</span> (
-                <span class="self">self</span>.<span class="ident">to_primitive</span>(<span class="ident">context</span>, <span class="ident">PreferredType::Default</span>)<span class="question-mark">?</span>,
-                <span class="ident">other</span>.<span class="ident">to_primitive</span>(<span class="ident">context</span>, <span class="ident">PreferredType::Default</span>)<span class="question-mark">?</span>,
+            <span class="comment">// Slow path:
+            </span>(<span class="kw">_</span>, <span class="kw">_</span>) =&gt; <span class="kw">match </span>(
+                <span class="self">self</span>.to_primitive(context, PreferredType::Default)<span class="question-mark">?</span>,
+                other.to_primitive(context, PreferredType::Default)<span class="question-mark">?</span>,
             ) {
-                (<span class="ident"><span class="self">Self</span>::String</span>(<span class="kw-2">ref</span> <span class="ident">x</span>), <span class="kw-2">ref</span> <span class="ident">y</span>) =&gt; <span class="ident"><span class="self">Self</span>::from</span>(<span class="macro">js_string!</span>(<span class="ident">x</span>, <span class="kw-2">&amp;</span><span class="ident">y</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>)),
-                (<span class="kw-2">ref</span> <span class="ident">x</span>, <span class="ident"><span class="self">Self</span>::String</span>(<span class="kw-2">ref</span> <span class="ident">y</span>)) =&gt; <span class="ident"><span class="self">Self</span>::from</span>(<span class="macro">js_string!</span>(<span class="kw-2">&amp;</span><span class="ident">x</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>, <span class="ident">y</span>)),
-                (<span class="ident">x</span>, <span class="ident">y</span>) =&gt; <span class="kw">match</span> (<span class="ident">x</span>.<span class="ident">to_numeric</span>(<span class="ident">context</span>)<span class="question-mark">?</span>, <span class="ident">y</span>.<span class="ident">to_numeric</span>(<span class="ident">context</span>)<span class="question-mark">?</span>) {
-                    (<span class="ident">Numeric::Number</span>(<span class="ident">x</span>), <span class="ident">Numeric::Number</span>(<span class="ident">y</span>)) =&gt; <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">x</span> <span class="op">+</span> <span class="ident">y</span>),
-                    (<span class="ident">Numeric::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">x</span>), <span class="ident">Numeric::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">y</span>)) =&gt; {
-                        <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">JsBigInt::add</span>(<span class="ident">x</span>, <span class="ident">y</span>))
+                (<span class="self">Self</span>::String(<span class="kw-2">ref </span>x), <span class="kw-2">ref </span>y) =&gt; <span class="self">Self</span>::from(<span class="macro">js_string!</span>(x, <span class="kw-2">&amp;</span>y.to_string(context)<span class="question-mark">?</span>)),
+                (<span class="kw-2">ref </span>x, <span class="self">Self</span>::String(<span class="kw-2">ref </span>y)) =&gt; <span class="self">Self</span>::from(<span class="macro">js_string!</span>(<span class="kw-2">&amp;</span>x.to_string(context)<span class="question-mark">?</span>, y)),
+                (x, y) =&gt; <span class="kw">match </span>(x.to_numeric(context)<span class="question-mark">?</span>, y.to_numeric(context)<span class="question-mark">?</span>) {
+                    (Numeric::Number(x), Numeric::Number(y)) =&gt; <span class="self">Self</span>::new(x + y),
+                    (Numeric::BigInt(<span class="kw-2">ref </span>x), Numeric::BigInt(<span class="kw-2">ref </span>y)) =&gt; {
+                        <span class="self">Self</span>::new(JsBigInt::add(x, y))
                     }
                     (<span class="kw">_</span>, <span class="kw">_</span>) =&gt; {
-                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
-                            .<span class="ident">with_message</span>(
+                        <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
+                            .with_message(
                                 <span class="string">&quot;cannot mix BigInt and other types, use explicit conversions&quot;</span>,
                             )
-                            .<span class="ident">into</span>())
+                            .into())
                     }
                 },
             },
         })
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sub</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="kw">match</span> (<span class="self">self</span>, <span class="ident">other</span>) {
-            <span class="comment">// Fast path:</span>
-            (<span class="ident"><span class="self">Self</span>::Integer</span>(<span class="ident">x</span>), <span class="ident"><span class="self">Self</span>::Integer</span>(<span class="ident">y</span>)) =&gt; <span class="ident">x</span>
-                .<span class="ident">checked_sub</span>(<span class="kw-2">*</span><span class="ident">y</span>)
-                .<span class="ident">map_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">f64::from</span>(<span class="kw-2">*</span><span class="ident">x</span>) <span class="op">-</span> <span class="ident">f64::from</span>(<span class="kw-2">*</span><span class="ident">y</span>)), <span class="ident"><span class="self">Self</span>::new</span>),
-            (<span class="ident"><span class="self">Self</span>::Rational</span>(<span class="ident">x</span>), <span class="ident"><span class="self">Self</span>::Rational</span>(<span class="ident">y</span>)) =&gt; <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">x</span> <span class="op">-</span> <span class="ident">y</span>),
-            (<span class="ident"><span class="self">Self</span>::Integer</span>(<span class="ident">x</span>), <span class="ident"><span class="self">Self</span>::Rational</span>(<span class="ident">y</span>)) =&gt; <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">f64::from</span>(<span class="kw-2">*</span><span class="ident">x</span>) <span class="op">-</span> <span class="ident">y</span>),
-            (<span class="ident"><span class="self">Self</span>::Rational</span>(<span class="ident">x</span>), <span class="ident"><span class="self">Self</span>::Integer</span>(<span class="ident">y</span>)) =&gt; <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">x</span> <span class="op">-</span> <span class="ident">f64::from</span>(<span class="kw-2">*</span><span class="ident">y</span>)),
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>sub(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
+        <span class="prelude-val">Ok</span>(<span class="kw">match </span>(<span class="self">self</span>, other) {
+            <span class="comment">// Fast path:
+            </span>(<span class="self">Self</span>::Integer(x), <span class="self">Self</span>::Integer(y)) =&gt; x
+                .checked_sub(<span class="kw-2">*</span>y)
+                .map_or_else(|| <span class="self">Self</span>::new(f64::from(<span class="kw-2">*</span>x) - f64::from(<span class="kw-2">*</span>y)), <span class="self">Self</span>::new),
+            (<span class="self">Self</span>::Rational(x), <span class="self">Self</span>::Rational(y)) =&gt; <span class="self">Self</span>::new(x - y),
+            (<span class="self">Self</span>::Integer(x), <span class="self">Self</span>::Rational(y)) =&gt; <span class="self">Self</span>::new(f64::from(<span class="kw-2">*</span>x) - y),
+            (<span class="self">Self</span>::Rational(x), <span class="self">Self</span>::Integer(y)) =&gt; <span class="self">Self</span>::new(x - f64::from(<span class="kw-2">*</span>y)),
 
-            (<span class="ident"><span class="self">Self</span>::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">x</span>), <span class="ident"><span class="self">Self</span>::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">y</span>)) =&gt; <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">JsBigInt::sub</span>(<span class="ident">x</span>, <span class="ident">y</span>)),
+            (<span class="self">Self</span>::BigInt(<span class="kw-2">ref </span>x), <span class="self">Self</span>::BigInt(<span class="kw-2">ref </span>y)) =&gt; <span class="self">Self</span>::new(JsBigInt::sub(x, y)),
 
-            <span class="comment">// Slow path:</span>
-            (<span class="kw">_</span>, <span class="kw">_</span>) =&gt; <span class="kw">match</span> (<span class="self">self</span>.<span class="ident">to_numeric</span>(<span class="ident">context</span>)<span class="question-mark">?</span>, <span class="ident">other</span>.<span class="ident">to_numeric</span>(<span class="ident">context</span>)<span class="question-mark">?</span>) {
-                (<span class="ident">Numeric::Number</span>(<span class="ident">a</span>), <span class="ident">Numeric::Number</span>(<span class="ident">b</span>)) =&gt; <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">a</span> <span class="op">-</span> <span class="ident">b</span>),
-                (<span class="ident">Numeric::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">x</span>), <span class="ident">Numeric::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">y</span>)) =&gt; <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">JsBigInt::sub</span>(<span class="ident">x</span>, <span class="ident">y</span>)),
+            <span class="comment">// Slow path:
+            </span>(<span class="kw">_</span>, <span class="kw">_</span>) =&gt; <span class="kw">match </span>(<span class="self">self</span>.to_numeric(context)<span class="question-mark">?</span>, other.to_numeric(context)<span class="question-mark">?</span>) {
+                (Numeric::Number(a), Numeric::Number(b)) =&gt; <span class="self">Self</span>::new(a - b),
+                (Numeric::BigInt(<span class="kw-2">ref </span>x), Numeric::BigInt(<span class="kw-2">ref </span>y)) =&gt; <span class="self">Self</span>::new(JsBigInt::sub(x, y)),
                 (<span class="kw">_</span>, <span class="kw">_</span>) =&gt; {
-                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
-                        .<span class="ident">with_message</span>(<span class="string">&quot;cannot mix BigInt and other types, use explicit conversions&quot;</span>)
-                        .<span class="ident">into</span>());
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
+                        .with_message(<span class="string">&quot;cannot mix BigInt and other types, use explicit conversions&quot;</span>)
+                        .into());
                 }
             },
         })
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">mul</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="kw">match</span> (<span class="self">self</span>, <span class="ident">other</span>) {
-            <span class="comment">// Fast path:</span>
-            (<span class="ident"><span class="self">Self</span>::Integer</span>(<span class="ident">x</span>), <span class="ident"><span class="self">Self</span>::Integer</span>(<span class="ident">y</span>)) =&gt; <span class="ident">x</span>
-                .<span class="ident">checked_mul</span>(<span class="kw-2">*</span><span class="ident">y</span>)
-                .<span class="ident">map_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">f64::from</span>(<span class="kw-2">*</span><span class="ident">x</span>) <span class="op">*</span> <span class="ident">f64::from</span>(<span class="kw-2">*</span><span class="ident">y</span>)), <span class="ident"><span class="self">Self</span>::new</span>),
-            (<span class="ident"><span class="self">Self</span>::Rational</span>(<span class="ident">x</span>), <span class="ident"><span class="self">Self</span>::Rational</span>(<span class="ident">y</span>)) =&gt; <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">x</span> <span class="op">*</span> <span class="ident">y</span>),
-            (<span class="ident"><span class="self">Self</span>::Integer</span>(<span class="ident">x</span>), <span class="ident"><span class="self">Self</span>::Rational</span>(<span class="ident">y</span>)) =&gt; <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">f64::from</span>(<span class="kw-2">*</span><span class="ident">x</span>) <span class="op">*</span> <span class="ident">y</span>),
-            (<span class="ident"><span class="self">Self</span>::Rational</span>(<span class="ident">x</span>), <span class="ident"><span class="self">Self</span>::Integer</span>(<span class="ident">y</span>)) =&gt; <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">x</span> <span class="op">*</span> <span class="ident">f64::from</span>(<span class="kw-2">*</span><span class="ident">y</span>)),
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>mul(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
+        <span class="prelude-val">Ok</span>(<span class="kw">match </span>(<span class="self">self</span>, other) {
+            <span class="comment">// Fast path:
+            </span>(<span class="self">Self</span>::Integer(x), <span class="self">Self</span>::Integer(y)) =&gt; x
+                .checked_mul(<span class="kw-2">*</span>y)
+                .map_or_else(|| <span class="self">Self</span>::new(f64::from(<span class="kw-2">*</span>x) * f64::from(<span class="kw-2">*</span>y)), <span class="self">Self</span>::new),
+            (<span class="self">Self</span>::Rational(x), <span class="self">Self</span>::Rational(y)) =&gt; <span class="self">Self</span>::new(x * y),
+            (<span class="self">Self</span>::Integer(x), <span class="self">Self</span>::Rational(y)) =&gt; <span class="self">Self</span>::new(f64::from(<span class="kw-2">*</span>x) * y),
+            (<span class="self">Self</span>::Rational(x), <span class="self">Self</span>::Integer(y)) =&gt; <span class="self">Self</span>::new(x * f64::from(<span class="kw-2">*</span>y)),
 
-            (<span class="ident"><span class="self">Self</span>::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">x</span>), <span class="ident"><span class="self">Self</span>::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">y</span>)) =&gt; <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">JsBigInt::mul</span>(<span class="ident">x</span>, <span class="ident">y</span>)),
+            (<span class="self">Self</span>::BigInt(<span class="kw-2">ref </span>x), <span class="self">Self</span>::BigInt(<span class="kw-2">ref </span>y)) =&gt; <span class="self">Self</span>::new(JsBigInt::mul(x, y)),
 
-            <span class="comment">// Slow path:</span>
-            (<span class="kw">_</span>, <span class="kw">_</span>) =&gt; <span class="kw">match</span> (<span class="self">self</span>.<span class="ident">to_numeric</span>(<span class="ident">context</span>)<span class="question-mark">?</span>, <span class="ident">other</span>.<span class="ident">to_numeric</span>(<span class="ident">context</span>)<span class="question-mark">?</span>) {
-                (<span class="ident">Numeric::Number</span>(<span class="ident">a</span>), <span class="ident">Numeric::Number</span>(<span class="ident">b</span>)) =&gt; <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">a</span> <span class="op">*</span> <span class="ident">b</span>),
-                (<span class="ident">Numeric::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">x</span>), <span class="ident">Numeric::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">y</span>)) =&gt; <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">JsBigInt::mul</span>(<span class="ident">x</span>, <span class="ident">y</span>)),
+            <span class="comment">// Slow path:
+            </span>(<span class="kw">_</span>, <span class="kw">_</span>) =&gt; <span class="kw">match </span>(<span class="self">self</span>.to_numeric(context)<span class="question-mark">?</span>, other.to_numeric(context)<span class="question-mark">?</span>) {
+                (Numeric::Number(a), Numeric::Number(b)) =&gt; <span class="self">Self</span>::new(a * b),
+                (Numeric::BigInt(<span class="kw-2">ref </span>x), Numeric::BigInt(<span class="kw-2">ref </span>y)) =&gt; <span class="self">Self</span>::new(JsBigInt::mul(x, y)),
                 (<span class="kw">_</span>, <span class="kw">_</span>) =&gt; {
-                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
-                        .<span class="ident">with_message</span>(<span class="string">&quot;cannot mix BigInt and other types, use explicit conversions&quot;</span>)
-                        .<span class="ident">into</span>());
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
+                        .with_message(<span class="string">&quot;cannot mix BigInt and other types, use explicit conversions&quot;</span>)
+                        .into());
                 }
             },
         })
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">div</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="kw">match</span> (<span class="self">self</span>, <span class="ident">other</span>) {
-            <span class="comment">// Fast path:</span>
-            (<span class="ident"><span class="self">Self</span>::Integer</span>(<span class="ident">x</span>), <span class="ident"><span class="self">Self</span>::Integer</span>(<span class="ident">y</span>)) =&gt; <span class="ident">x</span>
-                .<span class="ident">checked_div</span>(<span class="kw-2">*</span><span class="ident">y</span>)
-                .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">div</span><span class="op">|</span> <span class="kw-2">*</span><span class="ident">y</span> <span class="op">*</span> <span class="ident">div</span> <span class="op">==</span> <span class="kw-2">*</span><span class="ident">x</span>)
-                .<span class="ident">map_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">f64::from</span>(<span class="kw-2">*</span><span class="ident">x</span>) <span class="op">/</span> <span class="ident">f64::from</span>(<span class="kw-2">*</span><span class="ident">y</span>)), <span class="ident"><span class="self">Self</span>::new</span>),
-            (<span class="ident"><span class="self">Self</span>::Rational</span>(<span class="ident">x</span>), <span class="ident"><span class="self">Self</span>::Rational</span>(<span class="ident">y</span>)) =&gt; <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">x</span> <span class="op">/</span> <span class="ident">y</span>),
-            (<span class="ident"><span class="self">Self</span>::Integer</span>(<span class="ident">x</span>), <span class="ident"><span class="self">Self</span>::Rational</span>(<span class="ident">y</span>)) =&gt; <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">f64::from</span>(<span class="kw-2">*</span><span class="ident">x</span>) <span class="op">/</span> <span class="ident">y</span>),
-            (<span class="ident"><span class="self">Self</span>::Rational</span>(<span class="ident">x</span>), <span class="ident"><span class="self">Self</span>::Integer</span>(<span class="ident">y</span>)) =&gt; <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">x</span> <span class="op">/</span> <span class="ident">f64::from</span>(<span class="kw-2">*</span><span class="ident">y</span>)),
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>div(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
+        <span class="prelude-val">Ok</span>(<span class="kw">match </span>(<span class="self">self</span>, other) {
+            <span class="comment">// Fast path:
+            </span>(<span class="self">Self</span>::Integer(x), <span class="self">Self</span>::Integer(y)) =&gt; x
+                .checked_div(<span class="kw-2">*</span>y)
+                .filter(|div| <span class="kw-2">*</span>y * div == <span class="kw-2">*</span>x)
+                .map_or_else(|| <span class="self">Self</span>::new(f64::from(<span class="kw-2">*</span>x) / f64::from(<span class="kw-2">*</span>y)), <span class="self">Self</span>::new),
+            (<span class="self">Self</span>::Rational(x), <span class="self">Self</span>::Rational(y)) =&gt; <span class="self">Self</span>::new(x / y),
+            (<span class="self">Self</span>::Integer(x), <span class="self">Self</span>::Rational(y)) =&gt; <span class="self">Self</span>::new(f64::from(<span class="kw-2">*</span>x) / y),
+            (<span class="self">Self</span>::Rational(x), <span class="self">Self</span>::Integer(y)) =&gt; <span class="self">Self</span>::new(x / f64::from(<span class="kw-2">*</span>y)),
 
-            (<span class="ident"><span class="self">Self</span>::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">x</span>), <span class="ident"><span class="self">Self</span>::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">y</span>)) =&gt; {
-                <span class="kw">if</span> <span class="ident">y</span>.<span class="ident">is_zero</span>() {
-                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::range</span>()
-                        .<span class="ident">with_message</span>(<span class="string">&quot;BigInt division by zero&quot;</span>)
-                        .<span class="ident">into</span>());
+            (<span class="self">Self</span>::BigInt(<span class="kw-2">ref </span>x), <span class="self">Self</span>::BigInt(<span class="kw-2">ref </span>y)) =&gt; {
+                <span class="kw">if </span>y.is_zero() {
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::range()
+                        .with_message(<span class="string">&quot;BigInt division by zero&quot;</span>)
+                        .into());
                 }
-                <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">JsBigInt::div</span>(<span class="ident">x</span>, <span class="ident">y</span>))
+                <span class="self">Self</span>::new(JsBigInt::div(x, y))
             }
 
-            <span class="comment">// Slow path:</span>
-            (<span class="kw">_</span>, <span class="kw">_</span>) =&gt; <span class="kw">match</span> (<span class="self">self</span>.<span class="ident">to_numeric</span>(<span class="ident">context</span>)<span class="question-mark">?</span>, <span class="ident">other</span>.<span class="ident">to_numeric</span>(<span class="ident">context</span>)<span class="question-mark">?</span>) {
-                (<span class="ident">Numeric::Number</span>(<span class="ident">a</span>), <span class="ident">Numeric::Number</span>(<span class="ident">b</span>)) =&gt; <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">a</span> <span class="op">/</span> <span class="ident">b</span>),
-                (<span class="ident">Numeric::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">x</span>), <span class="ident">Numeric::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">y</span>)) =&gt; {
-                    <span class="kw">if</span> <span class="ident">y</span>.<span class="ident">is_zero</span>() {
-                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::range</span>()
-                            .<span class="ident">with_message</span>(<span class="string">&quot;BigInt division by zero&quot;</span>)
-                            .<span class="ident">into</span>());
+            <span class="comment">// Slow path:
+            </span>(<span class="kw">_</span>, <span class="kw">_</span>) =&gt; <span class="kw">match </span>(<span class="self">self</span>.to_numeric(context)<span class="question-mark">?</span>, other.to_numeric(context)<span class="question-mark">?</span>) {
+                (Numeric::Number(a), Numeric::Number(b)) =&gt; <span class="self">Self</span>::new(a / b),
+                (Numeric::BigInt(<span class="kw-2">ref </span>x), Numeric::BigInt(<span class="kw-2">ref </span>y)) =&gt; {
+                    <span class="kw">if </span>y.is_zero() {
+                        <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::range()
+                            .with_message(<span class="string">&quot;BigInt division by zero&quot;</span>)
+                            .into());
                     }
-                    <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">JsBigInt::div</span>(<span class="ident">x</span>, <span class="ident">y</span>))
+                    <span class="self">Self</span>::new(JsBigInt::div(x, y))
                 }
                 (<span class="kw">_</span>, <span class="kw">_</span>) =&gt; {
-                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
-                        .<span class="ident">with_message</span>(<span class="string">&quot;cannot mix BigInt and other types, use explicit conversions&quot;</span>)
-                        .<span class="ident">into</span>());
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
+                        .with_message(<span class="string">&quot;cannot mix BigInt and other types, use explicit conversions&quot;</span>)
+                        .into());
                 }
             },
         })
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">rem</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="kw">match</span> (<span class="self">self</span>, <span class="ident">other</span>) {
-            <span class="comment">// Fast path:</span>
-            (<span class="ident"><span class="self">Self</span>::Integer</span>(<span class="ident">x</span>), <span class="ident"><span class="self">Self</span>::Integer</span>(<span class="ident">y</span>)) =&gt; {
-                <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">y</span> <span class="op">==</span> <span class="number">0</span> {
-                    <span class="ident"><span class="self">Self</span>::nan</span>()
-                } <span class="kw">else</span> {
-                    <span class="kw">match</span> <span class="ident">x</span> <span class="op">%</span> <span class="kw-2">*</span><span class="ident">y</span> {
-                        <span class="ident">rem</span> <span class="kw">if</span> <span class="ident">rem</span> <span class="op">==</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <span class="kw-2">*</span><span class="ident">x</span> <span class="op">&lt;</span> <span class="number">0</span> =&gt; <span class="ident"><span class="self">Self</span>::new</span>(<span class="op">-</span><span class="number">0.0</span>),
-                        <span class="ident">rem</span> =&gt; <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">rem</span>),
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>rem(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
+        <span class="prelude-val">Ok</span>(<span class="kw">match </span>(<span class="self">self</span>, other) {
+            <span class="comment">// Fast path:
+            </span>(<span class="self">Self</span>::Integer(x), <span class="self">Self</span>::Integer(y)) =&gt; {
+                <span class="kw">if </span><span class="kw-2">*</span>y == <span class="number">0 </span>{
+                    <span class="self">Self</span>::nan()
+                } <span class="kw">else </span>{
+                    <span class="kw">match </span>x % <span class="kw-2">*</span>y {
+                        rem <span class="kw">if </span>rem == <span class="number">0 </span>&amp;&amp; <span class="kw-2">*</span>x &lt; <span class="number">0 </span>=&gt; <span class="self">Self</span>::new(-<span class="number">0.0</span>),
+                        rem =&gt; <span class="self">Self</span>::new(rem),
                     }
                 }
             }
-            (<span class="ident"><span class="self">Self</span>::Rational</span>(<span class="ident">x</span>), <span class="ident"><span class="self">Self</span>::Rational</span>(<span class="ident">y</span>)) =&gt; <span class="ident"><span class="self">Self</span>::new</span>((<span class="ident">x</span> <span class="op">%</span> <span class="ident">y</span>).<span class="ident">copysign</span>(<span class="kw-2">*</span><span class="ident">x</span>)),
-            (<span class="ident"><span class="self">Self</span>::Integer</span>(<span class="ident">x</span>), <span class="ident"><span class="self">Self</span>::Rational</span>(<span class="ident">y</span>)) =&gt; {
-                <span class="kw">let</span> <span class="ident">x</span> <span class="op">=</span> <span class="ident">f64::from</span>(<span class="kw-2">*</span><span class="ident">x</span>);
-                <span class="ident"><span class="self">Self</span>::new</span>((<span class="ident">x</span> <span class="op">%</span> <span class="ident">y</span>).<span class="ident">copysign</span>(<span class="ident">x</span>))
+            (<span class="self">Self</span>::Rational(x), <span class="self">Self</span>::Rational(y)) =&gt; <span class="self">Self</span>::new((x % y).copysign(<span class="kw-2">*</span>x)),
+            (<span class="self">Self</span>::Integer(x), <span class="self">Self</span>::Rational(y)) =&gt; {
+                <span class="kw">let </span>x = f64::from(<span class="kw-2">*</span>x);
+                <span class="self">Self</span>::new((x % y).copysign(x))
             }
 
-            (<span class="ident"><span class="self">Self</span>::Rational</span>(<span class="ident">x</span>), <span class="ident"><span class="self">Self</span>::Integer</span>(<span class="ident">y</span>)) =&gt; <span class="ident"><span class="self">Self</span>::new</span>((<span class="ident">x</span> <span class="op">%</span> <span class="ident">f64::from</span>(<span class="kw-2">*</span><span class="ident">y</span>)).<span class="ident">copysign</span>(<span class="kw-2">*</span><span class="ident">x</span>)),
+            (<span class="self">Self</span>::Rational(x), <span class="self">Self</span>::Integer(y)) =&gt; <span class="self">Self</span>::new((x % f64::from(<span class="kw-2">*</span>y)).copysign(<span class="kw-2">*</span>x)),
 
-            (<span class="ident"><span class="self">Self</span>::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">x</span>), <span class="ident"><span class="self">Self</span>::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">y</span>)) =&gt; {
-                <span class="kw">if</span> <span class="ident">y</span>.<span class="ident">is_zero</span>() {
-                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::range</span>()
-                        .<span class="ident">with_message</span>(<span class="string">&quot;BigInt division by zero&quot;</span>)
-                        .<span class="ident">into</span>());
+            (<span class="self">Self</span>::BigInt(<span class="kw-2">ref </span>x), <span class="self">Self</span>::BigInt(<span class="kw-2">ref </span>y)) =&gt; {
+                <span class="kw">if </span>y.is_zero() {
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::range()
+                        .with_message(<span class="string">&quot;BigInt division by zero&quot;</span>)
+                        .into());
                 }
-                <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">JsBigInt::rem</span>(<span class="ident">x</span>, <span class="ident">y</span>))
+                <span class="self">Self</span>::new(JsBigInt::rem(x, y))
             }
 
-            <span class="comment">// Slow path:</span>
-            (<span class="kw">_</span>, <span class="kw">_</span>) =&gt; <span class="kw">match</span> (<span class="self">self</span>.<span class="ident">to_numeric</span>(<span class="ident">context</span>)<span class="question-mark">?</span>, <span class="ident">other</span>.<span class="ident">to_numeric</span>(<span class="ident">context</span>)<span class="question-mark">?</span>) {
-                (<span class="ident">Numeric::Number</span>(<span class="ident">a</span>), <span class="ident">Numeric::Number</span>(<span class="ident">b</span>)) =&gt; <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">a</span> <span class="op">%</span> <span class="ident">b</span>),
-                (<span class="ident">Numeric::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">x</span>), <span class="ident">Numeric::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">y</span>)) =&gt; {
-                    <span class="kw">if</span> <span class="ident">y</span>.<span class="ident">is_zero</span>() {
-                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::range</span>()
-                            .<span class="ident">with_message</span>(<span class="string">&quot;BigInt division by zero&quot;</span>)
-                            .<span class="ident">into</span>());
+            <span class="comment">// Slow path:
+            </span>(<span class="kw">_</span>, <span class="kw">_</span>) =&gt; <span class="kw">match </span>(<span class="self">self</span>.to_numeric(context)<span class="question-mark">?</span>, other.to_numeric(context)<span class="question-mark">?</span>) {
+                (Numeric::Number(a), Numeric::Number(b)) =&gt; <span class="self">Self</span>::new(a % b),
+                (Numeric::BigInt(<span class="kw-2">ref </span>x), Numeric::BigInt(<span class="kw-2">ref </span>y)) =&gt; {
+                    <span class="kw">if </span>y.is_zero() {
+                        <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::range()
+                            .with_message(<span class="string">&quot;BigInt division by zero&quot;</span>)
+                            .into());
                     }
-                    <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">JsBigInt::rem</span>(<span class="ident">x</span>, <span class="ident">y</span>))
+                    <span class="self">Self</span>::new(JsBigInt::rem(x, y))
                 }
                 (<span class="kw">_</span>, <span class="kw">_</span>) =&gt; {
-                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
-                        .<span class="ident">with_message</span>(<span class="string">&quot;cannot mix BigInt and other types, use explicit conversions&quot;</span>)
-                        .<span class="ident">into</span>());
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
+                        .with_message(<span class="string">&quot;cannot mix BigInt and other types, use explicit conversions&quot;</span>)
+                        .into());
                 }
             },
         })
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pow</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="kw">match</span> (<span class="self">self</span>, <span class="ident">other</span>) {
-            <span class="comment">// Fast path:</span>
-            (<span class="ident"><span class="self">Self</span>::Integer</span>(<span class="ident">x</span>), <span class="ident"><span class="self">Self</span>::Integer</span>(<span class="ident">y</span>)) =&gt; <span class="ident">u32::try_from</span>(<span class="kw-2">*</span><span class="ident">y</span>)
-                .<span class="ident">ok</span>()
-                .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">y</span><span class="op">|</span> <span class="ident">x</span>.<span class="ident">checked_pow</span>(<span class="ident">y</span>))
-                .<span class="ident">map_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">f64::from</span>(<span class="kw-2">*</span><span class="ident">x</span>).<span class="ident">powi</span>(<span class="kw-2">*</span><span class="ident">y</span>)), <span class="ident"><span class="self">Self</span>::new</span>),
-            (<span class="ident"><span class="self">Self</span>::Rational</span>(<span class="ident">x</span>), <span class="ident"><span class="self">Self</span>::Rational</span>(<span class="ident">y</span>)) =&gt; <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">x</span>.<span class="ident">powf</span>(<span class="kw-2">*</span><span class="ident">y</span>)),
-            (<span class="ident"><span class="self">Self</span>::Integer</span>(<span class="ident">x</span>), <span class="ident"><span class="self">Self</span>::Rational</span>(<span class="ident">y</span>)) =&gt; <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">f64::from</span>(<span class="kw-2">*</span><span class="ident">x</span>).<span class="ident">powf</span>(<span class="kw-2">*</span><span class="ident">y</span>)),
-            (<span class="ident"><span class="self">Self</span>::Rational</span>(<span class="ident">x</span>), <span class="ident"><span class="self">Self</span>::Integer</span>(<span class="ident">y</span>)) =&gt; <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">x</span>.<span class="ident">powi</span>(<span class="kw-2">*</span><span class="ident">y</span>)),
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>pow(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
+        <span class="prelude-val">Ok</span>(<span class="kw">match </span>(<span class="self">self</span>, other) {
+            <span class="comment">// Fast path:
+            </span>(<span class="self">Self</span>::Integer(x), <span class="self">Self</span>::Integer(y)) =&gt; u32::try_from(<span class="kw-2">*</span>y)
+                .ok()
+                .and_then(|y| x.checked_pow(y))
+                .map_or_else(|| <span class="self">Self</span>::new(f64::from(<span class="kw-2">*</span>x).powi(<span class="kw-2">*</span>y)), <span class="self">Self</span>::new),
+            (<span class="self">Self</span>::Rational(x), <span class="self">Self</span>::Rational(y)) =&gt; <span class="self">Self</span>::new(x.powf(<span class="kw-2">*</span>y)),
+            (<span class="self">Self</span>::Integer(x), <span class="self">Self</span>::Rational(y)) =&gt; <span class="self">Self</span>::new(f64::from(<span class="kw-2">*</span>x).powf(<span class="kw-2">*</span>y)),
+            (<span class="self">Self</span>::Rational(x), <span class="self">Self</span>::Integer(y)) =&gt; <span class="self">Self</span>::new(x.powi(<span class="kw-2">*</span>y)),
 
-            (<span class="ident"><span class="self">Self</span>::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">a</span>), <span class="ident"><span class="self">Self</span>::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">b</span>)) =&gt; <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">JsBigInt::pow</span>(<span class="ident">a</span>, <span class="ident">b</span>)<span class="question-mark">?</span>),
+            (<span class="self">Self</span>::BigInt(<span class="kw-2">ref </span>a), <span class="self">Self</span>::BigInt(<span class="kw-2">ref </span>b)) =&gt; <span class="self">Self</span>::new(JsBigInt::pow(a, b)<span class="question-mark">?</span>),
 
-            <span class="comment">// Slow path:</span>
-            (<span class="kw">_</span>, <span class="kw">_</span>) =&gt; <span class="kw">match</span> (<span class="self">self</span>.<span class="ident">to_numeric</span>(<span class="ident">context</span>)<span class="question-mark">?</span>, <span class="ident">other</span>.<span class="ident">to_numeric</span>(<span class="ident">context</span>)<span class="question-mark">?</span>) {
-                (<span class="ident">Numeric::Number</span>(<span class="ident">a</span>), <span class="ident">Numeric::Number</span>(<span class="ident">b</span>)) =&gt; <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">a</span>.<span class="ident">powf</span>(<span class="ident">b</span>)),
-                (<span class="ident">Numeric::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">a</span>), <span class="ident">Numeric::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">b</span>)) =&gt; <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">JsBigInt::pow</span>(<span class="ident">a</span>, <span class="ident">b</span>)<span class="question-mark">?</span>),
+            <span class="comment">// Slow path:
+            </span>(<span class="kw">_</span>, <span class="kw">_</span>) =&gt; <span class="kw">match </span>(<span class="self">self</span>.to_numeric(context)<span class="question-mark">?</span>, other.to_numeric(context)<span class="question-mark">?</span>) {
+                (Numeric::Number(a), Numeric::Number(b)) =&gt; <span class="self">Self</span>::new(a.powf(b)),
+                (Numeric::BigInt(<span class="kw-2">ref </span>a), Numeric::BigInt(<span class="kw-2">ref </span>b)) =&gt; <span class="self">Self</span>::new(JsBigInt::pow(a, b)<span class="question-mark">?</span>),
                 (<span class="kw">_</span>, <span class="kw">_</span>) =&gt; {
-                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
-                        .<span class="ident">with_message</span>(<span class="string">&quot;cannot mix BigInt and other types, use explicit conversions&quot;</span>)
-                        .<span class="ident">into</span>());
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
+                        .with_message(<span class="string">&quot;cannot mix BigInt and other types, use explicit conversions&quot;</span>)
+                        .into());
                 }
             },
         })
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">bitand</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="kw">match</span> (<span class="self">self</span>, <span class="ident">other</span>) {
-            <span class="comment">// Fast path:</span>
-            (<span class="ident"><span class="self">Self</span>::Integer</span>(<span class="ident">x</span>), <span class="ident"><span class="self">Self</span>::Integer</span>(<span class="ident">y</span>)) =&gt; <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">x</span> <span class="op">&amp;</span> <span class="ident">y</span>),
-            (<span class="ident"><span class="self">Self</span>::Rational</span>(<span class="ident">x</span>), <span class="ident"><span class="self">Self</span>::Rational</span>(<span class="ident">y</span>)) =&gt; {
-                <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">f64_to_int32</span>(<span class="kw-2">*</span><span class="ident">x</span>) <span class="op">&amp;</span> <span class="ident">f64_to_int32</span>(<span class="kw-2">*</span><span class="ident">y</span>))
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>bitand(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
+        <span class="prelude-val">Ok</span>(<span class="kw">match </span>(<span class="self">self</span>, other) {
+            <span class="comment">// Fast path:
+            </span>(<span class="self">Self</span>::Integer(x), <span class="self">Self</span>::Integer(y)) =&gt; <span class="self">Self</span>::new(x &amp; y),
+            (<span class="self">Self</span>::Rational(x), <span class="self">Self</span>::Rational(y)) =&gt; {
+                <span class="self">Self</span>::new(f64_to_int32(<span class="kw-2">*</span>x) &amp; f64_to_int32(<span class="kw-2">*</span>y))
             }
-            (<span class="ident"><span class="self">Self</span>::Integer</span>(<span class="ident">x</span>), <span class="ident"><span class="self">Self</span>::Rational</span>(<span class="ident">y</span>)) =&gt; <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">x</span> <span class="op">&amp;</span> <span class="ident">f64_to_int32</span>(<span class="kw-2">*</span><span class="ident">y</span>)),
-            (<span class="ident"><span class="self">Self</span>::Rational</span>(<span class="ident">x</span>), <span class="ident"><span class="self">Self</span>::Integer</span>(<span class="ident">y</span>)) =&gt; <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">f64_to_int32</span>(<span class="kw-2">*</span><span class="ident">x</span>) <span class="op">&amp;</span> <span class="ident">y</span>),
+            (<span class="self">Self</span>::Integer(x), <span class="self">Self</span>::Rational(y)) =&gt; <span class="self">Self</span>::new(x &amp; f64_to_int32(<span class="kw-2">*</span>y)),
+            (<span class="self">Self</span>::Rational(x), <span class="self">Self</span>::Integer(y)) =&gt; <span class="self">Self</span>::new(f64_to_int32(<span class="kw-2">*</span>x) &amp; y),
 
-            (<span class="ident"><span class="self">Self</span>::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">x</span>), <span class="ident"><span class="self">Self</span>::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">y</span>)) =&gt; <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">JsBigInt::bitand</span>(<span class="ident">x</span>, <span class="ident">y</span>)),
+            (<span class="self">Self</span>::BigInt(<span class="kw-2">ref </span>x), <span class="self">Self</span>::BigInt(<span class="kw-2">ref </span>y)) =&gt; <span class="self">Self</span>::new(JsBigInt::bitand(x, y)),
 
-            <span class="comment">// Slow path:</span>
-            (<span class="kw">_</span>, <span class="kw">_</span>) =&gt; <span class="kw">match</span> (<span class="self">self</span>.<span class="ident">to_numeric</span>(<span class="ident">context</span>)<span class="question-mark">?</span>, <span class="ident">other</span>.<span class="ident">to_numeric</span>(<span class="ident">context</span>)<span class="question-mark">?</span>) {
-                (<span class="ident">Numeric::Number</span>(<span class="ident">a</span>), <span class="ident">Numeric::Number</span>(<span class="ident">b</span>)) =&gt; {
-                    <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">f64_to_int32</span>(<span class="ident">a</span>) <span class="op">&amp;</span> <span class="ident">f64_to_int32</span>(<span class="ident">b</span>))
+            <span class="comment">// Slow path:
+            </span>(<span class="kw">_</span>, <span class="kw">_</span>) =&gt; <span class="kw">match </span>(<span class="self">self</span>.to_numeric(context)<span class="question-mark">?</span>, other.to_numeric(context)<span class="question-mark">?</span>) {
+                (Numeric::Number(a), Numeric::Number(b)) =&gt; {
+                    <span class="self">Self</span>::new(f64_to_int32(a) &amp; f64_to_int32(b))
                 }
-                (<span class="ident">Numeric::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">x</span>), <span class="ident">Numeric::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">y</span>)) =&gt; {
-                    <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">JsBigInt::bitand</span>(<span class="ident">x</span>, <span class="ident">y</span>))
+                (Numeric::BigInt(<span class="kw-2">ref </span>x), Numeric::BigInt(<span class="kw-2">ref </span>y)) =&gt; {
+                    <span class="self">Self</span>::new(JsBigInt::bitand(x, y))
                 }
                 (<span class="kw">_</span>, <span class="kw">_</span>) =&gt; {
-                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
-                        .<span class="ident">with_message</span>(<span class="string">&quot;cannot mix BigInt and other types, use explicit conversions&quot;</span>)
-                        .<span class="ident">into</span>());
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
+                        .with_message(<span class="string">&quot;cannot mix BigInt and other types, use explicit conversions&quot;</span>)
+                        .into());
                 }
             },
         })
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">bitor</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="kw">match</span> (<span class="self">self</span>, <span class="ident">other</span>) {
-            <span class="comment">// Fast path:</span>
-            (<span class="ident"><span class="self">Self</span>::Integer</span>(<span class="ident">x</span>), <span class="ident"><span class="self">Self</span>::Integer</span>(<span class="ident">y</span>)) =&gt; <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">x</span> <span class="op">|</span> <span class="ident">y</span>),
-            (<span class="ident"><span class="self">Self</span>::Rational</span>(<span class="ident">x</span>), <span class="ident"><span class="self">Self</span>::Rational</span>(<span class="ident">y</span>)) =&gt; {
-                <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">f64_to_int32</span>(<span class="kw-2">*</span><span class="ident">x</span>) <span class="op">|</span> <span class="ident">f64_to_int32</span>(<span class="kw-2">*</span><span class="ident">y</span>))
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>bitor(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
+        <span class="prelude-val">Ok</span>(<span class="kw">match </span>(<span class="self">self</span>, other) {
+            <span class="comment">// Fast path:
+            </span>(<span class="self">Self</span>::Integer(x), <span class="self">Self</span>::Integer(y)) =&gt; <span class="self">Self</span>::new(x | y),
+            (<span class="self">Self</span>::Rational(x), <span class="self">Self</span>::Rational(y)) =&gt; {
+                <span class="self">Self</span>::new(f64_to_int32(<span class="kw-2">*</span>x) | f64_to_int32(<span class="kw-2">*</span>y))
             }
-            (<span class="ident"><span class="self">Self</span>::Integer</span>(<span class="ident">x</span>), <span class="ident"><span class="self">Self</span>::Rational</span>(<span class="ident">y</span>)) =&gt; <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">x</span> <span class="op">|</span> <span class="ident">f64_to_int32</span>(<span class="kw-2">*</span><span class="ident">y</span>)),
-            (<span class="ident"><span class="self">Self</span>::Rational</span>(<span class="ident">x</span>), <span class="ident"><span class="self">Self</span>::Integer</span>(<span class="ident">y</span>)) =&gt; <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">f64_to_int32</span>(<span class="kw-2">*</span><span class="ident">x</span>) <span class="op">|</span> <span class="ident">y</span>),
+            (<span class="self">Self</span>::Integer(x), <span class="self">Self</span>::Rational(y)) =&gt; <span class="self">Self</span>::new(x | f64_to_int32(<span class="kw-2">*</span>y)),
+            (<span class="self">Self</span>::Rational(x), <span class="self">Self</span>::Integer(y)) =&gt; <span class="self">Self</span>::new(f64_to_int32(<span class="kw-2">*</span>x) | y),
 
-            (<span class="ident"><span class="self">Self</span>::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">x</span>), <span class="ident"><span class="self">Self</span>::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">y</span>)) =&gt; <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">JsBigInt::bitor</span>(<span class="ident">x</span>, <span class="ident">y</span>)),
+            (<span class="self">Self</span>::BigInt(<span class="kw-2">ref </span>x), <span class="self">Self</span>::BigInt(<span class="kw-2">ref </span>y)) =&gt; <span class="self">Self</span>::new(JsBigInt::bitor(x, y)),
 
-            <span class="comment">// Slow path:</span>
-            (<span class="kw">_</span>, <span class="kw">_</span>) =&gt; <span class="kw">match</span> (<span class="self">self</span>.<span class="ident">to_numeric</span>(<span class="ident">context</span>)<span class="question-mark">?</span>, <span class="ident">other</span>.<span class="ident">to_numeric</span>(<span class="ident">context</span>)<span class="question-mark">?</span>) {
-                (<span class="ident">Numeric::Number</span>(<span class="ident">a</span>), <span class="ident">Numeric::Number</span>(<span class="ident">b</span>)) =&gt; {
-                    <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">f64_to_int32</span>(<span class="ident">a</span>) <span class="op">|</span> <span class="ident">f64_to_int32</span>(<span class="ident">b</span>))
+            <span class="comment">// Slow path:
+            </span>(<span class="kw">_</span>, <span class="kw">_</span>) =&gt; <span class="kw">match </span>(<span class="self">self</span>.to_numeric(context)<span class="question-mark">?</span>, other.to_numeric(context)<span class="question-mark">?</span>) {
+                (Numeric::Number(a), Numeric::Number(b)) =&gt; {
+                    <span class="self">Self</span>::new(f64_to_int32(a) | f64_to_int32(b))
                 }
-                (<span class="ident">Numeric::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">x</span>), <span class="ident">Numeric::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">y</span>)) =&gt; {
-                    <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">JsBigInt::bitor</span>(<span class="ident">x</span>, <span class="ident">y</span>))
+                (Numeric::BigInt(<span class="kw-2">ref </span>x), Numeric::BigInt(<span class="kw-2">ref </span>y)) =&gt; {
+                    <span class="self">Self</span>::new(JsBigInt::bitor(x, y))
                 }
                 (<span class="kw">_</span>, <span class="kw">_</span>) =&gt; {
-                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
-                        .<span class="ident">with_message</span>(<span class="string">&quot;cannot mix BigInt and other types, use explicit conversions&quot;</span>)
-                        .<span class="ident">into</span>());
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
+                        .with_message(<span class="string">&quot;cannot mix BigInt and other types, use explicit conversions&quot;</span>)
+                        .into());
                 }
             },
         })
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">bitxor</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="kw">match</span> (<span class="self">self</span>, <span class="ident">other</span>) {
-            <span class="comment">// Fast path:</span>
-            (<span class="ident"><span class="self">Self</span>::Integer</span>(<span class="ident">x</span>), <span class="ident"><span class="self">Self</span>::Integer</span>(<span class="ident">y</span>)) =&gt; <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">x</span> <span class="op">^</span> <span class="ident">y</span>),
-            (<span class="ident"><span class="self">Self</span>::Rational</span>(<span class="ident">x</span>), <span class="ident"><span class="self">Self</span>::Rational</span>(<span class="ident">y</span>)) =&gt; {
-                <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">f64_to_int32</span>(<span class="kw-2">*</span><span class="ident">x</span>) <span class="op">^</span> <span class="ident">f64_to_int32</span>(<span class="kw-2">*</span><span class="ident">y</span>))
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>bitxor(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
+        <span class="prelude-val">Ok</span>(<span class="kw">match </span>(<span class="self">self</span>, other) {
+            <span class="comment">// Fast path:
+            </span>(<span class="self">Self</span>::Integer(x), <span class="self">Self</span>::Integer(y)) =&gt; <span class="self">Self</span>::new(x ^ y),
+            (<span class="self">Self</span>::Rational(x), <span class="self">Self</span>::Rational(y)) =&gt; {
+                <span class="self">Self</span>::new(f64_to_int32(<span class="kw-2">*</span>x) ^ f64_to_int32(<span class="kw-2">*</span>y))
             }
-            (<span class="ident"><span class="self">Self</span>::Integer</span>(<span class="ident">x</span>), <span class="ident"><span class="self">Self</span>::Rational</span>(<span class="ident">y</span>)) =&gt; <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">x</span> <span class="op">^</span> <span class="ident">f64_to_int32</span>(<span class="kw-2">*</span><span class="ident">y</span>)),
-            (<span class="ident"><span class="self">Self</span>::Rational</span>(<span class="ident">x</span>), <span class="ident"><span class="self">Self</span>::Integer</span>(<span class="ident">y</span>)) =&gt; <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">f64_to_int32</span>(<span class="kw-2">*</span><span class="ident">x</span>) <span class="op">^</span> <span class="ident">y</span>),
+            (<span class="self">Self</span>::Integer(x), <span class="self">Self</span>::Rational(y)) =&gt; <span class="self">Self</span>::new(x ^ f64_to_int32(<span class="kw-2">*</span>y)),
+            (<span class="self">Self</span>::Rational(x), <span class="self">Self</span>::Integer(y)) =&gt; <span class="self">Self</span>::new(f64_to_int32(<span class="kw-2">*</span>x) ^ y),
 
-            (<span class="ident"><span class="self">Self</span>::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">x</span>), <span class="ident"><span class="self">Self</span>::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">y</span>)) =&gt; <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">JsBigInt::bitxor</span>(<span class="ident">x</span>, <span class="ident">y</span>)),
+            (<span class="self">Self</span>::BigInt(<span class="kw-2">ref </span>x), <span class="self">Self</span>::BigInt(<span class="kw-2">ref </span>y)) =&gt; <span class="self">Self</span>::new(JsBigInt::bitxor(x, y)),
 
-            <span class="comment">// Slow path:</span>
-            (<span class="kw">_</span>, <span class="kw">_</span>) =&gt; <span class="kw">match</span> (<span class="self">self</span>.<span class="ident">to_numeric</span>(<span class="ident">context</span>)<span class="question-mark">?</span>, <span class="ident">other</span>.<span class="ident">to_numeric</span>(<span class="ident">context</span>)<span class="question-mark">?</span>) {
-                (<span class="ident">Numeric::Number</span>(<span class="ident">a</span>), <span class="ident">Numeric::Number</span>(<span class="ident">b</span>)) =&gt; {
-                    <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">f64_to_int32</span>(<span class="ident">a</span>) <span class="op">^</span> <span class="ident">f64_to_int32</span>(<span class="ident">b</span>))
+            <span class="comment">// Slow path:
+            </span>(<span class="kw">_</span>, <span class="kw">_</span>) =&gt; <span class="kw">match </span>(<span class="self">self</span>.to_numeric(context)<span class="question-mark">?</span>, other.to_numeric(context)<span class="question-mark">?</span>) {
+                (Numeric::Number(a), Numeric::Number(b)) =&gt; {
+                    <span class="self">Self</span>::new(f64_to_int32(a) ^ f64_to_int32(b))
                 }
-                (<span class="ident">Numeric::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">x</span>), <span class="ident">Numeric::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">y</span>)) =&gt; {
-                    <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">JsBigInt::bitxor</span>(<span class="ident">x</span>, <span class="ident">y</span>))
+                (Numeric::BigInt(<span class="kw-2">ref </span>x), Numeric::BigInt(<span class="kw-2">ref </span>y)) =&gt; {
+                    <span class="self">Self</span>::new(JsBigInt::bitxor(x, y))
                 }
                 (<span class="kw">_</span>, <span class="kw">_</span>) =&gt; {
-                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
-                        .<span class="ident">with_message</span>(<span class="string">&quot;cannot mix BigInt and other types, use explicit conversions&quot;</span>)
-                        .<span class="ident">into</span>());
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
+                        .with_message(<span class="string">&quot;cannot mix BigInt and other types, use explicit conversions&quot;</span>)
+                        .into());
                 }
             },
         })
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">shl</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="kw">match</span> (<span class="self">self</span>, <span class="ident">other</span>) {
-            <span class="comment">// Fast path:</span>
-            (<span class="ident"><span class="self">Self</span>::Integer</span>(<span class="ident">x</span>), <span class="ident"><span class="self">Self</span>::Integer</span>(<span class="ident">y</span>)) =&gt; <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">x</span>.<span class="ident">wrapping_shl</span>(<span class="kw-2">*</span><span class="ident">y</span> <span class="kw">as</span> <span class="ident">u32</span>)),
-            (<span class="ident"><span class="self">Self</span>::Rational</span>(<span class="ident">x</span>), <span class="ident"><span class="self">Self</span>::Rational</span>(<span class="ident">y</span>)) =&gt; {
-                <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">f64_to_int32</span>(<span class="kw-2">*</span><span class="ident">x</span>).<span class="ident">wrapping_shl</span>(<span class="ident">f64_to_uint32</span>(<span class="kw-2">*</span><span class="ident">y</span>)))
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>shl(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
+        <span class="prelude-val">Ok</span>(<span class="kw">match </span>(<span class="self">self</span>, other) {
+            <span class="comment">// Fast path:
+            </span>(<span class="self">Self</span>::Integer(x), <span class="self">Self</span>::Integer(y)) =&gt; <span class="self">Self</span>::new(x.wrapping_shl(<span class="kw-2">*</span>y <span class="kw">as </span>u32)),
+            (<span class="self">Self</span>::Rational(x), <span class="self">Self</span>::Rational(y)) =&gt; {
+                <span class="self">Self</span>::new(f64_to_int32(<span class="kw-2">*</span>x).wrapping_shl(f64_to_uint32(<span class="kw-2">*</span>y)))
             }
-            (<span class="ident"><span class="self">Self</span>::Integer</span>(<span class="ident">x</span>), <span class="ident"><span class="self">Self</span>::Rational</span>(<span class="ident">y</span>)) =&gt; <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">x</span>.<span class="ident">wrapping_shl</span>(<span class="ident">f64_to_uint32</span>(<span class="kw-2">*</span><span class="ident">y</span>))),
-            (<span class="ident"><span class="self">Self</span>::Rational</span>(<span class="ident">x</span>), <span class="ident"><span class="self">Self</span>::Integer</span>(<span class="ident">y</span>)) =&gt; {
-                <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">f64_to_int32</span>(<span class="kw-2">*</span><span class="ident">x</span>).<span class="ident">wrapping_shl</span>(<span class="kw-2">*</span><span class="ident">y</span> <span class="kw">as</span> <span class="ident">u32</span>))
+            (<span class="self">Self</span>::Integer(x), <span class="self">Self</span>::Rational(y)) =&gt; <span class="self">Self</span>::new(x.wrapping_shl(f64_to_uint32(<span class="kw-2">*</span>y))),
+            (<span class="self">Self</span>::Rational(x), <span class="self">Self</span>::Integer(y)) =&gt; {
+                <span class="self">Self</span>::new(f64_to_int32(<span class="kw-2">*</span>x).wrapping_shl(<span class="kw-2">*</span>y <span class="kw">as </span>u32))
             }
 
-            (<span class="ident"><span class="self">Self</span>::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">a</span>), <span class="ident"><span class="self">Self</span>::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">b</span>)) =&gt; <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">JsBigInt::shift_left</span>(<span class="ident">a</span>, <span class="ident">b</span>)<span class="question-mark">?</span>),
+            (<span class="self">Self</span>::BigInt(<span class="kw-2">ref </span>a), <span class="self">Self</span>::BigInt(<span class="kw-2">ref </span>b)) =&gt; <span class="self">Self</span>::new(JsBigInt::shift_left(a, b)<span class="question-mark">?</span>),
 
-            <span class="comment">// Slow path:</span>
-            (<span class="kw">_</span>, <span class="kw">_</span>) =&gt; <span class="kw">match</span> (<span class="self">self</span>.<span class="ident">to_numeric</span>(<span class="ident">context</span>)<span class="question-mark">?</span>, <span class="ident">other</span>.<span class="ident">to_numeric</span>(<span class="ident">context</span>)<span class="question-mark">?</span>) {
-                (<span class="ident">Numeric::Number</span>(<span class="ident">x</span>), <span class="ident">Numeric::Number</span>(<span class="ident">y</span>)) =&gt; {
-                    <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">f64_to_int32</span>(<span class="ident">x</span>).<span class="ident">wrapping_shl</span>(<span class="ident">f64_to_uint32</span>(<span class="ident">y</span>)))
+            <span class="comment">// Slow path:
+            </span>(<span class="kw">_</span>, <span class="kw">_</span>) =&gt; <span class="kw">match </span>(<span class="self">self</span>.to_numeric(context)<span class="question-mark">?</span>, other.to_numeric(context)<span class="question-mark">?</span>) {
+                (Numeric::Number(x), Numeric::Number(y)) =&gt; {
+                    <span class="self">Self</span>::new(f64_to_int32(x).wrapping_shl(f64_to_uint32(y)))
                 }
-                (<span class="ident">Numeric::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">x</span>), <span class="ident">Numeric::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">y</span>)) =&gt; {
-                    <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">JsBigInt::shift_left</span>(<span class="ident">x</span>, <span class="ident">y</span>)<span class="question-mark">?</span>)
+                (Numeric::BigInt(<span class="kw-2">ref </span>x), Numeric::BigInt(<span class="kw-2">ref </span>y)) =&gt; {
+                    <span class="self">Self</span>::new(JsBigInt::shift_left(x, y)<span class="question-mark">?</span>)
                 }
                 (<span class="kw">_</span>, <span class="kw">_</span>) =&gt; {
-                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
-                        .<span class="ident">with_message</span>(<span class="string">&quot;cannot mix BigInt and other types, use explicit conversions&quot;</span>)
-                        .<span class="ident">into</span>());
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
+                        .with_message(<span class="string">&quot;cannot mix BigInt and other types, use explicit conversions&quot;</span>)
+                        .into());
                 }
             },
         })
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">shr</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="kw">match</span> (<span class="self">self</span>, <span class="ident">other</span>) {
-            <span class="comment">// Fast path:</span>
-            (<span class="ident"><span class="self">Self</span>::Integer</span>(<span class="ident">x</span>), <span class="ident"><span class="self">Self</span>::Integer</span>(<span class="ident">y</span>)) =&gt; <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">x</span>.<span class="ident">wrapping_shr</span>(<span class="kw-2">*</span><span class="ident">y</span> <span class="kw">as</span> <span class="ident">u32</span>)),
-            (<span class="ident"><span class="self">Self</span>::Rational</span>(<span class="ident">x</span>), <span class="ident"><span class="self">Self</span>::Rational</span>(<span class="ident">y</span>)) =&gt; {
-                <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">f64_to_int32</span>(<span class="kw-2">*</span><span class="ident">x</span>).<span class="ident">wrapping_shr</span>(<span class="ident">f64_to_uint32</span>(<span class="kw-2">*</span><span class="ident">y</span>)))
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>shr(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
+        <span class="prelude-val">Ok</span>(<span class="kw">match </span>(<span class="self">self</span>, other) {
+            <span class="comment">// Fast path:
+            </span>(<span class="self">Self</span>::Integer(x), <span class="self">Self</span>::Integer(y)) =&gt; <span class="self">Self</span>::new(x.wrapping_shr(<span class="kw-2">*</span>y <span class="kw">as </span>u32)),
+            (<span class="self">Self</span>::Rational(x), <span class="self">Self</span>::Rational(y)) =&gt; {
+                <span class="self">Self</span>::new(f64_to_int32(<span class="kw-2">*</span>x).wrapping_shr(f64_to_uint32(<span class="kw-2">*</span>y)))
             }
-            (<span class="ident"><span class="self">Self</span>::Integer</span>(<span class="ident">x</span>), <span class="ident"><span class="self">Self</span>::Rational</span>(<span class="ident">y</span>)) =&gt; <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">x</span>.<span class="ident">wrapping_shr</span>(<span class="ident">f64_to_uint32</span>(<span class="kw-2">*</span><span class="ident">y</span>))),
-            (<span class="ident"><span class="self">Self</span>::Rational</span>(<span class="ident">x</span>), <span class="ident"><span class="self">Self</span>::Integer</span>(<span class="ident">y</span>)) =&gt; {
-                <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">f64_to_int32</span>(<span class="kw-2">*</span><span class="ident">x</span>).<span class="ident">wrapping_shr</span>(<span class="kw-2">*</span><span class="ident">y</span> <span class="kw">as</span> <span class="ident">u32</span>))
+            (<span class="self">Self</span>::Integer(x), <span class="self">Self</span>::Rational(y)) =&gt; <span class="self">Self</span>::new(x.wrapping_shr(f64_to_uint32(<span class="kw-2">*</span>y))),
+            (<span class="self">Self</span>::Rational(x), <span class="self">Self</span>::Integer(y)) =&gt; {
+                <span class="self">Self</span>::new(f64_to_int32(<span class="kw-2">*</span>x).wrapping_shr(<span class="kw-2">*</span>y <span class="kw">as </span>u32))
             }
 
-            (<span class="ident"><span class="self">Self</span>::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">a</span>), <span class="ident"><span class="self">Self</span>::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">b</span>)) =&gt; <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">JsBigInt::shift_right</span>(<span class="ident">a</span>, <span class="ident">b</span>)<span class="question-mark">?</span>),
+            (<span class="self">Self</span>::BigInt(<span class="kw-2">ref </span>a), <span class="self">Self</span>::BigInt(<span class="kw-2">ref </span>b)) =&gt; <span class="self">Self</span>::new(JsBigInt::shift_right(a, b)<span class="question-mark">?</span>),
 
-            <span class="comment">// Slow path:</span>
-            (<span class="kw">_</span>, <span class="kw">_</span>) =&gt; <span class="kw">match</span> (<span class="self">self</span>.<span class="ident">to_numeric</span>(<span class="ident">context</span>)<span class="question-mark">?</span>, <span class="ident">other</span>.<span class="ident">to_numeric</span>(<span class="ident">context</span>)<span class="question-mark">?</span>) {
-                (<span class="ident">Numeric::Number</span>(<span class="ident">x</span>), <span class="ident">Numeric::Number</span>(<span class="ident">y</span>)) =&gt; {
-                    <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">f64_to_int32</span>(<span class="ident">x</span>).<span class="ident">wrapping_shr</span>(<span class="ident">f64_to_uint32</span>(<span class="ident">y</span>)))
+            <span class="comment">// Slow path:
+            </span>(<span class="kw">_</span>, <span class="kw">_</span>) =&gt; <span class="kw">match </span>(<span class="self">self</span>.to_numeric(context)<span class="question-mark">?</span>, other.to_numeric(context)<span class="question-mark">?</span>) {
+                (Numeric::Number(x), Numeric::Number(y)) =&gt; {
+                    <span class="self">Self</span>::new(f64_to_int32(x).wrapping_shr(f64_to_uint32(y)))
                 }
-                (<span class="ident">Numeric::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">x</span>), <span class="ident">Numeric::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">y</span>)) =&gt; {
-                    <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">JsBigInt::shift_right</span>(<span class="ident">x</span>, <span class="ident">y</span>)<span class="question-mark">?</span>)
+                (Numeric::BigInt(<span class="kw-2">ref </span>x), Numeric::BigInt(<span class="kw-2">ref </span>y)) =&gt; {
+                    <span class="self">Self</span>::new(JsBigInt::shift_right(x, y)<span class="question-mark">?</span>)
                 }
                 (<span class="kw">_</span>, <span class="kw">_</span>) =&gt; {
-                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
-                        .<span class="ident">with_message</span>(<span class="string">&quot;cannot mix BigInt and other types, use explicit conversions&quot;</span>)
-                        .<span class="ident">into</span>());
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
+                        .with_message(<span class="string">&quot;cannot mix BigInt and other types, use explicit conversions&quot;</span>)
+                        .into());
                 }
             },
         })
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ushr</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="kw">match</span> (<span class="self">self</span>, <span class="ident">other</span>) {
-            <span class="comment">// Fast path:</span>
-            (<span class="ident"><span class="self">Self</span>::Integer</span>(<span class="ident">x</span>), <span class="ident"><span class="self">Self</span>::Integer</span>(<span class="ident">y</span>)) =&gt; <span class="ident"><span class="self">Self</span>::new</span>((<span class="kw-2">*</span><span class="ident">x</span> <span class="kw">as</span> <span class="ident">u32</span>).<span class="ident">wrapping_shr</span>(<span class="kw-2">*</span><span class="ident">y</span> <span class="kw">as</span> <span class="ident">u32</span>)),
-            (<span class="ident"><span class="self">Self</span>::Rational</span>(<span class="ident">x</span>), <span class="ident"><span class="self">Self</span>::Rational</span>(<span class="ident">y</span>)) =&gt; {
-                <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">f64_to_uint32</span>(<span class="kw-2">*</span><span class="ident">x</span>).<span class="ident">wrapping_shr</span>(<span class="ident">f64_to_uint32</span>(<span class="kw-2">*</span><span class="ident">y</span>)))
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>ushr(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
+        <span class="prelude-val">Ok</span>(<span class="kw">match </span>(<span class="self">self</span>, other) {
+            <span class="comment">// Fast path:
+            </span>(<span class="self">Self</span>::Integer(x), <span class="self">Self</span>::Integer(y)) =&gt; <span class="self">Self</span>::new((<span class="kw-2">*</span>x <span class="kw">as </span>u32).wrapping_shr(<span class="kw-2">*</span>y <span class="kw">as </span>u32)),
+            (<span class="self">Self</span>::Rational(x), <span class="self">Self</span>::Rational(y)) =&gt; {
+                <span class="self">Self</span>::new(f64_to_uint32(<span class="kw-2">*</span>x).wrapping_shr(f64_to_uint32(<span class="kw-2">*</span>y)))
             }
-            (<span class="ident"><span class="self">Self</span>::Integer</span>(<span class="ident">x</span>), <span class="ident"><span class="self">Self</span>::Rational</span>(<span class="ident">y</span>)) =&gt; {
-                <span class="ident"><span class="self">Self</span>::new</span>((<span class="kw-2">*</span><span class="ident">x</span> <span class="kw">as</span> <span class="ident">u32</span>).<span class="ident">wrapping_shr</span>(<span class="ident">f64_to_uint32</span>(<span class="kw-2">*</span><span class="ident">y</span>)))
+            (<span class="self">Self</span>::Integer(x), <span class="self">Self</span>::Rational(y)) =&gt; {
+                <span class="self">Self</span>::new((<span class="kw-2">*</span>x <span class="kw">as </span>u32).wrapping_shr(f64_to_uint32(<span class="kw-2">*</span>y)))
             }
-            (<span class="ident"><span class="self">Self</span>::Rational</span>(<span class="ident">x</span>), <span class="ident"><span class="self">Self</span>::Integer</span>(<span class="ident">y</span>)) =&gt; {
-                <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">f64_to_uint32</span>(<span class="kw-2">*</span><span class="ident">x</span>).<span class="ident">wrapping_shr</span>(<span class="kw-2">*</span><span class="ident">y</span> <span class="kw">as</span> <span class="ident">u32</span>))
+            (<span class="self">Self</span>::Rational(x), <span class="self">Self</span>::Integer(y)) =&gt; {
+                <span class="self">Self</span>::new(f64_to_uint32(<span class="kw-2">*</span>x).wrapping_shr(<span class="kw-2">*</span>y <span class="kw">as </span>u32))
             }
 
-            <span class="comment">// Slow path:</span>
-            (<span class="kw">_</span>, <span class="kw">_</span>) =&gt; <span class="kw">match</span> (<span class="self">self</span>.<span class="ident">to_numeric</span>(<span class="ident">context</span>)<span class="question-mark">?</span>, <span class="ident">other</span>.<span class="ident">to_numeric</span>(<span class="ident">context</span>)<span class="question-mark">?</span>) {
-                (<span class="ident">Numeric::Number</span>(<span class="ident">x</span>), <span class="ident">Numeric::Number</span>(<span class="ident">y</span>)) =&gt; {
-                    <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">f64_to_uint32</span>(<span class="ident">x</span>).<span class="ident">wrapping_shr</span>(<span class="ident">f64_to_uint32</span>(<span class="ident">y</span>)))
+            <span class="comment">// Slow path:
+            </span>(<span class="kw">_</span>, <span class="kw">_</span>) =&gt; <span class="kw">match </span>(<span class="self">self</span>.to_numeric(context)<span class="question-mark">?</span>, other.to_numeric(context)<span class="question-mark">?</span>) {
+                (Numeric::Number(x), Numeric::Number(y)) =&gt; {
+                    <span class="self">Self</span>::new(f64_to_uint32(x).wrapping_shr(f64_to_uint32(y)))
                 }
-                (<span class="ident">Numeric::BigInt</span>(<span class="kw">_</span>), <span class="ident">Numeric::BigInt</span>(<span class="kw">_</span>)) =&gt; {
-                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
-                        .<span class="ident">with_message</span>(<span class="string">&quot;BigInts have no unsigned right shift, use &gt;&gt; instead&quot;</span>)
-                        .<span class="ident">into</span>());
+                (Numeric::BigInt(<span class="kw">_</span>), Numeric::BigInt(<span class="kw">_</span>)) =&gt; {
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
+                        .with_message(<span class="string">&quot;BigInts have no unsigned right shift, use &gt;&gt; instead&quot;</span>)
+                        .into());
                 }
                 (<span class="kw">_</span>, <span class="kw">_</span>) =&gt; {
-                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
-                        .<span class="ident">with_message</span>(<span class="string">&quot;cannot mix BigInt and other types, use explicit conversions&quot;</span>)
-                        .<span class="ident">into</span>());
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
+                        .with_message(<span class="string">&quot;cannot mix BigInt and other types, use explicit conversions&quot;</span>)
+                        .into());
                 }
             },
         })
     }
 
-    <span class="doccomment">/// Abstract operation `InstanceofOperator ( V, target )`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">/// - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-instanceofoperator</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">instance_of</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">target</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
-        <span class="comment">// 1. If Type(target) is not Object, throw a TypeError exception.</span>
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">target</span>.<span class="ident">is_object</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
-                .<span class="ident">with_message</span>(<span class="macro">format!</span>(
+    <span class="doccomment">/// Abstract operation `InstanceofOperator ( V, target )`
+    ///
+    /// More information:
+    /// - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-instanceofoperator
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>instance_of(<span class="kw-2">&amp;</span><span class="self">self</span>, target: <span class="kw-2">&amp;</span><span class="self">Self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;bool&gt; {
+        <span class="comment">// 1. If Type(target) is not Object, throw a TypeError exception.
+        </span><span class="kw">if </span>!target.is_object() {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
+                .with_message(<span class="macro">format!</span>(
                     <span class="string">&quot;right-hand side of &#39;instanceof&#39; should be an object, got {}&quot;</span>,
-                    <span class="ident">target</span>.<span class="ident">type_of</span>().<span class="ident">to_std_string_escaped</span>()
+                    target.type_of().to_std_string_escaped()
                 ))
-                .<span class="ident">into</span>());
+                .into());
         }
 
-        <span class="comment">// 2. Let instOfHandler be ? GetMethod(target, @@hasInstance).</span>
-        <span class="kw">match</span> <span class="ident">target</span>.<span class="ident">get_method</span>(<span class="ident">WellKnownSymbols::has_instance</span>(), <span class="ident">context</span>)<span class="question-mark">?</span> {
-            <span class="comment">// 3. If instOfHandler is not undefined, then</span>
-            <span class="prelude-val">Some</span>(<span class="ident">instance_of_handler</span>) =&gt; {
-                <span class="comment">// a. Return ! ToBoolean(? Call(instOfHandler, target, « V »)).</span>
-                <span class="prelude-val">Ok</span>(<span class="ident">instance_of_handler</span>
-                    .<span class="ident">call</span>(<span class="ident">target</span>, <span class="ident">std::slice::from_ref</span>(<span class="self">self</span>), <span class="ident">context</span>)<span class="question-mark">?</span>
-                    .<span class="ident">to_boolean</span>())
+        <span class="comment">// 2. Let instOfHandler be ? GetMethod(target, @@hasInstance).
+        </span><span class="kw">match </span>target.get_method(WellKnownSymbols::has_instance(), context)<span class="question-mark">? </span>{
+            <span class="comment">// 3. If instOfHandler is not undefined, then
+            </span><span class="prelude-val">Some</span>(instance_of_handler) =&gt; {
+                <span class="comment">// a. Return ! ToBoolean(? Call(instOfHandler, target, « V »)).
+                </span><span class="prelude-val">Ok</span>(instance_of_handler
+                    .call(target, std::slice::from_ref(<span class="self">self</span>), context)<span class="question-mark">?
+                    </span>.to_boolean())
             }
-            <span class="prelude-val">None</span> <span class="kw">if</span> <span class="ident">target</span>.<span class="ident">is_callable</span>() =&gt; {
-                <span class="comment">// 5. Return ? OrdinaryHasInstance(target, V).</span>
-                <span class="ident"><span class="self">Self</span>::ordinary_has_instance</span>(<span class="ident">target</span>, <span class="self">self</span>, <span class="ident">context</span>)
+            <span class="prelude-val">None </span><span class="kw">if </span>target.is_callable() =&gt; {
+                <span class="comment">// 5. Return ? OrdinaryHasInstance(target, V).
+                </span><span class="self">Self</span>::ordinary_has_instance(target, <span class="self">self</span>, context)
             }
-            <span class="prelude-val">None</span> =&gt; {
-                <span class="comment">// 4. If IsCallable(target) is false, throw a TypeError exception.</span>
-                <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
-                    .<span class="ident">with_message</span>(<span class="string">&quot;right-hand side of &#39;instanceof&#39; is not callable&quot;</span>)
-                    .<span class="ident">into</span>())
+            <span class="prelude-val">None </span>=&gt; {
+                <span class="comment">// 4. If IsCallable(target) is false, throw a TypeError exception.
+                </span><span class="prelude-val">Err</span>(JsNativeError::typ()
+                    .with_message(<span class="string">&quot;right-hand side of &#39;instanceof&#39; is not callable&quot;</span>)
+                    .into())
             }
         }
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">neg</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident"><span class="self">Self</span>::Symbol</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident"><span class="self">Self</span>::Undefined</span> =&gt; <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">f64::NAN</span>),
-            <span class="ident"><span class="self">Self</span>::Object</span>(<span class="kw">_</span>) =&gt; <span class="ident"><span class="self">Self</span>::new</span>(<span class="kw">match</span> <span class="self">self</span>.<span class="ident">to_numeric_number</span>(<span class="ident">context</span>) {
-                <span class="prelude-val">Ok</span>(<span class="ident">num</span>) =&gt; <span class="op">-</span><span class="ident">num</span>,
-                <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="ident">f64::NAN</span>,
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>neg(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
+        <span class="prelude-val">Ok</span>(<span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+            <span class="self">Self</span>::Symbol(<span class="kw">_</span>) | <span class="self">Self</span>::Undefined =&gt; <span class="self">Self</span>::new(f64::NAN),
+            <span class="self">Self</span>::Object(<span class="kw">_</span>) =&gt; <span class="self">Self</span>::new(<span class="kw">match </span><span class="self">self</span>.to_numeric_number(context) {
+                <span class="prelude-val">Ok</span>(num) =&gt; -num,
+                <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; f64::NAN,
             }),
-            <span class="ident"><span class="self">Self</span>::String</span>(<span class="kw-2">ref</span> <span class="ident">str</span>) =&gt; <span class="ident"><span class="self">Self</span>::new</span>(<span class="op">-</span><span class="ident">str</span>.<span class="ident">to_number</span>()),
-            <span class="ident"><span class="self">Self</span>::Rational</span>(<span class="ident">num</span>) =&gt; <span class="ident"><span class="self">Self</span>::new</span>(<span class="op">-</span><span class="ident">num</span>),
-            <span class="ident"><span class="self">Self</span>::Integer</span>(<span class="ident">num</span>) <span class="kw">if</span> <span class="ident">num</span> <span class="op">==</span> <span class="number">0</span> =&gt; <span class="ident"><span class="self">Self</span>::new</span>(<span class="op">-</span><span class="ident">f64::from</span>(<span class="number">0</span>)),
-            <span class="ident"><span class="self">Self</span>::Integer</span>(<span class="ident">num</span>) =&gt; <span class="ident"><span class="self">Self</span>::new</span>(<span class="op">-</span><span class="ident">num</span>),
-            <span class="ident"><span class="self">Self</span>::Boolean</span>(<span class="bool-val">true</span>) =&gt; <span class="ident"><span class="self">Self</span>::new</span>(<span class="number">1</span>),
-            <span class="ident"><span class="self">Self</span>::Boolean</span>(<span class="bool-val">false</span>) <span class="op">|</span> <span class="ident"><span class="self">Self</span>::Null</span> =&gt; <span class="ident"><span class="self">Self</span>::new</span>(<span class="number">0</span>),
-            <span class="ident"><span class="self">Self</span>::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">x</span>) =&gt; <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">JsBigInt::neg</span>(<span class="ident">x</span>)),
+            <span class="self">Self</span>::String(<span class="kw-2">ref </span>str) =&gt; <span class="self">Self</span>::new(-str.to_number()),
+            <span class="self">Self</span>::Rational(num) =&gt; <span class="self">Self</span>::new(-num),
+            <span class="self">Self</span>::Integer(num) <span class="kw">if </span>num == <span class="number">0 </span>=&gt; <span class="self">Self</span>::new(-f64::from(<span class="number">0</span>)),
+            <span class="self">Self</span>::Integer(num) =&gt; <span class="self">Self</span>::new(-num),
+            <span class="self">Self</span>::Boolean(<span class="bool-val">true</span>) =&gt; <span class="self">Self</span>::new(<span class="number">1</span>),
+            <span class="self">Self</span>::Boolean(<span class="bool-val">false</span>) | <span class="self">Self</span>::Null =&gt; <span class="self">Self</span>::new(<span class="number">0</span>),
+            <span class="self">Self</span>::BigInt(<span class="kw-2">ref </span>x) =&gt; <span class="self">Self</span>::new(JsBigInt::neg(x)),
         })
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">not</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="op">!</span><span class="self">self</span>.<span class="ident">to_boolean</span>())
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>not(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;bool&gt; {
+        <span class="prelude-val">Ok</span>(!<span class="self">self</span>.to_boolean())
     }
 
-    <span class="doccomment">/// Abstract relational comparison</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The comparison `x &lt; y`, where `x` and `y` are values, produces `true`, `false`,</span>
-    <span class="doccomment">/// or `undefined` (which indicates that at least one operand is `NaN`).</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// In addition to `x` and `y` the algorithm takes a Boolean flag named `LeftFirst` as a parameter.</span>
-    <span class="doccomment">/// The flag is used to control the order in which operations with potentially visible side-effects</span>
-    <span class="doccomment">/// are performed upon `x` and `y`. It is necessary because ECMAScript specifies left to right evaluation</span>
-    <span class="doccomment">/// of expressions. The default value of `LeftFirst` is `true` and indicates that the `x` parameter</span>
-    <span class="doccomment">/// corresponds to an expression that occurs to the left of the `y` parameter&#39;s corresponding expression.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If `LeftFirst` is `false`, the reverse is the case and operations must be performed upon `y` before `x`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More Information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-abstract-relational-comparison</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">abstract_relation</span>(
+    <span class="doccomment">/// Abstract relational comparison
+    ///
+    /// The comparison `x &lt; y`, where `x` and `y` are values, produces `true`, `false`,
+    /// or `undefined` (which indicates that at least one operand is `NaN`).
+    ///
+    /// In addition to `x` and `y` the algorithm takes a Boolean flag named `LeftFirst` as a parameter.
+    /// The flag is used to control the order in which operations with potentially visible side-effects
+    /// are performed upon `x` and `y`. It is necessary because ECMAScript specifies left to right evaluation
+    /// of expressions. The default value of `LeftFirst` is `true` and indicates that the `x` parameter
+    /// corresponds to an expression that occurs to the left of the `y` parameter&#39;s corresponding expression.
+    ///
+    /// If `LeftFirst` is `false`, the reverse is the case and operations must be performed upon `y` before `x`.
+    ///
+    /// More Information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-abstract-relational-comparison
+    </span><span class="kw">pub fn </span>abstract_relation(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>,
-        <span class="ident">left_first</span>: <span class="ident">bool</span>,
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">AbstractRelation</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="kw">match</span> (<span class="self">self</span>, <span class="ident">other</span>) {
-            <span class="comment">// Fast path (for some common operations):</span>
-            (<span class="ident"><span class="self">Self</span>::Integer</span>(<span class="ident">x</span>), <span class="ident"><span class="self">Self</span>::Integer</span>(<span class="ident">y</span>)) =&gt; (<span class="ident">x</span> <span class="op">&lt;</span> <span class="ident">y</span>).<span class="ident">into</span>(),
-            (<span class="ident"><span class="self">Self</span>::Integer</span>(<span class="ident">x</span>), <span class="ident"><span class="self">Self</span>::Rational</span>(<span class="ident">y</span>)) =&gt; <span class="ident">Number::less_than</span>(<span class="ident">f64::from</span>(<span class="kw-2">*</span><span class="ident">x</span>), <span class="kw-2">*</span><span class="ident">y</span>),
-            (<span class="ident"><span class="self">Self</span>::Rational</span>(<span class="ident">x</span>), <span class="ident"><span class="self">Self</span>::Integer</span>(<span class="ident">y</span>)) =&gt; <span class="ident">Number::less_than</span>(<span class="kw-2">*</span><span class="ident">x</span>, <span class="ident">f64::from</span>(<span class="kw-2">*</span><span class="ident">y</span>)),
-            (<span class="ident"><span class="self">Self</span>::Rational</span>(<span class="ident">x</span>), <span class="ident"><span class="self">Self</span>::Rational</span>(<span class="ident">y</span>)) =&gt; <span class="ident">Number::less_than</span>(<span class="kw-2">*</span><span class="ident">x</span>, <span class="kw-2">*</span><span class="ident">y</span>),
-            (<span class="ident"><span class="self">Self</span>::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">x</span>), <span class="ident"><span class="self">Self</span>::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">y</span>)) =&gt; (<span class="ident">x</span> <span class="op">&lt;</span> <span class="ident">y</span>).<span class="ident">into</span>(),
+        other: <span class="kw-2">&amp;</span><span class="self">Self</span>,
+        left_first: bool,
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;AbstractRelation&gt; {
+        <span class="prelude-val">Ok</span>(<span class="kw">match </span>(<span class="self">self</span>, other) {
+            <span class="comment">// Fast path (for some common operations):
+            </span>(<span class="self">Self</span>::Integer(x), <span class="self">Self</span>::Integer(y)) =&gt; (x &lt; y).into(),
+            (<span class="self">Self</span>::Integer(x), <span class="self">Self</span>::Rational(y)) =&gt; Number::less_than(f64::from(<span class="kw-2">*</span>x), <span class="kw-2">*</span>y),
+            (<span class="self">Self</span>::Rational(x), <span class="self">Self</span>::Integer(y)) =&gt; Number::less_than(<span class="kw-2">*</span>x, f64::from(<span class="kw-2">*</span>y)),
+            (<span class="self">Self</span>::Rational(x), <span class="self">Self</span>::Rational(y)) =&gt; Number::less_than(<span class="kw-2">*</span>x, <span class="kw-2">*</span>y),
+            (<span class="self">Self</span>::BigInt(<span class="kw-2">ref </span>x), <span class="self">Self</span>::BigInt(<span class="kw-2">ref </span>y)) =&gt; (x &lt; y).into(),
 
-            <span class="comment">// Slow path:</span>
-            (<span class="kw">_</span>, <span class="kw">_</span>) =&gt; {
-                <span class="kw">let</span> (<span class="ident">px</span>, <span class="ident">py</span>) <span class="op">=</span> <span class="kw">if</span> <span class="ident">left_first</span> {
-                    <span class="kw">let</span> <span class="ident">px</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">to_primitive</span>(<span class="ident">context</span>, <span class="ident">PreferredType::Number</span>)<span class="question-mark">?</span>;
-                    <span class="kw">let</span> <span class="ident">py</span> <span class="op">=</span> <span class="ident">other</span>.<span class="ident">to_primitive</span>(<span class="ident">context</span>, <span class="ident">PreferredType::Number</span>)<span class="question-mark">?</span>;
-                    (<span class="ident">px</span>, <span class="ident">py</span>)
-                } <span class="kw">else</span> {
-                    <span class="comment">// NOTE: The order of evaluation needs to be reversed to preserve left to right evaluation.</span>
-                    <span class="kw">let</span> <span class="ident">py</span> <span class="op">=</span> <span class="ident">other</span>.<span class="ident">to_primitive</span>(<span class="ident">context</span>, <span class="ident">PreferredType::Number</span>)<span class="question-mark">?</span>;
-                    <span class="kw">let</span> <span class="ident">px</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">to_primitive</span>(<span class="ident">context</span>, <span class="ident">PreferredType::Number</span>)<span class="question-mark">?</span>;
-                    (<span class="ident">px</span>, <span class="ident">py</span>)
+            <span class="comment">// Slow path:
+            </span>(<span class="kw">_</span>, <span class="kw">_</span>) =&gt; {
+                <span class="kw">let </span>(px, py) = <span class="kw">if </span>left_first {
+                    <span class="kw">let </span>px = <span class="self">self</span>.to_primitive(context, PreferredType::Number)<span class="question-mark">?</span>;
+                    <span class="kw">let </span>py = other.to_primitive(context, PreferredType::Number)<span class="question-mark">?</span>;
+                    (px, py)
+                } <span class="kw">else </span>{
+                    <span class="comment">// NOTE: The order of evaluation needs to be reversed to preserve left to right evaluation.
+                    </span><span class="kw">let </span>py = other.to_primitive(context, PreferredType::Number)<span class="question-mark">?</span>;
+                    <span class="kw">let </span>px = <span class="self">self</span>.to_primitive(context, PreferredType::Number)<span class="question-mark">?</span>;
+                    (px, py)
                 };
 
-                <span class="kw">match</span> (<span class="ident">px</span>, <span class="ident">py</span>) {
-                    (<span class="ident"><span class="self">Self</span>::String</span>(<span class="kw-2">ref</span> <span class="ident">x</span>), <span class="ident"><span class="self">Self</span>::String</span>(<span class="kw-2">ref</span> <span class="ident">y</span>)) =&gt; (<span class="ident">x</span> <span class="op">&lt;</span> <span class="ident">y</span>).<span class="ident">into</span>(),
-                    (<span class="ident"><span class="self">Self</span>::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">x</span>), <span class="ident"><span class="self">Self</span>::String</span>(<span class="kw-2">ref</span> <span class="ident">y</span>)) =&gt; {
-                        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">y</span>) <span class="op">=</span> <span class="ident">y</span>.<span class="ident">to_big_int</span>() {
-                            (<span class="kw-2">*</span><span class="ident">x</span> <span class="op">&lt;</span> <span class="ident">y</span>).<span class="ident">into</span>()
-                        } <span class="kw">else</span> {
-                            <span class="ident">AbstractRelation::Undefined</span>
+                <span class="kw">match </span>(px, py) {
+                    (<span class="self">Self</span>::String(<span class="kw-2">ref </span>x), <span class="self">Self</span>::String(<span class="kw-2">ref </span>y)) =&gt; (x &lt; y).into(),
+                    (<span class="self">Self</span>::BigInt(<span class="kw-2">ref </span>x), <span class="self">Self</span>::String(<span class="kw-2">ref </span>y)) =&gt; {
+                        <span class="kw">if let </span><span class="prelude-val">Some</span>(y) = y.to_big_int() {
+                            (<span class="kw-2">*</span>x &lt; y).into()
+                        } <span class="kw">else </span>{
+                            AbstractRelation::Undefined
                         }
                     }
-                    (<span class="ident"><span class="self">Self</span>::String</span>(<span class="kw-2">ref</span> <span class="ident">x</span>), <span class="ident"><span class="self">Self</span>::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">y</span>)) =&gt; {
-                        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">x</span>) <span class="op">=</span> <span class="ident">x</span>.<span class="ident">to_big_int</span>() {
-                            (<span class="ident">x</span> <span class="op">&lt;</span> <span class="kw-2">*</span><span class="ident">y</span>).<span class="ident">into</span>()
-                        } <span class="kw">else</span> {
-                            <span class="ident">AbstractRelation::Undefined</span>
+                    (<span class="self">Self</span>::String(<span class="kw-2">ref </span>x), <span class="self">Self</span>::BigInt(<span class="kw-2">ref </span>y)) =&gt; {
+                        <span class="kw">if let </span><span class="prelude-val">Some</span>(x) = x.to_big_int() {
+                            (x &lt; <span class="kw-2">*</span>y).into()
+                        } <span class="kw">else </span>{
+                            AbstractRelation::Undefined
                         }
                     }
-                    (<span class="ident">px</span>, <span class="ident">py</span>) =&gt; <span class="kw">match</span> (<span class="ident">px</span>.<span class="ident">to_numeric</span>(<span class="ident">context</span>)<span class="question-mark">?</span>, <span class="ident">py</span>.<span class="ident">to_numeric</span>(<span class="ident">context</span>)<span class="question-mark">?</span>) {
-                        (<span class="ident">Numeric::Number</span>(<span class="ident">x</span>), <span class="ident">Numeric::Number</span>(<span class="ident">y</span>)) =&gt; <span class="ident">Number::less_than</span>(<span class="ident">x</span>, <span class="ident">y</span>),
-                        (<span class="ident">Numeric::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">x</span>), <span class="ident">Numeric::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">y</span>)) =&gt; (<span class="ident">x</span> <span class="op">&lt;</span> <span class="ident">y</span>).<span class="ident">into</span>(),
-                        (<span class="ident">Numeric::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">x</span>), <span class="ident">Numeric::Number</span>(<span class="ident">y</span>)) =&gt; {
-                            <span class="kw">if</span> <span class="ident">y</span>.<span class="ident">is_nan</span>() {
-                                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">AbstractRelation::Undefined</span>);
+                    (px, py) =&gt; <span class="kw">match </span>(px.to_numeric(context)<span class="question-mark">?</span>, py.to_numeric(context)<span class="question-mark">?</span>) {
+                        (Numeric::Number(x), Numeric::Number(y)) =&gt; Number::less_than(x, y),
+                        (Numeric::BigInt(<span class="kw-2">ref </span>x), Numeric::BigInt(<span class="kw-2">ref </span>y)) =&gt; (x &lt; y).into(),
+                        (Numeric::BigInt(<span class="kw-2">ref </span>x), Numeric::Number(y)) =&gt; {
+                            <span class="kw">if </span>y.is_nan() {
+                                <span class="kw">return </span><span class="prelude-val">Ok</span>(AbstractRelation::Undefined);
                             }
-                            <span class="kw">if</span> <span class="ident">y</span>.<span class="ident">is_infinite</span>() {
-                                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">y</span>.<span class="ident">is_sign_positive</span>().<span class="ident">into</span>());
-                            }
-
-                            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">y</span>) <span class="op">=</span> <span class="ident">JsBigInt::try_from</span>(<span class="ident">y</span>) {
-                                <span class="kw">return</span> <span class="prelude-val">Ok</span>((<span class="kw-2">*</span><span class="ident">x</span> <span class="op">&lt;</span> <span class="ident">y</span>).<span class="ident">into</span>());
+                            <span class="kw">if </span>y.is_infinite() {
+                                <span class="kw">return </span><span class="prelude-val">Ok</span>(y.is_sign_positive().into());
                             }
 
-                            (<span class="ident">x</span>.<span class="ident">to_f64</span>() <span class="op">&lt;</span> <span class="ident">y</span>).<span class="ident">into</span>()
+                            <span class="kw">if let </span><span class="prelude-val">Ok</span>(y) = JsBigInt::try_from(y) {
+                                <span class="kw">return </span><span class="prelude-val">Ok</span>((<span class="kw-2">*</span>x &lt; y).into());
+                            }
+
+                            (x.to_f64() &lt; y).into()
                         }
-                        (<span class="ident">Numeric::Number</span>(<span class="ident">x</span>), <span class="ident">Numeric::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">y</span>)) =&gt; {
-                            <span class="kw">if</span> <span class="ident">x</span>.<span class="ident">is_nan</span>() {
-                                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">AbstractRelation::Undefined</span>);
+                        (Numeric::Number(x), Numeric::BigInt(<span class="kw-2">ref </span>y)) =&gt; {
+                            <span class="kw">if </span>x.is_nan() {
+                                <span class="kw">return </span><span class="prelude-val">Ok</span>(AbstractRelation::Undefined);
                             }
-                            <span class="kw">if</span> <span class="ident">x</span>.<span class="ident">is_infinite</span>() {
-                                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">x</span>.<span class="ident">is_sign_negative</span>().<span class="ident">into</span>());
-                            }
-
-                            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">x</span>) <span class="op">=</span> <span class="ident">JsBigInt::try_from</span>(<span class="ident">x</span>) {
-                                <span class="kw">return</span> <span class="prelude-val">Ok</span>((<span class="ident">x</span> <span class="op">&lt;</span> <span class="kw-2">*</span><span class="ident">y</span>).<span class="ident">into</span>());
+                            <span class="kw">if </span>x.is_infinite() {
+                                <span class="kw">return </span><span class="prelude-val">Ok</span>(x.is_sign_negative().into());
                             }
 
-                            (<span class="ident">x</span> <span class="op">&lt;</span> <span class="ident">y</span>.<span class="ident">to_f64</span>()).<span class="ident">into</span>()
+                            <span class="kw">if let </span><span class="prelude-val">Ok</span>(x) = JsBigInt::try_from(x) {
+                                <span class="kw">return </span><span class="prelude-val">Ok</span>((x &lt; <span class="kw-2">*</span>y).into());
+                            }
+
+                            (x &lt; y.to_f64()).into()
                         }
                     },
                 }
@@ -1238,101 +1238,101 @@
         })
     }
 
-    <span class="doccomment">/// The less than operator (`&lt;`) returns `true` if the left operand is less than the right operand,</span>
-    <span class="doccomment">/// and `false` otherwise.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More Information:</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Less_than</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-relational-operators-runtime-semantics-evaluation</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">lt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">abstract_relation</span>(<span class="ident">other</span>, <span class="bool-val">true</span>, <span class="ident">context</span>)<span class="question-mark">?</span> {
-            <span class="ident">AbstractRelation::True</span> =&gt; <span class="prelude-val">Ok</span>(<span class="bool-val">true</span>),
-            <span class="ident">AbstractRelation::False</span> <span class="op">|</span> <span class="ident">AbstractRelation::Undefined</span> =&gt; <span class="prelude-val">Ok</span>(<span class="bool-val">false</span>),
+    <span class="doccomment">/// The less than operator (`&lt;`) returns `true` if the left operand is less than the right operand,
+    /// and `false` otherwise.
+    ///
+    /// More Information:
+    ///  - [MDN documentation][mdn]
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Less_than
+    /// [spec]: https://tc39.es/ecma262/#sec-relational-operators-runtime-semantics-evaluation
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>lt(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;bool&gt; {
+        <span class="kw">match </span><span class="self">self</span>.abstract_relation(other, <span class="bool-val">true</span>, context)<span class="question-mark">? </span>{
+            AbstractRelation::True =&gt; <span class="prelude-val">Ok</span>(<span class="bool-val">true</span>),
+            AbstractRelation::False | AbstractRelation::Undefined =&gt; <span class="prelude-val">Ok</span>(<span class="bool-val">false</span>),
         }
     }
 
-    <span class="doccomment">/// The less than or equal operator (`&lt;=`) returns `true` if the left operand is less than</span>
-    <span class="doccomment">/// or equal to the right operand, and `false` otherwise.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More Information:</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Less_than_or_equal</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-relational-operators-runtime-semantics-evaluation</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">le</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="ident">other</span>.<span class="ident">abstract_relation</span>(<span class="self">self</span>, <span class="bool-val">false</span>, <span class="ident">context</span>)<span class="question-mark">?</span> {
-            <span class="ident">AbstractRelation::False</span> =&gt; <span class="prelude-val">Ok</span>(<span class="bool-val">true</span>),
-            <span class="ident">AbstractRelation::True</span> <span class="op">|</span> <span class="ident">AbstractRelation::Undefined</span> =&gt; <span class="prelude-val">Ok</span>(<span class="bool-val">false</span>),
+    <span class="doccomment">/// The less than or equal operator (`&lt;=`) returns `true` if the left operand is less than
+    /// or equal to the right operand, and `false` otherwise.
+    ///
+    /// More Information:
+    ///  - [MDN documentation][mdn]
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Less_than_or_equal
+    /// [spec]: https://tc39.es/ecma262/#sec-relational-operators-runtime-semantics-evaluation
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>le(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;bool&gt; {
+        <span class="kw">match </span>other.abstract_relation(<span class="self">self</span>, <span class="bool-val">false</span>, context)<span class="question-mark">? </span>{
+            AbstractRelation::False =&gt; <span class="prelude-val">Ok</span>(<span class="bool-val">true</span>),
+            AbstractRelation::True | AbstractRelation::Undefined =&gt; <span class="prelude-val">Ok</span>(<span class="bool-val">false</span>),
         }
     }
 
-    <span class="doccomment">/// The greater than operator (`&gt;`) returns `true` if the left operand is greater than</span>
-    <span class="doccomment">/// the right operand, and `false` otherwise.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More Information:</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Greater_than</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-relational-operators-runtime-semantics-evaluation</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">gt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="ident">other</span>.<span class="ident">abstract_relation</span>(<span class="self">self</span>, <span class="bool-val">false</span>, <span class="ident">context</span>)<span class="question-mark">?</span> {
-            <span class="ident">AbstractRelation::True</span> =&gt; <span class="prelude-val">Ok</span>(<span class="bool-val">true</span>),
-            <span class="ident">AbstractRelation::False</span> <span class="op">|</span> <span class="ident">AbstractRelation::Undefined</span> =&gt; <span class="prelude-val">Ok</span>(<span class="bool-val">false</span>),
+    <span class="doccomment">/// The greater than operator (`&gt;`) returns `true` if the left operand is greater than
+    /// the right operand, and `false` otherwise.
+    ///
+    /// More Information:
+    ///  - [MDN documentation][mdn]
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Greater_than
+    /// [spec]: https://tc39.es/ecma262/#sec-relational-operators-runtime-semantics-evaluation
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>gt(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;bool&gt; {
+        <span class="kw">match </span>other.abstract_relation(<span class="self">self</span>, <span class="bool-val">false</span>, context)<span class="question-mark">? </span>{
+            AbstractRelation::True =&gt; <span class="prelude-val">Ok</span>(<span class="bool-val">true</span>),
+            AbstractRelation::False | AbstractRelation::Undefined =&gt; <span class="prelude-val">Ok</span>(<span class="bool-val">false</span>),
         }
     }
 
-    <span class="doccomment">/// The greater than or equal operator (`&gt;=`) returns `true` if the left operand is greater than</span>
-    <span class="doccomment">/// or equal to the right operand, and `false` otherwise.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More Information:</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Greater_than_or_equal</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-relational-operators-runtime-semantics-evaluation</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ge</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">abstract_relation</span>(<span class="ident">other</span>, <span class="bool-val">true</span>, <span class="ident">context</span>)<span class="question-mark">?</span> {
-            <span class="ident">AbstractRelation::False</span> =&gt; <span class="prelude-val">Ok</span>(<span class="bool-val">true</span>),
-            <span class="ident">AbstractRelation::True</span> <span class="op">|</span> <span class="ident">AbstractRelation::Undefined</span> =&gt; <span class="prelude-val">Ok</span>(<span class="bool-val">false</span>),
+    <span class="doccomment">/// The greater than or equal operator (`&gt;=`) returns `true` if the left operand is greater than
+    /// or equal to the right operand, and `false` otherwise.
+    ///
+    /// More Information:
+    ///  - [MDN documentation][mdn]
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Greater_than_or_equal
+    /// [spec]: https://tc39.es/ecma262/#sec-relational-operators-runtime-semantics-evaluation
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>ge(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;bool&gt; {
+        <span class="kw">match </span><span class="self">self</span>.abstract_relation(other, <span class="bool-val">true</span>, context)<span class="question-mark">? </span>{
+            AbstractRelation::False =&gt; <span class="prelude-val">Ok</span>(<span class="bool-val">true</span>),
+            AbstractRelation::True | AbstractRelation::Undefined =&gt; <span class="prelude-val">Ok</span>(<span class="bool-val">false</span>),
         }
     }
 }
 
-<span class="doccomment">/// The result of the [Abstract Relational Comparison][arc].</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Comparison `x &lt; y`, where `x` and `y` are values.</span>
-<span class="doccomment">/// It produces `true`, `false`, or `undefined`</span>
-<span class="doccomment">/// (which indicates that at least one operand is `NaN`).</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [arc]: https://tc39.es/ecma262/#sec-abstract-relational-comparison</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Ord</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">AbstractRelation</span> {
-    <span class="doccomment">/// `x` is less than `y`</span>
-    <span class="ident">True</span>,
-    <span class="doccomment">/// `x` is **not** less than `y`</span>
-    <span class="ident">False</span>,
-    <span class="doccomment">/// Indicates that at least one operand is `NaN`</span>
-    <span class="ident">Undefined</span>,
+<span class="doccomment">/// The result of the [Abstract Relational Comparison][arc].
+///
+/// Comparison `x &lt; y`, where `x` and `y` are values.
+/// It produces `true`, `false`, or `undefined`
+/// (which indicates that at least one operand is `NaN`).
+///
+/// [arc]: https://tc39.es/ecma262/#sec-abstract-relational-comparison
+</span><span class="attribute">#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+</span><span class="kw">pub enum </span>AbstractRelation {
+    <span class="doccomment">/// `x` is less than `y`
+    </span>True,
+    <span class="doccomment">/// `x` is **not** less than `y`
+    </span>False,
+    <span class="doccomment">/// Indicates that at least one operand is `NaN`
+    </span>Undefined,
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">AbstractRelation</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <span class="ident">bool</span>) -&gt; <span class="self">Self</span> {
-        <span class="kw">if</span> <span class="ident">value</span> {
-            <span class="ident"><span class="self">Self</span>::True</span>
-        } <span class="kw">else</span> {
-            <span class="ident"><span class="self">Self</span>::False</span>
+<span class="kw">impl </span>From&lt;bool&gt; <span class="kw">for </span>AbstractRelation {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(value: bool) -&gt; <span class="self">Self </span>{
+        <span class="kw">if </span>value {
+            <span class="self">Self</span>::True
+        } <span class="kw">else </span>{
+            <span class="self">Self</span>::False
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0 (a55dd71d5 2022-09-19)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0 (897e37553 2022-11-02)" ></div></body></html>

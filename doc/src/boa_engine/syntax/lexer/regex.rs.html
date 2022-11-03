@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_engine/src/syntax/lexer/regex.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>regex.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_engine/src/syntax/lexer/regex.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>regex.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container">
                     <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../boa_engine/index.html">
                         <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -217,222 +217,222 @@
 <span id="215">215</span>
 <span id="216">216</span>
 <span id="217">217</span>
-</pre><pre class="rust"><code><span class="doccomment">//! This module implements lexing for regex literals used in the JavaScript programing language.</span>
+</pre><pre class="rust"><code><span class="doccomment">//! This module implements lexing for regex literals used in the JavaScript programing language.
 
-<span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">Cursor</span>, <span class="ident">Error</span>, <span class="ident">Span</span>, <span class="ident">Tokenizer</span>};
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax::lexer</span>::{<span class="ident">Token</span>, <span class="ident">TokenKind</span>};
-<span class="kw">use</span> <span class="ident">bitflags::bitflags</span>;
-<span class="kw">use</span> <span class="ident">boa_ast::Position</span>;
-<span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">Sym</span>};
-<span class="kw">use</span> <span class="ident">boa_profiler::Profiler</span>;
-<span class="kw">use</span> <span class="ident">std</span>::{
-    <span class="ident">io</span>::{<span class="self">self</span>, <span class="ident">ErrorKind</span>, <span class="ident">Read</span>},
-    <span class="ident">str</span>::{<span class="self">self</span>, <span class="ident">FromStr</span>},
+</span><span class="kw">use super</span>::{Cursor, Error, Span, Tokenizer};
+<span class="kw">use </span><span class="kw">crate</span>::syntax::lexer::{Token, TokenKind};
+<span class="kw">use </span>bitflags::bitflags;
+<span class="kw">use </span>boa_ast::Position;
+<span class="kw">use </span>boa_interner::{Interner, Sym};
+<span class="kw">use </span>boa_profiler::Profiler;
+<span class="kw">use </span>std::{
+    io::{<span class="self">self</span>, ErrorKind, Read},
+    str::{<span class="self">self</span>, FromStr},
 };
 
-<span class="doccomment">/// Regex literal lexing.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Lexes Division, Assigndiv or Regex literal.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Expects: Initial &#39;/&#39; to already be consumed by cursor.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [ECMAScript reference][spec]</span>
-<span class="doccomment">///  - [MDN documentation][mdn]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-literals-regular-expression-literals</span>
-<span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct</span> <span class="ident">RegexLiteral</span>;
+<span class="doccomment">/// Regex literal lexing.
+///
+/// Lexes Division, Assigndiv or Regex literal.
+///
+/// Expects: Initial &#39;/&#39; to already be consumed by cursor.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///  - [MDN documentation][mdn]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-literals-regular-expression-literals
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions
+</span><span class="attribute">#[derive(Debug, Clone, Copy)]
+</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>RegexLiteral;
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="ident">Tokenizer</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">RegexLiteral</span> {
-    <span class="kw">fn</span> <span class="ident">lex</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">cursor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>,
-        <span class="ident">start_pos</span>: <span class="ident">Position</span>,
-        <span class="ident">interner</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Interner</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Token</span>, <span class="ident">Error</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">R</span>: <span class="ident">Read</span>,
+<span class="kw">impl</span>&lt;R&gt; Tokenizer&lt;R&gt; <span class="kw">for </span>RegexLiteral {
+    <span class="kw">fn </span>lex(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        cursor: <span class="kw-2">&amp;mut </span>Cursor&lt;R&gt;,
+        start_pos: Position,
+        interner: <span class="kw-2">&amp;mut </span>Interner,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;Token, Error&gt;
+    <span class="kw">where
+        </span>R: Read,
     {
-        <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;RegexLiteral&quot;</span>, <span class="string">&quot;Lexing&quot;</span>);
+        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;RegexLiteral&quot;</span>, <span class="string">&quot;Lexing&quot;</span>);
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">body</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">is_class_char</span> <span class="op">=</span> <span class="bool-val">false</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>body = Vec::new();
+        <span class="kw">let </span><span class="kw-2">mut </span>is_class_char = <span class="bool-val">false</span>;
 
-        <span class="comment">// Lex RegularExpressionBody.</span>
-        <span class="kw">loop</span> {
-            <span class="kw">match</span> <span class="ident">cursor</span>.<span class="ident">next_byte</span>()<span class="question-mark">?</span> {
-                <span class="prelude-val">None</span> =&gt; {
-                    <span class="comment">// Abrupt end.</span>
-                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error::syntax</span>(
+        <span class="comment">// Lex RegularExpressionBody.
+        </span><span class="kw">loop </span>{
+            <span class="kw">match </span>cursor.next_byte()<span class="question-mark">? </span>{
+                <span class="prelude-val">None </span>=&gt; {
+                    <span class="comment">// Abrupt end.
+                    </span><span class="kw">return </span><span class="prelude-val">Err</span>(Error::syntax(
                         <span class="string">&quot;abrupt end on regular expression&quot;</span>,
-                        <span class="ident">cursor</span>.<span class="ident">pos</span>(),
+                        cursor.pos(),
                     ));
                 }
-                <span class="prelude-val">Some</span>(<span class="ident">b</span>) =&gt; {
-                    <span class="kw">match</span> <span class="ident">b</span> {
-                        <span class="string">b&#39;/&#39;</span> <span class="kw">if</span> <span class="op">!</span><span class="ident">is_class_char</span> =&gt; <span class="kw">break</span>, <span class="comment">// RegularExpressionBody finished.</span>
-                        <span class="string">b&#39;[&#39;</span> =&gt; {
-                            <span class="ident">is_class_char</span> <span class="op">=</span> <span class="bool-val">true</span>;
-                            <span class="ident">body</span>.<span class="ident">push</span>(<span class="ident">b</span>);
+                <span class="prelude-val">Some</span>(b) =&gt; {
+                    <span class="kw">match </span>b {
+                        <span class="string">b&#39;/&#39; </span><span class="kw">if </span>!is_class_char =&gt; <span class="kw">break</span>, <span class="comment">// RegularExpressionBody finished.
+                        </span><span class="string">b&#39;[&#39; </span>=&gt; {
+                            is_class_char = <span class="bool-val">true</span>;
+                            body.push(b);
                         }
-                        <span class="string">b&#39;]&#39;</span> <span class="kw">if</span> <span class="ident">is_class_char</span> =&gt; {
-                            <span class="ident">is_class_char</span> <span class="op">=</span> <span class="bool-val">false</span>;
-                            <span class="ident">body</span>.<span class="ident">push</span>(<span class="ident">b</span>);
+                        <span class="string">b&#39;]&#39; </span><span class="kw">if </span>is_class_char =&gt; {
+                            is_class_char = <span class="bool-val">false</span>;
+                            body.push(b);
                         }
-                        <span class="string">b&#39;\n&#39;</span> <span class="op">|</span> <span class="string">b&#39;\r&#39;</span> =&gt; {
-                            <span class="comment">// Not allowed in Regex literal.</span>
-                            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error::syntax</span>(
+                        <span class="string">b&#39;\n&#39; </span>| <span class="string">b&#39;\r&#39; </span>=&gt; {
+                            <span class="comment">// Not allowed in Regex literal.
+                            </span><span class="kw">return </span><span class="prelude-val">Err</span>(Error::syntax(
                                 <span class="string">&quot;new lines are not allowed in regular expressions&quot;</span>,
-                                <span class="ident">cursor</span>.<span class="ident">pos</span>(),
+                                cursor.pos(),
                             ));
                         }
-                        <span class="number">0xE2</span> <span class="kw">if</span> (<span class="ident">cursor</span>.<span class="ident">peek_n</span>(<span class="number">2</span>)<span class="question-mark">?</span> <span class="op">==</span> [<span class="number">0x80</span>, <span class="number">0xA8</span>]
-                            <span class="op">|</span><span class="op">|</span> <span class="ident">cursor</span>.<span class="ident">peek_n</span>(<span class="number">2</span>)<span class="question-mark">?</span> <span class="op">==</span> [<span class="number">0x80</span>, <span class="number">0xA9</span>]) =&gt;
+                        <span class="number">0xE2 </span><span class="kw">if </span>(cursor.peek_n(<span class="number">2</span>)<span class="question-mark">? </span>== [<span class="number">0x80</span>, <span class="number">0xA8</span>]
+                            || cursor.peek_n(<span class="number">2</span>)<span class="question-mark">? </span>== [<span class="number">0x80</span>, <span class="number">0xA9</span>]) =&gt;
                         {
-                            <span class="comment">// &#39;\u{2028}&#39; (e2 80 a8) and &#39;\u{2029}&#39; (e2 80 a9) are not allowed</span>
-                            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error::syntax</span>(
+                            <span class="comment">// &#39;\u{2028}&#39; (e2 80 a8) and &#39;\u{2029}&#39; (e2 80 a9) are not allowed
+                            </span><span class="kw">return </span><span class="prelude-val">Err</span>(Error::syntax(
                                 <span class="string">&quot;new lines are not allowed in regular expressions&quot;</span>,
-                                <span class="ident">cursor</span>.<span class="ident">pos</span>(),
+                                cursor.pos(),
                             ));
                         }
-                        <span class="string">b&#39;\\&#39;</span> =&gt; {
-                            <span class="comment">// Escape sequence</span>
-                            <span class="ident">body</span>.<span class="ident">push</span>(<span class="string">b&#39;\\&#39;</span>);
-                            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">sc</span>) <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">next_byte</span>()<span class="question-mark">?</span> {
-                                <span class="kw">match</span> <span class="ident">sc</span> {
-                                    <span class="string">b&#39;\n&#39;</span> <span class="op">|</span> <span class="string">b&#39;\r&#39;</span> =&gt; {
-                                        <span class="comment">// Not allowed in Regex literal.</span>
-                                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error::syntax</span>(
+                        <span class="string">b&#39;\\&#39; </span>=&gt; {
+                            <span class="comment">// Escape sequence
+                            </span>body.push(<span class="string">b&#39;\\&#39;</span>);
+                            <span class="kw">if let </span><span class="prelude-val">Some</span>(sc) = cursor.next_byte()<span class="question-mark">? </span>{
+                                <span class="kw">match </span>sc {
+                                    <span class="string">b&#39;\n&#39; </span>| <span class="string">b&#39;\r&#39; </span>=&gt; {
+                                        <span class="comment">// Not allowed in Regex literal.
+                                        </span><span class="kw">return </span><span class="prelude-val">Err</span>(Error::syntax(
                                             <span class="string">&quot;new lines are not allowed in regular expressions&quot;</span>,
-                                            <span class="ident">cursor</span>.<span class="ident">pos</span>(),
+                                            cursor.pos(),
                                         ));
                                     }
-                                    <span class="number">0xE2</span> <span class="kw">if</span> (<span class="ident">cursor</span>.<span class="ident">peek_n</span>(<span class="number">2</span>)<span class="question-mark">?</span> <span class="op">==</span> [<span class="number">0x80</span>, <span class="number">0xA8</span>]
-                                        <span class="op">|</span><span class="op">|</span> <span class="ident">cursor</span>.<span class="ident">peek_n</span>(<span class="number">2</span>)<span class="question-mark">?</span> <span class="op">==</span> [<span class="number">0x80</span>, <span class="number">0xA9</span>]) =&gt;
+                                    <span class="number">0xE2 </span><span class="kw">if </span>(cursor.peek_n(<span class="number">2</span>)<span class="question-mark">? </span>== [<span class="number">0x80</span>, <span class="number">0xA8</span>]
+                                        || cursor.peek_n(<span class="number">2</span>)<span class="question-mark">? </span>== [<span class="number">0x80</span>, <span class="number">0xA9</span>]) =&gt;
                                     {
-                                        <span class="comment">// &#39;\u{2028}&#39; (e2 80 a8) and &#39;\u{2029}&#39; (e2 80 a9) are not allowed</span>
-                                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error::syntax</span>(
+                                        <span class="comment">// &#39;\u{2028}&#39; (e2 80 a8) and &#39;\u{2029}&#39; (e2 80 a9) are not allowed
+                                        </span><span class="kw">return </span><span class="prelude-val">Err</span>(Error::syntax(
                                             <span class="string">&quot;new lines are not allowed in regular expressions&quot;</span>,
-                                            <span class="ident">cursor</span>.<span class="ident">pos</span>(),
+                                            cursor.pos(),
                                         ));
                                     }
-                                    <span class="ident">b</span> =&gt; <span class="ident">body</span>.<span class="ident">push</span>(<span class="ident">b</span>),
+                                    b =&gt; body.push(b),
                                 }
-                            } <span class="kw">else</span> {
-                                <span class="comment">// Abrupt end of regex.</span>
-                                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error::syntax</span>(
+                            } <span class="kw">else </span>{
+                                <span class="comment">// Abrupt end of regex.
+                                </span><span class="kw">return </span><span class="prelude-val">Err</span>(Error::syntax(
                                     <span class="string">&quot;abrupt end on regular expression&quot;</span>,
-                                    <span class="ident">cursor</span>.<span class="ident">pos</span>(),
+                                    cursor.pos(),
                                 ));
                             }
                         }
-                        <span class="kw">_</span> =&gt; <span class="ident">body</span>.<span class="ident">push</span>(<span class="ident">b</span>),
+                        <span class="kw">_ </span>=&gt; body.push(b),
                     }
                 }
             }
         }
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">flags</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-        <span class="kw">let</span> <span class="ident">flags_start</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">pos</span>();
-        <span class="ident">cursor</span>.<span class="ident">take_while_ascii_pred</span>(<span class="kw-2">&amp;mut</span> <span class="ident">flags</span>, <span class="kw-2">&amp;</span><span class="ident">char::is_alphabetic</span>)<span class="question-mark">?</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>flags = Vec::new();
+        <span class="kw">let </span>flags_start = cursor.pos();
+        cursor.take_while_ascii_pred(<span class="kw-2">&amp;mut </span>flags, <span class="kw-2">&amp;</span>char::is_alphabetic)<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="ident">flags_str</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">str::from_utf8_unchecked</span>(<span class="ident">flags</span>.<span class="ident">as_slice</span>()) };
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">body_str</span>) <span class="op">=</span> <span class="ident">str::from_utf8</span>(<span class="ident">body</span>.<span class="ident">as_slice</span>()) {
-            <span class="prelude-val">Ok</span>(<span class="ident">Token::new</span>(
-                <span class="ident">TokenKind::regular_expression_literal</span>(
-                    <span class="ident">interner</span>.<span class="ident">get_or_intern</span>(<span class="ident">body_str</span>),
-                    <span class="ident">parse_regex_flags</span>(<span class="ident">flags_str</span>, <span class="ident">flags_start</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>,
+        <span class="kw">let </span>flags_str = <span class="kw">unsafe </span>{ str::from_utf8_unchecked(flags.as_slice()) };
+        <span class="kw">if let </span><span class="prelude-val">Ok</span>(body_str) = str::from_utf8(body.as_slice()) {
+            <span class="prelude-val">Ok</span>(Token::new(
+                TokenKind::regular_expression_literal(
+                    interner.get_or_intern(body_str),
+                    parse_regex_flags(flags_str, flags_start, interner)<span class="question-mark">?</span>,
                 ),
-                <span class="ident">Span::new</span>(<span class="ident">start_pos</span>, <span class="ident">cursor</span>.<span class="ident">pos</span>()),
+                Span::new(start_pos, cursor.pos()),
             ))
-        } <span class="kw">else</span> {
-            <span class="prelude-val">Err</span>(<span class="ident">Error::from</span>(<span class="ident">io::Error::new</span>(
-                <span class="ident">ErrorKind::InvalidData</span>,
+        } <span class="kw">else </span>{
+            <span class="prelude-val">Err</span>(Error::from(io::Error::new(
+                ErrorKind::InvalidData,
                 <span class="string">&quot;Invalid UTF-8 character in regular expressions&quot;</span>,
             )))
         }
     }
 }
 
-<span class="macro">bitflags!</span> {
-    <span class="doccomment">/// Flags of a regular expression.</span>
-    <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Default</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">RegExpFlags</span>: <span class="ident">u8</span> {
-        <span class="kw">const</span> <span class="ident">GLOBAL</span> <span class="op">=</span> <span class="number">0b0000_0001</span>;
-        <span class="kw">const</span> <span class="ident">IGNORE_CASE</span> <span class="op">=</span> <span class="number">0b0000_0010</span>;
-        <span class="kw">const</span> <span class="ident">MULTILINE</span> <span class="op">=</span> <span class="number">0b0000_0100</span>;
-        <span class="kw">const</span> <span class="ident">DOT_ALL</span> <span class="op">=</span> <span class="number">0b0000_1000</span>;
-        <span class="kw">const</span> <span class="ident">UNICODE</span> <span class="op">=</span> <span class="number">0b0001_0000</span>;
-        <span class="kw">const</span> <span class="ident">STICKY</span> <span class="op">=</span> <span class="number">0b0010_0000</span>;
-        <span class="kw">const</span> <span class="ident">HAS_INDICES</span> <span class="op">=</span> <span class="number">0b0100_0000</span>;
+<span class="macro">bitflags! </span>{
+    <span class="doccomment">/// Flags of a regular expression.
+    </span><span class="attribute">#[derive(Default)]
+    </span><span class="kw">pub struct </span>RegExpFlags: u8 {
+        <span class="kw">const </span>GLOBAL = <span class="number">0b0000_0001</span>;
+        <span class="kw">const </span>IGNORE_CASE = <span class="number">0b0000_0010</span>;
+        <span class="kw">const </span>MULTILINE = <span class="number">0b0000_0100</span>;
+        <span class="kw">const </span>DOT_ALL = <span class="number">0b0000_1000</span>;
+        <span class="kw">const </span>UNICODE = <span class="number">0b0001_0000</span>;
+        <span class="kw">const </span>STICKY = <span class="number">0b0010_0000</span>;
+        <span class="kw">const </span>HAS_INDICES = <span class="number">0b0100_0000</span>;
     }
 }
 
-<span class="kw">impl</span> <span class="ident">FromStr</span> <span class="kw">for</span> <span class="ident">RegExpFlags</span> {
-    <span class="kw">type</span> <span class="prelude-val">Err</span> <span class="op">=</span> <span class="ident">String</span>;
+<span class="kw">impl </span>FromStr <span class="kw">for </span>RegExpFlags {
+    <span class="kw">type </span><span class="prelude-val">Err </span>= String;
 
-    <span class="kw">fn</span> <span class="ident">from_str</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident"><span class="self">Self</span>::Err</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">flags</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::default</span>();
-        <span class="kw">for</span> <span class="ident">c</span> <span class="kw">in</span> <span class="ident">s</span>.<span class="ident">bytes</span>() {
-            <span class="kw">let</span> <span class="ident">new_flag</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">c</span> {
-                <span class="string">b&#39;g&#39;</span> =&gt; <span class="ident"><span class="self">Self</span>::GLOBAL</span>,
-                <span class="string">b&#39;i&#39;</span> =&gt; <span class="ident"><span class="self">Self</span>::IGNORE_CASE</span>,
-                <span class="string">b&#39;m&#39;</span> =&gt; <span class="ident"><span class="self">Self</span>::MULTILINE</span>,
-                <span class="string">b&#39;s&#39;</span> =&gt; <span class="ident"><span class="self">Self</span>::DOT_ALL</span>,
-                <span class="string">b&#39;u&#39;</span> =&gt; <span class="ident"><span class="self">Self</span>::UNICODE</span>,
-                <span class="string">b&#39;y&#39;</span> =&gt; <span class="ident"><span class="self">Self</span>::STICKY</span>,
-                <span class="string">b&#39;d&#39;</span> =&gt; <span class="ident"><span class="self">Self</span>::HAS_INDICES</span>,
-                <span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="macro">format!</span>(<span class="string">&quot;invalid regular expression flag {}&quot;</span>, <span class="ident">char::from</span>(<span class="ident">c</span>))),
+    <span class="kw">fn </span>from_str(s: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <span class="self">Self</span>::Err&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>flags = <span class="self">Self</span>::default();
+        <span class="kw">for </span>c <span class="kw">in </span>s.bytes() {
+            <span class="kw">let </span>new_flag = <span class="kw">match </span>c {
+                <span class="string">b&#39;g&#39; </span>=&gt; <span class="self">Self</span>::GLOBAL,
+                <span class="string">b&#39;i&#39; </span>=&gt; <span class="self">Self</span>::IGNORE_CASE,
+                <span class="string">b&#39;m&#39; </span>=&gt; <span class="self">Self</span>::MULTILINE,
+                <span class="string">b&#39;s&#39; </span>=&gt; <span class="self">Self</span>::DOT_ALL,
+                <span class="string">b&#39;u&#39; </span>=&gt; <span class="self">Self</span>::UNICODE,
+                <span class="string">b&#39;y&#39; </span>=&gt; <span class="self">Self</span>::STICKY,
+                <span class="string">b&#39;d&#39; </span>=&gt; <span class="self">Self</span>::HAS_INDICES,
+                <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="macro">format!</span>(<span class="string">&quot;invalid regular expression flag {}&quot;</span>, char::from(c))),
             };
 
-            <span class="kw">if</span> <span class="ident">flags</span>.<span class="ident">contains</span>(<span class="ident">new_flag</span>) {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="macro">format!</span>(
+            <span class="kw">if </span>flags.contains(new_flag) {
+                <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="macro">format!</span>(
                     <span class="string">&quot;repeated regular expression flag {}&quot;</span>,
-                    <span class="ident">char::from</span>(<span class="ident">c</span>)
+                    char::from(c)
                 ));
             }
-            <span class="ident">flags</span>.<span class="ident">insert</span>(<span class="ident">new_flag</span>);
+            flags.insert(new_flag);
         }
 
-        <span class="prelude-val">Ok</span>(<span class="ident">flags</span>)
+        <span class="prelude-val">Ok</span>(flags)
     }
 }
 
-<span class="kw">fn</span> <span class="ident">parse_regex_flags</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">start</span>: <span class="ident">Position</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Interner</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Sym</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
-    <span class="kw">match</span> <span class="ident">RegExpFlags::from_str</span>(<span class="ident">s</span>) {
-        <span class="prelude-val">Err</span>(<span class="ident">message</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">Error::Syntax</span>(<span class="ident">message</span>.<span class="ident">into</span>(), <span class="ident">start</span>)),
-        <span class="prelude-val">Ok</span>(<span class="ident">flags</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">interner</span>.<span class="ident">get_or_intern</span>(<span class="ident">flags</span>.<span class="ident">to_string</span>().<span class="ident">as_str</span>())),
+<span class="kw">fn </span>parse_regex_flags(s: <span class="kw-2">&amp;</span>str, start: Position, interner: <span class="kw-2">&amp;mut </span>Interner) -&gt; <span class="prelude-ty">Result</span>&lt;Sym, Error&gt; {
+    <span class="kw">match </span>RegExpFlags::from_str(s) {
+        <span class="prelude-val">Err</span>(message) =&gt; <span class="prelude-val">Err</span>(Error::Syntax(message.into(), start)),
+        <span class="prelude-val">Ok</span>(flags) =&gt; <span class="prelude-val">Ok</span>(interner.get_or_intern(flags.to_string().as_str())),
     }
 }
 
-<span class="kw">impl</span> <span class="ident">ToString</span> <span class="kw">for</span> <span class="ident">RegExpFlags</span> {
-    <span class="kw">fn</span> <span class="ident">to_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">String</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">String::new</span>();
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">contains</span>(<span class="ident"><span class="self">Self</span>::HAS_INDICES</span>) {
-            <span class="ident">s</span>.<span class="ident">push</span>(<span class="string">&#39;d&#39;</span>);
+<span class="kw">impl </span>ToString <span class="kw">for </span>RegExpFlags {
+    <span class="kw">fn </span>to_string(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; String {
+        <span class="kw">let </span><span class="kw-2">mut </span>s = String::new();
+        <span class="kw">if </span><span class="self">self</span>.contains(<span class="self">Self</span>::HAS_INDICES) {
+            s.push(<span class="string">&#39;d&#39;</span>);
         }
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">contains</span>(<span class="ident"><span class="self">Self</span>::GLOBAL</span>) {
-            <span class="ident">s</span>.<span class="ident">push</span>(<span class="string">&#39;g&#39;</span>);
+        <span class="kw">if </span><span class="self">self</span>.contains(<span class="self">Self</span>::GLOBAL) {
+            s.push(<span class="string">&#39;g&#39;</span>);
         }
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">contains</span>(<span class="ident"><span class="self">Self</span>::IGNORE_CASE</span>) {
-            <span class="ident">s</span>.<span class="ident">push</span>(<span class="string">&#39;i&#39;</span>);
+        <span class="kw">if </span><span class="self">self</span>.contains(<span class="self">Self</span>::IGNORE_CASE) {
+            s.push(<span class="string">&#39;i&#39;</span>);
         }
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">contains</span>(<span class="ident"><span class="self">Self</span>::MULTILINE</span>) {
-            <span class="ident">s</span>.<span class="ident">push</span>(<span class="string">&#39;m&#39;</span>);
+        <span class="kw">if </span><span class="self">self</span>.contains(<span class="self">Self</span>::MULTILINE) {
+            s.push(<span class="string">&#39;m&#39;</span>);
         }
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">contains</span>(<span class="ident"><span class="self">Self</span>::DOT_ALL</span>) {
-            <span class="ident">s</span>.<span class="ident">push</span>(<span class="string">&#39;s&#39;</span>);
+        <span class="kw">if </span><span class="self">self</span>.contains(<span class="self">Self</span>::DOT_ALL) {
+            s.push(<span class="string">&#39;s&#39;</span>);
         }
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">contains</span>(<span class="ident"><span class="self">Self</span>::UNICODE</span>) {
-            <span class="ident">s</span>.<span class="ident">push</span>(<span class="string">&#39;u&#39;</span>);
+        <span class="kw">if </span><span class="self">self</span>.contains(<span class="self">Self</span>::UNICODE) {
+            s.push(<span class="string">&#39;u&#39;</span>);
         }
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">contains</span>(<span class="ident"><span class="self">Self</span>::STICKY</span>) {
-            <span class="ident">s</span>.<span class="ident">push</span>(<span class="string">&#39;y&#39;</span>);
+        <span class="kw">if </span><span class="self">self</span>.contains(<span class="self">Self</span>::STICKY) {
+            s.push(<span class="string">&#39;y&#39;</span>);
         }
-        <span class="ident">s</span>
+        s
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0 (a55dd71d5 2022-09-19)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0 (897e37553 2022-11-02)" ></div></body></html>

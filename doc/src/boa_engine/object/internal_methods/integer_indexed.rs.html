@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_engine/src/object/internal_methods/integer_indexed.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>integer_indexed.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_engine/src/object/internal_methods/integer_indexed.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>integer_indexed.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container">
                     <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../boa_engine/index.html">
                         <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -391,396 +391,396 @@
 <span id="389">389</span>
 <span id="390">390</span>
 <span id="391">391</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">builtins</span>::{<span class="ident">array_buffer::SharedMemoryOrder</span>, <span class="ident">typed_array::integer_indexed_object::ContentType</span>},
-    <span class="ident">object::JsObject</span>,
-    <span class="ident">property</span>::{<span class="ident">PropertyDescriptor</span>, <span class="ident">PropertyKey</span>},
-    <span class="ident">Context</span>, <span class="ident">JsResult</span>, <span class="ident">JsValue</span>,
+</pre><pre class="rust"><code><span class="kw">use crate</span>::{
+    builtins::{array_buffer::SharedMemoryOrder, typed_array::integer_indexed_object::ContentType},
+    object::JsObject,
+    property::{PropertyDescriptor, PropertyKey},
+    Context, JsResult, JsValue,
 };
 
-<span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">InternalObjectMethods</span>, <span class="ident">ORDINARY_INTERNAL_METHODS</span>};
+<span class="kw">use super</span>::{InternalObjectMethods, ORDINARY_INTERNAL_METHODS};
 
-<span class="doccomment">/// Definitions of the internal object methods for integer-indexed exotic objects.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [ECMAScript reference][spec]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-integer-indexed-exotic-objects</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">INTEGER_INDEXED_EXOTIC_INTERNAL_METHODS</span>: <span class="ident">InternalObjectMethods</span> <span class="op">=</span>
-    <span class="ident">InternalObjectMethods</span> {
-        <span class="ident">__get_own_property__</span>: <span class="ident">integer_indexed_exotic_get_own_property</span>,
-        <span class="ident">__has_property__</span>: <span class="ident">integer_indexed_exotic_has_property</span>,
-        <span class="ident">__define_own_property__</span>: <span class="ident">integer_indexed_exotic_define_own_property</span>,
-        <span class="ident">__get__</span>: <span class="ident">integer_indexed_exotic_get</span>,
-        <span class="ident">__set__</span>: <span class="ident">integer_indexed_exotic_set</span>,
-        <span class="ident">__delete__</span>: <span class="ident">integer_indexed_exotic_delete</span>,
-        <span class="ident">__own_property_keys__</span>: <span class="ident">integer_indexed_exotic_own_property_keys</span>,
-        ..<span class="ident">ORDINARY_INTERNAL_METHODS</span>
+<span class="doccomment">/// Definitions of the internal object methods for integer-indexed exotic objects.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-integer-indexed-exotic-objects
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>INTEGER_INDEXED_EXOTIC_INTERNAL_METHODS: InternalObjectMethods =
+    InternalObjectMethods {
+        __get_own_property__: integer_indexed_exotic_get_own_property,
+        __has_property__: integer_indexed_exotic_has_property,
+        __define_own_property__: integer_indexed_exotic_define_own_property,
+        __get__: integer_indexed_exotic_get,
+        __set__: integer_indexed_exotic_set,
+        __delete__: integer_indexed_exotic_delete,
+        __own_property_keys__: integer_indexed_exotic_own_property_keys,
+        ..ORDINARY_INTERNAL_METHODS
     };
 
-<span class="doccomment">/// `[[GetOwnProperty]]` internal method for Integer-Indexed exotic objects.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [ECMAScript reference][spec]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-integer-indexed-exotic-objects-getownproperty-p</span>
-<span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">integer_indexed_exotic_get_own_property</span>(
-    <span class="ident">obj</span>: <span class="kw-2">&amp;</span><span class="ident">JsObject</span>,
-    <span class="ident">key</span>: <span class="kw-2">&amp;</span><span class="ident">PropertyKey</span>,
-    <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PropertyDescriptor</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-    <span class="comment">// 1. If Type(P) is String, then</span>
-    <span class="comment">// a. Let numericIndex be ! CanonicalNumericIndexString(P).</span>
-    <span class="comment">// b. If numericIndex is not undefined, then</span>
-    <span class="kw">if</span> <span class="kw">let</span> <span class="ident">PropertyKey::Index</span>(<span class="ident">index</span>) <span class="op">=</span> <span class="ident">key</span> {
-        <span class="comment">// i. Let value be ! IntegerIndexedElementGet(O, numericIndex).</span>
-        <span class="comment">// ii. If value is undefined, return undefined.</span>
-        <span class="comment">// iii. Return the PropertyDescriptor { [[Value]]: value, [[Writable]]: true, [[Enumerable]]: true, [[Configurable]]: true }.</span>
-        <span class="prelude-val">Ok</span>(
-            <span class="ident">integer_indexed_element_get</span>(<span class="ident">obj</span>, <span class="ident">u64::from</span>(<span class="kw-2">*</span><span class="ident">index</span>)).<span class="ident">map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> {
-                <span class="ident">PropertyDescriptor::builder</span>()
-                    .<span class="ident">value</span>(<span class="ident">v</span>)
-                    .<span class="ident">writable</span>(<span class="bool-val">true</span>)
-                    .<span class="ident">enumerable</span>(<span class="bool-val">true</span>)
-                    .<span class="ident">configurable</span>(<span class="bool-val">true</span>)
-                    .<span class="ident">build</span>()
+<span class="doccomment">/// `[[GetOwnProperty]]` internal method for Integer-Indexed exotic objects.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-integer-indexed-exotic-objects-getownproperty-p
+</span><span class="attribute">#[inline]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>integer_indexed_exotic_get_own_property(
+    obj: <span class="kw-2">&amp;</span>JsObject,
+    key: <span class="kw-2">&amp;</span>PropertyKey,
+    context: <span class="kw-2">&amp;mut </span>Context,
+) -&gt; JsResult&lt;<span class="prelude-ty">Option</span>&lt;PropertyDescriptor&gt;&gt; {
+    <span class="comment">// 1. If Type(P) is String, then
+    // a. Let numericIndex be ! CanonicalNumericIndexString(P).
+    // b. If numericIndex is not undefined, then
+    </span><span class="kw">if let </span>PropertyKey::Index(index) = key {
+        <span class="comment">// i. Let value be ! IntegerIndexedElementGet(O, numericIndex).
+        // ii. If value is undefined, return undefined.
+        // iii. Return the PropertyDescriptor { [[Value]]: value, [[Writable]]: true, [[Enumerable]]: true, [[Configurable]]: true }.
+        </span><span class="prelude-val">Ok</span>(
+            integer_indexed_element_get(obj, u64::from(<span class="kw-2">*</span>index)).map(|v| {
+                PropertyDescriptor::builder()
+                    .value(v)
+                    .writable(<span class="bool-val">true</span>)
+                    .enumerable(<span class="bool-val">true</span>)
+                    .configurable(<span class="bool-val">true</span>)
+                    .build()
             }),
         )
-    } <span class="kw">else</span> {
-        <span class="comment">// 2. Return OrdinaryGetOwnProperty(O, P).</span>
-        <span class="ident"><span class="kw">super</span>::ordinary_get_own_property</span>(<span class="ident">obj</span>, <span class="ident">key</span>, <span class="ident">context</span>)
+    } <span class="kw">else </span>{
+        <span class="comment">// 2. Return OrdinaryGetOwnProperty(O, P).
+        </span><span class="kw">super</span>::ordinary_get_own_property(obj, key, context)
     }
 }
 
-<span class="doccomment">/// `[[HasProperty]]` internal method for Integer-Indexed exotic objects.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [ECMAScript reference][spec]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-integer-indexed-exotic-objects-hasproperty-p</span>
-<span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">integer_indexed_exotic_has_property</span>(
-    <span class="ident">obj</span>: <span class="kw-2">&amp;</span><span class="ident">JsObject</span>,
-    <span class="ident">key</span>: <span class="kw-2">&amp;</span><span class="ident">PropertyKey</span>,
-    <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
-    <span class="comment">// 1. If Type(P) is String, then</span>
-    <span class="comment">// a. Let numericIndex be ! CanonicalNumericIndexString(P).</span>
-    <span class="kw">if</span> <span class="kw">let</span> <span class="ident">PropertyKey::Index</span>(<span class="ident">index</span>) <span class="op">=</span> <span class="ident">key</span> {
-        <span class="comment">// b. If numericIndex is not undefined, return ! IsValidIntegerIndex(O, numericIndex).</span>
-        <span class="prelude-val">Ok</span>(<span class="ident">is_valid_integer_index</span>(<span class="ident">obj</span>, <span class="ident">u64::from</span>(<span class="kw-2">*</span><span class="ident">index</span>)))
-    } <span class="kw">else</span> {
-        <span class="comment">// 2. Return ? OrdinaryHasProperty(O, P).</span>
-        <span class="ident"><span class="kw">super</span>::ordinary_has_property</span>(<span class="ident">obj</span>, <span class="ident">key</span>, <span class="ident">context</span>)
+<span class="doccomment">/// `[[HasProperty]]` internal method for Integer-Indexed exotic objects.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-integer-indexed-exotic-objects-hasproperty-p
+</span><span class="attribute">#[inline]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>integer_indexed_exotic_has_property(
+    obj: <span class="kw-2">&amp;</span>JsObject,
+    key: <span class="kw-2">&amp;</span>PropertyKey,
+    context: <span class="kw-2">&amp;mut </span>Context,
+) -&gt; JsResult&lt;bool&gt; {
+    <span class="comment">// 1. If Type(P) is String, then
+    // a. Let numericIndex be ! CanonicalNumericIndexString(P).
+    </span><span class="kw">if let </span>PropertyKey::Index(index) = key {
+        <span class="comment">// b. If numericIndex is not undefined, return ! IsValidIntegerIndex(O, numericIndex).
+        </span><span class="prelude-val">Ok</span>(is_valid_integer_index(obj, u64::from(<span class="kw-2">*</span>index)))
+    } <span class="kw">else </span>{
+        <span class="comment">// 2. Return ? OrdinaryHasProperty(O, P).
+        </span><span class="kw">super</span>::ordinary_has_property(obj, key, context)
     }
 }
 
-<span class="doccomment">/// `[[DefineOwnProperty]]` internal method for Integer-Indexed exotic objects.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [ECMAScript reference][spec]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-integer-indexed-exotic-objects-defineownproperty-p-desc</span>
-<span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">integer_indexed_exotic_define_own_property</span>(
-    <span class="ident">obj</span>: <span class="kw-2">&amp;</span><span class="ident">JsObject</span>,
-    <span class="ident">key</span>: <span class="ident">PropertyKey</span>,
-    <span class="ident">desc</span>: <span class="ident">PropertyDescriptor</span>,
-    <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
-    <span class="comment">// 1. If Type(P) is String, then</span>
-    <span class="comment">// a. Let numericIndex be ! CanonicalNumericIndexString(P).</span>
-    <span class="comment">// b. If numericIndex is not undefined, then</span>
-    <span class="kw">if</span> <span class="kw">let</span> <span class="ident">PropertyKey::Index</span>(<span class="ident">index</span>) <span class="op">=</span> <span class="ident">key</span> {
-        <span class="comment">// i. If ! IsValidIntegerIndex(O, numericIndex) is false, return false.</span>
-        <span class="comment">// ii. If Desc has a [[Configurable]] field and if Desc.[[Configurable]] is false, return false.</span>
-        <span class="comment">// iii. If Desc has an [[Enumerable]] field and if Desc.[[Enumerable]] is false, return false.</span>
-        <span class="comment">// v. If Desc has a [[Writable]] field and if Desc.[[Writable]] is false, return false.</span>
-        <span class="comment">// iv. If ! IsAccessorDescriptor(Desc) is true, return false.</span>
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">is_valid_integer_index</span>(<span class="ident">obj</span>, <span class="ident">u64::from</span>(<span class="ident">index</span>))
-            <span class="op">|</span><span class="op">|</span> <span class="op">!</span><span class="ident">desc</span>
-                .<span class="ident">configurable</span>()
-                .<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">desc</span>.<span class="ident">enumerable</span>())
-                .<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">desc</span>.<span class="ident">writable</span>())
-                .<span class="ident">unwrap_or</span>(<span class="bool-val">true</span>)
-            <span class="op">|</span><span class="op">|</span> <span class="ident">desc</span>.<span class="ident">is_accessor_descriptor</span>()
+<span class="doccomment">/// `[[DefineOwnProperty]]` internal method for Integer-Indexed exotic objects.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-integer-indexed-exotic-objects-defineownproperty-p-desc
+</span><span class="attribute">#[inline]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>integer_indexed_exotic_define_own_property(
+    obj: <span class="kw-2">&amp;</span>JsObject,
+    key: PropertyKey,
+    desc: PropertyDescriptor,
+    context: <span class="kw-2">&amp;mut </span>Context,
+) -&gt; JsResult&lt;bool&gt; {
+    <span class="comment">// 1. If Type(P) is String, then
+    // a. Let numericIndex be ! CanonicalNumericIndexString(P).
+    // b. If numericIndex is not undefined, then
+    </span><span class="kw">if let </span>PropertyKey::Index(index) = key {
+        <span class="comment">// i. If ! IsValidIntegerIndex(O, numericIndex) is false, return false.
+        // ii. If Desc has a [[Configurable]] field and if Desc.[[Configurable]] is false, return false.
+        // iii. If Desc has an [[Enumerable]] field and if Desc.[[Enumerable]] is false, return false.
+        // v. If Desc has a [[Writable]] field and if Desc.[[Writable]] is false, return false.
+        // iv. If ! IsAccessorDescriptor(Desc) is true, return false.
+        </span><span class="kw">if </span>!is_valid_integer_index(obj, u64::from(index))
+            || !desc
+                .configurable()
+                .or_else(|| desc.enumerable())
+                .or_else(|| desc.writable())
+                .unwrap_or(<span class="bool-val">true</span>)
+            || desc.is_accessor_descriptor()
         {
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="bool-val">false</span>);
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="bool-val">false</span>);
         }
 
-        <span class="comment">// vi. If Desc has a [[Value]] field, perform ? IntegerIndexedElementSet(O, numericIndex, Desc.[[Value]]).</span>
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">value</span>) <span class="op">=</span> <span class="ident">desc</span>.<span class="ident">value</span>() {
-            <span class="ident">integer_indexed_element_set</span>(<span class="ident">obj</span>, <span class="ident">index</span> <span class="kw">as</span> <span class="ident">usize</span>, <span class="ident">value</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="comment">// vi. If Desc has a [[Value]] field, perform ? IntegerIndexedElementSet(O, numericIndex, Desc.[[Value]]).
+        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(value) = desc.value() {
+            integer_indexed_element_set(obj, index <span class="kw">as </span>usize, value, context)<span class="question-mark">?</span>;
         }
 
-        <span class="comment">// vii. Return true.</span>
-        <span class="prelude-val">Ok</span>(<span class="bool-val">true</span>)
-    } <span class="kw">else</span> {
-        <span class="comment">// 2. Return ! OrdinaryDefineOwnProperty(O, P, Desc).</span>
-        <span class="ident"><span class="kw">super</span>::ordinary_define_own_property</span>(<span class="ident">obj</span>, <span class="ident">key</span>, <span class="ident">desc</span>, <span class="ident">context</span>)
+        <span class="comment">// vii. Return true.
+        </span><span class="prelude-val">Ok</span>(<span class="bool-val">true</span>)
+    } <span class="kw">else </span>{
+        <span class="comment">// 2. Return ! OrdinaryDefineOwnProperty(O, P, Desc).
+        </span><span class="kw">super</span>::ordinary_define_own_property(obj, key, desc, context)
     }
 }
 
-<span class="doccomment">/// Internal method `[[Get]]` for Integer-Indexed exotic objects.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [ECMAScript reference][spec]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-integer-indexed-exotic-objects-get-p-receiver</span>
-<span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">integer_indexed_exotic_get</span>(
-    <span class="ident">obj</span>: <span class="kw-2">&amp;</span><span class="ident">JsObject</span>,
-    <span class="ident">key</span>: <span class="kw-2">&amp;</span><span class="ident">PropertyKey</span>,
-    <span class="ident">receiver</span>: <span class="ident">JsValue</span>,
-    <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-    <span class="comment">// 1. If Type(P) is String, then</span>
-    <span class="comment">// a. Let numericIndex be ! CanonicalNumericIndexString(P).</span>
-    <span class="comment">// b. If numericIndex is not undefined, then</span>
-    <span class="kw">if</span> <span class="kw">let</span> <span class="ident">PropertyKey::Index</span>(<span class="ident">index</span>) <span class="op">=</span> <span class="ident">key</span> {
-        <span class="comment">// i. Return ! IntegerIndexedElementGet(O, numericIndex).</span>
-        <span class="prelude-val">Ok</span>(<span class="ident">integer_indexed_element_get</span>(<span class="ident">obj</span>, <span class="ident">u64::from</span>(<span class="kw-2">*</span><span class="ident">index</span>)).<span class="ident">unwrap_or_default</span>())
-    } <span class="kw">else</span> {
-        <span class="comment">// 2. Return ? OrdinaryGet(O, P, Receiver).</span>
-        <span class="ident"><span class="kw">super</span>::ordinary_get</span>(<span class="ident">obj</span>, <span class="ident">key</span>, <span class="ident">receiver</span>, <span class="ident">context</span>)
+<span class="doccomment">/// Internal method `[[Get]]` for Integer-Indexed exotic objects.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-integer-indexed-exotic-objects-get-p-receiver
+</span><span class="attribute">#[inline]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>integer_indexed_exotic_get(
+    obj: <span class="kw-2">&amp;</span>JsObject,
+    key: <span class="kw-2">&amp;</span>PropertyKey,
+    receiver: JsValue,
+    context: <span class="kw-2">&amp;mut </span>Context,
+) -&gt; JsResult&lt;JsValue&gt; {
+    <span class="comment">// 1. If Type(P) is String, then
+    // a. Let numericIndex be ! CanonicalNumericIndexString(P).
+    // b. If numericIndex is not undefined, then
+    </span><span class="kw">if let </span>PropertyKey::Index(index) = key {
+        <span class="comment">// i. Return ! IntegerIndexedElementGet(O, numericIndex).
+        </span><span class="prelude-val">Ok</span>(integer_indexed_element_get(obj, u64::from(<span class="kw-2">*</span>index)).unwrap_or_default())
+    } <span class="kw">else </span>{
+        <span class="comment">// 2. Return ? OrdinaryGet(O, P, Receiver).
+        </span><span class="kw">super</span>::ordinary_get(obj, key, receiver, context)
     }
 }
 
-<span class="doccomment">/// Internal method `[[Set]]` for Integer-Indexed exotic objects.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [ECMAScript reference][spec]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-integer-indexed-exotic-objects-set-p-v-receiver</span>
-<span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">integer_indexed_exotic_set</span>(
-    <span class="ident">obj</span>: <span class="kw-2">&amp;</span><span class="ident">JsObject</span>,
-    <span class="ident">key</span>: <span class="ident">PropertyKey</span>,
-    <span class="ident">value</span>: <span class="ident">JsValue</span>,
-    <span class="ident">receiver</span>: <span class="ident">JsValue</span>,
-    <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
-    <span class="comment">// 1. If Type(P) is String, then</span>
-    <span class="comment">// a. Let numericIndex be ! CanonicalNumericIndexString(P).</span>
-    <span class="comment">// b. If numericIndex is not undefined, then</span>
-    <span class="kw">if</span> <span class="kw">let</span> <span class="ident">PropertyKey::Index</span>(<span class="ident">index</span>) <span class="op">=</span> <span class="ident">key</span> {
-        <span class="comment">// i. Perform ? IntegerIndexedElementSet(O, numericIndex, V).</span>
-        <span class="ident">integer_indexed_element_set</span>(<span class="ident">obj</span>, <span class="ident">index</span> <span class="kw">as</span> <span class="ident">usize</span>, <span class="kw-2">&amp;</span><span class="ident">value</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+<span class="doccomment">/// Internal method `[[Set]]` for Integer-Indexed exotic objects.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-integer-indexed-exotic-objects-set-p-v-receiver
+</span><span class="attribute">#[inline]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>integer_indexed_exotic_set(
+    obj: <span class="kw-2">&amp;</span>JsObject,
+    key: PropertyKey,
+    value: JsValue,
+    receiver: JsValue,
+    context: <span class="kw-2">&amp;mut </span>Context,
+) -&gt; JsResult&lt;bool&gt; {
+    <span class="comment">// 1. If Type(P) is String, then
+    // a. Let numericIndex be ! CanonicalNumericIndexString(P).
+    // b. If numericIndex is not undefined, then
+    </span><span class="kw">if let </span>PropertyKey::Index(index) = key {
+        <span class="comment">// i. Perform ? IntegerIndexedElementSet(O, numericIndex, V).
+        </span>integer_indexed_element_set(obj, index <span class="kw">as </span>usize, <span class="kw-2">&amp;</span>value, context)<span class="question-mark">?</span>;
 
-        <span class="comment">// ii. Return true.</span>
-        <span class="prelude-val">Ok</span>(<span class="bool-val">true</span>)
-    } <span class="kw">else</span> {
-        <span class="comment">// 2. Return ? OrdinarySet(O, P, V, Receiver).</span>
-        <span class="ident"><span class="kw">super</span>::ordinary_set</span>(<span class="ident">obj</span>, <span class="ident">key</span>, <span class="ident">value</span>, <span class="ident">receiver</span>, <span class="ident">context</span>)
+        <span class="comment">// ii. Return true.
+        </span><span class="prelude-val">Ok</span>(<span class="bool-val">true</span>)
+    } <span class="kw">else </span>{
+        <span class="comment">// 2. Return ? OrdinarySet(O, P, V, Receiver).
+        </span><span class="kw">super</span>::ordinary_set(obj, key, value, receiver, context)
     }
 }
 
-<span class="doccomment">/// Internal method `[[Delete]]` for Integer-Indexed exotic objects.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [ECMAScript reference][spec]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-integer-indexed-exotic-objects-delete-p</span>
-<span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">integer_indexed_exotic_delete</span>(
-    <span class="ident">obj</span>: <span class="kw-2">&amp;</span><span class="ident">JsObject</span>,
-    <span class="ident">key</span>: <span class="kw-2">&amp;</span><span class="ident">PropertyKey</span>,
-    <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
-    <span class="comment">// 1. If Type(P) is String, then</span>
-    <span class="comment">// a. Let numericIndex be ! CanonicalNumericIndexString(P).</span>
-    <span class="comment">// b. If numericIndex is not undefined, then</span>
-    <span class="kw">if</span> <span class="kw">let</span> <span class="ident">PropertyKey::Index</span>(<span class="ident">index</span>) <span class="op">=</span> <span class="ident">key</span> {
-        <span class="comment">// i. If ! IsValidIntegerIndex(O, numericIndex) is false, return true; else return false.</span>
-        <span class="prelude-val">Ok</span>(<span class="op">!</span><span class="ident">is_valid_integer_index</span>(<span class="ident">obj</span>, <span class="ident">u64::from</span>(<span class="kw-2">*</span><span class="ident">index</span>)))
-    } <span class="kw">else</span> {
-        <span class="comment">// 2. Return ? OrdinaryDelete(O, P).</span>
-        <span class="ident"><span class="kw">super</span>::ordinary_delete</span>(<span class="ident">obj</span>, <span class="ident">key</span>, <span class="ident">context</span>)
+<span class="doccomment">/// Internal method `[[Delete]]` for Integer-Indexed exotic objects.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-integer-indexed-exotic-objects-delete-p
+</span><span class="attribute">#[inline]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>integer_indexed_exotic_delete(
+    obj: <span class="kw-2">&amp;</span>JsObject,
+    key: <span class="kw-2">&amp;</span>PropertyKey,
+    context: <span class="kw-2">&amp;mut </span>Context,
+) -&gt; JsResult&lt;bool&gt; {
+    <span class="comment">// 1. If Type(P) is String, then
+    // a. Let numericIndex be ! CanonicalNumericIndexString(P).
+    // b. If numericIndex is not undefined, then
+    </span><span class="kw">if let </span>PropertyKey::Index(index) = key {
+        <span class="comment">// i. If ! IsValidIntegerIndex(O, numericIndex) is false, return true; else return false.
+        </span><span class="prelude-val">Ok</span>(!is_valid_integer_index(obj, u64::from(<span class="kw-2">*</span>index)))
+    } <span class="kw">else </span>{
+        <span class="comment">// 2. Return ? OrdinaryDelete(O, P).
+        </span><span class="kw">super</span>::ordinary_delete(obj, key, context)
     }
 }
 
-<span class="doccomment">/// Internal method `[[OwnPropertyKeys]]` for Integer-Indexed exotic objects.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [ECMAScript reference][spec]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-integer-indexed-exotic-objects-ownpropertykeys</span>
-<span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::unnecessary_wraps</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">integer_indexed_exotic_own_property_keys</span>(
-    <span class="ident">obj</span>: <span class="kw-2">&amp;</span><span class="ident">JsObject</span>,
-    <span class="ident">_context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">PropertyKey</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">obj</span>.<span class="ident">borrow</span>();
-    <span class="kw">let</span> <span class="ident">inner</span> <span class="op">=</span> <span class="ident">obj</span>.<span class="ident">as_typed_array</span>().<span class="ident">expect</span>(
+<span class="doccomment">/// Internal method `[[OwnPropertyKeys]]` for Integer-Indexed exotic objects.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-integer-indexed-exotic-objects-ownpropertykeys
+</span><span class="attribute">#[inline]
+#[allow(clippy::unnecessary_wraps)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>integer_indexed_exotic_own_property_keys(
+    obj: <span class="kw-2">&amp;</span>JsObject,
+    _context: <span class="kw-2">&amp;mut </span>Context,
+) -&gt; JsResult&lt;Vec&lt;PropertyKey&gt;&gt; {
+    <span class="kw">let </span>obj = obj.borrow();
+    <span class="kw">let </span>inner = obj.as_typed_array().expect(
         <span class="string">&quot;integer indexed exotic method should only be callable from integer indexed objects&quot;</span>,
     );
 
-    <span class="comment">// 1. Let keys be a new empty List.</span>
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">keys</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">inner</span>.<span class="ident">is_detached</span>() {
+    <span class="comment">// 1. Let keys be a new empty List.
+    </span><span class="kw">let </span><span class="kw-2">mut </span>keys = <span class="kw">if </span>inner.is_detached() {
         <span class="macro">vec!</span>[]
-    } <span class="kw">else</span> {
-        <span class="comment">// 2. If IsDetachedBuffer(O.[[ViewedArrayBuffer]]) is false, then</span>
-        <span class="comment">// a. For each integer i starting with 0 such that i &lt; O.[[ArrayLength]], in ascending order, do</span>
-        <span class="comment">// i. Add ! ToString(𝔽(i)) as the last element of keys.</span>
-        (<span class="number">0</span>..<span class="ident">inner</span>.<span class="ident">array_length</span>())
-            .<span class="ident">into_iter</span>()
-            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">index</span><span class="op">|</span> <span class="ident">PropertyKey::Index</span>(<span class="ident">index</span> <span class="kw">as</span> <span class="ident">u32</span>))
-            .<span class="ident">collect</span>()
+    } <span class="kw">else </span>{
+        <span class="comment">// 2. If IsDetachedBuffer(O.[[ViewedArrayBuffer]]) is false, then
+        // a. For each integer i starting with 0 such that i &lt; O.[[ArrayLength]], in ascending order, do
+        // i. Add ! ToString(𝔽(i)) as the last element of keys.
+        </span>(<span class="number">0</span>..inner.array_length())
+            .into_iter()
+            .map(|index| PropertyKey::Index(index <span class="kw">as </span>u32))
+            .collect()
     };
 
-    <span class="comment">// 3. For each own property key P of O such that Type(P) is String and P is not an array index, in ascending chronological order of property creation, do</span>
-    <span class="comment">// a. Add P as the last element of keys.</span>
-    <span class="ident">keys</span>.<span class="ident">extend</span>(
-        <span class="ident">obj</span>.<span class="ident">properties</span>
-            .<span class="ident">string_property_keys</span>()
-            .<span class="ident">cloned</span>()
-            .<span class="ident">map</span>(<span class="ident">Into::into</span>),
+    <span class="comment">// 3. For each own property key P of O such that Type(P) is String and P is not an array index, in ascending chronological order of property creation, do
+    // a. Add P as the last element of keys.
+    </span>keys.extend(
+        obj.properties
+            .string_property_keys()
+            .cloned()
+            .map(Into::into),
     );
 
-    <span class="comment">// 4. For each own property key P of O such that Type(P) is Symbol, in ascending chronological order of property creation, do</span>
-    <span class="comment">// a. Add P as the last element of keys.</span>
-    <span class="ident">keys</span>.<span class="ident">extend</span>(
-        <span class="ident">obj</span>.<span class="ident">properties</span>
-            .<span class="ident">symbol_property_keys</span>()
-            .<span class="ident">cloned</span>()
-            .<span class="ident">map</span>(<span class="ident">Into::into</span>),
+    <span class="comment">// 4. For each own property key P of O such that Type(P) is Symbol, in ascending chronological order of property creation, do
+    // a. Add P as the last element of keys.
+    </span>keys.extend(
+        obj.properties
+            .symbol_property_keys()
+            .cloned()
+            .map(Into::into),
     );
 
-    <span class="comment">// 5. Return keys.</span>
-    <span class="prelude-val">Ok</span>(<span class="ident">keys</span>)
+    <span class="comment">// 5. Return keys.
+    </span><span class="prelude-val">Ok</span>(keys)
 }
 
-<span class="doccomment">/// Abstract operation `IsValidIntegerIndex ( O, index )`.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [ECMAScript reference][spec]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-isvalidintegerindex</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">is_valid_integer_index</span>(<span class="ident">obj</span>: <span class="kw-2">&amp;</span><span class="ident">JsObject</span>, <span class="ident">index</span>: <span class="ident">u64</span>) -&gt; <span class="ident">bool</span> {
-    <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">obj</span>.<span class="ident">borrow</span>();
-    <span class="kw">let</span> <span class="ident">inner</span> <span class="op">=</span> <span class="ident">obj</span>.<span class="ident">as_typed_array</span>().<span class="ident">expect</span>(
+<span class="doccomment">/// Abstract operation `IsValidIntegerIndex ( O, index )`.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-isvalidintegerindex
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_valid_integer_index(obj: <span class="kw-2">&amp;</span>JsObject, index: u64) -&gt; bool {
+    <span class="kw">let </span>obj = obj.borrow();
+    <span class="kw">let </span>inner = obj.as_typed_array().expect(
         <span class="string">&quot;integer indexed exotic method should only be callable from integer indexed objects&quot;</span>,
     );
-    <span class="comment">// 1. If IsDetachedBuffer(O.[[ViewedArrayBuffer]]) is true, return false.</span>
-    <span class="comment">// 2. If ! IsIntegralNumber(index) is false, return false.</span>
-    <span class="comment">// 3. If index is -0𝔽, return false.</span>
-    <span class="comment">// 4. If ℝ(index) &lt; 0 or ℝ(index) ≥ O.[[ArrayLength]], return false.</span>
-    <span class="comment">// 5. Return true.</span>
-    <span class="op">!</span><span class="ident">inner</span>.<span class="ident">is_detached</span>() <span class="op">&amp;&amp;</span> <span class="ident">index</span> <span class="op">&lt;</span> <span class="ident">inner</span>.<span class="ident">array_length</span>()
+    <span class="comment">// 1. If IsDetachedBuffer(O.[[ViewedArrayBuffer]]) is true, return false.
+    // 2. If ! IsIntegralNumber(index) is false, return false.
+    // 3. If index is -0𝔽, return false.
+    // 4. If ℝ(index) &lt; 0 or ℝ(index) ≥ O.[[ArrayLength]], return false.
+    // 5. Return true.
+    </span>!inner.is_detached() &amp;&amp; index &lt; inner.array_length()
 }
 
-<span class="doccomment">/// Abstract operation `IntegerIndexedElementGet ( O, index )`.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [ECMAScript reference][spec]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-integerindexedelementget</span>
-<span class="kw">fn</span> <span class="ident">integer_indexed_element_get</span>(<span class="ident">obj</span>: <span class="kw-2">&amp;</span><span class="ident">JsObject</span>, <span class="ident">index</span>: <span class="ident">u64</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-    <span class="comment">// 1. If ! IsValidIntegerIndex(O, index) is false, return undefined.</span>
-    <span class="kw">if</span> <span class="op">!</span><span class="ident">is_valid_integer_index</span>(<span class="ident">obj</span>, <span class="ident">index</span>) {
-        <span class="kw">return</span> <span class="prelude-val">None</span>;
+<span class="doccomment">/// Abstract operation `IntegerIndexedElementGet ( O, index )`.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-integerindexedelementget
+</span><span class="kw">fn </span>integer_indexed_element_get(obj: <span class="kw-2">&amp;</span>JsObject, index: u64) -&gt; <span class="prelude-ty">Option</span>&lt;JsValue&gt; {
+    <span class="comment">// 1. If ! IsValidIntegerIndex(O, index) is false, return undefined.
+    </span><span class="kw">if </span>!is_valid_integer_index(obj, index) {
+        <span class="kw">return </span><span class="prelude-val">None</span>;
     }
 
-    <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">obj</span>.<span class="ident">borrow</span>();
-    <span class="kw">let</span> <span class="ident">inner</span> <span class="op">=</span> <span class="ident">obj</span>
-        .<span class="ident">as_typed_array</span>()
-        .<span class="ident">expect</span>(<span class="string">&quot;Already checked for detached buffer&quot;</span>);
-    <span class="kw">let</span> <span class="ident">buffer_obj</span> <span class="op">=</span> <span class="ident">inner</span>
-        .<span class="ident">viewed_array_buffer</span>()
-        .<span class="ident">expect</span>(<span class="string">&quot;Already checked for detached buffer&quot;</span>);
-    <span class="kw">let</span> <span class="ident">buffer_obj_borrow</span> <span class="op">=</span> <span class="ident">buffer_obj</span>.<span class="ident">borrow</span>();
-    <span class="kw">let</span> <span class="ident">buffer</span> <span class="op">=</span> <span class="ident">buffer_obj_borrow</span>
-        .<span class="ident">as_array_buffer</span>()
-        .<span class="ident">expect</span>(<span class="string">&quot;Already checked for detached buffer&quot;</span>);
+    <span class="kw">let </span>obj = obj.borrow();
+    <span class="kw">let </span>inner = obj
+        .as_typed_array()
+        .expect(<span class="string">&quot;Already checked for detached buffer&quot;</span>);
+    <span class="kw">let </span>buffer_obj = inner
+        .viewed_array_buffer()
+        .expect(<span class="string">&quot;Already checked for detached buffer&quot;</span>);
+    <span class="kw">let </span>buffer_obj_borrow = buffer_obj.borrow();
+    <span class="kw">let </span>buffer = buffer_obj_borrow
+        .as_array_buffer()
+        .expect(<span class="string">&quot;Already checked for detached buffer&quot;</span>);
 
-    <span class="comment">// 2. Let offset be O.[[ByteOffset]].</span>
-    <span class="kw">let</span> <span class="ident">offset</span> <span class="op">=</span> <span class="ident">inner</span>.<span class="ident">byte_offset</span>();
+    <span class="comment">// 2. Let offset be O.[[ByteOffset]].
+    </span><span class="kw">let </span>offset = inner.byte_offset();
 
-    <span class="comment">// 3. Let arrayTypeName be the String value of O.[[TypedArrayName]].</span>
-    <span class="comment">// 6. Let elementType be the Element Type value in Table 73 for arrayTypeName.</span>
-    <span class="kw">let</span> <span class="ident">elem_type</span> <span class="op">=</span> <span class="ident">inner</span>.<span class="ident">typed_array_name</span>();
+    <span class="comment">// 3. Let arrayTypeName be the String value of O.[[TypedArrayName]].
+    // 6. Let elementType be the Element Type value in Table 73 for arrayTypeName.
+    </span><span class="kw">let </span>elem_type = inner.typed_array_name();
 
-    <span class="comment">// 4. Let elementSize be the Element Size value specified in Table 73 for arrayTypeName.</span>
-    <span class="kw">let</span> <span class="ident">size</span> <span class="op">=</span> <span class="ident">elem_type</span>.<span class="ident">element_size</span>();
+    <span class="comment">// 4. Let elementSize be the Element Size value specified in Table 73 for arrayTypeName.
+    </span><span class="kw">let </span>size = elem_type.element_size();
 
-    <span class="comment">// 5. Let indexedPosition be (ℝ(index) × elementSize) + offset.</span>
-    <span class="kw">let</span> <span class="ident">indexed_position</span> <span class="op">=</span> (<span class="ident">index</span> <span class="op">*</span> <span class="ident">size</span>) <span class="op">+</span> <span class="ident">offset</span>;
+    <span class="comment">// 5. Let indexedPosition be (ℝ(index) × elementSize) + offset.
+    </span><span class="kw">let </span>indexed_position = (index * size) + offset;
 
-    <span class="comment">// 7. Return GetValueFromBuffer(O.[[ViewedArrayBuffer]], indexedPosition, elementType, true, Unordered).</span>
-    <span class="prelude-val">Some</span>(<span class="ident">buffer</span>.<span class="ident">get_value_from_buffer</span>(
-        <span class="ident">indexed_position</span>,
-        <span class="ident">elem_type</span>,
+    <span class="comment">// 7. Return GetValueFromBuffer(O.[[ViewedArrayBuffer]], indexedPosition, elementType, true, Unordered).
+    </span><span class="prelude-val">Some</span>(buffer.get_value_from_buffer(
+        indexed_position,
+        elem_type,
         <span class="bool-val">true</span>,
-        <span class="ident">SharedMemoryOrder::Unordered</span>,
+        SharedMemoryOrder::Unordered,
         <span class="prelude-val">None</span>,
     ))
 }
 
-<span class="doccomment">/// Abstract operation `IntegerIndexedElementSet ( O, index, value )`.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [ECMAScript reference][spec]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-integerindexedelementset</span>
-<span class="kw">fn</span> <span class="ident">integer_indexed_element_set</span>(
-    <span class="ident">obj</span>: <span class="kw-2">&amp;</span><span class="ident">JsObject</span>,
-    <span class="ident">index</span>: <span class="ident">usize</span>,
-    <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
-    <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">obj_borrow</span> <span class="op">=</span> <span class="ident">obj</span>.<span class="ident">borrow</span>();
-    <span class="kw">let</span> <span class="ident">inner</span> <span class="op">=</span> <span class="ident">obj_borrow</span>.<span class="ident">as_typed_array</span>().<span class="ident">expect</span>(
+<span class="doccomment">/// Abstract operation `IntegerIndexedElementSet ( O, index, value )`.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-integerindexedelementset
+</span><span class="kw">fn </span>integer_indexed_element_set(
+    obj: <span class="kw-2">&amp;</span>JsObject,
+    index: usize,
+    value: <span class="kw-2">&amp;</span>JsValue,
+    context: <span class="kw-2">&amp;mut </span>Context,
+) -&gt; JsResult&lt;()&gt; {
+    <span class="kw">let </span>obj_borrow = obj.borrow();
+    <span class="kw">let </span>inner = obj_borrow.as_typed_array().expect(
         <span class="string">&quot;integer indexed exotic method should only be callable from integer indexed objects&quot;</span>,
     );
 
-    <span class="kw">let</span> <span class="ident">num_value</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">inner</span>.<span class="ident">typed_array_name</span>().<span class="ident">content_type</span>() <span class="op">==</span> <span class="ident">ContentType::BigInt</span> {
-        <span class="comment">// 1. If O.[[ContentType]] is BigInt, let numValue be ? ToBigInt(value).</span>
-        <span class="ident">value</span>.<span class="ident">to_bigint</span>(<span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">into</span>()
-    } <span class="kw">else</span> {
-        <span class="comment">// 2. Otherwise, let numValue be ? ToNumber(value).</span>
-        <span class="ident">value</span>.<span class="ident">to_number</span>(<span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">into</span>()
+    <span class="kw">let </span>num_value = <span class="kw">if </span>inner.typed_array_name().content_type() == ContentType::BigInt {
+        <span class="comment">// 1. If O.[[ContentType]] is BigInt, let numValue be ? ToBigInt(value).
+        </span>value.to_bigint(context)<span class="question-mark">?</span>.into()
+    } <span class="kw">else </span>{
+        <span class="comment">// 2. Otherwise, let numValue be ? ToNumber(value).
+        </span>value.to_number(context)<span class="question-mark">?</span>.into()
     };
 
-    <span class="comment">// 3. If ! IsValidIntegerIndex(O, index) is true, then</span>
-    <span class="kw">if</span> <span class="ident">is_valid_integer_index</span>(<span class="ident">obj</span>, <span class="ident">index</span> <span class="kw">as</span> <span class="ident">u64</span>) {
-        <span class="comment">// a. Let offset be O.[[ByteOffset]].</span>
-        <span class="kw">let</span> <span class="ident">offset</span> <span class="op">=</span> <span class="ident">inner</span>.<span class="ident">byte_offset</span>();
+    <span class="comment">// 3. If ! IsValidIntegerIndex(O, index) is true, then
+    </span><span class="kw">if </span>is_valid_integer_index(obj, index <span class="kw">as </span>u64) {
+        <span class="comment">// a. Let offset be O.[[ByteOffset]].
+        </span><span class="kw">let </span>offset = inner.byte_offset();
 
-        <span class="comment">// b. Let arrayTypeName be the String value of O.[[TypedArrayName]].</span>
-        <span class="comment">// e. Let elementType be the Element Type value in Table 73 for arrayTypeName.</span>
-        <span class="kw">let</span> <span class="ident">elem_type</span> <span class="op">=</span> <span class="ident">inner</span>.<span class="ident">typed_array_name</span>();
+        <span class="comment">// b. Let arrayTypeName be the String value of O.[[TypedArrayName]].
+        // e. Let elementType be the Element Type value in Table 73 for arrayTypeName.
+        </span><span class="kw">let </span>elem_type = inner.typed_array_name();
 
-        <span class="comment">// c. Let elementSize be the Element Size value specified in Table 73 for arrayTypeName.</span>
-        <span class="kw">let</span> <span class="ident">size</span> <span class="op">=</span> <span class="ident">elem_type</span>.<span class="ident">element_size</span>();
+        <span class="comment">// c. Let elementSize be the Element Size value specified in Table 73 for arrayTypeName.
+        </span><span class="kw">let </span>size = elem_type.element_size();
 
-        <span class="comment">// d. Let indexedPosition be (ℝ(index) × elementSize) + offset.</span>
-        <span class="kw">let</span> <span class="ident">indexed_position</span> <span class="op">=</span> (<span class="ident">index</span> <span class="kw">as</span> <span class="ident">u64</span> <span class="op">*</span> <span class="ident">size</span>) <span class="op">+</span> <span class="ident">offset</span>;
+        <span class="comment">// d. Let indexedPosition be (ℝ(index) × elementSize) + offset.
+        </span><span class="kw">let </span>indexed_position = (index <span class="kw">as </span>u64 * size) + offset;
 
-        <span class="kw">let</span> <span class="ident">buffer_obj</span> <span class="op">=</span> <span class="ident">inner</span>
-            .<span class="ident">viewed_array_buffer</span>()
-            .<span class="ident">expect</span>(<span class="string">&quot;Already checked for detached buffer&quot;</span>);
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buffer_obj_borrow</span> <span class="op">=</span> <span class="ident">buffer_obj</span>.<span class="ident">borrow_mut</span>();
-        <span class="kw">let</span> <span class="ident">buffer</span> <span class="op">=</span> <span class="ident">buffer_obj_borrow</span>
-            .<span class="ident">as_array_buffer_mut</span>()
-            .<span class="ident">expect</span>(<span class="string">&quot;Already checked for detached buffer&quot;</span>);
+        <span class="kw">let </span>buffer_obj = inner
+            .viewed_array_buffer()
+            .expect(<span class="string">&quot;Already checked for detached buffer&quot;</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>buffer_obj_borrow = buffer_obj.borrow_mut();
+        <span class="kw">let </span>buffer = buffer_obj_borrow
+            .as_array_buffer_mut()
+            .expect(<span class="string">&quot;Already checked for detached buffer&quot;</span>);
 
-        <span class="comment">// f. Perform SetValueInBuffer(O.[[ViewedArrayBuffer]], indexedPosition, elementType, numValue, true, Unordered).</span>
-        <span class="ident">buffer</span>
-            .<span class="ident">set_value_in_buffer</span>(
-                <span class="ident">indexed_position</span>,
-                <span class="ident">elem_type</span>,
-                <span class="kw-2">&amp;</span><span class="ident">num_value</span>,
-                <span class="ident">SharedMemoryOrder::Unordered</span>,
+        <span class="comment">// f. Perform SetValueInBuffer(O.[[ViewedArrayBuffer]], indexedPosition, elementType, numValue, true, Unordered).
+        </span>buffer
+            .set_value_in_buffer(
+                indexed_position,
+                elem_type,
+                <span class="kw-2">&amp;</span>num_value,
+                SharedMemoryOrder::Unordered,
                 <span class="prelude-val">None</span>,
-                <span class="ident">context</span>,
+                context,
             )
-            .<span class="ident">expect</span>(<span class="string">&quot;SetValueInBuffer cannot fail here&quot;</span>);
+            .expect(<span class="string">&quot;SetValueInBuffer cannot fail here&quot;</span>);
     }
 
-    <span class="comment">// 4. Return NormalCompletion(undefined).</span>
-    <span class="prelude-val">Ok</span>(())
+    <span class="comment">// 4. Return NormalCompletion(undefined).
+    </span><span class="prelude-val">Ok</span>(())
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0 (a55dd71d5 2022-09-19)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0 (897e37553 2022-11-02)" ></div></body></html>

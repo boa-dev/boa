@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_engine/src/syntax/parser/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_engine/src/syntax/parser/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container">
                     <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../boa_engine/index.html">
                         <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -447,521 +447,447 @@
 <span id="445">445</span>
 <span id="446">446</span>
 <span id="447">447</span>
-<span id="448">448</span>
-<span id="449">449</span>
-<span id="450">450</span>
-<span id="451">451</span>
-<span id="452">452</span>
-<span id="453">453</span>
-<span id="454">454</span>
-<span id="455">455</span>
-<span id="456">456</span>
-<span id="457">457</span>
-<span id="458">458</span>
-<span id="459">459</span>
-<span id="460">460</span>
-<span id="461">461</span>
-<span id="462">462</span>
-<span id="463">463</span>
-<span id="464">464</span>
-<span id="465">465</span>
-<span id="466">466</span>
-<span id="467">467</span>
-<span id="468">468</span>
-<span id="469">469</span>
-<span id="470">470</span>
-<span id="471">471</span>
-<span id="472">472</span>
-<span id="473">473</span>
-<span id="474">474</span>
-<span id="475">475</span>
-<span id="476">476</span>
-<span id="477">477</span>
-<span id="478">478</span>
-<span id="479">479</span>
-<span id="480">480</span>
-<span id="481">481</span>
-<span id="482">482</span>
-<span id="483">483</span>
-<span id="484">484</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Boa parser implementation.</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Boa parser implementation.
 
-<span class="kw">mod</span> <span class="ident">cursor</span>;
-<span class="kw">mod</span> <span class="ident">expression</span>;
-<span class="kw">mod</span> <span class="ident">statement</span>;
+</span><span class="kw">mod </span>cursor;
+<span class="kw">mod </span>expression;
+<span class="kw">mod </span>statement;
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod</span> <span class="ident">function</span>;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>function;
 
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">error</span>;
+<span class="kw">pub mod </span>error;
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span>;
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>tests;
 
-<span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">string::utf16</span>,
-    <span class="ident">syntax</span>::{
-        <span class="ident">lexer::TokenKind</span>,
-        <span class="ident">parser</span>::{
-            <span class="ident">cursor::Cursor</span>,
-            <span class="ident">function</span>::{<span class="ident">FormalParameters</span>, <span class="ident">FunctionStatementList</span>},
+<span class="kw">use crate</span>::{
+    string::utf16,
+    syntax::{
+        lexer::TokenKind,
+        parser::{
+            cursor::Cursor,
+            function::{FormalParameters, FunctionStatementList},
         },
     },
-    <span class="ident">Context</span>, <span class="ident">JsString</span>,
+    Context, JsString,
 };
-<span class="kw">use</span> <span class="ident">boa_interner::Interner</span>;
-<span class="kw">use</span> <span class="ident">rustc_hash</span>::{<span class="ident">FxHashMap</span>, <span class="ident">FxHashSet</span>};
-<span class="kw">use</span> <span class="ident">std::io::Read</span>;
+<span class="kw">use </span>boa_interner::Interner;
+<span class="kw">use </span>rustc_hash::{FxHashMap, FxHashSet};
+<span class="kw">use </span>std::io::Read;
 
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="self">self</span>::error</span>::{<span class="ident">ParseError</span>, <span class="ident">ParseResult</span>};
+<span class="kw">pub use </span><span class="self">self</span>::error::{ParseError, ParseResult};
 
-<span class="kw">use</span> <span class="ident">boa_ast</span>::{
-    <span class="ident">expression::Identifier</span>, <span class="ident">function::FormalParameterList</span>, <span class="ident">ContainsSymbol</span>, <span class="ident">Position</span>, <span class="ident">StatementList</span>,
+<span class="kw">use </span>boa_ast::{
+    expression::Identifier,
+    function::FormalParameterList,
+    operations::{contains, contains_arguments, ContainsSymbol},
+    Position, StatementList,
 };
 
-<span class="doccomment">/// Trait implemented by parsers.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This makes it possible to abstract over the underlying implementation of a parser.</span>
-<span class="kw">trait</span> <span class="ident">TokenParser</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>: <span class="ident">Sized</span>
-<span class="kw">where</span>
-    <span class="ident">R</span>: <span class="ident">Read</span>,
+<span class="doccomment">/// Trait implemented by parsers.
+///
+/// This makes it possible to abstract over the underlying implementation of a parser.
+</span><span class="kw">trait </span>TokenParser&lt;R&gt;: Sized
+<span class="kw">where
+    </span>R: Read,
 {
-    <span class="doccomment">/// Output type for the parser.</span>
-    <span class="kw">type</span> <span class="ident">Output</span>; <span class="comment">// = Node; waiting for https://github.com/rust-lang/rust/issues/29661</span>
+    <span class="doccomment">/// Output type for the parser.
+    </span><span class="kw">type </span>Output; <span class="comment">// = Node; waiting for https://github.com/rust-lang/rust/issues/29661
 
-    <span class="doccomment">/// Parses the token stream using the current parser.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This method needs to be provided by the implementor type.</span>
-    <span class="kw">fn</span> <span class="ident">parse</span>(<span class="self">self</span>, <span class="ident">cursor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Interner</span>) -&gt; <span class="ident">ParseResult</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span><span class="op">&gt;</span>;
+    </span><span class="doccomment">/// Parses the token stream using the current parser.
+    ///
+    /// This method needs to be provided by the implementor type.
+    </span><span class="kw">fn </span>parse(<span class="self">self</span>, cursor: <span class="kw-2">&amp;mut </span>Cursor&lt;R&gt;, interner: <span class="kw-2">&amp;mut </span>Interner) -&gt; ParseResult&lt;<span class="self">Self</span>::Output&gt;;
 }
 
-<span class="doccomment">/// Boolean representing if the parser should allow a `yield` keyword.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
-<span class="kw">struct</span> <span class="ident">AllowYield</span>(<span class="ident">bool</span>);
+<span class="doccomment">/// Boolean representing if the parser should allow a `yield` keyword.
+</span><span class="attribute">#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+</span><span class="kw">struct </span>AllowYield(bool);
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">AllowYield</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">allow</span>: <span class="ident">bool</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span>(<span class="ident">allow</span>)
+<span class="kw">impl </span>From&lt;bool&gt; <span class="kw">for </span>AllowYield {
+    <span class="kw">fn </span>from(allow: bool) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>(allow)
     }
 }
 
-<span class="doccomment">/// Boolean representing if the parser should allow a `await` keyword.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
-<span class="kw">struct</span> <span class="ident">AllowAwait</span>(<span class="ident">bool</span>);
+<span class="doccomment">/// Boolean representing if the parser should allow a `await` keyword.
+</span><span class="attribute">#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+</span><span class="kw">struct </span>AllowAwait(bool);
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">AllowAwait</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">allow</span>: <span class="ident">bool</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span>(<span class="ident">allow</span>)
+<span class="kw">impl </span>From&lt;bool&gt; <span class="kw">for </span>AllowAwait {
+    <span class="kw">fn </span>from(allow: bool) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>(allow)
     }
 }
 
-<span class="doccomment">/// Boolean representing if the parser should allow a `in` keyword.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
-<span class="kw">struct</span> <span class="ident">AllowIn</span>(<span class="ident">bool</span>);
+<span class="doccomment">/// Boolean representing if the parser should allow a `in` keyword.
+</span><span class="attribute">#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+</span><span class="kw">struct </span>AllowIn(bool);
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">AllowIn</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">allow</span>: <span class="ident">bool</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span>(<span class="ident">allow</span>)
+<span class="kw">impl </span>From&lt;bool&gt; <span class="kw">for </span>AllowIn {
+    <span class="kw">fn </span>from(allow: bool) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>(allow)
     }
 }
 
-<span class="doccomment">/// Boolean representing if the parser should allow a `return` keyword.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
-<span class="kw">struct</span> <span class="ident">AllowReturn</span>(<span class="ident">bool</span>);
+<span class="doccomment">/// Boolean representing if the parser should allow a `return` keyword.
+</span><span class="attribute">#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+</span><span class="kw">struct </span>AllowReturn(bool);
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">AllowReturn</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">allow</span>: <span class="ident">bool</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span>(<span class="ident">allow</span>)
+<span class="kw">impl </span>From&lt;bool&gt; <span class="kw">for </span>AllowReturn {
+    <span class="kw">fn </span>from(allow: bool) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>(allow)
     }
 }
 
-<span class="doccomment">/// Boolean representing if the parser should allow a `default` keyword.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
-<span class="kw">struct</span> <span class="ident">AllowDefault</span>(<span class="ident">bool</span>);
+<span class="doccomment">/// Boolean representing if the parser should allow a `default` keyword.
+</span><span class="attribute">#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+</span><span class="kw">struct </span>AllowDefault(bool);
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">AllowDefault</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">allow</span>: <span class="ident">bool</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span>(<span class="ident">allow</span>)
+<span class="kw">impl </span>From&lt;bool&gt; <span class="kw">for </span>AllowDefault {
+    <span class="kw">fn </span>from(allow: bool) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>(allow)
     }
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Parser</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Cursor of the parser, pointing to the lexer and used to get tokens for the parser.</span>
-    <span class="ident">cursor</span>: <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>,
+<span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub struct </span>Parser&lt;R&gt; {
+    <span class="doccomment">/// Cursor of the parser, pointing to the lexer and used to get tokens for the parser.
+    </span>cursor: Cursor&lt;R&gt;,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="ident">Parser</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Create a new `Parser` with a reader as the input to parse.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">reader</span>: <span class="ident">R</span>) -&gt; <span class="self">Self</span>
-    <span class="kw">where</span>
-        <span class="ident">R</span>: <span class="ident">Read</span>,
+<span class="kw">impl</span>&lt;R&gt; Parser&lt;R&gt; {
+    <span class="doccomment">/// Create a new `Parser` with a reader as the input to parse.
+    </span><span class="kw">pub fn </span>new(reader: R) -&gt; <span class="self">Self
+    </span><span class="kw">where
+        </span>R: Read,
     {
-        <span class="self">Self</span> {
-            <span class="ident">cursor</span>: <span class="ident">Cursor::new</span>(<span class="ident">reader</span>),
+        <span class="self">Self </span>{
+            cursor: Cursor::new(reader),
         }
     }
 
-    <span class="doccomment">/// Set the parser strict mode to true.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">set_strict</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>)
-    <span class="kw">where</span>
-        <span class="ident">R</span>: <span class="ident">Read</span>,
+    <span class="doccomment">/// Set the parser strict mode to true.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_strict(<span class="kw-2">&amp;mut </span><span class="self">self</span>)
+    <span class="kw">where
+        </span>R: Read,
     {
-        <span class="self">self</span>.<span class="ident">cursor</span>.<span class="ident">set_strict_mode</span>(<span class="bool-val">true</span>);
+        <span class="self">self</span>.cursor.set_strict_mode(<span class="bool-val">true</span>);
     }
 
-    <span class="doccomment">/// Parse the full input as a [ECMAScript Script][spec] into the boa AST representation.</span>
-    <span class="doccomment">/// The resulting `StatementList` can be compiled into boa bytecode and executed in the boa vm.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-Script</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse_all</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">StatementList</span>, <span class="ident">ParseError</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">R</span>: <span class="ident">Read</span>,
+    <span class="doccomment">/// Parse the full input as a [ECMAScript Script][spec] into the boa AST representation.
+    /// The resulting `StatementList` can be compiled into boa bytecode and executed in the boa vm.
+    ///
+    /// [spec]: https://tc39.es/ecma262/#prod-Script
+    </span><span class="kw">pub fn </span>parse_all(<span class="kw-2">&amp;mut </span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; <span class="prelude-ty">Result</span>&lt;StatementList, ParseError&gt;
+    <span class="kw">where
+        </span>R: Read,
     {
-        <span class="ident">Script::new</span>(<span class="bool-val">false</span>).<span class="ident">parse</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">cursor</span>, <span class="ident">context</span>)
+        Script::new(<span class="bool-val">false</span>).parse(<span class="kw-2">&amp;mut </span><span class="self">self</span>.cursor, context)
     }
 
-    <span class="doccomment">/// [`19.2.1.1 PerformEval ( x, strictCaller, direct )`][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Parses the source text input of an `eval` call.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-performeval</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">parse_eval</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">direct</span>: <span class="ident">bool</span>,
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">StatementList</span>, <span class="ident">ParseError</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">R</span>: <span class="ident">Read</span>,
+    <span class="doccomment">/// [`19.2.1.1 PerformEval ( x, strictCaller, direct )`][spec]
+    ///
+    /// Parses the source text input of an `eval` call.
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-performeval
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>parse_eval(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        direct: bool,
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;StatementList, ParseError&gt;
+    <span class="kw">where
+        </span>R: Read,
     {
-        <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Default</span>)]</span>
-        <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::struct_excessive_bools</span>)]</span>
-        <span class="kw">struct</span> <span class="ident">Flags</span> {
-            <span class="ident">in_function</span>: <span class="ident">bool</span>,
-            <span class="ident">in_method</span>: <span class="ident">bool</span>,
-            <span class="ident">in_derived_constructor</span>: <span class="ident">bool</span>,
-            <span class="ident">in_class_field_initializer</span>: <span class="ident">bool</span>,
+        <span class="attribute">#[derive(Debug, Default)]
+        #[allow(clippy::struct_excessive_bools)]
+        </span><span class="kw">struct </span>Flags {
+            in_function: bool,
+            in_method: bool,
+            in_derived_constructor: bool,
+            in_class_field_initializer: bool,
         }
-        <span class="comment">// 5. Perform ? HostEnsureCanCompileStrings(evalRealm).</span>
-        <span class="comment">// 11. Perform the following substeps in an implementation-defined order, possibly interleaving parsing and error detection:</span>
-        <span class="comment">//     a. Let script be ParseText(StringToCodePoints(x), Script).</span>
-        <span class="comment">//     b. If script is a List of errors, throw a SyntaxError exception.</span>
-        <span class="comment">//     c. If script Contains ScriptBody is false, return undefined.</span>
-        <span class="comment">//     d. Let body be the ScriptBody of script.</span>
-        <span class="kw">let</span> <span class="ident">body</span> <span class="op">=</span> <span class="ident">Script::new</span>(<span class="ident">direct</span>).<span class="ident">parse</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">cursor</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="comment">// 5. Perform ? HostEnsureCanCompileStrings(evalRealm).
+        // 11. Perform the following substeps in an implementation-defined order, possibly interleaving parsing and error detection:
+        //     a. Let script be ParseText(StringToCodePoints(x), Script).
+        //     b. If script is a List of errors, throw a SyntaxError exception.
+        //     c. If script Contains ScriptBody is false, return undefined.
+        //     d. Let body be the ScriptBody of script.
+        </span><span class="kw">let </span>body = Script::new(direct).parse(<span class="kw-2">&amp;mut </span><span class="self">self</span>.cursor, context)<span class="question-mark">?</span>;
 
-        <span class="comment">// 6. Let inFunction be false.</span>
-        <span class="comment">// 7. Let inMethod be false.</span>
-        <span class="comment">// 8. Let inDerivedConstructor be false.</span>
-        <span class="comment">// 9. Let inClassFieldInitializer be false.</span>
-        <span class="comment">// a. Let thisEnvRec be GetThisEnvironment().</span>
-        <span class="kw">let</span> <span class="ident">flags</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">context</span>
-            .<span class="ident">realm</span>
-            .<span class="ident">environments</span>
-            .<span class="ident">get_this_environment</span>()
-            .<span class="ident">as_function_slots</span>()
+        <span class="comment">// 6. Let inFunction be false.
+        // 7. Let inMethod be false.
+        // 8. Let inDerivedConstructor be false.
+        // 9. Let inClassFieldInitializer be false.
+        // a. Let thisEnvRec be GetThisEnvironment().
+        </span><span class="kw">let </span>flags = <span class="kw">match </span>context
+            .realm
+            .environments
+            .get_this_environment()
+            .as_function_slots()
         {
-            <span class="comment">// 10. If direct is true, then</span>
-            <span class="comment">//     b. If thisEnvRec is a Function Environment Record, then</span>
-            <span class="prelude-val">Some</span>(<span class="ident">function_env</span>) <span class="kw">if</span> <span class="ident">direct</span> =&gt; {
-                <span class="kw">let</span> <span class="ident">function_env</span> <span class="op">=</span> <span class="ident">function_env</span>.<span class="ident">borrow</span>();
-                <span class="comment">// i. Let F be thisEnvRec.[[FunctionObject]].</span>
-                <span class="kw">let</span> <span class="ident">function_object</span> <span class="op">=</span> <span class="ident">function_env</span>.<span class="ident">function_object</span>().<span class="ident">borrow</span>();
-                <span class="ident">Flags</span> {
-                    <span class="comment">// ii. Set inFunction to true.</span>
-                    <span class="ident">in_function</span>: <span class="bool-val">true</span>,
-                    <span class="comment">// iii. Set inMethod to thisEnvRec.HasSuperBinding().</span>
-                    <span class="ident">in_method</span>: <span class="ident">function_env</span>.<span class="ident">has_super_binding</span>(),
-                    <span class="comment">// iv. If F.[[ConstructorKind]] is derived, set inDerivedConstructor to true.</span>
-                    <span class="ident">in_derived_constructor</span>: <span class="ident">function_object</span>
-                        .<span class="ident">as_function</span>()
-                        .<span class="ident">expect</span>(<span class="string">&quot;must be function object&quot;</span>)
-                        .<span class="ident">is_derived_constructor</span>(),
-                    <span class="comment">// TODO:</span>
-                    <span class="comment">// v. Let classFieldInitializerName be F.[[ClassFieldInitializerName]].</span>
-                    <span class="comment">// vi. If classFieldInitializerName is not empty, set inClassFieldInitializer to true.</span>
-                    <span class="ident">in_class_field_initializer</span>: <span class="bool-val">false</span>,
+            <span class="comment">// 10. If direct is true, then
+            //     b. If thisEnvRec is a Function Environment Record, then
+            </span><span class="prelude-val">Some</span>(function_env) <span class="kw">if </span>direct =&gt; {
+                <span class="kw">let </span>function_env = function_env.borrow();
+                <span class="comment">// i. Let F be thisEnvRec.[[FunctionObject]].
+                </span><span class="kw">let </span>function_object = function_env.function_object().borrow();
+                Flags {
+                    <span class="comment">// ii. Set inFunction to true.
+                    </span>in_function: <span class="bool-val">true</span>,
+                    <span class="comment">// iii. Set inMethod to thisEnvRec.HasSuperBinding().
+                    </span>in_method: function_env.has_super_binding(),
+                    <span class="comment">// iv. If F.[[ConstructorKind]] is derived, set inDerivedConstructor to true.
+                    </span>in_derived_constructor: function_object
+                        .as_function()
+                        .expect(<span class="string">&quot;must be function object&quot;</span>)
+                        .is_derived_constructor(),
+                    <span class="comment">// TODO:
+                    // v. Let classFieldInitializerName be F.[[ClassFieldInitializerName]].
+                    // vi. If classFieldInitializerName is not empty, set inClassFieldInitializer to true.
+                    </span>in_class_field_initializer: <span class="bool-val">false</span>,
                 }
             }
-            <span class="kw">_</span> =&gt; <span class="ident">Flags::default</span>(),
+            <span class="kw">_ </span>=&gt; Flags::default(),
         };
 
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">flags</span>.<span class="ident">in_function</span> <span class="op">&amp;&amp;</span> <span class="ident">body</span>.<span class="ident">contains</span>(<span class="ident">ContainsSymbol::NewTarget</span>) {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::general</span>(
+        <span class="kw">if </span>!flags.in_function &amp;&amp; contains(<span class="kw-2">&amp;</span>body, ContainsSymbol::NewTarget) {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(ParseError::general(
                 <span class="string">&quot;invalid `new.target` expression inside eval&quot;</span>,
-                <span class="ident">Position::new</span>(<span class="number">1</span>, <span class="number">1</span>),
+                Position::new(<span class="number">1</span>, <span class="number">1</span>),
             ));
         }
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">flags</span>.<span class="ident">in_method</span> <span class="op">&amp;&amp;</span> <span class="ident">body</span>.<span class="ident">contains</span>(<span class="ident">ContainsSymbol::SuperProperty</span>) {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::general</span>(
+        <span class="kw">if </span>!flags.in_method &amp;&amp; contains(<span class="kw-2">&amp;</span>body, ContainsSymbol::SuperProperty) {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(ParseError::general(
                 <span class="string">&quot;invalid `super` reference inside eval&quot;</span>,
-                <span class="ident">Position::new</span>(<span class="number">1</span>, <span class="number">1</span>),
+                Position::new(<span class="number">1</span>, <span class="number">1</span>),
             ));
         }
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">flags</span>.<span class="ident">in_derived_constructor</span> <span class="op">&amp;&amp;</span> <span class="ident">body</span>.<span class="ident">contains</span>(<span class="ident">ContainsSymbol::SuperCall</span>) {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::general</span>(
+        <span class="kw">if </span>!flags.in_derived_constructor &amp;&amp; contains(<span class="kw-2">&amp;</span>body, ContainsSymbol::SuperCall) {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(ParseError::general(
                 <span class="string">&quot;invalid `super` call inside eval&quot;</span>,
-                <span class="ident">Position::new</span>(<span class="number">1</span>, <span class="number">1</span>),
+                Position::new(<span class="number">1</span>, <span class="number">1</span>),
             ));
         }
-        <span class="kw">if</span> <span class="ident">flags</span>.<span class="ident">in_class_field_initializer</span> <span class="op">&amp;&amp;</span> <span class="ident">body</span>.<span class="ident">contains_arguments</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::general</span>(
+        <span class="kw">if </span>flags.in_class_field_initializer &amp;&amp; contains_arguments(<span class="kw-2">&amp;</span>body) {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(ParseError::general(
                 <span class="string">&quot;invalid `arguments` reference inside eval&quot;</span>,
-                <span class="ident">Position::new</span>(<span class="number">1</span>, <span class="number">1</span>),
+                Position::new(<span class="number">1</span>, <span class="number">1</span>),
             ));
         }
 
-        <span class="prelude-val">Ok</span>(<span class="ident">body</span>)
+        <span class="prelude-val">Ok</span>(body)
     }
 
-    <span class="doccomment">/// Parse the full input as an [ECMAScript `FunctionBody`][spec] into the boa AST representation.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-FunctionBody</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">parse_function_body</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">interner</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Interner</span>,
-        <span class="ident">allow_yield</span>: <span class="ident">bool</span>,
-        <span class="ident">allow_await</span>: <span class="ident">bool</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">StatementList</span>, <span class="ident">ParseError</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">R</span>: <span class="ident">Read</span>,
+    <span class="doccomment">/// Parse the full input as an [ECMAScript `FunctionBody`][spec] into the boa AST representation.
+    ///
+    /// [spec]: https://tc39.es/ecma262/#prod-FunctionBody
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>parse_function_body(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        interner: <span class="kw-2">&amp;mut </span>Interner,
+        allow_yield: bool,
+        allow_await: bool,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;StatementList, ParseError&gt;
+    <span class="kw">where
+        </span>R: Read,
     {
-        <span class="ident">FunctionStatementList::new</span>(<span class="ident">allow_yield</span>, <span class="ident">allow_await</span>).<span class="ident">parse</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">cursor</span>, <span class="ident">interner</span>)
+        FunctionStatementList::new(allow_yield, allow_await).parse(<span class="kw-2">&amp;mut </span><span class="self">self</span>.cursor, interner)
     }
 
-    <span class="doccomment">/// Parse the full input as an [ECMAScript `FormalParameterList`][spec] into the boa AST representation.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-FormalParameterList</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">parse_formal_parameters</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">interner</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Interner</span>,
-        <span class="ident">allow_yield</span>: <span class="ident">bool</span>,
-        <span class="ident">allow_await</span>: <span class="ident">bool</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">FormalParameterList</span>, <span class="ident">ParseError</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">R</span>: <span class="ident">Read</span>,
+    <span class="doccomment">/// Parse the full input as an [ECMAScript `FormalParameterList`][spec] into the boa AST representation.
+    ///
+    /// [spec]: https://tc39.es/ecma262/#prod-FormalParameterList
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>parse_formal_parameters(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        interner: <span class="kw-2">&amp;mut </span>Interner,
+        allow_yield: bool,
+        allow_await: bool,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;FormalParameterList, ParseError&gt;
+    <span class="kw">where
+        </span>R: Read,
     {
-        <span class="ident">FormalParameters::new</span>(<span class="ident">allow_yield</span>, <span class="ident">allow_await</span>).<span class="ident">parse</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">cursor</span>, <span class="ident">interner</span>)
+        FormalParameters::new(allow_yield, allow_await).parse(<span class="kw-2">&amp;mut </span><span class="self">self</span>.cursor, interner)
     }
 }
 
-<span class="doccomment">/// Parses a full script.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [ECMAScript specification][spec]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-Script</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Script</span> {
-    <span class="ident">direct_eval</span>: <span class="ident">bool</span>,
+<span class="doccomment">/// Parses a full script.
+///
+/// More information:
+///  - [ECMAScript specification][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#prod-Script
+</span><span class="attribute">#[derive(Debug, Clone, Copy)]
+</span><span class="kw">pub struct </span>Script {
+    direct_eval: bool,
 }
 
-<span class="kw">impl</span> <span class="ident">Script</span> {
-    <span class="doccomment">/// Create a new `Script` parser.</span>
-    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">direct_eval</span>: <span class="ident">bool</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> { <span class="ident">direct_eval</span> }
+<span class="kw">impl </span>Script {
+    <span class="doccomment">/// Create a new `Script` parser.
+    </span><span class="kw">fn </span>new(direct_eval: bool) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{ direct_eval }
     }
 
-    <span class="kw">fn</span> <span class="ident">parse</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Read</span><span class="op">&gt;</span>(
+    <span class="kw">fn </span>parse&lt;R: Read&gt;(
         <span class="self">self</span>,
-        <span class="ident">cursor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>,
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">StatementList</span>, <span class="ident">ParseError</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">strict</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">strict_mode</span>();
-        <span class="kw">match</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">0</span>, <span class="ident">context</span>.<span class="ident">interner_mut</span>())<span class="question-mark">?</span> {
-            <span class="prelude-val">Some</span>(<span class="ident">tok</span>) =&gt; {
-                <span class="kw">match</span> <span class="ident">tok</span>.<span class="ident">kind</span>() {
-                    <span class="comment">// Set the strict mode</span>
-                    <span class="ident">TokenKind::StringLiteral</span>(<span class="ident">string</span>)
-                        <span class="kw">if</span> <span class="ident">context</span>.<span class="ident">interner_mut</span>().<span class="ident">resolve_expect</span>(<span class="kw-2">*</span><span class="ident">string</span>).<span class="ident">join</span>(
-                            <span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="ident">s</span> <span class="op">==</span> <span class="string">&quot;use strict&quot;</span>,
-                            <span class="op">|</span><span class="ident">g</span><span class="op">|</span> <span class="ident">g</span> <span class="op">==</span> <span class="macro">utf16!</span>(<span class="string">&quot;use strict&quot;</span>),
+        cursor: <span class="kw-2">&amp;mut </span>Cursor&lt;R&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;StatementList, ParseError&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>strict = cursor.strict_mode();
+        <span class="kw">match </span>cursor.peek(<span class="number">0</span>, context.interner_mut())<span class="question-mark">? </span>{
+            <span class="prelude-val">Some</span>(tok) =&gt; {
+                <span class="kw">match </span>tok.kind() {
+                    <span class="comment">// Set the strict mode
+                    </span>TokenKind::StringLiteral(string)
+                        <span class="kw">if </span>context.interner_mut().resolve_expect(<span class="kw-2">*</span>string).join(
+                            |s| s == <span class="string">&quot;use strict&quot;</span>,
+                            |g| g == <span class="macro">utf16!</span>(<span class="string">&quot;use strict&quot;</span>),
                             <span class="bool-val">true</span>,
                         ) =&gt;
                     {
-                        <span class="ident">cursor</span>.<span class="ident">set_strict_mode</span>(<span class="bool-val">true</span>);
-                        <span class="ident">strict</span> <span class="op">=</span> <span class="bool-val">true</span>;
+                        cursor.set_strict_mode(<span class="bool-val">true</span>);
+                        strict = <span class="bool-val">true</span>;
                     }
-                    <span class="kw">_</span> =&gt; {}
+                    <span class="kw">_ </span>=&gt; {}
                 }
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">statement_list</span> <span class="op">=</span>
-                    <span class="ident">ScriptBody::new</span>(<span class="self">self</span>.<span class="ident">direct_eval</span>).<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">context</span>.<span class="ident">interner_mut</span>())<span class="question-mark">?</span>;
-                <span class="ident">statement_list</span>.<span class="ident">set_strict</span>(<span class="ident">strict</span>);
+                <span class="kw">let </span><span class="kw-2">mut </span>statement_list =
+                    ScriptBody::new(<span class="self">self</span>.direct_eval).parse(cursor, context.interner_mut())<span class="question-mark">?</span>;
+                statement_list.set_strict(strict);
 
-                <span class="comment">// It is a Syntax Error if the LexicallyDeclaredNames of ScriptBody contains any duplicate entries.</span>
-                <span class="comment">// It is a Syntax Error if any element of the LexicallyDeclaredNames of ScriptBody also occurs in the VarDeclaredNames of ScriptBody.</span>
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">var_declared_names</span> <span class="op">=</span> <span class="ident">FxHashSet::default</span>();
-                <span class="ident">statement_list</span>.<span class="ident">var_declared_names</span>(<span class="kw-2">&amp;mut</span> <span class="ident">var_declared_names</span>);
-                <span class="kw">let</span> <span class="ident">lexically_declared_names</span> <span class="op">=</span> <span class="ident">statement_list</span>.<span class="ident">lexically_declared_names</span>();
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">lexically_declared_names_map</span>: <span class="ident">FxHashMap</span><span class="op">&lt;</span><span class="ident">Identifier</span>, <span class="ident">bool</span><span class="op">&gt;</span> <span class="op">=</span>
-                    <span class="ident">FxHashMap::default</span>();
-                <span class="kw">for</span> (<span class="ident">name</span>, <span class="ident">is_function_declaration</span>) <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">lexically_declared_names</span> {
-                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">existing_is_function_declaration</span>) <span class="op">=</span>
-                        <span class="ident">lexically_declared_names_map</span>.<span class="ident">get</span>(<span class="ident">name</span>)
+                <span class="comment">// It is a Syntax Error if the LexicallyDeclaredNames of ScriptBody contains any duplicate entries.
+                // It is a Syntax Error if any element of the LexicallyDeclaredNames of ScriptBody also occurs in the VarDeclaredNames of ScriptBody.
+                </span><span class="kw">let </span><span class="kw-2">mut </span>var_declared_names = FxHashSet::default();
+                statement_list.var_declared_names(<span class="kw-2">&amp;mut </span>var_declared_names);
+                <span class="kw">let </span>lexically_declared_names = statement_list.lexically_declared_names();
+                <span class="kw">let </span><span class="kw-2">mut </span>lexically_declared_names_map: FxHashMap&lt;Identifier, bool&gt; =
+                    FxHashMap::default();
+                <span class="kw">for </span>(name, is_function_declaration) <span class="kw">in </span><span class="kw-2">&amp;</span>lexically_declared_names {
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(existing_is_function_declaration) =
+                        lexically_declared_names_map.get(name)
                     {
-                        <span class="kw">if</span> <span class="op">!</span>(<span class="kw-2">*</span><span class="ident">is_function_declaration</span> <span class="op">&amp;&amp;</span> <span class="kw-2">*</span><span class="ident">existing_is_function_declaration</span>) {
-                            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::general</span>(
+                        <span class="kw">if </span>!(<span class="kw-2">*</span>is_function_declaration &amp;&amp; <span class="kw-2">*</span>existing_is_function_declaration) {
+                            <span class="kw">return </span><span class="prelude-val">Err</span>(ParseError::general(
                                 <span class="string">&quot;lexical name declared multiple times&quot;</span>,
-                                <span class="ident">Position::new</span>(<span class="number">1</span>, <span class="number">1</span>),
+                                Position::new(<span class="number">1</span>, <span class="number">1</span>),
                             ));
                         }
                     }
-                    <span class="ident">lexically_declared_names_map</span>.<span class="ident">insert</span>(<span class="kw-2">*</span><span class="ident">name</span>, <span class="kw-2">*</span><span class="ident">is_function_declaration</span>);
+                    lexically_declared_names_map.insert(<span class="kw-2">*</span>name, <span class="kw-2">*</span>is_function_declaration);
 
-                    <span class="kw">if</span> <span class="op">!</span><span class="ident">is_function_declaration</span> <span class="op">&amp;&amp;</span> <span class="ident">var_declared_names</span>.<span class="ident">contains</span>(<span class="ident">name</span>) {
-                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::general</span>(
+                    <span class="kw">if </span>!is_function_declaration &amp;&amp; var_declared_names.contains(name) {
+                        <span class="kw">return </span><span class="prelude-val">Err</span>(ParseError::general(
                             <span class="string">&quot;lexical name declared in var names&quot;</span>,
-                            <span class="ident">Position::new</span>(<span class="number">1</span>, <span class="number">1</span>),
+                            Position::new(<span class="number">1</span>, <span class="number">1</span>),
                         ));
                     }
-                    <span class="kw">if</span> <span class="ident">context</span>.<span class="ident">has_binding</span>(<span class="kw-2">*</span><span class="ident">name</span>) {
-                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::general</span>(
+                    <span class="kw">if </span>context.has_binding(<span class="kw-2">*</span>name) {
+                        <span class="kw">return </span><span class="prelude-val">Err</span>(ParseError::general(
                             <span class="string">&quot;lexical name declared multiple times&quot;</span>,
-                            <span class="ident">Position::new</span>(<span class="number">1</span>, <span class="number">1</span>),
+                            Position::new(<span class="number">1</span>, <span class="number">1</span>),
                         ));
                     }
-                    <span class="kw">if</span> <span class="op">!</span><span class="ident">is_function_declaration</span> {
-                        <span class="kw">let</span> <span class="ident">name_str</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">interner</span>().<span class="ident">resolve_expect</span>(<span class="ident">name</span>.<span class="ident">sym</span>());
-                        <span class="kw">let</span> <span class="ident">desc</span> <span class="op">=</span> <span class="ident">context</span>
-                            .<span class="ident">realm</span>
-                            .<span class="ident">global_property_map</span>
-                            .<span class="ident">string_property_map</span>()
-                            .<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">name_str</span>.<span class="ident">into_common</span>::<span class="op">&lt;</span><span class="ident">JsString</span><span class="op">&gt;</span>(<span class="bool-val">false</span>));
-                        <span class="kw">let</span> <span class="ident">non_configurable_binding_exists</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">desc</span> {
-                            <span class="prelude-val">Some</span>(<span class="ident">desc</span>) =&gt; <span class="op">!</span><span class="macro">matches!</span>(<span class="ident">desc</span>.<span class="ident">configurable</span>(), <span class="prelude-val">Some</span>(<span class="bool-val">true</span>)),
-                            <span class="prelude-val">None</span> =&gt; <span class="bool-val">false</span>,
+                    <span class="kw">if </span>!is_function_declaration {
+                        <span class="kw">let </span>name_str = context.interner().resolve_expect(name.sym());
+                        <span class="kw">let </span>desc = context
+                            .realm
+                            .global_property_map
+                            .string_property_map()
+                            .get(<span class="kw-2">&amp;</span>name_str.into_common::&lt;JsString&gt;(<span class="bool-val">false</span>));
+                        <span class="kw">let </span>non_configurable_binding_exists = <span class="kw">match </span>desc {
+                            <span class="prelude-val">Some</span>(desc) =&gt; !<span class="macro">matches!</span>(desc.configurable(), <span class="prelude-val">Some</span>(<span class="bool-val">true</span>)),
+                            <span class="prelude-val">None </span>=&gt; <span class="bool-val">false</span>,
                         };
-                        <span class="kw">if</span> <span class="ident">non_configurable_binding_exists</span> {
-                            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::general</span>(
+                        <span class="kw">if </span>non_configurable_binding_exists {
+                            <span class="kw">return </span><span class="prelude-val">Err</span>(ParseError::general(
                                 <span class="string">&quot;lexical name declared in var names&quot;</span>,
-                                <span class="ident">Position::new</span>(<span class="number">1</span>, <span class="number">1</span>),
+                                Position::new(<span class="number">1</span>, <span class="number">1</span>),
                             ));
                         }
                     }
                 }
-                <span class="kw">for</span> <span class="ident">name</span> <span class="kw">in</span> <span class="ident">var_declared_names</span> {
-                    <span class="kw">if</span> <span class="ident">context</span>.<span class="ident">has_binding</span>(<span class="ident">name</span>) {
-                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::general</span>(
+                <span class="kw">for </span>name <span class="kw">in </span>var_declared_names {
+                    <span class="kw">if </span>context.has_binding(name) {
+                        <span class="kw">return </span><span class="prelude-val">Err</span>(ParseError::general(
                             <span class="string">&quot;lexical name declared in var names&quot;</span>,
-                            <span class="ident">Position::new</span>(<span class="number">1</span>, <span class="number">1</span>),
+                            Position::new(<span class="number">1</span>, <span class="number">1</span>),
                         ));
                     }
                 }
 
-                <span class="prelude-val">Ok</span>(<span class="ident">statement_list</span>)
+                <span class="prelude-val">Ok</span>(statement_list)
             }
-            <span class="prelude-val">None</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">StatementList::from</span>(<span class="ident">Vec::new</span>())),
+            <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Ok</span>(StatementList::from(Vec::new())),
         }
     }
 }
 
-<span class="doccomment">/// Parses a script body.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [ECMAScript specification][spec]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-ScriptBody</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ScriptBody</span> {
-    <span class="ident">direct_eval</span>: <span class="ident">bool</span>,
+<span class="doccomment">/// Parses a script body.
+///
+/// More information:
+///  - [ECMAScript specification][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#prod-ScriptBody
+</span><span class="attribute">#[derive(Debug, Clone, Copy)]
+</span><span class="kw">pub struct </span>ScriptBody {
+    direct_eval: bool,
 }
 
-<span class="kw">impl</span> <span class="ident">ScriptBody</span> {
-    <span class="doccomment">/// Create a new `ScriptBody` parser.</span>
-    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">direct_eval</span>: <span class="ident">bool</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> { <span class="ident">direct_eval</span> }
+<span class="kw">impl </span>ScriptBody {
+    <span class="doccomment">/// Create a new `ScriptBody` parser.
+    </span><span class="kw">fn </span>new(direct_eval: bool) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{ direct_eval }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="ident">TokenParser</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ScriptBody</span>
-<span class="kw">where</span>
-    <span class="ident">R</span>: <span class="ident">Read</span>,
+<span class="kw">impl</span>&lt;R&gt; TokenParser&lt;R&gt; <span class="kw">for </span>ScriptBody
+<span class="kw">where
+    </span>R: Read,
 {
-    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">StatementList</span>;
+    <span class="kw">type </span>Output = StatementList;
 
-    <span class="kw">fn</span> <span class="ident">parse</span>(<span class="self">self</span>, <span class="ident">cursor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Interner</span>) -&gt; <span class="ident">ParseResult</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">body</span> <span class="op">=</span> <span class="ident"><span class="self">self</span>::statement::StatementList::new</span>(<span class="bool-val">false</span>, <span class="bool-val">false</span>, <span class="bool-val">false</span>, <span class="kw-2">&amp;</span>[])
-            .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
+    <span class="kw">fn </span>parse(<span class="self">self</span>, cursor: <span class="kw-2">&amp;mut </span>Cursor&lt;R&gt;, interner: <span class="kw-2">&amp;mut </span>Interner) -&gt; ParseResult&lt;<span class="self">Self</span>::Output&gt; {
+        <span class="kw">let </span>body = <span class="self">self</span>::statement::StatementList::new(<span class="bool-val">false</span>, <span class="bool-val">false</span>, <span class="bool-val">false</span>, <span class="kw-2">&amp;</span>[])
+            .parse(cursor, interner)<span class="question-mark">?</span>;
 
-        <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">direct_eval</span> {
-            <span class="kw">for</span> <span class="ident">node</span> <span class="kw">in</span> <span class="ident">body</span>.<span class="ident">statements</span>() {
-                <span class="comment">// It is a Syntax Error if StatementList Contains super unless the source text containing super is eval</span>
-                <span class="comment">// code that is being processed by a direct eval.</span>
-                <span class="comment">// Additional early error rules for super within direct eval are defined in 19.2.1.1.</span>
-                <span class="kw">if</span> <span class="ident">node</span>.<span class="ident">contains</span>(<span class="ident">ContainsSymbol::SuperCall</span>)
-                    <span class="op">|</span><span class="op">|</span> <span class="ident">node</span>.<span class="ident">contains</span>(<span class="ident">ContainsSymbol::SuperProperty</span>)
-                {
-                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::general</span>(
+        <span class="kw">if </span>!<span class="self">self</span>.direct_eval {
+            <span class="kw">for </span>node <span class="kw">in </span>body.statements() {
+                <span class="comment">// It is a Syntax Error if StatementList Contains super unless the source text containing super is eval
+                // code that is being processed by a direct eval.
+                // Additional early error rules for super within direct eval are defined in 19.2.1.1.
+                </span><span class="kw">if </span>contains(node, ContainsSymbol::Super) {
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(ParseError::general(
                         <span class="string">&quot;invalid super usage&quot;</span>,
-                        <span class="ident">Position::new</span>(<span class="number">1</span>, <span class="number">1</span>),
+                        Position::new(<span class="number">1</span>, <span class="number">1</span>),
                     ));
                 }
 
-                <span class="comment">// It is a Syntax Error if StatementList Contains NewTarget unless the source text containing NewTarget</span>
-                <span class="comment">// is eval code that is being processed by a direct eval.</span>
-                <span class="comment">// Additional early error rules for NewTarget in direct eval are defined in 19.2.1.1.</span>
-                <span class="kw">if</span> <span class="ident">node</span>.<span class="ident">contains</span>(<span class="ident">ContainsSymbol::NewTarget</span>) {
-                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::general</span>(
+                <span class="comment">// It is a Syntax Error if StatementList Contains NewTarget unless the source text containing NewTarget
+                // is eval code that is being processed by a direct eval.
+                // Additional early error rules for NewTarget in direct eval are defined in 19.2.1.1.
+                </span><span class="kw">if </span>contains(node, ContainsSymbol::NewTarget) {
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(ParseError::general(
                         <span class="string">&quot;invalid new.target usage&quot;</span>,
-                        <span class="ident">Position::new</span>(<span class="number">1</span>, <span class="number">1</span>),
+                        Position::new(<span class="number">1</span>, <span class="number">1</span>),
                     ));
                 }
             }
         }
 
-        <span class="prelude-val">Ok</span>(<span class="ident">body</span>)
+        <span class="prelude-val">Ok</span>(body)
     }
 }
 
-<span class="comment">// Checks if a function contains a super call or super property access.</span>
-<span class="kw">fn</span> <span class="ident">function_contains_super</span>(<span class="ident">body</span>: <span class="kw-2">&amp;</span><span class="ident">StatementList</span>, <span class="ident">parameters</span>: <span class="kw-2">&amp;</span><span class="ident">FormalParameterList</span>) -&gt; <span class="ident">bool</span> {
-    <span class="kw">for</span> <span class="ident">param</span> <span class="kw">in</span> <span class="ident">parameters</span>.<span class="ident">as_ref</span>() {
-        <span class="kw">if</span> <span class="ident">param</span>.<span class="ident">variable</span>().<span class="ident">contains</span>(<span class="ident">ContainsSymbol::SuperCall</span>)
-            <span class="op">|</span><span class="op">|</span> <span class="ident">param</span>.<span class="ident">variable</span>().<span class="ident">contains</span>(<span class="ident">ContainsSymbol::SuperProperty</span>)
-        {
-            <span class="kw">return</span> <span class="bool-val">true</span>;
-        }
-    }
-    <span class="kw">for</span> <span class="ident">node</span> <span class="kw">in</span> <span class="ident">body</span>.<span class="ident">statements</span>() {
-        <span class="kw">if</span> <span class="ident">node</span>.<span class="ident">contains</span>(<span class="ident">ContainsSymbol::SuperCall</span>) <span class="op">|</span><span class="op">|</span> <span class="ident">node</span>.<span class="ident">contains</span>(<span class="ident">ContainsSymbol::SuperProperty</span>)
-        {
-            <span class="kw">return</span> <span class="bool-val">true</span>;
-        }
-    }
-    <span class="bool-val">false</span>
-}
-
-<span class="doccomment">/// Returns `true` if the function parameters or body contain a direct `super` call.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [ECMAScript specification][spec]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-static-semantics-hasdirectsuper</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">has_direct_super</span>(<span class="ident">body</span>: <span class="kw-2">&amp;</span><span class="ident">StatementList</span>, <span class="ident">parameters</span>: <span class="kw-2">&amp;</span><span class="ident">FormalParameterList</span>) -&gt; <span class="ident">bool</span> {
-    <span class="kw">for</span> <span class="ident">param</span> <span class="kw">in</span> <span class="ident">parameters</span>.<span class="ident">as_ref</span>() {
-        <span class="kw">if</span> <span class="ident">param</span>.<span class="ident">variable</span>().<span class="ident">contains</span>(<span class="ident">ContainsSymbol::SuperCall</span>) {
-            <span class="kw">return</span> <span class="bool-val">true</span>;
-        }
-    }
-    <span class="kw">for</span> <span class="ident">node</span> <span class="kw">in</span> <span class="ident">body</span>.<span class="ident">statements</span>() {
-        <span class="kw">if</span> <span class="ident">node</span>.<span class="ident">contains</span>(<span class="ident">ContainsSymbol::SuperCall</span>) {
-            <span class="kw">return</span> <span class="bool-val">true</span>;
-        }
-    }
-    <span class="bool-val">false</span>
-}
-
-<span class="doccomment">/// Helper to check if any parameter names are declared in the given list.</span>
-<span class="kw">fn</span> <span class="ident">name_in_lexically_declared_names</span>(
-    <span class="ident">parameter_list</span>: <span class="kw-2">&amp;</span><span class="ident">FormalParameterList</span>,
-    <span class="ident">names</span>: <span class="kw-2">&amp;</span>[<span class="ident">Identifier</span>],
-    <span class="ident">position</span>: <span class="ident">Position</span>,
-) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">ParseError</span><span class="op">&gt;</span> {
-    <span class="kw">for</span> <span class="ident">parameter</span> <span class="kw">in</span> <span class="ident">parameter_list</span>.<span class="ident">as_ref</span>() {
-        <span class="kw">for</span> <span class="ident">name</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">parameter</span>.<span class="ident">names</span>() {
-            <span class="kw">if</span> <span class="ident">names</span>.<span class="ident">contains</span>(<span class="ident">name</span>) {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::General</span> {
-                    <span class="ident">message</span>: <span class="string">&quot;formal parameter declared in lexically declared names&quot;</span>,
-                    <span class="ident">position</span>,
+<span class="doccomment">/// Helper to check if any parameter names are declared in the given list.
+</span><span class="kw">fn </span>name_in_lexically_declared_names(
+    parameter_list: <span class="kw-2">&amp;</span>FormalParameterList,
+    names: <span class="kw-2">&amp;</span>[Identifier],
+    position: Position,
+) -&gt; <span class="prelude-ty">Result</span>&lt;(), ParseError&gt; {
+    <span class="kw">for </span>parameter <span class="kw">in </span>parameter_list.as_ref() {
+        <span class="kw">for </span>name <span class="kw">in </span><span class="kw-2">&amp;</span>parameter.names() {
+            <span class="kw">if </span>names.contains(name) {
+                <span class="kw">return </span><span class="prelude-val">Err</span>(ParseError::General {
+                    message: <span class="string">&quot;formal parameter declared in lexically declared names&quot;</span>,
+                    position,
                 });
             }
         }
@@ -969,4 +895,4 @@
     <span class="prelude-val">Ok</span>(())
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0 (a55dd71d5 2022-09-19)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0 (897e37553 2022-11-02)" ></div></body></html>

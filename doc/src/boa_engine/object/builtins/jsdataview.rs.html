@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_engine/src/object/builtins/jsdataview.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>jsdataview.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_engine/src/object/builtins/jsdataview.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>jsdataview.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container">
                     <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../boa_engine/index.html">
                         <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -483,488 +483,488 @@
 <span id="481">481</span>
 <span id="482">482</span>
 <span id="483">483</span>
-</pre><pre class="rust"><code><span class="doccomment">//! This module implements a wrapper for the `DataView` Builtin JavaScript Object</span>
-<span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">builtins::DataView</span>,
-    <span class="ident">context::intrinsics::StandardConstructors</span>,
-    <span class="ident">object</span>::{
-        <span class="ident">internal_methods::get_prototype_from_constructor</span>, <span class="ident">JsArrayBuffer</span>, <span class="ident">JsObject</span>, <span class="ident">JsObjectType</span>,
-        <span class="ident">ObjectData</span>,
+</pre><pre class="rust"><code><span class="doccomment">//! This module implements a wrapper for the `DataView` Builtin JavaScript Object
+</span><span class="kw">use crate</span>::{
+    builtins::DataView,
+    context::intrinsics::StandardConstructors,
+    object::{
+        internal_methods::get_prototype_from_constructor, JsArrayBuffer, JsObject, JsObjectType,
+        ObjectData,
     },
-    <span class="ident">Context</span>, <span class="ident">JsNativeError</span>, <span class="ident">JsResult</span>, <span class="ident">JsValue</span>,
+    Context, JsNativeError, JsResult, JsValue,
 };
 
-<span class="kw">use</span> <span class="ident">boa_gc</span>::{<span class="ident">Finalize</span>, <span class="ident">Trace</span>};
-<span class="kw">use</span> <span class="ident">std::ops::Deref</span>;
+<span class="kw">use </span>boa_gc::{Finalize, Trace};
+<span class="kw">use </span>std::ops::Deref;
 
-<span class="doccomment">/// `JsDataView` Provides a wrapper for Boa&#39;s implementation of the JavaScript `DataView` object</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Examples</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">/// # use boa_engine::{</span>
-<span class="doccomment">/// #     object::builtins::{JsArrayBuffer, JsDataView},</span>
-<span class="doccomment">/// #     Context, JsValue</span>
-<span class="doccomment">/// # };</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// // Create a new context and ArrayBuffer</span>
-<span class="doccomment">/// let context = &amp;mut Context::default();</span>
-<span class="doccomment">/// let array_buffer = JsArrayBuffer::new(4, context).unwrap();</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// // Create a new Dataview from pre-existing ArrayBuffer</span>
-<span class="doccomment">/// let data_view = JsDataView::from_js_array_buffer(&amp;array_buffer, None, None, context).unwrap();</span>
-<span class="doccomment">/// ```</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Trace</span>, <span class="ident">Finalize</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">JsDataView</span> {
-    <span class="ident">inner</span>: <span class="ident">JsObject</span>,
+<span class="doccomment">/// `JsDataView` Provides a wrapper for Boa&#39;s implementation of the JavaScript `DataView` object
+///
+/// # Examples
+/// ```
+/// # use boa_engine::{
+/// #     object::builtins::{JsArrayBuffer, JsDataView},
+/// #     Context, JsValue
+/// # };
+///
+/// // Create a new context and ArrayBuffer
+/// let context = &amp;mut Context::default();
+/// let array_buffer = JsArrayBuffer::new(4, context).unwrap();
+///
+/// // Create a new Dataview from pre-existing ArrayBuffer
+/// let data_view = JsDataView::from_js_array_buffer(&amp;array_buffer, None, None, context).unwrap();
+/// ```
+</span><span class="attribute">#[derive(Debug, Clone, Trace, Finalize)]
+</span><span class="kw">pub struct </span>JsDataView {
+    inner: JsObject,
 }
 
-<span class="kw">impl</span> <span class="ident">JsDataView</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_js_array_buffer</span>(
-        <span class="ident">array_buffer</span>: <span class="kw-2">&amp;</span><span class="ident">JsArrayBuffer</span>,
-        <span class="ident">offset</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>,
-        <span class="ident">byte_length</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>,
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> (<span class="ident">byte_offset</span>, <span class="ident">byte_length</span>) <span class="op">=</span> {
-            <span class="kw">let</span> <span class="ident">borrowed_buffer</span> <span class="op">=</span> <span class="ident">array_buffer</span>.<span class="ident">borrow</span>();
-            <span class="kw">let</span> <span class="ident">buffer</span> <span class="op">=</span> <span class="ident">borrowed_buffer</span>.<span class="ident">as_array_buffer</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-                <span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="string">&quot;buffer must be an ArrayBuffer&quot;</span>)
+<span class="kw">impl </span>JsDataView {
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>from_js_array_buffer(
+        array_buffer: <span class="kw-2">&amp;</span>JsArrayBuffer,
+        offset: <span class="prelude-ty">Option</span>&lt;u64&gt;,
+        byte_length: <span class="prelude-ty">Option</span>&lt;u64&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
+        <span class="kw">let </span>(byte_offset, byte_length) = {
+            <span class="kw">let </span>borrowed_buffer = array_buffer.borrow();
+            <span class="kw">let </span>buffer = borrowed_buffer.as_array_buffer().ok_or_else(|| {
+                JsNativeError::typ().with_message(<span class="string">&quot;buffer must be an ArrayBuffer&quot;</span>)
             })<span class="question-mark">?</span>;
 
-            <span class="kw">let</span> <span class="ident">provided_offset</span> <span class="op">=</span> <span class="ident">offset</span>.<span class="ident">unwrap_or</span>(<span class="number">0_u64</span>);
+            <span class="kw">let </span>provided_offset = offset.unwrap_or(<span class="number">0_u64</span>);
 
-            <span class="comment">// Check if buffer is detached.</span>
-            <span class="kw">if</span> <span class="ident">buffer</span>.<span class="ident">is_detached_buffer</span>() {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
-                    .<span class="ident">with_message</span>(<span class="string">&quot;ArrayBuffer is detached&quot;</span>)
-                    .<span class="ident">into</span>());
+            <span class="comment">// Check if buffer is detached.
+            </span><span class="kw">if </span>buffer.is_detached_buffer() {
+                <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
+                    .with_message(<span class="string">&quot;ArrayBuffer is detached&quot;</span>)
+                    .into());
             };
 
-            <span class="kw">let</span> <span class="ident">array_buffer_length</span> <span class="op">=</span> <span class="ident">buffer</span>.<span class="ident">array_buffer_byte_length</span>();
+            <span class="kw">let </span>array_buffer_length = buffer.array_buffer_byte_length();
 
-            <span class="kw">if</span> <span class="ident">provided_offset</span> <span class="op">&gt;</span> <span class="ident">array_buffer_length</span> {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::range</span>()
-                    .<span class="ident">with_message</span>(<span class="string">&quot;Provided offset is outside the bounds of the buffer&quot;</span>)
-                    .<span class="ident">into</span>());
+            <span class="kw">if </span>provided_offset &gt; array_buffer_length {
+                <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::range()
+                    .with_message(<span class="string">&quot;Provided offset is outside the bounds of the buffer&quot;</span>)
+                    .into());
             }
 
-            <span class="kw">let</span> <span class="ident">view_byte_length</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(..) <span class="op">=</span> <span class="ident">byte_length</span> {
-                <span class="comment">// Get the provided length</span>
-                <span class="kw">let</span> <span class="ident">provided_length</span> <span class="op">=</span> <span class="ident">byte_length</span>.<span class="ident">expect</span>(<span class="string">&quot;byte_length must be a u64&quot;</span>);
+            <span class="kw">let </span>view_byte_length = <span class="kw">if let </span><span class="prelude-val">Some</span>(..) = byte_length {
+                <span class="comment">// Get the provided length
+                </span><span class="kw">let </span>provided_length = byte_length.expect(<span class="string">&quot;byte_length must be a u64&quot;</span>);
 
-                <span class="comment">// Check that the provided length and offset does not exceed the bounds of the ArrayBuffer</span>
-                <span class="kw">if</span> <span class="ident">provided_offset</span> <span class="op">+</span> <span class="ident">provided_length</span> <span class="op">&gt;</span> <span class="ident">array_buffer_length</span> {
-                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::range</span>()
-                        .<span class="ident">with_message</span>(<span class="string">&quot;Invalid data view length&quot;</span>)
-                        .<span class="ident">into</span>());
+                <span class="comment">// Check that the provided length and offset does not exceed the bounds of the ArrayBuffer
+                </span><span class="kw">if </span>provided_offset + provided_length &gt; array_buffer_length {
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::range()
+                        .with_message(<span class="string">&quot;Invalid data view length&quot;</span>)
+                        .into());
                 }
 
-                <span class="ident">provided_length</span>
-            } <span class="kw">else</span> {
-                <span class="ident">array_buffer_length</span> <span class="op">-</span> <span class="ident">provided_offset</span>
+                provided_length
+            } <span class="kw">else </span>{
+                array_buffer_length - provided_offset
             };
 
-            (<span class="ident">provided_offset</span>, <span class="ident">view_byte_length</span>)
+            (provided_offset, view_byte_length)
         };
 
-        <span class="kw">let</span> <span class="ident">constructor</span> <span class="op">=</span> <span class="ident">context</span>
-            .<span class="ident">intrinsics</span>()
-            .<span class="ident">constructors</span>()
-            .<span class="ident">data_view</span>()
-            .<span class="ident">constructor</span>()
-            .<span class="ident">into</span>();
+        <span class="kw">let </span>constructor = context
+            .intrinsics()
+            .constructors()
+            .data_view()
+            .constructor()
+            .into();
 
-        <span class="kw">let</span> <span class="ident">prototype</span> <span class="op">=</span>
-            <span class="ident">get_prototype_from_constructor</span>(<span class="kw-2">&amp;</span><span class="ident">constructor</span>, <span class="ident">StandardConstructors::data_view</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let </span>prototype =
+            get_prototype_from_constructor(<span class="kw-2">&amp;</span>constructor, StandardConstructors::data_view, context)<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">JsObject::from_proto_and_data</span>(
-            <span class="ident">prototype</span>,
-            <span class="ident">ObjectData::data_view</span>(<span class="ident">DataView</span> {
-                <span class="ident">viewed_array_buffer</span>: (<span class="kw-2">*</span><span class="kw-2">*</span><span class="ident">array_buffer</span>).<span class="ident">clone</span>(),
-                <span class="ident">byte_length</span>,
-                <span class="ident">byte_offset</span>,
+        <span class="kw">let </span>obj = JsObject::from_proto_and_data(
+            prototype,
+            ObjectData::data_view(DataView {
+                viewed_array_buffer: (<span class="kw-2">**</span>array_buffer).clone(),
+                byte_length,
+                byte_offset,
             }),
         );
 
-        <span class="prelude-val">Ok</span>(<span class="self">Self</span> { <span class="ident">inner</span>: <span class="ident">obj</span> })
+        <span class="prelude-val">Ok</span>(<span class="self">Self </span>{ inner: obj })
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_object</span>(<span class="ident">object</span>: <span class="ident">JsObject</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="ident">object</span>.<span class="ident">borrow</span>().<span class="ident">is_data_view</span>() {
-            <span class="prelude-val">Ok</span>(<span class="self">Self</span> { <span class="ident">inner</span>: <span class="ident">object</span> })
-        } <span class="kw">else</span> {
-            <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
-                .<span class="ident">with_message</span>(<span class="string">&quot;object is not a DataView&quot;</span>)
-                .<span class="ident">into</span>())
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>from_object(object: JsObject) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
+        <span class="kw">if </span>object.borrow().is_data_view() {
+            <span class="prelude-val">Ok</span>(<span class="self">Self </span>{ inner: object })
+        } <span class="kw">else </span>{
+            <span class="prelude-val">Err</span>(JsNativeError::typ()
+                .with_message(<span class="string">&quot;object is not a DataView&quot;</span>)
+                .into())
         }
     }
 
-    <span class="doccomment">/// Returns the `viewed_array_buffer` field for [`JsDataView`]</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">buffer</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="ident">DataView::get_buffer</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">clone</span>().<span class="ident">into</span>(), <span class="kw-2">&amp;</span>[], <span class="ident">context</span>)
+    <span class="doccomment">/// Returns the `viewed_array_buffer` field for [`JsDataView`]
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>buffer(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+        DataView::get_buffer(<span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(), <span class="kw-2">&amp;</span>[], context)
     }
 
-    <span class="doccomment">/// Returns the `byte_length` property of [`JsDataView`] as a u64 integer</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">byte_length</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span> {
-        <span class="ident">DataView::get_byte_length</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">clone</span>().<span class="ident">into</span>(), <span class="kw-2">&amp;</span>[], <span class="ident">context</span>)
-            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="ident">v</span>.<span class="ident">as_number</span>().<span class="ident">expect</span>(<span class="string">&quot;value should be a number&quot;</span>) <span class="kw">as</span> <span class="ident">u64</span>)
+    <span class="doccomment">/// Returns the `byte_length` property of [`JsDataView`] as a u64 integer
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>byte_length(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;u64&gt; {
+        DataView::get_byte_length(<span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(), <span class="kw-2">&amp;</span>[], context)
+            .map(|v| v.as_number().expect(<span class="string">&quot;value should be a number&quot;</span>) <span class="kw">as </span>u64)
     }
 
-    <span class="doccomment">/// Returns the `byte_offset` field property of [`JsDataView`] as a u64 integer</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">byte_offset</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span> {
-        <span class="ident">DataView::get_byte_offset</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">clone</span>().<span class="ident">into</span>(), <span class="kw-2">&amp;</span>[], <span class="ident">context</span>)
-            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="ident">v</span>.<span class="ident">as_number</span>().<span class="ident">expect</span>(<span class="string">&quot;byte_offset value must be a number&quot;</span>) <span class="kw">as</span> <span class="ident">u64</span>)
+    <span class="doccomment">/// Returns the `byte_offset` field property of [`JsDataView`] as a u64 integer
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>byte_offset(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;u64&gt; {
+        DataView::get_byte_offset(<span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(), <span class="kw-2">&amp;</span>[], context)
+            .map(|v| v.as_number().expect(<span class="string">&quot;byte_offset value must be a number&quot;</span>) <span class="kw">as </span>u64)
     }
 
-    <span class="doccomment">/// Returns a signed 64-bit integer at the specified offset from the start of the [`JsDataView`]</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_big_int64</span>(
+    <span class="doccomment">/// Returns a signed 64-bit integer at the specified offset from the start of the [`JsDataView`]
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>get_big_int64(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">byte_offset</span>: <span class="ident">usize</span>,
-        <span class="ident">is_little_endian</span>: <span class="ident">bool</span>,
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">i64</span><span class="op">&gt;</span> {
-        <span class="ident">DataView::get_big_int64</span>(
-            <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">clone</span>().<span class="ident">into</span>(),
-            <span class="kw-2">&amp;</span>[<span class="ident">byte_offset</span>.<span class="ident">into</span>(), <span class="ident">is_little_endian</span>.<span class="ident">into</span>()],
-            <span class="ident">context</span>,
+        byte_offset: usize,
+        is_little_endian: bool,
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;i64&gt; {
+        DataView::get_big_int64(
+            <span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(),
+            <span class="kw-2">&amp;</span>[byte_offset.into(), is_little_endian.into()],
+            context,
         )
-        .<span class="ident">map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="ident">v</span>.<span class="ident">as_number</span>().<span class="ident">expect</span>(<span class="string">&quot;value must be a number&quot;</span>) <span class="kw">as</span> <span class="ident">i64</span>)
+        .map(|v| v.as_number().expect(<span class="string">&quot;value must be a number&quot;</span>) <span class="kw">as </span>i64)
     }
 
-    <span class="doccomment">/// Returns an unsigned 64-bit integer at the specified offset from the start of the [`JsDataView`]</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_big_uint64</span>(
+    <span class="doccomment">/// Returns an unsigned 64-bit integer at the specified offset from the start of the [`JsDataView`]
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>get_big_uint64(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">byte_offset</span>: <span class="ident">usize</span>,
-        <span class="ident">is_little_endian</span>: <span class="ident">bool</span>,
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span> {
-        <span class="ident">DataView::get_big_uint64</span>(
-            <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">clone</span>().<span class="ident">into</span>(),
-            <span class="kw-2">&amp;</span>[<span class="ident">byte_offset</span>.<span class="ident">into</span>(), <span class="ident">is_little_endian</span>.<span class="ident">into</span>()],
-            <span class="ident">context</span>,
+        byte_offset: usize,
+        is_little_endian: bool,
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;u64&gt; {
+        DataView::get_big_uint64(
+            <span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(),
+            <span class="kw-2">&amp;</span>[byte_offset.into(), is_little_endian.into()],
+            context,
         )
-        .<span class="ident">map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="ident">v</span>.<span class="ident">as_number</span>().<span class="ident">expect</span>(<span class="string">&quot;value must be a number&quot;</span>) <span class="kw">as</span> <span class="ident">u64</span>)
+        .map(|v| v.as_number().expect(<span class="string">&quot;value must be a number&quot;</span>) <span class="kw">as </span>u64)
     }
 
-    <span class="doccomment">/// Returns a signed 32-bit float integer at the specified offset from the start of the [`JsDataView`]</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_float32</span>(
+    <span class="doccomment">/// Returns a signed 32-bit float integer at the specified offset from the start of the [`JsDataView`]
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>get_float32(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">byte_offset</span>: <span class="ident">usize</span>,
-        <span class="ident">is_little_endian</span>: <span class="ident">bool</span>,
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">f32</span><span class="op">&gt;</span> {
-        <span class="ident">DataView::get_float32</span>(
-            <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">clone</span>().<span class="ident">into</span>(),
-            <span class="kw-2">&amp;</span>[<span class="ident">byte_offset</span>.<span class="ident">into</span>(), <span class="ident">is_little_endian</span>.<span class="ident">into</span>()],
-            <span class="ident">context</span>,
+        byte_offset: usize,
+        is_little_endian: bool,
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;f32&gt; {
+        DataView::get_float32(
+            <span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(),
+            <span class="kw-2">&amp;</span>[byte_offset.into(), is_little_endian.into()],
+            context,
         )
-        .<span class="ident">map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="ident">v</span>.<span class="ident">as_number</span>().<span class="ident">expect</span>(<span class="string">&quot;value must be a number&quot;</span>) <span class="kw">as</span> <span class="ident">f32</span>)
+        .map(|v| v.as_number().expect(<span class="string">&quot;value must be a number&quot;</span>) <span class="kw">as </span>f32)
     }
 
-    <span class="doccomment">/// Returns a signed 64-bit float integer at the specified offset from the start of the [`JsDataView`]</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_float64</span>(
+    <span class="doccomment">/// Returns a signed 64-bit float integer at the specified offset from the start of the [`JsDataView`]
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>get_float64(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">byte_offset</span>: <span class="ident">usize</span>,
-        <span class="ident">is_little_endian</span>: <span class="ident">bool</span>,
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span> {
-        <span class="ident">DataView::get_float64</span>(
-            <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">clone</span>().<span class="ident">into</span>(),
-            <span class="kw-2">&amp;</span>[<span class="ident">byte_offset</span>.<span class="ident">into</span>(), <span class="ident">is_little_endian</span>.<span class="ident">into</span>()],
-            <span class="ident">context</span>,
+        byte_offset: usize,
+        is_little_endian: bool,
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;f64&gt; {
+        DataView::get_float64(
+            <span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(),
+            <span class="kw-2">&amp;</span>[byte_offset.into(), is_little_endian.into()],
+            context,
         )
-        .<span class="ident">map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="ident">v</span>.<span class="ident">as_number</span>().<span class="ident">expect</span>(<span class="string">&quot;value must be a number&quot;</span>))
+        .map(|v| v.as_number().expect(<span class="string">&quot;value must be a number&quot;</span>))
     }
 
-    <span class="doccomment">/// Returns a signed 8-bit integer at the specified offset from the start of the [`JsDataView`]</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_int8</span>(
+    <span class="doccomment">/// Returns a signed 8-bit integer at the specified offset from the start of the [`JsDataView`]
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>get_int8(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">byte_offset</span>: <span class="ident">usize</span>,
-        <span class="ident">is_little_endian</span>: <span class="ident">bool</span>,
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">i8</span><span class="op">&gt;</span> {
-        <span class="ident">DataView::get_int8</span>(
-            <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">clone</span>().<span class="ident">into</span>(),
-            <span class="kw-2">&amp;</span>[<span class="ident">byte_offset</span>.<span class="ident">into</span>(), <span class="ident">is_little_endian</span>.<span class="ident">into</span>()],
-            <span class="ident">context</span>,
+        byte_offset: usize,
+        is_little_endian: bool,
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;i8&gt; {
+        DataView::get_int8(
+            <span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(),
+            <span class="kw-2">&amp;</span>[byte_offset.into(), is_little_endian.into()],
+            context,
         )
-        .<span class="ident">map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="ident">v</span>.<span class="ident">as_number</span>().<span class="ident">expect</span>(<span class="string">&quot;value must be a number&quot;</span>) <span class="kw">as</span> <span class="ident">i8</span>)
+        .map(|v| v.as_number().expect(<span class="string">&quot;value must be a number&quot;</span>) <span class="kw">as </span>i8)
     }
 
-    <span class="doccomment">/// Returns a signed 16-bit integer at the specified offset from the start of the [`JsDataView`]</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_int16</span>(
+    <span class="doccomment">/// Returns a signed 16-bit integer at the specified offset from the start of the [`JsDataView`]
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>get_int16(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">byte_offset</span>: <span class="ident">usize</span>,
-        <span class="ident">is_little_endian</span>: <span class="ident">bool</span>,
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">i16</span><span class="op">&gt;</span> {
-        <span class="ident">DataView::get_int16</span>(
-            <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">clone</span>().<span class="ident">into</span>(),
-            <span class="kw-2">&amp;</span>[<span class="ident">byte_offset</span>.<span class="ident">into</span>(), <span class="ident">is_little_endian</span>.<span class="ident">into</span>()],
-            <span class="ident">context</span>,
+        byte_offset: usize,
+        is_little_endian: bool,
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;i16&gt; {
+        DataView::get_int16(
+            <span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(),
+            <span class="kw-2">&amp;</span>[byte_offset.into(), is_little_endian.into()],
+            context,
         )
-        .<span class="ident">map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="ident">v</span>.<span class="ident">as_number</span>().<span class="ident">expect</span>(<span class="string">&quot;value must be a number&quot;</span>) <span class="kw">as</span> <span class="ident">i16</span>)
+        .map(|v| v.as_number().expect(<span class="string">&quot;value must be a number&quot;</span>) <span class="kw">as </span>i16)
     }
 
-    <span class="doccomment">/// Returns a signed 32-bit integer at the specified offset from the start of the [`JsDataView`]</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_int32</span>(
+    <span class="doccomment">/// Returns a signed 32-bit integer at the specified offset from the start of the [`JsDataView`]
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>get_int32(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">byte_offset</span>: <span class="ident">usize</span>,
-        <span class="ident">is_little_endian</span>: <span class="ident">bool</span>,
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span> {
-        <span class="ident">DataView::get_int32</span>(
-            <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">clone</span>().<span class="ident">into</span>(),
-            <span class="kw-2">&amp;</span>[<span class="ident">byte_offset</span>.<span class="ident">into</span>(), <span class="ident">is_little_endian</span>.<span class="ident">into</span>()],
-            <span class="ident">context</span>,
+        byte_offset: usize,
+        is_little_endian: bool,
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;i32&gt; {
+        DataView::get_int32(
+            <span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(),
+            <span class="kw-2">&amp;</span>[byte_offset.into(), is_little_endian.into()],
+            context,
         )
-        .<span class="ident">map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="ident">v</span>.<span class="ident">as_number</span>().<span class="ident">expect</span>(<span class="string">&quot;value must be a number&quot;</span>) <span class="kw">as</span> <span class="ident">i32</span>)
+        .map(|v| v.as_number().expect(<span class="string">&quot;value must be a number&quot;</span>) <span class="kw">as </span>i32)
     }
 
-    <span class="doccomment">/// Returns an unsigned 8-bit integer at the specified offset from the start of the [`JsDataView`]</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_uint8</span>(
+    <span class="doccomment">/// Returns an unsigned 8-bit integer at the specified offset from the start of the [`JsDataView`]
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>get_uint8(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">byte_offset</span>: <span class="ident">usize</span>,
-        <span class="ident">is_little_endian</span>: <span class="ident">bool</span>,
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> {
-        <span class="ident">DataView::get_uint8</span>(
-            <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">clone</span>().<span class="ident">into</span>(),
-            <span class="kw-2">&amp;</span>[<span class="ident">byte_offset</span>.<span class="ident">into</span>(), <span class="ident">is_little_endian</span>.<span class="ident">into</span>()],
-            <span class="ident">context</span>,
+        byte_offset: usize,
+        is_little_endian: bool,
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;u8&gt; {
+        DataView::get_uint8(
+            <span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(),
+            <span class="kw-2">&amp;</span>[byte_offset.into(), is_little_endian.into()],
+            context,
         )
-        .<span class="ident">map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="ident">v</span>.<span class="ident">as_number</span>().<span class="ident">expect</span>(<span class="string">&quot;value must be a number&quot;</span>) <span class="kw">as</span> <span class="ident">u8</span>)
+        .map(|v| v.as_number().expect(<span class="string">&quot;value must be a number&quot;</span>) <span class="kw">as </span>u8)
     }
 
-    <span class="doccomment">/// Returns an unsigned 16-bit integer at the specified offset from the start of the [`JsDataView`]</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_unit16</span>(
+    <span class="doccomment">/// Returns an unsigned 16-bit integer at the specified offset from the start of the [`JsDataView`]
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>get_unit16(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">byte_offset</span>: <span class="ident">usize</span>,
-        <span class="ident">is_little_endian</span>: <span class="ident">bool</span>,
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">u16</span><span class="op">&gt;</span> {
-        <span class="ident">DataView::get_uint16</span>(
-            <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">clone</span>().<span class="ident">into</span>(),
-            <span class="kw-2">&amp;</span>[<span class="ident">byte_offset</span>.<span class="ident">into</span>(), <span class="ident">is_little_endian</span>.<span class="ident">into</span>()],
-            <span class="ident">context</span>,
+        byte_offset: usize,
+        is_little_endian: bool,
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;u16&gt; {
+        DataView::get_uint16(
+            <span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(),
+            <span class="kw-2">&amp;</span>[byte_offset.into(), is_little_endian.into()],
+            context,
         )
-        .<span class="ident">map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="ident">v</span>.<span class="ident">as_number</span>().<span class="ident">expect</span>(<span class="string">&quot;value must be a number&quot;</span>) <span class="kw">as</span> <span class="ident">u16</span>)
+        .map(|v| v.as_number().expect(<span class="string">&quot;value must be a number&quot;</span>) <span class="kw">as </span>u16)
     }
 
-    <span class="doccomment">/// Returns an unsigned 32-bit integer at the specified offset from the start of the [`JsDataView`]</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_uint32</span>(
+    <span class="doccomment">/// Returns an unsigned 32-bit integer at the specified offset from the start of the [`JsDataView`]
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>get_uint32(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">byte_offset</span>: <span class="ident">usize</span>,
-        <span class="ident">is_little_endian</span>: <span class="ident">bool</span>,
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span> {
-        <span class="ident">DataView::get_uint32</span>(
-            <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">clone</span>().<span class="ident">into</span>(),
-            <span class="kw-2">&amp;</span>[<span class="ident">byte_offset</span>.<span class="ident">into</span>(), <span class="ident">is_little_endian</span>.<span class="ident">into</span>()],
-            <span class="ident">context</span>,
+        byte_offset: usize,
+        is_little_endian: bool,
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;u32&gt; {
+        DataView::get_uint32(
+            <span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(),
+            <span class="kw-2">&amp;</span>[byte_offset.into(), is_little_endian.into()],
+            context,
         )
-        .<span class="ident">map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="ident">v</span>.<span class="ident">as_number</span>().<span class="ident">expect</span>(<span class="string">&quot;value must be a number&quot;</span>) <span class="kw">as</span> <span class="ident">u32</span>)
+        .map(|v| v.as_number().expect(<span class="string">&quot;value must be a number&quot;</span>) <span class="kw">as </span>u32)
     }
 
-    <span class="doccomment">/// Sets a signed 64-bit integer at the specified offset from the start of the [`JsDataView`]</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_big_int64</span>(
+    <span class="doccomment">/// Sets a signed 64-bit integer at the specified offset from the start of the [`JsDataView`]
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>set_big_int64(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">byte_offset</span>: <span class="ident">usize</span>,
-        <span class="ident">value</span>: <span class="ident">i64</span>,
-        <span class="ident">is_little_endian</span>: <span class="ident">bool</span>,
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="ident">DataView::set_big_int64</span>(
-            <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">clone</span>().<span class="ident">into</span>(),
-            <span class="kw-2">&amp;</span>[<span class="ident">byte_offset</span>.<span class="ident">into</span>(), <span class="ident">value</span>.<span class="ident">into</span>(), <span class="ident">is_little_endian</span>.<span class="ident">into</span>()],
-            <span class="ident">context</span>,
-        )
-    }
-
-    <span class="doccomment">/// Sets an unsigned 64-bit integer at the specified offset from the start of the [`JsDataView`]</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_big_uint64</span>(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">byte_offset</span>: <span class="ident">usize</span>,
-        <span class="ident">value</span>: <span class="ident">u64</span>,
-        <span class="ident">is_little_endian</span>: <span class="ident">bool</span>,
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="ident">DataView::set_big_uint64</span>(
-            <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">clone</span>().<span class="ident">into</span>(),
-            <span class="kw-2">&amp;</span>[<span class="ident">byte_offset</span>.<span class="ident">into</span>(), <span class="ident">value</span>.<span class="ident">into</span>(), <span class="ident">is_little_endian</span>.<span class="ident">into</span>()],
-            <span class="ident">context</span>,
+        byte_offset: usize,
+        value: i64,
+        is_little_endian: bool,
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;JsValue&gt; {
+        DataView::set_big_int64(
+            <span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(),
+            <span class="kw-2">&amp;</span>[byte_offset.into(), value.into(), is_little_endian.into()],
+            context,
         )
     }
 
-    <span class="doccomment">/// Sets a signed 32-bit integer at the specified offset from the start of the [`JsDataView`]</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_float32</span>(
+    <span class="doccomment">/// Sets an unsigned 64-bit integer at the specified offset from the start of the [`JsDataView`]
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>set_big_uint64(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">byte_offset</span>: <span class="ident">usize</span>,
-        <span class="ident">value</span>: <span class="ident">f32</span>,
-        <span class="ident">is_little_endian</span>: <span class="ident">bool</span>,
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="ident">DataView::set_float32</span>(
-            <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">clone</span>().<span class="ident">into</span>(),
-            <span class="kw-2">&amp;</span>[<span class="ident">byte_offset</span>.<span class="ident">into</span>(), <span class="ident">value</span>.<span class="ident">into</span>(), <span class="ident">is_little_endian</span>.<span class="ident">into</span>()],
-            <span class="ident">context</span>,
+        byte_offset: usize,
+        value: u64,
+        is_little_endian: bool,
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;JsValue&gt; {
+        DataView::set_big_uint64(
+            <span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(),
+            <span class="kw-2">&amp;</span>[byte_offset.into(), value.into(), is_little_endian.into()],
+            context,
         )
     }
 
-    <span class="doccomment">/// Sets a signed 64-bit integer at the specified offset from the start of the [`JsDataView`]</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_float64</span>(
+    <span class="doccomment">/// Sets a signed 32-bit integer at the specified offset from the start of the [`JsDataView`]
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>set_float32(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">byte_offset</span>: <span class="ident">usize</span>,
-        <span class="ident">value</span>: <span class="ident">f64</span>,
-        <span class="ident">is_little_endian</span>: <span class="ident">bool</span>,
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="ident">DataView::set_float64</span>(
-            <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">clone</span>().<span class="ident">into</span>(),
-            <span class="kw-2">&amp;</span>[<span class="ident">byte_offset</span>.<span class="ident">into</span>(), <span class="ident">value</span>.<span class="ident">into</span>(), <span class="ident">is_little_endian</span>.<span class="ident">into</span>()],
-            <span class="ident">context</span>,
+        byte_offset: usize,
+        value: f32,
+        is_little_endian: bool,
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;JsValue&gt; {
+        DataView::set_float32(
+            <span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(),
+            <span class="kw-2">&amp;</span>[byte_offset.into(), value.into(), is_little_endian.into()],
+            context,
         )
     }
 
-    <span class="doccomment">/// Sets a signed 8-bit integer at the specified offset from the start of the [`JsDataView`]</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_int8</span>(
+    <span class="doccomment">/// Sets a signed 64-bit integer at the specified offset from the start of the [`JsDataView`]
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>set_float64(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">byte_offset</span>: <span class="ident">usize</span>,
-        <span class="ident">value</span>: <span class="ident">i8</span>,
-        <span class="ident">is_little_endian</span>: <span class="ident">bool</span>,
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="ident">DataView::set_int8</span>(
-            <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">clone</span>().<span class="ident">into</span>(),
-            <span class="kw-2">&amp;</span>[<span class="ident">byte_offset</span>.<span class="ident">into</span>(), <span class="ident">value</span>.<span class="ident">into</span>(), <span class="ident">is_little_endian</span>.<span class="ident">into</span>()],
-            <span class="ident">context</span>,
+        byte_offset: usize,
+        value: f64,
+        is_little_endian: bool,
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;JsValue&gt; {
+        DataView::set_float64(
+            <span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(),
+            <span class="kw-2">&amp;</span>[byte_offset.into(), value.into(), is_little_endian.into()],
+            context,
         )
     }
 
-    <span class="doccomment">/// Sets a signed 16-bit integer at the specified offset from the start of the [`JsDataView`]</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_int16</span>(
+    <span class="doccomment">/// Sets a signed 8-bit integer at the specified offset from the start of the [`JsDataView`]
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>set_int8(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">byte_offset</span>: <span class="ident">usize</span>,
-        <span class="ident">value</span>: <span class="ident">i16</span>,
-        <span class="ident">is_little_endian</span>: <span class="ident">bool</span>,
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="ident">DataView::set_int16</span>(
-            <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">clone</span>().<span class="ident">into</span>(),
-            <span class="kw-2">&amp;</span>[<span class="ident">byte_offset</span>.<span class="ident">into</span>(), <span class="ident">value</span>.<span class="ident">into</span>(), <span class="ident">is_little_endian</span>.<span class="ident">into</span>()],
-            <span class="ident">context</span>,
+        byte_offset: usize,
+        value: i8,
+        is_little_endian: bool,
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;JsValue&gt; {
+        DataView::set_int8(
+            <span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(),
+            <span class="kw-2">&amp;</span>[byte_offset.into(), value.into(), is_little_endian.into()],
+            context,
         )
     }
 
-    <span class="doccomment">/// Sets a signed 32-bit integer at the specified offset from the start of the [`JsDataView`]</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_int32</span>(
+    <span class="doccomment">/// Sets a signed 16-bit integer at the specified offset from the start of the [`JsDataView`]
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>set_int16(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">byte_offset</span>: <span class="ident">usize</span>,
-        <span class="ident">value</span>: <span class="ident">i32</span>,
-        <span class="ident">is_little_endian</span>: <span class="ident">bool</span>,
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="ident">DataView::set_int32</span>(
-            <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">clone</span>().<span class="ident">into</span>(),
-            <span class="kw-2">&amp;</span>[<span class="ident">byte_offset</span>.<span class="ident">into</span>(), <span class="ident">value</span>.<span class="ident">into</span>(), <span class="ident">is_little_endian</span>.<span class="ident">into</span>()],
-            <span class="ident">context</span>,
+        byte_offset: usize,
+        value: i16,
+        is_little_endian: bool,
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;JsValue&gt; {
+        DataView::set_int16(
+            <span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(),
+            <span class="kw-2">&amp;</span>[byte_offset.into(), value.into(), is_little_endian.into()],
+            context,
         )
     }
 
-    <span class="doccomment">/// Sets an unsigned 8-bit integer at the specified offset from the start of the [`JsDataView`]</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_uint8</span>(
+    <span class="doccomment">/// Sets a signed 32-bit integer at the specified offset from the start of the [`JsDataView`]
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>set_int32(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">byte_offset</span>: <span class="ident">usize</span>,
-        <span class="ident">value</span>: <span class="ident">u8</span>,
-        <span class="ident">is_little_endian</span>: <span class="ident">bool</span>,
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="ident">DataView::set_uint8</span>(
-            <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">clone</span>().<span class="ident">into</span>(),
-            <span class="kw-2">&amp;</span>[<span class="ident">byte_offset</span>.<span class="ident">into</span>(), <span class="ident">value</span>.<span class="ident">into</span>(), <span class="ident">is_little_endian</span>.<span class="ident">into</span>()],
-            <span class="ident">context</span>,
+        byte_offset: usize,
+        value: i32,
+        is_little_endian: bool,
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;JsValue&gt; {
+        DataView::set_int32(
+            <span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(),
+            <span class="kw-2">&amp;</span>[byte_offset.into(), value.into(), is_little_endian.into()],
+            context,
         )
     }
 
-    <span class="doccomment">/// Sets an unsigned 16-bit integer at the specified offset from the start of the [`JsDataView`]</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_unit16</span>(
+    <span class="doccomment">/// Sets an unsigned 8-bit integer at the specified offset from the start of the [`JsDataView`]
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>set_uint8(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">byte_offset</span>: <span class="ident">usize</span>,
-        <span class="ident">value</span>: <span class="ident">u16</span>,
-        <span class="ident">is_little_endian</span>: <span class="ident">bool</span>,
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="ident">DataView::set_uint16</span>(
-            <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">clone</span>().<span class="ident">into</span>(),
-            <span class="kw-2">&amp;</span>[<span class="ident">byte_offset</span>.<span class="ident">into</span>(), <span class="ident">value</span>.<span class="ident">into</span>(), <span class="ident">is_little_endian</span>.<span class="ident">into</span>()],
-            <span class="ident">context</span>,
+        byte_offset: usize,
+        value: u8,
+        is_little_endian: bool,
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;JsValue&gt; {
+        DataView::set_uint8(
+            <span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(),
+            <span class="kw-2">&amp;</span>[byte_offset.into(), value.into(), is_little_endian.into()],
+            context,
         )
     }
 
-    <span class="doccomment">/// Sets an unsigned 32-bit integer at the specified offset from the start of the [`JsDataView`]</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_unit32</span>(
+    <span class="doccomment">/// Sets an unsigned 16-bit integer at the specified offset from the start of the [`JsDataView`]
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>set_unit16(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">byte_offset</span>: <span class="ident">usize</span>,
-        <span class="ident">value</span>: <span class="ident">u32</span>,
-        <span class="ident">is_little_endian</span>: <span class="ident">bool</span>,
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="ident">DataView::set_uint32</span>(
-            <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">clone</span>().<span class="ident">into</span>(),
-            <span class="kw-2">&amp;</span>[<span class="ident">byte_offset</span>.<span class="ident">into</span>(), <span class="ident">value</span>.<span class="ident">into</span>(), <span class="ident">is_little_endian</span>.<span class="ident">into</span>()],
-            <span class="ident">context</span>,
+        byte_offset: usize,
+        value: u16,
+        is_little_endian: bool,
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;JsValue&gt; {
+        DataView::set_uint16(
+            <span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(),
+            <span class="kw-2">&amp;</span>[byte_offset.into(), value.into(), is_little_endian.into()],
+            context,
+        )
+    }
+
+    <span class="doccomment">/// Sets an unsigned 32-bit integer at the specified offset from the start of the [`JsDataView`]
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>set_unit32(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        byte_offset: usize,
+        value: u32,
+        is_little_endian: bool,
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;JsValue&gt; {
+        DataView::set_uint32(
+            <span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(),
+            <span class="kw-2">&amp;</span>[byte_offset.into(), value.into(), is_little_endian.into()],
+            context,
         )
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">JsDataView</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">JsObject</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">o</span>: <span class="ident">JsDataView</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">o</span>.<span class="ident">inner</span>.<span class="ident">clone</span>()
+<span class="kw">impl </span>From&lt;JsDataView&gt; <span class="kw">for </span>JsObject {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(o: JsDataView) -&gt; <span class="self">Self </span>{
+        o.inner.clone()
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">JsDataView</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">JsValue</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">o</span>: <span class="ident">JsDataView</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">o</span>.<span class="ident">inner</span>.<span class="ident">clone</span>().<span class="ident">into</span>()
+<span class="kw">impl </span>From&lt;JsDataView&gt; <span class="kw">for </span>JsValue {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(o: JsDataView) -&gt; <span class="self">Self </span>{
+        o.inner.clone().into()
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Deref</span> <span class="kw">for</span> <span class="ident">JsDataView</span> {
-    <span class="kw">type</span> <span class="ident">Target</span> <span class="op">=</span> <span class="ident">JsObject</span>;
+<span class="kw">impl </span>Deref <span class="kw">for </span>JsDataView {
+    <span class="kw">type </span>Target = JsObject;
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">deref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::Target</span> {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">inner</span>
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="self">Self</span>::Target {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.inner
     }
 }
 
-<span class="kw">impl</span> <span class="ident">JsObjectType</span> <span class="kw">for</span> <span class="ident">JsDataView</span> {}
+<span class="kw">impl </span>JsObjectType <span class="kw">for </span>JsDataView {}
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0 (a55dd71d5 2022-09-19)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0 (897e37553 2022-11-02)" ></div></body></html>

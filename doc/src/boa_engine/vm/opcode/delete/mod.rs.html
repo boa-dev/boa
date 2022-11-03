@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_engine/src/vm/opcode/delete/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../../storage.js"></script><script defer src="../../../../../source-script.js"></script><script defer src="../../../../../source-files.js"></script><script defer src="../../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../../boa_engine/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../../boa_engine/index.html"><div class="logo-container">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_engine/src/vm/opcode/delete/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../../normalize.css"><link rel="stylesheet" href="../../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../../dark.css" disabled><link rel="stylesheet" href="../../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../../storage.js"></script><script defer src="../../../../../source-script.js"></script><script defer src="../../../../../source-files.js"></script><script defer src="../../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../../boa_engine/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../../boa_engine/index.html"><div class="logo-container">
                     <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../../boa_engine/index.html">
                         <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -138,143 +138,143 @@
 <span id="136">136</span>
 <span id="137">137</span>
 <span id="138">138</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">error::JsNativeError</span>,
-    <span class="ident">vm</span>::{<span class="ident">opcode::Operation</span>, <span class="ident">ShouldExit</span>},
-    <span class="ident">Context</span>, <span class="ident">JsResult</span>, <span class="ident">JsString</span>,
+</pre><pre class="rust"><code><span class="kw">use crate</span>::{
+    error::JsNativeError,
+    vm::{opcode::Operation, ShouldExit},
+    Context, JsResult, JsString,
 };
 
-<span class="doccomment">/// `DeletePropertyByName` implements the Opcode Operation for `Opcode::DeletePropertyByName`</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Operation:</span>
-<span class="doccomment">///  - Deletes a property by name of an object</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">DeletePropertyByName</span>;
+<span class="doccomment">/// `DeletePropertyByName` implements the Opcode Operation for `Opcode::DeletePropertyByName`
+///
+/// Operation:
+///  - Deletes a property by name of an object
+</span><span class="attribute">#[derive(Debug, Clone, Copy)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>DeletePropertyByName;
 
-<span class="kw">impl</span> <span class="ident">Operation</span> <span class="kw">for</span> <span class="ident">DeletePropertyByName</span> {
-    <span class="kw">const</span> <span class="ident">NAME</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;DeletePropertyByName&quot;</span>;
-    <span class="kw">const</span> <span class="ident">INSTRUCTION</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;INST - DeletePropertyByName&quot;</span>;
+<span class="kw">impl </span>Operation <span class="kw">for </span>DeletePropertyByName {
+    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;DeletePropertyByName&quot;</span>;
+    <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - DeletePropertyByName&quot;</span>;
 
-    <span class="kw">fn</span> <span class="ident">execute</span>(<span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">ShouldExit</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>();
-        <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">frame</span>().<span class="ident">code</span>.<span class="ident">names</span>[<span class="ident">index</span> <span class="kw">as</span> <span class="ident">usize</span>];
-        <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="ident">context</span>
-            .<span class="ident">interner</span>()
-            .<span class="ident">resolve_expect</span>(<span class="ident">key</span>.<span class="ident">sym</span>())
-            .<span class="ident">into_common</span>::<span class="op">&lt;</span><span class="ident">JsString</span><span class="op">&gt;</span>(<span class="bool-val">false</span>)
-            .<span class="ident">into</span>();
-        <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">pop</span>();
-        <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">object</span>.<span class="ident">to_object</span>(<span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">__delete__</span>(<span class="kw-2">&amp;</span><span class="ident">key</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">result</span> <span class="op">&amp;&amp;</span> <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">frame</span>().<span class="ident">code</span>.<span class="ident">strict</span> {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
-                .<span class="ident">with_message</span>(<span class="string">&quot;Cannot delete property&quot;</span>)
-                .<span class="ident">into</span>());
+    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;ShouldExit&gt; {
+        <span class="kw">let </span>index = context.vm.read::&lt;u32&gt;();
+        <span class="kw">let </span>key = context.vm.frame().code.names[index <span class="kw">as </span>usize];
+        <span class="kw">let </span>key = context
+            .interner()
+            .resolve_expect(key.sym())
+            .into_common::&lt;JsString&gt;(<span class="bool-val">false</span>)
+            .into();
+        <span class="kw">let </span>object = context.vm.pop();
+        <span class="kw">let </span>result = object.to_object(context)<span class="question-mark">?</span>.__delete__(<span class="kw-2">&amp;</span>key, context)<span class="question-mark">?</span>;
+        <span class="kw">if </span>!result &amp;&amp; context.vm.frame().code.strict {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
+                .with_message(<span class="string">&quot;Cannot delete property&quot;</span>)
+                .into());
         }
-        <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">push</span>(<span class="ident">result</span>);
-        <span class="prelude-val">Ok</span>(<span class="ident">ShouldExit::False</span>)
+        context.vm.push(result);
+        <span class="prelude-val">Ok</span>(ShouldExit::False)
     }
 }
 
-<span class="doccomment">/// `DeletePropertyByValue` implements the Opcode Operation for `Opcode::DeletePropertyByValue`</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Operation:</span>
-<span class="doccomment">///  - Deletes a property by value of an object</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">DeletePropertyByValue</span>;
+<span class="doccomment">/// `DeletePropertyByValue` implements the Opcode Operation for `Opcode::DeletePropertyByValue`
+///
+/// Operation:
+///  - Deletes a property by value of an object
+</span><span class="attribute">#[derive(Debug, Clone, Copy)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>DeletePropertyByValue;
 
-<span class="kw">impl</span> <span class="ident">Operation</span> <span class="kw">for</span> <span class="ident">DeletePropertyByValue</span> {
-    <span class="kw">const</span> <span class="ident">NAME</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;DeletePropertyByValue&quot;</span>;
-    <span class="kw">const</span> <span class="ident">INSTRUCTION</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;INST - DeletePropertyByValue&quot;</span>;
+<span class="kw">impl </span>Operation <span class="kw">for </span>DeletePropertyByValue {
+    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;DeletePropertyByValue&quot;</span>;
+    <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - DeletePropertyByValue&quot;</span>;
 
-    <span class="kw">fn</span> <span class="ident">execute</span>(<span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">ShouldExit</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">pop</span>();
-        <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">pop</span>();
-        <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">object</span>
-            .<span class="ident">to_object</span>(<span class="ident">context</span>)<span class="question-mark">?</span>
-            .<span class="ident">__delete__</span>(<span class="kw-2">&amp;</span><span class="ident">key</span>.<span class="ident">to_property_key</span>(<span class="ident">context</span>)<span class="question-mark">?</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">result</span> <span class="op">&amp;&amp;</span> <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">frame</span>().<span class="ident">code</span>.<span class="ident">strict</span> {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
-                .<span class="ident">with_message</span>(<span class="string">&quot;Cannot delete property&quot;</span>)
-                .<span class="ident">into</span>());
+    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;ShouldExit&gt; {
+        <span class="kw">let </span>key = context.vm.pop();
+        <span class="kw">let </span>object = context.vm.pop();
+        <span class="kw">let </span>result = object
+            .to_object(context)<span class="question-mark">?
+            </span>.__delete__(<span class="kw-2">&amp;</span>key.to_property_key(context)<span class="question-mark">?</span>, context)<span class="question-mark">?</span>;
+        <span class="kw">if </span>!result &amp;&amp; context.vm.frame().code.strict {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
+                .with_message(<span class="string">&quot;Cannot delete property&quot;</span>)
+                .into());
         }
-        <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">push</span>(<span class="ident">result</span>);
-        <span class="prelude-val">Ok</span>(<span class="ident">ShouldExit::False</span>)
+        context.vm.push(result);
+        <span class="prelude-val">Ok</span>(ShouldExit::False)
     }
 }
 
-<span class="doccomment">/// `DeleteName` implements the Opcode Operation for `Opcode::DeleteName`</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Operation:</span>
-<span class="doccomment">///  - Deletes a property by value of an object</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">DeleteName</span>;
+<span class="doccomment">/// `DeleteName` implements the Opcode Operation for `Opcode::DeleteName`
+///
+/// Operation:
+///  - Deletes a property by value of an object
+</span><span class="attribute">#[derive(Debug, Clone, Copy)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>DeleteName;
 
-<span class="kw">impl</span> <span class="ident">Operation</span> <span class="kw">for</span> <span class="ident">DeleteName</span> {
-    <span class="kw">const</span> <span class="ident">NAME</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;DeleteName&quot;</span>;
-    <span class="kw">const</span> <span class="ident">INSTRUCTION</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;INST - DeleteName&quot;</span>;
+<span class="kw">impl </span>Operation <span class="kw">for </span>DeleteName {
+    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;DeleteName&quot;</span>;
+    <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - DeleteName&quot;</span>;
 
-    <span class="kw">fn</span> <span class="ident">execute</span>(<span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">ShouldExit</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>();
-        <span class="kw">let</span> <span class="ident">binding_locator</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">frame</span>().<span class="ident">code</span>.<span class="ident">bindings</span>[<span class="ident">index</span> <span class="kw">as</span> <span class="ident">usize</span>];
-        <span class="ident">binding_locator</span>.<span class="ident">throw_mutate_immutable</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;ShouldExit&gt; {
+        <span class="kw">let </span>index = context.vm.read::&lt;u32&gt;();
+        <span class="kw">let </span>binding_locator = context.vm.frame().code.bindings[index <span class="kw">as </span>usize];
+        binding_locator.throw_mutate_immutable(context)<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="ident">deleted</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">binding_locator</span>.<span class="ident">is_global</span>()
-            <span class="op">&amp;&amp;</span> <span class="ident">context</span>
-                .<span class="ident">realm</span>
-                .<span class="ident">environments</span>
-                .<span class="ident">is_only_global_property</span>(<span class="ident">binding_locator</span>.<span class="ident">name</span>())
+        <span class="kw">let </span>deleted = <span class="kw">if </span>binding_locator.is_global()
+            &amp;&amp; context
+                .realm
+                .environments
+                .is_only_global_property(binding_locator.name())
         {
-            <span class="kw">let</span> <span class="ident">key</span>: <span class="ident">JsString</span> <span class="op">=</span> <span class="ident">context</span>
-                .<span class="ident">interner</span>()
-                .<span class="ident">resolve_expect</span>(<span class="ident">binding_locator</span>.<span class="ident">name</span>().<span class="ident">sym</span>())
-                .<span class="ident">into_common</span>(<span class="bool-val">false</span>);
-            <span class="kw">let</span> <span class="ident">deleted</span> <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::object::internal_methods::global::global_delete_no_receiver</span>(
-                <span class="kw-2">&amp;</span><span class="ident">key</span>.<span class="ident">clone</span>().<span class="ident">into</span>(),
-                <span class="ident">context</span>,
+            <span class="kw">let </span>key: JsString = context
+                .interner()
+                .resolve_expect(binding_locator.name().sym())
+                .into_common(<span class="bool-val">false</span>);
+            <span class="kw">let </span>deleted = <span class="kw">crate</span>::object::internal_methods::global::global_delete_no_receiver(
+                <span class="kw-2">&amp;</span>key.clone().into(),
+                context,
             )<span class="question-mark">?</span>;
 
-            <span class="kw">if</span> <span class="op">!</span><span class="ident">deleted</span> <span class="op">&amp;&amp;</span> <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">frame</span>().<span class="ident">code</span>.<span class="ident">strict</span> {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
-                    .<span class="ident">with_message</span>(<span class="macro">format!</span>(
+            <span class="kw">if </span>!deleted &amp;&amp; context.vm.frame().code.strict {
+                <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
+                    .with_message(<span class="macro">format!</span>(
                         <span class="string">&quot;property `{}` is non-configurable and cannot be deleted&quot;</span>,
-                        <span class="ident">key</span>.<span class="ident">to_std_string_escaped</span>()
+                        key.to_std_string_escaped()
                     ))
-                    .<span class="ident">into</span>());
+                    .into());
             }
-            <span class="ident">deleted</span>
-        } <span class="kw">else</span> {
-            <span class="ident">context</span>
-                .<span class="ident">realm</span>
-                .<span class="ident">environments</span>
-                .<span class="ident">get_value_optional</span>(
-                    <span class="ident">binding_locator</span>.<span class="ident">environment_index</span>(),
-                    <span class="ident">binding_locator</span>.<span class="ident">binding_index</span>(),
-                    <span class="ident">binding_locator</span>.<span class="ident">name</span>(),
+            deleted
+        } <span class="kw">else </span>{
+            context
+                .realm
+                .environments
+                .get_value_optional(
+                    binding_locator.environment_index(),
+                    binding_locator.binding_index(),
+                    binding_locator.name(),
                 )
-                .<span class="ident">is_none</span>()
+                .is_none()
         };
 
-        <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">push</span>(<span class="ident">deleted</span>);
-        <span class="prelude-val">Ok</span>(<span class="ident">ShouldExit::False</span>)
+        context.vm.push(deleted);
+        <span class="prelude-val">Ok</span>(ShouldExit::False)
     }
 }
 
-<span class="doccomment">/// `DeleteSuperThrow` implements the Opcode Operation for `Opcode::DeleteSuperThrow`</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Operation:</span>
-<span class="doccomment">///  - Throws an error when trying to delete a property of `super`.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">DeleteSuperThrow</span>;
+<span class="doccomment">/// `DeleteSuperThrow` implements the Opcode Operation for `Opcode::DeleteSuperThrow`
+///
+/// Operation:
+///  - Throws an error when trying to delete a property of `super`.
+</span><span class="attribute">#[derive(Debug, Clone, Copy)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>DeleteSuperThrow;
 
-<span class="kw">impl</span> <span class="ident">Operation</span> <span class="kw">for</span> <span class="ident">DeleteSuperThrow</span> {
-    <span class="kw">const</span> <span class="ident">NAME</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;DeleteSuperThrow&quot;</span>;
-    <span class="kw">const</span> <span class="ident">INSTRUCTION</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;INST - DeleteSuperThrow&quot;</span>;
+<span class="kw">impl </span>Operation <span class="kw">for </span>DeleteSuperThrow {
+    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;DeleteSuperThrow&quot;</span>;
+    <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - DeleteSuperThrow&quot;</span>;
 
-    <span class="kw">fn</span> <span class="ident">execute</span>(<span class="kw">_</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">ShouldExit</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::reference</span>()
-            .<span class="ident">with_message</span>(<span class="string">&quot;cannot delete a property of `super`&quot;</span>)
-            .<span class="ident">into</span>())
+    <span class="kw">fn </span>execute(<span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;ShouldExit&gt; {
+        <span class="prelude-val">Err</span>(JsNativeError::reference()
+            .with_message(<span class="string">&quot;cannot delete a property of `super`&quot;</span>)
+            .into())
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0 (a55dd71d5 2022-09-19)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0 (897e37553 2022-11-02)" ></div></body></html>

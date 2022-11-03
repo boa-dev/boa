@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_engine/src/bigint.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>bigint.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../boa_engine/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../boa_engine/index.html"><div class="logo-container">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_engine/src/bigint.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>bigint.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../boa_engine/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../boa_engine/index.html"><div class="logo-container">
                     <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../boa_engine/index.html">
                         <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -454,459 +454,459 @@
 <span id="452">452</span>
 <span id="453">453</span>
 <span id="454">454</span>
-</pre><pre class="rust"><code><span class="doccomment">//! This module implements the JavaScript bigint primitive rust type.</span>
+</pre><pre class="rust"><code><span class="doccomment">//! This module implements the JavaScript bigint primitive rust type.
 
-<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">builtins::Number</span>, <span class="ident">error::JsNativeError</span>, <span class="ident">JsResult</span>};
-<span class="kw">use</span> <span class="ident">num_integer::Integer</span>;
-<span class="kw">use</span> <span class="ident">num_traits</span>::{<span class="ident">pow::Pow</span>, <span class="ident">FromPrimitive</span>, <span class="ident">One</span>, <span class="ident">ToPrimitive</span>, <span class="ident">Zero</span>};
-<span class="kw">use</span> <span class="ident">std</span>::{
-    <span class="ident">fmt</span>::{<span class="self">self</span>, <span class="ident">Display</span>},
-    <span class="ident">ops</span>::{<span class="ident">Add</span>, <span class="ident">BitAnd</span>, <span class="ident">BitOr</span>, <span class="ident">BitXor</span>, <span class="ident">Div</span>, <span class="ident">Mul</span>, <span class="ident">Neg</span>, <span class="ident">Rem</span>, <span class="ident">Shl</span>, <span class="ident">Shr</span>, <span class="ident">Sub</span>},
-    <span class="ident">rc::Rc</span>,
+</span><span class="kw">use crate</span>::{builtins::Number, error::JsNativeError, JsResult};
+<span class="kw">use </span>num_integer::Integer;
+<span class="kw">use </span>num_traits::{pow::Pow, FromPrimitive, One, ToPrimitive, Zero};
+<span class="kw">use </span>std::{
+    fmt::{<span class="self">self</span>, Display},
+    ops::{Add, BitAnd, BitOr, BitXor, Div, Mul, Neg, Rem, Shl, Shr, Sub},
+    rc::Rc,
 };
 
-<span class="doccomment">/// The raw bigint type.</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">RawBigInt</span> <span class="op">=</span> <span class="ident">num_bigint::BigInt</span>;
+<span class="doccomment">/// The raw bigint type.
+</span><span class="kw">pub type </span>RawBigInt = num_bigint::BigInt;
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deser&quot;</span>)]</span>
-<span class="kw">use</span> <span class="ident">serde</span>::{<span class="ident">Deserialize</span>, <span class="ident">Serialize</span>};
+<span class="attribute">#[cfg(feature = <span class="string">&quot;deser&quot;</span>)]
+</span><span class="kw">use </span>serde::{Deserialize, Serialize};
 
-<span class="doccomment">/// JavaScript bigint primitive rust type.</span>
-<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deser&quot;</span>, <span class="ident">derive</span>(<span class="ident">Serialize</span>, <span class="ident">Deserialize</span>))]</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Ord</span>, <span class="ident">Hash</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">JsBigInt</span> {
-    <span class="ident">inner</span>: <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">RawBigInt</span><span class="op">&gt;</span>,
+<span class="doccomment">/// JavaScript bigint primitive rust type.
+</span><span class="attribute">#[cfg_attr(feature = <span class="string">&quot;deser&quot;</span>, derive(Serialize, Deserialize))]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+</span><span class="kw">pub struct </span>JsBigInt {
+    inner: Rc&lt;RawBigInt&gt;,
 }
 
-<span class="kw">impl</span> <span class="ident">JsBigInt</span> {
-    <span class="doccomment">/// Create a new [`JsBigInt`].</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">value</span>: <span class="ident">T</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">value</span>.<span class="ident">into</span>()
+<span class="kw">impl </span>JsBigInt {
+    <span class="doccomment">/// Create a new [`JsBigInt`].
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>new&lt;T: Into&lt;<span class="self">Self</span>&gt;&gt;(value: T) -&gt; <span class="self">Self </span>{
+        value.into()
     }
 
-    <span class="doccomment">/// Create a [`JsBigInt`] with value `0`.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">zero</span>() -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">inner</span>: <span class="ident">Rc::new</span>(<span class="ident">RawBigInt::zero</span>()),
+    <span class="doccomment">/// Create a [`JsBigInt`] with value `0`.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>zero() -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            inner: Rc::new(RawBigInt::zero()),
         }
     }
 
-    <span class="doccomment">/// Check if is zero.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_zero</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">is_zero</span>()
+    <span class="doccomment">/// Check if is zero.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>is_zero(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.inner.is_zero()
     }
 
-    <span class="doccomment">/// Create a [`JsBigInt`] with value `1`.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">one</span>() -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">inner</span>: <span class="ident">Rc::new</span>(<span class="ident">RawBigInt::one</span>()),
+    <span class="doccomment">/// Create a [`JsBigInt`] with value `1`.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>one() -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            inner: Rc::new(RawBigInt::one()),
         }
     }
 
-    <span class="doccomment">/// Check if is one.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_one</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">is_one</span>()
+    <span class="doccomment">/// Check if is one.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>is_one(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.inner.is_one()
     }
 
-    <span class="doccomment">/// Convert bigint to string with radix.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_string_radix</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">radix</span>: <span class="ident">u32</span>) -&gt; <span class="ident">String</span> {
-        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">to_str_radix</span>(<span class="ident">radix</span>)
+    <span class="doccomment">/// Convert bigint to string with radix.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>to_string_radix(<span class="kw-2">&amp;</span><span class="self">self</span>, radix: u32) -&gt; String {
+        <span class="self">self</span>.inner.to_str_radix(radix)
     }
 
-    <span class="doccomment">/// Converts the `BigInt` to a f64 type.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Returns `f64::INFINITY` if the `BigInt` is too big.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_f64</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">f64</span> {
-        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">to_f64</span>().<span class="ident">unwrap_or</span>(<span class="ident">f64::INFINITY</span>)
+    <span class="doccomment">/// Converts the `BigInt` to a f64 type.
+    ///
+    /// Returns `f64::INFINITY` if the `BigInt` is too big.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>to_f64(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; f64 {
+        <span class="self">self</span>.inner.to_f64().unwrap_or(f64::INFINITY)
     }
 
-    <span class="doccomment">/// Converts a string to a `BigInt` with the specified radix.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_string_radix</span>(<span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">radix</span>: <span class="ident">u32</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Some</span>(<span class="self">Self</span> {
-            <span class="ident">inner</span>: <span class="ident">Rc::new</span>(<span class="ident">RawBigInt::parse_bytes</span>(<span class="ident">buf</span>.<span class="ident">as_bytes</span>(), <span class="ident">radix</span>)<span class="question-mark">?</span>),
+    <span class="doccomment">/// Converts a string to a `BigInt` with the specified radix.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>from_string_radix(buf: <span class="kw-2">&amp;</span>str, radix: u32) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
+        <span class="prelude-val">Some</span>(<span class="self">Self </span>{
+            inner: Rc::new(RawBigInt::parse_bytes(buf.as_bytes(), radix)<span class="question-mark">?</span>),
         })
     }
 
-    <span class="doccomment">/// This function takes a string and converts it to `BigInt` type.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-stringtobigint</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_string</span>(<span class="kw-2">mut</span> <span class="ident">string</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="ident">string</span> <span class="op">=</span> <span class="ident">string</span>.<span class="ident">trim</span>();
+    <span class="doccomment">/// This function takes a string and converts it to `BigInt` type.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-stringtobigint
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>from_string(<span class="kw-2">mut </span>string: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
+        string = string.trim();
 
-        <span class="kw">if</span> <span class="ident">string</span>.<span class="ident">is_empty</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident"><span class="self">Self</span>::zero</span>());
+        <span class="kw">if </span>string.is_empty() {
+            <span class="kw">return </span><span class="prelude-val">Some</span>(<span class="self">Self</span>::zero());
         }
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">radix</span> <span class="op">=</span> <span class="number">10</span>;
-        <span class="kw">if</span> <span class="ident">string</span>.<span class="ident">starts_with</span>(<span class="string">&quot;0b&quot;</span>) <span class="op">|</span><span class="op">|</span> <span class="ident">string</span>.<span class="ident">starts_with</span>(<span class="string">&quot;0B&quot;</span>) {
-            <span class="ident">radix</span> <span class="op">=</span> <span class="number">2</span>;
-            <span class="ident">string</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">string</span>[<span class="number">2</span>..];
-        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">string</span>.<span class="ident">starts_with</span>(<span class="string">&quot;0x&quot;</span>) <span class="op">|</span><span class="op">|</span> <span class="ident">string</span>.<span class="ident">starts_with</span>(<span class="string">&quot;0X&quot;</span>) {
-            <span class="ident">radix</span> <span class="op">=</span> <span class="number">16</span>;
-            <span class="ident">string</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">string</span>[<span class="number">2</span>..];
-        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">string</span>.<span class="ident">starts_with</span>(<span class="string">&quot;0o&quot;</span>) <span class="op">|</span><span class="op">|</span> <span class="ident">string</span>.<span class="ident">starts_with</span>(<span class="string">&quot;0O&quot;</span>) {
-            <span class="ident">radix</span> <span class="op">=</span> <span class="number">8</span>;
-            <span class="ident">string</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">string</span>[<span class="number">2</span>..];
+        <span class="kw">let </span><span class="kw-2">mut </span>radix = <span class="number">10</span>;
+        <span class="kw">if </span>string.starts_with(<span class="string">&quot;0b&quot;</span>) || string.starts_with(<span class="string">&quot;0B&quot;</span>) {
+            radix = <span class="number">2</span>;
+            string = <span class="kw-2">&amp;</span>string[<span class="number">2</span>..];
+        } <span class="kw">else if </span>string.starts_with(<span class="string">&quot;0x&quot;</span>) || string.starts_with(<span class="string">&quot;0X&quot;</span>) {
+            radix = <span class="number">16</span>;
+            string = <span class="kw-2">&amp;</span>string[<span class="number">2</span>..];
+        } <span class="kw">else if </span>string.starts_with(<span class="string">&quot;0o&quot;</span>) || string.starts_with(<span class="string">&quot;0O&quot;</span>) {
+            radix = <span class="number">8</span>;
+            string = <span class="kw-2">&amp;</span>string[<span class="number">2</span>..];
         }
 
-        <span class="ident"><span class="self">Self</span>::from_string_radix</span>(<span class="ident">string</span>, <span class="ident">radix</span>)
+        <span class="self">Self</span>::from_string_radix(string, radix)
     }
 
-    <span class="doccomment">/// Checks for `SameValueZero` equality.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-numeric-types-bigint-equal</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">same_value_zero</span>(<span class="ident">x</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>, <span class="ident">y</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="comment">// Return BigInt::equal(x, y)</span>
-        <span class="ident"><span class="self">Self</span>::equal</span>(<span class="ident">x</span>, <span class="ident">y</span>)
+    <span class="doccomment">/// Checks for `SameValueZero` equality.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-numeric-types-bigint-equal
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>same_value_zero(x: <span class="kw-2">&amp;</span><span class="self">Self</span>, y: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; bool {
+        <span class="comment">// Return BigInt::equal(x, y)
+        </span><span class="self">Self</span>::equal(x, y)
     }
 
-    <span class="doccomment">/// Checks for `SameValue` equality.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-numeric-types-bigint-sameValue</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">same_value</span>(<span class="ident">x</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>, <span class="ident">y</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="comment">// Return BigInt::equal(x, y)</span>
-        <span class="ident"><span class="self">Self</span>::equal</span>(<span class="ident">x</span>, <span class="ident">y</span>)
+    <span class="doccomment">/// Checks for `SameValue` equality.
+    ///
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-numeric-types-bigint-sameValue
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>same_value(x: <span class="kw-2">&amp;</span><span class="self">Self</span>, y: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; bool {
+        <span class="comment">// Return BigInt::equal(x, y)
+        </span><span class="self">Self</span>::equal(x, y)
     }
 
-    <span class="doccomment">/// Checks for mathematical equality.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The abstract operation `BigInt::equal` takes arguments x (a `BigInt`) and y (a `BigInt`).</span>
-    <span class="doccomment">/// It returns `true` if x and y have the same mathematical integer value and false otherwise.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-numeric-types-bigint-sameValueZero</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">equal</span>(<span class="ident">x</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>, <span class="ident">y</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="ident">x</span> <span class="op">==</span> <span class="ident">y</span>
+    <span class="doccomment">/// Checks for mathematical equality.
+    ///
+    /// The abstract operation `BigInt::equal` takes arguments x (a `BigInt`) and y (a `BigInt`).
+    /// It returns `true` if x and y have the same mathematical integer value and false otherwise.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-numeric-types-bigint-sameValueZero
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>equal(x: <span class="kw-2">&amp;</span><span class="self">Self</span>, y: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; bool {
+        x == y
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pow</span>(<span class="ident">x</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>, <span class="ident">y</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">y</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">y</span>) <span class="op">=</span> <span class="ident">y</span>.<span class="ident">inner</span>.<span class="ident">to_biguint</span>() {
-            <span class="ident">y</span>
-        } <span class="kw">else</span> {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::range</span>()
-                .<span class="ident">with_message</span>(<span class="string">&quot;BigInt negative exponent&quot;</span>)
-                .<span class="ident">into</span>());
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>pow(x: <span class="kw-2">&amp;</span><span class="self">Self</span>, y: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
+        <span class="kw">let </span>y = <span class="kw">if let </span><span class="prelude-val">Some</span>(y) = y.inner.to_biguint() {
+            y
+        } <span class="kw">else </span>{
+            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::range()
+                .with_message(<span class="string">&quot;BigInt negative exponent&quot;</span>)
+                .into());
         };
 
-        <span class="kw">let</span> <span class="ident">num_bits</span> <span class="op">=</span> (<span class="ident">x</span>.<span class="ident">inner</span>.<span class="ident">bits</span>() <span class="kw">as</span> <span class="ident">f64</span>
-            <span class="op">*</span> <span class="ident">y</span>.<span class="ident">to_f64</span>().<span class="ident">expect</span>(<span class="string">&quot;Unable to convert from BigUInt to f64&quot;</span>))
-        .<span class="ident">floor</span>()
-            <span class="op">+</span> <span class="number">1f64</span>;
+        <span class="kw">let </span>num_bits = (x.inner.bits() <span class="kw">as </span>f64
+            * y.to_f64().expect(<span class="string">&quot;Unable to convert from BigUInt to f64&quot;</span>))
+        .floor()
+            + <span class="number">1f64</span>;
 
-        <span class="kw">if</span> <span class="ident">num_bits</span> <span class="op">&gt;</span> <span class="number">1_000_000_000f64</span> {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::range</span>()
-                .<span class="ident">with_message</span>(<span class="string">&quot;Maximum BigInt size exceeded&quot;</span>)
-                .<span class="ident">into</span>());
+        <span class="kw">if </span>num_bits &gt; <span class="number">1_000_000_000f64 </span>{
+            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::range()
+                .with_message(<span class="string">&quot;Maximum BigInt size exceeded&quot;</span>)
+                .into());
         }
 
-        <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">x</span>.<span class="ident">inner</span>.<span class="ident">as_ref</span>().<span class="ident">clone</span>().<span class="ident">pow</span>(<span class="ident">y</span>)))
+        <span class="prelude-val">Ok</span>(<span class="self">Self</span>::new(x.inner.as_ref().clone().pow(y)))
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">shift_right</span>(<span class="ident">x</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>, <span class="ident">y</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">n</span>) <span class="op">=</span> <span class="ident">y</span>.<span class="ident">inner</span>.<span class="ident">to_i32</span>() {
-            <span class="kw">let</span> <span class="ident">inner</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">n</span> <span class="op">&gt;</span> <span class="number">0</span> {
-                <span class="ident">x</span>.<span class="ident">inner</span>.<span class="ident">as_ref</span>().<span class="ident">clone</span>().<span class="ident">shr</span>(<span class="ident">n</span> <span class="kw">as</span> <span class="ident">usize</span>)
-            } <span class="kw">else</span> {
-                <span class="ident">x</span>.<span class="ident">inner</span>.<span class="ident">as_ref</span>().<span class="ident">clone</span>().<span class="ident">shl</span>(<span class="ident">n</span>.<span class="ident">unsigned_abs</span>())
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>shift_right(x: <span class="kw-2">&amp;</span><span class="self">Self</span>, y: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(n) = y.inner.to_i32() {
+            <span class="kw">let </span>inner = <span class="kw">if </span>n &gt; <span class="number">0 </span>{
+                x.inner.as_ref().clone().shr(n <span class="kw">as </span>usize)
+            } <span class="kw">else </span>{
+                x.inner.as_ref().clone().shl(n.unsigned_abs())
             };
 
-            <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">inner</span>))
-        } <span class="kw">else</span> {
-            <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::range</span>()
-                .<span class="ident">with_message</span>(<span class="string">&quot;Maximum BigInt size exceeded&quot;</span>)
-                .<span class="ident">into</span>())
+            <span class="prelude-val">Ok</span>(<span class="self">Self</span>::new(inner))
+        } <span class="kw">else </span>{
+            <span class="prelude-val">Err</span>(JsNativeError::range()
+                .with_message(<span class="string">&quot;Maximum BigInt size exceeded&quot;</span>)
+                .into())
         }
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">shift_left</span>(<span class="ident">x</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>, <span class="ident">y</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">n</span>) <span class="op">=</span> <span class="ident">y</span>.<span class="ident">inner</span>.<span class="ident">to_i32</span>() {
-            <span class="kw">let</span> <span class="ident">inner</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">n</span> <span class="op">&gt;</span> <span class="number">0</span> {
-                <span class="ident">x</span>.<span class="ident">inner</span>.<span class="ident">as_ref</span>().<span class="ident">clone</span>().<span class="ident">shl</span>(<span class="ident">n</span> <span class="kw">as</span> <span class="ident">usize</span>)
-            } <span class="kw">else</span> {
-                <span class="ident">x</span>.<span class="ident">inner</span>.<span class="ident">as_ref</span>().<span class="ident">clone</span>().<span class="ident">shr</span>(<span class="ident">n</span>.<span class="ident">unsigned_abs</span>())
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>shift_left(x: <span class="kw-2">&amp;</span><span class="self">Self</span>, y: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(n) = y.inner.to_i32() {
+            <span class="kw">let </span>inner = <span class="kw">if </span>n &gt; <span class="number">0 </span>{
+                x.inner.as_ref().clone().shl(n <span class="kw">as </span>usize)
+            } <span class="kw">else </span>{
+                x.inner.as_ref().clone().shr(n.unsigned_abs())
             };
 
-            <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">inner</span>))
-        } <span class="kw">else</span> {
-            <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::range</span>()
-                .<span class="ident">with_message</span>(<span class="string">&quot;Maximum BigInt size exceeded&quot;</span>)
-                .<span class="ident">into</span>())
+            <span class="prelude-val">Ok</span>(<span class="self">Self</span>::new(inner))
+        } <span class="kw">else </span>{
+            <span class="prelude-val">Err</span>(JsNativeError::range()
+                .with_message(<span class="string">&quot;Maximum BigInt size exceeded&quot;</span>)
+                .into())
         }
     }
 
-    <span class="doccomment">/// Floored integer modulo.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// # use num_integer::Integer;</span>
-    <span class="doccomment">/// assert_eq!((8).mod_floor(&amp;3), 2);</span>
-    <span class="doccomment">/// assert_eq!((8).mod_floor(&amp;-3), -1);</span>
-    <span class="doccomment">/// ```</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">mod_floor</span>(<span class="ident">x</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>, <span class="ident">y</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">x</span>.<span class="ident">inner</span>.<span class="ident">mod_floor</span>(<span class="kw-2">&amp;</span><span class="ident">y</span>.<span class="ident">inner</span>))
+    <span class="doccomment">/// Floored integer modulo.
+    ///
+    /// # Examples
+    /// ```
+    /// # use num_integer::Integer;
+    /// assert_eq!((8).mod_floor(&amp;3), 2);
+    /// assert_eq!((8).mod_floor(&amp;-3), -1);
+    /// ```
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>mod_floor(x: <span class="kw-2">&amp;</span><span class="self">Self</span>, y: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::new(x.inner.mod_floor(<span class="kw-2">&amp;</span>y.inner))
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add</span>(<span class="ident">x</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>, <span class="ident">y</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">x</span>.<span class="ident">inner</span>.<span class="ident">as_ref</span>().<span class="ident">clone</span>().<span class="ident">add</span>(<span class="ident">y</span>.<span class="ident">inner</span>.<span class="ident">as_ref</span>()))
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>add(x: <span class="kw-2">&amp;</span><span class="self">Self</span>, y: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::new(x.inner.as_ref().clone().add(y.inner.as_ref()))
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sub</span>(<span class="ident">x</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>, <span class="ident">y</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">x</span>.<span class="ident">inner</span>.<span class="ident">as_ref</span>().<span class="ident">clone</span>().<span class="ident">sub</span>(<span class="ident">y</span>.<span class="ident">inner</span>.<span class="ident">as_ref</span>()))
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>sub(x: <span class="kw-2">&amp;</span><span class="self">Self</span>, y: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::new(x.inner.as_ref().clone().sub(y.inner.as_ref()))
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">mul</span>(<span class="ident">x</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>, <span class="ident">y</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">x</span>.<span class="ident">inner</span>.<span class="ident">as_ref</span>().<span class="ident">clone</span>().<span class="ident">mul</span>(<span class="ident">y</span>.<span class="ident">inner</span>.<span class="ident">as_ref</span>()))
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>mul(x: <span class="kw-2">&amp;</span><span class="self">Self</span>, y: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::new(x.inner.as_ref().clone().mul(y.inner.as_ref()))
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">div</span>(<span class="ident">x</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>, <span class="ident">y</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">x</span>.<span class="ident">inner</span>.<span class="ident">as_ref</span>().<span class="ident">clone</span>().<span class="ident">div</span>(<span class="ident">y</span>.<span class="ident">inner</span>.<span class="ident">as_ref</span>()))
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>div(x: <span class="kw-2">&amp;</span><span class="self">Self</span>, y: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::new(x.inner.as_ref().clone().div(y.inner.as_ref()))
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">rem</span>(<span class="ident">x</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>, <span class="ident">y</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">x</span>.<span class="ident">inner</span>.<span class="ident">as_ref</span>().<span class="ident">clone</span>().<span class="ident">rem</span>(<span class="ident">y</span>.<span class="ident">inner</span>.<span class="ident">as_ref</span>()))
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>rem(x: <span class="kw-2">&amp;</span><span class="self">Self</span>, y: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::new(x.inner.as_ref().clone().rem(y.inner.as_ref()))
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">bitand</span>(<span class="ident">x</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>, <span class="ident">y</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">x</span>.<span class="ident">inner</span>.<span class="ident">as_ref</span>().<span class="ident">clone</span>().<span class="ident">bitand</span>(<span class="ident">y</span>.<span class="ident">inner</span>.<span class="ident">as_ref</span>()))
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>bitand(x: <span class="kw-2">&amp;</span><span class="self">Self</span>, y: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::new(x.inner.as_ref().clone().bitand(y.inner.as_ref()))
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">bitor</span>(<span class="ident">x</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>, <span class="ident">y</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">x</span>.<span class="ident">inner</span>.<span class="ident">as_ref</span>().<span class="ident">clone</span>().<span class="ident">bitor</span>(<span class="ident">y</span>.<span class="ident">inner</span>.<span class="ident">as_ref</span>()))
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>bitor(x: <span class="kw-2">&amp;</span><span class="self">Self</span>, y: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::new(x.inner.as_ref().clone().bitor(y.inner.as_ref()))
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">bitxor</span>(<span class="ident">x</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>, <span class="ident">y</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">x</span>.<span class="ident">inner</span>.<span class="ident">as_ref</span>().<span class="ident">clone</span>().<span class="ident">bitxor</span>(<span class="ident">y</span>.<span class="ident">inner</span>.<span class="ident">as_ref</span>()))
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>bitxor(x: <span class="kw-2">&amp;</span><span class="self">Self</span>, y: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::new(x.inner.as_ref().clone().bitxor(y.inner.as_ref()))
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">neg</span>(<span class="ident">x</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">x</span>.<span class="ident">as_inner</span>().<span class="ident">neg</span>())
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>neg(x: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::new(x.as_inner().neg())
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">not</span>(<span class="ident">x</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::new</span>(<span class="op">!</span><span class="ident">x</span>.<span class="ident">as_inner</span>())
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>not(x: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::new(!x.as_inner())
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">as_inner</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">RawBigInt</span> {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">inner</span>
-    }
-}
-
-<span class="kw">impl</span> <span class="ident">Display</span> <span class="kw">for</span> <span class="ident">JsBigInt</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
-        <span class="ident">Display::fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">inner</span>, <span class="ident">f</span>)
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>as_inner(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>RawBigInt {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.inner
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">RawBigInt</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">JsBigInt</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <span class="ident">RawBigInt</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">inner</span>: <span class="ident">Rc::new</span>(<span class="ident">value</span>),
-        }
+<span class="kw">impl </span>Display <span class="kw">for </span>JsBigInt {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        Display::fmt(<span class="kw-2">&amp;</span><span class="self">self</span>.inner, f)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">RawBigInt</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">JsBigInt</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">RawBigInt</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">inner</span>: <span class="ident">value</span>.<span class="ident">into</span>(),
+<span class="kw">impl </span>From&lt;RawBigInt&gt; <span class="kw">for </span>JsBigInt {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(value: RawBigInt) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            inner: Rc::new(value),
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">i8</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">JsBigInt</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <span class="ident">i8</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">inner</span>: <span class="ident">Rc::new</span>(<span class="ident">RawBigInt::from</span>(<span class="ident">value</span>)),
+<span class="kw">impl </span>From&lt;Box&lt;RawBigInt&gt;&gt; <span class="kw">for </span>JsBigInt {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(value: Box&lt;RawBigInt&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            inner: value.into(),
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">JsBigInt</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <span class="ident">u8</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">inner</span>: <span class="ident">Rc::new</span>(<span class="ident">RawBigInt::from</span>(<span class="ident">value</span>)),
+<span class="kw">impl </span>From&lt;i8&gt; <span class="kw">for </span>JsBigInt {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(value: i8) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            inner: Rc::new(RawBigInt::from(value)),
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">i16</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">JsBigInt</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <span class="ident">i16</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">inner</span>: <span class="ident">Rc::new</span>(<span class="ident">RawBigInt::from</span>(<span class="ident">value</span>)),
+<span class="kw">impl </span>From&lt;u8&gt; <span class="kw">for </span>JsBigInt {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(value: u8) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            inner: Rc::new(RawBigInt::from(value)),
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">u16</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">JsBigInt</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <span class="ident">u16</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">inner</span>: <span class="ident">Rc::new</span>(<span class="ident">RawBigInt::from</span>(<span class="ident">value</span>)),
+<span class="kw">impl </span>From&lt;i16&gt; <span class="kw">for </span>JsBigInt {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(value: i16) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            inner: Rc::new(RawBigInt::from(value)),
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">JsBigInt</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <span class="ident">i32</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">inner</span>: <span class="ident">Rc::new</span>(<span class="ident">RawBigInt::from</span>(<span class="ident">value</span>)),
+<span class="kw">impl </span>From&lt;u16&gt; <span class="kw">for </span>JsBigInt {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(value: u16) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            inner: Rc::new(RawBigInt::from(value)),
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">JsBigInt</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <span class="ident">u32</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">inner</span>: <span class="ident">Rc::new</span>(<span class="ident">RawBigInt::from</span>(<span class="ident">value</span>)),
+<span class="kw">impl </span>From&lt;i32&gt; <span class="kw">for </span>JsBigInt {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(value: i32) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            inner: Rc::new(RawBigInt::from(value)),
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">i64</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">JsBigInt</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <span class="ident">i64</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">inner</span>: <span class="ident">Rc::new</span>(<span class="ident">RawBigInt::from</span>(<span class="ident">value</span>)),
+<span class="kw">impl </span>From&lt;u32&gt; <span class="kw">for </span>JsBigInt {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(value: u32) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            inner: Rc::new(RawBigInt::from(value)),
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">JsBigInt</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <span class="ident">u64</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">inner</span>: <span class="ident">Rc::new</span>(<span class="ident">RawBigInt::from</span>(<span class="ident">value</span>)),
+<span class="kw">impl </span>From&lt;i64&gt; <span class="kw">for </span>JsBigInt {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(value: i64) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            inner: Rc::new(RawBigInt::from(value)),
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">isize</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">JsBigInt</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <span class="ident">isize</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">inner</span>: <span class="ident">Rc::new</span>(<span class="ident">RawBigInt::from</span>(<span class="ident">value</span>)),
+<span class="kw">impl </span>From&lt;u64&gt; <span class="kw">for </span>JsBigInt {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(value: u64) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            inner: Rc::new(RawBigInt::from(value)),
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">JsBigInt</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <span class="ident">usize</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">inner</span>: <span class="ident">Rc::new</span>(<span class="ident">RawBigInt::from</span>(<span class="ident">value</span>)),
+<span class="kw">impl </span>From&lt;isize&gt; <span class="kw">for </span>JsBigInt {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(value: isize) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            inner: Rc::new(RawBigInt::from(value)),
         }
     }
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Hash</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Ord</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">TryFromF64Error</span>;
-
-<span class="kw">impl</span> <span class="ident">Display</span> <span class="kw">for</span> <span class="ident">TryFromF64Error</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">std::fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">std::fmt::Result</span> {
-        <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;Could not convert f64 value to a BigInt type&quot;</span>)
-    }
-}
-
-<span class="kw">impl</span> <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">JsBigInt</span> {
-    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">TryFromF64Error</span>;
-
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">try_from</span>(<span class="ident">n</span>: <span class="ident">f64</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
-        <span class="comment">// If the truncated version of the number is not the</span>
-        <span class="comment">// same as the non-truncated version then the floating-point</span>
-        <span class="comment">// number conains a fractional part.</span>
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">Number::equal</span>(<span class="ident">n</span>.<span class="ident">trunc</span>(), <span class="ident">n</span>) {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">TryFromF64Error</span>);
-        }
-        <span class="kw">match</span> <span class="ident">RawBigInt::from_f64</span>(<span class="ident">n</span>) {
-            <span class="prelude-val">Some</span>(<span class="ident">bigint</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">bigint</span>)),
-            <span class="prelude-val">None</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">TryFromF64Error</span>),
+<span class="kw">impl </span>From&lt;usize&gt; <span class="kw">for </span>JsBigInt {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(value: usize) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            inner: Rc::new(RawBigInt::from(value)),
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">PartialEq</span><span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">JsBigInt</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="ident">i32</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">as_ref</span>() <span class="op">==</span> <span class="kw-2">&amp;</span><span class="ident">RawBigInt::from</span>(<span class="kw-2">*</span><span class="ident">other</span>)
+<span class="attribute">#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq, PartialOrd, Ord)]
+</span><span class="kw">pub struct </span>TryFromF64Error;
+
+<span class="kw">impl </span>Display <span class="kw">for </span>TryFromF64Error {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
+        <span class="macro">write!</span>(f, <span class="string">&quot;Could not convert f64 value to a BigInt type&quot;</span>)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">PartialEq</span><span class="op">&lt;</span><span class="ident">JsBigInt</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">i32</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="ident">JsBigInt</span>) -&gt; <span class="ident">bool</span> {
-        <span class="kw-2">&amp;</span><span class="ident">RawBigInt::from</span>(<span class="kw-2">*</span><span class="self">self</span>) <span class="op">==</span> <span class="ident">other</span>.<span class="ident">inner</span>.<span class="ident">as_ref</span>()
+<span class="kw">impl </span>TryFrom&lt;f64&gt; <span class="kw">for </span>JsBigInt {
+    <span class="kw">type </span>Error = TryFromF64Error;
+
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>try_from(n: f64) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <span class="self">Self</span>::Error&gt; {
+        <span class="comment">// If the truncated version of the number is not the
+        // same as the non-truncated version then the floating-point
+        // number conains a fractional part.
+        </span><span class="kw">if </span>!Number::equal(n.trunc(), n) {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(TryFromF64Error);
+        }
+        <span class="kw">match </span>RawBigInt::from_f64(n) {
+            <span class="prelude-val">Some</span>(bigint) =&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::new(bigint)),
+            <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Err</span>(TryFromF64Error),
+        }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">PartialEq</span><span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">JsBigInt</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="ident">f64</span>) -&gt; <span class="ident">bool</span> {
-        <span class="kw">if</span> <span class="ident">other</span>.<span class="ident">fract</span>() <span class="op">!</span><span class="op">=</span> <span class="number">0.0</span> {
-            <span class="kw">return</span> <span class="bool-val">false</span>;
+<span class="kw">impl </span>PartialEq&lt;i32&gt; <span class="kw">for </span>JsBigInt {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>i32) -&gt; bool {
+        <span class="self">self</span>.inner.as_ref() == <span class="kw-2">&amp;</span>RawBigInt::from(<span class="kw-2">*</span>other)
+    }
+}
+
+<span class="kw">impl </span>PartialEq&lt;JsBigInt&gt; <span class="kw">for </span>i32 {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>JsBigInt) -&gt; bool {
+        <span class="kw-2">&amp;</span>RawBigInt::from(<span class="kw-2">*</span><span class="self">self</span>) == other.inner.as_ref()
+    }
+}
+
+<span class="kw">impl </span>PartialEq&lt;f64&gt; <span class="kw">for </span>JsBigInt {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>f64) -&gt; bool {
+        <span class="kw">if </span>other.fract() != <span class="number">0.0 </span>{
+            <span class="kw">return </span><span class="bool-val">false</span>;
         }
 
-        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">as_ref</span>() <span class="op">==</span> <span class="kw-2">&amp;</span><span class="ident">RawBigInt::from</span>(<span class="kw-2">*</span><span class="ident">other</span> <span class="kw">as</span> <span class="ident">i64</span>)
+        <span class="self">self</span>.inner.as_ref() == <span class="kw-2">&amp;</span>RawBigInt::from(<span class="kw-2">*</span>other <span class="kw">as </span>i64)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">PartialEq</span><span class="op">&lt;</span><span class="ident">JsBigInt</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">f64</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="ident">JsBigInt</span>) -&gt; <span class="ident">bool</span> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">fract</span>() <span class="op">!</span><span class="op">=</span> <span class="number">0.0</span> {
-            <span class="kw">return</span> <span class="bool-val">false</span>;
+<span class="kw">impl </span>PartialEq&lt;JsBigInt&gt; <span class="kw">for </span>f64 {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>JsBigInt) -&gt; bool {
+        <span class="kw">if </span><span class="self">self</span>.fract() != <span class="number">0.0 </span>{
+            <span class="kw">return </span><span class="bool-val">false</span>;
         }
 
-        <span class="kw-2">&amp;</span><span class="ident">RawBigInt::from</span>(<span class="kw-2">*</span><span class="self">self</span> <span class="kw">as</span> <span class="ident">i64</span>) <span class="op">==</span> <span class="ident">other</span>.<span class="ident">inner</span>.<span class="ident">as_ref</span>()
+        <span class="kw-2">&amp;</span>RawBigInt::from(<span class="kw-2">*</span><span class="self">self </span><span class="kw">as </span>i64) == other.inner.as_ref()
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0 (a55dd71d5 2022-09-19)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0 (897e37553 2022-11-02)" ></div></body></html>

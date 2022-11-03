@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_engine/src/builtins/bigint/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_engine/src/builtins/bigint/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container">
                     <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../boa_engine/index.html">
                         <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -290,295 +290,295 @@
 <span id="288">288</span>
 <span id="289">289</span>
 <span id="290">290</span>
-</pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `BigInt` object.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! `BigInt` is a built-in object that provides a way to represent whole numbers larger</span>
-<span class="doccomment">//! than the largest number JavaScript can reliably represent with the Number primitive</span>
-<span class="doccomment">//! and represented by the `Number.MAX_SAFE_INTEGER` constant.</span>
-<span class="doccomment">//! `BigInt` can be used for arbitrarily large integers.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! More information:</span>
-<span class="doccomment">//!  - [ECMAScript reference][spec]</span>
-<span class="doccomment">//!  - [MDN documentation][mdn]</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! [spec]: https://tc39.es/ecma262/#sec-bigint-objects</span>
-<span class="doccomment">//! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt</span>
+</pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `BigInt` object.
+//!
+//! `BigInt` is a built-in object that provides a way to represent whole numbers larger
+//! than the largest number JavaScript can reliably represent with the Number primitive
+//! and represented by the `Number.MAX_SAFE_INTEGER` constant.
+//! `BigInt` can be used for arbitrarily large integers.
+//!
+//! More information:
+//!  - [ECMAScript reference][spec]
+//!  - [MDN documentation][mdn]
+//!
+//! [spec]: https://tc39.es/ecma262/#sec-bigint-objects
+//! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt
 
-<span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">builtins</span>::{<span class="ident">BuiltIn</span>, <span class="ident">JsArgs</span>},
-    <span class="ident">error::JsNativeError</span>,
-    <span class="ident">object::ConstructorBuilder</span>,
-    <span class="ident">property::Attribute</span>,
-    <span class="ident">symbol::WellKnownSymbols</span>,
-    <span class="ident">value</span>::{<span class="ident">IntegerOrInfinity</span>, <span class="ident">PreferredType</span>},
-    <span class="ident">Context</span>, <span class="ident">JsBigInt</span>, <span class="ident">JsResult</span>, <span class="ident">JsValue</span>,
+</span><span class="kw">use crate</span>::{
+    builtins::{BuiltIn, JsArgs},
+    error::JsNativeError,
+    object::ConstructorBuilder,
+    property::Attribute,
+    symbol::WellKnownSymbols,
+    value::{IntegerOrInfinity, PreferredType},
+    Context, JsBigInt, JsResult, JsValue,
 };
-<span class="kw">use</span> <span class="ident">boa_profiler::Profiler</span>;
-<span class="kw">use</span> <span class="ident">num_bigint::ToBigInt</span>;
-<span class="kw">use</span> <span class="ident">tap</span>::{<span class="ident">Conv</span>, <span class="ident">Pipe</span>};
+<span class="kw">use </span>boa_profiler::Profiler;
+<span class="kw">use </span>num_bigint::ToBigInt;
+<span class="kw">use </span>tap::{Conv, Pipe};
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span>;
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>tests;
 
-<span class="doccomment">/// `BigInt` implementation.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">BigInt</span>;
+<span class="doccomment">/// `BigInt` implementation.
+</span><span class="attribute">#[derive(Debug, Clone, Copy)]
+</span><span class="kw">pub struct </span>BigInt;
 
-<span class="kw">impl</span> <span class="ident">BuiltIn</span> <span class="kw">for</span> <span class="ident">BigInt</span> {
-    <span class="kw">const</span> <span class="ident">NAME</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;BigInt&quot;</span>;
+<span class="kw">impl </span>BuiltIn <span class="kw">for </span>BigInt {
+    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;BigInt&quot;</span>;
 
-    <span class="kw">fn</span> <span class="ident">init</span>(<span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="ident"><span class="self">Self</span>::NAME</span>, <span class="string">&quot;init&quot;</span>);
+    <span class="kw">fn </span>init(context: <span class="kw-2">&amp;mut </span>Context) -&gt; <span class="prelude-ty">Option</span>&lt;JsValue&gt; {
+        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="self">Self</span>::NAME, <span class="string">&quot;init&quot;</span>);
 
-        <span class="kw">let</span> <span class="ident">to_string_tag</span> <span class="op">=</span> <span class="ident">WellKnownSymbols::to_string_tag</span>();
+        <span class="kw">let </span>to_string_tag = WellKnownSymbols::to_string_tag();
 
-        <span class="ident">ConstructorBuilder::with_standard_constructor</span>(
-            <span class="ident">context</span>,
-            <span class="ident"><span class="self">Self</span>::constructor</span>,
-            <span class="ident">context</span>.<span class="ident">intrinsics</span>().<span class="ident">constructors</span>().<span class="ident">bigint_object</span>().<span class="ident">clone</span>(),
+        ConstructorBuilder::with_standard_constructor(
+            context,
+            <span class="self">Self</span>::constructor,
+            context.intrinsics().constructors().bigint_object().clone(),
         )
-        .<span class="ident">name</span>(<span class="ident"><span class="self">Self</span>::NAME</span>)
-        .<span class="ident">length</span>(<span class="ident"><span class="self">Self</span>::LENGTH</span>)
-        .<span class="ident">callable</span>(<span class="bool-val">true</span>)
-        .<span class="ident">constructor</span>(<span class="bool-val">true</span>)
-        .<span class="ident">method</span>(<span class="ident"><span class="self">Self</span>::to_string</span>, <span class="string">&quot;toString&quot;</span>, <span class="number">0</span>)
-        .<span class="ident">method</span>(<span class="ident"><span class="self">Self</span>::value_of</span>, <span class="string">&quot;valueOf&quot;</span>, <span class="number">0</span>)
-        .<span class="ident">static_method</span>(<span class="ident"><span class="self">Self</span>::as_int_n</span>, <span class="string">&quot;asIntN&quot;</span>, <span class="number">2</span>)
-        .<span class="ident">static_method</span>(<span class="ident"><span class="self">Self</span>::as_uint_n</span>, <span class="string">&quot;asUintN&quot;</span>, <span class="number">2</span>)
-        .<span class="ident">property</span>(
-            <span class="ident">to_string_tag</span>,
-            <span class="ident"><span class="self">Self</span>::NAME</span>,
-            <span class="ident">Attribute::READONLY</span> <span class="op">|</span> <span class="ident">Attribute::NON_ENUMERABLE</span> <span class="op">|</span> <span class="ident">Attribute::CONFIGURABLE</span>,
+        .name(<span class="self">Self</span>::NAME)
+        .length(<span class="self">Self</span>::LENGTH)
+        .callable(<span class="bool-val">true</span>)
+        .constructor(<span class="bool-val">true</span>)
+        .method(<span class="self">Self</span>::to_string, <span class="string">&quot;toString&quot;</span>, <span class="number">0</span>)
+        .method(<span class="self">Self</span>::value_of, <span class="string">&quot;valueOf&quot;</span>, <span class="number">0</span>)
+        .static_method(<span class="self">Self</span>::as_int_n, <span class="string">&quot;asIntN&quot;</span>, <span class="number">2</span>)
+        .static_method(<span class="self">Self</span>::as_uint_n, <span class="string">&quot;asUintN&quot;</span>, <span class="number">2</span>)
+        .property(
+            to_string_tag,
+            <span class="self">Self</span>::NAME,
+            Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
         )
-        .<span class="ident">build</span>()
-        .<span class="ident">conv</span>::<span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span>()
-        .<span class="ident">pipe</span>(<span class="prelude-val">Some</span>)
+        .build()
+        .conv::&lt;JsValue&gt;()
+        .pipe(<span class="prelude-val">Some</span>)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">BigInt</span> {
-    <span class="doccomment">/// The amount of arguments this function object takes.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const</span> <span class="ident">LENGTH</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">1</span>;
+<span class="kw">impl </span>BigInt {
+    <span class="doccomment">/// The amount of arguments this function object takes.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>LENGTH: usize = <span class="number">1</span>;
 
-    <span class="doccomment">/// `BigInt()`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The `BigInt()` constructor is used to create `BigInt` objects.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-bigint-objects</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt/BigInt</span>
-    <span class="kw">fn</span> <span class="ident">constructor</span>(
-        <span class="ident">new_target</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
-        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="comment">// 1. If NewTarget is not undefined, throw a TypeError exception.</span>
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">new_target</span>.<span class="ident">is_undefined</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
-                .<span class="ident">with_message</span>(<span class="string">&quot;BigInt is not a constructor&quot;</span>)
-                .<span class="ident">into</span>());
+    <span class="doccomment">/// `BigInt()`
+    ///
+    /// The `BigInt()` constructor is used to create `BigInt` objects.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-bigint-objects
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt/BigInt
+    </span><span class="kw">fn </span>constructor(
+        new_target: <span class="kw-2">&amp;</span>JsValue,
+        args: <span class="kw-2">&amp;</span>[JsValue],
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="comment">// 1. If NewTarget is not undefined, throw a TypeError exception.
+        </span><span class="kw">if </span>!new_target.is_undefined() {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
+                .with_message(<span class="string">&quot;BigInt is not a constructor&quot;</span>)
+                .into());
         }
 
-        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>);
+        <span class="kw">let </span>value = args.get_or_undefined(<span class="number">0</span>);
 
-        <span class="comment">// 2. Let prim be ? ToPrimitive(value, number).</span>
-        <span class="kw">let</span> <span class="ident">prim</span> <span class="op">=</span> <span class="ident">value</span>.<span class="ident">to_primitive</span>(<span class="ident">context</span>, <span class="ident">PreferredType::Number</span>)<span class="question-mark">?</span>;
+        <span class="comment">// 2. Let prim be ? ToPrimitive(value, number).
+        </span><span class="kw">let </span>prim = value.to_primitive(context, PreferredType::Number)<span class="question-mark">?</span>;
 
-        <span class="comment">// 3. If Type(prim) is Number, return ? NumberToBigInt(prim).</span>
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">number</span>) <span class="op">=</span> <span class="ident">prim</span>.<span class="ident">as_number</span>() {
-            <span class="kw">return</span> <span class="ident"><span class="self">Self</span>::number_to_bigint</span>(<span class="ident">number</span>);
+        <span class="comment">// 3. If Type(prim) is Number, return ? NumberToBigInt(prim).
+        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(number) = prim.as_number() {
+            <span class="kw">return </span><span class="self">Self</span>::number_to_bigint(number);
         }
 
-        <span class="comment">// 4. Otherwise, return ? ToBigInt(value).</span>
-        <span class="prelude-val">Ok</span>(<span class="ident">value</span>.<span class="ident">to_bigint</span>(<span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">into</span>())
+        <span class="comment">// 4. Otherwise, return ? ToBigInt(value).
+        </span><span class="prelude-val">Ok</span>(value.to_bigint(context)<span class="question-mark">?</span>.into())
     }
 
-    <span class="doccomment">/// `NumberToBigInt ( number )`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-numbertobigint</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">number_to_bigint</span>(<span class="ident">number</span>: <span class="ident">f64</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="comment">// 1. If IsIntegralNumber(number) is false, throw a RangeError exception.</span>
-        <span class="kw">if</span> <span class="ident">number</span>.<span class="ident">is_nan</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">number</span>.<span class="ident">is_infinite</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">number</span>.<span class="ident">fract</span>() <span class="op">!</span><span class="op">=</span> <span class="number">0.0</span> {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::range</span>()
-                .<span class="ident">with_message</span>(<span class="macro">format!</span>(<span class="string">&quot;Cannot convert {number} to BigInt&quot;</span>))
-                .<span class="ident">into</span>());
+    <span class="doccomment">/// `NumberToBigInt ( number )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-numbertobigint
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">fn </span>number_to_bigint(number: f64) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="comment">// 1. If IsIntegralNumber(number) is false, throw a RangeError exception.
+        </span><span class="kw">if </span>number.is_nan() || number.is_infinite() || number.fract() != <span class="number">0.0 </span>{
+            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::range()
+                .with_message(<span class="macro">format!</span>(<span class="string">&quot;Cannot convert {number} to BigInt&quot;</span>))
+                .into());
         }
 
-        <span class="comment">// 2. Return the BigInt value that represents ℝ(number).</span>
-        <span class="prelude-val">Ok</span>(<span class="ident">JsBigInt::from</span>(<span class="ident">number</span>.<span class="ident">to_bigint</span>().<span class="ident">expect</span>(<span class="string">&quot;This conversion must be safe&quot;</span>)).<span class="ident">into</span>())
+        <span class="comment">// 2. Return the BigInt value that represents ℝ(number).
+        </span><span class="prelude-val">Ok</span>(JsBigInt::from(number.to_bigint().expect(<span class="string">&quot;This conversion must be safe&quot;</span>)).into())
     }
 
-    <span class="doccomment">/// The abstract operation `thisBigIntValue` takes argument value.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The phrase “this `BigInt` value” within the specification of a method refers to the</span>
-    <span class="doccomment">/// result returned by calling the abstract operation `thisBigIntValue` with the `this` value</span>
-    <span class="doccomment">/// of the method invocation passed as the argument.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-thisbigintvalue</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">this_bigint_value</span>(<span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsBigInt</span><span class="op">&gt;</span> {
-        <span class="ident">value</span>
-            <span class="comment">// 1. If Type(value) is BigInt, return value.</span>
-            .<span class="ident">as_bigint</span>()
-            .<span class="ident">cloned</span>()
-            <span class="comment">// 2. If Type(value) is Object and value has a [[BigIntData]] internal slot, then</span>
-            <span class="comment">//    a. Assert: Type(value.[[BigIntData]]) is BigInt.</span>
-            <span class="comment">//    b. Return value.[[BigIntData]].</span>
-            .<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> {
-                <span class="ident">value</span>
-                    .<span class="ident">as_object</span>()
-                    .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">obj</span><span class="op">|</span> <span class="ident">obj</span>.<span class="ident">borrow</span>().<span class="ident">as_bigint</span>().<span class="ident">cloned</span>())
+    <span class="doccomment">/// The abstract operation `thisBigIntValue` takes argument value.
+    ///
+    /// The phrase “this `BigInt` value” within the specification of a method refers to the
+    /// result returned by calling the abstract operation `thisBigIntValue` with the `this` value
+    /// of the method invocation passed as the argument.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-thisbigintvalue
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">fn </span>this_bigint_value(value: <span class="kw-2">&amp;</span>JsValue) -&gt; JsResult&lt;JsBigInt&gt; {
+        value
+            <span class="comment">// 1. If Type(value) is BigInt, return value.
+            </span>.as_bigint()
+            .cloned()
+            <span class="comment">// 2. If Type(value) is Object and value has a [[BigIntData]] internal slot, then
+            //    a. Assert: Type(value.[[BigIntData]]) is BigInt.
+            //    b. Return value.[[BigIntData]].
+            </span>.or_else(|| {
+                value
+                    .as_object()
+                    .and_then(|obj| obj.borrow().as_bigint().cloned())
             })
-            <span class="comment">// 3. Throw a TypeError exception.</span>
-            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-                <span class="ident">JsNativeError::typ</span>()
-                    .<span class="ident">with_message</span>(<span class="string">&quot;&#39;this&#39; is not a BigInt&quot;</span>)
-                    .<span class="ident">into</span>()
+            <span class="comment">// 3. Throw a TypeError exception.
+            </span>.ok_or_else(|| {
+                JsNativeError::typ()
+                    .with_message(<span class="string">&quot;&#39;this&#39; is not a BigInt&quot;</span>)
+                    .into()
             })
     }
 
-    <span class="doccomment">/// `BigInt.prototype.toString( [radix] )`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The `toString()` method returns a string representing the specified `BigInt` object.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-bigint.prototype.tostring</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt/toString</span>
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::wrong_self_convention</span>)]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">to_string</span>(
-        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
-        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="comment">// 1. Let x be ? thisBigIntValue(this value).</span>
-        <span class="kw">let</span> <span class="ident">x</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::this_bigint_value</span>(<span class="ident">this</span>)<span class="question-mark">?</span>;
+    <span class="doccomment">/// `BigInt.prototype.toString( [radix] )`
+    ///
+    /// The `toString()` method returns a string representing the specified `BigInt` object.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-bigint.prototype.tostring
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt/toString
+    </span><span class="attribute">#[allow(clippy::wrong_self_convention)]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>to_string(
+        this: <span class="kw-2">&amp;</span>JsValue,
+        args: <span class="kw-2">&amp;</span>[JsValue],
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="comment">// 1. Let x be ? thisBigIntValue(this value).
+        </span><span class="kw">let </span>x = <span class="self">Self</span>::this_bigint_value(this)<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="ident">radix</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>);
+        <span class="kw">let </span>radix = args.get_or_undefined(<span class="number">0</span>);
 
-        <span class="comment">// 2. If radix is undefined, let radixMV be 10.</span>
-        <span class="kw">let</span> <span class="ident">radix_mv</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">radix</span>.<span class="ident">is_undefined</span>() {
-            <span class="comment">// 5. If radixMV = 10, return ! ToString(x).</span>
-            <span class="comment">// Note: early return optimization.</span>
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">x</span>.<span class="ident">to_string</span>().<span class="ident">into</span>());
-        <span class="comment">// 3. Else, let radixMV be ? ToIntegerOrInfinity(radix).</span>
-        } <span class="kw">else</span> {
-            <span class="ident">radix</span>.<span class="ident">to_integer_or_infinity</span>(<span class="ident">context</span>)<span class="question-mark">?</span>
-        };
+        <span class="comment">// 2. If radix is undefined, let radixMV be 10.
+        </span><span class="kw">let </span>radix_mv = <span class="kw">if </span>radix.is_undefined() {
+            <span class="comment">// 5. If radixMV = 10, return ! ToString(x).
+            // Note: early return optimization.
+            </span><span class="kw">return </span><span class="prelude-val">Ok</span>(x.to_string().into());
+        <span class="comment">// 3. Else, let radixMV be ? ToIntegerOrInfinity(radix).
+        </span>} <span class="kw">else </span>{
+            radix.to_integer_or_infinity(context)<span class="question-mark">?
+        </span>};
 
-        <span class="comment">// 4. If radixMV &lt; 2 or radixMV &gt; 36, throw a RangeError exception.</span>
-        <span class="kw">let</span> <span class="ident">radix_mv</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">radix_mv</span> {
-            <span class="ident">IntegerOrInfinity::Integer</span>(<span class="ident">i</span>) <span class="kw">if</span> (<span class="number">2</span>..<span class="op">=</span><span class="number">36</span>).<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">i</span>) =&gt; <span class="ident">i</span>,
-            <span class="kw">_</span> =&gt; {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::range</span>()
-                    .<span class="ident">with_message</span>(<span class="string">&quot;radix must be an integer at least 2 and no greater than 36&quot;</span>)
-                    .<span class="ident">into</span>())
+        <span class="comment">// 4. If radixMV &lt; 2 or radixMV &gt; 36, throw a RangeError exception.
+        </span><span class="kw">let </span>radix_mv = <span class="kw">match </span>radix_mv {
+            IntegerOrInfinity::Integer(i) <span class="kw">if </span>(<span class="number">2</span>..=<span class="number">36</span>).contains(<span class="kw-2">&amp;</span>i) =&gt; i,
+            <span class="kw">_ </span>=&gt; {
+                <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::range()
+                    .with_message(<span class="string">&quot;radix must be an integer at least 2 and no greater than 36&quot;</span>)
+                    .into())
             }
         };
 
-        <span class="comment">// 5. If radixMV = 10, return ! ToString(x).</span>
-        <span class="kw">if</span> <span class="ident">radix_mv</span> <span class="op">==</span> <span class="number">10</span> {
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">x</span>.<span class="ident">to_string</span>().<span class="ident">into</span>());
+        <span class="comment">// 5. If radixMV = 10, return ! ToString(x).
+        </span><span class="kw">if </span>radix_mv == <span class="number">10 </span>{
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(x.to_string().into());
         }
 
-        <span class="comment">// 1. Let x be ? thisBigIntValue(this value).</span>
-        <span class="comment">// 6. Return the String representation of this Number value using the radix specified by radixMV.</span>
-        <span class="comment">//    Letters a-z are used for digits with values 10 through 35.</span>
-        <span class="comment">//    The precise algorithm is implementation-defined, however the algorithm should be a generalization of that specified in 6.1.6.2.23.</span>
-        <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="ident">x</span>.<span class="ident">to_string_radix</span>(<span class="ident">radix_mv</span> <span class="kw">as</span> <span class="ident">u32</span>)))
+        <span class="comment">// 1. Let x be ? thisBigIntValue(this value).
+        // 6. Return the String representation of this Number value using the radix specified by radixMV.
+        //    Letters a-z are used for digits with values 10 through 35.
+        //    The precise algorithm is implementation-defined, however the algorithm should be a generalization of that specified in 6.1.6.2.23.
+        </span><span class="prelude-val">Ok</span>(JsValue::new(x.to_string_radix(radix_mv <span class="kw">as </span>u32)))
     }
 
-    <span class="doccomment">/// `BigInt.prototype.valueOf()`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The `valueOf()` method returns the wrapped primitive value of a Number object.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-bigint.prototype.valueof</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt/valueOf</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">value_of</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="kw">_</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="ident"><span class="self">Self</span>::this_bigint_value</span>(<span class="ident">this</span>)<span class="question-mark">?</span>))
+    <span class="doccomment">/// `BigInt.prototype.valueOf()`
+    ///
+    /// The `valueOf()` method returns the wrapped primitive value of a Number object.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-bigint.prototype.valueof
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt/valueOf
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>value_of(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="prelude-val">Ok</span>(JsValue::new(<span class="self">Self</span>::this_bigint_value(this)<span class="question-mark">?</span>))
     }
 
-    <span class="doccomment">/// `BigInt.asIntN()`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The `BigInt.asIntN()` method wraps the value of a `BigInt` to a signed integer between `-2**(width - 1)` and `2**(width-1) - 1`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-bigint.asintn</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt/asIntN</span>
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::wrong_self_convention</span>)]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">as_int_n</span>(
-        <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
-        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> (<span class="ident">modulo</span>, <span class="ident">bits</span>) <span class="op">=</span> <span class="ident"><span class="self">Self</span>::calculate_as_uint_n</span>(<span class="ident">args</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+    <span class="doccomment">/// `BigInt.asIntN()`
+    ///
+    /// The `BigInt.asIntN()` method wraps the value of a `BigInt` to a signed integer between `-2**(width - 1)` and `2**(width-1) - 1`.
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-bigint.asintn
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt/asIntN
+    </span><span class="attribute">#[allow(clippy::wrong_self_convention)]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>as_int_n(
+        <span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue,
+        args: <span class="kw-2">&amp;</span>[JsValue],
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="kw">let </span>(modulo, bits) = <span class="self">Self</span>::calculate_as_uint_n(args, context)<span class="question-mark">?</span>;
 
-        <span class="kw">if</span> <span class="ident">bits</span> <span class="op">&gt;</span> <span class="number">0</span>
-            <span class="op">&amp;&amp;</span> <span class="ident">modulo</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">JsBigInt::pow</span>(<span class="kw-2">&amp;</span><span class="ident">JsBigInt::new</span>(<span class="number">2</span>), <span class="kw-2">&amp;</span><span class="ident">JsBigInt::new</span>(<span class="ident">i64::from</span>(<span class="ident">bits</span>) <span class="op">-</span> <span class="number">1</span>))<span class="question-mark">?</span>
-        {
-            <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="ident">JsBigInt::sub</span>(
-                <span class="kw-2">&amp;</span><span class="ident">modulo</span>,
-                <span class="kw-2">&amp;</span><span class="ident">JsBigInt::pow</span>(<span class="kw-2">&amp;</span><span class="ident">JsBigInt::new</span>(<span class="number">2</span>), <span class="kw-2">&amp;</span><span class="ident">JsBigInt::new</span>(<span class="ident">i64::from</span>(<span class="ident">bits</span>)))<span class="question-mark">?</span>,
+        <span class="kw">if </span>bits &gt; <span class="number">0
+            </span>&amp;&amp; modulo &gt;= JsBigInt::pow(<span class="kw-2">&amp;</span>JsBigInt::new(<span class="number">2</span>), <span class="kw-2">&amp;</span>JsBigInt::new(i64::from(bits) - <span class="number">1</span>))<span class="question-mark">?
+        </span>{
+            <span class="prelude-val">Ok</span>(JsValue::new(JsBigInt::sub(
+                <span class="kw-2">&amp;</span>modulo,
+                <span class="kw-2">&amp;</span>JsBigInt::pow(<span class="kw-2">&amp;</span>JsBigInt::new(<span class="number">2</span>), <span class="kw-2">&amp;</span>JsBigInt::new(i64::from(bits)))<span class="question-mark">?</span>,
             )))
-        } <span class="kw">else</span> {
-            <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="ident">modulo</span>))
+        } <span class="kw">else </span>{
+            <span class="prelude-val">Ok</span>(JsValue::new(modulo))
         }
     }
 
-    <span class="doccomment">/// `BigInt.asUintN()`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The `BigInt.asUintN()` method wraps the value of a `BigInt` to an unsigned integer between `0` and `2**(width) - 1`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-bigint.asuintn</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt/asUintN</span>
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::wrong_self_convention</span>)]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">as_uint_n</span>(
-        <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
-        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> (<span class="ident">modulo</span>, <span class="kw">_</span>) <span class="op">=</span> <span class="ident"><span class="self">Self</span>::calculate_as_uint_n</span>(<span class="ident">args</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+    <span class="doccomment">/// `BigInt.asUintN()`
+    ///
+    /// The `BigInt.asUintN()` method wraps the value of a `BigInt` to an unsigned integer between `0` and `2**(width) - 1`.
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-bigint.asuintn
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt/asUintN
+    </span><span class="attribute">#[allow(clippy::wrong_self_convention)]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>as_uint_n(
+        <span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue,
+        args: <span class="kw-2">&amp;</span>[JsValue],
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="kw">let </span>(modulo, <span class="kw">_</span>) = <span class="self">Self</span>::calculate_as_uint_n(args, context)<span class="question-mark">?</span>;
 
-        <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="ident">modulo</span>))
+        <span class="prelude-val">Ok</span>(JsValue::new(modulo))
     }
 
-    <span class="doccomment">/// Helper function to wrap the value of a `BigInt` to an unsigned integer.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function expects the same arguments as `as_uint_n` and wraps the value of a `BigInt`.</span>
-    <span class="doccomment">/// Additionally to the wrapped unsigned value it returns the converted `bits` argument, so it</span>
-    <span class="doccomment">/// can be reused from the `as_int_n` method.</span>
-    <span class="kw">fn</span> <span class="ident">calculate_as_uint_n</span>(<span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span>(<span class="ident">JsBigInt</span>, <span class="ident">u32</span>)<span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">bits_arg</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>);
-        <span class="kw">let</span> <span class="ident">bigint_arg</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">1</span>);
+    <span class="doccomment">/// Helper function to wrap the value of a `BigInt` to an unsigned integer.
+    ///
+    /// This function expects the same arguments as `as_uint_n` and wraps the value of a `BigInt`.
+    /// Additionally to the wrapped unsigned value it returns the converted `bits` argument, so it
+    /// can be reused from the `as_int_n` method.
+    </span><span class="kw">fn </span>calculate_as_uint_n(args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;(JsBigInt, u32)&gt; {
+        <span class="kw">let </span>bits_arg = args.get_or_undefined(<span class="number">0</span>);
+        <span class="kw">let </span>bigint_arg = args.get_or_undefined(<span class="number">1</span>);
 
-        <span class="kw">let</span> <span class="ident">bits</span> <span class="op">=</span> <span class="ident">bits_arg</span>.<span class="ident">to_index</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">bits</span> <span class="op">=</span> <span class="ident">u32::try_from</span>(<span class="ident">bits</span>).<span class="ident">unwrap_or</span>(<span class="ident">u32::MAX</span>);
+        <span class="kw">let </span>bits = bits_arg.to_index(context)<span class="question-mark">?</span>;
+        <span class="kw">let </span>bits = u32::try_from(bits).unwrap_or(u32::MAX);
 
-        <span class="kw">let</span> <span class="ident">bigint</span> <span class="op">=</span> <span class="ident">bigint_arg</span>.<span class="ident">to_bigint</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let </span>bigint = bigint_arg.to_bigint(context)<span class="question-mark">?</span>;
 
         <span class="prelude-val">Ok</span>((
-            <span class="ident">JsBigInt::mod_floor</span>(
-                <span class="kw-2">&amp;</span><span class="ident">bigint</span>,
-                <span class="kw-2">&amp;</span><span class="ident">JsBigInt::pow</span>(<span class="kw-2">&amp;</span><span class="ident">JsBigInt::new</span>(<span class="number">2</span>), <span class="kw-2">&amp;</span><span class="ident">JsBigInt::new</span>(<span class="ident">i64::from</span>(<span class="ident">bits</span>)))<span class="question-mark">?</span>,
+            JsBigInt::mod_floor(
+                <span class="kw-2">&amp;</span>bigint,
+                <span class="kw-2">&amp;</span>JsBigInt::pow(<span class="kw-2">&amp;</span>JsBigInt::new(<span class="number">2</span>), <span class="kw-2">&amp;</span>JsBigInt::new(i64::from(bits)))<span class="question-mark">?</span>,
             ),
-            <span class="ident">bits</span>,
+            bits,
         ))
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0 (a55dd71d5 2022-09-19)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0 (897e37553 2022-11-02)" ></div></body></html>

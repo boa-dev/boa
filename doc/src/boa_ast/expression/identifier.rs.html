@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_ast/src/expression/identifier.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>identifier.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../boa_ast/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../boa_ast/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../boa_ast/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_ast/src/expression/identifier.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>identifier.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../boa_ast/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../boa_ast/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../boa_ast/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -119,126 +119,126 @@
 <span id="119">119</span>
 <span id="120">120</span>
 <span id="121">121</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Local identifier Expression.</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Local identifier Expression.
 
-<span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">visitor</span>::{<span class="ident">VisitWith</span>, <span class="ident">Visitor</span>, <span class="ident">VisitorMut</span>},
-    <span class="ident">ToStringEscaped</span>,
+</span><span class="kw">use crate</span>::{
+    visitor::{VisitWith, Visitor, VisitorMut},
+    ToStringEscaped,
 };
-<span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">Sym</span>, <span class="ident">ToInternedString</span>};
-<span class="kw">use</span> <span class="ident">core::ops::ControlFlow</span>;
+<span class="kw">use </span>boa_interner::{Interner, Sym, ToInternedString};
+<span class="kw">use </span>core::ops::ControlFlow;
 
-<span class="kw">use</span> <span class="ident"><span class="kw">super</span>::Expression</span>;
+<span class="kw">use </span><span class="kw">super</span>::Expression;
 
-<span class="doccomment">/// List of reserved keywords exclusive to strict mode.</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">RESERVED_IDENTIFIERS_STRICT</span>: [<span class="ident">Sym</span>; <span class="number">9</span>] <span class="op">=</span> [
-    <span class="ident">Sym::IMPLEMENTS</span>,
-    <span class="ident">Sym::INTERFACE</span>,
-    <span class="ident">Sym::LET</span>,
-    <span class="ident">Sym::PACKAGE</span>,
-    <span class="ident">Sym::PRIVATE</span>,
-    <span class="ident">Sym::PROTECTED</span>,
-    <span class="ident">Sym::PUBLIC</span>,
-    <span class="ident">Sym::STATIC</span>,
-    <span class="ident">Sym::YIELD</span>,
+<span class="doccomment">/// List of reserved keywords exclusive to strict mode.
+</span><span class="kw">pub const </span>RESERVED_IDENTIFIERS_STRICT: [Sym; <span class="number">9</span>] = [
+    Sym::IMPLEMENTS,
+    Sym::INTERFACE,
+    Sym::LET,
+    Sym::PACKAGE,
+    Sym::PRIVATE,
+    Sym::PROTECTED,
+    Sym::PUBLIC,
+    Sym::STATIC,
+    Sym::YIELD,
 ];
 
-<span class="doccomment">/// An `identifier` is a sequence of characters in the code that identifies a variable,</span>
-<span class="doccomment">/// function, or property.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// In JavaScript, identifiers are case-sensitive and can contain Unicode letters, $, _, and</span>
-<span class="doccomment">/// digits (0-9), but may not start with a digit.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// An identifier differs from a string in that a string is data, while an identifier is part</span>
-<span class="doccomment">/// of the code. In JavaScript, there is no way to convert identifiers to strings, but</span>
-<span class="doccomment">/// sometimes it is possible to parse strings into identifiers.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [ECMAScript reference][spec]</span>
-<span class="doccomment">///  - [MDN documentation][mdn]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-Identifier</span>
-<span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Glossary/Identifier</span>
-<span class="attribute">#[<span class="ident">cfg_attr</span>(
-    <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>,
-    <span class="ident">derive</span>(<span class="ident">serde::Serialize</span>, <span class="ident">serde::Deserialize</span>),
-    <span class="ident">serde</span>(<span class="ident">transparent</span>)
-)]</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>)]</span>
-<span class="attribute">#[<span class="ident">repr</span>(<span class="ident">transparent</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Identifier</span> {
-    <span class="ident">ident</span>: <span class="ident">Sym</span>,
+<span class="doccomment">/// An `identifier` is a sequence of characters in the code that identifies a variable,
+/// function, or property.
+///
+/// In JavaScript, identifiers are case-sensitive and can contain Unicode letters, $, _, and
+/// digits (0-9), but may not start with a digit.
+///
+/// An identifier differs from a string in that a string is data, while an identifier is part
+/// of the code. In JavaScript, there is no way to convert identifiers to strings, but
+/// sometimes it is possible to parse strings into identifiers.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///  - [MDN documentation][mdn]
+///
+/// [spec]: https://tc39.es/ecma262/#prod-Identifier
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Glossary/Identifier
+</span><span class="attribute">#[cfg_attr(
+    feature = <span class="string">&quot;serde&quot;</span>,
+    derive(serde::Serialize, serde::Deserialize),
+    serde(transparent)
+)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[repr(transparent)]
+</span><span class="kw">pub struct </span>Identifier {
+    ident: Sym,
 }
 
-<span class="kw">impl</span> <span class="ident">PartialEq</span><span class="op">&lt;</span><span class="ident">Sym</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Identifier</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="ident">Sym</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">ident</span> <span class="op">==</span> <span class="kw-2">*</span><span class="ident">other</span>
+<span class="kw">impl </span>PartialEq&lt;Sym&gt; <span class="kw">for </span>Identifier {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>Sym) -&gt; bool {
+        <span class="self">self</span>.ident == <span class="kw-2">*</span>other
     }
 }
 
-<span class="kw">impl</span> <span class="ident">PartialEq</span><span class="op">&lt;</span><span class="ident">Identifier</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Sym</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="ident">Identifier</span>) -&gt; <span class="ident">bool</span> {
-        <span class="kw-2">*</span><span class="self">self</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">ident</span>
+<span class="kw">impl </span>PartialEq&lt;Identifier&gt; <span class="kw">for </span>Sym {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>Identifier) -&gt; bool {
+        <span class="kw-2">*</span><span class="self">self </span>== other.ident
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Identifier</span> {
-    <span class="doccomment">/// Creates a new identifier AST Expression.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">ident</span>: <span class="ident">Sym</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> { <span class="ident">ident</span> }
+<span class="kw">impl </span>Identifier {
+    <span class="doccomment">/// Creates a new identifier AST Expression.
+    </span><span class="attribute">#[inline]
+    #[must_use]
+    </span><span class="kw">pub fn </span>new(ident: Sym) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{ ident }
     }
 
-    <span class="doccomment">/// Retrieves the identifier&#39;s string symbol in the interner.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sym</span>(<span class="self">self</span>) -&gt; <span class="ident">Sym</span> {
-        <span class="self">self</span>.<span class="ident">ident</span>
+    <span class="doccomment">/// Retrieves the identifier&#39;s string symbol in the interner.
+    </span><span class="attribute">#[inline]
+    #[must_use]
+    </span><span class="kw">pub fn </span>sym(<span class="self">self</span>) -&gt; Sym {
+        <span class="self">self</span>.ident
     }
 }
 
-<span class="kw">impl</span> <span class="ident">ToInternedString</span> <span class="kw">for</span> <span class="ident">Identifier</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">to_interned_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;</span><span class="ident">Interner</span>) -&gt; <span class="ident">String</span> {
-        <span class="ident">interner</span>.<span class="ident">resolve_expect</span>(<span class="self">self</span>.<span class="ident">ident</span>).<span class="ident">join</span>(
-            <span class="ident">String::from</span>,
-            <span class="ident">ToStringEscaped::to_string_escaped</span>,
+<span class="kw">impl </span>ToInternedString <span class="kw">for </span>Identifier {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>to_interned_string(<span class="kw-2">&amp;</span><span class="self">self</span>, interner: <span class="kw-2">&amp;</span>Interner) -&gt; String {
+        interner.resolve_expect(<span class="self">self</span>.ident).join(
+            String::from,
+            ToStringEscaped::to_string_escaped,
             <span class="bool-val">true</span>,
         )
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Sym</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Identifier</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">sym</span>: <span class="ident">Sym</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> { <span class="ident">ident</span>: <span class="ident">sym</span> }
+<span class="kw">impl </span>From&lt;Sym&gt; <span class="kw">for </span>Identifier {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(sym: Sym) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{ ident: sym }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Identifier</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Expression</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">local</span>: <span class="ident">Identifier</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::Identifier</span>(<span class="ident">local</span>)
+<span class="kw">impl </span>From&lt;Identifier&gt; <span class="kw">for </span>Expression {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(local: Identifier) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::Identifier(local)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">VisitWith</span> <span class="kw">for</span> <span class="ident">Identifier</span> {
-    <span class="kw">fn</span> <span class="ident">visit_with</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">V</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>, <span class="ident">visitor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">V</span>) -&gt; <span class="ident">ControlFlow</span><span class="op">&lt;</span><span class="ident">V::BreakTy</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">V</span>: <span class="ident">Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
+<span class="kw">impl </span>VisitWith <span class="kw">for </span>Identifier {
+    <span class="kw">fn </span>visit_with&lt;<span class="lifetime">&#39;a</span>, V&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>, visitor: <span class="kw-2">&amp;mut </span>V) -&gt; ControlFlow&lt;V::BreakTy&gt;
+    <span class="kw">where
+        </span>V: Visitor&lt;<span class="lifetime">&#39;a</span>&gt;,
     {
-        <span class="ident">visitor</span>.<span class="ident">visit_sym</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">ident</span>)
+        visitor.visit_sym(<span class="kw-2">&amp;</span><span class="self">self</span>.ident)
     }
 
-    <span class="kw">fn</span> <span class="ident">visit_with_mut</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">V</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">visitor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">V</span>) -&gt; <span class="ident">ControlFlow</span><span class="op">&lt;</span><span class="ident">V::BreakTy</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">V</span>: <span class="ident">VisitorMut</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
+    <span class="kw">fn </span>visit_with_mut&lt;<span class="lifetime">&#39;a</span>, V&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="self">self</span>, visitor: <span class="kw-2">&amp;mut </span>V) -&gt; ControlFlow&lt;V::BreakTy&gt;
+    <span class="kw">where
+        </span>V: VisitorMut&lt;<span class="lifetime">&#39;a</span>&gt;,
     {
-        <span class="ident">visitor</span>.<span class="ident">visit_sym_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">ident</span>)
+        visitor.visit_sym_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>.ident)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="boa_ast" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0 (a55dd71d5 2022-09-19)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="boa_ast" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0 (897e37553 2022-11-02)" ></div></body></html>

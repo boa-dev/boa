@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_engine/src/builtins/iterable/async_from_sync_iterator.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>async_from_sync_iterator.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_engine/src/builtins/iterable/async_from_sync_iterator.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>async_from_sync_iterator.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container">
                     <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../boa_engine/index.html">
                         <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -444,449 +444,449 @@
 <span id="442">442</span>
 <span id="443">443</span>
 <span id="444">444</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">builtins</span>::{
-        <span class="ident">iterable</span>::{<span class="ident">create_iter_result_object</span>, <span class="ident">IteratorRecord</span>, <span class="ident">IteratorResult</span>},
-        <span class="ident">promise</span>::{<span class="ident">if_abrupt_reject_promise</span>, <span class="ident">PromiseCapability</span>},
-        <span class="ident">JsArgs</span>, <span class="ident">Promise</span>,
+</pre><pre class="rust"><code><span class="kw">use crate</span>::{
+    builtins::{
+        iterable::{create_iter_result_object, IteratorRecord, IteratorResult},
+        promise::{if_abrupt_reject_promise, PromiseCapability},
+        JsArgs, Promise,
     },
-    <span class="ident">object</span>::{<span class="ident">FunctionBuilder</span>, <span class="ident">JsObject</span>, <span class="ident">ObjectData</span>},
-    <span class="ident">property::PropertyDescriptor</span>,
-    <span class="ident">Context</span>, <span class="ident">JsNativeError</span>, <span class="ident">JsResult</span>, <span class="ident">JsValue</span>,
+    object::{FunctionBuilder, JsObject, ObjectData},
+    property::PropertyDescriptor,
+    Context, JsNativeError, JsResult, JsValue,
 };
-<span class="kw">use</span> <span class="ident">boa_gc</span>::{<span class="ident">Finalize</span>, <span class="ident">Trace</span>};
-<span class="kw">use</span> <span class="ident">boa_profiler::Profiler</span>;
+<span class="kw">use </span>boa_gc::{Finalize, Trace};
+<span class="kw">use </span>boa_profiler::Profiler;
 
-<span class="doccomment">/// Create the `%AsyncFromSyncIteratorPrototype%` object.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [ECMA reference][spec]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-%asyncfromsynciteratorprototype%-object</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">create_async_from_sync_iterator_prototype</span>(<span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsObject</span> {
-    <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;AsyncFromSyncIteratorPrototype&quot;</span>, <span class="string">&quot;init&quot;</span>);
+<span class="doccomment">/// Create the `%AsyncFromSyncIteratorPrototype%` object.
+///
+/// More information:
+///  - [ECMA reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-%asyncfromsynciteratorprototype%-object
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>create_async_from_sync_iterator_prototype(context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsObject {
+    <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;AsyncFromSyncIteratorPrototype&quot;</span>, <span class="string">&quot;init&quot;</span>);
 
-    <span class="kw">let</span> <span class="ident">prototype</span> <span class="op">=</span> <span class="ident">JsObject::from_proto_and_data</span>(
-        <span class="ident">context</span>
-            .<span class="ident">intrinsics</span>()
-            .<span class="ident">objects</span>()
-            .<span class="ident">iterator_prototypes</span>()
-            .<span class="ident">async_iterator_prototype</span>(),
-        <span class="ident">ObjectData::ordinary</span>(),
+    <span class="kw">let </span>prototype = JsObject::from_proto_and_data(
+        context
+            .intrinsics()
+            .objects()
+            .iterator_prototypes()
+            .async_iterator_prototype(),
+        ObjectData::ordinary(),
     );
 
-    <span class="kw">let</span> <span class="ident">next_function</span> <span class="op">=</span> <span class="ident">FunctionBuilder::native</span>(<span class="ident">context</span>, <span class="ident">AsyncFromSyncIterator::next</span>)
-        .<span class="ident">name</span>(<span class="string">&quot;next&quot;</span>)
-        .<span class="ident">length</span>(<span class="number">1</span>)
-        .<span class="ident">build</span>();
-    <span class="kw">let</span> <span class="ident">return_function</span> <span class="op">=</span> <span class="ident">FunctionBuilder::native</span>(<span class="ident">context</span>, <span class="ident">AsyncFromSyncIterator</span>::<span class="ident">r#return</span>)
-        .<span class="ident">name</span>(<span class="string">&quot;return&quot;</span>)
-        .<span class="ident">length</span>(<span class="number">1</span>)
-        .<span class="ident">build</span>();
-    <span class="kw">let</span> <span class="ident">throw_function</span> <span class="op">=</span> <span class="ident">FunctionBuilder::native</span>(<span class="ident">context</span>, <span class="ident">AsyncFromSyncIterator::throw</span>)
-        .<span class="ident">name</span>(<span class="string">&quot;throw&quot;</span>)
-        .<span class="ident">length</span>(<span class="number">1</span>)
-        .<span class="ident">build</span>();
+    <span class="kw">let </span>next_function = FunctionBuilder::native(context, AsyncFromSyncIterator::next)
+        .name(<span class="string">&quot;next&quot;</span>)
+        .length(<span class="number">1</span>)
+        .build();
+    <span class="kw">let </span>return_function = FunctionBuilder::native(context, AsyncFromSyncIterator::r#return)
+        .name(<span class="string">&quot;return&quot;</span>)
+        .length(<span class="number">1</span>)
+        .build();
+    <span class="kw">let </span>throw_function = FunctionBuilder::native(context, AsyncFromSyncIterator::throw)
+        .name(<span class="string">&quot;throw&quot;</span>)
+        .length(<span class="number">1</span>)
+        .build();
 
     {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">prototype_mut</span> <span class="op">=</span> <span class="ident">prototype</span>.<span class="ident">borrow_mut</span>();
+        <span class="kw">let </span><span class="kw-2">mut </span>prototype_mut = prototype.borrow_mut();
 
-        <span class="ident">prototype_mut</span>.<span class="ident">insert</span>(
+        prototype_mut.insert(
             <span class="string">&quot;next&quot;</span>,
-            <span class="ident">PropertyDescriptor::builder</span>()
-                .<span class="ident">value</span>(<span class="ident">next_function</span>)
-                .<span class="ident">writable</span>(<span class="bool-val">true</span>)
-                .<span class="ident">enumerable</span>(<span class="bool-val">false</span>)
-                .<span class="ident">configurable</span>(<span class="bool-val">true</span>),
+            PropertyDescriptor::builder()
+                .value(next_function)
+                .writable(<span class="bool-val">true</span>)
+                .enumerable(<span class="bool-val">false</span>)
+                .configurable(<span class="bool-val">true</span>),
         );
-        <span class="ident">prototype_mut</span>.<span class="ident">insert</span>(
+        prototype_mut.insert(
             <span class="string">&quot;return&quot;</span>,
-            <span class="ident">PropertyDescriptor::builder</span>()
-                .<span class="ident">value</span>(<span class="ident">return_function</span>)
-                .<span class="ident">writable</span>(<span class="bool-val">true</span>)
-                .<span class="ident">enumerable</span>(<span class="bool-val">false</span>)
-                .<span class="ident">configurable</span>(<span class="bool-val">true</span>),
+            PropertyDescriptor::builder()
+                .value(return_function)
+                .writable(<span class="bool-val">true</span>)
+                .enumerable(<span class="bool-val">false</span>)
+                .configurable(<span class="bool-val">true</span>),
         );
-        <span class="ident">prototype_mut</span>.<span class="ident">insert</span>(
+        prototype_mut.insert(
             <span class="string">&quot;throw&quot;</span>,
-            <span class="ident">PropertyDescriptor::builder</span>()
-                .<span class="ident">value</span>(<span class="ident">throw_function</span>)
-                .<span class="ident">writable</span>(<span class="bool-val">true</span>)
-                .<span class="ident">enumerable</span>(<span class="bool-val">false</span>)
-                .<span class="ident">configurable</span>(<span class="bool-val">true</span>),
+            PropertyDescriptor::builder()
+                .value(throw_function)
+                .writable(<span class="bool-val">true</span>)
+                .enumerable(<span class="bool-val">false</span>)
+                .configurable(<span class="bool-val">true</span>),
         );
     }
 
-    <span class="ident">prototype</span>
+    prototype
 }
 
-<span class="doccomment">/// The internal data for `%AsyncFromSyncIterator%` objects.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [ECMA reference][spec]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-properties-of-async-from-sync-iterator-instances</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Finalize</span>, <span class="ident">Trace</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">AsyncFromSyncIterator</span> {
-    <span class="comment">// The [[SyncIteratorRecord]] internal slot.</span>
-    <span class="ident">sync_iterator_record</span>: <span class="ident">IteratorRecord</span>,
+<span class="doccomment">/// The internal data for `%AsyncFromSyncIterator%` objects.
+///
+/// More information:
+///  - [ECMA reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-properties-of-async-from-sync-iterator-instances
+</span><span class="attribute">#[derive(Clone, Debug, Finalize, Trace)]
+</span><span class="kw">pub struct </span>AsyncFromSyncIterator {
+    <span class="comment">// The [[SyncIteratorRecord]] internal slot.
+    </span>sync_iterator_record: IteratorRecord,
 }
 
-<span class="kw">impl</span> <span class="ident">AsyncFromSyncIterator</span> {
-    <span class="doccomment">/// `CreateAsyncFromSyncIterator ( syncIteratorRecord )`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMA reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-createasyncfromsynciterator</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">create</span>(
-        <span class="ident">sync_iterator_record</span>: <span class="ident">IteratorRecord</span>,
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">IteratorRecord</span> {
-        <span class="comment">// 1. Let asyncIterator be OrdinaryObjectCreate(%AsyncFromSyncIteratorPrototype%, « [[SyncIteratorRecord]] »).</span>
-        <span class="comment">// 2. Set asyncIterator.[[SyncIteratorRecord]] to syncIteratorRecord.</span>
-        <span class="kw">let</span> <span class="ident">async_iterator</span> <span class="op">=</span> <span class="ident">JsObject::from_proto_and_data</span>(
-            <span class="ident">context</span>
-                .<span class="ident">intrinsics</span>()
-                .<span class="ident">objects</span>()
-                .<span class="ident">iterator_prototypes</span>()
-                .<span class="ident">async_from_sync_iterator_prototype</span>(),
-            <span class="ident">ObjectData::async_from_sync_iterator</span>(<span class="self">Self</span> {
-                <span class="ident">sync_iterator_record</span>,
+<span class="kw">impl </span>AsyncFromSyncIterator {
+    <span class="doccomment">/// `CreateAsyncFromSyncIterator ( syncIteratorRecord )`
+    ///
+    /// More information:
+    ///  - [ECMA reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-createasyncfromsynciterator
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>create(
+        sync_iterator_record: IteratorRecord,
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; IteratorRecord {
+        <span class="comment">// 1. Let asyncIterator be OrdinaryObjectCreate(%AsyncFromSyncIteratorPrototype%, « [[SyncIteratorRecord]] »).
+        // 2. Set asyncIterator.[[SyncIteratorRecord]] to syncIteratorRecord.
+        </span><span class="kw">let </span>async_iterator = JsObject::from_proto_and_data(
+            context
+                .intrinsics()
+                .objects()
+                .iterator_prototypes()
+                .async_from_sync_iterator_prototype(),
+            ObjectData::async_from_sync_iterator(<span class="self">Self </span>{
+                sync_iterator_record,
             }),
         );
 
-        <span class="comment">// 3. Let nextMethod be ! Get(asyncIterator, &quot;next&quot;).</span>
-        <span class="kw">let</span> <span class="ident">next_method</span> <span class="op">=</span> <span class="ident">async_iterator</span>
-            .<span class="ident">get</span>(<span class="string">&quot;next&quot;</span>, <span class="ident">context</span>)
-            .<span class="ident">expect</span>(<span class="string">&quot;async from sync iterator prototype must have next method&quot;</span>);
+        <span class="comment">// 3. Let nextMethod be ! Get(asyncIterator, &quot;next&quot;).
+        </span><span class="kw">let </span>next_method = async_iterator
+            .get(<span class="string">&quot;next&quot;</span>, context)
+            .expect(<span class="string">&quot;async from sync iterator prototype must have next method&quot;</span>);
 
-        <span class="comment">// 4. Let iteratorRecord be the Iterator Record { [[Iterator]]: asyncIterator, [[NextMethod]]: nextMethod, [[Done]]: false }.</span>
-        <span class="comment">// 5. Return iteratorRecord.</span>
-        <span class="ident">IteratorRecord::new</span>(<span class="ident">async_iterator</span>, <span class="ident">next_method</span>, <span class="bool-val">false</span>)
+        <span class="comment">// 4. Let iteratorRecord be the Iterator Record { [[Iterator]]: asyncIterator, [[NextMethod]]: nextMethod, [[Done]]: false }.
+        // 5. Return iteratorRecord.
+        </span>IteratorRecord::new(async_iterator, next_method, <span class="bool-val">false</span>)
     }
 
-    <span class="doccomment">/// `%AsyncFromSyncIteratorPrototype%.next ( [ value ] )`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMA reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-%asyncfromsynciteratorprototype%.next</span>
-    <span class="kw">fn</span> <span class="ident">next</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="comment">// 1. Let O be the this value.</span>
-        <span class="comment">// 2. Assert: O is an Object that has a [[SyncIteratorRecord]] internal slot.</span>
-        <span class="comment">// 4. Let syncIteratorRecord be O.[[SyncIteratorRecord]].</span>
-        <span class="kw">let</span> <span class="ident">sync_iterator_record</span> <span class="op">=</span> <span class="ident">this</span>
-            .<span class="ident">as_object</span>()
-            .<span class="ident">expect</span>(<span class="string">&quot;async from sync iterator prototype must be object&quot;</span>)
-            .<span class="ident">borrow</span>()
-            .<span class="ident">as_async_from_sync_iterator</span>()
-            .<span class="ident">expect</span>(<span class="string">&quot;async from sync iterator prototype must be object&quot;</span>)
-            .<span class="ident">sync_iterator_record</span>
-            .<span class="ident">clone</span>();
+    <span class="doccomment">/// `%AsyncFromSyncIteratorPrototype%.next ( [ value ] )`
+    ///
+    /// More information:
+    ///  - [ECMA reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-%asyncfromsynciteratorprototype%.next
+    </span><span class="kw">fn </span>next(this: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="comment">// 1. Let O be the this value.
+        // 2. Assert: O is an Object that has a [[SyncIteratorRecord]] internal slot.
+        // 4. Let syncIteratorRecord be O.[[SyncIteratorRecord]].
+        </span><span class="kw">let </span>sync_iterator_record = this
+            .as_object()
+            .expect(<span class="string">&quot;async from sync iterator prototype must be object&quot;</span>)
+            .borrow()
+            .as_async_from_sync_iterator()
+            .expect(<span class="string">&quot;async from sync iterator prototype must be object&quot;</span>)
+            .sync_iterator_record
+            .clone();
 
-        <span class="comment">// 3. Let promiseCapability be ! NewPromiseCapability(%Promise%).</span>
-        <span class="kw">let</span> <span class="ident">promise_capability</span> <span class="op">=</span> <span class="ident">PromiseCapability::new</span>(
-            <span class="kw-2">&amp;</span><span class="ident">context</span>
-                .<span class="ident">intrinsics</span>()
-                .<span class="ident">constructors</span>()
-                .<span class="ident">promise</span>()
-                .<span class="ident">constructor</span>()
-                .<span class="ident">into</span>(),
-            <span class="ident">context</span>,
+        <span class="comment">// 3. Let promiseCapability be ! NewPromiseCapability(%Promise%).
+        </span><span class="kw">let </span>promise_capability = PromiseCapability::new(
+            <span class="kw-2">&amp;</span>context
+                .intrinsics()
+                .constructors()
+                .promise()
+                .constructor()
+                .into(),
+            context,
         )
-        .<span class="ident">expect</span>(<span class="string">&quot;cannot fail with promise constructor&quot;</span>);
+        .expect(<span class="string">&quot;cannot fail with promise constructor&quot;</span>);
 
-        <span class="comment">// 5. If value is present, then</span>
-        <span class="comment">// a. Let result be Completion(IteratorNext(syncIteratorRecord, value)).</span>
-        <span class="comment">// 6. Else,</span>
-        <span class="comment">// a. Let result be Completion(IteratorNext(syncIteratorRecord)).</span>
-        <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">sync_iterator_record</span>.<span class="ident">next</span>(<span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">cloned</span>(), <span class="ident">context</span>);
+        <span class="comment">// 5. If value is present, then
+        // a. Let result be Completion(IteratorNext(syncIteratorRecord, value)).
+        // 6. Else,
+        // a. Let result be Completion(IteratorNext(syncIteratorRecord)).
+        </span><span class="kw">let </span>result = sync_iterator_record.next(args.get(<span class="number">0</span>).cloned(), context);
 
-        <span class="comment">// 7. IfAbruptRejectPromise(result, promiseCapability).</span>
-        <span class="macro">if_abrupt_reject_promise!</span>(<span class="ident">result</span>, <span class="ident">promise_capability</span>, <span class="ident">context</span>);
+        <span class="comment">// 7. IfAbruptRejectPromise(result, promiseCapability).
+        </span><span class="macro">if_abrupt_reject_promise!</span>(result, promise_capability, context);
 
-        <span class="comment">// 8. Return AsyncFromSyncIteratorContinuation(result, promiseCapability).</span>
-        <span class="ident"><span class="self">Self</span>::continuation</span>(<span class="kw-2">&amp;</span><span class="ident">result</span>, <span class="kw-2">&amp;</span><span class="ident">promise_capability</span>, <span class="ident">context</span>)
+        <span class="comment">// 8. Return AsyncFromSyncIteratorContinuation(result, promiseCapability).
+        </span><span class="self">Self</span>::continuation(<span class="kw-2">&amp;</span>result, <span class="kw-2">&amp;</span>promise_capability, context)
     }
 
-    <span class="doccomment">/// `%AsyncFromSyncIteratorPrototype%.return ( [ value ] )`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMA reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-%asyncfromsynciteratorprototype%.return</span>
-    <span class="kw">fn</span> <span class="ident">r#return</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="comment">// 1. Let O be the this value.</span>
-        <span class="comment">// 2. Assert: O is an Object that has a [[SyncIteratorRecord]] internal slot.</span>
-        <span class="comment">// 4. Let syncIterator be O.[[SyncIteratorRecord]].[[Iterator]].</span>
-        <span class="kw">let</span> <span class="ident">sync_iterator</span> <span class="op">=</span> <span class="ident">this</span>
-            .<span class="ident">as_object</span>()
-            .<span class="ident">expect</span>(<span class="string">&quot;async from sync iterator prototype must be object&quot;</span>)
-            .<span class="ident">borrow</span>()
-            .<span class="ident">as_async_from_sync_iterator</span>()
-            .<span class="ident">expect</span>(<span class="string">&quot;async from sync iterator prototype must be object&quot;</span>)
-            .<span class="ident">sync_iterator_record</span>
-            .<span class="ident">iterator</span>()
-            .<span class="ident">clone</span>();
+    <span class="doccomment">/// `%AsyncFromSyncIteratorPrototype%.return ( [ value ] )`
+    ///
+    /// More information:
+    ///  - [ECMA reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-%asyncfromsynciteratorprototype%.return
+    </span><span class="kw">fn </span>r#return(this: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="comment">// 1. Let O be the this value.
+        // 2. Assert: O is an Object that has a [[SyncIteratorRecord]] internal slot.
+        // 4. Let syncIterator be O.[[SyncIteratorRecord]].[[Iterator]].
+        </span><span class="kw">let </span>sync_iterator = this
+            .as_object()
+            .expect(<span class="string">&quot;async from sync iterator prototype must be object&quot;</span>)
+            .borrow()
+            .as_async_from_sync_iterator()
+            .expect(<span class="string">&quot;async from sync iterator prototype must be object&quot;</span>)
+            .sync_iterator_record
+            .iterator()
+            .clone();
 
-        <span class="comment">// 3. Let promiseCapability be ! NewPromiseCapability(%Promise%).</span>
-        <span class="kw">let</span> <span class="ident">promise_capability</span> <span class="op">=</span> <span class="ident">PromiseCapability::new</span>(
-            <span class="kw-2">&amp;</span><span class="ident">context</span>
-                .<span class="ident">intrinsics</span>()
-                .<span class="ident">constructors</span>()
-                .<span class="ident">promise</span>()
-                .<span class="ident">constructor</span>()
-                .<span class="ident">into</span>(),
-            <span class="ident">context</span>,
+        <span class="comment">// 3. Let promiseCapability be ! NewPromiseCapability(%Promise%).
+        </span><span class="kw">let </span>promise_capability = PromiseCapability::new(
+            <span class="kw-2">&amp;</span>context
+                .intrinsics()
+                .constructors()
+                .promise()
+                .constructor()
+                .into(),
+            context,
         )
-        .<span class="ident">expect</span>(<span class="string">&quot;cannot fail with promise constructor&quot;</span>);
+        .expect(<span class="string">&quot;cannot fail with promise constructor&quot;</span>);
 
-        <span class="comment">// 5. Let return be Completion(GetMethod(syncIterator, &quot;return&quot;)).</span>
-        <span class="kw">let</span> <span class="ident">r#return</span> <span class="op">=</span> <span class="ident">sync_iterator</span>.<span class="ident">get_method</span>(<span class="string">&quot;return&quot;</span>, <span class="ident">context</span>);
+        <span class="comment">// 5. Let return be Completion(GetMethod(syncIterator, &quot;return&quot;)).
+        </span><span class="kw">let </span>r#return = sync_iterator.get_method(<span class="string">&quot;return&quot;</span>, context);
 
-        <span class="comment">// 6. IfAbruptRejectPromise(return, promiseCapability).</span>
-        <span class="macro">if_abrupt_reject_promise!</span>(<span class="ident">r#return</span>, <span class="ident">promise_capability</span>, <span class="ident">context</span>);
+        <span class="comment">// 6. IfAbruptRejectPromise(return, promiseCapability).
+        </span><span class="macro">if_abrupt_reject_promise!</span>(r#return, promise_capability, context);
 
-        <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="kw">match</span> (<span class="ident">r#return</span>, <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>)) {
-            <span class="comment">// 7. If return is undefined, then</span>
-            (<span class="prelude-val">None</span>, <span class="kw">_</span>) =&gt; {
-                <span class="comment">// a. Let iterResult be CreateIterResultObject(value, true).</span>
-                <span class="kw">let</span> <span class="ident">iter_result</span> <span class="op">=</span>
-                    <span class="ident">create_iter_result_object</span>(<span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>).<span class="ident">clone</span>(), <span class="bool-val">true</span>, <span class="ident">context</span>);
+        <span class="kw">let </span>result = <span class="kw">match </span>(r#return, args.get(<span class="number">0</span>)) {
+            <span class="comment">// 7. If return is undefined, then
+            </span>(<span class="prelude-val">None</span>, <span class="kw">_</span>) =&gt; {
+                <span class="comment">// a. Let iterResult be CreateIterResultObject(value, true).
+                </span><span class="kw">let </span>iter_result =
+                    create_iter_result_object(args.get_or_undefined(<span class="number">0</span>).clone(), <span class="bool-val">true</span>, context);
 
-                <span class="comment">// b. Perform ! Call(promiseCapability.[[Resolve]], undefined, « iterResult »).</span>
-                <span class="ident">promise_capability</span>
-                    .<span class="ident">resolve</span>()
-                    .<span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="ident">JsValue::Undefined</span>, <span class="kw-2">&amp;</span>[<span class="ident">iter_result</span>], <span class="ident">context</span>)
-                    .<span class="ident">expect</span>(<span class="string">&quot;cannot fail according to spec&quot;</span>);
+                <span class="comment">// b. Perform ! Call(promiseCapability.[[Resolve]], undefined, « iterResult »).
+                </span>promise_capability
+                    .resolve()
+                    .call(<span class="kw-2">&amp;</span>JsValue::Undefined, <span class="kw-2">&amp;</span>[iter_result], context)
+                    .expect(<span class="string">&quot;cannot fail according to spec&quot;</span>);
 
-                <span class="comment">// c. Return promiseCapability.[[Promise]].</span>
-                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">promise_capability</span>.<span class="ident">promise</span>().<span class="ident">clone</span>().<span class="ident">into</span>());
+                <span class="comment">// c. Return promiseCapability.[[Promise]].
+                </span><span class="kw">return </span><span class="prelude-val">Ok</span>(promise_capability.promise().clone().into());
             }
-            <span class="comment">// 8. If value is present, then</span>
-            (<span class="prelude-val">Some</span>(<span class="ident">r#return</span>), <span class="prelude-val">Some</span>(<span class="ident">value</span>)) =&gt; {
-                <span class="comment">// a. Let result be Completion(Call(return, syncIterator, « value »)).</span>
-                <span class="ident">r#return</span>.<span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="ident">sync_iterator</span>.<span class="ident">clone</span>().<span class="ident">into</span>(), <span class="kw-2">&amp;</span>[<span class="ident">value</span>.<span class="ident">clone</span>()], <span class="ident">context</span>)
+            <span class="comment">// 8. If value is present, then
+            </span>(<span class="prelude-val">Some</span>(r#return), <span class="prelude-val">Some</span>(value)) =&gt; {
+                <span class="comment">// a. Let result be Completion(Call(return, syncIterator, « value »)).
+                </span>r#return.call(<span class="kw-2">&amp;</span>sync_iterator.clone().into(), <span class="kw-2">&amp;</span>[value.clone()], context)
             }
-            <span class="comment">// 9. Else,</span>
-            (<span class="prelude-val">Some</span>(<span class="ident">r#return</span>), <span class="prelude-val">None</span>) =&gt; {
-                <span class="comment">// a. Let result be Completion(Call(return, syncIterator)).</span>
-                <span class="ident">r#return</span>.<span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="ident">sync_iterator</span>.<span class="ident">clone</span>().<span class="ident">into</span>(), <span class="kw-2">&amp;</span>[], <span class="ident">context</span>)
+            <span class="comment">// 9. Else,
+            </span>(<span class="prelude-val">Some</span>(r#return), <span class="prelude-val">None</span>) =&gt; {
+                <span class="comment">// a. Let result be Completion(Call(return, syncIterator)).
+                </span>r#return.call(<span class="kw-2">&amp;</span>sync_iterator.clone().into(), <span class="kw-2">&amp;</span>[], context)
             }
         };
 
-        <span class="comment">// 10. IfAbruptRejectPromise(result, promiseCapability).</span>
-        <span class="macro">if_abrupt_reject_promise!</span>(<span class="ident">result</span>, <span class="ident">promise_capability</span>, <span class="ident">context</span>);
+        <span class="comment">// 10. IfAbruptRejectPromise(result, promiseCapability).
+        </span><span class="macro">if_abrupt_reject_promise!</span>(result, promise_capability, context);
 
-        <span class="comment">// 11. If Type(result) is not Object, then</span>
-        <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">result</span>) <span class="op">=</span> <span class="ident">result</span>.<span class="ident">as_object</span>() {
-            <span class="ident">result</span>
-        } <span class="kw">else</span> {
-            <span class="comment">// a. Perform ! Call(promiseCapability.[[Reject]], undefined, « a newly created TypeError object »).</span>
-            <span class="ident">promise_capability</span>
-                .<span class="ident">reject</span>()
-                .<span class="ident">call</span>(
-                    <span class="kw-2">&amp;</span><span class="ident">JsValue::Undefined</span>,
-                    <span class="kw-2">&amp;</span>[<span class="ident">JsNativeError::typ</span>()
-                        .<span class="ident">with_message</span>(<span class="string">&quot;iterator return function returned non-object&quot;</span>)
-                        .<span class="ident">to_opaque</span>(<span class="ident">context</span>)
-                        .<span class="ident">into</span>()],
-                    <span class="ident">context</span>,
+        <span class="comment">// 11. If Type(result) is not Object, then
+        </span><span class="kw">let </span>result = <span class="kw">if let </span><span class="prelude-val">Some</span>(result) = result.as_object() {
+            result
+        } <span class="kw">else </span>{
+            <span class="comment">// a. Perform ! Call(promiseCapability.[[Reject]], undefined, « a newly created TypeError object »).
+            </span>promise_capability
+                .reject()
+                .call(
+                    <span class="kw-2">&amp;</span>JsValue::Undefined,
+                    <span class="kw-2">&amp;</span>[JsNativeError::typ()
+                        .with_message(<span class="string">&quot;iterator return function returned non-object&quot;</span>)
+                        .to_opaque(context)
+                        .into()],
+                    context,
                 )
-                .<span class="ident">expect</span>(<span class="string">&quot;cannot fail according to spec&quot;</span>);
+                .expect(<span class="string">&quot;cannot fail according to spec&quot;</span>);
 
-            <span class="comment">// b. Return promiseCapability.[[Promise]].</span>
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">promise_capability</span>.<span class="ident">promise</span>().<span class="ident">clone</span>().<span class="ident">into</span>());
+            <span class="comment">// b. Return promiseCapability.[[Promise]].
+            </span><span class="kw">return </span><span class="prelude-val">Ok</span>(promise_capability.promise().clone().into());
         };
 
-        <span class="comment">// 12. Return AsyncFromSyncIteratorContinuation(result, promiseCapability).</span>
-        <span class="ident"><span class="self">Self</span>::continuation</span>(
-            <span class="kw-2">&amp;</span><span class="ident">IteratorResult</span> {
-                <span class="ident">object</span>: <span class="ident">result</span>.<span class="ident">clone</span>(),
+        <span class="comment">// 12. Return AsyncFromSyncIteratorContinuation(result, promiseCapability).
+        </span><span class="self">Self</span>::continuation(
+            <span class="kw-2">&amp;</span>IteratorResult {
+                object: result.clone(),
             },
-            <span class="kw-2">&amp;</span><span class="ident">promise_capability</span>,
-            <span class="ident">context</span>,
+            <span class="kw-2">&amp;</span>promise_capability,
+            context,
         )
     }
 
-    <span class="doccomment">/// `%AsyncFromSyncIteratorPrototype%.throw ( [ value ] )`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMA reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-%asyncfromsynciteratorprototype%.throw</span>
-    <span class="kw">fn</span> <span class="ident">throw</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="comment">// 1. Let O be the this value.</span>
-        <span class="comment">// 2. Assert: O is an Object that has a [[SyncIteratorRecord]] internal slot.</span>
-        <span class="comment">// 4. Let syncIterator be O.[[SyncIteratorRecord]].[[Iterator]].</span>
-        <span class="kw">let</span> <span class="ident">sync_iterator</span> <span class="op">=</span> <span class="ident">this</span>
-            .<span class="ident">as_object</span>()
-            .<span class="ident">expect</span>(<span class="string">&quot;async from sync iterator prototype must be object&quot;</span>)
-            .<span class="ident">borrow</span>()
-            .<span class="ident">as_async_from_sync_iterator</span>()
-            .<span class="ident">expect</span>(<span class="string">&quot;async from sync iterator prototype must be object&quot;</span>)
-            .<span class="ident">sync_iterator_record</span>
-            .<span class="ident">iterator</span>()
-            .<span class="ident">clone</span>();
+    <span class="doccomment">/// `%AsyncFromSyncIteratorPrototype%.throw ( [ value ] )`
+    ///
+    /// More information:
+    ///  - [ECMA reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-%asyncfromsynciteratorprototype%.throw
+    </span><span class="kw">fn </span>throw(this: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="comment">// 1. Let O be the this value.
+        // 2. Assert: O is an Object that has a [[SyncIteratorRecord]] internal slot.
+        // 4. Let syncIterator be O.[[SyncIteratorRecord]].[[Iterator]].
+        </span><span class="kw">let </span>sync_iterator = this
+            .as_object()
+            .expect(<span class="string">&quot;async from sync iterator prototype must be object&quot;</span>)
+            .borrow()
+            .as_async_from_sync_iterator()
+            .expect(<span class="string">&quot;async from sync iterator prototype must be object&quot;</span>)
+            .sync_iterator_record
+            .iterator()
+            .clone();
 
-        <span class="comment">// 3. Let promiseCapability be ! NewPromiseCapability(%Promise%).</span>
-        <span class="kw">let</span> <span class="ident">promise_capability</span> <span class="op">=</span> <span class="ident">PromiseCapability::new</span>(
-            <span class="kw-2">&amp;</span><span class="ident">context</span>
-                .<span class="ident">intrinsics</span>()
-                .<span class="ident">constructors</span>()
-                .<span class="ident">promise</span>()
-                .<span class="ident">constructor</span>()
-                .<span class="ident">into</span>(),
-            <span class="ident">context</span>,
+        <span class="comment">// 3. Let promiseCapability be ! NewPromiseCapability(%Promise%).
+        </span><span class="kw">let </span>promise_capability = PromiseCapability::new(
+            <span class="kw-2">&amp;</span>context
+                .intrinsics()
+                .constructors()
+                .promise()
+                .constructor()
+                .into(),
+            context,
         )
-        .<span class="ident">expect</span>(<span class="string">&quot;cannot fail with promise constructor&quot;</span>);
+        .expect(<span class="string">&quot;cannot fail with promise constructor&quot;</span>);
 
-        <span class="comment">// 5. Let throw be Completion(GetMethod(syncIterator, &quot;throw&quot;)).</span>
-        <span class="kw">let</span> <span class="ident">throw</span> <span class="op">=</span> <span class="ident">sync_iterator</span>.<span class="ident">get_method</span>(<span class="string">&quot;throw&quot;</span>, <span class="ident">context</span>);
+        <span class="comment">// 5. Let throw be Completion(GetMethod(syncIterator, &quot;throw&quot;)).
+        </span><span class="kw">let </span>throw = sync_iterator.get_method(<span class="string">&quot;throw&quot;</span>, context);
 
-        <span class="comment">// 6. IfAbruptRejectPromise(throw, promiseCapability).</span>
-        <span class="macro">if_abrupt_reject_promise!</span>(<span class="ident">throw</span>, <span class="ident">promise_capability</span>, <span class="ident">context</span>);
+        <span class="comment">// 6. IfAbruptRejectPromise(throw, promiseCapability).
+        </span><span class="macro">if_abrupt_reject_promise!</span>(throw, promise_capability, context);
 
-        <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="kw">match</span> (<span class="ident">throw</span>, <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>)) {
-            <span class="comment">// 7. If throw is undefined, then</span>
-            (<span class="prelude-val">None</span>, <span class="kw">_</span>) =&gt; {
-                <span class="comment">// a. Perform ! Call(promiseCapability.[[Reject]], undefined, « value »).</span>
-                <span class="ident">promise_capability</span>
-                    .<span class="ident">reject</span>()
-                    .<span class="ident">call</span>(
-                        <span class="kw-2">&amp;</span><span class="ident">JsValue::Undefined</span>,
-                        <span class="kw-2">&amp;</span>[<span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>).<span class="ident">clone</span>()],
-                        <span class="ident">context</span>,
+        <span class="kw">let </span>result = <span class="kw">match </span>(throw, args.get(<span class="number">0</span>)) {
+            <span class="comment">// 7. If throw is undefined, then
+            </span>(<span class="prelude-val">None</span>, <span class="kw">_</span>) =&gt; {
+                <span class="comment">// a. Perform ! Call(promiseCapability.[[Reject]], undefined, « value »).
+                </span>promise_capability
+                    .reject()
+                    .call(
+                        <span class="kw-2">&amp;</span>JsValue::Undefined,
+                        <span class="kw-2">&amp;</span>[args.get_or_undefined(<span class="number">0</span>).clone()],
+                        context,
                     )
-                    .<span class="ident">expect</span>(<span class="string">&quot;cannot fail according to spec&quot;</span>);
+                    .expect(<span class="string">&quot;cannot fail according to spec&quot;</span>);
 
-                <span class="comment">// b. Return promiseCapability.[[Promise]].</span>
-                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">promise_capability</span>.<span class="ident">promise</span>().<span class="ident">clone</span>().<span class="ident">into</span>());
+                <span class="comment">// b. Return promiseCapability.[[Promise]].
+                </span><span class="kw">return </span><span class="prelude-val">Ok</span>(promise_capability.promise().clone().into());
             }
-            <span class="comment">// 8. If value is present, then</span>
-            (<span class="prelude-val">Some</span>(<span class="ident">throw</span>), <span class="prelude-val">Some</span>(<span class="ident">value</span>)) =&gt; {
-                <span class="comment">// a. Let result be Completion(Call(throw, syncIterator, « value »)).</span>
-                <span class="ident">throw</span>.<span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="ident">sync_iterator</span>.<span class="ident">clone</span>().<span class="ident">into</span>(), <span class="kw-2">&amp;</span>[<span class="ident">value</span>.<span class="ident">clone</span>()], <span class="ident">context</span>)
+            <span class="comment">// 8. If value is present, then
+            </span>(<span class="prelude-val">Some</span>(throw), <span class="prelude-val">Some</span>(value)) =&gt; {
+                <span class="comment">// a. Let result be Completion(Call(throw, syncIterator, « value »)).
+                </span>throw.call(<span class="kw-2">&amp;</span>sync_iterator.clone().into(), <span class="kw-2">&amp;</span>[value.clone()], context)
             }
-            <span class="comment">// 9. Else,</span>
-            (<span class="prelude-val">Some</span>(<span class="ident">throw</span>), <span class="prelude-val">None</span>) =&gt; {
-                <span class="comment">// a. Let result be Completion(Call(throw, syncIterator)).</span>
-                <span class="ident">throw</span>.<span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="ident">sync_iterator</span>.<span class="ident">clone</span>().<span class="ident">into</span>(), <span class="kw-2">&amp;</span>[], <span class="ident">context</span>)
+            <span class="comment">// 9. Else,
+            </span>(<span class="prelude-val">Some</span>(throw), <span class="prelude-val">None</span>) =&gt; {
+                <span class="comment">// a. Let result be Completion(Call(throw, syncIterator)).
+                </span>throw.call(<span class="kw-2">&amp;</span>sync_iterator.clone().into(), <span class="kw-2">&amp;</span>[], context)
             }
         };
 
-        <span class="comment">// 10. IfAbruptRejectPromise(result, promiseCapability).</span>
-        <span class="macro">if_abrupt_reject_promise!</span>(<span class="ident">result</span>, <span class="ident">promise_capability</span>, <span class="ident">context</span>);
+        <span class="comment">// 10. IfAbruptRejectPromise(result, promiseCapability).
+        </span><span class="macro">if_abrupt_reject_promise!</span>(result, promise_capability, context);
 
-        <span class="comment">// 11. If Type(result) is not Object, then</span>
-        <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">result</span>) <span class="op">=</span> <span class="ident">result</span>.<span class="ident">as_object</span>() {
-            <span class="ident">result</span>
-        } <span class="kw">else</span> {
-            <span class="comment">// a. Perform ! Call(promiseCapability.[[Reject]], undefined, « a newly created TypeError object »).</span>
-            <span class="ident">promise_capability</span>
-                .<span class="ident">reject</span>()
-                .<span class="ident">call</span>(
-                    <span class="kw-2">&amp;</span><span class="ident">JsValue::Undefined</span>,
-                    <span class="kw-2">&amp;</span>[<span class="ident">JsNativeError::typ</span>()
-                        .<span class="ident">with_message</span>(<span class="string">&quot;iterator throw function returned non-object&quot;</span>)
-                        .<span class="ident">to_opaque</span>(<span class="ident">context</span>)
-                        .<span class="ident">into</span>()],
-                    <span class="ident">context</span>,
+        <span class="comment">// 11. If Type(result) is not Object, then
+        </span><span class="kw">let </span>result = <span class="kw">if let </span><span class="prelude-val">Some</span>(result) = result.as_object() {
+            result
+        } <span class="kw">else </span>{
+            <span class="comment">// a. Perform ! Call(promiseCapability.[[Reject]], undefined, « a newly created TypeError object »).
+            </span>promise_capability
+                .reject()
+                .call(
+                    <span class="kw-2">&amp;</span>JsValue::Undefined,
+                    <span class="kw-2">&amp;</span>[JsNativeError::typ()
+                        .with_message(<span class="string">&quot;iterator throw function returned non-object&quot;</span>)
+                        .to_opaque(context)
+                        .into()],
+                    context,
                 )
-                .<span class="ident">expect</span>(<span class="string">&quot;cannot fail according to spec&quot;</span>);
+                .expect(<span class="string">&quot;cannot fail according to spec&quot;</span>);
 
-            <span class="comment">// b. Return promiseCapability.[[Promise]].</span>
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">promise_capability</span>.<span class="ident">promise</span>().<span class="ident">clone</span>().<span class="ident">into</span>());
+            <span class="comment">// b. Return promiseCapability.[[Promise]].
+            </span><span class="kw">return </span><span class="prelude-val">Ok</span>(promise_capability.promise().clone().into());
         };
 
-        <span class="comment">// 12. Return AsyncFromSyncIteratorContinuation(result, promiseCapability).</span>
-        <span class="ident"><span class="self">Self</span>::continuation</span>(
-            <span class="kw-2">&amp;</span><span class="ident">IteratorResult</span> {
-                <span class="ident">object</span>: <span class="ident">result</span>.<span class="ident">clone</span>(),
+        <span class="comment">// 12. Return AsyncFromSyncIteratorContinuation(result, promiseCapability).
+        </span><span class="self">Self</span>::continuation(
+            <span class="kw-2">&amp;</span>IteratorResult {
+                object: result.clone(),
             },
-            <span class="kw-2">&amp;</span><span class="ident">promise_capability</span>,
-            <span class="ident">context</span>,
+            <span class="kw-2">&amp;</span>promise_capability,
+            context,
         )
     }
 
-    <span class="doccomment">/// `AsyncFromSyncIteratorContinuation ( result, promiseCapability )`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMA reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-asyncfromsynciteratorcontinuation</span>
-    <span class="kw">fn</span> <span class="ident">continuation</span>(
-        <span class="ident">result</span>: <span class="kw-2">&amp;</span><span class="ident">IteratorResult</span>,
-        <span class="ident">promise_capability</span>: <span class="kw-2">&amp;</span><span class="ident">PromiseCapability</span>,
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="comment">// 1. NOTE: Because promiseCapability is derived from the intrinsic %Promise%,</span>
-        <span class="comment">// the calls to promiseCapability.[[Reject]] entailed by the</span>
-        <span class="comment">// use IfAbruptRejectPromise below are guaranteed not to throw.</span>
+    <span class="doccomment">/// `AsyncFromSyncIteratorContinuation ( result, promiseCapability )`
+    ///
+    /// More information:
+    ///  - [ECMA reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-asyncfromsynciteratorcontinuation
+    </span><span class="kw">fn </span>continuation(
+        result: <span class="kw-2">&amp;</span>IteratorResult,
+        promise_capability: <span class="kw-2">&amp;</span>PromiseCapability,
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="comment">// 1. NOTE: Because promiseCapability is derived from the intrinsic %Promise%,
+        // the calls to promiseCapability.[[Reject]] entailed by the
+        // use IfAbruptRejectPromise below are guaranteed not to throw.
 
-        <span class="comment">// 2. Let done be Completion(IteratorComplete(result)).</span>
-        <span class="kw">let</span> <span class="ident">done</span> <span class="op">=</span> <span class="ident">result</span>.<span class="ident">complete</span>(<span class="ident">context</span>);
+        // 2. Let done be Completion(IteratorComplete(result)).
+        </span><span class="kw">let </span>done = result.complete(context);
 
-        <span class="comment">// 3. IfAbruptRejectPromise(done, promiseCapability).</span>
-        <span class="macro">if_abrupt_reject_promise!</span>(<span class="ident">done</span>, <span class="ident">promise_capability</span>, <span class="ident">context</span>);
+        <span class="comment">// 3. IfAbruptRejectPromise(done, promiseCapability).
+        </span><span class="macro">if_abrupt_reject_promise!</span>(done, promise_capability, context);
 
-        <span class="comment">// 4. Let value be Completion(IteratorValue(result)).</span>
-        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">result</span>.<span class="ident">value</span>(<span class="ident">context</span>);
+        <span class="comment">// 4. Let value be Completion(IteratorValue(result)).
+        </span><span class="kw">let </span>value = result.value(context);
 
-        <span class="comment">// 5. IfAbruptRejectPromise(value, promiseCapability).</span>
-        <span class="macro">if_abrupt_reject_promise!</span>(<span class="ident">value</span>, <span class="ident">promise_capability</span>, <span class="ident">context</span>);
+        <span class="comment">// 5. IfAbruptRejectPromise(value, promiseCapability).
+        </span><span class="macro">if_abrupt_reject_promise!</span>(value, promise_capability, context);
 
-        <span class="comment">// 6. Let valueWrapper be Completion(PromiseResolve(%Promise%, value)).</span>
-        <span class="kw">let</span> <span class="ident">value_wrapper</span> <span class="op">=</span> <span class="ident">Promise::promise_resolve</span>(
-            <span class="ident">context</span>.<span class="ident">intrinsics</span>().<span class="ident">constructors</span>().<span class="ident">promise</span>().<span class="ident">constructor</span>(),
-            <span class="ident">value</span>,
-            <span class="ident">context</span>,
+        <span class="comment">// 6. Let valueWrapper be Completion(PromiseResolve(%Promise%, value)).
+        </span><span class="kw">let </span>value_wrapper = Promise::promise_resolve(
+            context.intrinsics().constructors().promise().constructor(),
+            value,
+            context,
         );
 
-        <span class="comment">// 7. IfAbruptRejectPromise(valueWrapper, promiseCapability).</span>
-        <span class="macro">if_abrupt_reject_promise!</span>(<span class="ident">value_wrapper</span>, <span class="ident">promise_capability</span>, <span class="ident">context</span>);
+        <span class="comment">// 7. IfAbruptRejectPromise(valueWrapper, promiseCapability).
+        </span><span class="macro">if_abrupt_reject_promise!</span>(value_wrapper, promise_capability, context);
 
-        <span class="comment">// 8. Let unwrap be a new Abstract Closure with parameters (value)</span>
-        <span class="comment">// that captures done and performs the following steps when called:</span>
-        <span class="comment">// 9. Let onFulfilled be CreateBuiltinFunction(unwrap, 1, &quot;&quot;, « »).</span>
-        <span class="kw">let</span> <span class="ident">on_fulfilled</span> <span class="op">=</span> <span class="ident">FunctionBuilder::closure_with_captures</span>(
-            <span class="ident">context</span>,
-            <span class="op">|</span><span class="ident">_this</span>, <span class="ident">args</span>, <span class="ident">done</span>, <span class="ident">context</span><span class="op">|</span> {
-                <span class="comment">// a. Return CreateIterResultObject(value, done).</span>
-                <span class="prelude-val">Ok</span>(<span class="ident">create_iter_result_object</span>(
-                    <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>).<span class="ident">clone</span>(),
-                    <span class="kw-2">*</span><span class="ident">done</span>,
-                    <span class="ident">context</span>,
+        <span class="comment">// 8. Let unwrap be a new Abstract Closure with parameters (value)
+        // that captures done and performs the following steps when called:
+        // 9. Let onFulfilled be CreateBuiltinFunction(unwrap, 1, &quot;&quot;, « »).
+        </span><span class="kw">let </span>on_fulfilled = FunctionBuilder::closure_with_captures(
+            context,
+            |_this, args, done, context| {
+                <span class="comment">// a. Return CreateIterResultObject(value, done).
+                </span><span class="prelude-val">Ok</span>(create_iter_result_object(
+                    args.get_or_undefined(<span class="number">0</span>).clone(),
+                    <span class="kw-2">*</span>done,
+                    context,
                 ))
             },
-            <span class="ident">done</span>,
+            done,
         )
-        .<span class="ident">name</span>(<span class="string">&quot;&quot;</span>)
-        .<span class="ident">length</span>(<span class="number">1</span>)
-        .<span class="ident">build</span>();
+        .name(<span class="string">&quot;&quot;</span>)
+        .length(<span class="number">1</span>)
+        .build();
 
-        <span class="comment">// 10. NOTE: onFulfilled is used when processing the &quot;value&quot; property of an</span>
-        <span class="comment">// IteratorResult object in order to wait for its value if it is a promise and</span>
-        <span class="comment">// re-package the result in a new &quot;unwrapped&quot; IteratorResult object.</span>
+        <span class="comment">// 10. NOTE: onFulfilled is used when processing the &quot;value&quot; property of an
+        // IteratorResult object in order to wait for its value if it is a promise and
+        // re-package the result in a new &quot;unwrapped&quot; IteratorResult object.
 
-        <span class="comment">// 11. Perform PerformPromiseThen(valueWrapper, onFulfilled, undefined, promiseCapability).</span>
-        <span class="ident">value_wrapper</span>
-            .<span class="ident">as_object</span>()
-            .<span class="ident">expect</span>(<span class="string">&quot;result of promise resolve must be promise&quot;</span>)
-            .<span class="ident">borrow_mut</span>()
-            .<span class="ident">as_promise_mut</span>()
-            .<span class="ident">expect</span>(<span class="string">&quot;constructed promise must be a promise&quot;</span>)
-            .<span class="ident">perform_promise_then</span>(
-                <span class="kw-2">&amp;</span><span class="ident">on_fulfilled</span>.<span class="ident">into</span>(),
-                <span class="kw-2">&amp;</span><span class="ident">JsValue::Undefined</span>,
-                <span class="prelude-val">Some</span>(<span class="ident">promise_capability</span>.<span class="ident">clone</span>()),
-                <span class="ident">context</span>,
+        // 11. Perform PerformPromiseThen(valueWrapper, onFulfilled, undefined, promiseCapability).
+        </span>value_wrapper
+            .as_object()
+            .expect(<span class="string">&quot;result of promise resolve must be promise&quot;</span>)
+            .borrow_mut()
+            .as_promise_mut()
+            .expect(<span class="string">&quot;constructed promise must be a promise&quot;</span>)
+            .perform_promise_then(
+                <span class="kw-2">&amp;</span>on_fulfilled.into(),
+                <span class="kw-2">&amp;</span>JsValue::Undefined,
+                <span class="prelude-val">Some</span>(promise_capability.clone()),
+                context,
             );
 
-        <span class="comment">// 12. Return promiseCapability.[[Promise]].</span>
-        <span class="prelude-val">Ok</span>(<span class="ident">promise_capability</span>.<span class="ident">promise</span>().<span class="ident">clone</span>().<span class="ident">into</span>())
+        <span class="comment">// 12. Return promiseCapability.[[Promise]].
+        </span><span class="prelude-val">Ok</span>(promise_capability.promise().clone().into())
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0 (a55dd71d5 2022-09-19)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0 (897e37553 2022-11-02)" ></div></body></html>

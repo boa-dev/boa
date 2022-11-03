@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_engine/src/object/internal_methods/string.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>string.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_engine/src/object/internal_methods/string.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>string.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container">
                     <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../boa_engine/index.html">
                         <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -187,192 +187,192 @@
 <span id="185">185</span>
 <span id="186">186</span>
 <span id="187">187</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">js_string</span>,
-    <span class="ident">object::JsObject</span>,
-    <span class="ident">property</span>::{<span class="ident">PropertyDescriptor</span>, <span class="ident">PropertyKey</span>},
-    <span class="ident">Context</span>, <span class="ident">JsResult</span>,
+</pre><pre class="rust"><code><span class="kw">use crate</span>::{
+    js_string,
+    object::JsObject,
+    property::{PropertyDescriptor, PropertyKey},
+    Context, JsResult,
 };
 
-<span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">InternalObjectMethods</span>, <span class="ident">ORDINARY_INTERNAL_METHODS</span>};
+<span class="kw">use super</span>::{InternalObjectMethods, ORDINARY_INTERNAL_METHODS};
 
-<span class="doccomment">/// Definitions of the internal object methods for string exotic objects.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [ECMAScript reference][spec]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-string-exotic-objects</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">STRING_EXOTIC_INTERNAL_METHODS</span>: <span class="ident">InternalObjectMethods</span> <span class="op">=</span> <span class="ident">InternalObjectMethods</span> {
-    <span class="ident">__get_own_property__</span>: <span class="ident">string_exotic_get_own_property</span>,
-    <span class="ident">__define_own_property__</span>: <span class="ident">string_exotic_define_own_property</span>,
-    <span class="ident">__own_property_keys__</span>: <span class="ident">string_exotic_own_property_keys</span>,
-    ..<span class="ident">ORDINARY_INTERNAL_METHODS</span>
+<span class="doccomment">/// Definitions of the internal object methods for string exotic objects.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-string-exotic-objects
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>STRING_EXOTIC_INTERNAL_METHODS: InternalObjectMethods = InternalObjectMethods {
+    __get_own_property__: string_exotic_get_own_property,
+    __define_own_property__: string_exotic_define_own_property,
+    __own_property_keys__: string_exotic_own_property_keys,
+    ..ORDINARY_INTERNAL_METHODS
 };
 
-<span class="doccomment">/// Gets own property of &#39;String&#39; exotic object</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [ECMAScript reference][spec]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-string-exotic-objects-getownproperty-p</span>
-<span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">string_exotic_get_own_property</span>(
-    <span class="ident">obj</span>: <span class="kw-2">&amp;</span><span class="ident">JsObject</span>,
-    <span class="ident">key</span>: <span class="kw-2">&amp;</span><span class="ident">PropertyKey</span>,
-    <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PropertyDescriptor</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-    <span class="comment">// 1. Assert: IsPropertyKey(P) is true.</span>
-    <span class="comment">// 2. Let desc be OrdinaryGetOwnProperty(S, P).</span>
-    <span class="kw">let</span> <span class="ident">desc</span> <span class="op">=</span> <span class="ident"><span class="kw">super</span>::ordinary_get_own_property</span>(<span class="ident">obj</span>, <span class="ident">key</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+<span class="doccomment">/// Gets own property of &#39;String&#39; exotic object
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-string-exotic-objects-getownproperty-p
+</span><span class="attribute">#[inline]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>string_exotic_get_own_property(
+    obj: <span class="kw-2">&amp;</span>JsObject,
+    key: <span class="kw-2">&amp;</span>PropertyKey,
+    context: <span class="kw-2">&amp;mut </span>Context,
+) -&gt; JsResult&lt;<span class="prelude-ty">Option</span>&lt;PropertyDescriptor&gt;&gt; {
+    <span class="comment">// 1. Assert: IsPropertyKey(P) is true.
+    // 2. Let desc be OrdinaryGetOwnProperty(S, P).
+    </span><span class="kw">let </span>desc = <span class="kw">super</span>::ordinary_get_own_property(obj, key, context)<span class="question-mark">?</span>;
 
-    <span class="comment">// 3. If desc is not undefined, return desc.</span>
-    <span class="kw">if</span> <span class="ident">desc</span>.<span class="ident">is_some</span>() {
-        <span class="prelude-val">Ok</span>(<span class="ident">desc</span>)
-    } <span class="kw">else</span> {
-        <span class="comment">// 4. Return ! StringGetOwnProperty(S, P).</span>
-        <span class="prelude-val">Ok</span>(<span class="ident">string_get_own_property</span>(<span class="ident">obj</span>, <span class="ident">key</span>))
+    <span class="comment">// 3. If desc is not undefined, return desc.
+    </span><span class="kw">if </span>desc.is_some() {
+        <span class="prelude-val">Ok</span>(desc)
+    } <span class="kw">else </span>{
+        <span class="comment">// 4. Return ! StringGetOwnProperty(S, P).
+        </span><span class="prelude-val">Ok</span>(string_get_own_property(obj, key))
     }
 }
 
-<span class="doccomment">/// Defines own property of &#39;String&#39; exotic object</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [ECMAScript reference][spec]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-string-exotic-objects-defineownproperty-p-desc</span>
-<span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">string_exotic_define_own_property</span>(
-    <span class="ident">obj</span>: <span class="kw-2">&amp;</span><span class="ident">JsObject</span>,
-    <span class="ident">key</span>: <span class="ident">PropertyKey</span>,
-    <span class="ident">desc</span>: <span class="ident">PropertyDescriptor</span>,
-    <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
-    <span class="comment">// 1. Assert: IsPropertyKey(P) is true.</span>
-    <span class="comment">// 2. Let stringDesc be ! StringGetOwnProperty(S, P).</span>
-    <span class="kw">let</span> <span class="ident">string_desc</span> <span class="op">=</span> <span class="ident">string_get_own_property</span>(<span class="ident">obj</span>, <span class="kw-2">&amp;</span><span class="ident">key</span>);
+<span class="doccomment">/// Defines own property of &#39;String&#39; exotic object
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-string-exotic-objects-defineownproperty-p-desc
+</span><span class="attribute">#[inline]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>string_exotic_define_own_property(
+    obj: <span class="kw-2">&amp;</span>JsObject,
+    key: PropertyKey,
+    desc: PropertyDescriptor,
+    context: <span class="kw-2">&amp;mut </span>Context,
+) -&gt; JsResult&lt;bool&gt; {
+    <span class="comment">// 1. Assert: IsPropertyKey(P) is true.
+    // 2. Let stringDesc be ! StringGetOwnProperty(S, P).
+    </span><span class="kw">let </span>string_desc = string_get_own_property(obj, <span class="kw-2">&amp;</span>key);
 
-    <span class="comment">// 3. If stringDesc is not undefined, then</span>
-    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">string_desc</span>) <span class="op">=</span> <span class="ident">string_desc</span> {
-        <span class="comment">// a. Let extensible be S.[[Extensible]].</span>
-        <span class="kw">let</span> <span class="ident">extensible</span> <span class="op">=</span> <span class="ident">obj</span>.<span class="ident">borrow</span>().<span class="ident">extensible</span>;
-        <span class="comment">// b. Return ! IsCompatiblePropertyDescriptor(extensible, Desc, stringDesc).</span>
-        <span class="prelude-val">Ok</span>(<span class="ident"><span class="kw">super</span>::is_compatible_property_descriptor</span>(
-            <span class="ident">extensible</span>,
-            <span class="ident">desc</span>,
-            <span class="prelude-val">Some</span>(<span class="ident">string_desc</span>),
+    <span class="comment">// 3. If stringDesc is not undefined, then
+    </span><span class="kw">if let </span><span class="prelude-val">Some</span>(string_desc) = string_desc {
+        <span class="comment">// a. Let extensible be S.[[Extensible]].
+        </span><span class="kw">let </span>extensible = obj.borrow().extensible;
+        <span class="comment">// b. Return ! IsCompatiblePropertyDescriptor(extensible, Desc, stringDesc).
+        </span><span class="prelude-val">Ok</span>(<span class="kw">super</span>::is_compatible_property_descriptor(
+            extensible,
+            desc,
+            <span class="prelude-val">Some</span>(string_desc),
         ))
-    } <span class="kw">else</span> {
-        <span class="comment">// 4. Return ! OrdinaryDefineOwnProperty(S, P, Desc).</span>
-        <span class="ident"><span class="kw">super</span>::ordinary_define_own_property</span>(<span class="ident">obj</span>, <span class="ident">key</span>, <span class="ident">desc</span>, <span class="ident">context</span>)
+    } <span class="kw">else </span>{
+        <span class="comment">// 4. Return ! OrdinaryDefineOwnProperty(S, P, Desc).
+        </span><span class="kw">super</span>::ordinary_define_own_property(obj, key, desc, context)
     }
 }
 
-<span class="doccomment">/// Gets own property keys of &#39;String&#39; exotic object</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [ECMAScript reference][spec]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-string-exotic-objects-ownpropertykeys</span>
-<span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::unnecessary_wraps</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">string_exotic_own_property_keys</span>(
-    <span class="ident">obj</span>: <span class="kw-2">&amp;</span><span class="ident">JsObject</span>,
-    <span class="ident">_context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">PropertyKey</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">obj</span>.<span class="ident">borrow</span>();
+<span class="doccomment">/// Gets own property keys of &#39;String&#39; exotic object
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-string-exotic-objects-ownpropertykeys
+</span><span class="attribute">#[inline]
+#[allow(clippy::unnecessary_wraps)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>string_exotic_own_property_keys(
+    obj: <span class="kw-2">&amp;</span>JsObject,
+    _context: <span class="kw-2">&amp;mut </span>Context,
+) -&gt; JsResult&lt;Vec&lt;PropertyKey&gt;&gt; {
+    <span class="kw">let </span>obj = obj.borrow();
 
-    <span class="comment">// 2. Let str be O.[[StringData]].</span>
-    <span class="comment">// 3. Assert: Type(str) is String.</span>
-    <span class="kw">let</span> <span class="ident">string</span> <span class="op">=</span> <span class="ident">obj</span>
-        .<span class="ident">as_string</span>()
-        .<span class="ident">expect</span>(<span class="string">&quot;string exotic method should only be callable from string objects&quot;</span>);
-    <span class="comment">// 4. Let len be the length of str.</span>
-    <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">string</span>.<span class="ident">len</span>();
+    <span class="comment">// 2. Let str be O.[[StringData]].
+    // 3. Assert: Type(str) is String.
+    </span><span class="kw">let </span>string = obj
+        .as_string()
+        .expect(<span class="string">&quot;string exotic method should only be callable from string objects&quot;</span>);
+    <span class="comment">// 4. Let len be the length of str.
+    </span><span class="kw">let </span>len = string.len();
 
-    <span class="comment">// 1. Let keys be a new empty List.</span>
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">keys</span> <span class="op">=</span> <span class="ident">Vec::with_capacity</span>(<span class="ident">len</span>);
+    <span class="comment">// 1. Let keys be a new empty List.
+    </span><span class="kw">let </span><span class="kw-2">mut </span>keys = Vec::with_capacity(len);
 
-    <span class="comment">// 5. For each integer i starting with 0 such that i &lt; len, in ascending order, do</span>
-    <span class="comment">// a. Add ! ToString(𝔽(i)) as the last element of keys.</span>
-    <span class="ident">keys</span>.<span class="ident">extend</span>((<span class="number">0</span>..<span class="ident">len</span>).<span class="ident">into_iter</span>().<span class="ident">map</span>(<span class="ident">Into::into</span>));
+    <span class="comment">// 5. For each integer i starting with 0 such that i &lt; len, in ascending order, do
+    // a. Add ! ToString(𝔽(i)) as the last element of keys.
+    </span>keys.extend((<span class="number">0</span>..len).into_iter().map(Into::into));
 
-    <span class="comment">// 6. For each own property key P of O such that P is an array index</span>
-    <span class="comment">// and ! ToIntegerOrInfinity(P) ≥ len, in ascending numeric index order, do</span>
-    <span class="comment">// a. Add P as the last element of keys.</span>
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">remaining_indices</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">obj</span>
-        .<span class="ident">properties</span>
-        .<span class="ident">index_property_keys</span>()
-        .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">idx</span><span class="op">|</span> (<span class="kw-2">*</span><span class="ident">idx</span> <span class="kw">as</span> <span class="ident">usize</span>) <span class="op">&gt;</span><span class="op">=</span> <span class="ident">len</span>)
-        .<span class="ident">collect</span>();
-    <span class="ident">remaining_indices</span>.<span class="ident">sort_unstable</span>();
-    <span class="ident">keys</span>.<span class="ident">extend</span>(<span class="ident">remaining_indices</span>.<span class="ident">into_iter</span>().<span class="ident">map</span>(<span class="ident">Into::into</span>));
+    <span class="comment">// 6. For each own property key P of O such that P is an array index
+    // and ! ToIntegerOrInfinity(P) ≥ len, in ascending numeric index order, do
+    // a. Add P as the last element of keys.
+    </span><span class="kw">let </span><span class="kw-2">mut </span>remaining_indices: Vec&lt;<span class="kw">_</span>&gt; = obj
+        .properties
+        .index_property_keys()
+        .filter(|idx| (<span class="kw-2">*</span>idx <span class="kw">as </span>usize) &gt;= len)
+        .collect();
+    remaining_indices.sort_unstable();
+    keys.extend(remaining_indices.into_iter().map(Into::into));
 
-    <span class="comment">// 7. For each own property key P of O such that Type(P) is String and P is not</span>
-    <span class="comment">// an array index, in ascending chronological order of property creation, do</span>
-    <span class="comment">// a. Add P as the last element of keys.</span>
-    <span class="ident">keys</span>.<span class="ident">extend</span>(
-        <span class="ident">obj</span>.<span class="ident">properties</span>
-            .<span class="ident">string_property_keys</span>()
-            .<span class="ident">cloned</span>()
-            .<span class="ident">map</span>(<span class="ident">Into::into</span>),
+    <span class="comment">// 7. For each own property key P of O such that Type(P) is String and P is not
+    // an array index, in ascending chronological order of property creation, do
+    // a. Add P as the last element of keys.
+    </span>keys.extend(
+        obj.properties
+            .string_property_keys()
+            .cloned()
+            .map(Into::into),
     );
 
-    <span class="comment">// 8. For each own property key P of O such that Type(P) is Symbol, in ascending</span>
-    <span class="comment">// chronological order of property creation, do</span>
-    <span class="comment">// a. Add P as the last element of keys.</span>
-    <span class="ident">keys</span>.<span class="ident">extend</span>(
-        <span class="ident">obj</span>.<span class="ident">properties</span>
-            .<span class="ident">symbol_property_keys</span>()
-            .<span class="ident">cloned</span>()
-            .<span class="ident">map</span>(<span class="ident">Into::into</span>),
+    <span class="comment">// 8. For each own property key P of O such that Type(P) is Symbol, in ascending
+    // chronological order of property creation, do
+    // a. Add P as the last element of keys.
+    </span>keys.extend(
+        obj.properties
+            .symbol_property_keys()
+            .cloned()
+            .map(Into::into),
     );
 
-    <span class="comment">// 9. Return keys.</span>
-    <span class="prelude-val">Ok</span>(<span class="ident">keys</span>)
+    <span class="comment">// 9. Return keys.
+    </span><span class="prelude-val">Ok</span>(keys)
 }
 
-<span class="doccomment">/// `StringGetOwnProperty` abstract operation</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [ECMAScript reference][spec]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-stringgetownproperty</span>
-<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::float_cmp</span>)]</span>
-<span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">fn</span> <span class="ident">string_get_own_property</span>(<span class="ident">obj</span>: <span class="kw-2">&amp;</span><span class="ident">JsObject</span>, <span class="ident">key</span>: <span class="kw-2">&amp;</span><span class="ident">PropertyKey</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PropertyDescriptor</span><span class="op">&gt;</span> {
-    <span class="comment">// 1. Assert: S is an Object that has a [[StringData]] internal slot.</span>
-    <span class="comment">// 2. Assert: IsPropertyKey(P) is true.</span>
-    <span class="comment">// 3. If Type(P) is not String, return undefined.</span>
-    <span class="comment">// 4. Let index be ! CanonicalNumericIndexString(P).</span>
-    <span class="comment">// 5. If index is undefined, return undefined.</span>
-    <span class="comment">// 6. If IsIntegralNumber(index) is false, return undefined.</span>
-    <span class="comment">// 7. If index is -0𝔽, return undefined.</span>
-    <span class="kw">let</span> <span class="ident">pos</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">key</span> {
-        <span class="ident">PropertyKey::Index</span>(<span class="ident">index</span>) =&gt; <span class="kw-2">*</span><span class="ident">index</span> <span class="kw">as</span> <span class="ident">usize</span>,
-        <span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="prelude-val">None</span>,
+<span class="doccomment">/// `StringGetOwnProperty` abstract operation
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-stringgetownproperty
+</span><span class="attribute">#[allow(clippy::float_cmp)]
+#[inline]
+</span><span class="kw">fn </span>string_get_own_property(obj: <span class="kw-2">&amp;</span>JsObject, key: <span class="kw-2">&amp;</span>PropertyKey) -&gt; <span class="prelude-ty">Option</span>&lt;PropertyDescriptor&gt; {
+    <span class="comment">// 1. Assert: S is an Object that has a [[StringData]] internal slot.
+    // 2. Assert: IsPropertyKey(P) is true.
+    // 3. If Type(P) is not String, return undefined.
+    // 4. Let index be ! CanonicalNumericIndexString(P).
+    // 5. If index is undefined, return undefined.
+    // 6. If IsIntegralNumber(index) is false, return undefined.
+    // 7. If index is -0𝔽, return undefined.
+    </span><span class="kw">let </span>pos = <span class="kw">match </span>key {
+        PropertyKey::Index(index) =&gt; <span class="kw-2">*</span>index <span class="kw">as </span>usize,
+        <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">None</span>,
     };
 
-    <span class="comment">// 8. Let str be S.[[StringData]].</span>
-    <span class="comment">// 9. Assert: Type(str) is String.</span>
-    <span class="kw">let</span> <span class="ident">string</span> <span class="op">=</span> <span class="ident">obj</span>
-        .<span class="ident">borrow</span>()
-        .<span class="ident">as_string</span>()
-        .<span class="ident">expect</span>(<span class="string">&quot;string exotic method should only be callable from string objects&quot;</span>);
+    <span class="comment">// 8. Let str be S.[[StringData]].
+    // 9. Assert: Type(str) is String.
+    </span><span class="kw">let </span>string = obj
+        .borrow()
+        .as_string()
+        .expect(<span class="string">&quot;string exotic method should only be callable from string objects&quot;</span>);
 
-    <span class="comment">// 10. Let len be the length of str.</span>
-    <span class="comment">// 11. If ℝ(index) &lt; 0 or len ≤ ℝ(index), return undefined.</span>
-    <span class="comment">// 12. Let resultStr be the String value of length 1, containing one code unit from str, specifically the code unit at index ℝ(index).</span>
-    <span class="kw">let</span> <span class="ident">result_str</span> <span class="op">=</span> <span class="macro">js_string!</span>(<span class="ident">string</span>.<span class="ident">get</span>(<span class="ident">pos</span>..<span class="op">=</span><span class="ident">pos</span>)<span class="question-mark">?</span>);
+    <span class="comment">// 10. Let len be the length of str.
+    // 11. If ℝ(index) &lt; 0 or len ≤ ℝ(index), return undefined.
+    // 12. Let resultStr be the String value of length 1, containing one code unit from str, specifically the code unit at index ℝ(index).
+    </span><span class="kw">let </span>result_str = <span class="macro">js_string!</span>(string.get(pos..=pos)<span class="question-mark">?</span>);
 
-    <span class="comment">// 13. Return the PropertyDescriptor { [[Value]]: resultStr, [[Writable]]: false, [[Enumerable]]: true, [[Configurable]]: false }.</span>
-    <span class="kw">let</span> <span class="ident">desc</span> <span class="op">=</span> <span class="ident">PropertyDescriptor::builder</span>()
-        .<span class="ident">value</span>(<span class="ident">result_str</span>)
-        .<span class="ident">writable</span>(<span class="bool-val">false</span>)
-        .<span class="ident">enumerable</span>(<span class="bool-val">true</span>)
-        .<span class="ident">configurable</span>(<span class="bool-val">false</span>)
-        .<span class="ident">build</span>();
+    <span class="comment">// 13. Return the PropertyDescriptor { [[Value]]: resultStr, [[Writable]]: false, [[Enumerable]]: true, [[Configurable]]: false }.
+    </span><span class="kw">let </span>desc = PropertyDescriptor::builder()
+        .value(result_str)
+        .writable(<span class="bool-val">false</span>)
+        .enumerable(<span class="bool-val">true</span>)
+        .configurable(<span class="bool-val">false</span>)
+        .build();
 
-    <span class="prelude-val">Some</span>(<span class="ident">desc</span>)
+    <span class="prelude-val">Some</span>(desc)
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0 (a55dd71d5 2022-09-19)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0 (897e37553 2022-11-02)" ></div></body></html>

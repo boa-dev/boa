@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_engine/src/context/intrinsics.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>intrinsics.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../boa_engine/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../boa_engine/index.html"><div class="logo-container">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_engine/src/context/intrinsics.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>intrinsics.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../boa_engine/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../boa_engine/index.html"><div class="logo-container">
                     <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../boa_engine/index.html">
                         <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -447,452 +447,452 @@
 <span id="445">445</span>
 <span id="446">446</span>
 <span id="447">447</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">builtins</span>::{
-        <span class="ident">array::Array</span>, <span class="ident">error</span>::<span class="ident">r#type</span><span class="ident">::create_throw_type_error</span>, <span class="ident">iterable::IteratorPrototypes</span>,
+</pre><pre class="rust"><code><span class="kw">use crate</span>::{
+    builtins::{
+        array::Array, error::r#type::create_throw_type_error, iterable::IteratorPrototypes,
     },
-    <span class="ident">object</span>::{<span class="ident">JsObject</span>, <span class="ident">ObjectData</span>},
-    <span class="ident">property::PropertyDescriptorBuilder</span>,
-    <span class="ident">Context</span>,
+    object::{JsObject, ObjectData},
+    property::PropertyDescriptorBuilder,
+    Context,
 };
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Default</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Intrinsics</span> {
-    <span class="doccomment">/// Cached standard constructors</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">constructors</span>: <span class="ident">StandardConstructors</span>,
-    <span class="doccomment">/// Cached intrinsic objects</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">objects</span>: <span class="ident">IntrinsicObjects</span>,
+<span class="attribute">#[derive(Debug, Default)]
+</span><span class="kw">pub struct </span>Intrinsics {
+    <span class="doccomment">/// Cached standard constructors
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) constructors: StandardConstructors,
+    <span class="doccomment">/// Cached intrinsic objects
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) objects: IntrinsicObjects,
 }
 
-<span class="kw">impl</span> <span class="ident">Intrinsics</span> {
-    <span class="doccomment">/// Return the cached intrinsic objects.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">objects</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">IntrinsicObjects</span> {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">objects</span>
+<span class="kw">impl </span>Intrinsics {
+    <span class="doccomment">/// Return the cached intrinsic objects.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>objects(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>IntrinsicObjects {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.objects
     }
 
-    <span class="doccomment">/// Return the cached standard constructors.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">constructors</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">StandardConstructors</span> {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">constructors</span>
+    <span class="doccomment">/// Return the cached standard constructors.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>constructors(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructors {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.constructors
     }
 }
 
-<span class="doccomment">/// Store a builtin constructor (such as `Object`) and its corresponding prototype.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">StandardConstructor</span> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">constructor</span>: <span class="ident">JsObject</span>,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">prototype</span>: <span class="ident">JsObject</span>,
+<span class="doccomment">/// Store a builtin constructor (such as `Object`) and its corresponding prototype.
+</span><span class="attribute">#[derive(Debug, Clone)]
+</span><span class="kw">pub struct </span>StandardConstructor {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) constructor: JsObject,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) prototype: JsObject,
 }
 
-<span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">StandardConstructor</span> {
-    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">constructor</span>: <span class="ident">JsObject::empty</span>(),
-            <span class="ident">prototype</span>: <span class="ident">JsObject::empty</span>(),
+<span class="kw">impl </span>Default <span class="kw">for </span>StandardConstructor {
+    <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            constructor: JsObject::empty(),
+            prototype: JsObject::empty(),
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">StandardConstructor</span> {
-    <span class="doccomment">/// Build a constructor with a defined prototype.</span>
-    <span class="kw">fn</span> <span class="ident">with_prototype</span>(<span class="ident">prototype</span>: <span class="ident">JsObject</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">constructor</span>: <span class="ident">JsObject::empty</span>(),
-            <span class="ident">prototype</span>,
+<span class="kw">impl </span>StandardConstructor {
+    <span class="doccomment">/// Build a constructor with a defined prototype.
+    </span><span class="kw">fn </span>with_prototype(prototype: JsObject) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            constructor: JsObject::empty(),
+            prototype,
         }
     }
 
-    <span class="doccomment">/// Return the constructor object.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This is the same as `Object`, `Array`, etc.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">constructor</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">JsObject</span> {
-        <span class="self">self</span>.<span class="ident">constructor</span>.<span class="ident">clone</span>()
+    <span class="doccomment">/// Return the constructor object.
+    ///
+    /// This is the same as `Object`, `Array`, etc.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>constructor(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsObject {
+        <span class="self">self</span>.constructor.clone()
     }
 
-    <span class="doccomment">/// Return the prototype of the constructor object.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This is the same as `Object.prototype`, `Array.prototype`, etc</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">prototype</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">JsObject</span> {
-        <span class="self">self</span>.<span class="ident">prototype</span>.<span class="ident">clone</span>()
+    <span class="doccomment">/// Return the prototype of the constructor object.
+    ///
+    /// This is the same as `Object.prototype`, `Array.prototype`, etc
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>prototype(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsObject {
+        <span class="self">self</span>.prototype.clone()
     }
 }
 
-<span class="doccomment">/// Cached core standard constructors.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">StandardConstructors</span> {
-    <span class="ident">async_generator_function</span>: <span class="ident">StandardConstructor</span>,
-    <span class="ident">async_generator</span>: <span class="ident">StandardConstructor</span>,
-    <span class="ident">object</span>: <span class="ident">StandardConstructor</span>,
-    <span class="ident">proxy</span>: <span class="ident">StandardConstructor</span>,
-    <span class="ident">date</span>: <span class="ident">StandardConstructor</span>,
-    <span class="ident">function</span>: <span class="ident">StandardConstructor</span>,
-    <span class="ident">async_function</span>: <span class="ident">StandardConstructor</span>,
-    <span class="ident">generator</span>: <span class="ident">StandardConstructor</span>,
-    <span class="ident">generator_function</span>: <span class="ident">StandardConstructor</span>,
-    <span class="ident">array</span>: <span class="ident">StandardConstructor</span>,
-    <span class="ident">bigint</span>: <span class="ident">StandardConstructor</span>,
-    <span class="ident">number</span>: <span class="ident">StandardConstructor</span>,
-    <span class="ident">boolean</span>: <span class="ident">StandardConstructor</span>,
-    <span class="ident">string</span>: <span class="ident">StandardConstructor</span>,
-    <span class="ident">regexp</span>: <span class="ident">StandardConstructor</span>,
-    <span class="ident">symbol</span>: <span class="ident">StandardConstructor</span>,
-    <span class="ident">error</span>: <span class="ident">StandardConstructor</span>,
-    <span class="ident">type_error</span>: <span class="ident">StandardConstructor</span>,
-    <span class="ident">reference_error</span>: <span class="ident">StandardConstructor</span>,
-    <span class="ident">range_error</span>: <span class="ident">StandardConstructor</span>,
-    <span class="ident">syntax_error</span>: <span class="ident">StandardConstructor</span>,
-    <span class="ident">eval_error</span>: <span class="ident">StandardConstructor</span>,
-    <span class="ident">uri_error</span>: <span class="ident">StandardConstructor</span>,
-    <span class="ident">aggregate_error</span>: <span class="ident">StandardConstructor</span>,
-    <span class="ident">map</span>: <span class="ident">StandardConstructor</span>,
-    <span class="ident">set</span>: <span class="ident">StandardConstructor</span>,
-    <span class="ident">typed_array</span>: <span class="ident">StandardConstructor</span>,
-    <span class="ident">typed_int8_array</span>: <span class="ident">StandardConstructor</span>,
-    <span class="ident">typed_uint8_array</span>: <span class="ident">StandardConstructor</span>,
-    <span class="ident">typed_uint8clamped_array</span>: <span class="ident">StandardConstructor</span>,
-    <span class="ident">typed_int16_array</span>: <span class="ident">StandardConstructor</span>,
-    <span class="ident">typed_uint16_array</span>: <span class="ident">StandardConstructor</span>,
-    <span class="ident">typed_int32_array</span>: <span class="ident">StandardConstructor</span>,
-    <span class="ident">typed_uint32_array</span>: <span class="ident">StandardConstructor</span>,
-    <span class="ident">typed_bigint64_array</span>: <span class="ident">StandardConstructor</span>,
-    <span class="ident">typed_biguint64_array</span>: <span class="ident">StandardConstructor</span>,
-    <span class="ident">typed_float32_array</span>: <span class="ident">StandardConstructor</span>,
-    <span class="ident">typed_float64_array</span>: <span class="ident">StandardConstructor</span>,
-    <span class="ident">array_buffer</span>: <span class="ident">StandardConstructor</span>,
-    <span class="ident">data_view</span>: <span class="ident">StandardConstructor</span>,
-    <span class="ident">date_time_format</span>: <span class="ident">StandardConstructor</span>,
-    <span class="ident">promise</span>: <span class="ident">StandardConstructor</span>,
+<span class="doccomment">/// Cached core standard constructors.
+</span><span class="attribute">#[derive(Debug, Clone)]
+</span><span class="kw">pub struct </span>StandardConstructors {
+    async_generator_function: StandardConstructor,
+    async_generator: StandardConstructor,
+    object: StandardConstructor,
+    proxy: StandardConstructor,
+    date: StandardConstructor,
+    function: StandardConstructor,
+    async_function: StandardConstructor,
+    generator: StandardConstructor,
+    generator_function: StandardConstructor,
+    array: StandardConstructor,
+    bigint: StandardConstructor,
+    number: StandardConstructor,
+    boolean: StandardConstructor,
+    string: StandardConstructor,
+    regexp: StandardConstructor,
+    symbol: StandardConstructor,
+    error: StandardConstructor,
+    type_error: StandardConstructor,
+    reference_error: StandardConstructor,
+    range_error: StandardConstructor,
+    syntax_error: StandardConstructor,
+    eval_error: StandardConstructor,
+    uri_error: StandardConstructor,
+    aggregate_error: StandardConstructor,
+    map: StandardConstructor,
+    set: StandardConstructor,
+    typed_array: StandardConstructor,
+    typed_int8_array: StandardConstructor,
+    typed_uint8_array: StandardConstructor,
+    typed_uint8clamped_array: StandardConstructor,
+    typed_int16_array: StandardConstructor,
+    typed_uint16_array: StandardConstructor,
+    typed_int32_array: StandardConstructor,
+    typed_uint32_array: StandardConstructor,
+    typed_bigint64_array: StandardConstructor,
+    typed_biguint64_array: StandardConstructor,
+    typed_float32_array: StandardConstructor,
+    typed_float64_array: StandardConstructor,
+    array_buffer: StandardConstructor,
+    data_view: StandardConstructor,
+    date_time_format: StandardConstructor,
+    promise: StandardConstructor,
 }
 
-<span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">StandardConstructors</span> {
-    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="self">Self</span> {
-            <span class="ident">async_generator_function</span>: <span class="ident">StandardConstructor::default</span>(),
-            <span class="ident">async_generator</span>: <span class="ident">StandardConstructor::default</span>(),
-            <span class="ident">object</span>: <span class="ident">StandardConstructor::default</span>(),
-            <span class="ident">proxy</span>: <span class="ident">StandardConstructor::default</span>(),
-            <span class="ident">date</span>: <span class="ident">StandardConstructor::default</span>(),
-            <span class="ident">function</span>: <span class="ident">StandardConstructor::default</span>(),
-            <span class="ident">async_function</span>: <span class="ident">StandardConstructor::default</span>(),
-            <span class="ident">generator</span>: <span class="ident">StandardConstructor::default</span>(),
-            <span class="ident">generator_function</span>: <span class="ident">StandardConstructor::default</span>(),
-            <span class="ident">array</span>: <span class="ident">StandardConstructor::with_prototype</span>(<span class="ident">JsObject::from_proto_and_data</span>(
+<span class="kw">impl </span>Default <span class="kw">for </span>StandardConstructors {
+    <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>result = <span class="self">Self </span>{
+            async_generator_function: StandardConstructor::default(),
+            async_generator: StandardConstructor::default(),
+            object: StandardConstructor::default(),
+            proxy: StandardConstructor::default(),
+            date: StandardConstructor::default(),
+            function: StandardConstructor::default(),
+            async_function: StandardConstructor::default(),
+            generator: StandardConstructor::default(),
+            generator_function: StandardConstructor::default(),
+            array: StandardConstructor::with_prototype(JsObject::from_proto_and_data(
                 <span class="prelude-val">None</span>,
-                <span class="ident">ObjectData::array</span>(),
+                ObjectData::array(),
             )),
-            <span class="ident">bigint</span>: <span class="ident">StandardConstructor::default</span>(),
-            <span class="ident">number</span>: <span class="ident">StandardConstructor::with_prototype</span>(<span class="ident">JsObject::from_proto_and_data</span>(
+            bigint: StandardConstructor::default(),
+            number: StandardConstructor::with_prototype(JsObject::from_proto_and_data(
                 <span class="prelude-val">None</span>,
-                <span class="ident">ObjectData::number</span>(<span class="number">0.0</span>),
+                ObjectData::number(<span class="number">0.0</span>),
             )),
-            <span class="ident">boolean</span>: <span class="ident">StandardConstructor::with_prototype</span>(<span class="ident">JsObject::from_proto_and_data</span>(
+            boolean: StandardConstructor::with_prototype(JsObject::from_proto_and_data(
                 <span class="prelude-val">None</span>,
-                <span class="ident">ObjectData::boolean</span>(<span class="bool-val">false</span>),
+                ObjectData::boolean(<span class="bool-val">false</span>),
             )),
-            <span class="ident">string</span>: <span class="ident">StandardConstructor::with_prototype</span>(<span class="ident">JsObject::from_proto_and_data</span>(
+            string: StandardConstructor::with_prototype(JsObject::from_proto_and_data(
                 <span class="prelude-val">None</span>,
-                <span class="ident">ObjectData::string</span>(<span class="string">&quot;&quot;</span>.<span class="ident">into</span>()),
+                ObjectData::string(<span class="string">&quot;&quot;</span>.into()),
             )),
-            <span class="ident">regexp</span>: <span class="ident">StandardConstructor::default</span>(),
-            <span class="ident">symbol</span>: <span class="ident">StandardConstructor::default</span>(),
-            <span class="ident">error</span>: <span class="ident">StandardConstructor::default</span>(),
-            <span class="ident">type_error</span>: <span class="ident">StandardConstructor::default</span>(),
-            <span class="ident">reference_error</span>: <span class="ident">StandardConstructor::default</span>(),
-            <span class="ident">range_error</span>: <span class="ident">StandardConstructor::default</span>(),
-            <span class="ident">syntax_error</span>: <span class="ident">StandardConstructor::default</span>(),
-            <span class="ident">eval_error</span>: <span class="ident">StandardConstructor::default</span>(),
-            <span class="ident">uri_error</span>: <span class="ident">StandardConstructor::default</span>(),
-            <span class="ident">aggregate_error</span>: <span class="ident">StandardConstructor::default</span>(),
-            <span class="ident">map</span>: <span class="ident">StandardConstructor::default</span>(),
-            <span class="ident">set</span>: <span class="ident">StandardConstructor::default</span>(),
-            <span class="ident">typed_array</span>: <span class="ident">StandardConstructor::default</span>(),
-            <span class="ident">typed_int8_array</span>: <span class="ident">StandardConstructor::default</span>(),
-            <span class="ident">typed_uint8_array</span>: <span class="ident">StandardConstructor::default</span>(),
-            <span class="ident">typed_uint8clamped_array</span>: <span class="ident">StandardConstructor::default</span>(),
-            <span class="ident">typed_int16_array</span>: <span class="ident">StandardConstructor::default</span>(),
-            <span class="ident">typed_uint16_array</span>: <span class="ident">StandardConstructor::default</span>(),
-            <span class="ident">typed_int32_array</span>: <span class="ident">StandardConstructor::default</span>(),
-            <span class="ident">typed_uint32_array</span>: <span class="ident">StandardConstructor::default</span>(),
-            <span class="ident">typed_bigint64_array</span>: <span class="ident">StandardConstructor::default</span>(),
-            <span class="ident">typed_biguint64_array</span>: <span class="ident">StandardConstructor::default</span>(),
-            <span class="ident">typed_float32_array</span>: <span class="ident">StandardConstructor::default</span>(),
-            <span class="ident">typed_float64_array</span>: <span class="ident">StandardConstructor::default</span>(),
-            <span class="ident">array_buffer</span>: <span class="ident">StandardConstructor::default</span>(),
-            <span class="ident">data_view</span>: <span class="ident">StandardConstructor::default</span>(),
-            <span class="ident">date_time_format</span>: <span class="ident">StandardConstructor::default</span>(),
-            <span class="ident">promise</span>: <span class="ident">StandardConstructor::default</span>(),
+            regexp: StandardConstructor::default(),
+            symbol: StandardConstructor::default(),
+            error: StandardConstructor::default(),
+            type_error: StandardConstructor::default(),
+            reference_error: StandardConstructor::default(),
+            range_error: StandardConstructor::default(),
+            syntax_error: StandardConstructor::default(),
+            eval_error: StandardConstructor::default(),
+            uri_error: StandardConstructor::default(),
+            aggregate_error: StandardConstructor::default(),
+            map: StandardConstructor::default(),
+            set: StandardConstructor::default(),
+            typed_array: StandardConstructor::default(),
+            typed_int8_array: StandardConstructor::default(),
+            typed_uint8_array: StandardConstructor::default(),
+            typed_uint8clamped_array: StandardConstructor::default(),
+            typed_int16_array: StandardConstructor::default(),
+            typed_uint16_array: StandardConstructor::default(),
+            typed_int32_array: StandardConstructor::default(),
+            typed_uint32_array: StandardConstructor::default(),
+            typed_bigint64_array: StandardConstructor::default(),
+            typed_biguint64_array: StandardConstructor::default(),
+            typed_float32_array: StandardConstructor::default(),
+            typed_float64_array: StandardConstructor::default(),
+            array_buffer: StandardConstructor::default(),
+            data_view: StandardConstructor::default(),
+            date_time_format: StandardConstructor::default(),
+            promise: StandardConstructor::default(),
         };
 
-        <span class="comment">// The value of `Array.prototype` is the Array prototype object.</span>
-        <span class="ident">result</span>.<span class="ident">array</span>.<span class="ident">prototype</span>.<span class="ident">insert</span>(
+        <span class="comment">// The value of `Array.prototype` is the Array prototype object.
+        </span>result.array.prototype.insert(
             <span class="string">&quot;length&quot;</span>,
-            <span class="ident">PropertyDescriptorBuilder::new</span>()
-                .<span class="ident">value</span>(<span class="number">0</span>)
-                .<span class="ident">writable</span>(<span class="bool-val">true</span>)
-                .<span class="ident">enumerable</span>(<span class="bool-val">false</span>)
-                .<span class="ident">configurable</span>(<span class="bool-val">false</span>)
-                .<span class="ident">build</span>(),
+            PropertyDescriptorBuilder::new()
+                .value(<span class="number">0</span>)
+                .writable(<span class="bool-val">true</span>)
+                .enumerable(<span class="bool-val">false</span>)
+                .configurable(<span class="bool-val">false</span>)
+                .build(),
         );
 
-        <span class="ident">result</span>
+        result
     }
 }
 
-<span class="kw">impl</span> <span class="ident">StandardConstructors</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">async_generator_function</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">StandardConstructor</span> {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">async_generator_function</span>
+<span class="kw">impl </span>StandardConstructors {
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>async_generator_function(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.async_generator_function
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">async_generator</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">StandardConstructor</span> {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">async_generator</span>
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>async_generator(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.async_generator
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">object</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">StandardConstructor</span> {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">object</span>
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>object(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.object
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">proxy</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">StandardConstructor</span> {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">proxy</span>
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>proxy(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.proxy
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">date</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">StandardConstructor</span> {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">date</span>
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>date(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.date
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">function</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">StandardConstructor</span> {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">function</span>
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>function(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.function
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">async_function</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">StandardConstructor</span> {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">async_function</span>
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>async_function(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.async_function
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">generator</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">StandardConstructor</span> {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">generator</span>
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>generator(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.generator
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">generator_function</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">StandardConstructor</span> {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">generator_function</span>
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>generator_function(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.generator_function
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">array</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">StandardConstructor</span> {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">array</span>
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>array(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.array
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">bigint_object</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">StandardConstructor</span> {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">bigint</span>
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>bigint_object(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.bigint
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">number</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">StandardConstructor</span> {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">number</span>
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>number(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.number
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">boolean</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">StandardConstructor</span> {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">boolean</span>
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>boolean(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.boolean
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">StandardConstructor</span> {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">string</span>
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>string(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.string
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">regexp</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">StandardConstructor</span> {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">regexp</span>
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>regexp(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.regexp
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">symbol</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">StandardConstructor</span> {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">symbol</span>
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>symbol(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.symbol
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">error</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">StandardConstructor</span> {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">error</span>
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>error(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.error
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">reference_error</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">StandardConstructor</span> {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">reference_error</span>
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>reference_error(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.reference_error
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">type_error</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">StandardConstructor</span> {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">type_error</span>
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>type_error(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.type_error
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">range_error</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">StandardConstructor</span> {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">range_error</span>
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>range_error(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.range_error
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">syntax_error</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">StandardConstructor</span> {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">syntax_error</span>
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>syntax_error(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.syntax_error
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">eval_error</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">StandardConstructor</span> {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">eval_error</span>
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>eval_error(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.eval_error
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">uri_error</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">StandardConstructor</span> {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">uri_error</span>
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>uri_error(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.uri_error
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">aggregate_error</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">StandardConstructor</span> {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">aggregate_error</span>
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>aggregate_error(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.aggregate_error
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">map</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">StandardConstructor</span> {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">map</span>
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>map(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.map
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">StandardConstructor</span> {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">set</span>
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>set(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.set
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">typed_array</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">StandardConstructor</span> {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">typed_array</span>
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>typed_array(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.typed_array
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">typed_int8_array</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">StandardConstructor</span> {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">typed_int8_array</span>
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>typed_int8_array(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.typed_int8_array
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">typed_uint8_array</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">StandardConstructor</span> {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">typed_uint8_array</span>
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>typed_uint8_array(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.typed_uint8_array
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">typed_uint8clamped_array</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">StandardConstructor</span> {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">typed_uint8clamped_array</span>
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>typed_uint8clamped_array(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.typed_uint8clamped_array
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">typed_int16_array</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">StandardConstructor</span> {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">typed_int16_array</span>
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>typed_int16_array(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.typed_int16_array
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">typed_uint16_array</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">StandardConstructor</span> {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">typed_uint16_array</span>
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>typed_uint16_array(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.typed_uint16_array
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">typed_uint32_array</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">StandardConstructor</span> {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">typed_uint32_array</span>
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>typed_uint32_array(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.typed_uint32_array
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">typed_int32_array</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">StandardConstructor</span> {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">typed_int32_array</span>
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>typed_int32_array(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.typed_int32_array
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">typed_bigint64_array</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">StandardConstructor</span> {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">typed_bigint64_array</span>
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>typed_bigint64_array(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.typed_bigint64_array
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">typed_biguint64_array</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">StandardConstructor</span> {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">typed_biguint64_array</span>
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>typed_biguint64_array(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.typed_biguint64_array
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">typed_float32_array</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">StandardConstructor</span> {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">typed_float32_array</span>
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>typed_float32_array(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.typed_float32_array
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">typed_float64_array</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">StandardConstructor</span> {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">typed_float64_array</span>
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>typed_float64_array(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.typed_float64_array
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">array_buffer</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">StandardConstructor</span> {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">array_buffer</span>
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>array_buffer(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.array_buffer
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">data_view</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">StandardConstructor</span> {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">data_view</span>
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>data_view(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.data_view
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">date_time_format</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">StandardConstructor</span> {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">date_time_format</span>
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>date_time_format(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.date_time_format
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">promise</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">StandardConstructor</span> {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">promise</span>
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>promise(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.promise
     }
 }
 
-<span class="doccomment">/// Cached intrinsic objects</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Default</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">IntrinsicObjects</span> {
-    <span class="doccomment">/// %ThrowTypeError% intrinsic object</span>
-    <span class="ident">throw_type_error</span>: <span class="ident">JsObject</span>,
+<span class="doccomment">/// Cached intrinsic objects
+</span><span class="attribute">#[derive(Debug, Default)]
+</span><span class="kw">pub struct </span>IntrinsicObjects {
+    <span class="doccomment">/// %ThrowTypeError% intrinsic object
+    </span>throw_type_error: JsObject,
 
-    <span class="doccomment">/// %Array.prototype.values%</span>
-    <span class="ident">array_prototype_values</span>: <span class="ident">JsObject</span>,
+    <span class="doccomment">/// %Array.prototype.values%
+    </span>array_prototype_values: JsObject,
 
-    <span class="doccomment">/// Cached iterator prototypes.</span>
-    <span class="ident">iterator_prototypes</span>: <span class="ident">IteratorPrototypes</span>,
+    <span class="doccomment">/// Cached iterator prototypes.
+    </span>iterator_prototypes: IteratorPrototypes,
 }
 
-<span class="kw">impl</span> <span class="ident">IntrinsicObjects</span> {
-    <span class="doccomment">/// Initialize the intrinsic objects</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">init</span>(<span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">throw_type_error</span>: <span class="ident">create_throw_type_error</span>(<span class="ident">context</span>),
-            <span class="ident">array_prototype_values</span>: <span class="ident">Array::create_array_prototype_values</span>(<span class="ident">context</span>).<span class="ident">into</span>(),
-            <span class="ident">iterator_prototypes</span>: <span class="ident">IteratorPrototypes::init</span>(<span class="ident">context</span>),
+<span class="kw">impl </span>IntrinsicObjects {
+    <span class="doccomment">/// Initialize the intrinsic objects
+    </span><span class="kw">pub fn </span>init(context: <span class="kw-2">&amp;mut </span>Context) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            throw_type_error: create_throw_type_error(context),
+            array_prototype_values: Array::create_array_prototype_values(context).into(),
+            iterator_prototypes: IteratorPrototypes::init(context),
         }
     }
 
-    <span class="doccomment">/// Get the `%ThrowTypeError%` intrinsic object</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">throw_type_error</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">JsObject</span> {
-        <span class="self">self</span>.<span class="ident">throw_type_error</span>.<span class="ident">clone</span>()
+    <span class="doccomment">/// Get the `%ThrowTypeError%` intrinsic object
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>throw_type_error(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsObject {
+        <span class="self">self</span>.throw_type_error.clone()
     }
 
-    <span class="doccomment">/// Get the `%Array.prototype.values%` intrinsic object.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">array_prototype_values</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">JsObject</span> {
-        <span class="self">self</span>.<span class="ident">array_prototype_values</span>.<span class="ident">clone</span>()
+    <span class="doccomment">/// Get the `%Array.prototype.values%` intrinsic object.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>array_prototype_values(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsObject {
+        <span class="self">self</span>.array_prototype_values.clone()
     }
 
-    <span class="doccomment">/// Get the cached iterator prototypes.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">iterator_prototypes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">IteratorPrototypes</span> {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">iterator_prototypes</span>
+    <span class="doccomment">/// Get the cached iterator prototypes.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>iterator_prototypes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>IteratorPrototypes {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.iterator_prototypes
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0 (a55dd71d5 2022-09-19)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0 (897e37553 2022-11-02)" ></div></body></html>

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_engine/src/builtins/dataview/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_engine/src/builtins/dataview/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container">
                     <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../boa_engine/index.html">
                         <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -1053,1058 +1053,1058 @@
 <span id="1051">1051</span>
 <span id="1052">1052</span>
 <span id="1053">1053</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">builtins</span>::{<span class="ident">array_buffer::SharedMemoryOrder</span>, <span class="ident">typed_array::TypedArrayKind</span>, <span class="ident">BuiltIn</span>, <span class="ident">JsArgs</span>},
-    <span class="ident">context::intrinsics::StandardConstructors</span>,
-    <span class="ident">error::JsNativeError</span>,
-    <span class="ident">object</span>::{
-        <span class="ident">internal_methods::get_prototype_from_constructor</span>, <span class="ident">ConstructorBuilder</span>, <span class="ident">FunctionBuilder</span>,
-        <span class="ident">JsObject</span>, <span class="ident">ObjectData</span>,
+</pre><pre class="rust"><code><span class="kw">use crate</span>::{
+    builtins::{array_buffer::SharedMemoryOrder, typed_array::TypedArrayKind, BuiltIn, JsArgs},
+    context::intrinsics::StandardConstructors,
+    error::JsNativeError,
+    object::{
+        internal_methods::get_prototype_from_constructor, ConstructorBuilder, FunctionBuilder,
+        JsObject, ObjectData,
     },
-    <span class="ident">property::Attribute</span>,
-    <span class="ident">symbol::WellKnownSymbols</span>,
-    <span class="ident">value::JsValue</span>,
-    <span class="ident">Context</span>, <span class="ident">JsResult</span>,
+    property::Attribute,
+    symbol::WellKnownSymbols,
+    value::JsValue,
+    Context, JsResult,
 };
-<span class="kw">use</span> <span class="ident">boa_gc</span>::{<span class="ident">Finalize</span>, <span class="ident">Trace</span>};
-<span class="kw">use</span> <span class="ident">tap</span>::{<span class="ident">Conv</span>, <span class="ident">Pipe</span>};
+<span class="kw">use </span>boa_gc::{Finalize, Trace};
+<span class="kw">use </span>tap::{Conv, Pipe};
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Trace</span>, <span class="ident">Finalize</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">DataView</span> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">viewed_array_buffer</span>: <span class="ident">JsObject</span>,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">byte_length</span>: <span class="ident">u64</span>,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">byte_offset</span>: <span class="ident">u64</span>,
+<span class="attribute">#[derive(Debug, Clone, Trace, Finalize)]
+</span><span class="kw">pub struct </span>DataView {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) viewed_array_buffer: JsObject,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) byte_length: u64,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) byte_offset: u64,
 }
 
-<span class="kw">impl</span> <span class="ident">BuiltIn</span> <span class="kw">for</span> <span class="ident">DataView</span> {
-    <span class="kw">const</span> <span class="ident">NAME</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;DataView&quot;</span>;
+<span class="kw">impl </span>BuiltIn <span class="kw">for </span>DataView {
+    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;DataView&quot;</span>;
 
-    <span class="kw">fn</span> <span class="ident">init</span>(<span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">flag_attributes</span> <span class="op">=</span> <span class="ident">Attribute::CONFIGURABLE</span> <span class="op">|</span> <span class="ident">Attribute::NON_ENUMERABLE</span>;
+    <span class="kw">fn </span>init(context: <span class="kw-2">&amp;mut </span>Context) -&gt; <span class="prelude-ty">Option</span>&lt;JsValue&gt; {
+        <span class="kw">let </span>flag_attributes = Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE;
 
-        <span class="kw">let</span> <span class="ident">get_buffer</span> <span class="op">=</span> <span class="ident">FunctionBuilder::native</span>(<span class="ident">context</span>, <span class="ident"><span class="self">Self</span>::get_buffer</span>)
-            .<span class="ident">name</span>(<span class="string">&quot;get buffer&quot;</span>)
-            .<span class="ident">build</span>();
+        <span class="kw">let </span>get_buffer = FunctionBuilder::native(context, <span class="self">Self</span>::get_buffer)
+            .name(<span class="string">&quot;get buffer&quot;</span>)
+            .build();
 
-        <span class="kw">let</span> <span class="ident">get_byte_length</span> <span class="op">=</span> <span class="ident">FunctionBuilder::native</span>(<span class="ident">context</span>, <span class="ident"><span class="self">Self</span>::get_byte_length</span>)
-            .<span class="ident">name</span>(<span class="string">&quot;get byteLength&quot;</span>)
-            .<span class="ident">build</span>();
+        <span class="kw">let </span>get_byte_length = FunctionBuilder::native(context, <span class="self">Self</span>::get_byte_length)
+            .name(<span class="string">&quot;get byteLength&quot;</span>)
+            .build();
 
-        <span class="kw">let</span> <span class="ident">get_byte_offset</span> <span class="op">=</span> <span class="ident">FunctionBuilder::native</span>(<span class="ident">context</span>, <span class="ident"><span class="self">Self</span>::get_byte_offset</span>)
-            .<span class="ident">name</span>(<span class="string">&quot;get byteOffset&quot;</span>)
-            .<span class="ident">build</span>();
+        <span class="kw">let </span>get_byte_offset = FunctionBuilder::native(context, <span class="self">Self</span>::get_byte_offset)
+            .name(<span class="string">&quot;get byteOffset&quot;</span>)
+            .build();
 
-        <span class="ident">ConstructorBuilder::with_standard_constructor</span>(
-            <span class="ident">context</span>,
-            <span class="ident"><span class="self">Self</span>::constructor</span>,
-            <span class="ident">context</span>.<span class="ident">intrinsics</span>().<span class="ident">constructors</span>().<span class="ident">data_view</span>().<span class="ident">clone</span>(),
+        ConstructorBuilder::with_standard_constructor(
+            context,
+            <span class="self">Self</span>::constructor,
+            context.intrinsics().constructors().data_view().clone(),
         )
-        .<span class="ident">name</span>(<span class="ident"><span class="self">Self</span>::NAME</span>)
-        .<span class="ident">length</span>(<span class="ident"><span class="self">Self</span>::LENGTH</span>)
-        .<span class="ident">accessor</span>(<span class="string">&quot;buffer&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">get_buffer</span>), <span class="prelude-val">None</span>, <span class="ident">flag_attributes</span>)
-        .<span class="ident">accessor</span>(<span class="string">&quot;byteLength&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">get_byte_length</span>), <span class="prelude-val">None</span>, <span class="ident">flag_attributes</span>)
-        .<span class="ident">accessor</span>(<span class="string">&quot;byteOffset&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">get_byte_offset</span>), <span class="prelude-val">None</span>, <span class="ident">flag_attributes</span>)
-        .<span class="ident">method</span>(<span class="ident"><span class="self">Self</span>::get_big_int64</span>, <span class="string">&quot;getBigInt64&quot;</span>, <span class="number">1</span>)
-        .<span class="ident">method</span>(<span class="ident"><span class="self">Self</span>::get_big_uint64</span>, <span class="string">&quot;getBigUint64&quot;</span>, <span class="number">1</span>)
-        .<span class="ident">method</span>(<span class="ident"><span class="self">Self</span>::get_float32</span>, <span class="string">&quot;getFloat32&quot;</span>, <span class="number">1</span>)
-        .<span class="ident">method</span>(<span class="ident"><span class="self">Self</span>::get_float64</span>, <span class="string">&quot;getFloat64&quot;</span>, <span class="number">1</span>)
-        .<span class="ident">method</span>(<span class="ident"><span class="self">Self</span>::get_int8</span>, <span class="string">&quot;getInt8&quot;</span>, <span class="number">1</span>)
-        .<span class="ident">method</span>(<span class="ident"><span class="self">Self</span>::get_int16</span>, <span class="string">&quot;getInt16&quot;</span>, <span class="number">1</span>)
-        .<span class="ident">method</span>(<span class="ident"><span class="self">Self</span>::get_int32</span>, <span class="string">&quot;getInt32&quot;</span>, <span class="number">1</span>)
-        .<span class="ident">method</span>(<span class="ident"><span class="self">Self</span>::get_uint8</span>, <span class="string">&quot;getUint8&quot;</span>, <span class="number">1</span>)
-        .<span class="ident">method</span>(<span class="ident"><span class="self">Self</span>::get_uint16</span>, <span class="string">&quot;getUint16&quot;</span>, <span class="number">1</span>)
-        .<span class="ident">method</span>(<span class="ident"><span class="self">Self</span>::get_uint32</span>, <span class="string">&quot;getUint32&quot;</span>, <span class="number">1</span>)
-        .<span class="ident">method</span>(<span class="ident"><span class="self">Self</span>::set_big_int64</span>, <span class="string">&quot;setBigInt64&quot;</span>, <span class="number">2</span>)
-        .<span class="ident">method</span>(<span class="ident"><span class="self">Self</span>::set_big_uint64</span>, <span class="string">&quot;setBigUint64&quot;</span>, <span class="number">2</span>)
-        .<span class="ident">method</span>(<span class="ident"><span class="self">Self</span>::set_float32</span>, <span class="string">&quot;setFloat32&quot;</span>, <span class="number">2</span>)
-        .<span class="ident">method</span>(<span class="ident"><span class="self">Self</span>::set_float64</span>, <span class="string">&quot;setFloat64&quot;</span>, <span class="number">2</span>)
-        .<span class="ident">method</span>(<span class="ident"><span class="self">Self</span>::set_int8</span>, <span class="string">&quot;setInt8&quot;</span>, <span class="number">2</span>)
-        .<span class="ident">method</span>(<span class="ident"><span class="self">Self</span>::set_int16</span>, <span class="string">&quot;setInt16&quot;</span>, <span class="number">2</span>)
-        .<span class="ident">method</span>(<span class="ident"><span class="self">Self</span>::set_int32</span>, <span class="string">&quot;setInt32&quot;</span>, <span class="number">2</span>)
-        .<span class="ident">method</span>(<span class="ident"><span class="self">Self</span>::set_uint8</span>, <span class="string">&quot;setUint8&quot;</span>, <span class="number">2</span>)
-        .<span class="ident">method</span>(<span class="ident"><span class="self">Self</span>::set_uint16</span>, <span class="string">&quot;setUint16&quot;</span>, <span class="number">2</span>)
-        .<span class="ident">method</span>(<span class="ident"><span class="self">Self</span>::set_uint32</span>, <span class="string">&quot;setUint32&quot;</span>, <span class="number">2</span>)
-        .<span class="ident">property</span>(
-            <span class="ident">WellKnownSymbols::to_string_tag</span>(),
-            <span class="ident"><span class="self">Self</span>::NAME</span>,
-            <span class="ident">Attribute::READONLY</span> <span class="op">|</span> <span class="ident">Attribute::NON_ENUMERABLE</span> <span class="op">|</span> <span class="ident">Attribute::CONFIGURABLE</span>,
+        .name(<span class="self">Self</span>::NAME)
+        .length(<span class="self">Self</span>::LENGTH)
+        .accessor(<span class="string">&quot;buffer&quot;</span>, <span class="prelude-val">Some</span>(get_buffer), <span class="prelude-val">None</span>, flag_attributes)
+        .accessor(<span class="string">&quot;byteLength&quot;</span>, <span class="prelude-val">Some</span>(get_byte_length), <span class="prelude-val">None</span>, flag_attributes)
+        .accessor(<span class="string">&quot;byteOffset&quot;</span>, <span class="prelude-val">Some</span>(get_byte_offset), <span class="prelude-val">None</span>, flag_attributes)
+        .method(<span class="self">Self</span>::get_big_int64, <span class="string">&quot;getBigInt64&quot;</span>, <span class="number">1</span>)
+        .method(<span class="self">Self</span>::get_big_uint64, <span class="string">&quot;getBigUint64&quot;</span>, <span class="number">1</span>)
+        .method(<span class="self">Self</span>::get_float32, <span class="string">&quot;getFloat32&quot;</span>, <span class="number">1</span>)
+        .method(<span class="self">Self</span>::get_float64, <span class="string">&quot;getFloat64&quot;</span>, <span class="number">1</span>)
+        .method(<span class="self">Self</span>::get_int8, <span class="string">&quot;getInt8&quot;</span>, <span class="number">1</span>)
+        .method(<span class="self">Self</span>::get_int16, <span class="string">&quot;getInt16&quot;</span>, <span class="number">1</span>)
+        .method(<span class="self">Self</span>::get_int32, <span class="string">&quot;getInt32&quot;</span>, <span class="number">1</span>)
+        .method(<span class="self">Self</span>::get_uint8, <span class="string">&quot;getUint8&quot;</span>, <span class="number">1</span>)
+        .method(<span class="self">Self</span>::get_uint16, <span class="string">&quot;getUint16&quot;</span>, <span class="number">1</span>)
+        .method(<span class="self">Self</span>::get_uint32, <span class="string">&quot;getUint32&quot;</span>, <span class="number">1</span>)
+        .method(<span class="self">Self</span>::set_big_int64, <span class="string">&quot;setBigInt64&quot;</span>, <span class="number">2</span>)
+        .method(<span class="self">Self</span>::set_big_uint64, <span class="string">&quot;setBigUint64&quot;</span>, <span class="number">2</span>)
+        .method(<span class="self">Self</span>::set_float32, <span class="string">&quot;setFloat32&quot;</span>, <span class="number">2</span>)
+        .method(<span class="self">Self</span>::set_float64, <span class="string">&quot;setFloat64&quot;</span>, <span class="number">2</span>)
+        .method(<span class="self">Self</span>::set_int8, <span class="string">&quot;setInt8&quot;</span>, <span class="number">2</span>)
+        .method(<span class="self">Self</span>::set_int16, <span class="string">&quot;setInt16&quot;</span>, <span class="number">2</span>)
+        .method(<span class="self">Self</span>::set_int32, <span class="string">&quot;setInt32&quot;</span>, <span class="number">2</span>)
+        .method(<span class="self">Self</span>::set_uint8, <span class="string">&quot;setUint8&quot;</span>, <span class="number">2</span>)
+        .method(<span class="self">Self</span>::set_uint16, <span class="string">&quot;setUint16&quot;</span>, <span class="number">2</span>)
+        .method(<span class="self">Self</span>::set_uint32, <span class="string">&quot;setUint32&quot;</span>, <span class="number">2</span>)
+        .property(
+            WellKnownSymbols::to_string_tag(),
+            <span class="self">Self</span>::NAME,
+            Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
         )
-        .<span class="ident">build</span>()
-        .<span class="ident">conv</span>::<span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span>()
-        .<span class="ident">pipe</span>(<span class="prelude-val">Some</span>)
+        .build()
+        .conv::&lt;JsValue&gt;()
+        .pipe(<span class="prelude-val">Some</span>)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">DataView</span> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const</span> <span class="ident">LENGTH</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">1</span>;
+<span class="kw">impl </span>DataView {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>LENGTH: usize = <span class="number">1</span>;
 
-    <span class="doccomment">/// `25.3.2.1 DataView ( buffer [ , byteOffset [ , byteLength ] ] )`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The `DataView` view provides a low-level interface for reading and writing multiple number</span>
-    <span class="doccomment">/// types in a binary `ArrayBuffer`, without having to care about the platform&#39;s endianness.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-dataview-buffer-byteoffset-bytelength</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView/DataView</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">constructor</span>(
-        <span class="ident">new_target</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
-        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">byte_length</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">2</span>);
+    <span class="doccomment">/// `25.3.2.1 DataView ( buffer [ , byteOffset [ , byteLength ] ] )`
+    ///
+    /// The `DataView` view provides a low-level interface for reading and writing multiple number
+    /// types in a binary `ArrayBuffer`, without having to care about the platform&#39;s endianness.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-dataview-buffer-byteoffset-bytelength
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView/DataView
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>constructor(
+        new_target: <span class="kw-2">&amp;</span>JsValue,
+        args: <span class="kw-2">&amp;</span>[JsValue],
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="kw">let </span>byte_length = args.get_or_undefined(<span class="number">2</span>);
 
-        <span class="kw">let</span> <span class="ident">buffer_obj</span> <span class="op">=</span> <span class="ident">args</span>
-            .<span class="ident">get_or_undefined</span>(<span class="number">0</span>)
-            .<span class="ident">as_object</span>()
-            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="string">&quot;buffer must be an ArrayBuffer&quot;</span>))<span class="question-mark">?</span>;
+        <span class="kw">let </span>buffer_obj = args
+            .get_or_undefined(<span class="number">0</span>)
+            .as_object()
+            .ok_or_else(|| JsNativeError::typ().with_message(<span class="string">&quot;buffer must be an ArrayBuffer&quot;</span>))<span class="question-mark">?</span>;
 
-        <span class="comment">// 1. If NewTarget is undefined, throw a TypeError exception.</span>
-        <span class="kw">let</span> (<span class="ident">offset</span>, <span class="ident">view_byte_length</span>) <span class="op">=</span> {
-            <span class="kw">if</span> <span class="ident">new_target</span>.<span class="ident">is_undefined</span>() {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
-                    .<span class="ident">with_message</span>(<span class="string">&quot;new target is undefined&quot;</span>)
-                    .<span class="ident">into</span>());
+        <span class="comment">// 1. If NewTarget is undefined, throw a TypeError exception.
+        </span><span class="kw">let </span>(offset, view_byte_length) = {
+            <span class="kw">if </span>new_target.is_undefined() {
+                <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
+                    .with_message(<span class="string">&quot;new target is undefined&quot;</span>)
+                    .into());
             }
-            <span class="comment">// 2. Perform ? RequireInternalSlot(buffer, [[ArrayBufferData]]).</span>
-            <span class="kw">let</span> <span class="ident">buffer_borrow</span> <span class="op">=</span> <span class="ident">buffer_obj</span>.<span class="ident">borrow</span>();
-            <span class="kw">let</span> <span class="ident">buffer</span> <span class="op">=</span> <span class="ident">buffer_borrow</span>.<span class="ident">as_array_buffer</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-                <span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="string">&quot;buffer must be an ArrayBuffer&quot;</span>)
+            <span class="comment">// 2. Perform ? RequireInternalSlot(buffer, [[ArrayBufferData]]).
+            </span><span class="kw">let </span>buffer_borrow = buffer_obj.borrow();
+            <span class="kw">let </span>buffer = buffer_borrow.as_array_buffer().ok_or_else(|| {
+                JsNativeError::typ().with_message(<span class="string">&quot;buffer must be an ArrayBuffer&quot;</span>)
             })<span class="question-mark">?</span>;
 
-            <span class="comment">// 3. Let offset be ? ToIndex(byteOffset).</span>
-            <span class="kw">let</span> <span class="ident">offset</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">1</span>).<span class="ident">to_index</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
-            <span class="comment">// 4. If IsDetachedBuffer(buffer) is true, throw a TypeError exception.</span>
-            <span class="kw">if</span> <span class="ident">buffer</span>.<span class="ident">is_detached_buffer</span>() {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
-                    .<span class="ident">with_message</span>(<span class="string">&quot;ArrayBuffer is detached&quot;</span>)
-                    .<span class="ident">into</span>());
+            <span class="comment">// 3. Let offset be ? ToIndex(byteOffset).
+            </span><span class="kw">let </span>offset = args.get_or_undefined(<span class="number">1</span>).to_index(context)<span class="question-mark">?</span>;
+            <span class="comment">// 4. If IsDetachedBuffer(buffer) is true, throw a TypeError exception.
+            </span><span class="kw">if </span>buffer.is_detached_buffer() {
+                <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
+                    .with_message(<span class="string">&quot;ArrayBuffer is detached&quot;</span>)
+                    .into());
             }
-            <span class="comment">// 5. Let bufferByteLength be buffer.[[ArrayBufferByteLength]].</span>
-            <span class="kw">let</span> <span class="ident">buffer_byte_length</span> <span class="op">=</span> <span class="ident">buffer</span>.<span class="ident">array_buffer_byte_length</span>();
-            <span class="comment">// 6. If offset &gt; bufferByteLength, throw a RangeError exception.</span>
-            <span class="kw">if</span> <span class="ident">offset</span> <span class="op">&gt;</span> <span class="ident">buffer_byte_length</span> {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::range</span>()
-                    .<span class="ident">with_message</span>(<span class="string">&quot;Start offset is outside the bounds of the buffer&quot;</span>)
-                    .<span class="ident">into</span>());
+            <span class="comment">// 5. Let bufferByteLength be buffer.[[ArrayBufferByteLength]].
+            </span><span class="kw">let </span>buffer_byte_length = buffer.array_buffer_byte_length();
+            <span class="comment">// 6. If offset &gt; bufferByteLength, throw a RangeError exception.
+            </span><span class="kw">if </span>offset &gt; buffer_byte_length {
+                <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::range()
+                    .with_message(<span class="string">&quot;Start offset is outside the bounds of the buffer&quot;</span>)
+                    .into());
             }
-            <span class="comment">// 7. If byteLength is undefined, then</span>
-            <span class="kw">let</span> <span class="ident">view_byte_length</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">byte_length</span>.<span class="ident">is_undefined</span>() {
-                <span class="comment">// a. Let viewByteLength be bufferByteLength - offset.</span>
-                <span class="ident">buffer_byte_length</span> <span class="op">-</span> <span class="ident">offset</span>
-            } <span class="kw">else</span> {
-                <span class="comment">// 8.a. Let viewByteLength be ? ToIndex(byteLength).</span>
-                <span class="kw">let</span> <span class="ident">view_byte_length</span> <span class="op">=</span> <span class="ident">byte_length</span>.<span class="ident">to_index</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
-                <span class="comment">// 8.b. If offset + viewByteLength &gt; bufferByteLength, throw a RangeError exception.</span>
-                <span class="kw">if</span> <span class="ident">offset</span> <span class="op">+</span> <span class="ident">view_byte_length</span> <span class="op">&gt;</span> <span class="ident">buffer_byte_length</span> {
-                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::range</span>()
-                        .<span class="ident">with_message</span>(<span class="string">&quot;Invalid data view length&quot;</span>)
-                        .<span class="ident">into</span>());
+            <span class="comment">// 7. If byteLength is undefined, then
+            </span><span class="kw">let </span>view_byte_length = <span class="kw">if </span>byte_length.is_undefined() {
+                <span class="comment">// a. Let viewByteLength be bufferByteLength - offset.
+                </span>buffer_byte_length - offset
+            } <span class="kw">else </span>{
+                <span class="comment">// 8.a. Let viewByteLength be ? ToIndex(byteLength).
+                </span><span class="kw">let </span>view_byte_length = byte_length.to_index(context)<span class="question-mark">?</span>;
+                <span class="comment">// 8.b. If offset + viewByteLength &gt; bufferByteLength, throw a RangeError exception.
+                </span><span class="kw">if </span>offset + view_byte_length &gt; buffer_byte_length {
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::range()
+                        .with_message(<span class="string">&quot;Invalid data view length&quot;</span>)
+                        .into());
                 }
 
-                <span class="ident">view_byte_length</span>
+                view_byte_length
             };
-            (<span class="ident">offset</span>, <span class="ident">view_byte_length</span>)
+            (offset, view_byte_length)
         };
 
-        <span class="comment">// 9. Let O be ? OrdinaryCreateFromConstructor(NewTarget, &quot;%DataView.prototype%&quot;, « [[DataView]], [[ViewedArrayBuffer]], [[ByteLength]], [[ByteOffset]] »).</span>
-        <span class="kw">let</span> <span class="ident">prototype</span> <span class="op">=</span>
-            <span class="ident">get_prototype_from_constructor</span>(<span class="ident">new_target</span>, <span class="ident">StandardConstructors::data_view</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="comment">// 9. Let O be ? OrdinaryCreateFromConstructor(NewTarget, &quot;%DataView.prototype%&quot;, « [[DataView]], [[ViewedArrayBuffer]], [[ByteLength]], [[ByteOffset]] »).
+        </span><span class="kw">let </span>prototype =
+            get_prototype_from_constructor(new_target, StandardConstructors::data_view, context)<span class="question-mark">?</span>;
 
-        <span class="comment">// 10. If IsDetachedBuffer(buffer) is true, throw a TypeError exception.</span>
-        <span class="kw">if</span> <span class="ident">buffer_obj</span>
-            .<span class="ident">borrow</span>()
-            .<span class="ident">as_array_buffer</span>()
-            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="string">&quot;buffer must be an ArrayBuffer&quot;</span>))<span class="question-mark">?</span>
-            .<span class="ident">is_detached_buffer</span>()
+        <span class="comment">// 10. If IsDetachedBuffer(buffer) is true, throw a TypeError exception.
+        </span><span class="kw">if </span>buffer_obj
+            .borrow()
+            .as_array_buffer()
+            .ok_or_else(|| JsNativeError::typ().with_message(<span class="string">&quot;buffer must be an ArrayBuffer&quot;</span>))<span class="question-mark">?
+            </span>.is_detached_buffer()
         {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
-                .<span class="ident">with_message</span>(<span class="string">&quot;ArrayBuffer can&#39;t be detached&quot;</span>)
-                .<span class="ident">into</span>());
+            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
+                .with_message(<span class="string">&quot;ArrayBuffer can&#39;t be detached&quot;</span>)
+                .into());
         }
 
-        <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">JsObject::from_proto_and_data</span>(
-            <span class="ident">prototype</span>,
-            <span class="ident">ObjectData::data_view</span>(<span class="self">Self</span> {
-                <span class="comment">// 11. Set O.[[ViewedArrayBuffer]] to buffer.</span>
-                <span class="ident">viewed_array_buffer</span>: <span class="ident">buffer_obj</span>.<span class="ident">clone</span>(),
-                <span class="comment">// 12. Set O.[[ByteLength]] to viewByteLength.</span>
-                <span class="ident">byte_length</span>: <span class="ident">view_byte_length</span>,
-                <span class="comment">// 13. Set O.[[ByteOffset]] to offset.</span>
-                <span class="ident">byte_offset</span>: <span class="ident">offset</span>,
+        <span class="kw">let </span>obj = JsObject::from_proto_and_data(
+            prototype,
+            ObjectData::data_view(<span class="self">Self </span>{
+                <span class="comment">// 11. Set O.[[ViewedArrayBuffer]] to buffer.
+                </span>viewed_array_buffer: buffer_obj.clone(),
+                <span class="comment">// 12. Set O.[[ByteLength]] to viewByteLength.
+                </span>byte_length: view_byte_length,
+                <span class="comment">// 13. Set O.[[ByteOffset]] to offset.
+                </span>byte_offset: offset,
             }),
         );
 
-        <span class="comment">// 14. Return O.</span>
-        <span class="prelude-val">Ok</span>(<span class="ident">obj</span>.<span class="ident">into</span>())
+        <span class="comment">// 14. Return O.
+        </span><span class="prelude-val">Ok</span>(obj.into())
     }
 
-    <span class="doccomment">/// `25.3.4.1 get DataView.prototype.buffer`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The buffer accessor property represents the `ArrayBuffer` or `SharedArrayBuffer` referenced</span>
-    <span class="doccomment">/// by the `DataView` at construction time.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-get-dataview.prototype.buffer</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView/buffer</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_buffer</span>(
-        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
-        <span class="ident">_args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
-        <span class="kw">_</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="comment">// 1. Let O be the this value.</span>
-        <span class="comment">// 2. Perform ? RequireInternalSlot(O, [[DataView]]).</span>
-        <span class="kw">let</span> <span class="ident">dataview</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">as_object</span>().<span class="ident">map</span>(<span class="ident">JsObject::borrow</span>);
-        <span class="kw">let</span> <span class="ident">dataview</span> <span class="op">=</span> <span class="ident">dataview</span>
-            .<span class="ident">as_ref</span>()
-            .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">obj</span><span class="op">|</span> <span class="ident">obj</span>.<span class="ident">as_data_view</span>())
-            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="string">&quot;`this` is not a DataView&quot;</span>))<span class="question-mark">?</span>;
-        <span class="comment">// 3. Assert: O has a [[ViewedArrayBuffer]] internal slot.</span>
-        <span class="comment">// 4. Let buffer be O.[[ViewedArrayBuffer]].</span>
-        <span class="kw">let</span> <span class="ident">buffer</span> <span class="op">=</span> <span class="ident">dataview</span>.<span class="ident">viewed_array_buffer</span>.<span class="ident">clone</span>();
-        <span class="comment">// 5. Return buffer.</span>
-        <span class="prelude-val">Ok</span>(<span class="ident">buffer</span>.<span class="ident">into</span>())
+    <span class="doccomment">/// `25.3.4.1 get DataView.prototype.buffer`
+    ///
+    /// The buffer accessor property represents the `ArrayBuffer` or `SharedArrayBuffer` referenced
+    /// by the `DataView` at construction time.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-get-dataview.prototype.buffer
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView/buffer
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_buffer(
+        this: <span class="kw-2">&amp;</span>JsValue,
+        _args: <span class="kw-2">&amp;</span>[JsValue],
+        <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="comment">// 1. Let O be the this value.
+        // 2. Perform ? RequireInternalSlot(O, [[DataView]]).
+        </span><span class="kw">let </span>dataview = this.as_object().map(JsObject::borrow);
+        <span class="kw">let </span>dataview = dataview
+            .as_ref()
+            .and_then(|obj| obj.as_data_view())
+            .ok_or_else(|| JsNativeError::typ().with_message(<span class="string">&quot;`this` is not a DataView&quot;</span>))<span class="question-mark">?</span>;
+        <span class="comment">// 3. Assert: O has a [[ViewedArrayBuffer]] internal slot.
+        // 4. Let buffer be O.[[ViewedArrayBuffer]].
+        </span><span class="kw">let </span>buffer = dataview.viewed_array_buffer.clone();
+        <span class="comment">// 5. Return buffer.
+        </span><span class="prelude-val">Ok</span>(buffer.into())
     }
 
-    <span class="doccomment">/// `25.3.4.1 get DataView.prototype.byteLength`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The `byteLength` accessor property represents the length (in bytes) of the dataview.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-get-dataview.prototype.bytelength</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView/byteLength</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_byte_length</span>(
-        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
-        <span class="ident">_args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
-        <span class="kw">_</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="comment">// 1. Let O be the this value.</span>
-        <span class="comment">// 2. Perform ? RequireInternalSlot(O, [[DataView]]).</span>
-        <span class="kw">let</span> <span class="ident">dataview</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">as_object</span>().<span class="ident">map</span>(<span class="ident">JsObject::borrow</span>);
-        <span class="kw">let</span> <span class="ident">dataview</span> <span class="op">=</span> <span class="ident">dataview</span>
-            .<span class="ident">as_ref</span>()
-            .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">obj</span><span class="op">|</span> <span class="ident">obj</span>.<span class="ident">as_data_view</span>())
-            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="string">&quot;`this` is not a DataView&quot;</span>))<span class="question-mark">?</span>;
-        <span class="comment">// 3. Assert: O has a [[ViewedArrayBuffer]] internal slot.</span>
-        <span class="comment">// 4. Let buffer be O.[[ViewedArrayBuffer]].</span>
-        <span class="kw">let</span> <span class="ident">buffer_borrow</span> <span class="op">=</span> <span class="ident">dataview</span>.<span class="ident">viewed_array_buffer</span>.<span class="ident">borrow</span>();
-        <span class="kw">let</span> <span class="ident">borrow</span> <span class="op">=</span> <span class="ident">buffer_borrow</span>
-            .<span class="ident">as_array_buffer</span>()
-            .<span class="ident">expect</span>(<span class="string">&quot;DataView must be constructed with an ArrayBuffer&quot;</span>);
-        <span class="comment">// 5. If IsDetachedBuffer(buffer) is true, throw a TypeError exception.</span>
-        <span class="kw">if</span> <span class="ident">borrow</span>.<span class="ident">is_detached_buffer</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
-                .<span class="ident">with_message</span>(<span class="string">&quot;ArrayBuffer is detached&quot;</span>)
-                .<span class="ident">into</span>());
+    <span class="doccomment">/// `25.3.4.1 get DataView.prototype.byteLength`
+    ///
+    /// The `byteLength` accessor property represents the length (in bytes) of the dataview.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-get-dataview.prototype.bytelength
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView/byteLength
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_byte_length(
+        this: <span class="kw-2">&amp;</span>JsValue,
+        _args: <span class="kw-2">&amp;</span>[JsValue],
+        <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="comment">// 1. Let O be the this value.
+        // 2. Perform ? RequireInternalSlot(O, [[DataView]]).
+        </span><span class="kw">let </span>dataview = this.as_object().map(JsObject::borrow);
+        <span class="kw">let </span>dataview = dataview
+            .as_ref()
+            .and_then(|obj| obj.as_data_view())
+            .ok_or_else(|| JsNativeError::typ().with_message(<span class="string">&quot;`this` is not a DataView&quot;</span>))<span class="question-mark">?</span>;
+        <span class="comment">// 3. Assert: O has a [[ViewedArrayBuffer]] internal slot.
+        // 4. Let buffer be O.[[ViewedArrayBuffer]].
+        </span><span class="kw">let </span>buffer_borrow = dataview.viewed_array_buffer.borrow();
+        <span class="kw">let </span>borrow = buffer_borrow
+            .as_array_buffer()
+            .expect(<span class="string">&quot;DataView must be constructed with an ArrayBuffer&quot;</span>);
+        <span class="comment">// 5. If IsDetachedBuffer(buffer) is true, throw a TypeError exception.
+        </span><span class="kw">if </span>borrow.is_detached_buffer() {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
+                .with_message(<span class="string">&quot;ArrayBuffer is detached&quot;</span>)
+                .into());
         }
-        <span class="comment">// 6. Let size be O.[[ByteLength]].</span>
-        <span class="kw">let</span> <span class="ident">size</span> <span class="op">=</span> <span class="ident">dataview</span>.<span class="ident">byte_length</span>;
-        <span class="comment">// 7. Return 𝔽(size).</span>
-        <span class="prelude-val">Ok</span>(<span class="ident">size</span>.<span class="ident">into</span>())
+        <span class="comment">// 6. Let size be O.[[ByteLength]].
+        </span><span class="kw">let </span>size = dataview.byte_length;
+        <span class="comment">// 7. Return 𝔽(size).
+        </span><span class="prelude-val">Ok</span>(size.into())
     }
 
-    <span class="doccomment">/// `25.3.4.1 get DataView.prototype.byteOffset`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The `byteOffset` accessor property represents the offset (in bytes) of this view from the</span>
-    <span class="doccomment">/// start of its `ArrayBuffer` or `SharedArrayBuffer`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-get-dataview.prototype.byteoffset</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView/byteOffset</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_byte_offset</span>(
-        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
-        <span class="ident">_args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
-        <span class="kw">_</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="comment">// 1. Let O be the this value.</span>
-        <span class="comment">// 2. Perform ? RequireInternalSlot(O, [[DataView]]).</span>
-        <span class="kw">let</span> <span class="ident">dataview</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">as_object</span>().<span class="ident">map</span>(<span class="ident">JsObject::borrow</span>);
-        <span class="kw">let</span> <span class="ident">dataview</span> <span class="op">=</span> <span class="ident">dataview</span>
-            .<span class="ident">as_ref</span>()
-            .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">obj</span><span class="op">|</span> <span class="ident">obj</span>.<span class="ident">as_data_view</span>())
-            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="string">&quot;`this` is not a DataView&quot;</span>))<span class="question-mark">?</span>;
-        <span class="comment">// 3. Assert: O has a [[ViewedArrayBuffer]] internal slot.</span>
-        <span class="comment">// 4. Let buffer be O.[[ViewedArrayBuffer]].</span>
-        <span class="kw">let</span> <span class="ident">buffer_borrow</span> <span class="op">=</span> <span class="ident">dataview</span>.<span class="ident">viewed_array_buffer</span>.<span class="ident">borrow</span>();
-        <span class="kw">let</span> <span class="ident">borrow</span> <span class="op">=</span> <span class="ident">buffer_borrow</span>
-            .<span class="ident">as_array_buffer</span>()
-            .<span class="ident">expect</span>(<span class="string">&quot;DataView must be constructed with an ArrayBuffer&quot;</span>);
-        <span class="comment">// 5. If IsDetachedBuffer(buffer) is true, throw a TypeError exception.</span>
-        <span class="kw">if</span> <span class="ident">borrow</span>.<span class="ident">is_detached_buffer</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
-                .<span class="ident">with_message</span>(<span class="string">&quot;ArrayBuffer is detached&quot;</span>)
-                .<span class="ident">into</span>());
+    <span class="doccomment">/// `25.3.4.1 get DataView.prototype.byteOffset`
+    ///
+    /// The `byteOffset` accessor property represents the offset (in bytes) of this view from the
+    /// start of its `ArrayBuffer` or `SharedArrayBuffer`.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-get-dataview.prototype.byteoffset
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView/byteOffset
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_byte_offset(
+        this: <span class="kw-2">&amp;</span>JsValue,
+        _args: <span class="kw-2">&amp;</span>[JsValue],
+        <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="comment">// 1. Let O be the this value.
+        // 2. Perform ? RequireInternalSlot(O, [[DataView]]).
+        </span><span class="kw">let </span>dataview = this.as_object().map(JsObject::borrow);
+        <span class="kw">let </span>dataview = dataview
+            .as_ref()
+            .and_then(|obj| obj.as_data_view())
+            .ok_or_else(|| JsNativeError::typ().with_message(<span class="string">&quot;`this` is not a DataView&quot;</span>))<span class="question-mark">?</span>;
+        <span class="comment">// 3. Assert: O has a [[ViewedArrayBuffer]] internal slot.
+        // 4. Let buffer be O.[[ViewedArrayBuffer]].
+        </span><span class="kw">let </span>buffer_borrow = dataview.viewed_array_buffer.borrow();
+        <span class="kw">let </span>borrow = buffer_borrow
+            .as_array_buffer()
+            .expect(<span class="string">&quot;DataView must be constructed with an ArrayBuffer&quot;</span>);
+        <span class="comment">// 5. If IsDetachedBuffer(buffer) is true, throw a TypeError exception.
+        </span><span class="kw">if </span>borrow.is_detached_buffer() {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
+                .with_message(<span class="string">&quot;ArrayBuffer is detached&quot;</span>)
+                .into());
         }
-        <span class="comment">// 6. Let offset be O.[[ByteOffset]].</span>
-        <span class="kw">let</span> <span class="ident">offset</span> <span class="op">=</span> <span class="ident">dataview</span>.<span class="ident">byte_offset</span>;
-        <span class="comment">// 7. Return 𝔽(offset).</span>
-        <span class="prelude-val">Ok</span>(<span class="ident">offset</span>.<span class="ident">into</span>())
+        <span class="comment">// 6. Let offset be O.[[ByteOffset]].
+        </span><span class="kw">let </span>offset = dataview.byte_offset;
+        <span class="comment">// 7. Return 𝔽(offset).
+        </span><span class="prelude-val">Ok</span>(offset.into())
     }
 
-    <span class="doccomment">/// `25.3.1.1 GetViewValue ( view, requestIndex, isLittleEndian, type )`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The abstract operation `GetViewValue` takes arguments view, requestIndex, `isLittleEndian`,</span>
-    <span class="doccomment">/// and type. It is used by functions on `DataView` instances to retrieve values from the</span>
-    <span class="doccomment">/// view&#39;s buffer.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-getviewvalue</span>
-    <span class="kw">fn</span> <span class="ident">get_view_value</span>(
-        <span class="ident">view</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
-        <span class="ident">request_index</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
-        <span class="ident">is_little_endian</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
-        <span class="ident">t</span>: <span class="ident">TypedArrayKind</span>,
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="comment">// 1. Perform ? RequireInternalSlot(view, [[DataView]]).</span>
-        <span class="comment">// 2. Assert: view has a [[ViewedArrayBuffer]] internal slot.</span>
-        <span class="kw">let</span> <span class="ident">view</span> <span class="op">=</span> <span class="ident">view</span>.<span class="ident">as_object</span>().<span class="ident">map</span>(<span class="ident">JsObject::borrow</span>);
-        <span class="kw">let</span> <span class="ident">view</span> <span class="op">=</span> <span class="ident">view</span>
-            .<span class="ident">as_ref</span>()
-            .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">obj</span><span class="op">|</span> <span class="ident">obj</span>.<span class="ident">as_data_view</span>())
-            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="string">&quot;`this` is not a DataView&quot;</span>))<span class="question-mark">?</span>;
-        <span class="comment">// 3. Let getIndex be ? ToIndex(requestIndex).</span>
-        <span class="kw">let</span> <span class="ident">get_index</span> <span class="op">=</span> <span class="ident">request_index</span>.<span class="ident">to_index</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+    <span class="doccomment">/// `25.3.1.1 GetViewValue ( view, requestIndex, isLittleEndian, type )`
+    ///
+    /// The abstract operation `GetViewValue` takes arguments view, requestIndex, `isLittleEndian`,
+    /// and type. It is used by functions on `DataView` instances to retrieve values from the
+    /// view&#39;s buffer.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-getviewvalue
+    </span><span class="kw">fn </span>get_view_value(
+        view: <span class="kw-2">&amp;</span>JsValue,
+        request_index: <span class="kw-2">&amp;</span>JsValue,
+        is_little_endian: <span class="kw-2">&amp;</span>JsValue,
+        t: TypedArrayKind,
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="comment">// 1. Perform ? RequireInternalSlot(view, [[DataView]]).
+        // 2. Assert: view has a [[ViewedArrayBuffer]] internal slot.
+        </span><span class="kw">let </span>view = view.as_object().map(JsObject::borrow);
+        <span class="kw">let </span>view = view
+            .as_ref()
+            .and_then(|obj| obj.as_data_view())
+            .ok_or_else(|| JsNativeError::typ().with_message(<span class="string">&quot;`this` is not a DataView&quot;</span>))<span class="question-mark">?</span>;
+        <span class="comment">// 3. Let getIndex be ? ToIndex(requestIndex).
+        </span><span class="kw">let </span>get_index = request_index.to_index(context)<span class="question-mark">?</span>;
 
-        <span class="comment">// 4. Set isLittleEndian to ! ToBoolean(isLittleEndian).</span>
-        <span class="kw">let</span> <span class="ident">is_little_endian</span> <span class="op">=</span> <span class="ident">is_little_endian</span>.<span class="ident">to_boolean</span>();
+        <span class="comment">// 4. Set isLittleEndian to ! ToBoolean(isLittleEndian).
+        </span><span class="kw">let </span>is_little_endian = is_little_endian.to_boolean();
 
-        <span class="comment">// 5. Let buffer be view.[[ViewedArrayBuffer]].</span>
-        <span class="kw">let</span> <span class="ident">buffer</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">view</span>.<span class="ident">viewed_array_buffer</span>;
-        <span class="kw">let</span> <span class="ident">buffer_borrow</span> <span class="op">=</span> <span class="ident">buffer</span>.<span class="ident">borrow</span>();
-        <span class="kw">let</span> <span class="ident">buffer</span> <span class="op">=</span> <span class="ident">buffer_borrow</span>
-            .<span class="ident">as_array_buffer</span>()
-            .<span class="ident">expect</span>(<span class="string">&quot;Should be unreachable&quot;</span>);
+        <span class="comment">// 5. Let buffer be view.[[ViewedArrayBuffer]].
+        </span><span class="kw">let </span>buffer = <span class="kw-2">&amp;</span>view.viewed_array_buffer;
+        <span class="kw">let </span>buffer_borrow = buffer.borrow();
+        <span class="kw">let </span>buffer = buffer_borrow
+            .as_array_buffer()
+            .expect(<span class="string">&quot;Should be unreachable&quot;</span>);
 
-        <span class="comment">// 6. If IsDetachedBuffer(buffer) is true, throw a TypeError exception.</span>
-        <span class="kw">if</span> <span class="ident">buffer</span>.<span class="ident">is_detached_buffer</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
-                .<span class="ident">with_message</span>(<span class="string">&quot;ArrayBuffer is detached&quot;</span>)
-                .<span class="ident">into</span>());
+        <span class="comment">// 6. If IsDetachedBuffer(buffer) is true, throw a TypeError exception.
+        </span><span class="kw">if </span>buffer.is_detached_buffer() {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
+                .with_message(<span class="string">&quot;ArrayBuffer is detached&quot;</span>)
+                .into());
         }
-        <span class="comment">// 7. Let viewOffset be view.[[ByteOffset]].</span>
-        <span class="kw">let</span> <span class="ident">view_offset</span> <span class="op">=</span> <span class="ident">view</span>.<span class="ident">byte_offset</span>;
+        <span class="comment">// 7. Let viewOffset be view.[[ByteOffset]].
+        </span><span class="kw">let </span>view_offset = view.byte_offset;
 
-        <span class="comment">// 8. Let viewSize be view.[[ByteLength]].</span>
-        <span class="kw">let</span> <span class="ident">view_size</span> <span class="op">=</span> <span class="ident">view</span>.<span class="ident">byte_length</span>;
+        <span class="comment">// 8. Let viewSize be view.[[ByteLength]].
+        </span><span class="kw">let </span>view_size = view.byte_length;
 
-        <span class="comment">// 9. Let elementSize be the Element Size value specified in Table 72 for Element Type type.</span>
-        <span class="kw">let</span> <span class="ident">element_size</span> <span class="op">=</span> <span class="ident">t</span>.<span class="ident">element_size</span>();
+        <span class="comment">// 9. Let elementSize be the Element Size value specified in Table 72 for Element Type type.
+        </span><span class="kw">let </span>element_size = t.element_size();
 
-        <span class="comment">// 10. If getIndex + elementSize &gt; viewSize, throw a RangeError exception.</span>
-        <span class="kw">if</span> <span class="ident">get_index</span> <span class="op">+</span> <span class="ident">element_size</span> <span class="op">&gt;</span> <span class="ident">view_size</span> {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::range</span>()
-                .<span class="ident">with_message</span>(<span class="string">&quot;Offset is outside the bounds of the DataView&quot;</span>)
-                .<span class="ident">into</span>());
+        <span class="comment">// 10. If getIndex + elementSize &gt; viewSize, throw a RangeError exception.
+        </span><span class="kw">if </span>get_index + element_size &gt; view_size {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::range()
+                .with_message(<span class="string">&quot;Offset is outside the bounds of the DataView&quot;</span>)
+                .into());
         }
 
-        <span class="comment">// 11. Let bufferIndex be getIndex + viewOffset.</span>
-        <span class="kw">let</span> <span class="ident">buffer_index</span> <span class="op">=</span> <span class="ident">get_index</span> <span class="op">+</span> <span class="ident">view_offset</span>;
+        <span class="comment">// 11. Let bufferIndex be getIndex + viewOffset.
+        </span><span class="kw">let </span>buffer_index = get_index + view_offset;
 
-        <span class="comment">// 12. Return GetValueFromBuffer(buffer, bufferIndex, type, false, Unordered, isLittleEndian).</span>
-        <span class="prelude-val">Ok</span>(<span class="ident">buffer</span>.<span class="ident">get_value_from_buffer</span>(
-            <span class="ident">buffer_index</span>,
-            <span class="ident">t</span>,
+        <span class="comment">// 12. Return GetValueFromBuffer(buffer, bufferIndex, type, false, Unordered, isLittleEndian).
+        </span><span class="prelude-val">Ok</span>(buffer.get_value_from_buffer(
+            buffer_index,
+            t,
             <span class="bool-val">false</span>,
-            <span class="ident">SharedMemoryOrder::Unordered</span>,
-            <span class="prelude-val">Some</span>(<span class="ident">is_little_endian</span>),
+            SharedMemoryOrder::Unordered,
+            <span class="prelude-val">Some</span>(is_little_endian),
         ))
     }
 
-    <span class="doccomment">/// `25.3.4.5 DataView.prototype.getBigInt64 ( byteOffset [ , littleEndian ] )`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The `getBigInt64()` method gets a signed 64-bit integer (long long) at the specified byte</span>
-    <span class="doccomment">/// offset from the start of the `DataView`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-dataview.prototype.getbigint64</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView/getBigInt64</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_big_int64</span>(
-        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
-        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">byte_offset</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>);
-        <span class="kw">let</span> <span class="ident">is_little_endian</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">1</span>);
-        <span class="comment">// 1. Let v be the this value.</span>
-        <span class="comment">// 2. Return ? GetViewValue(v, byteOffset, littleEndian, BigInt64).</span>
-        <span class="ident"><span class="self">Self</span>::get_view_value</span>(
-            <span class="ident">this</span>,
-            <span class="ident">byte_offset</span>,
-            <span class="ident">is_little_endian</span>,
-            <span class="ident">TypedArrayKind::BigInt64</span>,
-            <span class="ident">context</span>,
+    <span class="doccomment">/// `25.3.4.5 DataView.prototype.getBigInt64 ( byteOffset [ , littleEndian ] )`
+    ///
+    /// The `getBigInt64()` method gets a signed 64-bit integer (long long) at the specified byte
+    /// offset from the start of the `DataView`.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-dataview.prototype.getbigint64
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView/getBigInt64
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_big_int64(
+        this: <span class="kw-2">&amp;</span>JsValue,
+        args: <span class="kw-2">&amp;</span>[JsValue],
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="kw">let </span>byte_offset = args.get_or_undefined(<span class="number">0</span>);
+        <span class="kw">let </span>is_little_endian = args.get_or_undefined(<span class="number">1</span>);
+        <span class="comment">// 1. Let v be the this value.
+        // 2. Return ? GetViewValue(v, byteOffset, littleEndian, BigInt64).
+        </span><span class="self">Self</span>::get_view_value(
+            this,
+            byte_offset,
+            is_little_endian,
+            TypedArrayKind::BigInt64,
+            context,
         )
     }
 
-    <span class="doccomment">/// `25.3.4.6 DataView.prototype.getBigUint64 ( byteOffset [ , littleEndian ] )`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The `getBigUint64()` method gets an unsigned 64-bit integer (unsigned long long) at the</span>
-    <span class="doccomment">/// specified byte offset from the start of the `DataView`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-dataview.prototype.getbiguint64</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView/getBigUint64</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_big_uint64</span>(
-        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
-        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">byte_offset</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>);
-        <span class="kw">let</span> <span class="ident">is_little_endian</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">1</span>);
-        <span class="comment">// 1. Let v be the this value.</span>
-        <span class="comment">// 2. Return ? GetViewValue(v, byteOffset, littleEndian, BigInt64).</span>
-        <span class="ident"><span class="self">Self</span>::get_view_value</span>(
-            <span class="ident">this</span>,
-            <span class="ident">byte_offset</span>,
-            <span class="ident">is_little_endian</span>,
-            <span class="ident">TypedArrayKind::BigUint64</span>,
-            <span class="ident">context</span>,
+    <span class="doccomment">/// `25.3.4.6 DataView.prototype.getBigUint64 ( byteOffset [ , littleEndian ] )`
+    ///
+    /// The `getBigUint64()` method gets an unsigned 64-bit integer (unsigned long long) at the
+    /// specified byte offset from the start of the `DataView`.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-dataview.prototype.getbiguint64
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView/getBigUint64
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_big_uint64(
+        this: <span class="kw-2">&amp;</span>JsValue,
+        args: <span class="kw-2">&amp;</span>[JsValue],
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="kw">let </span>byte_offset = args.get_or_undefined(<span class="number">0</span>);
+        <span class="kw">let </span>is_little_endian = args.get_or_undefined(<span class="number">1</span>);
+        <span class="comment">// 1. Let v be the this value.
+        // 2. Return ? GetViewValue(v, byteOffset, littleEndian, BigInt64).
+        </span><span class="self">Self</span>::get_view_value(
+            this,
+            byte_offset,
+            is_little_endian,
+            TypedArrayKind::BigUint64,
+            context,
         )
     }
 
-    <span class="doccomment">/// `25.3.4.7 DataView.prototype.getBigUint64 ( byteOffset [ , littleEndian ] )`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The `getFloat32()` method gets a signed 32-bit float (float) at the specified byte offset</span>
-    <span class="doccomment">/// from the start of the `DataView`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-dataview.prototype.getfloat32</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView/getFloat32</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_float32</span>(
-        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
-        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">byte_offset</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>);
-        <span class="kw">let</span> <span class="ident">is_little_endian</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">1</span>);
-        <span class="comment">// 1. Let v be the this value.</span>
-        <span class="comment">// 2. Return ? GetViewValue(v, byteOffset, littleEndian, BigInt64).</span>
-        <span class="ident"><span class="self">Self</span>::get_view_value</span>(
-            <span class="ident">this</span>,
-            <span class="ident">byte_offset</span>,
-            <span class="ident">is_little_endian</span>,
-            <span class="ident">TypedArrayKind::Float32</span>,
-            <span class="ident">context</span>,
+    <span class="doccomment">/// `25.3.4.7 DataView.prototype.getBigUint64 ( byteOffset [ , littleEndian ] )`
+    ///
+    /// The `getFloat32()` method gets a signed 32-bit float (float) at the specified byte offset
+    /// from the start of the `DataView`.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-dataview.prototype.getfloat32
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView/getFloat32
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_float32(
+        this: <span class="kw-2">&amp;</span>JsValue,
+        args: <span class="kw-2">&amp;</span>[JsValue],
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="kw">let </span>byte_offset = args.get_or_undefined(<span class="number">0</span>);
+        <span class="kw">let </span>is_little_endian = args.get_or_undefined(<span class="number">1</span>);
+        <span class="comment">// 1. Let v be the this value.
+        // 2. Return ? GetViewValue(v, byteOffset, littleEndian, BigInt64).
+        </span><span class="self">Self</span>::get_view_value(
+            this,
+            byte_offset,
+            is_little_endian,
+            TypedArrayKind::Float32,
+            context,
         )
     }
 
-    <span class="doccomment">/// `25.3.4.8 DataView.prototype.getFloat64 ( byteOffset [ , littleEndian ] )`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The `getFloat64()` method gets a signed 64-bit float (double) at the specified byte offset</span>
-    <span class="doccomment">/// from the start of the `DataView`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-dataview.prototype.getfloat64</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView/getFloat64</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_float64</span>(
-        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
-        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">byte_offset</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>);
-        <span class="kw">let</span> <span class="ident">is_little_endian</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">1</span>);
-        <span class="comment">// 1. Let v be the this value.</span>
-        <span class="comment">// 2. Return ? GetViewValue(v, byteOffset, littleEndian, BigInt64).</span>
-        <span class="ident"><span class="self">Self</span>::get_view_value</span>(
-            <span class="ident">this</span>,
-            <span class="ident">byte_offset</span>,
-            <span class="ident">is_little_endian</span>,
-            <span class="ident">TypedArrayKind::Float64</span>,
-            <span class="ident">context</span>,
+    <span class="doccomment">/// `25.3.4.8 DataView.prototype.getFloat64 ( byteOffset [ , littleEndian ] )`
+    ///
+    /// The `getFloat64()` method gets a signed 64-bit float (double) at the specified byte offset
+    /// from the start of the `DataView`.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-dataview.prototype.getfloat64
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView/getFloat64
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_float64(
+        this: <span class="kw-2">&amp;</span>JsValue,
+        args: <span class="kw-2">&amp;</span>[JsValue],
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="kw">let </span>byte_offset = args.get_or_undefined(<span class="number">0</span>);
+        <span class="kw">let </span>is_little_endian = args.get_or_undefined(<span class="number">1</span>);
+        <span class="comment">// 1. Let v be the this value.
+        // 2. Return ? GetViewValue(v, byteOffset, littleEndian, BigInt64).
+        </span><span class="self">Self</span>::get_view_value(
+            this,
+            byte_offset,
+            is_little_endian,
+            TypedArrayKind::Float64,
+            context,
         )
     }
 
-    <span class="doccomment">/// `25.3.4.9 DataView.prototype.getInt8 ( byteOffset [ , littleEndian ] )`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The `getInt8()` method gets a signed 8-bit integer (byte) at the specified byte offset</span>
-    <span class="doccomment">/// from the start of the `DataView`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-dataview.prototype.getint8</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView/getInt8</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_int8</span>(
-        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
-        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">byte_offset</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>);
-        <span class="kw">let</span> <span class="ident">is_little_endian</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">1</span>);
-        <span class="comment">// 1. Let v be the this value.</span>
-        <span class="comment">// 2. Return ? GetViewValue(v, byteOffset, littleEndian, BigInt64).</span>
-        <span class="ident"><span class="self">Self</span>::get_view_value</span>(
-            <span class="ident">this</span>,
-            <span class="ident">byte_offset</span>,
-            <span class="ident">is_little_endian</span>,
-            <span class="ident">TypedArrayKind::Int8</span>,
-            <span class="ident">context</span>,
+    <span class="doccomment">/// `25.3.4.9 DataView.prototype.getInt8 ( byteOffset [ , littleEndian ] )`
+    ///
+    /// The `getInt8()` method gets a signed 8-bit integer (byte) at the specified byte offset
+    /// from the start of the `DataView`.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-dataview.prototype.getint8
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView/getInt8
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_int8(
+        this: <span class="kw-2">&amp;</span>JsValue,
+        args: <span class="kw-2">&amp;</span>[JsValue],
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="kw">let </span>byte_offset = args.get_or_undefined(<span class="number">0</span>);
+        <span class="kw">let </span>is_little_endian = args.get_or_undefined(<span class="number">1</span>);
+        <span class="comment">// 1. Let v be the this value.
+        // 2. Return ? GetViewValue(v, byteOffset, littleEndian, BigInt64).
+        </span><span class="self">Self</span>::get_view_value(
+            this,
+            byte_offset,
+            is_little_endian,
+            TypedArrayKind::Int8,
+            context,
         )
     }
 
-    <span class="doccomment">/// `25.3.4.10 DataView.prototype.getInt16 ( byteOffset [ , littleEndian ] )`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The `getInt16()` method gets a signed 16-bit integer (short) at the specified byte offset</span>
-    <span class="doccomment">/// from the start of the `DataView`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-dataview.prototype.getint16</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView/getInt16</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_int16</span>(
-        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
-        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">byte_offset</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>);
-        <span class="kw">let</span> <span class="ident">is_little_endian</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">1</span>);
-        <span class="comment">// 1. Let v be the this value.</span>
-        <span class="comment">// 2. Return ? GetViewValue(v, byteOffset, littleEndian, BigInt64).</span>
-        <span class="ident"><span class="self">Self</span>::get_view_value</span>(
-            <span class="ident">this</span>,
-            <span class="ident">byte_offset</span>,
-            <span class="ident">is_little_endian</span>,
-            <span class="ident">TypedArrayKind::Int16</span>,
-            <span class="ident">context</span>,
+    <span class="doccomment">/// `25.3.4.10 DataView.prototype.getInt16 ( byteOffset [ , littleEndian ] )`
+    ///
+    /// The `getInt16()` method gets a signed 16-bit integer (short) at the specified byte offset
+    /// from the start of the `DataView`.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-dataview.prototype.getint16
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView/getInt16
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_int16(
+        this: <span class="kw-2">&amp;</span>JsValue,
+        args: <span class="kw-2">&amp;</span>[JsValue],
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="kw">let </span>byte_offset = args.get_or_undefined(<span class="number">0</span>);
+        <span class="kw">let </span>is_little_endian = args.get_or_undefined(<span class="number">1</span>);
+        <span class="comment">// 1. Let v be the this value.
+        // 2. Return ? GetViewValue(v, byteOffset, littleEndian, BigInt64).
+        </span><span class="self">Self</span>::get_view_value(
+            this,
+            byte_offset,
+            is_little_endian,
+            TypedArrayKind::Int16,
+            context,
         )
     }
 
-    <span class="doccomment">/// `25.3.4.11 DataView.prototype.getInt32 ( byteOffset [ , littleEndian ] )`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The `getInt32()` method gets a signed 32-bit integer (long) at the specified byte offset</span>
-    <span class="doccomment">/// from the start of the `DataView`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-dataview.prototype.getint32</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView/getInt32</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_int32</span>(
-        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
-        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">byte_offset</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>);
-        <span class="kw">let</span> <span class="ident">is_little_endian</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">1</span>);
-        <span class="comment">// 1. Let v be the this value.</span>
-        <span class="comment">// 2. Return ? GetViewValue(v, byteOffset, littleEndian, BigInt64).</span>
-        <span class="ident"><span class="self">Self</span>::get_view_value</span>(
-            <span class="ident">this</span>,
-            <span class="ident">byte_offset</span>,
-            <span class="ident">is_little_endian</span>,
-            <span class="ident">TypedArrayKind::Int32</span>,
-            <span class="ident">context</span>,
+    <span class="doccomment">/// `25.3.4.11 DataView.prototype.getInt32 ( byteOffset [ , littleEndian ] )`
+    ///
+    /// The `getInt32()` method gets a signed 32-bit integer (long) at the specified byte offset
+    /// from the start of the `DataView`.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-dataview.prototype.getint32
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView/getInt32
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_int32(
+        this: <span class="kw-2">&amp;</span>JsValue,
+        args: <span class="kw-2">&amp;</span>[JsValue],
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="kw">let </span>byte_offset = args.get_or_undefined(<span class="number">0</span>);
+        <span class="kw">let </span>is_little_endian = args.get_or_undefined(<span class="number">1</span>);
+        <span class="comment">// 1. Let v be the this value.
+        // 2. Return ? GetViewValue(v, byteOffset, littleEndian, BigInt64).
+        </span><span class="self">Self</span>::get_view_value(
+            this,
+            byte_offset,
+            is_little_endian,
+            TypedArrayKind::Int32,
+            context,
         )
     }
 
-    <span class="doccomment">/// `25.3.4.12 DataView.prototype.getUint8 ( byteOffset [ , littleEndian ] )`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The `getUint8()` method gets an unsigned 8-bit integer (unsigned byte) at the specified</span>
-    <span class="doccomment">/// byte offset from the start of the `DataView`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-dataview.prototype.getuint8</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView/getUint8</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_uint8</span>(
-        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
-        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">byte_offset</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>);
-        <span class="kw">let</span> <span class="ident">is_little_endian</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">1</span>);
-        <span class="comment">// 1. Let v be the this value.</span>
-        <span class="comment">// 2. Return ? GetViewValue(v, byteOffset, littleEndian, BigInt64).</span>
-        <span class="ident"><span class="self">Self</span>::get_view_value</span>(
-            <span class="ident">this</span>,
-            <span class="ident">byte_offset</span>,
-            <span class="ident">is_little_endian</span>,
-            <span class="ident">TypedArrayKind::Uint8</span>,
-            <span class="ident">context</span>,
+    <span class="doccomment">/// `25.3.4.12 DataView.prototype.getUint8 ( byteOffset [ , littleEndian ] )`
+    ///
+    /// The `getUint8()` method gets an unsigned 8-bit integer (unsigned byte) at the specified
+    /// byte offset from the start of the `DataView`.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-dataview.prototype.getuint8
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView/getUint8
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_uint8(
+        this: <span class="kw-2">&amp;</span>JsValue,
+        args: <span class="kw-2">&amp;</span>[JsValue],
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="kw">let </span>byte_offset = args.get_or_undefined(<span class="number">0</span>);
+        <span class="kw">let </span>is_little_endian = args.get_or_undefined(<span class="number">1</span>);
+        <span class="comment">// 1. Let v be the this value.
+        // 2. Return ? GetViewValue(v, byteOffset, littleEndian, BigInt64).
+        </span><span class="self">Self</span>::get_view_value(
+            this,
+            byte_offset,
+            is_little_endian,
+            TypedArrayKind::Uint8,
+            context,
         )
     }
 
-    <span class="doccomment">/// `25.3.4.13 DataView.prototype.getUint16 ( byteOffset [ , littleEndian ] )`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The `getUint16()` method gets an unsigned 16-bit integer (unsigned short) at the specified</span>
-    <span class="doccomment">/// byte offset from the start of the `DataView`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-dataview.prototype.getuint16</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView/getUint16</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_uint16</span>(
-        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
-        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">byte_offset</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>);
-        <span class="kw">let</span> <span class="ident">is_little_endian</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">1</span>);
-        <span class="comment">// 1. Let v be the this value.</span>
-        <span class="comment">// 2. Return ? GetViewValue(v, byteOffset, littleEndian, BigInt64).</span>
-        <span class="ident"><span class="self">Self</span>::get_view_value</span>(
-            <span class="ident">this</span>,
-            <span class="ident">byte_offset</span>,
-            <span class="ident">is_little_endian</span>,
-            <span class="ident">TypedArrayKind::Uint16</span>,
-            <span class="ident">context</span>,
+    <span class="doccomment">/// `25.3.4.13 DataView.prototype.getUint16 ( byteOffset [ , littleEndian ] )`
+    ///
+    /// The `getUint16()` method gets an unsigned 16-bit integer (unsigned short) at the specified
+    /// byte offset from the start of the `DataView`.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-dataview.prototype.getuint16
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView/getUint16
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_uint16(
+        this: <span class="kw-2">&amp;</span>JsValue,
+        args: <span class="kw-2">&amp;</span>[JsValue],
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="kw">let </span>byte_offset = args.get_or_undefined(<span class="number">0</span>);
+        <span class="kw">let </span>is_little_endian = args.get_or_undefined(<span class="number">1</span>);
+        <span class="comment">// 1. Let v be the this value.
+        // 2. Return ? GetViewValue(v, byteOffset, littleEndian, BigInt64).
+        </span><span class="self">Self</span>::get_view_value(
+            this,
+            byte_offset,
+            is_little_endian,
+            TypedArrayKind::Uint16,
+            context,
         )
     }
 
-    <span class="doccomment">/// `25.3.4.14 DataView.prototype.getUint32 ( byteOffset [ , littleEndian ] )`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The `getUint32()` method gets an unsigned 32-bit integer (unsigned long) at the specified</span>
-    <span class="doccomment">/// byte offset from the start of the `DataView`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-dataview.prototype.getuint32</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView/getUint32</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_uint32</span>(
-        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
-        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">byte_offset</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>);
-        <span class="kw">let</span> <span class="ident">is_little_endian</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">1</span>);
-        <span class="comment">// 1. Let v be the this value.</span>
-        <span class="comment">// 2. Return ? GetViewValue(v, byteOffset, littleEndian, BigInt64).</span>
-        <span class="ident"><span class="self">Self</span>::get_view_value</span>(
-            <span class="ident">this</span>,
-            <span class="ident">byte_offset</span>,
-            <span class="ident">is_little_endian</span>,
-            <span class="ident">TypedArrayKind::Uint32</span>,
-            <span class="ident">context</span>,
+    <span class="doccomment">/// `25.3.4.14 DataView.prototype.getUint32 ( byteOffset [ , littleEndian ] )`
+    ///
+    /// The `getUint32()` method gets an unsigned 32-bit integer (unsigned long) at the specified
+    /// byte offset from the start of the `DataView`.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-dataview.prototype.getuint32
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView/getUint32
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_uint32(
+        this: <span class="kw-2">&amp;</span>JsValue,
+        args: <span class="kw-2">&amp;</span>[JsValue],
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="kw">let </span>byte_offset = args.get_or_undefined(<span class="number">0</span>);
+        <span class="kw">let </span>is_little_endian = args.get_or_undefined(<span class="number">1</span>);
+        <span class="comment">// 1. Let v be the this value.
+        // 2. Return ? GetViewValue(v, byteOffset, littleEndian, BigInt64).
+        </span><span class="self">Self</span>::get_view_value(
+            this,
+            byte_offset,
+            is_little_endian,
+            TypedArrayKind::Uint32,
+            context,
         )
     }
 
-    <span class="doccomment">/// `25.3.1.1 SetViewValue ( view, requestIndex, isLittleEndian, type )`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The abstract operation `SetViewValue` takes arguments view, requestIndex, `isLittleEndian`,</span>
-    <span class="doccomment">/// type, and value. It is used by functions on `DataView` instances to store values into the</span>
-    <span class="doccomment">/// view&#39;s buffer.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-setviewvalue</span>
-    <span class="kw">fn</span> <span class="ident">set_view_value</span>(
-        <span class="ident">view</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
-        <span class="ident">request_index</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
-        <span class="ident">is_little_endian</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
-        <span class="ident">t</span>: <span class="ident">TypedArrayKind</span>,
-        <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="comment">// 1. Perform ? RequireInternalSlot(view, [[DataView]]).</span>
-        <span class="comment">// 2. Assert: view has a [[ViewedArrayBuffer]] internal slot.</span>
-        <span class="kw">let</span> <span class="ident">view</span> <span class="op">=</span> <span class="ident">view</span>.<span class="ident">as_object</span>().<span class="ident">map</span>(<span class="ident">JsObject::borrow</span>);
-        <span class="kw">let</span> <span class="ident">view</span> <span class="op">=</span> <span class="ident">view</span>
-            .<span class="ident">as_ref</span>()
-            .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">obj</span><span class="op">|</span> <span class="ident">obj</span>.<span class="ident">as_data_view</span>())
-            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="string">&quot;`this` is not a DataView&quot;</span>))<span class="question-mark">?</span>;
-        <span class="comment">// 3. Let getIndex be ? ToIndex(requestIndex).</span>
-        <span class="kw">let</span> <span class="ident">get_index</span> <span class="op">=</span> <span class="ident">request_index</span>.<span class="ident">to_index</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+    <span class="doccomment">/// `25.3.1.1 SetViewValue ( view, requestIndex, isLittleEndian, type )`
+    ///
+    /// The abstract operation `SetViewValue` takes arguments view, requestIndex, `isLittleEndian`,
+    /// type, and value. It is used by functions on `DataView` instances to store values into the
+    /// view&#39;s buffer.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-setviewvalue
+    </span><span class="kw">fn </span>set_view_value(
+        view: <span class="kw-2">&amp;</span>JsValue,
+        request_index: <span class="kw-2">&amp;</span>JsValue,
+        is_little_endian: <span class="kw-2">&amp;</span>JsValue,
+        t: TypedArrayKind,
+        value: <span class="kw-2">&amp;</span>JsValue,
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="comment">// 1. Perform ? RequireInternalSlot(view, [[DataView]]).
+        // 2. Assert: view has a [[ViewedArrayBuffer]] internal slot.
+        </span><span class="kw">let </span>view = view.as_object().map(JsObject::borrow);
+        <span class="kw">let </span>view = view
+            .as_ref()
+            .and_then(|obj| obj.as_data_view())
+            .ok_or_else(|| JsNativeError::typ().with_message(<span class="string">&quot;`this` is not a DataView&quot;</span>))<span class="question-mark">?</span>;
+        <span class="comment">// 3. Let getIndex be ? ToIndex(requestIndex).
+        </span><span class="kw">let </span>get_index = request_index.to_index(context)<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="ident">number_value</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">t</span>.<span class="ident">is_big_int_element_type</span>() {
-            <span class="comment">// 4. If ! IsBigIntElementType(type) is true, let numberValue be ? ToBigInt(value).</span>
-            <span class="ident">value</span>.<span class="ident">to_bigint</span>(<span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">into</span>()
-        } <span class="kw">else</span> {
-            <span class="comment">// 5. Otherwise, let numberValue be ? ToNumber(value).</span>
-            <span class="ident">value</span>.<span class="ident">to_number</span>(<span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">into</span>()
+        <span class="kw">let </span>number_value = <span class="kw">if </span>t.is_big_int_element_type() {
+            <span class="comment">// 4. If ! IsBigIntElementType(type) is true, let numberValue be ? ToBigInt(value).
+            </span>value.to_bigint(context)<span class="question-mark">?</span>.into()
+        } <span class="kw">else </span>{
+            <span class="comment">// 5. Otherwise, let numberValue be ? ToNumber(value).
+            </span>value.to_number(context)<span class="question-mark">?</span>.into()
         };
 
-        <span class="comment">// 6. Set isLittleEndian to ! ToBoolean(isLittleEndian).</span>
-        <span class="kw">let</span> <span class="ident">is_little_endian</span> <span class="op">=</span> <span class="ident">is_little_endian</span>.<span class="ident">to_boolean</span>();
-        <span class="comment">// 7. Let buffer be view.[[ViewedArrayBuffer]].</span>
-        <span class="kw">let</span> <span class="ident">buffer</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">view</span>.<span class="ident">viewed_array_buffer</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buffer_borrow</span> <span class="op">=</span> <span class="ident">buffer</span>.<span class="ident">borrow_mut</span>();
-        <span class="kw">let</span> <span class="ident">buffer</span> <span class="op">=</span> <span class="ident">buffer_borrow</span>
-            .<span class="ident">as_array_buffer_mut</span>()
-            .<span class="ident">expect</span>(<span class="string">&quot;Should be unreachable&quot;</span>);
+        <span class="comment">// 6. Set isLittleEndian to ! ToBoolean(isLittleEndian).
+        </span><span class="kw">let </span>is_little_endian = is_little_endian.to_boolean();
+        <span class="comment">// 7. Let buffer be view.[[ViewedArrayBuffer]].
+        </span><span class="kw">let </span>buffer = <span class="kw-2">&amp;</span>view.viewed_array_buffer;
+        <span class="kw">let </span><span class="kw-2">mut </span>buffer_borrow = buffer.borrow_mut();
+        <span class="kw">let </span>buffer = buffer_borrow
+            .as_array_buffer_mut()
+            .expect(<span class="string">&quot;Should be unreachable&quot;</span>);
 
-        <span class="comment">// 8. If IsDetachedBuffer(buffer) is true, throw a TypeError exception.</span>
-        <span class="kw">if</span> <span class="ident">buffer</span>.<span class="ident">is_detached_buffer</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
-                .<span class="ident">with_message</span>(<span class="string">&quot;ArrayBuffer is detached&quot;</span>)
-                .<span class="ident">into</span>());
+        <span class="comment">// 8. If IsDetachedBuffer(buffer) is true, throw a TypeError exception.
+        </span><span class="kw">if </span>buffer.is_detached_buffer() {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
+                .with_message(<span class="string">&quot;ArrayBuffer is detached&quot;</span>)
+                .into());
         }
 
-        <span class="comment">// 9. Let viewOffset be view.[[ByteOffset]].</span>
-        <span class="kw">let</span> <span class="ident">view_offset</span> <span class="op">=</span> <span class="ident">view</span>.<span class="ident">byte_offset</span>;
+        <span class="comment">// 9. Let viewOffset be view.[[ByteOffset]].
+        </span><span class="kw">let </span>view_offset = view.byte_offset;
 
-        <span class="comment">// 10. Let viewSize be view.[[ByteLength]].</span>
-        <span class="kw">let</span> <span class="ident">view_size</span> <span class="op">=</span> <span class="ident">view</span>.<span class="ident">byte_length</span>;
+        <span class="comment">// 10. Let viewSize be view.[[ByteLength]].
+        </span><span class="kw">let </span>view_size = view.byte_length;
 
-        <span class="comment">// 11. Let elementSize be the Element Size value specified in Table 72 for Element Type type.</span>
-        <span class="kw">let</span> <span class="ident">element_size</span> <span class="op">=</span> <span class="ident">t</span>.<span class="ident">element_size</span>();
+        <span class="comment">// 11. Let elementSize be the Element Size value specified in Table 72 for Element Type type.
+        </span><span class="kw">let </span>element_size = t.element_size();
 
-        <span class="comment">// 12. If getIndex + elementSize &gt; viewSize, throw a RangeError exception.</span>
-        <span class="kw">if</span> <span class="ident">get_index</span> <span class="op">+</span> <span class="ident">element_size</span> <span class="op">&gt;</span> <span class="ident">view_size</span> {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::range</span>()
-                .<span class="ident">with_message</span>(<span class="string">&quot;Offset is outside the bounds of DataView&quot;</span>)
-                .<span class="ident">into</span>());
+        <span class="comment">// 12. If getIndex + elementSize &gt; viewSize, throw a RangeError exception.
+        </span><span class="kw">if </span>get_index + element_size &gt; view_size {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::range()
+                .with_message(<span class="string">&quot;Offset is outside the bounds of DataView&quot;</span>)
+                .into());
         }
 
-        <span class="comment">// 13. Let bufferIndex be getIndex + viewOffset.</span>
-        <span class="kw">let</span> <span class="ident">buffer_index</span> <span class="op">=</span> <span class="ident">get_index</span> <span class="op">+</span> <span class="ident">view_offset</span>;
+        <span class="comment">// 13. Let bufferIndex be getIndex + viewOffset.
+        </span><span class="kw">let </span>buffer_index = get_index + view_offset;
 
-        <span class="comment">// 14. Return SetValueInBuffer(buffer, bufferIndex, type, numberValue, false, Unordered, isLittleEndian).</span>
-        <span class="ident">buffer</span>.<span class="ident">set_value_in_buffer</span>(
-            <span class="ident">buffer_index</span>,
-            <span class="ident">t</span>,
-            <span class="kw-2">&amp;</span><span class="ident">number_value</span>,
-            <span class="ident">SharedMemoryOrder::Unordered</span>,
-            <span class="prelude-val">Some</span>(<span class="ident">is_little_endian</span>),
-            <span class="ident">context</span>,
+        <span class="comment">// 14. Return SetValueInBuffer(buffer, bufferIndex, type, numberValue, false, Unordered, isLittleEndian).
+        </span>buffer.set_value_in_buffer(
+            buffer_index,
+            t,
+            <span class="kw-2">&amp;</span>number_value,
+            SharedMemoryOrder::Unordered,
+            <span class="prelude-val">Some</span>(is_little_endian),
+            context,
         )
     }
 
-    <span class="doccomment">/// `25.3.4.15 DataView.prototype.setBigInt64 ( byteOffset, value [ , littleEndian ] )`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The `setBigInt64()` method stores a signed 64-bit integer (long long) value at the</span>
-    <span class="doccomment">/// specified byte offset from the start of the `DataView`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-dataview.prototype.setbigint64</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView/setBigInt64</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">set_big_int64</span>(
-        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
-        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">byte_offset</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>);
-        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">1</span>);
-        <span class="kw">let</span> <span class="ident">is_little_endian</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">2</span>);
-        <span class="comment">// 1. Let v be the this value.</span>
-        <span class="comment">// 2. Return ? SetViewValue(v, byteOffset, littleEndian, BigUint64, value).</span>
-        <span class="ident"><span class="self">Self</span>::set_view_value</span>(
-            <span class="ident">this</span>,
-            <span class="ident">byte_offset</span>,
-            <span class="ident">is_little_endian</span>,
-            <span class="ident">TypedArrayKind::BigInt64</span>,
-            <span class="ident">value</span>,
-            <span class="ident">context</span>,
+    <span class="doccomment">/// `25.3.4.15 DataView.prototype.setBigInt64 ( byteOffset, value [ , littleEndian ] )`
+    ///
+    /// The `setBigInt64()` method stores a signed 64-bit integer (long long) value at the
+    /// specified byte offset from the start of the `DataView`.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-dataview.prototype.setbigint64
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView/setBigInt64
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_big_int64(
+        this: <span class="kw-2">&amp;</span>JsValue,
+        args: <span class="kw-2">&amp;</span>[JsValue],
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="kw">let </span>byte_offset = args.get_or_undefined(<span class="number">0</span>);
+        <span class="kw">let </span>value = args.get_or_undefined(<span class="number">1</span>);
+        <span class="kw">let </span>is_little_endian = args.get_or_undefined(<span class="number">2</span>);
+        <span class="comment">// 1. Let v be the this value.
+        // 2. Return ? SetViewValue(v, byteOffset, littleEndian, BigUint64, value).
+        </span><span class="self">Self</span>::set_view_value(
+            this,
+            byte_offset,
+            is_little_endian,
+            TypedArrayKind::BigInt64,
+            value,
+            context,
         )
     }
 
-    <span class="doccomment">/// `25.3.4.16 DataView.prototype.setBigUint64 ( byteOffset, value [ , littleEndian ] )`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The `setBigUint64()` method stores an unsigned 64-bit integer (unsigned long long) value at</span>
-    <span class="doccomment">/// the specified byte offset from the start of the `DataView`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-dataview.prototype.setbiguint64</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView/setBigUint64</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">set_big_uint64</span>(
-        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
-        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">byte_offset</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>);
-        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">1</span>);
-        <span class="kw">let</span> <span class="ident">is_little_endian</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">2</span>);
-        <span class="comment">// 1. Let v be the this value.</span>
-        <span class="comment">// 2. Return ? SetViewValue(v, byteOffset, littleEndian, BigUint64, value).</span>
-        <span class="ident"><span class="self">Self</span>::set_view_value</span>(
-            <span class="ident">this</span>,
-            <span class="ident">byte_offset</span>,
-            <span class="ident">is_little_endian</span>,
-            <span class="ident">TypedArrayKind::BigUint64</span>,
-            <span class="ident">value</span>,
-            <span class="ident">context</span>,
+    <span class="doccomment">/// `25.3.4.16 DataView.prototype.setBigUint64 ( byteOffset, value [ , littleEndian ] )`
+    ///
+    /// The `setBigUint64()` method stores an unsigned 64-bit integer (unsigned long long) value at
+    /// the specified byte offset from the start of the `DataView`.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-dataview.prototype.setbiguint64
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView/setBigUint64
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_big_uint64(
+        this: <span class="kw-2">&amp;</span>JsValue,
+        args: <span class="kw-2">&amp;</span>[JsValue],
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="kw">let </span>byte_offset = args.get_or_undefined(<span class="number">0</span>);
+        <span class="kw">let </span>value = args.get_or_undefined(<span class="number">1</span>);
+        <span class="kw">let </span>is_little_endian = args.get_or_undefined(<span class="number">2</span>);
+        <span class="comment">// 1. Let v be the this value.
+        // 2. Return ? SetViewValue(v, byteOffset, littleEndian, BigUint64, value).
+        </span><span class="self">Self</span>::set_view_value(
+            this,
+            byte_offset,
+            is_little_endian,
+            TypedArrayKind::BigUint64,
+            value,
+            context,
         )
     }
 
-    <span class="doccomment">/// `25.3.4.17 DataView.prototype.setFloat32 ( byteOffset, value [ , littleEndian ] )`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The `setFloat32()` method stores a signed 32-bit float (float) value at the specified byte</span>
-    <span class="doccomment">/// offset from the start of the `DataView`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-dataview.prototype.setfloat32</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView/setFloat32</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">set_float32</span>(
-        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
-        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">byte_offset</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>);
-        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">1</span>);
-        <span class="kw">let</span> <span class="ident">is_little_endian</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">2</span>);
-        <span class="comment">// 1. Let v be the this value.</span>
-        <span class="comment">// 2. Return ? SetViewValue(v, byteOffset, littleEndian, Float32, value).</span>
-        <span class="ident"><span class="self">Self</span>::set_view_value</span>(
-            <span class="ident">this</span>,
-            <span class="ident">byte_offset</span>,
-            <span class="ident">is_little_endian</span>,
-            <span class="ident">TypedArrayKind::Float32</span>,
-            <span class="ident">value</span>,
-            <span class="ident">context</span>,
+    <span class="doccomment">/// `25.3.4.17 DataView.prototype.setFloat32 ( byteOffset, value [ , littleEndian ] )`
+    ///
+    /// The `setFloat32()` method stores a signed 32-bit float (float) value at the specified byte
+    /// offset from the start of the `DataView`.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-dataview.prototype.setfloat32
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView/setFloat32
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_float32(
+        this: <span class="kw-2">&amp;</span>JsValue,
+        args: <span class="kw-2">&amp;</span>[JsValue],
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="kw">let </span>byte_offset = args.get_or_undefined(<span class="number">0</span>);
+        <span class="kw">let </span>value = args.get_or_undefined(<span class="number">1</span>);
+        <span class="kw">let </span>is_little_endian = args.get_or_undefined(<span class="number">2</span>);
+        <span class="comment">// 1. Let v be the this value.
+        // 2. Return ? SetViewValue(v, byteOffset, littleEndian, Float32, value).
+        </span><span class="self">Self</span>::set_view_value(
+            this,
+            byte_offset,
+            is_little_endian,
+            TypedArrayKind::Float32,
+            value,
+            context,
         )
     }
 
-    <span class="doccomment">/// `25.3.4.18 DataView.prototype.setFloat64 ( byteOffset, value [ , littleEndian ] )`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The `setFloat64()` method stores a signed 64-bit float (double) value at the specified byte</span>
-    <span class="doccomment">/// offset from the start of the `DataView`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-dataview.prototype.setfloat64</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView/setFloat64</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">set_float64</span>(
-        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
-        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">byte_offset</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>);
-        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">1</span>);
-        <span class="kw">let</span> <span class="ident">is_little_endian</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">2</span>);
-        <span class="comment">// 1. Let v be the this value.</span>
-        <span class="comment">// 2. Return ? SetViewValue(v, byteOffset, littleEndian, Float64, value).</span>
-        <span class="ident"><span class="self">Self</span>::set_view_value</span>(
-            <span class="ident">this</span>,
-            <span class="ident">byte_offset</span>,
-            <span class="ident">is_little_endian</span>,
-            <span class="ident">TypedArrayKind::Float64</span>,
-            <span class="ident">value</span>,
-            <span class="ident">context</span>,
+    <span class="doccomment">/// `25.3.4.18 DataView.prototype.setFloat64 ( byteOffset, value [ , littleEndian ] )`
+    ///
+    /// The `setFloat64()` method stores a signed 64-bit float (double) value at the specified byte
+    /// offset from the start of the `DataView`.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-dataview.prototype.setfloat64
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView/setFloat64
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_float64(
+        this: <span class="kw-2">&amp;</span>JsValue,
+        args: <span class="kw-2">&amp;</span>[JsValue],
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="kw">let </span>byte_offset = args.get_or_undefined(<span class="number">0</span>);
+        <span class="kw">let </span>value = args.get_or_undefined(<span class="number">1</span>);
+        <span class="kw">let </span>is_little_endian = args.get_or_undefined(<span class="number">2</span>);
+        <span class="comment">// 1. Let v be the this value.
+        // 2. Return ? SetViewValue(v, byteOffset, littleEndian, Float64, value).
+        </span><span class="self">Self</span>::set_view_value(
+            this,
+            byte_offset,
+            is_little_endian,
+            TypedArrayKind::Float64,
+            value,
+            context,
         )
     }
 
-    <span class="doccomment">/// `25.3.4.19 DataView.prototype.setInt8 ( byteOffset, value [ , littleEndian ] )`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The `setInt8()` method stores a signed 8-bit integer (byte) value at the specified byte</span>
-    <span class="doccomment">/// offset from the start of the `DataView`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-dataview.prototype.setint8</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView/setInt8</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">set_int8</span>(
-        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
-        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">byte_offset</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>);
-        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">1</span>);
-        <span class="kw">let</span> <span class="ident">is_little_endian</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">2</span>);
-        <span class="comment">// 1. Let v be the this value.</span>
-        <span class="comment">// 2. Return ? SetViewValue(v, byteOffset, littleEndian, Int8, value).</span>
-        <span class="ident"><span class="self">Self</span>::set_view_value</span>(
-            <span class="ident">this</span>,
-            <span class="ident">byte_offset</span>,
-            <span class="ident">is_little_endian</span>,
-            <span class="ident">TypedArrayKind::Int8</span>,
-            <span class="ident">value</span>,
-            <span class="ident">context</span>,
+    <span class="doccomment">/// `25.3.4.19 DataView.prototype.setInt8 ( byteOffset, value [ , littleEndian ] )`
+    ///
+    /// The `setInt8()` method stores a signed 8-bit integer (byte) value at the specified byte
+    /// offset from the start of the `DataView`.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-dataview.prototype.setint8
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView/setInt8
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_int8(
+        this: <span class="kw-2">&amp;</span>JsValue,
+        args: <span class="kw-2">&amp;</span>[JsValue],
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="kw">let </span>byte_offset = args.get_or_undefined(<span class="number">0</span>);
+        <span class="kw">let </span>value = args.get_or_undefined(<span class="number">1</span>);
+        <span class="kw">let </span>is_little_endian = args.get_or_undefined(<span class="number">2</span>);
+        <span class="comment">// 1. Let v be the this value.
+        // 2. Return ? SetViewValue(v, byteOffset, littleEndian, Int8, value).
+        </span><span class="self">Self</span>::set_view_value(
+            this,
+            byte_offset,
+            is_little_endian,
+            TypedArrayKind::Int8,
+            value,
+            context,
         )
     }
 
-    <span class="doccomment">/// `25.3.4.20 DataView.prototype.setInt16 ( byteOffset, value [ , littleEndian ] )`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The `setInt16()` method stores a signed 16-bit integer (short) value at the specified byte</span>
-    <span class="doccomment">/// offset from the start of the `DataView`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-dataview.prototype.setint16</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView/setInt16</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">set_int16</span>(
-        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
-        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">byte_offset</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>);
-        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">1</span>);
-        <span class="kw">let</span> <span class="ident">is_little_endian</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">2</span>);
-        <span class="comment">// 1. Let v be the this value.</span>
-        <span class="comment">// 2. Return ? SetViewValue(v, byteOffset, littleEndian, Int16, value).</span>
-        <span class="ident"><span class="self">Self</span>::set_view_value</span>(
-            <span class="ident">this</span>,
-            <span class="ident">byte_offset</span>,
-            <span class="ident">is_little_endian</span>,
-            <span class="ident">TypedArrayKind::Int16</span>,
-            <span class="ident">value</span>,
-            <span class="ident">context</span>,
+    <span class="doccomment">/// `25.3.4.20 DataView.prototype.setInt16 ( byteOffset, value [ , littleEndian ] )`
+    ///
+    /// The `setInt16()` method stores a signed 16-bit integer (short) value at the specified byte
+    /// offset from the start of the `DataView`.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-dataview.prototype.setint16
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView/setInt16
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_int16(
+        this: <span class="kw-2">&amp;</span>JsValue,
+        args: <span class="kw-2">&amp;</span>[JsValue],
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="kw">let </span>byte_offset = args.get_or_undefined(<span class="number">0</span>);
+        <span class="kw">let </span>value = args.get_or_undefined(<span class="number">1</span>);
+        <span class="kw">let </span>is_little_endian = args.get_or_undefined(<span class="number">2</span>);
+        <span class="comment">// 1. Let v be the this value.
+        // 2. Return ? SetViewValue(v, byteOffset, littleEndian, Int16, value).
+        </span><span class="self">Self</span>::set_view_value(
+            this,
+            byte_offset,
+            is_little_endian,
+            TypedArrayKind::Int16,
+            value,
+            context,
         )
     }
 
-    <span class="doccomment">/// `25.3.4.21 DataView.prototype.setInt32 ( byteOffset, value [ , littleEndian ] )`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The `setInt32()` method stores a signed 32-bit integer (long) value at the specified byte</span>
-    <span class="doccomment">/// offset from the start of the `DataView`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-dataview.prototype.setint32</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView/setInt32</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">set_int32</span>(
-        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
-        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">byte_offset</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>);
-        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">1</span>);
-        <span class="kw">let</span> <span class="ident">is_little_endian</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">2</span>);
-        <span class="comment">// 1. Let v be the this value.</span>
-        <span class="comment">// 2. Return ? SetViewValue(v, byteOffset, littleEndian, Int32, value).</span>
-        <span class="ident"><span class="self">Self</span>::set_view_value</span>(
-            <span class="ident">this</span>,
-            <span class="ident">byte_offset</span>,
-            <span class="ident">is_little_endian</span>,
-            <span class="ident">TypedArrayKind::Int32</span>,
-            <span class="ident">value</span>,
-            <span class="ident">context</span>,
+    <span class="doccomment">/// `25.3.4.21 DataView.prototype.setInt32 ( byteOffset, value [ , littleEndian ] )`
+    ///
+    /// The `setInt32()` method stores a signed 32-bit integer (long) value at the specified byte
+    /// offset from the start of the `DataView`.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-dataview.prototype.setint32
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView/setInt32
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_int32(
+        this: <span class="kw-2">&amp;</span>JsValue,
+        args: <span class="kw-2">&amp;</span>[JsValue],
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="kw">let </span>byte_offset = args.get_or_undefined(<span class="number">0</span>);
+        <span class="kw">let </span>value = args.get_or_undefined(<span class="number">1</span>);
+        <span class="kw">let </span>is_little_endian = args.get_or_undefined(<span class="number">2</span>);
+        <span class="comment">// 1. Let v be the this value.
+        // 2. Return ? SetViewValue(v, byteOffset, littleEndian, Int32, value).
+        </span><span class="self">Self</span>::set_view_value(
+            this,
+            byte_offset,
+            is_little_endian,
+            TypedArrayKind::Int32,
+            value,
+            context,
         )
     }
 
-    <span class="doccomment">/// `25.3.4.22 DataView.prototype.setUint8 ( byteOffset, value [ , littleEndian ] )`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The `setUint8()` method stores an unsigned 8-bit integer (byte) value at the specified byte</span>
-    <span class="doccomment">/// offset from the start of the `DataView`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-dataview.prototype.setuint8</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView/setUint8</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">set_uint8</span>(
-        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
-        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">byte_offset</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>);
-        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">1</span>);
-        <span class="kw">let</span> <span class="ident">is_little_endian</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">2</span>);
-        <span class="comment">// 1. Let v be the this value.</span>
-        <span class="comment">// 2. Return ? SetViewValue(v, byteOffset, littleEndian, Uint8, value).</span>
-        <span class="ident"><span class="self">Self</span>::set_view_value</span>(
-            <span class="ident">this</span>,
-            <span class="ident">byte_offset</span>,
-            <span class="ident">is_little_endian</span>,
-            <span class="ident">TypedArrayKind::Uint8</span>,
-            <span class="ident">value</span>,
-            <span class="ident">context</span>,
+    <span class="doccomment">/// `25.3.4.22 DataView.prototype.setUint8 ( byteOffset, value [ , littleEndian ] )`
+    ///
+    /// The `setUint8()` method stores an unsigned 8-bit integer (byte) value at the specified byte
+    /// offset from the start of the `DataView`.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-dataview.prototype.setuint8
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView/setUint8
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_uint8(
+        this: <span class="kw-2">&amp;</span>JsValue,
+        args: <span class="kw-2">&amp;</span>[JsValue],
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="kw">let </span>byte_offset = args.get_or_undefined(<span class="number">0</span>);
+        <span class="kw">let </span>value = args.get_or_undefined(<span class="number">1</span>);
+        <span class="kw">let </span>is_little_endian = args.get_or_undefined(<span class="number">2</span>);
+        <span class="comment">// 1. Let v be the this value.
+        // 2. Return ? SetViewValue(v, byteOffset, littleEndian, Uint8, value).
+        </span><span class="self">Self</span>::set_view_value(
+            this,
+            byte_offset,
+            is_little_endian,
+            TypedArrayKind::Uint8,
+            value,
+            context,
         )
     }
 
-    <span class="doccomment">/// `25.3.4.23 DataView.prototype.setUint16 ( byteOffset, value [ , littleEndian ] )`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The `setUint16()` method stores an unsigned 16-bit integer (unsigned short) value at the</span>
-    <span class="doccomment">/// specified byte offset from the start of the `DataView`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-dataview.prototype.setuint16</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView/setUint16</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">set_uint16</span>(
-        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
-        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">byte_offset</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>);
-        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">1</span>);
-        <span class="kw">let</span> <span class="ident">is_little_endian</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">2</span>);
-        <span class="comment">// 1. Let v be the this value.</span>
-        <span class="comment">// 2. Return ? SetViewValue(v, byteOffset, littleEndian, Uint16, value).</span>
-        <span class="ident"><span class="self">Self</span>::set_view_value</span>(
-            <span class="ident">this</span>,
-            <span class="ident">byte_offset</span>,
-            <span class="ident">is_little_endian</span>,
-            <span class="ident">TypedArrayKind::Uint16</span>,
-            <span class="ident">value</span>,
-            <span class="ident">context</span>,
+    <span class="doccomment">/// `25.3.4.23 DataView.prototype.setUint16 ( byteOffset, value [ , littleEndian ] )`
+    ///
+    /// The `setUint16()` method stores an unsigned 16-bit integer (unsigned short) value at the
+    /// specified byte offset from the start of the `DataView`.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-dataview.prototype.setuint16
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView/setUint16
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_uint16(
+        this: <span class="kw-2">&amp;</span>JsValue,
+        args: <span class="kw-2">&amp;</span>[JsValue],
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="kw">let </span>byte_offset = args.get_or_undefined(<span class="number">0</span>);
+        <span class="kw">let </span>value = args.get_or_undefined(<span class="number">1</span>);
+        <span class="kw">let </span>is_little_endian = args.get_or_undefined(<span class="number">2</span>);
+        <span class="comment">// 1. Let v be the this value.
+        // 2. Return ? SetViewValue(v, byteOffset, littleEndian, Uint16, value).
+        </span><span class="self">Self</span>::set_view_value(
+            this,
+            byte_offset,
+            is_little_endian,
+            TypedArrayKind::Uint16,
+            value,
+            context,
         )
     }
 
-    <span class="doccomment">/// `25.3.4.24 DataView.prototype.setUint32 ( byteOffset, value [ , littleEndian ] )`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The `setUint32()` method stores an unsigned 32-bit integer (unsigned long) value at the</span>
-    <span class="doccomment">/// specified byte offset from the start of the `DataView`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-dataview.prototype.setuint32</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView/setUint32</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">set_uint32</span>(
-        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
-        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">byte_offset</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>);
-        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">1</span>);
-        <span class="kw">let</span> <span class="ident">is_little_endian</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">2</span>);
-        <span class="comment">// 1. Let v be the this value.</span>
-        <span class="comment">// 2. Return ? SetViewValue(v, byteOffset, littleEndian, Uint32, value).</span>
-        <span class="ident"><span class="self">Self</span>::set_view_value</span>(
-            <span class="ident">this</span>,
-            <span class="ident">byte_offset</span>,
-            <span class="ident">is_little_endian</span>,
-            <span class="ident">TypedArrayKind::Uint32</span>,
-            <span class="ident">value</span>,
-            <span class="ident">context</span>,
+    <span class="doccomment">/// `25.3.4.24 DataView.prototype.setUint32 ( byteOffset, value [ , littleEndian ] )`
+    ///
+    /// The `setUint32()` method stores an unsigned 32-bit integer (unsigned long) value at the
+    /// specified byte offset from the start of the `DataView`.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-dataview.prototype.setuint32
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView/setUint32
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_uint32(
+        this: <span class="kw-2">&amp;</span>JsValue,
+        args: <span class="kw-2">&amp;</span>[JsValue],
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="kw">let </span>byte_offset = args.get_or_undefined(<span class="number">0</span>);
+        <span class="kw">let </span>value = args.get_or_undefined(<span class="number">1</span>);
+        <span class="kw">let </span>is_little_endian = args.get_or_undefined(<span class="number">2</span>);
+        <span class="comment">// 1. Let v be the this value.
+        // 2. Return ? SetViewValue(v, byteOffset, littleEndian, Uint32, value).
+        </span><span class="self">Self</span>::set_view_value(
+            this,
+            byte_offset,
+            is_little_endian,
+            TypedArrayKind::Uint32,
+            value,
+            context,
         )
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0 (a55dd71d5 2022-09-19)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0 (897e37553 2022-11-02)" ></div></body></html>

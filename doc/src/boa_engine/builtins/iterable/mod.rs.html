@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_engine/src/builtins/iterable/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_engine/src/builtins/iterable/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container">
                     <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../boa_engine/index.html">
                         <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -567,572 +567,572 @@
 <span id="565">565</span>
 <span id="566">566</span>
 <span id="567">567</span>
-</pre><pre class="rust"><code><span class="kw">mod</span> <span class="ident">async_from_sync_iterator</span>;
+</pre><pre class="rust"><code><span class="kw">mod </span>async_from_sync_iterator;
 
-<span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">builtins</span>::{
-        <span class="ident">regexp::regexp_string_iterator::RegExpStringIterator</span>,
-        <span class="ident">string::string_iterator::StringIterator</span>, <span class="ident">ArrayIterator</span>, <span class="ident">ForInIterator</span>, <span class="ident">MapIterator</span>,
-        <span class="ident">SetIterator</span>,
+<span class="kw">use crate</span>::{
+    builtins::{
+        regexp::regexp_string_iterator::RegExpStringIterator,
+        string::string_iterator::StringIterator, ArrayIterator, ForInIterator, MapIterator,
+        SetIterator,
     },
-    <span class="ident">error::JsNativeError</span>,
-    <span class="ident">object</span>::{<span class="ident">JsObject</span>, <span class="ident">ObjectInitializer</span>},
-    <span class="ident">symbol::WellKnownSymbols</span>,
-    <span class="ident">Context</span>, <span class="ident">JsResult</span>, <span class="ident">JsValue</span>,
+    error::JsNativeError,
+    object::{JsObject, ObjectInitializer},
+    symbol::WellKnownSymbols,
+    Context, JsResult, JsValue,
 };
-<span class="kw">use</span> <span class="ident">async_from_sync_iterator::create_async_from_sync_iterator_prototype</span>;
-<span class="kw">use</span> <span class="ident">boa_gc</span>::{<span class="ident">Finalize</span>, <span class="ident">Trace</span>};
-<span class="kw">use</span> <span class="ident">boa_profiler::Profiler</span>;
+<span class="kw">use </span>async_from_sync_iterator::create_async_from_sync_iterator_prototype;
+<span class="kw">use </span>boa_gc::{Finalize, Trace};
+<span class="kw">use </span>boa_profiler::Profiler;
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use</span> <span class="ident">async_from_sync_iterator::AsyncFromSyncIterator</span>;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>async_from_sync_iterator::AsyncFromSyncIterator;
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Default</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">IteratorPrototypes</span> {
-    <span class="doccomment">/// %IteratorPrototype%</span>
-    <span class="ident">iterator_prototype</span>: <span class="ident">JsObject</span>,
-    <span class="doccomment">/// %AsyncIteratorPrototype%</span>
-    <span class="ident">async_iterator_prototype</span>: <span class="ident">JsObject</span>,
-    <span class="doccomment">/// %AsyncFromSyncIteratorPrototype%</span>
-    <span class="ident">async_from_sync_iterator_prototype</span>: <span class="ident">JsObject</span>,
-    <span class="doccomment">/// %MapIteratorPrototype%</span>
-    <span class="ident">array_iterator</span>: <span class="ident">JsObject</span>,
-    <span class="doccomment">/// %SetIteratorPrototype%</span>
-    <span class="ident">set_iterator</span>: <span class="ident">JsObject</span>,
-    <span class="doccomment">/// %StringIteratorPrototype%</span>
-    <span class="ident">string_iterator</span>: <span class="ident">JsObject</span>,
-    <span class="doccomment">/// %RegExpStringIteratorPrototype%</span>
-    <span class="ident">regexp_string_iterator</span>: <span class="ident">JsObject</span>,
-    <span class="doccomment">/// %MapIteratorPrototype%</span>
-    <span class="ident">map_iterator</span>: <span class="ident">JsObject</span>,
-    <span class="doccomment">/// %ForInIteratorPrototype%</span>
-    <span class="ident">for_in_iterator</span>: <span class="ident">JsObject</span>,
+<span class="attribute">#[derive(Debug, Default)]
+</span><span class="kw">pub struct </span>IteratorPrototypes {
+    <span class="doccomment">/// %IteratorPrototype%
+    </span>iterator_prototype: JsObject,
+    <span class="doccomment">/// %AsyncIteratorPrototype%
+    </span>async_iterator_prototype: JsObject,
+    <span class="doccomment">/// %AsyncFromSyncIteratorPrototype%
+    </span>async_from_sync_iterator_prototype: JsObject,
+    <span class="doccomment">/// %MapIteratorPrototype%
+    </span>array_iterator: JsObject,
+    <span class="doccomment">/// %SetIteratorPrototype%
+    </span>set_iterator: JsObject,
+    <span class="doccomment">/// %StringIteratorPrototype%
+    </span>string_iterator: JsObject,
+    <span class="doccomment">/// %RegExpStringIteratorPrototype%
+    </span>regexp_string_iterator: JsObject,
+    <span class="doccomment">/// %MapIteratorPrototype%
+    </span>map_iterator: JsObject,
+    <span class="doccomment">/// %ForInIteratorPrototype%
+    </span>for_in_iterator: JsObject,
 }
 
-<span class="kw">impl</span> <span class="ident">IteratorPrototypes</span> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">init</span>(<span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;IteratorPrototypes::init&quot;</span>, <span class="string">&quot;init&quot;</span>);
+<span class="kw">impl </span>IteratorPrototypes {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>init(context: <span class="kw-2">&amp;mut </span>Context) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;IteratorPrototypes::init&quot;</span>, <span class="string">&quot;init&quot;</span>);
 
-        <span class="kw">let</span> <span class="ident">iterator_prototype</span> <span class="op">=</span> <span class="ident">create_iterator_prototype</span>(<span class="ident">context</span>);
-        <span class="kw">let</span> <span class="ident">async_iterator_prototype</span> <span class="op">=</span> <span class="ident">create_async_iterator_prototype</span>(<span class="ident">context</span>);
-        <span class="kw">let</span> <span class="ident">async_from_sync_iterator_prototype</span> <span class="op">=</span> <span class="ident">create_async_from_sync_iterator_prototype</span>(<span class="ident">context</span>);
-        <span class="self">Self</span> {
-            <span class="ident">array_iterator</span>: <span class="ident">ArrayIterator::create_prototype</span>(<span class="ident">iterator_prototype</span>.<span class="ident">clone</span>(), <span class="ident">context</span>),
-            <span class="ident">set_iterator</span>: <span class="ident">SetIterator::create_prototype</span>(<span class="ident">iterator_prototype</span>.<span class="ident">clone</span>(), <span class="ident">context</span>),
-            <span class="ident">string_iterator</span>: <span class="ident">StringIterator::create_prototype</span>(<span class="ident">iterator_prototype</span>.<span class="ident">clone</span>(), <span class="ident">context</span>),
-            <span class="ident">regexp_string_iterator</span>: <span class="ident">RegExpStringIterator::create_prototype</span>(
-                <span class="ident">iterator_prototype</span>.<span class="ident">clone</span>(),
-                <span class="ident">context</span>,
+        <span class="kw">let </span>iterator_prototype = create_iterator_prototype(context);
+        <span class="kw">let </span>async_iterator_prototype = create_async_iterator_prototype(context);
+        <span class="kw">let </span>async_from_sync_iterator_prototype = create_async_from_sync_iterator_prototype(context);
+        <span class="self">Self </span>{
+            array_iterator: ArrayIterator::create_prototype(iterator_prototype.clone(), context),
+            set_iterator: SetIterator::create_prototype(iterator_prototype.clone(), context),
+            string_iterator: StringIterator::create_prototype(iterator_prototype.clone(), context),
+            regexp_string_iterator: RegExpStringIterator::create_prototype(
+                iterator_prototype.clone(),
+                context,
             ),
-            <span class="ident">map_iterator</span>: <span class="ident">MapIterator::create_prototype</span>(<span class="ident">iterator_prototype</span>.<span class="ident">clone</span>(), <span class="ident">context</span>),
-            <span class="ident">for_in_iterator</span>: <span class="ident">ForInIterator::create_prototype</span>(<span class="ident">iterator_prototype</span>.<span class="ident">clone</span>(), <span class="ident">context</span>),
-            <span class="ident">iterator_prototype</span>,
-            <span class="ident">async_iterator_prototype</span>,
-            <span class="ident">async_from_sync_iterator_prototype</span>,
+            map_iterator: MapIterator::create_prototype(iterator_prototype.clone(), context),
+            for_in_iterator: ForInIterator::create_prototype(iterator_prototype.clone(), context),
+            iterator_prototype,
+            async_iterator_prototype,
+            async_from_sync_iterator_prototype,
         }
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">array_iterator</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">JsObject</span> {
-        <span class="self">self</span>.<span class="ident">array_iterator</span>.<span class="ident">clone</span>()
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>array_iterator(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsObject {
+        <span class="self">self</span>.array_iterator.clone()
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">iterator_prototype</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">JsObject</span> {
-        <span class="self">self</span>.<span class="ident">iterator_prototype</span>.<span class="ident">clone</span>()
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>iterator_prototype(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsObject {
+        <span class="self">self</span>.iterator_prototype.clone()
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">async_iterator_prototype</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">JsObject</span> {
-        <span class="self">self</span>.<span class="ident">async_iterator_prototype</span>.<span class="ident">clone</span>()
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>async_iterator_prototype(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsObject {
+        <span class="self">self</span>.async_iterator_prototype.clone()
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">async_from_sync_iterator_prototype</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">JsObject</span> {
-        <span class="self">self</span>.<span class="ident">async_from_sync_iterator_prototype</span>.<span class="ident">clone</span>()
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>async_from_sync_iterator_prototype(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsObject {
+        <span class="self">self</span>.async_from_sync_iterator_prototype.clone()
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_iterator</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">JsObject</span> {
-        <span class="self">self</span>.<span class="ident">set_iterator</span>.<span class="ident">clone</span>()
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>set_iterator(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsObject {
+        <span class="self">self</span>.set_iterator.clone()
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">string_iterator</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">JsObject</span> {
-        <span class="self">self</span>.<span class="ident">string_iterator</span>.<span class="ident">clone</span>()
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>string_iterator(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsObject {
+        <span class="self">self</span>.string_iterator.clone()
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">regexp_string_iterator</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">JsObject</span> {
-        <span class="self">self</span>.<span class="ident">regexp_string_iterator</span>.<span class="ident">clone</span>()
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>regexp_string_iterator(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsObject {
+        <span class="self">self</span>.regexp_string_iterator.clone()
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">map_iterator</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">JsObject</span> {
-        <span class="self">self</span>.<span class="ident">map_iterator</span>.<span class="ident">clone</span>()
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>map_iterator(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsObject {
+        <span class="self">self</span>.map_iterator.clone()
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">for_in_iterator</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">JsObject</span> {
-        <span class="self">self</span>.<span class="ident">for_in_iterator</span>.<span class="ident">clone</span>()
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>for_in_iterator(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsObject {
+        <span class="self">self</span>.for_in_iterator.clone()
     }
 }
 
-<span class="doccomment">/// `CreateIterResultObject( value, done )`</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Generates an object supporting the `IteratorResult` interface.</span>
-<span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create_iter_result_object</span>(<span class="ident">value</span>: <span class="ident">JsValue</span>, <span class="ident">done</span>: <span class="ident">bool</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsValue</span> {
-    <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;create_iter_result_object&quot;</span>, <span class="string">&quot;init&quot;</span>);
+<span class="doccomment">/// `CreateIterResultObject( value, done )`
+///
+/// Generates an object supporting the `IteratorResult` interface.
+</span><span class="attribute">#[inline]
+</span><span class="kw">pub fn </span>create_iter_result_object(value: JsValue, done: bool, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsValue {
+    <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;create_iter_result_object&quot;</span>, <span class="string">&quot;init&quot;</span>);
 
-    <span class="comment">// 1. Assert: Type(done) is Boolean.</span>
-    <span class="comment">// 2. Let obj be ! OrdinaryObjectCreate(%Object.prototype%).</span>
-    <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">construct_object</span>();
+    <span class="comment">// 1. Assert: Type(done) is Boolean.
+    // 2. Let obj be ! OrdinaryObjectCreate(%Object.prototype%).
+    </span><span class="kw">let </span>obj = context.construct_object();
 
-    <span class="comment">// 3. Perform ! CreateDataPropertyOrThrow(obj, &quot;value&quot;, value).</span>
-    <span class="ident">obj</span>.<span class="ident">create_data_property_or_throw</span>(<span class="string">&quot;value&quot;</span>, <span class="ident">value</span>, <span class="ident">context</span>)
-        .<span class="ident">expect</span>(<span class="string">&quot;this CreateDataPropertyOrThrow call must not fail&quot;</span>);
-    <span class="comment">// 4. Perform ! CreateDataPropertyOrThrow(obj, &quot;done&quot;, done).</span>
-    <span class="ident">obj</span>.<span class="ident">create_data_property_or_throw</span>(<span class="string">&quot;done&quot;</span>, <span class="ident">done</span>, <span class="ident">context</span>)
-        .<span class="ident">expect</span>(<span class="string">&quot;this CreateDataPropertyOrThrow call must not fail&quot;</span>);
-    <span class="comment">// 5. Return obj.</span>
-    <span class="ident">obj</span>.<span class="ident">into</span>()
+    <span class="comment">// 3. Perform ! CreateDataPropertyOrThrow(obj, &quot;value&quot;, value).
+    </span>obj.create_data_property_or_throw(<span class="string">&quot;value&quot;</span>, value, context)
+        .expect(<span class="string">&quot;this CreateDataPropertyOrThrow call must not fail&quot;</span>);
+    <span class="comment">// 4. Perform ! CreateDataPropertyOrThrow(obj, &quot;done&quot;, done).
+    </span>obj.create_data_property_or_throw(<span class="string">&quot;done&quot;</span>, done, context)
+        .expect(<span class="string">&quot;this CreateDataPropertyOrThrow call must not fail&quot;</span>);
+    <span class="comment">// 5. Return obj.
+    </span>obj.into()
 }
 
-<span class="doccomment">/// Iterator hint for `GetIterator`.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">IteratorHint</span> {
-    <span class="ident">Sync</span>,
-    <span class="ident">Async</span>,
+<span class="doccomment">/// Iterator hint for `GetIterator`.
+</span><span class="attribute">#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+</span><span class="kw">pub enum </span>IteratorHint {
+    Sync,
+    Async,
 }
 
-<span class="kw">impl</span> <span class="ident">JsValue</span> {
-    <span class="doccomment">/// `GetIterator ( obj [ , hint [ , method ] ] )`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMA reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-getiterator</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_iterator</span>(
+<span class="kw">impl </span>JsValue {
+    <span class="doccomment">/// `GetIterator ( obj [ , hint [ , method ] ] )`
+    ///
+    /// More information:
+    ///  - [ECMA reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-getiterator
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>get_iterator(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-        <span class="ident">hint</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">IteratorHint</span><span class="op">&gt;</span>,
-        <span class="ident">method</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">IteratorRecord</span><span class="op">&gt;</span> {
-        <span class="comment">// 1. If hint is not present, set hint to sync.</span>
-        <span class="kw">let</span> <span class="ident">hint</span> <span class="op">=</span> <span class="ident">hint</span>.<span class="ident">unwrap_or</span>(<span class="ident">IteratorHint::Sync</span>);
+        context: <span class="kw-2">&amp;mut </span>Context,
+        hint: <span class="prelude-ty">Option</span>&lt;IteratorHint&gt;,
+        method: <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;,
+    ) -&gt; JsResult&lt;IteratorRecord&gt; {
+        <span class="comment">// 1. If hint is not present, set hint to sync.
+        </span><span class="kw">let </span>hint = hint.unwrap_or(IteratorHint::Sync);
 
-        <span class="comment">// 2. If method is not present, then</span>
-        <span class="kw">let</span> <span class="ident">method</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">method</span>) <span class="op">=</span> <span class="ident">method</span> {
-            <span class="ident">method</span>
-        } <span class="kw">else</span> {
-            <span class="comment">// a. If hint is async, then</span>
-            <span class="kw">if</span> <span class="ident">hint</span> <span class="op">==</span> <span class="ident">IteratorHint::Async</span> {
-                <span class="comment">// i. Set method to ? GetMethod(obj, @@asyncIterator).</span>
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">method</span>) <span class="op">=</span>
-                    <span class="self">self</span>.<span class="ident">get_method</span>(<span class="ident">WellKnownSymbols::async_iterator</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>
-                {
-                    <span class="ident">method</span>.<span class="ident">into</span>()
-                } <span class="kw">else</span> {
-                    <span class="comment">// ii. If method is undefined, then</span>
-                    <span class="comment">// 1. Let syncMethod be ? GetMethod(obj, @@iterator).</span>
-                    <span class="kw">let</span> <span class="ident">sync_method</span> <span class="op">=</span> <span class="self">self</span>
-                        .<span class="ident">get_method</span>(<span class="ident">WellKnownSymbols::iterator</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>
-                        .<span class="ident">map_or</span>(<span class="ident"><span class="self">Self</span>::Undefined</span>, <span class="ident"><span class="self">Self</span>::from</span>);
+        <span class="comment">// 2. If method is not present, then
+        </span><span class="kw">let </span>method = <span class="kw">if let </span><span class="prelude-val">Some</span>(method) = method {
+            method
+        } <span class="kw">else </span>{
+            <span class="comment">// a. If hint is async, then
+            </span><span class="kw">if </span>hint == IteratorHint::Async {
+                <span class="comment">// i. Set method to ? GetMethod(obj, @@asyncIterator).
+                </span><span class="kw">if let </span><span class="prelude-val">Some</span>(method) =
+                    <span class="self">self</span>.get_method(WellKnownSymbols::async_iterator(), context)<span class="question-mark">?
+                </span>{
+                    method.into()
+                } <span class="kw">else </span>{
+                    <span class="comment">// ii. If method is undefined, then
+                    // 1. Let syncMethod be ? GetMethod(obj, @@iterator).
+                    </span><span class="kw">let </span>sync_method = <span class="self">self
+                        </span>.get_method(WellKnownSymbols::iterator(), context)<span class="question-mark">?
+                        </span>.map_or(<span class="self">Self</span>::Undefined, <span class="self">Self</span>::from);
 
-                    <span class="comment">// 2. Let syncIteratorRecord be ? GetIterator(obj, sync, syncMethod).</span>
-                    <span class="kw">let</span> <span class="ident">sync_iterator_record</span> <span class="op">=</span>
-                        <span class="self">self</span>.<span class="ident">get_iterator</span>(<span class="ident">context</span>, <span class="prelude-val">Some</span>(<span class="ident">IteratorHint::Sync</span>), <span class="prelude-val">Some</span>(<span class="ident">sync_method</span>))<span class="question-mark">?</span>;
+                    <span class="comment">// 2. Let syncIteratorRecord be ? GetIterator(obj, sync, syncMethod).
+                    </span><span class="kw">let </span>sync_iterator_record =
+                        <span class="self">self</span>.get_iterator(context, <span class="prelude-val">Some</span>(IteratorHint::Sync), <span class="prelude-val">Some</span>(sync_method))<span class="question-mark">?</span>;
 
-                    <span class="comment">// 3. Return ! CreateAsyncFromSyncIterator(syncIteratorRecord).</span>
-                    <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">AsyncFromSyncIterator::create</span>(<span class="ident">sync_iterator_record</span>, <span class="ident">context</span>));
+                    <span class="comment">// 3. Return ! CreateAsyncFromSyncIterator(syncIteratorRecord).
+                    </span><span class="kw">return </span><span class="prelude-val">Ok</span>(AsyncFromSyncIterator::create(sync_iterator_record, context));
                 }
-            } <span class="kw">else</span> {
-                <span class="comment">// b. Otherwise, set method to ? GetMethod(obj, @@iterator).</span>
-                <span class="self">self</span>.<span class="ident">get_method</span>(<span class="ident">WellKnownSymbols::iterator</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>
-                    .<span class="ident">map_or</span>(<span class="ident"><span class="self">Self</span>::Undefined</span>, <span class="ident"><span class="self">Self</span>::from</span>)
+            } <span class="kw">else </span>{
+                <span class="comment">// b. Otherwise, set method to ? GetMethod(obj, @@iterator).
+                </span><span class="self">self</span>.get_method(WellKnownSymbols::iterator(), context)<span class="question-mark">?
+                    </span>.map_or(<span class="self">Self</span>::Undefined, <span class="self">Self</span>::from)
             }
         };
 
-        <span class="comment">// 3. Let iterator be ? Call(method, obj).</span>
-        <span class="kw">let</span> <span class="ident">iterator</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="ident">method</span>, <span class="self">self</span>, <span class="kw-2">&amp;</span>[])<span class="question-mark">?</span>;
+        <span class="comment">// 3. Let iterator be ? Call(method, obj).
+        </span><span class="kw">let </span>iterator = context.call(<span class="kw-2">&amp;</span>method, <span class="self">self</span>, <span class="kw-2">&amp;</span>[])<span class="question-mark">?</span>;
 
-        <span class="comment">// 4. If Type(iterator) is not Object, throw a TypeError exception.</span>
-        <span class="kw">let</span> <span class="ident">iterator_obj</span> <span class="op">=</span> <span class="ident">iterator</span>
-            .<span class="ident">as_object</span>()
-            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="string">&quot;the iterator is not an object&quot;</span>))<span class="question-mark">?</span>;
+        <span class="comment">// 4. If Type(iterator) is not Object, throw a TypeError exception.
+        </span><span class="kw">let </span>iterator_obj = iterator
+            .as_object()
+            .ok_or_else(|| JsNativeError::typ().with_message(<span class="string">&quot;the iterator is not an object&quot;</span>))<span class="question-mark">?</span>;
 
-        <span class="comment">// 5. Let nextMethod be ? GetV(iterator, &quot;next&quot;).</span>
-        <span class="kw">let</span> <span class="ident">next_method</span> <span class="op">=</span> <span class="ident">iterator</span>.<span class="ident">get_v</span>(<span class="string">&quot;next&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="comment">// 5. Let nextMethod be ? GetV(iterator, &quot;next&quot;).
+        </span><span class="kw">let </span>next_method = iterator.get_v(<span class="string">&quot;next&quot;</span>, context)<span class="question-mark">?</span>;
 
-        <span class="comment">// 6. Let iteratorRecord be the Record { [[Iterator]]: iterator, [[NextMethod]]: nextMethod, [[Done]]: false }.</span>
-        <span class="comment">// 7. Return iteratorRecord.</span>
-        <span class="prelude-val">Ok</span>(<span class="ident">IteratorRecord::new</span>(
-            <span class="ident">iterator_obj</span>.<span class="ident">clone</span>(),
-            <span class="ident">next_method</span>,
+        <span class="comment">// 6. Let iteratorRecord be the Record { [[Iterator]]: iterator, [[NextMethod]]: nextMethod, [[Done]]: false }.
+        // 7. Return iteratorRecord.
+        </span><span class="prelude-val">Ok</span>(IteratorRecord::new(
+            iterator_obj.clone(),
+            next_method,
             <span class="bool-val">false</span>,
         ))
     }
 }
 
-<span class="doccomment">/// Create the `%IteratorPrototype%` object</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [ECMA reference][spec]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-%iteratorprototype%-object</span>
-<span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">fn</span> <span class="ident">create_iterator_prototype</span>(<span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsObject</span> {
-    <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;Iterator Prototype&quot;</span>, <span class="string">&quot;init&quot;</span>);
+<span class="doccomment">/// Create the `%IteratorPrototype%` object
+///
+/// More information:
+///  - [ECMA reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-%iteratorprototype%-object
+</span><span class="attribute">#[inline]
+</span><span class="kw">fn </span>create_iterator_prototype(context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsObject {
+    <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Iterator Prototype&quot;</span>, <span class="string">&quot;init&quot;</span>);
 
-    <span class="kw">let</span> <span class="ident">symbol_iterator</span> <span class="op">=</span> <span class="ident">WellKnownSymbols::iterator</span>();
-    <span class="kw">let</span> <span class="ident">iterator_prototype</span> <span class="op">=</span> <span class="ident">ObjectInitializer::new</span>(<span class="ident">context</span>)
-        .<span class="ident">function</span>(
-            <span class="op">|</span><span class="ident">v</span>, <span class="kw">_</span>, <span class="kw">_</span><span class="op">|</span> <span class="prelude-val">Ok</span>(<span class="ident">v</span>.<span class="ident">clone</span>()),
-            (<span class="ident">symbol_iterator</span>, <span class="string">&quot;[Symbol.iterator]&quot;</span>),
+    <span class="kw">let </span>symbol_iterator = WellKnownSymbols::iterator();
+    <span class="kw">let </span>iterator_prototype = ObjectInitializer::new(context)
+        .function(
+            |v, <span class="kw">_</span>, <span class="kw">_</span>| <span class="prelude-val">Ok</span>(v.clone()),
+            (symbol_iterator, <span class="string">&quot;[Symbol.iterator]&quot;</span>),
             <span class="number">0</span>,
         )
-        .<span class="ident">build</span>();
-    <span class="ident">iterator_prototype</span>
+        .build();
+    iterator_prototype
 }
 
-<span class="doccomment">/// The result of the iteration process.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">IteratorResult</span> {
-    <span class="ident">object</span>: <span class="ident">JsObject</span>,
+<span class="doccomment">/// The result of the iteration process.
+</span><span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub struct </span>IteratorResult {
+    object: JsObject,
 }
 
-<span class="kw">impl</span> <span class="ident">IteratorResult</span> {
-    <span class="doccomment">/// Create a new `IteratorResult`.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">object</span>: <span class="ident">JsObject</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> { <span class="ident">object</span> }
+<span class="kw">impl </span>IteratorResult {
+    <span class="doccomment">/// Create a new `IteratorResult`.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(object: JsObject) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{ object }
     }
 
-    <span class="doccomment">/// `IteratorComplete ( iterResult )`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The abstract operation `IteratorComplete` takes argument `iterResult` (an `Object`) and</span>
-    <span class="doccomment">/// returns either a normal completion containing a `Boolean` or a throw completion.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMA reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-iteratorcomplete</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">complete</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
-        <span class="comment">// 1. Return ToBoolean(? Get(iterResult, &quot;done&quot;)).</span>
-        <span class="prelude-val">Ok</span>(<span class="self">self</span>.<span class="ident">object</span>.<span class="ident">get</span>(<span class="string">&quot;done&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">to_boolean</span>())
+    <span class="doccomment">/// `IteratorComplete ( iterResult )`
+    ///
+    /// The abstract operation `IteratorComplete` takes argument `iterResult` (an `Object`) and
+    /// returns either a normal completion containing a `Boolean` or a throw completion.
+    ///
+    /// More information:
+    ///  - [ECMA reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-iteratorcomplete
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>complete(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;bool&gt; {
+        <span class="comment">// 1. Return ToBoolean(? Get(iterResult, &quot;done&quot;)).
+        </span><span class="prelude-val">Ok</span>(<span class="self">self</span>.object.get(<span class="string">&quot;done&quot;</span>, context)<span class="question-mark">?</span>.to_boolean())
     }
 
-    <span class="doccomment">/// `IteratorValue ( iterResult )`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The abstract operation `IteratorValue` takes argument `iterResult` (an `Object`) and</span>
-    <span class="doccomment">/// returns either a normal completion containing an ECMAScript language value or a throw</span>
-    <span class="doccomment">/// completion.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMA reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-iteratorvalue</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">value</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="comment">// 1. Return ? Get(iterResult, &quot;value&quot;).</span>
-        <span class="self">self</span>.<span class="ident">object</span>.<span class="ident">get</span>(<span class="string">&quot;value&quot;</span>, <span class="ident">context</span>)
+    <span class="doccomment">/// `IteratorValue ( iterResult )`
+    ///
+    /// The abstract operation `IteratorValue` takes argument `iterResult` (an `Object`) and
+    /// returns either a normal completion containing an ECMAScript language value or a throw
+    /// completion.
+    ///
+    /// More information:
+    ///  - [ECMA reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-iteratorvalue
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>value(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="comment">// 1. Return ? Get(iterResult, &quot;value&quot;).
+        </span><span class="self">self</span>.object.get(<span class="string">&quot;value&quot;</span>, context)
     }
 }
 
-<span class="doccomment">/// Iterator Record</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// An Iterator Record is a Record value used to encapsulate an</span>
-<span class="doccomment">/// `Iterator` or `AsyncIterator` along with the `next` method.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [ECMA reference][spec]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-iterator-records</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Finalize</span>, <span class="ident">Trace</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">IteratorRecord</span> {
-    <span class="doccomment">/// `[[Iterator]]`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// An object that conforms to the `Iterator` or `AsyncIterator` interface.</span>
-    <span class="ident">iterator</span>: <span class="ident">JsObject</span>,
+<span class="doccomment">/// Iterator Record
+///
+/// An Iterator Record is a Record value used to encapsulate an
+/// `Iterator` or `AsyncIterator` along with the `next` method.
+///
+/// More information:
+///  - [ECMA reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-iterator-records
+</span><span class="attribute">#[derive(Clone, Debug, Finalize, Trace)]
+</span><span class="kw">pub struct </span>IteratorRecord {
+    <span class="doccomment">/// `[[Iterator]]`
+    ///
+    /// An object that conforms to the `Iterator` or `AsyncIterator` interface.
+    </span>iterator: JsObject,
 
-    <span class="doccomment">/// `[[NextMethod]]`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The `next` method of the `[[Iterator]]` object.</span>
-    <span class="ident">next_method</span>: <span class="ident">JsValue</span>,
+    <span class="doccomment">/// `[[NextMethod]]`
+    ///
+    /// The `next` method of the `[[Iterator]]` object.
+    </span>next_method: JsValue,
 
-    <span class="doccomment">/// `[[Done]]`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Whether the iterator has been closed.</span>
-    <span class="ident">done</span>: <span class="ident">bool</span>,
+    <span class="doccomment">/// `[[Done]]`
+    ///
+    /// Whether the iterator has been closed.
+    </span>done: bool,
 }
 
-<span class="kw">impl</span> <span class="ident">IteratorRecord</span> {
-    <span class="doccomment">/// Creates a new `IteratorRecord` with the given iterator object, next method and `done` flag.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">iterator</span>: <span class="ident">JsObject</span>, <span class="ident">next_method</span>: <span class="ident">JsValue</span>, <span class="ident">done</span>: <span class="ident">bool</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">iterator</span>,
-            <span class="ident">next_method</span>,
-            <span class="ident">done</span>,
+<span class="kw">impl </span>IteratorRecord {
+    <span class="doccomment">/// Creates a new `IteratorRecord` with the given iterator object, next method and `done` flag.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>new(iterator: JsObject, next_method: JsValue, done: bool) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            iterator,
+            next_method,
+            done,
         }
     }
 
-    <span class="doccomment">/// Get the `[[Iterator]]` field of the `IteratorRecord`.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">iterator</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">JsObject</span> {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">iterator</span>
+    <span class="doccomment">/// Get the `[[Iterator]]` field of the `IteratorRecord`.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>iterator(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>JsObject {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.iterator
     }
 
-    <span class="doccomment">/// Get the `[[NextMethod]]` field of the `IteratorRecord`.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">next_method</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">JsValue</span> {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">next_method</span>
+    <span class="doccomment">/// Get the `[[NextMethod]]` field of the `IteratorRecord`.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>next_method(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>JsValue {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.next_method
     }
 
-    <span class="doccomment">/// Get the `[[Done]]` field of the `IteratorRecord`.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">done</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">done</span>
+    <span class="doccomment">/// Get the `[[Done]]` field of the `IteratorRecord`.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>done(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.done
     }
 
-    <span class="doccomment">/// Sets the `[[Done]]` field of the `IteratorRecord`.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">set_done</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">done</span>: <span class="ident">bool</span>) {
-        <span class="self">self</span>.<span class="ident">done</span> <span class="op">=</span> <span class="ident">done</span>;
+    <span class="doccomment">/// Sets the `[[Done]]` field of the `IteratorRecord`.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_done(<span class="kw-2">&amp;mut </span><span class="self">self</span>, done: bool) {
+        <span class="self">self</span>.done = done;
     }
 
-    <span class="doccomment">/// `IteratorNext ( iteratorRecord [ , value ] )`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The abstract operation `IteratorNext` takes argument `iteratorRecord` (an `Iterator`</span>
-    <span class="doccomment">/// Record) and optional argument `value` (an ECMAScript language value) and returns either a</span>
-    <span class="doccomment">/// normal completion containing an `Object` or a throw completion.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMA reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-iteratornext</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">next</span>(
+    <span class="doccomment">/// `IteratorNext ( iteratorRecord [ , value ] )`
+    ///
+    /// The abstract operation `IteratorNext` takes argument `iteratorRecord` (an `Iterator`
+    /// Record) and optional argument `value` (an ECMAScript language value) and returns either a
+    /// normal completion containing an `Object` or a throw completion.
+    ///
+    /// More information:
+    ///  - [ECMA reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-iteratornext
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>next(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">value</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span>,
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">IteratorResult</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;IteratorRecord::next&quot;</span>, <span class="string">&quot;iterator&quot;</span>);
+        value: <span class="prelude-ty">Option</span>&lt;JsValue&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;IteratorResult&gt; {
+        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;IteratorRecord::next&quot;</span>, <span class="string">&quot;iterator&quot;</span>);
 
-        <span class="comment">// Note: We check if iteratorRecord.[[NextMethod]] is callable here.</span>
-        <span class="comment">// This check would happen in `Call` according to the spec, but we do not implement call for `JsValue`.</span>
-        <span class="kw">let</span> <span class="ident">next_method</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">next_method</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">next_method</span>.<span class="ident">as_callable</span>() {
-            <span class="ident">next_method</span>
-        } <span class="kw">else</span> {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
-                .<span class="ident">with_message</span>(<span class="string">&quot;iterable next method not a function&quot;</span>)
-                .<span class="ident">into</span>());
+        <span class="comment">// Note: We check if iteratorRecord.[[NextMethod]] is callable here.
+        // This check would happen in `Call` according to the spec, but we do not implement call for `JsValue`.
+        </span><span class="kw">let </span>next_method = <span class="kw">if let </span><span class="prelude-val">Some</span>(next_method) = <span class="self">self</span>.next_method.as_callable() {
+            next_method
+        } <span class="kw">else </span>{
+            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
+                .with_message(<span class="string">&quot;iterable next method not a function&quot;</span>)
+                .into());
         };
 
-        <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">value</span>) <span class="op">=</span> <span class="ident">value</span> {
-            <span class="comment">// 2. Else,</span>
-            <span class="comment">//     a. Let result be ? Call(iteratorRecord.[[NextMethod]], iteratorRecord.[[Iterator]], « value »).</span>
-            <span class="ident">next_method</span>.<span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">iterator</span>.<span class="ident">clone</span>().<span class="ident">into</span>(), <span class="kw-2">&amp;</span>[<span class="ident">value</span>], <span class="ident">context</span>)<span class="question-mark">?</span>
-        } <span class="kw">else</span> {
-            <span class="comment">// 1. If value is not present, then</span>
-            <span class="comment">//     a. Let result be ? Call(iteratorRecord.[[NextMethod]], iteratorRecord.[[Iterator]]).</span>
-            <span class="ident">next_method</span>.<span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">iterator</span>.<span class="ident">clone</span>().<span class="ident">into</span>(), <span class="kw-2">&amp;</span>[], <span class="ident">context</span>)<span class="question-mark">?</span>
-        };
+        <span class="kw">let </span>result = <span class="kw">if let </span><span class="prelude-val">Some</span>(value) = value {
+            <span class="comment">// 2. Else,
+            //     a. Let result be ? Call(iteratorRecord.[[NextMethod]], iteratorRecord.[[Iterator]], « value »).
+            </span>next_method.call(<span class="kw-2">&amp;</span><span class="self">self</span>.iterator.clone().into(), <span class="kw-2">&amp;</span>[value], context)<span class="question-mark">?
+        </span>} <span class="kw">else </span>{
+            <span class="comment">// 1. If value is not present, then
+            //     a. Let result be ? Call(iteratorRecord.[[NextMethod]], iteratorRecord.[[Iterator]]).
+            </span>next_method.call(<span class="kw-2">&amp;</span><span class="self">self</span>.iterator.clone().into(), <span class="kw-2">&amp;</span>[], context)<span class="question-mark">?
+        </span>};
 
-        <span class="comment">// 3. If Type(result) is not Object, throw a TypeError exception.</span>
-        <span class="comment">// 4. Return result.</span>
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">o</span>) <span class="op">=</span> <span class="ident">result</span>.<span class="ident">as_object</span>() {
-            <span class="prelude-val">Ok</span>(<span class="ident">IteratorResult</span> { <span class="ident">object</span>: <span class="ident">o</span>.<span class="ident">clone</span>() })
-        } <span class="kw">else</span> {
-            <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
-                .<span class="ident">with_message</span>(<span class="string">&quot;next value should be an object&quot;</span>)
-                .<span class="ident">into</span>())
+        <span class="comment">// 3. If Type(result) is not Object, throw a TypeError exception.
+        // 4. Return result.
+        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(o) = result.as_object() {
+            <span class="prelude-val">Ok</span>(IteratorResult { object: o.clone() })
+        } <span class="kw">else </span>{
+            <span class="prelude-val">Err</span>(JsNativeError::typ()
+                .with_message(<span class="string">&quot;next value should be an object&quot;</span>)
+                .into())
         }
     }
 
-    <span class="doccomment">/// `IteratorStep ( iteratorRecord )`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The abstract operation `IteratorStep` takes argument `iteratorRecord` (an `Iterator`</span>
-    <span class="doccomment">/// Record) and returns either a normal completion containing either an `Object` or `false`, or</span>
-    <span class="doccomment">/// a throw completion. It requests the next value from `iteratorRecord.[[Iterator]]` by</span>
-    <span class="doccomment">/// calling `iteratorRecord.[[NextMethod]]` and returns either `false` indicating that the</span>
-    <span class="doccomment">/// iterator has reached its end or the `IteratorResult` object if a next value is available.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMA reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-iteratorstep</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">step</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">IteratorResult</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;IteratorRecord::step&quot;</span>, <span class="string">&quot;iterator&quot;</span>);
+    <span class="doccomment">/// `IteratorStep ( iteratorRecord )`
+    ///
+    /// The abstract operation `IteratorStep` takes argument `iteratorRecord` (an `Iterator`
+    /// Record) and returns either a normal completion containing either an `Object` or `false`, or
+    /// a throw completion. It requests the next value from `iteratorRecord.[[Iterator]]` by
+    /// calling `iteratorRecord.[[NextMethod]]` and returns either `false` indicating that the
+    /// iterator has reached its end or the `IteratorResult` object if a next value is available.
+    ///
+    /// More information:
+    ///  - [ECMA reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-iteratorstep
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>step(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="prelude-ty">Option</span>&lt;IteratorResult&gt;&gt; {
+        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;IteratorRecord::step&quot;</span>, <span class="string">&quot;iterator&quot;</span>);
 
-        <span class="comment">// 1. Let result be ? IteratorNext(iteratorRecord).</span>
-        <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">next</span>(<span class="prelude-val">None</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="comment">// 1. Let result be ? IteratorNext(iteratorRecord).
+        </span><span class="kw">let </span>result = <span class="self">self</span>.next(<span class="prelude-val">None</span>, context)<span class="question-mark">?</span>;
 
-        <span class="comment">// 2. Let done be ? IteratorComplete(result).</span>
-        <span class="kw">let</span> <span class="ident">done</span> <span class="op">=</span> <span class="ident">result</span>.<span class="ident">complete</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="comment">// 2. Let done be ? IteratorComplete(result).
+        </span><span class="kw">let </span>done = result.complete(context)<span class="question-mark">?</span>;
 
-        <span class="comment">// 3. If done is true, return false.</span>
-        <span class="kw">if</span> <span class="ident">done</span> {
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
+        <span class="comment">// 3. If done is true, return false.
+        </span><span class="kw">if </span>done {
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
         }
 
-        <span class="comment">// 4. Return result.</span>
-        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">result</span>))
+        <span class="comment">// 4. Return result.
+        </span><span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(result))
     }
 
-    <span class="doccomment">/// `IteratorClose ( iteratorRecord, completion )`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The abstract operation `IteratorClose` takes arguments `iteratorRecord` (an</span>
-    <span class="doccomment">/// [Iterator Record][Self]) and `completion` (a `Completion` Record) and returns a</span>
-    <span class="doccomment">/// `Completion` Record. It is used to notify an iterator that it should perform any actions it</span>
-    <span class="doccomment">/// would normally perform when it has reached its completed state.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMA reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">///  [spec]: https://tc39.es/ecma262/#sec-iteratorclose</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">close</span>(
+    <span class="doccomment">/// `IteratorClose ( iteratorRecord, completion )`
+    ///
+    /// The abstract operation `IteratorClose` takes arguments `iteratorRecord` (an
+    /// [Iterator Record][Self]) and `completion` (a `Completion` Record) and returns a
+    /// `Completion` Record. It is used to notify an iterator that it should perform any actions it
+    /// would normally perform when it has reached its completed state.
+    ///
+    /// More information:
+    ///  - [ECMA reference][spec]
+    ///
+    ///  [spec]: https://tc39.es/ecma262/#sec-iteratorclose
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>close(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">completion</span>: <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span>,
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;IteratorRecord::close&quot;</span>, <span class="string">&quot;iterator&quot;</span>);
+        completion: JsResult&lt;JsValue&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;IteratorRecord::close&quot;</span>, <span class="string">&quot;iterator&quot;</span>);
 
-        <span class="comment">// 1. Assert: Type(iteratorRecord.[[Iterator]]) is Object.</span>
+        <span class="comment">// 1. Assert: Type(iteratorRecord.[[Iterator]]) is Object.
 
-        <span class="comment">// 2. Let iterator be iteratorRecord.[[Iterator]].</span>
-        <span class="kw">let</span> <span class="ident">iterator</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">iterator</span>;
+        // 2. Let iterator be iteratorRecord.[[Iterator]].
+        </span><span class="kw">let </span>iterator = <span class="kw-2">&amp;</span><span class="self">self</span>.iterator;
 
-        <span class="comment">// 3. Let innerResult be Completion(GetMethod(iterator, &quot;return&quot;)).</span>
-        <span class="kw">let</span> <span class="ident">inner_result</span> <span class="op">=</span> <span class="ident">iterator</span>.<span class="ident">get_method</span>(<span class="string">&quot;return&quot;</span>, <span class="ident">context</span>);
+        <span class="comment">// 3. Let innerResult be Completion(GetMethod(iterator, &quot;return&quot;)).
+        </span><span class="kw">let </span>inner_result = iterator.get_method(<span class="string">&quot;return&quot;</span>, context);
 
-        <span class="comment">// 4. If innerResult.[[Type]] is normal, then</span>
-        <span class="kw">let</span> <span class="ident">inner_result</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">inner_result</span> {
-            <span class="prelude-val">Ok</span>(<span class="ident">inner_result</span>) =&gt; {
-                <span class="comment">// a. Let return be innerResult.[[Value]].</span>
-                <span class="kw">let</span> <span class="ident">r#return</span> <span class="op">=</span> <span class="ident">inner_result</span>;
+        <span class="comment">// 4. If innerResult.[[Type]] is normal, then
+        </span><span class="kw">let </span>inner_result = <span class="kw">match </span>inner_result {
+            <span class="prelude-val">Ok</span>(inner_result) =&gt; {
+                <span class="comment">// a. Let return be innerResult.[[Value]].
+                </span><span class="kw">let </span>r#return = inner_result;
 
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">r#return</span>) <span class="op">=</span> <span class="ident">r#return</span> {
-                    <span class="comment">// c. Set innerResult to Completion(Call(return, iterator)).</span>
-                    <span class="ident">r#return</span>.<span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="ident">iterator</span>.<span class="ident">clone</span>().<span class="ident">into</span>(), <span class="kw-2">&amp;</span>[], <span class="ident">context</span>)
-                } <span class="kw">else</span> {
-                    <span class="comment">// b. If return is undefined, return ? completion.</span>
-                    <span class="kw">return</span> <span class="ident">completion</span>;
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(r#return) = r#return {
+                    <span class="comment">// c. Set innerResult to Completion(Call(return, iterator)).
+                    </span>r#return.call(<span class="kw-2">&amp;</span>iterator.clone().into(), <span class="kw-2">&amp;</span>[], context)
+                } <span class="kw">else </span>{
+                    <span class="comment">// b. If return is undefined, return ? completion.
+                    </span><span class="kw">return </span>completion;
                 }
             }
-            <span class="prelude-val">Err</span>(<span class="ident">inner_result</span>) =&gt; {
-                <span class="comment">// 5. If completion.[[Type]] is throw, return ? completion.</span>
-                <span class="ident">completion</span><span class="question-mark">?</span>;
+            <span class="prelude-val">Err</span>(inner_result) =&gt; {
+                <span class="comment">// 5. If completion.[[Type]] is throw, return ? completion.
+                </span>completion<span class="question-mark">?</span>;
 
-                <span class="comment">// 6. If innerResult.[[Type]] is throw, return ? innerResult.</span>
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">inner_result</span>);
+                <span class="comment">// 6. If innerResult.[[Type]] is throw, return ? innerResult.
+                </span><span class="kw">return </span><span class="prelude-val">Err</span>(inner_result);
             }
         };
 
-        <span class="comment">// 5. If completion.[[Type]] is throw, return ? completion.</span>
-        <span class="kw">let</span> <span class="ident">completion</span> <span class="op">=</span> <span class="ident">completion</span><span class="question-mark">?</span>;
+        <span class="comment">// 5. If completion.[[Type]] is throw, return ? completion.
+        </span><span class="kw">let </span>completion = completion<span class="question-mark">?</span>;
 
-        <span class="comment">// 6. If innerResult.[[Type]] is throw, return ? innerResult.</span>
-        <span class="kw">let</span> <span class="ident">inner_result</span> <span class="op">=</span> <span class="ident">inner_result</span><span class="question-mark">?</span>;
+        <span class="comment">// 6. If innerResult.[[Type]] is throw, return ? innerResult.
+        </span><span class="kw">let </span>inner_result = inner_result<span class="question-mark">?</span>;
 
-        <span class="kw">if</span> <span class="ident">inner_result</span>.<span class="ident">is_object</span>() {
-            <span class="comment">// 8. Return ? completion.</span>
-            <span class="prelude-val">Ok</span>(<span class="ident">completion</span>)
-        } <span class="kw">else</span> {
-            <span class="comment">// 7. If Type(innerResult.[[Value]]) is not Object, throw a TypeError exception.</span>
-            <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
-                .<span class="ident">with_message</span>(<span class="string">&quot;inner result was not an object&quot;</span>)
-                .<span class="ident">into</span>())
+        <span class="kw">if </span>inner_result.is_object() {
+            <span class="comment">// 8. Return ? completion.
+            </span><span class="prelude-val">Ok</span>(completion)
+        } <span class="kw">else </span>{
+            <span class="comment">// 7. If Type(innerResult.[[Value]]) is not Object, throw a TypeError exception.
+            </span><span class="prelude-val">Err</span>(JsNativeError::typ()
+                .with_message(<span class="string">&quot;inner result was not an object&quot;</span>)
+                .into())
         }
     }
 }
 
-<span class="doccomment">/// `IterableToList ( items [ , method ] )`</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [ECMA reference][spec]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">///  [spec]: https://tc39.es/ecma262/#sec-iterabletolist</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">iterable_to_list</span>(
-    <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    <span class="ident">items</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
-    <span class="ident">method</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span>,
-) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;iterable_to_list&quot;</span>, <span class="string">&quot;iterator&quot;</span>);
+<span class="doccomment">/// `IterableToList ( items [ , method ] )`
+///
+/// More information:
+///  - [ECMA reference][spec]
+///
+///  [spec]: https://tc39.es/ecma262/#sec-iterabletolist
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>iterable_to_list(
+    context: <span class="kw-2">&amp;mut </span>Context,
+    items: <span class="kw-2">&amp;</span>JsValue,
+    method: <span class="prelude-ty">Option</span>&lt;JsValue&gt;,
+) -&gt; JsResult&lt;Vec&lt;JsValue&gt;&gt; {
+    <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;iterable_to_list&quot;</span>, <span class="string">&quot;iterator&quot;</span>);
 
-    <span class="comment">// 1. If method is present, then</span>
-    <span class="kw">let</span> <span class="ident">iterator_record</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">method</span>) <span class="op">=</span> <span class="ident">method</span> {
-        <span class="comment">// a. Let iteratorRecord be ? GetIterator(items, sync, method).</span>
-        <span class="ident">items</span>.<span class="ident">get_iterator</span>(<span class="ident">context</span>, <span class="prelude-val">Some</span>(<span class="ident">IteratorHint::Sync</span>), <span class="prelude-val">Some</span>(<span class="ident">method</span>))<span class="question-mark">?</span>
-    } <span class="kw">else</span> {
-        <span class="comment">// 2. Else,</span>
+    <span class="comment">// 1. If method is present, then
+    </span><span class="kw">let </span>iterator_record = <span class="kw">if let </span><span class="prelude-val">Some</span>(method) = method {
+        <span class="comment">// a. Let iteratorRecord be ? GetIterator(items, sync, method).
+        </span>items.get_iterator(context, <span class="prelude-val">Some</span>(IteratorHint::Sync), <span class="prelude-val">Some</span>(method))<span class="question-mark">?
+    </span>} <span class="kw">else </span>{
+        <span class="comment">// 2. Else,
 
-        <span class="comment">// a. Let iteratorRecord be ? GetIterator(items, sync).</span>
-        <span class="ident">items</span>.<span class="ident">get_iterator</span>(<span class="ident">context</span>, <span class="prelude-val">Some</span>(<span class="ident">IteratorHint::Sync</span>), <span class="prelude-val">None</span>)<span class="question-mark">?</span>
-    };
+        // a. Let iteratorRecord be ? GetIterator(items, sync).
+        </span>items.get_iterator(context, <span class="prelude-val">Some</span>(IteratorHint::Sync), <span class="prelude-val">None</span>)<span class="question-mark">?
+    </span>};
 
-    <span class="comment">// 3. Let values be a new empty List.</span>
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">values</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
+    <span class="comment">// 3. Let values be a new empty List.
+    </span><span class="kw">let </span><span class="kw-2">mut </span>values = Vec::new();
 
-    <span class="comment">// 4. Let next be true.</span>
-    <span class="comment">// 5. Repeat, while next is not false,</span>
-    <span class="comment">//     a. Set next to ? IteratorStep(iteratorRecord).</span>
-    <span class="comment">//     b. If next is not false, then</span>
-    <span class="comment">//         i. Let nextValue be ? IteratorValue(next).</span>
-    <span class="comment">//         ii. Append nextValue to the end of the List values.</span>
-    <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">next</span>) <span class="op">=</span> <span class="ident">iterator_record</span>.<span class="ident">step</span>(<span class="ident">context</span>)<span class="question-mark">?</span> {
-        <span class="kw">let</span> <span class="ident">next_value</span> <span class="op">=</span> <span class="ident">next</span>.<span class="ident">value</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
-        <span class="ident">values</span>.<span class="ident">push</span>(<span class="ident">next_value</span>);
+    <span class="comment">// 4. Let next be true.
+    // 5. Repeat, while next is not false,
+    //     a. Set next to ? IteratorStep(iteratorRecord).
+    //     b. If next is not false, then
+    //         i. Let nextValue be ? IteratorValue(next).
+    //         ii. Append nextValue to the end of the List values.
+    </span><span class="kw">while let </span><span class="prelude-val">Some</span>(next) = iterator_record.step(context)<span class="question-mark">? </span>{
+        <span class="kw">let </span>next_value = next.value(context)<span class="question-mark">?</span>;
+        values.push(next_value);
     }
 
-    <span class="comment">// 6. Return values.</span>
-    <span class="prelude-val">Ok</span>(<span class="ident">values</span>)
+    <span class="comment">// 6. Return values.
+    </span><span class="prelude-val">Ok</span>(values)
 }
 
-<span class="doccomment">/// `IfAbruptCloseIterator ( value, iteratorRecord )`</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// `IfAbruptCloseIterator` is a shorthand for a sequence of algorithm steps that use an `Iterator`</span>
-<span class="doccomment">/// Record.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [ECMA reference][spec]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">///  [spec]: https://tc39.es/ecma262/#sec-ifabruptcloseiterator</span>
-<span class="macro">macro_rules!</span> <span class="ident">if_abrupt_close_iterator</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">value</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">iterator_record</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">context</span>:<span class="ident">expr</span>) =&gt; {
-        <span class="kw">match</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">value</span> {
-            <span class="comment">// 1. If value is an abrupt completion, return ? IteratorClose(iteratorRecord, value).</span>
-            <span class="prelude-val">Err</span>(<span class="ident">err</span>) =&gt; <span class="kw">return</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">iterator_record</span>.<span class="ident">close</span>(<span class="prelude-val">Err</span>(<span class="ident">err</span>), <span class="macro-nonterminal">$</span><span class="macro-nonterminal">context</span>),
-            <span class="comment">// 2. Else if value is a Completion Record, set value to value.</span>
-            <span class="prelude-val">Ok</span>(<span class="ident">value</span>) =&gt; <span class="ident">value</span>,
+<span class="doccomment">/// `IfAbruptCloseIterator ( value, iteratorRecord )`
+///
+/// `IfAbruptCloseIterator` is a shorthand for a sequence of algorithm steps that use an `Iterator`
+/// Record.
+///
+/// More information:
+///  - [ECMA reference][spec]
+///
+///  [spec]: https://tc39.es/ecma262/#sec-ifabruptcloseiterator
+</span><span class="macro">macro_rules! </span>if_abrupt_close_iterator {
+    (<span class="macro-nonterminal">$value</span>:expr, <span class="macro-nonterminal">$iterator_record</span>:expr, <span class="macro-nonterminal">$context</span>:expr) =&gt; {
+        <span class="kw">match </span><span class="macro-nonterminal">$value </span>{
+            <span class="comment">// 1. If value is an abrupt completion, return ? IteratorClose(iteratorRecord, value).
+            </span><span class="prelude-val">Err</span>(err) =&gt; <span class="kw">return </span><span class="macro-nonterminal">$iterator_record</span>.close(<span class="prelude-val">Err</span>(err), <span class="macro-nonterminal">$context</span>),
+            <span class="comment">// 2. Else if value is a Completion Record, set value to value.
+            </span><span class="prelude-val">Ok</span>(value) =&gt; value,
         }
     };
 }
 
-<span class="comment">// Export macro to crate level</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use</span> <span class="ident">if_abrupt_close_iterator</span>;
+<span class="comment">// Export macro to crate level
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>if_abrupt_close_iterator;
 
-<span class="doccomment">/// Create the `%AsyncIteratorPrototype%` object</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [ECMA reference][spec]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-asynciteratorprototype</span>
-<span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">fn</span> <span class="ident">create_async_iterator_prototype</span>(<span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsObject</span> {
-    <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;AsyncIteratorPrototype&quot;</span>, <span class="string">&quot;init&quot;</span>);
+<span class="doccomment">/// Create the `%AsyncIteratorPrototype%` object
+///
+/// More information:
+///  - [ECMA reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-asynciteratorprototype
+</span><span class="attribute">#[inline]
+</span><span class="kw">fn </span>create_async_iterator_prototype(context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsObject {
+    <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;AsyncIteratorPrototype&quot;</span>, <span class="string">&quot;init&quot;</span>);
 
-    <span class="kw">let</span> <span class="ident">symbol_iterator</span> <span class="op">=</span> <span class="ident">WellKnownSymbols::async_iterator</span>();
-    <span class="kw">let</span> <span class="ident">iterator_prototype</span> <span class="op">=</span> <span class="ident">ObjectInitializer::new</span>(<span class="ident">context</span>)
-        .<span class="ident">function</span>(
-            <span class="op">|</span><span class="ident">v</span>, <span class="kw">_</span>, <span class="kw">_</span><span class="op">|</span> <span class="prelude-val">Ok</span>(<span class="ident">v</span>.<span class="ident">clone</span>()),
-            (<span class="ident">symbol_iterator</span>, <span class="string">&quot;[Symbol.asyncIterator]&quot;</span>),
+    <span class="kw">let </span>symbol_iterator = WellKnownSymbols::async_iterator();
+    <span class="kw">let </span>iterator_prototype = ObjectInitializer::new(context)
+        .function(
+            |v, <span class="kw">_</span>, <span class="kw">_</span>| <span class="prelude-val">Ok</span>(v.clone()),
+            (symbol_iterator, <span class="string">&quot;[Symbol.asyncIterator]&quot;</span>),
             <span class="number">0</span>,
         )
-        .<span class="ident">build</span>();
-    <span class="ident">iterator_prototype</span>
+        .build();
+    iterator_prototype
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0 (a55dd71d5 2022-09-19)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0 (897e37553 2022-11-02)" ></div></body></html>

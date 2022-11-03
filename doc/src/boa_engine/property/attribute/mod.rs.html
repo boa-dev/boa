@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_engine/src/property/attribute/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_engine/src/property/attribute/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container">
                     <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../boa_engine/index.html">
                         <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -102,107 +102,107 @@
 <span id="100">100</span>
 <span id="101">101</span>
 <span id="102">102</span>
-</pre><pre class="rust"><code><span class="doccomment">//! This module implements the `Attribute` struct which contains the attibutes for property descriptors.</span>
+</pre><pre class="rust"><code><span class="doccomment">//! This module implements the `Attribute` struct which contains the attibutes for property descriptors.
 
-<span class="kw">use</span> <span class="ident">bitflags::bitflags</span>;
+</span><span class="kw">use </span>bitflags::bitflags;
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span>;
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>tests;
 
-<span class="macro">bitflags!</span> {
-    <span class="doccomment">/// This struct constains the property flags as described in the ECMAScript specification.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// It contains the following flags:</span>
-    <span class="doccomment">///  - `[[Writable]]` (`WRITABLE`) - If `false`, attempts by ECMAScript code to change the property&#39;s</span>
-    <span class="doccomment">/// `[[Value]]` attribute using `[[Set]]` will not succeed.</span>
-    <span class="doccomment">///  - `[[Enumerable]]` (`ENUMERABLE`) - If the property will be enumerated by a for-in enumeration.</span>
-    <span class="doccomment">///  - `[[Configurable]]` (`CONFIGURABLE`) - If `false`, attempts to delete the property,</span>
-    <span class="doccomment">/// change the property to be an `accessor property`, or change its attributes (other than `[[Value]]`,</span>
-    <span class="doccomment">/// or changing `[[Writable]]` to `false`) will fail.</span>
-    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Attribute</span>: <span class="ident">u8</span> {
-        <span class="doccomment">/// The `Writable` attribute decides whether the value associated with the property can be changed or not, from its initial value.</span>
-        <span class="kw">const</span> <span class="ident">WRITABLE</span> <span class="op">=</span> <span class="number">0b0000_0001</span>;
+<span class="macro">bitflags! </span>{
+    <span class="doccomment">/// This struct constains the property flags as described in the ECMAScript specification.
+    ///
+    /// It contains the following flags:
+    ///  - `[[Writable]]` (`WRITABLE`) - If `false`, attempts by ECMAScript code to change the property&#39;s
+    /// `[[Value]]` attribute using `[[Set]]` will not succeed.
+    ///  - `[[Enumerable]]` (`ENUMERABLE`) - If the property will be enumerated by a for-in enumeration.
+    ///  - `[[Configurable]]` (`CONFIGURABLE`) - If `false`, attempts to delete the property,
+    /// change the property to be an `accessor property`, or change its attributes (other than `[[Value]]`,
+    /// or changing `[[Writable]]` to `false`) will fail.
+    </span><span class="kw">pub struct </span>Attribute: u8 {
+        <span class="doccomment">/// The `Writable` attribute decides whether the value associated with the property can be changed or not, from its initial value.
+        </span><span class="kw">const </span>WRITABLE = <span class="number">0b0000_0001</span>;
 
-        <span class="doccomment">/// If the property can be enumerated by a `for-in` loop.</span>
-        <span class="kw">const</span> <span class="ident">ENUMERABLE</span> <span class="op">=</span> <span class="number">0b0000_0010</span>;
+        <span class="doccomment">/// If the property can be enumerated by a `for-in` loop.
+        </span><span class="kw">const </span>ENUMERABLE = <span class="number">0b0000_0010</span>;
 
-        <span class="doccomment">/// If the property descriptor can be changed later.</span>
-        <span class="kw">const</span> <span class="ident">CONFIGURABLE</span> <span class="op">=</span> <span class="number">0b0000_0100</span>;
+        <span class="doccomment">/// If the property descriptor can be changed later.
+        </span><span class="kw">const </span>CONFIGURABLE = <span class="number">0b0000_0100</span>;
 
-        <span class="doccomment">/// The property is not writable.</span>
-        <span class="kw">const</span> <span class="ident">READONLY</span> <span class="op">=</span> <span class="number">0b0000_0000</span>;
+        <span class="doccomment">/// The property is not writable.
+        </span><span class="kw">const </span>READONLY = <span class="number">0b0000_0000</span>;
 
-        <span class="doccomment">/// The property can not be enumerated in a `for-in` loop.</span>
-        <span class="kw">const</span> <span class="ident">NON_ENUMERABLE</span> <span class="op">=</span> <span class="number">0b0000_0000</span>;
+        <span class="doccomment">/// The property can not be enumerated in a `for-in` loop.
+        </span><span class="kw">const </span>NON_ENUMERABLE = <span class="number">0b0000_0000</span>;
 
-        <span class="doccomment">/// The property descriptor cannot be changed.</span>
-        <span class="kw">const</span> <span class="ident">PERMANENT</span> <span class="op">=</span> <span class="number">0b0000_0000</span>;
+        <span class="doccomment">/// The property descriptor cannot be changed.
+        </span><span class="kw">const </span>PERMANENT = <span class="number">0b0000_0000</span>;
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Attribute</span> {
-    <span class="doccomment">/// Clear all flags.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">clear</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="self">self</span>.<span class="ident">bits</span> <span class="op">=</span> <span class="number">0</span>;
+<span class="kw">impl </span>Attribute {
+    <span class="doccomment">/// Clear all flags.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>clear(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="self">self</span>.bits = <span class="number">0</span>;
     }
 
-    <span class="doccomment">/// Sets the `writable` flag.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_writable</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">value</span>: <span class="ident">bool</span>) {
-        <span class="kw">if</span> <span class="ident">value</span> {
-            <span class="kw-2">*</span><span class="self">self</span> <span class="op">|</span><span class="op">=</span> <span class="ident"><span class="self">Self</span>::WRITABLE</span>;
-        } <span class="kw">else</span> {
-            <span class="kw-2">*</span><span class="self">self</span> <span class="op">|</span><span class="op">=</span> <span class="kw-2">*</span><span class="self">self</span> <span class="op">&amp;</span> <span class="op">!</span><span class="ident"><span class="self">Self</span>::WRITABLE</span>;
+    <span class="doccomment">/// Sets the `writable` flag.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>set_writable(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: bool) {
+        <span class="kw">if </span>value {
+            <span class="kw-2">*</span><span class="self">self </span>|= <span class="self">Self</span>::WRITABLE;
+        } <span class="kw">else </span>{
+            <span class="kw-2">*</span><span class="self">self </span>|= <span class="kw-2">*</span><span class="self">self </span>&amp; !<span class="self">Self</span>::WRITABLE;
         }
     }
 
-    <span class="doccomment">/// Gets the `writable` flag.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">writable</span>(<span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">contains</span>(<span class="ident"><span class="self">Self</span>::WRITABLE</span>)
+    <span class="doccomment">/// Gets the `writable` flag.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>writable(<span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.contains(<span class="self">Self</span>::WRITABLE)
     }
 
-    <span class="doccomment">/// Sets the `enumerable` flag.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_enumerable</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">value</span>: <span class="ident">bool</span>) {
-        <span class="kw">if</span> <span class="ident">value</span> {
-            <span class="kw-2">*</span><span class="self">self</span> <span class="op">|</span><span class="op">=</span> <span class="ident"><span class="self">Self</span>::ENUMERABLE</span>;
-        } <span class="kw">else</span> {
-            <span class="kw-2">*</span><span class="self">self</span> <span class="op">|</span><span class="op">=</span> <span class="kw-2">*</span><span class="self">self</span> <span class="op">&amp;</span> <span class="op">!</span><span class="ident"><span class="self">Self</span>::ENUMERABLE</span>;
+    <span class="doccomment">/// Sets the `enumerable` flag.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>set_enumerable(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: bool) {
+        <span class="kw">if </span>value {
+            <span class="kw-2">*</span><span class="self">self </span>|= <span class="self">Self</span>::ENUMERABLE;
+        } <span class="kw">else </span>{
+            <span class="kw-2">*</span><span class="self">self </span>|= <span class="kw-2">*</span><span class="self">self </span>&amp; !<span class="self">Self</span>::ENUMERABLE;
         }
     }
 
-    <span class="doccomment">/// Gets the `enumerable` flag.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">enumerable</span>(<span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">contains</span>(<span class="ident"><span class="self">Self</span>::ENUMERABLE</span>)
+    <span class="doccomment">/// Gets the `enumerable` flag.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>enumerable(<span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.contains(<span class="self">Self</span>::ENUMERABLE)
     }
 
-    <span class="doccomment">/// Sets the `configurable` flag.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_configurable</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">value</span>: <span class="ident">bool</span>) {
-        <span class="kw">if</span> <span class="ident">value</span> {
-            <span class="kw-2">*</span><span class="self">self</span> <span class="op">|</span><span class="op">=</span> <span class="ident"><span class="self">Self</span>::CONFIGURABLE</span>;
-        } <span class="kw">else</span> {
-            <span class="kw-2">*</span><span class="self">self</span> <span class="op">|</span><span class="op">=</span> <span class="kw-2">*</span><span class="self">self</span> <span class="op">&amp;</span> <span class="op">!</span><span class="ident"><span class="self">Self</span>::CONFIGURABLE</span>;
+    <span class="doccomment">/// Sets the `configurable` flag.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>set_configurable(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: bool) {
+        <span class="kw">if </span>value {
+            <span class="kw-2">*</span><span class="self">self </span>|= <span class="self">Self</span>::CONFIGURABLE;
+        } <span class="kw">else </span>{
+            <span class="kw-2">*</span><span class="self">self </span>|= <span class="kw-2">*</span><span class="self">self </span>&amp; !<span class="self">Self</span>::CONFIGURABLE;
         }
     }
 
-    <span class="doccomment">/// Gets the `configurable` flag.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">configurable</span>(<span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">contains</span>(<span class="ident"><span class="self">Self</span>::CONFIGURABLE</span>)
+    <span class="doccomment">/// Gets the `configurable` flag.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>configurable(<span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.contains(<span class="self">Self</span>::CONFIGURABLE)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">Attribute</span> {
-    <span class="doccomment">/// Returns the default flags according to the [ECMAScript specification][spec].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#table-default-attribute-values</span>
-    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::READONLY</span> <span class="op">|</span> <span class="ident"><span class="self">Self</span>::NON_ENUMERABLE</span> <span class="op">|</span> <span class="ident"><span class="self">Self</span>::PERMANENT</span>
+<span class="kw">impl </span>Default <span class="kw">for </span>Attribute {
+    <span class="doccomment">/// Returns the default flags according to the [ECMAScript specification][spec].
+    ///
+    /// [spec]: https://tc39.es/ecma262/#table-default-attribute-values
+    </span><span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::READONLY | <span class="self">Self</span>::NON_ENUMERABLE | <span class="self">Self</span>::PERMANENT
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0 (a55dd71d5 2022-09-19)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0 (897e37553 2022-11-02)" ></div></body></html>

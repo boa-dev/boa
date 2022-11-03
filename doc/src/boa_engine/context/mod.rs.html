@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_engine/src/context/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../boa_engine/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../boa_engine/index.html"><div class="logo-container">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_engine/src/context/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../boa_engine/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../boa_engine/index.html"><div class="logo-container">
                     <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../boa_engine/index.html">
                         <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -660,665 +660,665 @@
 <span id="658">658</span>
 <span id="659">659</span>
 <span id="660">660</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Javascript context.</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Javascript context.
 
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">intrinsics</span>;
+</span><span class="kw">pub mod </span>intrinsics;
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;intl&quot;</span>)]</span>
-<span class="kw">mod</span> <span class="ident">icu</span>;
+<span class="attribute">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
+</span><span class="kw">mod </span>icu;
 
-<span class="kw">use</span> <span class="ident">std::collections::VecDeque</span>;
+<span class="kw">use </span>std::collections::VecDeque;
 
-<span class="kw">use</span> <span class="ident">intrinsics</span>::{<span class="ident">IntrinsicObjects</span>, <span class="ident">Intrinsics</span>};
+<span class="kw">use </span>intrinsics::{IntrinsicObjects, Intrinsics};
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;console&quot;</span>)]</span>
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::builtins::console::Console</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">builtins</span>::{<span class="self">self</span>, <span class="ident">function::NativeFunctionSignature</span>},
-    <span class="ident">bytecompiler::ByteCompiler</span>,
-    <span class="ident">class</span>::{<span class="ident">Class</span>, <span class="ident">ClassBuilder</span>},
-    <span class="ident">error::JsNativeError</span>,
-    <span class="ident">job::JobCallback</span>,
-    <span class="ident">object</span>::{<span class="ident">FunctionBuilder</span>, <span class="ident">GlobalPropertyMap</span>, <span class="ident">JsObject</span>, <span class="ident">ObjectData</span>},
-    <span class="ident">property</span>::{<span class="ident">Attribute</span>, <span class="ident">PropertyDescriptor</span>, <span class="ident">PropertyKey</span>},
-    <span class="ident">realm::Realm</span>,
-    <span class="ident">syntax</span>::{<span class="ident">parser::ParseError</span>, <span class="ident">Parser</span>},
-    <span class="ident">vm</span>::{<span class="ident">CallFrame</span>, <span class="ident">CodeBlock</span>, <span class="ident">FinallyReturn</span>, <span class="ident">GeneratorResumeKind</span>, <span class="ident">Vm</span>},
-    <span class="ident">JsResult</span>, <span class="ident">JsString</span>, <span class="ident">JsValue</span>,
+<span class="attribute">#[cfg(feature = <span class="string">&quot;console&quot;</span>)]
+</span><span class="kw">use </span><span class="kw">crate</span>::builtins::console::Console;
+<span class="kw">use crate</span>::{
+    builtins::{<span class="self">self</span>, function::NativeFunctionSignature},
+    bytecompiler::ByteCompiler,
+    class::{Class, ClassBuilder},
+    error::JsNativeError,
+    job::JobCallback,
+    object::{FunctionBuilder, GlobalPropertyMap, JsObject, ObjectData},
+    property::{Attribute, PropertyDescriptor, PropertyKey},
+    realm::Realm,
+    syntax::{parser::ParseError, Parser},
+    vm::{CallFrame, CodeBlock, FinallyReturn, GeneratorResumeKind, Vm},
+    JsResult, JsString, JsValue,
 };
 
-<span class="kw">use</span> <span class="ident">boa_ast::StatementList</span>;
-<span class="kw">use</span> <span class="ident">boa_gc::Gc</span>;
-<span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">Sym</span>};
-<span class="kw">use</span> <span class="ident">boa_profiler::Profiler</span>;
+<span class="kw">use </span>boa_ast::StatementList;
+<span class="kw">use </span>boa_gc::Gc;
+<span class="kw">use </span>boa_interner::{Interner, Sym};
+<span class="kw">use </span>boa_profiler::Profiler;
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;intl&quot;</span>)]</span>
-<span class="kw">use</span> <span class="ident">icu_provider::DataError</span>;
+<span class="attribute">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
+</span><span class="kw">use </span>icu_provider::DataError;
 
-<span class="attribute">#[<span class="ident">doc</span>(<span class="ident">inline</span>)]</span>
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;intl&quot;</span>, <span class="ident">doc</span>))]</span>
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">icu::BoaProvider</span>;
+<span class="attribute">#[doc(inline)]
+#[cfg(all(feature = <span class="string">&quot;intl&quot;</span>, doc))]
+</span><span class="kw">pub use </span>icu::BoaProvider;
 
-<span class="doccomment">/// Javascript context. It is the primary way to interact with the runtime.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// `Context`s constructed in a thread share the same runtime, therefore it</span>
-<span class="doccomment">/// is possible to share objects from one context to another context, but they</span>
-<span class="doccomment">/// have to be in the same thread.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Examples</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ## Execute Function of Script File</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```rust</span>
-<span class="doccomment">/// use boa_engine::{</span>
-<span class="doccomment">///     object::ObjectInitializer,</span>
-<span class="doccomment">///     property::{Attribute, PropertyDescriptor},</span>
-<span class="doccomment">///     Context,</span>
-<span class="doccomment">/// };</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// let script = r#&quot;</span>
-<span class="doccomment">/// function test(arg1) {</span>
-<span class="doccomment">///     if(arg1 != null) {</span>
-<span class="doccomment">///         return arg1.x;</span>
-<span class="doccomment">///     }</span>
-<span class="doccomment">///     return 112233;</span>
-<span class="doccomment">/// }</span>
-<span class="doccomment">/// &quot;#;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// let mut context = Context::default();</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// // Populate the script definition to the context.</span>
-<span class="doccomment">/// context.eval(script).unwrap();</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// // Create an object that can be used in eval calls.</span>
-<span class="doccomment">/// let arg = ObjectInitializer::new(&amp;mut context)</span>
-<span class="doccomment">///     .property(&quot;x&quot;, 12, Attribute::READONLY)</span>
-<span class="doccomment">///     .build();</span>
-<span class="doccomment">/// context.register_global_property(&quot;arg&quot;, arg, Attribute::all());</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// let value = context.eval(&quot;test(arg)&quot;).unwrap();</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// assert_eq!(value.as_number(), Some(12.0))</span>
-<span class="doccomment">/// ```</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Context</span> {
-    <span class="doccomment">/// realm holds both the global object and the environment</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">realm</span>: <span class="ident">Realm</span>,
+<span class="doccomment">/// Javascript context. It is the primary way to interact with the runtime.
+///
+/// `Context`s constructed in a thread share the same runtime, therefore it
+/// is possible to share objects from one context to another context, but they
+/// have to be in the same thread.
+///
+/// # Examples
+///
+/// ## Execute Function of Script File
+///
+/// ```rust
+/// use boa_engine::{
+///     object::ObjectInitializer,
+///     property::{Attribute, PropertyDescriptor},
+///     Context,
+/// };
+///
+/// let script = r#&quot;
+/// function test(arg1) {
+///     if(arg1 != null) {
+///         return arg1.x;
+///     }
+///     return 112233;
+/// }
+/// &quot;#;
+///
+/// let mut context = Context::default();
+///
+/// // Populate the script definition to the context.
+/// context.eval(script).unwrap();
+///
+/// // Create an object that can be used in eval calls.
+/// let arg = ObjectInitializer::new(&amp;mut context)
+///     .property(&quot;x&quot;, 12, Attribute::READONLY)
+///     .build();
+/// context.register_global_property(&quot;arg&quot;, arg, Attribute::all());
+///
+/// let value = context.eval(&quot;test(arg)&quot;).unwrap();
+///
+/// assert_eq!(value.as_number(), Some(12.0))
+/// ```
+</span><span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub struct </span>Context {
+    <span class="doccomment">/// realm holds both the global object and the environment
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) realm: Realm,
 
-    <span class="doccomment">/// String interner in the context.</span>
-    <span class="ident">interner</span>: <span class="ident">Interner</span>,
+    <span class="doccomment">/// String interner in the context.
+    </span>interner: Interner,
 
-    <span class="doccomment">/// console object state.</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;console&quot;</span>)]</span>
-    <span class="ident">console</span>: <span class="ident">Console</span>,
+    <span class="doccomment">/// console object state.
+    </span><span class="attribute">#[cfg(feature = <span class="string">&quot;console&quot;</span>)]
+    </span>console: Console,
 
-    <span class="doccomment">/// Intrinsic objects</span>
-    <span class="ident">intrinsics</span>: <span class="ident">Intrinsics</span>,
+    <span class="doccomment">/// Intrinsic objects
+    </span>intrinsics: Intrinsics,
 
-    <span class="doccomment">/// ICU related utilities</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;intl&quot;</span>)]</span>
-    <span class="ident">icu</span>: <span class="ident">icu::Icu</span>,
+    <span class="doccomment">/// ICU related utilities
+    </span><span class="attribute">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
+    </span>icu: icu::Icu,
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">vm</span>: <span class="ident">Vm</span>,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) vm: Vm,
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">promise_job_queue</span>: <span class="ident">VecDeque</span><span class="op">&lt;</span><span class="ident">JobCallback</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) promise_job_queue: VecDeque&lt;JobCallback&gt;,
 }
 
-<span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">Context</span> {
-    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
-        <span class="ident">ContextBuilder::default</span>().<span class="ident">build</span>()
+<span class="kw">impl </span>Default <span class="kw">for </span>Context {
+    <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
+        ContextBuilder::default().build()
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Context</span> {
-    <span class="doccomment">/// Create a new [`ContextBuilder`] to specify the [`Interner`] and/or</span>
-    <span class="doccomment">/// the icu data provider.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">builder</span>() -&gt; <span class="ident">ContextBuilder</span> {
-        <span class="ident">ContextBuilder::default</span>()
+<span class="kw">impl </span>Context {
+    <span class="doccomment">/// Create a new [`ContextBuilder`] to specify the [`Interner`] and/or
+    /// the icu data provider.
+    </span><span class="kw">pub fn </span>builder() -&gt; ContextBuilder {
+        ContextBuilder::default()
     }
-    <span class="doccomment">/// Gets the string interner.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">interner</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">Interner</span> {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">interner</span>
-    }
-
-    <span class="doccomment">/// Gets a mutable reference to the string interner.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">interner_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">Interner</span> {
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">interner</span>
+    <span class="doccomment">/// Gets the string interner.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>interner(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Interner {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.interner
     }
 
-    <span class="doccomment">/// A helper function for getting an immutable reference to the `console` object.</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;console&quot;</span>)]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">console</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">Console</span> {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">console</span>
+    <span class="doccomment">/// Gets a mutable reference to the string interner.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>interner_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>Interner {
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>.interner
     }
 
-    <span class="doccomment">/// A helper function for getting a mutable reference to the `console` object.</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;console&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">console_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">Console</span> {
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">console</span>
+    <span class="doccomment">/// A helper function for getting an immutable reference to the `console` object.
+    </span><span class="attribute">#[cfg(feature = <span class="string">&quot;console&quot;</span>)]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>console(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Console {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.console
     }
 
-    <span class="doccomment">/// Sets up the default global objects within Global</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">create_intrinsics</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;create_intrinsics&quot;</span>, <span class="string">&quot;interpreter&quot;</span>);
-        <span class="comment">// Create intrinsics, add global objects here</span>
-        <span class="ident">builtins::init</span>(<span class="self">self</span>);
+    <span class="doccomment">/// A helper function for getting a mutable reference to the `console` object.
+    </span><span class="attribute">#[cfg(feature = <span class="string">&quot;console&quot;</span>)]
+    #[inline]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>console_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>Console {
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>.console
     }
 
-    <span class="doccomment">/// Constructs an object with the `%Object.prototype%` prototype.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">construct_object</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">JsObject</span> {
-        <span class="ident">JsObject::from_proto_and_data</span>(
-            <span class="self">self</span>.<span class="ident">intrinsics</span>().<span class="ident">constructors</span>().<span class="ident">object</span>().<span class="ident">prototype</span>(),
-            <span class="ident">ObjectData::ordinary</span>(),
+    <span class="doccomment">/// Sets up the default global objects within Global
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">fn </span>create_intrinsics(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;create_intrinsics&quot;</span>, <span class="string">&quot;interpreter&quot;</span>);
+        <span class="comment">// Create intrinsics, add global objects here
+        </span>builtins::init(<span class="self">self</span>);
+    }
+
+    <span class="doccomment">/// Constructs an object with the `%Object.prototype%` prototype.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>construct_object(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsObject {
+        JsObject::from_proto_and_data(
+            <span class="self">self</span>.intrinsics().constructors().object().prototype(),
+            ObjectData::ordinary(),
         )
     }
 
-    <span class="doccomment">/// Parse the given source text.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">src</span>: <span class="ident">S</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">StatementList</span>, <span class="ident">ParseError</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">S</span>: <span class="ident">AsRef</span><span class="op">&lt;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span>,
+    <span class="doccomment">/// Parse the given source text.
+    </span><span class="kw">pub fn </span>parse&lt;S&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, src: S) -&gt; <span class="prelude-ty">Result</span>&lt;StatementList, ParseError&gt;
+    <span class="kw">where
+        </span>S: AsRef&lt;[u8]&gt;,
     {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">parser</span> <span class="op">=</span> <span class="ident">Parser::new</span>(<span class="ident">src</span>.<span class="ident">as_ref</span>());
-        <span class="ident">parser</span>.<span class="ident">parse_all</span>(<span class="self">self</span>)
+        <span class="kw">let </span><span class="kw-2">mut </span>parser = Parser::new(src.as_ref());
+        parser.parse_all(<span class="self">self</span>)
     }
 
-    <span class="doccomment">/// Parse the given source text with eval specific handling.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">parse_eval</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">src</span>: <span class="ident">S</span>,
-        <span class="ident">direct</span>: <span class="ident">bool</span>,
-        <span class="ident">strict</span>: <span class="ident">bool</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">StatementList</span>, <span class="ident">ParseError</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">S</span>: <span class="ident">AsRef</span><span class="op">&lt;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span>,
+    <span class="doccomment">/// Parse the given source text with eval specific handling.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>parse_eval&lt;S&gt;(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        src: S,
+        direct: bool,
+        strict: bool,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;StatementList, ParseError&gt;
+    <span class="kw">where
+        </span>S: AsRef&lt;[u8]&gt;,
     {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">parser</span> <span class="op">=</span> <span class="ident">Parser::new</span>(<span class="ident">src</span>.<span class="ident">as_ref</span>());
-        <span class="kw">if</span> <span class="ident">strict</span> {
-            <span class="ident">parser</span>.<span class="ident">set_strict</span>();
+        <span class="kw">let </span><span class="kw-2">mut </span>parser = Parser::new(src.as_ref());
+        <span class="kw">if </span>strict {
+            parser.set_strict();
         }
-        <span class="ident">parser</span>.<span class="ident">parse_eval</span>(<span class="ident">direct</span>, <span class="self">self</span>)
+        parser.parse_eval(direct, <span class="self">self</span>)
     }
 
-    <span class="doccomment">/// `Call ( F, V [ , argumentsList ] )`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The abstract operation `Call` takes arguments `F` (an ECMAScript language value) and `V`</span>
-    <span class="doccomment">/// (an ECMAScript language value) and optional argument `argumentsList` (a `List` of</span>
-    <span class="doccomment">/// ECMAScript language values) and returns either a normal completion containing an ECMAScript</span>
-    <span class="doccomment">/// language value or a throw completion. It is used to call the `[[Call]]` internal method of</span>
-    <span class="doccomment">/// a function object. `F` is the function object, `V` is an ECMAScript language value that is</span>
-    <span class="doccomment">/// the `this` value of the `[[Call]]`, and `argumentsList` is the value passed to the</span>
-    <span class="doccomment">/// corresponding argument of the internal method. If `argumentsList` is not present, a new</span>
-    <span class="doccomment">/// empty `List` is used as its value.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMA reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-call</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">call</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
-        <span class="ident">v</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
-        <span class="ident">arguments_list</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="comment">// 1. If argumentsList is not present, set argumentsList to a new empty List.</span>
-        <span class="comment">// 2. If IsCallable(F) is false, throw a TypeError exception.</span>
-        <span class="comment">// 3. Return ? F.[[Call]](V, argumentsList).</span>
-        <span class="ident">f</span>.<span class="ident">as_callable</span>()
-            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-                <span class="ident">JsNativeError::typ</span>()
-                    .<span class="ident">with_message</span>(<span class="string">&quot;Value is not callable&quot;</span>)
-                    .<span class="ident">into</span>()
+    <span class="doccomment">/// `Call ( F, V [ , argumentsList ] )`
+    ///
+    /// The abstract operation `Call` takes arguments `F` (an ECMAScript language value) and `V`
+    /// (an ECMAScript language value) and optional argument `argumentsList` (a `List` of
+    /// ECMAScript language values) and returns either a normal completion containing an ECMAScript
+    /// language value or a throw completion. It is used to call the `[[Call]]` internal method of
+    /// a function object. `F` is the function object, `V` is an ECMAScript language value that is
+    /// the `this` value of the `[[Call]]`, and `argumentsList` is the value passed to the
+    /// corresponding argument of the internal method. If `argumentsList` is not present, a new
+    /// empty `List` is used as its value.
+    ///
+    /// More information:
+    ///  - [ECMA reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-call
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>call(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        f: <span class="kw-2">&amp;</span>JsValue,
+        v: <span class="kw-2">&amp;</span>JsValue,
+        arguments_list: <span class="kw-2">&amp;</span>[JsValue],
+    ) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="comment">// 1. If argumentsList is not present, set argumentsList to a new empty List.
+        // 2. If IsCallable(F) is false, throw a TypeError exception.
+        // 3. Return ? F.[[Call]](V, argumentsList).
+        </span>f.as_callable()
+            .ok_or_else(|| {
+                JsNativeError::typ()
+                    .with_message(<span class="string">&quot;Value is not callable&quot;</span>)
+                    .into()
             })
-            .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">f</span><span class="op">|</span> <span class="ident">f</span>.<span class="ident">call</span>(<span class="ident">v</span>, <span class="ident">arguments_list</span>, <span class="self">self</span>))
+            .and_then(|f| f.call(v, arguments_list, <span class="self">self</span>))
     }
 
-    <span class="doccomment">/// Return the global object.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">global_object</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">JsObject</span> {
-        <span class="self">self</span>.<span class="ident">realm</span>.<span class="ident">global_object</span>()
+    <span class="doccomment">/// Return the global object.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>global_object(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>JsObject {
+        <span class="self">self</span>.realm.global_object()
     }
 
-    <span class="doccomment">/// Return a mutable reference to the global object string bindings.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">global_bindings_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">GlobalPropertyMap</span> {
-        <span class="self">self</span>.<span class="ident">realm</span>.<span class="ident">global_bindings_mut</span>()
+    <span class="doccomment">/// Return a mutable reference to the global object string bindings.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>global_bindings_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>GlobalPropertyMap {
+        <span class="self">self</span>.realm.global_bindings_mut()
     }
 
-    <span class="doccomment">/// Constructs a `Error` with the specified message.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">construct_error</span><span class="op">&lt;</span><span class="ident">M</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">message</span>: <span class="ident">M</span>) -&gt; <span class="ident">JsValue</span>
-    <span class="kw">where</span>
-        <span class="ident">M</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">JsString</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// Constructs a `Error` with the specified message.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>construct_error&lt;M&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, message: M) -&gt; JsValue
+    <span class="kw">where
+        </span>M: Into&lt;JsString&gt;,
     {
-        <span class="ident"><span class="kw">crate</span>::builtins::error::Error::constructor</span>(
-            <span class="kw-2">&amp;</span><span class="self">self</span>
-                .<span class="ident">intrinsics</span>()
-                .<span class="ident">constructors</span>()
-                .<span class="ident">error</span>()
-                .<span class="ident">constructor</span>()
-                .<span class="ident">into</span>(),
-            <span class="kw-2">&amp;</span>[<span class="ident">message</span>.<span class="ident">into</span>().<span class="ident">into</span>()],
+        <span class="kw">crate</span>::builtins::error::Error::constructor(
+            <span class="kw-2">&amp;</span><span class="self">self
+                </span>.intrinsics()
+                .constructors()
+                .error()
+                .constructor()
+                .into(),
+            <span class="kw-2">&amp;</span>[message.into().into()],
             <span class="self">self</span>,
         )
-        .<span class="ident">expect</span>(<span class="string">&quot;Into&lt;String&gt; used as message&quot;</span>)
+        .expect(<span class="string">&quot;Into&lt;String&gt; used as message&quot;</span>)
     }
 
-    <span class="doccomment">/// Register a global native function.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This is more efficient that creating a closure function, since this does not allocate,</span>
-    <span class="doccomment">/// it is just a function pointer.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The function will be both `constructable` (call with `new &lt;name&gt;()`) and `callable` (call</span>
-    <span class="doccomment">/// with `&lt;name&gt;()`).</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The function will be bound to the global object with `writable`, `non-enumerable`</span>
-    <span class="doccomment">/// and `configurable` attributes. The same as when you create a function in JavaScript.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Note</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If you want to make a function only `constructable`, or wish to bind it differently</span>
-    <span class="doccomment">/// to the global object, you can create the function object with</span>
-    <span class="doccomment">/// [`FunctionBuilder`](crate::object::FunctionBuilder::native). And bind it to the global</span>
-    <span class="doccomment">/// object with [`Context::register_global_property`](Context::register_global_property)</span>
-    <span class="doccomment">/// method.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">register_global_function</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
-        <span class="ident">length</span>: <span class="ident">usize</span>,
-        <span class="ident">body</span>: <span class="ident">NativeFunctionSignature</span>,
+    <span class="doccomment">/// Register a global native function.
+    ///
+    /// This is more efficient that creating a closure function, since this does not allocate,
+    /// it is just a function pointer.
+    ///
+    /// The function will be both `constructable` (call with `new &lt;name&gt;()`) and `callable` (call
+    /// with `&lt;name&gt;()`).
+    ///
+    /// The function will be bound to the global object with `writable`, `non-enumerable`
+    /// and `configurable` attributes. The same as when you create a function in JavaScript.
+    ///
+    /// # Note
+    ///
+    /// If you want to make a function only `constructable`, or wish to bind it differently
+    /// to the global object, you can create the function object with
+    /// [`FunctionBuilder`](crate::object::FunctionBuilder::native). And bind it to the global
+    /// object with [`Context::register_global_property`](Context::register_global_property)
+    /// method.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>register_global_function(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        name: <span class="kw-2">&amp;</span>str,
+        length: usize,
+        body: NativeFunctionSignature,
     ) {
-        <span class="kw">let</span> <span class="ident">function</span> <span class="op">=</span> <span class="ident">FunctionBuilder::native</span>(<span class="self">self</span>, <span class="ident">body</span>)
-            .<span class="ident">name</span>(<span class="ident">name</span>)
-            .<span class="ident">length</span>(<span class="ident">length</span>)
-            .<span class="ident">constructor</span>(<span class="bool-val">true</span>)
-            .<span class="ident">build</span>();
+        <span class="kw">let </span>function = FunctionBuilder::native(<span class="self">self</span>, body)
+            .name(name)
+            .length(length)
+            .constructor(<span class="bool-val">true</span>)
+            .build();
 
-        <span class="self">self</span>.<span class="ident">global_bindings_mut</span>().<span class="ident">insert</span>(
-            <span class="ident">name</span>.<span class="ident">into</span>(),
-            <span class="ident">PropertyDescriptor::builder</span>()
-                .<span class="ident">value</span>(<span class="ident">function</span>)
-                .<span class="ident">writable</span>(<span class="bool-val">true</span>)
-                .<span class="ident">enumerable</span>(<span class="bool-val">false</span>)
-                .<span class="ident">configurable</span>(<span class="bool-val">true</span>)
-                .<span class="ident">build</span>(),
+        <span class="self">self</span>.global_bindings_mut().insert(
+            name.into(),
+            PropertyDescriptor::builder()
+                .value(function)
+                .writable(<span class="bool-val">true</span>)
+                .enumerable(<span class="bool-val">false</span>)
+                .configurable(<span class="bool-val">true</span>)
+                .build(),
         );
     }
 
-    <span class="doccomment">/// Register a global native function that is not a constructor.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This is more efficient that creating a closure function, since this does not allocate,</span>
-    <span class="doccomment">/// it is just a function pointer.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The function will be bound to the global object with `writable`, `non-enumerable`</span>
-    <span class="doccomment">/// and `configurable` attributes. The same as when you create a function in JavaScript.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Note</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The difference to [`Context::register_global_function`](Context::register_global_function) is,</span>
-    <span class="doccomment">/// that the function will not be `constructable`.</span>
-    <span class="doccomment">/// Usage of the function as a constructor will produce a `TypeError`.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">register_global_builtin_function</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
-        <span class="ident">length</span>: <span class="ident">usize</span>,
-        <span class="ident">body</span>: <span class="ident">NativeFunctionSignature</span>,
+    <span class="doccomment">/// Register a global native function that is not a constructor.
+    ///
+    /// This is more efficient that creating a closure function, since this does not allocate,
+    /// it is just a function pointer.
+    ///
+    /// The function will be bound to the global object with `writable`, `non-enumerable`
+    /// and `configurable` attributes. The same as when you create a function in JavaScript.
+    ///
+    /// # Note
+    ///
+    /// The difference to [`Context::register_global_function`](Context::register_global_function) is,
+    /// that the function will not be `constructable`.
+    /// Usage of the function as a constructor will produce a `TypeError`.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>register_global_builtin_function(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        name: <span class="kw-2">&amp;</span>str,
+        length: usize,
+        body: NativeFunctionSignature,
     ) {
-        <span class="kw">let</span> <span class="ident">function</span> <span class="op">=</span> <span class="ident">FunctionBuilder::native</span>(<span class="self">self</span>, <span class="ident">body</span>)
-            .<span class="ident">name</span>(<span class="ident">name</span>)
-            .<span class="ident">length</span>(<span class="ident">length</span>)
-            .<span class="ident">constructor</span>(<span class="bool-val">false</span>)
-            .<span class="ident">build</span>();
+        <span class="kw">let </span>function = FunctionBuilder::native(<span class="self">self</span>, body)
+            .name(name)
+            .length(length)
+            .constructor(<span class="bool-val">false</span>)
+            .build();
 
-        <span class="self">self</span>.<span class="ident">global_bindings_mut</span>().<span class="ident">insert</span>(
-            <span class="ident">name</span>.<span class="ident">into</span>(),
-            <span class="ident">PropertyDescriptor::builder</span>()
-                .<span class="ident">value</span>(<span class="ident">function</span>)
-                .<span class="ident">writable</span>(<span class="bool-val">true</span>)
-                .<span class="ident">enumerable</span>(<span class="bool-val">false</span>)
-                .<span class="ident">configurable</span>(<span class="bool-val">true</span>)
-                .<span class="ident">build</span>(),
+        <span class="self">self</span>.global_bindings_mut().insert(
+            name.into(),
+            PropertyDescriptor::builder()
+                .value(function)
+                .writable(<span class="bool-val">true</span>)
+                .enumerable(<span class="bool-val">false</span>)
+                .configurable(<span class="bool-val">true</span>)
+                .build(),
         );
     }
 
-    <span class="doccomment">/// Register a global closure function.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The function will be both `constructable` (call with `new`).</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The function will be bound to the global object with `writable`, `non-enumerable`</span>
-    <span class="doccomment">/// and `configurable` attributes. The same as when you create a function in JavaScript.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Note #1</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If you want to make a function only `constructable`, or wish to bind it differently</span>
-    <span class="doccomment">/// to the global object, you can create the function object with</span>
-    <span class="doccomment">/// [`FunctionBuilder`](crate::object::FunctionBuilder::closure). And bind it to the global</span>
-    <span class="doccomment">/// object with [`Context::register_global_property`](Context::register_global_property)</span>
-    <span class="doccomment">/// method.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Note #2</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function will only accept `Copy` closures, meaning you cannot</span>
-    <span class="doccomment">/// move `Clone` types, just `Copy` types. If you need to move `Clone` types</span>
-    <span class="doccomment">/// as captures, see [`FunctionBuilder::closure_with_captures`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// See &lt;https://github.com/boa-dev/boa/issues/1515&gt; for an explanation on</span>
-    <span class="doccomment">/// why we need to restrict the set of accepted closures.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">register_global_closure</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">length</span>: <span class="ident">usize</span>, <span class="ident">body</span>: <span class="ident">F</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="kw-2">&amp;mut</span> <span class="self">Self</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Copy</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+    <span class="doccomment">/// Register a global closure function.
+    ///
+    /// The function will be both `constructable` (call with `new`).
+    ///
+    /// The function will be bound to the global object with `writable`, `non-enumerable`
+    /// and `configurable` attributes. The same as when you create a function in JavaScript.
+    ///
+    /// # Note #1
+    ///
+    /// If you want to make a function only `constructable`, or wish to bind it differently
+    /// to the global object, you can create the function object with
+    /// [`FunctionBuilder`](crate::object::FunctionBuilder::closure). And bind it to the global
+    /// object with [`Context::register_global_property`](Context::register_global_property)
+    /// method.
+    ///
+    /// # Note #2
+    ///
+    /// This function will only accept `Copy` closures, meaning you cannot
+    /// move `Clone` types, just `Copy` types. If you need to move `Clone` types
+    /// as captures, see [`FunctionBuilder::closure_with_captures`].
+    ///
+    /// See &lt;https://github.com/boa-dev/boa/issues/1515&gt; for an explanation on
+    /// why we need to restrict the set of accepted closures.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>register_global_closure&lt;F&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, name: <span class="kw-2">&amp;</span>str, length: usize, body: F) -&gt; JsResult&lt;()&gt;
+    <span class="kw">where
+        </span>F: Fn(<span class="kw-2">&amp;</span>JsValue, <span class="kw-2">&amp;</span>[JsValue], <span class="kw-2">&amp;mut </span><span class="self">Self</span>) -&gt; JsResult&lt;JsValue&gt; + Copy + <span class="lifetime">&#39;static</span>,
     {
-        <span class="kw">let</span> <span class="ident">function</span> <span class="op">=</span> <span class="ident">FunctionBuilder::closure</span>(<span class="self">self</span>, <span class="ident">body</span>)
-            .<span class="ident">name</span>(<span class="ident">name</span>)
-            .<span class="ident">length</span>(<span class="ident">length</span>)
-            .<span class="ident">constructor</span>(<span class="bool-val">true</span>)
-            .<span class="ident">build</span>();
+        <span class="kw">let </span>function = FunctionBuilder::closure(<span class="self">self</span>, body)
+            .name(name)
+            .length(length)
+            .constructor(<span class="bool-val">true</span>)
+            .build();
 
-        <span class="self">self</span>.<span class="ident">global_bindings_mut</span>().<span class="ident">insert</span>(
-            <span class="ident">name</span>.<span class="ident">into</span>(),
-            <span class="ident">PropertyDescriptor::builder</span>()
-                .<span class="ident">value</span>(<span class="ident">function</span>)
-                .<span class="ident">writable</span>(<span class="bool-val">true</span>)
-                .<span class="ident">enumerable</span>(<span class="bool-val">false</span>)
-                .<span class="ident">configurable</span>(<span class="bool-val">true</span>)
-                .<span class="ident">build</span>(),
+        <span class="self">self</span>.global_bindings_mut().insert(
+            name.into(),
+            PropertyDescriptor::builder()
+                .value(function)
+                .writable(<span class="bool-val">true</span>)
+                .enumerable(<span class="bool-val">false</span>)
+                .configurable(<span class="bool-val">true</span>)
+                .build(),
         );
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="doccomment">/// &lt;https://tc39.es/ecma262/#sec-hasproperty&gt;</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">has_property</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">obj</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">key</span>: <span class="kw-2">&amp;</span><span class="ident">PropertyKey</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">obj</span>) <span class="op">=</span> <span class="ident">obj</span>.<span class="ident">as_object</span>() {
-            <span class="ident">obj</span>.<span class="ident">__has_property__</span>(<span class="ident">key</span>, <span class="self">self</span>)
-        } <span class="kw">else</span> {
+    <span class="doccomment">/// &lt;https://tc39.es/ecma262/#sec-hasproperty&gt;
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>has_property(<span class="kw-2">&amp;mut </span><span class="self">self</span>, obj: <span class="kw-2">&amp;</span>JsValue, key: <span class="kw-2">&amp;</span>PropertyKey) -&gt; JsResult&lt;bool&gt; {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(obj) = obj.as_object() {
+            obj.__has_property__(key, <span class="self">self</span>)
+        } <span class="kw">else </span>{
             <span class="prelude-val">Ok</span>(<span class="bool-val">false</span>)
         }
     }
 
-    <span class="doccomment">/// Register a global class of type `T`, where `T` implements `Class`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Example</span>
-    <span class="doccomment">/// ```ignore</span>
-    <span class="doccomment">/// #[derive(Debug, Trace, Finalize)]</span>
-    <span class="doccomment">/// struct MyClass;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// impl Class for MyClass {</span>
-    <span class="doccomment">///    // ...</span>
-    <span class="doccomment">/// }</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// context.register_global_class::&lt;MyClass&gt;();</span>
-    <span class="doccomment">/// ```</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">register_global_class</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">T</span>: <span class="ident">Class</span>,
+    <span class="doccomment">/// Register a global class of type `T`, where `T` implements `Class`.
+    ///
+    /// # Example
+    /// ```ignore
+    /// #[derive(Debug, Trace, Finalize)]
+    /// struct MyClass;
+    ///
+    /// impl Class for MyClass {
+    ///    // ...
+    /// }
+    ///
+    /// context.register_global_class::&lt;MyClass&gt;();
+    /// ```
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>register_global_class&lt;T&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; JsResult&lt;()&gt;
+    <span class="kw">where
+        </span>T: Class,
     {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">class_builder</span> <span class="op">=</span> <span class="ident">ClassBuilder::new</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="self">self</span>);
-        <span class="ident">T::init</span>(<span class="kw-2">&amp;mut</span> <span class="ident">class_builder</span>)<span class="question-mark">?</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>class_builder = ClassBuilder::new::&lt;T&gt;(<span class="self">self</span>);
+        T::init(<span class="kw-2">&amp;mut </span>class_builder)<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="ident">class</span> <span class="op">=</span> <span class="ident">class_builder</span>.<span class="ident">build</span>();
-        <span class="kw">let</span> <span class="ident">property</span> <span class="op">=</span> <span class="ident">PropertyDescriptor::builder</span>()
-            .<span class="ident">value</span>(<span class="ident">class</span>)
-            .<span class="ident">writable</span>(<span class="ident">T::ATTRIBUTES</span>.<span class="ident">writable</span>())
-            .<span class="ident">enumerable</span>(<span class="ident">T::ATTRIBUTES</span>.<span class="ident">enumerable</span>())
-            .<span class="ident">configurable</span>(<span class="ident">T::ATTRIBUTES</span>.<span class="ident">configurable</span>())
-            .<span class="ident">build</span>();
+        <span class="kw">let </span>class = class_builder.build();
+        <span class="kw">let </span>property = PropertyDescriptor::builder()
+            .value(class)
+            .writable(T::ATTRIBUTES.writable())
+            .enumerable(T::ATTRIBUTES.enumerable())
+            .configurable(T::ATTRIBUTES.configurable())
+            .build();
 
-        <span class="self">self</span>.<span class="ident">global_bindings_mut</span>().<span class="ident">insert</span>(<span class="ident">T::NAME</span>.<span class="ident">into</span>(), <span class="ident">property</span>);
+        <span class="self">self</span>.global_bindings_mut().insert(T::NAME.into(), property);
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="doccomment">/// Register a global property.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Example</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use boa_engine::{</span>
-    <span class="doccomment">///     object::ObjectInitializer,</span>
-    <span class="doccomment">///     property::{Attribute, PropertyDescriptor},</span>
-    <span class="doccomment">///     Context,</span>
-    <span class="doccomment">/// };</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let mut context = Context::default();</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// context.register_global_property(&quot;myPrimitiveProperty&quot;, 10, Attribute::all());</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let object = ObjectInitializer::new(&amp;mut context)</span>
-    <span class="doccomment">///     .property(&quot;x&quot;, 0, Attribute::all())</span>
-    <span class="doccomment">///     .property(&quot;y&quot;, 1, Attribute::all())</span>
-    <span class="doccomment">///     .build();</span>
-    <span class="doccomment">/// context.register_global_property(&quot;myObjectProperty&quot;, object, Attribute::all());</span>
-    <span class="doccomment">/// ```</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">register_global_property</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">key</span>: <span class="ident">K</span>, <span class="ident">value</span>: <span class="ident">V</span>, <span class="ident">attribute</span>: <span class="ident">Attribute</span>)
-    <span class="kw">where</span>
-        <span class="ident">K</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">PropertyKey</span><span class="op">&gt;</span>,
-        <span class="ident">V</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// Register a global property.
+    ///
+    /// # Example
+    /// ```
+    /// use boa_engine::{
+    ///     object::ObjectInitializer,
+    ///     property::{Attribute, PropertyDescriptor},
+    ///     Context,
+    /// };
+    ///
+    /// let mut context = Context::default();
+    ///
+    /// context.register_global_property(&quot;myPrimitiveProperty&quot;, 10, Attribute::all());
+    ///
+    /// let object = ObjectInitializer::new(&amp;mut context)
+    ///     .property(&quot;x&quot;, 0, Attribute::all())
+    ///     .property(&quot;y&quot;, 1, Attribute::all())
+    ///     .build();
+    /// context.register_global_property(&quot;myObjectProperty&quot;, object, Attribute::all());
+    /// ```
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>register_global_property&lt;K, V&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: K, value: V, attribute: Attribute)
+    <span class="kw">where
+        </span>K: Into&lt;PropertyKey&gt;,
+        V: Into&lt;JsValue&gt;,
     {
-        <span class="self">self</span>.<span class="ident">realm</span>.<span class="ident">global_property_map</span>.<span class="ident">insert</span>(
-            <span class="kw-2">&amp;</span><span class="ident">key</span>.<span class="ident">into</span>(),
-            <span class="ident">PropertyDescriptor::builder</span>()
-                .<span class="ident">value</span>(<span class="ident">value</span>)
-                .<span class="ident">writable</span>(<span class="ident">attribute</span>.<span class="ident">writable</span>())
-                .<span class="ident">enumerable</span>(<span class="ident">attribute</span>.<span class="ident">enumerable</span>())
-                .<span class="ident">configurable</span>(<span class="ident">attribute</span>.<span class="ident">configurable</span>())
-                .<span class="ident">build</span>(),
+        <span class="self">self</span>.realm.global_property_map.insert(
+            <span class="kw-2">&amp;</span>key.into(),
+            PropertyDescriptor::builder()
+                .value(value)
+                .writable(attribute.writable())
+                .enumerable(attribute.enumerable())
+                .configurable(attribute.configurable())
+                .build(),
         );
     }
 
-    <span class="doccomment">/// Evaluates the given code by compiling down to bytecode, then interpreting the bytecode into a value</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// # use boa_engine::Context;</span>
-    <span class="doccomment">/// let mut context = Context::default();</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let value = context.eval(&quot;1 + 3&quot;).unwrap();</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// assert!(value.is_number());</span>
-    <span class="doccomment">/// assert_eq!(value.as_number().unwrap(), 4.0);</span>
-    <span class="doccomment">/// ```</span>
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::unit_arg</span>, <span class="ident">clippy::drop_copy</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">eval</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">src</span>: <span class="ident">S</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">S</span>: <span class="ident">AsRef</span><span class="op">&lt;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span>,
+    <span class="doccomment">/// Evaluates the given code by compiling down to bytecode, then interpreting the bytecode into a value
+    ///
+    /// # Examples
+    /// ```
+    /// # use boa_engine::Context;
+    /// let mut context = Context::default();
+    ///
+    /// let value = context.eval(&quot;1 + 3&quot;).unwrap();
+    ///
+    /// assert!(value.is_number());
+    /// assert_eq!(value.as_number().unwrap(), 4.0);
+    /// ```
+    </span><span class="attribute">#[allow(clippy::unit_arg, clippy::drop_copy)]
+    </span><span class="kw">pub fn </span>eval&lt;S&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, src: S) -&gt; JsResult&lt;JsValue&gt;
+    <span class="kw">where
+        </span>S: AsRef&lt;[u8]&gt;,
     {
-        <span class="kw">let</span> <span class="ident">main_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;Evaluation&quot;</span>, <span class="string">&quot;Main&quot;</span>);
+        <span class="kw">let </span>main_timer = Profiler::global().start_event(<span class="string">&quot;Evaluation&quot;</span>, <span class="string">&quot;Main&quot;</span>);
 
-        <span class="kw">let</span> <span class="ident">statement_list</span> <span class="op">=</span> <span class="ident">Parser::new</span>(<span class="ident">src</span>.<span class="ident">as_ref</span>()).<span class="ident">parse_all</span>(<span class="self">self</span>)<span class="question-mark">?</span>;
+        <span class="kw">let </span>statement_list = Parser::new(src.as_ref()).parse_all(<span class="self">self</span>)<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="ident">code_block</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">compile</span>(<span class="kw-2">&amp;</span><span class="ident">statement_list</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">execute</span>(<span class="ident">code_block</span>);
+        <span class="kw">let </span>code_block = <span class="self">self</span>.compile(<span class="kw-2">&amp;</span>statement_list)<span class="question-mark">?</span>;
+        <span class="kw">let </span>result = <span class="self">self</span>.execute(code_block);
 
-        <span class="comment">// The main_timer needs to be dropped before the Profiler is.</span>
-        <span class="ident">drop</span>(<span class="ident">main_timer</span>);
-        <span class="ident">Profiler::global</span>().<span class="ident">drop</span>();
+        <span class="comment">// The main_timer needs to be dropped before the Profiler is.
+        </span>drop(main_timer);
+        Profiler::global().drop();
 
-        <span class="ident">result</span>
+        result
     }
 
-    <span class="doccomment">/// Compile the AST into a `CodeBlock` ready to be executed by the VM.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">compile</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">statement_list</span>: <span class="kw-2">&amp;</span><span class="ident">StatementList</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">Gc</span><span class="op">&lt;</span><span class="ident">CodeBlock</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;Compilation&quot;</span>, <span class="string">&quot;Main&quot;</span>);
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">compiler</span> <span class="op">=</span> <span class="ident">ByteCompiler::new</span>(<span class="ident">Sym::MAIN</span>, <span class="ident">statement_list</span>.<span class="ident">strict</span>(), <span class="self">self</span>);
-        <span class="ident">compiler</span>.<span class="ident">create_decls</span>(<span class="ident">statement_list</span>, <span class="bool-val">false</span>);
-        <span class="ident">compiler</span>.<span class="ident">compile_statement_list</span>(<span class="ident">statement_list</span>, <span class="bool-val">true</span>, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<span class="ident">Gc::new</span>(<span class="ident">compiler</span>.<span class="ident">finish</span>()))
+    <span class="doccomment">/// Compile the AST into a `CodeBlock` ready to be executed by the VM.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>compile(<span class="kw-2">&amp;mut </span><span class="self">self</span>, statement_list: <span class="kw-2">&amp;</span>StatementList) -&gt; JsResult&lt;Gc&lt;CodeBlock&gt;&gt; {
+        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Compilation&quot;</span>, <span class="string">&quot;Main&quot;</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>compiler = ByteCompiler::new(Sym::MAIN, statement_list.strict(), <span class="self">self</span>);
+        compiler.create_decls(statement_list, <span class="bool-val">false</span>);
+        compiler.compile_statement_list(statement_list, <span class="bool-val">true</span>, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(Gc::new(compiler.finish()))
     }
 
-    <span class="doccomment">/// Compile the AST into a `CodeBlock` with an additional declarative environment.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">compile_with_new_declarative</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">statement_list</span>: <span class="kw-2">&amp;</span><span class="ident">StatementList</span>,
-        <span class="ident">strict</span>: <span class="ident">bool</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">Gc</span><span class="op">&lt;</span><span class="ident">CodeBlock</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;Compilation&quot;</span>, <span class="string">&quot;Main&quot;</span>);
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">compiler</span> <span class="op">=</span> <span class="ident">ByteCompiler::new</span>(<span class="ident">Sym::MAIN</span>, <span class="ident">statement_list</span>.<span class="ident">strict</span>(), <span class="self">self</span>);
-        <span class="ident">compiler</span>.<span class="ident">compile_statement_list_with_new_declarative</span>(<span class="ident">statement_list</span>, <span class="bool-val">true</span>, <span class="ident">strict</span>)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<span class="ident">Gc::new</span>(<span class="ident">compiler</span>.<span class="ident">finish</span>()))
+    <span class="doccomment">/// Compile the AST into a `CodeBlock` with an additional declarative environment.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>compile_with_new_declarative(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        statement_list: <span class="kw-2">&amp;</span>StatementList,
+        strict: bool,
+    ) -&gt; JsResult&lt;Gc&lt;CodeBlock&gt;&gt; {
+        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Compilation&quot;</span>, <span class="string">&quot;Main&quot;</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>compiler = ByteCompiler::new(Sym::MAIN, statement_list.strict(), <span class="self">self</span>);
+        compiler.compile_statement_list_with_new_declarative(statement_list, <span class="bool-val">true</span>, strict)<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(Gc::new(compiler.finish()))
     }
 
-    <span class="doccomment">/// Call the VM with a `CodeBlock` and return the result.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Since this function receives a `Gc&lt;CodeBlock&gt;`, cloning the code is very cheap, since it&#39;s</span>
-    <span class="doccomment">/// just a pointer copy. Therefore, if you&#39;d like to execute the same `CodeBlock` multiple</span>
-    <span class="doccomment">/// times, there is no need to re-compile it, and you can just call `clone()` on the</span>
-    <span class="doccomment">/// `Gc&lt;CodeBlock&gt;` returned by the [`Self::compile()`] function.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">execute</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">code_block</span>: <span class="ident">Gc</span><span class="op">&lt;</span><span class="ident">CodeBlock</span><span class="op">&gt;</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;Execution&quot;</span>, <span class="string">&quot;Main&quot;</span>);
+    <span class="doccomment">/// Call the VM with a `CodeBlock` and return the result.
+    ///
+    /// Since this function receives a `Gc&lt;CodeBlock&gt;`, cloning the code is very cheap, since it&#39;s
+    /// just a pointer copy. Therefore, if you&#39;d like to execute the same `CodeBlock` multiple
+    /// times, there is no need to re-compile it, and you can just call `clone()` on the
+    /// `Gc&lt;CodeBlock&gt;` returned by the [`Self::compile()`] function.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>execute(<span class="kw-2">&amp;mut </span><span class="self">self</span>, code_block: Gc&lt;CodeBlock&gt;) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Execution&quot;</span>, <span class="string">&quot;Main&quot;</span>);
 
-        <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">push_frame</span>(<span class="ident">CallFrame</span> {
-            <span class="ident">code</span>: <span class="ident">code_block</span>,
-            <span class="ident">pc</span>: <span class="number">0</span>,
-            <span class="ident">catch</span>: <span class="ident">Vec::new</span>(),
-            <span class="ident">finally_return</span>: <span class="ident">FinallyReturn::None</span>,
-            <span class="ident">finally_jump</span>: <span class="ident">Vec::new</span>(),
-            <span class="ident">pop_on_return</span>: <span class="number">0</span>,
-            <span class="ident">loop_env_stack</span>: <span class="ident">Vec::from</span>([<span class="number">0</span>]),
-            <span class="ident">try_env_stack</span>: <span class="ident">Vec::from</span>([<span class="ident"><span class="kw">crate</span>::vm::TryStackEntry</span> {
-                <span class="ident">num_env</span>: <span class="number">0</span>,
-                <span class="ident">num_loop_stack_entries</span>: <span class="number">0</span>,
+        <span class="self">self</span>.vm.push_frame(CallFrame {
+            code: code_block,
+            pc: <span class="number">0</span>,
+            catch: Vec::new(),
+            finally_return: FinallyReturn::None,
+            finally_jump: Vec::new(),
+            pop_on_return: <span class="number">0</span>,
+            loop_env_stack: Vec::from([<span class="number">0</span>]),
+            try_env_stack: Vec::from([<span class="kw">crate</span>::vm::TryStackEntry {
+                num_env: <span class="number">0</span>,
+                num_loop_stack_entries: <span class="number">0</span>,
             }]),
-            <span class="ident">param_count</span>: <span class="number">0</span>,
-            <span class="ident">arg_count</span>: <span class="number">0</span>,
-            <span class="ident">generator_resume_kind</span>: <span class="ident">GeneratorResumeKind::Normal</span>,
-            <span class="ident">thrown</span>: <span class="bool-val">false</span>,
-            <span class="ident">async_generator</span>: <span class="prelude-val">None</span>,
+            param_count: <span class="number">0</span>,
+            arg_count: <span class="number">0</span>,
+            generator_resume_kind: GeneratorResumeKind::Normal,
+            thrown: <span class="bool-val">false</span>,
+            async_generator: <span class="prelude-val">None</span>,
         });
 
-        <span class="self">self</span>.<span class="ident">realm</span>.<span class="ident">set_global_binding_number</span>();
-        <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">run</span>();
-        <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">pop_frame</span>();
-        <span class="self">self</span>.<span class="ident">run_queued_jobs</span>()<span class="question-mark">?</span>;
-        <span class="kw">let</span> (<span class="ident">result</span>, <span class="kw">_</span>) <span class="op">=</span> <span class="ident">result</span><span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<span class="ident">result</span>)
+        <span class="self">self</span>.realm.set_global_binding_number();
+        <span class="kw">let </span>result = <span class="self">self</span>.run();
+        <span class="self">self</span>.vm.pop_frame();
+        <span class="self">self</span>.run_queued_jobs()<span class="question-mark">?</span>;
+        <span class="kw">let </span>(result, <span class="kw">_</span>) = result<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(result)
     }
 
-    <span class="doccomment">/// Runs all the jobs in the job queue.</span>
-    <span class="kw">fn</span> <span class="ident">run_queued_jobs</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">job</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">promise_job_queue</span>.<span class="ident">pop_front</span>() {
-            <span class="ident">job</span>.<span class="ident">call_job_callback</span>(<span class="kw-2">&amp;</span><span class="ident">JsValue::Undefined</span>, <span class="kw-2">&amp;</span>[], <span class="self">self</span>)<span class="question-mark">?</span>;
+    <span class="doccomment">/// Runs all the jobs in the job queue.
+    </span><span class="kw">fn </span>run_queued_jobs(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; JsResult&lt;()&gt; {
+        <span class="kw">while let </span><span class="prelude-val">Some</span>(job) = <span class="self">self</span>.promise_job_queue.pop_front() {
+            job.call_job_callback(<span class="kw-2">&amp;</span>JsValue::Undefined, <span class="kw-2">&amp;</span>[], <span class="self">self</span>)<span class="question-mark">?</span>;
         }
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="doccomment">/// Return the intrinsic constructors and objects.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">intrinsics</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">Intrinsics</span> {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">intrinsics</span>
+    <span class="doccomment">/// Return the intrinsic constructors and objects.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>intrinsics(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Intrinsics {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.intrinsics
     }
 
-    <span class="doccomment">/// Set the value of trace on the context</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_trace</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">trace</span>: <span class="ident">bool</span>) {
-        <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">trace</span> <span class="op">=</span> <span class="ident">trace</span>;
+    <span class="doccomment">/// Set the value of trace on the context
+    </span><span class="kw">pub fn </span>set_trace(<span class="kw-2">&amp;mut </span><span class="self">self</span>, trace: bool) {
+        <span class="self">self</span>.vm.trace = trace;
     }
 
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;intl&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="doccomment">/// Get the ICU related utilities</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">icu</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">icu::Icu</span> {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">icu</span>
+    <span class="attribute">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
+    #[inline]
+    </span><span class="doccomment">/// Get the ICU related utilities
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>icu(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>icu::Icu {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.icu
     }
 
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-hostenqueuepromisejob</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">host_enqueue_promise_job</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">job</span>: <span class="ident">JobCallback</span> <span class="comment">/* , realm: Realm */</span>) {
-        <span class="comment">// If realm is not null ...</span>
-        <span class="comment">// TODO</span>
-        <span class="comment">// Let scriptOrModule be ...</span>
-        <span class="comment">// TODO</span>
-        <span class="self">self</span>.<span class="ident">promise_job_queue</span>.<span class="ident">push_back</span>(<span class="ident">job</span>);
+    <span class="doccomment">/// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-hostenqueuepromisejob
+    </span><span class="kw">pub fn </span>host_enqueue_promise_job(<span class="kw-2">&amp;mut </span><span class="self">self</span>, job: JobCallback <span class="comment">/* , realm: Realm */</span>) {
+        <span class="comment">// If realm is not null ...
+        // TODO
+        // Let scriptOrModule be ...
+        // TODO
+        </span><span class="self">self</span>.promise_job_queue.push_back(job);
     }
 }
-<span class="doccomment">/// Builder for the [`Context`] type.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This builder allows custom initialization of the [`Interner`] within</span>
-<span class="doccomment">/// the context.</span>
-<span class="doccomment">/// Additionally, if the `intl` feature is enabled, [`ContextBuilder`] becomes</span>
-<span class="doccomment">/// the only way to create a new [`Context`], since now it requires a</span>
-<span class="doccomment">/// valid data provider for the `Intl` functionality.</span>
-<span class="attribute">#[<span class="ident">cfg_attr</span>(
-    <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;intl&quot;</span>,
-    <span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot;The required data in a valid provider is specified in [`BoaProvider`]&quot;</span>
-)]</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Default</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ContextBuilder</span> {
-    <span class="ident">interner</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Interner</span><span class="op">&gt;</span>,
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;intl&quot;</span>)]</span>
-    <span class="ident">icu</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">icu::Icu</span><span class="op">&gt;</span>,
+<span class="doccomment">/// Builder for the [`Context`] type.
+///
+/// This builder allows custom initialization of the [`Interner`] within
+/// the context.
+/// Additionally, if the `intl` feature is enabled, [`ContextBuilder`] becomes
+/// the only way to create a new [`Context`], since now it requires a
+/// valid data provider for the `Intl` functionality.
+</span><span class="attribute">#[cfg_attr(
+    feature = <span class="string">&quot;intl&quot;</span>,
+    doc = <span class="string">&quot;The required data in a valid provider is specified in [`BoaProvider`]&quot;
+</span>)]
+#[derive(Debug, Default)]
+</span><span class="kw">pub struct </span>ContextBuilder {
+    interner: <span class="prelude-ty">Option</span>&lt;Interner&gt;,
+    <span class="attribute">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
+    </span>icu: <span class="prelude-ty">Option</span>&lt;icu::Icu&gt;,
 }
 
-<span class="kw">impl</span> <span class="ident">ContextBuilder</span> {
-    <span class="doccomment">/// Initializes the context [`Interner`] to the provided interner.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This is useful when you want to initialize an [`Interner`] with</span>
-    <span class="doccomment">/// a collection of words before parsing.</span>
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">interner</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">interner</span>: <span class="ident">Interner</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">self</span>.<span class="ident">interner</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">interner</span>);
-        <span class="self">self</span>
-    }
+<span class="kw">impl </span>ContextBuilder {
+    <span class="doccomment">/// Initializes the context [`Interner`] to the provided interner.
+    ///
+    /// This is useful when you want to initialize an [`Interner`] with
+    /// a collection of words before parsing.
+    </span><span class="attribute">#[must_use]
+    </span><span class="kw">pub fn </span>interner(<span class="kw-2">mut </span><span class="self">self</span>, interner: Interner) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.interner = <span class="prelude-val">Some</span>(interner);
+        <span class="self">self
+    </span>}
 
-    <span class="doccomment">/// Provides an icu data provider to the [`Context`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function is only available if the `intl` feature is enabled.</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;intl&quot;</span>, <span class="ident">docs</span>))]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">icu_provider</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">provider</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">icu::BoaProvider</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">DataError</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">icu</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">icu::Icu::new</span>(<span class="ident">provider</span>)<span class="question-mark">?</span>);
+    <span class="doccomment">/// Provides an icu data provider to the [`Context`].
+    ///
+    /// This function is only available if the `intl` feature is enabled.
+    </span><span class="attribute">#[cfg(any(feature = <span class="string">&quot;intl&quot;</span>, docs))]
+    </span><span class="kw">pub fn </span>icu_provider(<span class="kw-2">mut </span><span class="self">self</span>, provider: Box&lt;<span class="kw">dyn </span>icu::BoaProvider&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, DataError&gt; {
+        <span class="self">self</span>.icu = <span class="prelude-val">Some</span>(icu::Icu::new(provider)<span class="question-mark">?</span>);
         <span class="prelude-val">Ok</span>(<span class="self">self</span>)
     }
 
-    <span class="doccomment">/// Creates a new [`ContextBuilder`] with a default empty [`Interner`]</span>
-    <span class="doccomment">/// and a default [`BoaProvider`] if the `intl` feature is enabled.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::default</span>()
+    <span class="doccomment">/// Creates a new [`ContextBuilder`] with a default empty [`Interner`]
+    /// and a default [`BoaProvider`] if the `intl` feature is enabled.
+    </span><span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::default()
     }
 
-    <span class="doccomment">/// Builds a new [`Context`] with the provided parameters, and defaults</span>
-    <span class="doccomment">/// all missing parameters to their default values.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build</span>(<span class="self">self</span>) -&gt; <span class="ident">Context</span> {
-        <span class="kw">let</span> <span class="ident">intrinsics</span> <span class="op">=</span> <span class="ident">Intrinsics::default</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">context</span> <span class="op">=</span> <span class="ident">Context</span> {
-            <span class="ident">realm</span>: <span class="ident">Realm::create</span>(<span class="ident">intrinsics</span>.<span class="ident">constructors</span>().<span class="ident">object</span>().<span class="ident">prototype</span>().<span class="ident">into</span>()),
-            <span class="ident">interner</span>: <span class="self">self</span>.<span class="ident">interner</span>.<span class="ident">unwrap_or_default</span>(),
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;console&quot;</span>)]</span>
-            <span class="ident">console</span>: <span class="ident">Console::default</span>(),
-            <span class="ident">intrinsics</span>,
-            <span class="ident">vm</span>: <span class="ident">Vm</span> {
-                <span class="ident">frames</span>: <span class="ident">Vec::with_capacity</span>(<span class="number">16</span>),
-                <span class="ident">stack</span>: <span class="ident">Vec::with_capacity</span>(<span class="number">1024</span>),
-                <span class="ident">trace</span>: <span class="bool-val">false</span>,
-                <span class="ident">stack_size_limit</span>: <span class="number">1024</span>,
+    <span class="doccomment">/// Builds a new [`Context`] with the provided parameters, and defaults
+    /// all missing parameters to their default values.
+    </span><span class="kw">pub fn </span>build(<span class="self">self</span>) -&gt; Context {
+        <span class="kw">let </span>intrinsics = Intrinsics::default();
+        <span class="kw">let </span><span class="kw-2">mut </span>context = Context {
+            realm: Realm::create(intrinsics.constructors().object().prototype().into()),
+            interner: <span class="self">self</span>.interner.unwrap_or_default(),
+            <span class="attribute">#[cfg(feature = <span class="string">&quot;console&quot;</span>)]
+            </span>console: Console::default(),
+            intrinsics,
+            vm: Vm {
+                frames: Vec::with_capacity(<span class="number">16</span>),
+                stack: Vec::with_capacity(<span class="number">1024</span>),
+                trace: <span class="bool-val">false</span>,
+                stack_size_limit: <span class="number">1024</span>,
             },
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;intl&quot;</span>)]</span>
-            <span class="ident">icu</span>: <span class="self">self</span>.<span class="ident">icu</span>.<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-                <span class="comment">// TODO: Replace with a more fitting default</span>
-                <span class="ident">icu::Icu::new</span>(<span class="ident">Box::new</span>(<span class="ident">icu_testdata::get_provider</span>()))
-                    .<span class="ident">expect</span>(<span class="string">&quot;Failed to initialize default icu data.&quot;</span>)
+            <span class="attribute">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
+            </span>icu: <span class="self">self</span>.icu.unwrap_or_else(|| {
+                <span class="comment">// TODO: Replace with a more fitting default
+                </span>icu::Icu::new(Box::new(icu_testdata::get_provider()))
+                    .expect(<span class="string">&quot;Failed to initialize default icu data.&quot;</span>)
             }),
-            <span class="ident">promise_job_queue</span>: <span class="ident">VecDeque::new</span>(),
+            promise_job_queue: VecDeque::new(),
         };
 
-        <span class="comment">// Add new builtIns to Context Realm</span>
-        <span class="comment">// At a later date this can be removed from here and called explicitly,</span>
-        <span class="comment">// but for now we almost always want these default builtins</span>
-        <span class="ident">context</span>.<span class="ident">intrinsics</span>.<span class="ident">objects</span> <span class="op">=</span> <span class="ident">IntrinsicObjects::init</span>(<span class="kw-2">&amp;mut</span> <span class="ident">context</span>);
-        <span class="ident">context</span>.<span class="ident">create_intrinsics</span>();
-        <span class="ident">context</span>
+        <span class="comment">// Add new builtIns to Context Realm
+        // At a later date this can be removed from here and called explicitly,
+        // but for now we almost always want these default builtins
+        </span>context.intrinsics.objects = IntrinsicObjects::init(<span class="kw-2">&amp;mut </span>context);
+        context.create_intrinsics();
+        context
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0 (a55dd71d5 2022-09-19)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0 (897e37553 2022-11-02)" ></div></body></html>

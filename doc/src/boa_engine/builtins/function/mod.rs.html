@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_engine/src/builtins/function/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_engine/src/builtins/function/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container">
                     <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../boa_engine/index.html">
                         <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -1051,1056 +1051,1092 @@
 <span id="1049">1049</span>
 <span id="1050">1050</span>
 <span id="1051">1051</span>
-</pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `Function` object as well as creates Native Functions.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! Objects wrap `Function`s and expose them via call/construct slots.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! The `Function` object is used for matching text with a pattern.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! More information:</span>
-<span class="doccomment">//!  - [ECMAScript reference][spec]</span>
-<span class="doccomment">//!  - [MDN documentation][mdn]</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! [spec]: https://tc39.es/ecma262/#sec-function-objects</span>
-<span class="doccomment">//! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function</span>
+<span id="1052">1052</span>
+<span id="1053">1053</span>
+<span id="1054">1054</span>
+<span id="1055">1055</span>
+<span id="1056">1056</span>
+<span id="1057">1057</span>
+<span id="1058">1058</span>
+<span id="1059">1059</span>
+<span id="1060">1060</span>
+<span id="1061">1061</span>
+<span id="1062">1062</span>
+<span id="1063">1063</span>
+<span id="1064">1064</span>
+<span id="1065">1065</span>
+<span id="1066">1066</span>
+<span id="1067">1067</span>
+<span id="1068">1068</span>
+<span id="1069">1069</span>
+</pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `Function` object as well as creates Native Functions.
+//!
+//! Objects wrap `Function`s and expose them via call/construct slots.
+//!
+//! The `Function` object is used for matching text with a pattern.
+//!
+//! More information:
+//!  - [ECMAScript reference][spec]
+//!  - [MDN documentation][mdn]
+//!
+//! [spec]: https://tc39.es/ecma262/#sec-function-objects
+//! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function
 
-<span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">builtins</span>::{<span class="ident">BuiltIn</span>, <span class="ident">JsArgs</span>},
-    <span class="ident">bytecompiler::FunctionCompiler</span>,
-    <span class="ident">context::intrinsics::StandardConstructors</span>,
-    <span class="ident">environments::DeclarativeEnvironmentStack</span>,
-    <span class="ident">error::JsNativeError</span>,
-    <span class="ident">js_string</span>,
-    <span class="ident">object</span>::{
-        <span class="ident">internal_methods::get_prototype_from_constructor</span>, <span class="ident">JsObject</span>, <span class="ident">NativeObject</span>, <span class="ident">Object</span>,
-        <span class="ident">ObjectData</span>,
+</span><span class="kw">use crate</span>::{
+    builtins::{BuiltIn, JsArgs},
+    bytecompiler::FunctionCompiler,
+    context::intrinsics::StandardConstructors,
+    environments::DeclarativeEnvironmentStack,
+    error::JsNativeError,
+    js_string,
+    object::{
+        internal_methods::get_prototype_from_constructor, JsObject, NativeObject, Object,
+        ObjectData,
     },
-    <span class="ident">object</span>::{<span class="ident">ConstructorBuilder</span>, <span class="ident">FunctionBuilder</span>, <span class="ident">JsFunction</span>, <span class="ident">PrivateElement</span>, <span class="ident">Ref</span>, <span class="ident">RefMut</span>},
-    <span class="ident">property</span>::{<span class="ident">Attribute</span>, <span class="ident">PropertyDescriptor</span>, <span class="ident">PropertyKey</span>},
-    <span class="ident">string::utf16</span>,
-    <span class="ident">symbol::WellKnownSymbols</span>,
-    <span class="ident">syntax::Parser</span>,
-    <span class="ident">value::IntegerOrInfinity</span>,
-    <span class="ident">Context</span>, <span class="ident">JsResult</span>, <span class="ident">JsString</span>, <span class="ident">JsValue</span>,
+    object::{ConstructorBuilder, FunctionBuilder, JsFunction, PrivateElement, Ref, RefMut},
+    property::{Attribute, PropertyDescriptor, PropertyKey},
+    string::utf16,
+    symbol::WellKnownSymbols,
+    syntax::Parser,
+    value::IntegerOrInfinity,
+    Context, JsResult, JsString, JsValue,
 };
-<span class="kw">use</span> <span class="ident">boa_ast</span>::{<span class="ident">function::FormalParameterList</span>, <span class="ident">StatementList</span>};
-<span class="kw">use</span> <span class="ident">boa_gc</span>::{<span class="self">self</span>, <span class="ident">custom_trace</span>, <span class="ident">Finalize</span>, <span class="ident">Gc</span>, <span class="ident">Trace</span>};
-<span class="kw">use</span> <span class="ident">boa_interner::Sym</span>;
-<span class="kw">use</span> <span class="ident">boa_profiler::Profiler</span>;
-<span class="kw">use</span> <span class="ident">dyn_clone::DynClone</span>;
-<span class="kw">use</span> <span class="ident">std</span>::{
-    <span class="ident">any::Any</span>,
-    <span class="ident">fmt</span>,
-    <span class="ident">ops</span>::{<span class="ident">Deref</span>, <span class="ident">DerefMut</span>},
+<span class="kw">use </span>boa_ast::{
+    function::FormalParameterList,
+    operations::{contains, ContainsSymbol},
+    StatementList,
 };
-<span class="kw">use</span> <span class="ident">tap</span>::{<span class="ident">Conv</span>, <span class="ident">Pipe</span>};
+<span class="kw">use </span>boa_gc::{<span class="self">self</span>, custom_trace, Finalize, Gc, Trace};
+<span class="kw">use </span>boa_interner::Sym;
+<span class="kw">use </span>boa_profiler::Profiler;
+<span class="kw">use </span>dyn_clone::DynClone;
+<span class="kw">use </span>std::{
+    any::Any,
+    fmt,
+    ops::{Deref, DerefMut},
+};
+<span class="kw">use </span>tap::{Conv, Pipe};
 
-<span class="kw">use</span> <span class="ident"><span class="kw">super</span>::promise::PromiseCapability</span>;
+<span class="kw">use </span><span class="kw">super</span>::promise::PromiseCapability;
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod</span> <span class="ident">arguments</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span>;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>arguments;
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>tests;
 
-<span class="doccomment">/// Type representing a native built-in function a.k.a. function pointer.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Native functions need to have this signature in order to</span>
-<span class="doccomment">/// be callable from Javascript.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Arguments</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// - The first argument represents the `this` variable of every Javascript function.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// - The second argument represents a list of all arguments passed to the function.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// - The last argument is the [`Context`] of the engine.</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">NativeFunctionSignature</span> <span class="op">=</span> <span class="kw">fn</span>(<span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span>;
+<span class="doccomment">/// Type representing a native built-in function a.k.a. function pointer.
+///
+/// Native functions need to have this signature in order to
+/// be callable from Javascript.
+///
+/// # Arguments
+///
+/// - The first argument represents the `this` variable of every Javascript function.
+///
+/// - The second argument represents a list of all arguments passed to the function.
+///
+/// - The last argument is the [`Context`] of the engine.
+</span><span class="kw">pub type </span>NativeFunctionSignature = <span class="kw">fn</span>(<span class="kw-2">&amp;</span>JsValue, <span class="kw-2">&amp;</span>[JsValue], <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt;;
 
-<span class="comment">// Allows restricting closures to only `Copy` ones.</span>
-<span class="comment">// Used the sealed pattern to disallow external implementations</span>
-<span class="comment">// of `DynCopy`.</span>
-<span class="kw">mod</span> <span class="ident">sealed</span> {
-    <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">Sealed</span> {}
-    <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Copy</span><span class="op">&gt;</span> <span class="ident">Sealed</span> <span class="kw">for</span> <span class="ident">T</span> {}
+<span class="comment">// Allows restricting closures to only `Copy` ones.
+// Used the sealed pattern to disallow external implementations
+// of `DynCopy`.
+</span><span class="kw">mod </span>sealed {
+    <span class="kw">pub trait </span>Sealed {}
+    <span class="kw">impl</span>&lt;T: Copy&gt; Sealed <span class="kw">for </span>T {}
 }
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">DynCopy</span>: <span class="ident">sealed::Sealed</span> {}
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Copy</span><span class="op">&gt;</span> <span class="ident">DynCopy</span> <span class="kw">for</span> <span class="ident">T</span> {}
+<span class="kw">pub trait </span>DynCopy: sealed::Sealed {}
+<span class="kw">impl</span>&lt;T: Copy&gt; DynCopy <span class="kw">for </span>T {}
 
-<span class="doccomment">/// Trait representing a native built-in closure.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Closures need to have this signature in order to</span>
-<span class="doccomment">/// be callable from Javascript, but most of the time the compiler</span>
-<span class="doccomment">/// is smart enough to correctly infer the types.</span>
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">ClosureFunctionSignature</span>:
-    <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">Captures</span>, <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">DynCopy</span> <span class="op">+</span> <span class="ident">DynClone</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>
-{
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">ClosureFunctionSignature</span> <span class="kw">for</span> <span class="ident">T</span> <span class="kw">where</span>
-    <span class="ident">T</span>: <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">Captures</span>, <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Copy</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>
-{
-}
-
-<span class="comment">// Allows cloning Box&lt;dyn ClosureFunctionSignature&gt;</span>
-<span class="macro">dyn_clone::clone_trait_object!</span>(<span class="ident">ClosureFunctionSignature</span>);
-
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Trace</span>, <span class="ident">Finalize</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">ThisMode</span> {
-    <span class="ident">Lexical</span>,
-    <span class="ident">Strict</span>,
-    <span class="ident">Global</span>,
+<span class="doccomment">/// Trait representing a native built-in closure.
+///
+/// Closures need to have this signature in order to
+/// be callable from Javascript, but most of the time the compiler
+/// is smart enough to correctly infer the types.
+</span><span class="kw">pub trait </span>ClosureFunctionSignature:
+    Fn(<span class="kw-2">&amp;</span>JsValue, <span class="kw-2">&amp;</span>[JsValue], Captures, <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; + DynCopy + DynClone + <span class="lifetime">&#39;static
+</span>{
 }
 
-<span class="kw">impl</span> <span class="ident">ThisMode</span> {
-    <span class="doccomment">/// Returns `true` if the this mode is `Lexical`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_lexical</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="ident"><span class="self">Self</span>::Lexical</span>)
+<span class="kw">impl</span>&lt;T&gt; ClosureFunctionSignature <span class="kw">for </span>T <span class="kw">where
+    </span>T: Fn(<span class="kw-2">&amp;</span>JsValue, <span class="kw-2">&amp;</span>[JsValue], Captures, <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; + Copy + <span class="lifetime">&#39;static
+</span>{
+}
+
+<span class="comment">// Allows cloning Box&lt;dyn ClosureFunctionSignature&gt;
+</span><span class="macro">dyn_clone::clone_trait_object!</span>(ClosureFunctionSignature);
+
+<span class="attribute">#[derive(Debug, Trace, Finalize, PartialEq, Eq, Clone)]
+</span><span class="kw">pub enum </span>ThisMode {
+    Lexical,
+    Strict,
+    Global,
+}
+
+<span class="kw">impl </span>ThisMode {
+    <span class="doccomment">/// Returns `true` if the this mode is `Lexical`.
+    </span><span class="kw">pub fn </span>is_lexical(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="self">Self</span>::Lexical)
     }
 
-    <span class="doccomment">/// Returns `true` if the this mode is `Strict`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_strict</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="ident"><span class="self">Self</span>::Strict</span>)
+    <span class="doccomment">/// Returns `true` if the this mode is `Strict`.
+    </span><span class="kw">pub fn </span>is_strict(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="self">Self</span>::Strict)
     }
 
-    <span class="doccomment">/// Returns `true` if the this mode is `Global`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_global</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="ident"><span class="self">Self</span>::Global</span>)
-    }
-}
-
-<span class="doccomment">/// Represents the `[[ConstructorKind]]` internal slot of function objects.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [ECMAScript specification][spec]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-ecmascript-function-objects</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">ConstructorKind</span> {
-    <span class="ident">Base</span>,
-    <span class="ident">Derived</span>,
-}
-
-<span class="kw">impl</span> <span class="ident">ConstructorKind</span> {
-    <span class="doccomment">/// Returns `true` if the constructor kind is `Base`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_base</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="ident"><span class="self">Self</span>::Base</span>)
-    }
-
-    <span class="doccomment">/// Returns `true` if the constructor kind is `Derived`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_derived</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="ident"><span class="self">Self</span>::Derived</span>)
+    <span class="doccomment">/// Returns `true` if the this mode is `Global`.
+    </span><span class="kw">pub fn </span>is_global(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="self">Self</span>::Global)
     }
 }
 
-<span class="doccomment">/// Record containing the field definition of classes.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [ECMAScript specification][spec]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-classfielddefinition-record-specification-type</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Finalize</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">ClassFieldDefinition</span> {
-    <span class="ident">Public</span>(<span class="ident">PropertyKey</span>, <span class="ident">JsFunction</span>),
-    <span class="ident">Private</span>(<span class="ident">Sym</span>, <span class="ident">JsFunction</span>),
+<span class="doccomment">/// Represents the `[[ConstructorKind]]` internal slot of function objects.
+///
+/// More information:
+///  - [ECMAScript specification][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-ecmascript-function-objects
+</span><span class="attribute">#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+</span><span class="kw">pub enum </span>ConstructorKind {
+    Base,
+    Derived,
 }
 
-<span class="kw">unsafe</span> <span class="kw">impl</span> <span class="ident">Trace</span> <span class="kw">for</span> <span class="ident">ClassFieldDefinition</span> {
-    <span class="macro">custom_trace!</span> {<span class="ident">this</span>, {
-        <span class="kw">match</span> <span class="ident">this</span> {
-            <span class="ident"><span class="self">Self</span>::Public</span>(<span class="ident">_key</span>, <span class="ident">func</span>) =&gt; {
-                <span class="ident">mark</span>(<span class="ident">func</span>);
+<span class="kw">impl </span>ConstructorKind {
+    <span class="doccomment">/// Returns `true` if the constructor kind is `Base`.
+    </span><span class="kw">pub fn </span>is_base(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="self">Self</span>::Base)
+    }
+
+    <span class="doccomment">/// Returns `true` if the constructor kind is `Derived`.
+    </span><span class="kw">pub fn </span>is_derived(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="self">Self</span>::Derived)
+    }
+}
+
+<span class="doccomment">/// Record containing the field definition of classes.
+///
+/// More information:
+///  - [ECMAScript specification][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-classfielddefinition-record-specification-type
+</span><span class="attribute">#[derive(Clone, Debug, Finalize)]
+</span><span class="kw">pub enum </span>ClassFieldDefinition {
+    Public(PropertyKey, JsFunction),
+    Private(Sym, JsFunction),
+}
+
+<span class="kw">unsafe impl </span>Trace <span class="kw">for </span>ClassFieldDefinition {
+    <span class="macro">custom_trace! </span>{this, {
+        <span class="kw">match </span>this {
+            <span class="self">Self</span>::Public(_key, func) =&gt; {
+                mark(func);
             }
-            <span class="ident"><span class="self">Self</span>::Private</span>(<span class="kw">_</span>, <span class="ident">func</span>) =&gt; {
-                <span class="ident">mark</span>(<span class="ident">func</span>);
+            <span class="self">Self</span>::Private(<span class="kw">_</span>, func) =&gt; {
+                mark(func);
             }
         }
     }}
 }
 
-<span class="doccomment">/// Wrapper for `Gc&lt;GcCell&lt;dyn NativeObject&gt;&gt;` that allows passing additional</span>
-<span class="doccomment">/// captures through a `Copy` closure.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Any type implementing `Trace + Any + Debug`</span>
-<span class="doccomment">/// can be used as a capture context, so you can pass e.g. a String,</span>
-<span class="doccomment">/// a tuple or even a full struct.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// You can cast to `Any` with `as_any`, `as_mut_any` and downcast</span>
-<span class="doccomment">/// with `Any::downcast_ref` and `Any::downcast_mut` to recover the original</span>
-<span class="doccomment">/// type.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Trace</span>, <span class="ident">Finalize</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Captures</span>(<span class="ident">Gc</span><span class="op">&lt;</span><span class="ident">boa_gc::Cell</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">NativeObject</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>);
+<span class="doccomment">/// Wrapper for `Gc&lt;GcCell&lt;dyn NativeObject&gt;&gt;` that allows passing additional
+/// captures through a `Copy` closure.
+///
+/// Any type implementing `Trace + Any + Debug`
+/// can be used as a capture context, so you can pass e.g. a String,
+/// a tuple or even a full struct.
+///
+/// You can cast to `Any` with `as_any`, `as_mut_any` and downcast
+/// with `Any::downcast_ref` and `Any::downcast_mut` to recover the original
+/// type.
+</span><span class="attribute">#[derive(Clone, Debug, Trace, Finalize)]
+</span><span class="kw">pub struct </span>Captures(Gc&lt;boa_gc::Cell&lt;Box&lt;<span class="kw">dyn </span>NativeObject&gt;&gt;&gt;);
 
-<span class="kw">impl</span> <span class="ident">Captures</span> {
-    <span class="doccomment">/// Creates a new capture context.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">captures</span>: <span class="ident">T</span>) -&gt; <span class="self">Self</span>
-    <span class="kw">where</span>
-        <span class="ident">T</span>: <span class="ident">NativeObject</span>,
+<span class="kw">impl </span>Captures {
+    <span class="doccomment">/// Creates a new capture context.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new&lt;T&gt;(captures: T) -&gt; <span class="self">Self
+    </span><span class="kw">where
+        </span>T: NativeObject,
     {
-        <span class="self">Self</span>(<span class="ident">Gc::new</span>(<span class="ident">boa_gc::Cell::new</span>(<span class="ident">Box::new</span>(<span class="ident">captures</span>))))
+        <span class="self">Self</span>(Gc::new(boa_gc::Cell::new(Box::new(captures))))
     }
 
-    <span class="doccomment">/// Casts `Captures` to `Any`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Panics</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Panics if it&#39;s already borrowed as `&amp;mut Any`</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_any</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">boa_gc::Ref</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="kw">dyn</span> <span class="ident">Any</span><span class="op">&gt;</span> {
-        <span class="ident">Ref::map</span>(<span class="self">self</span>.<span class="number">0</span>.<span class="ident">borrow</span>(), <span class="op">|</span><span class="ident">data</span><span class="op">|</span> <span class="ident">data</span>.<span class="ident">deref</span>().<span class="ident">as_any</span>())
+    <span class="doccomment">/// Casts `Captures` to `Any`
+    ///
+    /// # Panics
+    ///
+    /// Panics if it&#39;s already borrowed as `&amp;mut Any`
+    </span><span class="kw">pub fn </span>as_any(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; boa_gc::Ref&lt;<span class="lifetime">&#39;_</span>, <span class="kw">dyn </span>Any&gt; {
+        Ref::map(<span class="self">self</span>.<span class="number">0</span>.borrow(), |data| data.deref().as_any())
     }
 
-    <span class="doccomment">/// Mutably casts `Captures` to `Any`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Panics</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Panics if it&#39;s already borrowed as `&amp;mut Any`</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_mut_any</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">boa_gc::RefMut</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">NativeObject</span><span class="op">&gt;</span>, <span class="kw">dyn</span> <span class="ident">Any</span><span class="op">&gt;</span> {
-        <span class="ident">RefMut::map</span>(<span class="self">self</span>.<span class="number">0</span>.<span class="ident">borrow_mut</span>(), <span class="op">|</span><span class="ident">data</span><span class="op">|</span> <span class="ident">data</span>.<span class="ident">deref_mut</span>().<span class="ident">as_mut_any</span>())
+    <span class="doccomment">/// Mutably casts `Captures` to `Any`
+    ///
+    /// # Panics
+    ///
+    /// Panics if it&#39;s already borrowed as `&amp;mut Any`
+    </span><span class="kw">pub fn </span>as_mut_any(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; boa_gc::RefMut&lt;<span class="lifetime">&#39;_</span>, Box&lt;<span class="kw">dyn </span>NativeObject&gt;, <span class="kw">dyn </span>Any&gt; {
+        RefMut::map(<span class="self">self</span>.<span class="number">0</span>.borrow_mut(), |data| data.deref_mut().as_mut_any())
     }
 }
 
-<span class="doccomment">/// Boa representation of a Function Object.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// `FunctionBody` is specific to this interpreter, it will either be Rust code or JavaScript code</span>
-<span class="doccomment">/// (AST Node).</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// &lt;https://tc39.es/ecma262/#sec-ecmascript-function-objects&gt;</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Finalize</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Function</span> {
-    <span class="ident">Native</span> {
-        <span class="ident">function</span>: <span class="ident">NativeFunctionSignature</span>,
-        <span class="ident">constructor</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ConstructorKind</span><span class="op">&gt;</span>,
+<span class="doccomment">/// Boa representation of a Function Object.
+///
+/// `FunctionBody` is specific to this interpreter, it will either be Rust code or JavaScript code
+/// (AST Node).
+///
+/// &lt;https://tc39.es/ecma262/#sec-ecmascript-function-objects&gt;
+</span><span class="attribute">#[derive(Finalize)]
+</span><span class="kw">pub enum </span>Function {
+    Native {
+        function: NativeFunctionSignature,
+        constructor: <span class="prelude-ty">Option</span>&lt;ConstructorKind&gt;,
     },
-    <span class="ident">Closure</span> {
-        <span class="ident">function</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">ClosureFunctionSignature</span><span class="op">&gt;</span>,
-        <span class="ident">constructor</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ConstructorKind</span><span class="op">&gt;</span>,
-        <span class="ident">captures</span>: <span class="ident">Captures</span>,
+    Closure {
+        function: Box&lt;<span class="kw">dyn </span>ClosureFunctionSignature&gt;,
+        constructor: <span class="prelude-ty">Option</span>&lt;ConstructorKind&gt;,
+        captures: Captures,
     },
-    <span class="ident">Ordinary</span> {
-        <span class="ident">code</span>: <span class="ident">Gc</span><span class="op">&lt;</span><span class="ident"><span class="kw">crate</span>::vm::CodeBlock</span><span class="op">&gt;</span>,
-        <span class="ident">environments</span>: <span class="ident">DeclarativeEnvironmentStack</span>,
+    Ordinary {
+        code: Gc&lt;<span class="kw">crate</span>::vm::CodeBlock&gt;,
+        environments: DeclarativeEnvironmentStack,
 
-        <span class="doccomment">/// The `[[ConstructorKind]]` internal slot.</span>
-        <span class="ident">constructor_kind</span>: <span class="ident">ConstructorKind</span>,
+        <span class="doccomment">/// The `[[ConstructorKind]]` internal slot.
+        </span>constructor_kind: ConstructorKind,
 
-        <span class="doccomment">/// The `[[HomeObject]]` internal slot.</span>
-        <span class="ident">home_object</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JsObject</span><span class="op">&gt;</span>,
+        <span class="doccomment">/// The `[[HomeObject]]` internal slot.
+        </span>home_object: <span class="prelude-ty">Option</span>&lt;JsObject&gt;,
 
-        <span class="doccomment">/// The `[[Fields]]` internal slot.</span>
-        <span class="ident">fields</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">ClassFieldDefinition</span><span class="op">&gt;</span>,
+        <span class="doccomment">/// The `[[Fields]]` internal slot.
+        </span>fields: Vec&lt;ClassFieldDefinition&gt;,
 
-        <span class="doccomment">/// The `[[PrivateMethods]]` internal slot.</span>
-        <span class="ident">private_methods</span>: <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">Sym</span>, <span class="ident">PrivateElement</span>)<span class="op">&gt;</span>,
+        <span class="doccomment">/// The `[[PrivateMethods]]` internal slot.
+        </span>private_methods: Vec&lt;(Sym, PrivateElement)&gt;,
     },
-    <span class="ident">Async</span> {
-        <span class="ident">code</span>: <span class="ident">Gc</span><span class="op">&lt;</span><span class="ident"><span class="kw">crate</span>::vm::CodeBlock</span><span class="op">&gt;</span>,
-        <span class="ident">environments</span>: <span class="ident">DeclarativeEnvironmentStack</span>,
-        <span class="ident">promise_capability</span>: <span class="ident">PromiseCapability</span>,
+    Async {
+        code: Gc&lt;<span class="kw">crate</span>::vm::CodeBlock&gt;,
+        environments: DeclarativeEnvironmentStack,
+        <span class="doccomment">/// The `[[HomeObject]]` internal slot.
+        </span>home_object: <span class="prelude-ty">Option</span>&lt;JsObject&gt;,
+        promise_capability: PromiseCapability,
     },
-    <span class="ident">Generator</span> {
-        <span class="ident">code</span>: <span class="ident">Gc</span><span class="op">&lt;</span><span class="ident"><span class="kw">crate</span>::vm::CodeBlock</span><span class="op">&gt;</span>,
-        <span class="ident">environments</span>: <span class="ident">DeclarativeEnvironmentStack</span>,
+    Generator {
+        code: Gc&lt;<span class="kw">crate</span>::vm::CodeBlock&gt;,
+        environments: DeclarativeEnvironmentStack,
+        <span class="doccomment">/// The `[[HomeObject]]` internal slot.
+        </span>home_object: <span class="prelude-ty">Option</span>&lt;JsObject&gt;,
     },
-    <span class="ident">AsyncGenerator</span> {
-        <span class="ident">code</span>: <span class="ident">Gc</span><span class="op">&lt;</span><span class="ident"><span class="kw">crate</span>::vm::CodeBlock</span><span class="op">&gt;</span>,
-        <span class="ident">environments</span>: <span class="ident">DeclarativeEnvironmentStack</span>,
+    AsyncGenerator {
+        code: Gc&lt;<span class="kw">crate</span>::vm::CodeBlock&gt;,
+        environments: DeclarativeEnvironmentStack,
+        <span class="doccomment">/// The `[[HomeObject]]` internal slot.
+        </span>home_object: <span class="prelude-ty">Option</span>&lt;JsObject&gt;,
     },
 }
 
-<span class="kw">unsafe</span> <span class="kw">impl</span> <span class="ident">Trace</span> <span class="kw">for</span> <span class="ident">Function</span> {
-    <span class="macro">custom_trace!</span> {<span class="ident">this</span>, {
-        <span class="kw">match</span> <span class="ident">this</span> {
-            <span class="ident"><span class="self">Self</span>::Native</span> { .. } =&gt; {}
-            <span class="ident"><span class="self">Self</span>::Closure</span> { <span class="ident">captures</span>, .. } =&gt; <span class="ident">mark</span>(<span class="ident">captures</span>),
-            <span class="ident"><span class="self">Self</span>::Ordinary</span> { <span class="ident">code</span>, <span class="ident">environments</span>, <span class="ident">home_object</span>, <span class="ident">fields</span>, <span class="ident">private_methods</span>, .. } =&gt; {
-                <span class="ident">mark</span>(<span class="ident">code</span>);
-                <span class="ident">mark</span>(<span class="ident">environments</span>);
-                <span class="ident">mark</span>(<span class="ident">home_object</span>);
-                <span class="ident">mark</span>(<span class="ident">fields</span>);
-                <span class="kw">for</span> (<span class="kw">_</span>, <span class="ident">elem</span>) <span class="kw">in</span> <span class="ident">private_methods</span> {
-                    <span class="ident">mark</span>(<span class="ident">elem</span>);
+<span class="kw">unsafe impl </span>Trace <span class="kw">for </span>Function {
+    <span class="macro">custom_trace! </span>{this, {
+        <span class="kw">match </span>this {
+            <span class="self">Self</span>::Native { .. } =&gt; {}
+            <span class="self">Self</span>::Closure { captures, .. } =&gt; mark(captures),
+            <span class="self">Self</span>::Ordinary { code, environments, home_object, fields, private_methods, .. } =&gt; {
+                mark(code);
+                mark(environments);
+                mark(home_object);
+                mark(fields);
+                <span class="kw">for </span>(<span class="kw">_</span>, elem) <span class="kw">in </span>private_methods {
+                    mark(elem);
                 }
             }
-            <span class="ident"><span class="self">Self</span>::Async</span> { <span class="ident">code</span>, <span class="ident">environments</span>, <span class="ident">promise_capability</span> } =&gt; {
-                <span class="ident">mark</span>(<span class="ident">code</span>);
-                <span class="ident">mark</span>(<span class="ident">environments</span>);
-                <span class="ident">mark</span>(<span class="ident">promise_capability</span>);
+            <span class="self">Self</span>::Async { code, environments, home_object, promise_capability } =&gt; {
+                mark(code);
+                mark(environments);
+                mark(home_object);
+                mark(promise_capability);
             }
-            <span class="ident"><span class="self">Self</span>::Generator</span> { <span class="ident">code</span>, <span class="ident">environments</span> }
-            <span class="op">|</span> <span class="ident"><span class="self">Self</span>::AsyncGenerator</span> { <span class="ident">code</span>, <span class="ident">environments</span> } =&gt; {
-                <span class="ident">mark</span>(<span class="ident">code</span>);
-                <span class="ident">mark</span>(<span class="ident">environments</span>);
+            <span class="self">Self</span>::Generator { code, environments, home_object}
+            | <span class="self">Self</span>::AsyncGenerator { code, environments, home_object} =&gt; {
+                mark(code);
+                mark(environments);
+                mark(home_object);
             }
         }
     }}
 }
 
-<span class="kw">impl</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">Function</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
-        <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;Function {{ ... }}&quot;</span>)
+<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>Function {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="macro">write!</span>(f, <span class="string">&quot;Function {{ ... }}&quot;</span>)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Function</span> {
-    <span class="doccomment">/// Returns true if the function object is a constructor.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_constructor</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident"><span class="self">Self</span>::Native</span> { <span class="ident">constructor</span>, .. } <span class="op">|</span> <span class="ident"><span class="self">Self</span>::Closure</span> { <span class="ident">constructor</span>, .. } =&gt; {
-                <span class="ident">constructor</span>.<span class="ident">is_some</span>()
+<span class="kw">impl </span>Function {
+    <span class="doccomment">/// Returns true if the function object is a constructor.
+    </span><span class="kw">pub fn </span>is_constructor(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="kw">match </span><span class="self">self </span>{
+            <span class="self">Self</span>::Native { constructor, .. } | <span class="self">Self</span>::Closure { constructor, .. } =&gt; {
+                constructor.is_some()
             }
-            <span class="ident"><span class="self">Self</span>::Generator</span> { .. } <span class="op">|</span> <span class="ident"><span class="self">Self</span>::AsyncGenerator</span> { .. } <span class="op">|</span> <span class="ident"><span class="self">Self</span>::Async</span> { .. } =&gt; <span class="bool-val">false</span>,
-            <span class="ident"><span class="self">Self</span>::Ordinary</span> { <span class="ident">code</span>, .. } =&gt; <span class="op">!</span>(<span class="ident">code</span>.<span class="ident">this_mode</span> <span class="op">==</span> <span class="ident">ThisMode::Lexical</span>),
+            <span class="self">Self</span>::Generator { .. } | <span class="self">Self</span>::AsyncGenerator { .. } | <span class="self">Self</span>::Async { .. } =&gt; <span class="bool-val">false</span>,
+            <span class="self">Self</span>::Ordinary { code, .. } =&gt; !(code.this_mode == ThisMode::Lexical),
         }
     }
 
-    <span class="doccomment">/// Returns true if the function object is a derived constructor.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">is_derived_constructor</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="ident"><span class="self">Self</span>::Ordinary</span> {
-            <span class="ident">constructor_kind</span>, ..
-        } <span class="op">=</span> <span class="self">self</span>
-        {
-            <span class="ident">constructor_kind</span>.<span class="ident">is_derived</span>()
-        } <span class="kw">else</span> {
-            <span class="bool-val">false</span>
+    <span class="doccomment">/// Returns true if the function object is a derived constructor.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_derived_constructor(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="kw">if let </span><span class="self">Self</span>::Ordinary {
+            constructor_kind, ..
+        } = <span class="self">self
+        </span>{
+            constructor_kind.is_derived()
+        } <span class="kw">else </span>{
+            <span class="bool-val">false
+        </span>}
+    }
+
+    <span class="doccomment">/// Returns a reference to the function `[[HomeObject]]` slot if present.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_home_object(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>JsObject&gt; {
+        <span class="kw">match </span><span class="self">self </span>{
+            <span class="self">Self</span>::Ordinary { home_object, .. }
+            | <span class="self">Self</span>::Async { home_object, .. }
+            | <span class="self">Self</span>::Generator { home_object, .. }
+            | <span class="self">Self</span>::AsyncGenerator { home_object, .. } =&gt; home_object.as_ref(),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         }
     }
 
-    <span class="doccomment">/// Returns a reference to the function `[[HomeObject]]` slot if present.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_home_object</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">JsObject</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="ident"><span class="self">Self</span>::Ordinary</span> { <span class="ident">home_object</span>, .. } <span class="op">=</span> <span class="self">self</span> {
-            <span class="ident">home_object</span>.<span class="ident">as_ref</span>()
-        } <span class="kw">else</span> {
-            <span class="prelude-val">None</span>
+    <span class="doccomment">///  Sets the `[[HomeObject]]` slot if present.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_home_object(<span class="kw-2">&amp;mut </span><span class="self">self</span>, object: JsObject) {
+        <span class="kw">match </span><span class="self">self </span>{
+            <span class="self">Self</span>::Ordinary { home_object, .. }
+            | <span class="self">Self</span>::Async { home_object, .. }
+            | <span class="self">Self</span>::Generator { home_object, .. }
+            | <span class="self">Self</span>::AsyncGenerator { home_object, .. } =&gt; <span class="kw-2">*</span>home_object = <span class="prelude-val">Some</span>(object),
+            <span class="kw">_ </span>=&gt; {}
         }
     }
 
-    <span class="doccomment">///  Sets the `[[HomeObject]]` slot if present.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">set_home_object</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">object</span>: <span class="ident">JsObject</span>) {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="ident"><span class="self">Self</span>::Ordinary</span> { <span class="ident">home_object</span>, .. } <span class="op">=</span> <span class="self">self</span> {
-            <span class="kw-2">*</span><span class="ident">home_object</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">object</span>);
-        }
-    }
-
-    <span class="doccomment">/// Returns the values of the `[[Fields]]` internal slot.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_fields</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<span class="ident">ClassFieldDefinition</span>] {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="ident"><span class="self">Self</span>::Ordinary</span> { <span class="ident">fields</span>, .. } <span class="op">=</span> <span class="self">self</span> {
-            <span class="ident">fields</span>
-        } <span class="kw">else</span> {
+    <span class="doccomment">/// Returns the values of the `[[Fields]]` internal slot.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_fields(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[ClassFieldDefinition] {
+        <span class="kw">if let </span><span class="self">Self</span>::Ordinary { fields, .. } = <span class="self">self </span>{
+            fields
+        } <span class="kw">else </span>{
             <span class="kw-2">&amp;</span>[]
         }
     }
 
-    <span class="doccomment">/// Pushes a value to the `[[Fields]]` internal slot if present.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">push_field</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">key</span>: <span class="ident">PropertyKey</span>, <span class="ident">value</span>: <span class="ident">JsFunction</span>) {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="ident"><span class="self">Self</span>::Ordinary</span> { <span class="ident">fields</span>, .. } <span class="op">=</span> <span class="self">self</span> {
-            <span class="ident">fields</span>.<span class="ident">push</span>(<span class="ident">ClassFieldDefinition::Public</span>(<span class="ident">key</span>, <span class="ident">value</span>));
+    <span class="doccomment">/// Pushes a value to the `[[Fields]]` internal slot if present.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>push_field(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: PropertyKey, value: JsFunction) {
+        <span class="kw">if let </span><span class="self">Self</span>::Ordinary { fields, .. } = <span class="self">self </span>{
+            fields.push(ClassFieldDefinition::Public(key, value));
         }
     }
 
-    <span class="doccomment">/// Pushes a private value to the `[[Fields]]` internal slot if present.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">push_field_private</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">key</span>: <span class="ident">Sym</span>, <span class="ident">value</span>: <span class="ident">JsFunction</span>) {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="ident"><span class="self">Self</span>::Ordinary</span> { <span class="ident">fields</span>, .. } <span class="op">=</span> <span class="self">self</span> {
-            <span class="ident">fields</span>.<span class="ident">push</span>(<span class="ident">ClassFieldDefinition::Private</span>(<span class="ident">key</span>, <span class="ident">value</span>));
+    <span class="doccomment">/// Pushes a private value to the `[[Fields]]` internal slot if present.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>push_field_private(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: Sym, value: JsFunction) {
+        <span class="kw">if let </span><span class="self">Self</span>::Ordinary { fields, .. } = <span class="self">self </span>{
+            fields.push(ClassFieldDefinition::Private(key, value));
         }
     }
 
-    <span class="doccomment">/// Returns the values of the `[[PrivateMethods]]` internal slot.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_private_methods</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[(<span class="ident">Sym</span>, <span class="ident">PrivateElement</span>)] {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="ident"><span class="self">Self</span>::Ordinary</span> {
-            <span class="ident">private_methods</span>, ..
-        } <span class="op">=</span> <span class="self">self</span>
-        {
-            <span class="ident">private_methods</span>
-        } <span class="kw">else</span> {
+    <span class="doccomment">/// Returns the values of the `[[PrivateMethods]]` internal slot.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_private_methods(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[(Sym, PrivateElement)] {
+        <span class="kw">if let </span><span class="self">Self</span>::Ordinary {
+            private_methods, ..
+        } = <span class="self">self
+        </span>{
+            private_methods
+        } <span class="kw">else </span>{
             <span class="kw-2">&amp;</span>[]
         }
     }
 
-    <span class="doccomment">/// Pushes a private method to the `[[PrivateMethods]]` internal slot if present.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">push_private_method</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">name</span>: <span class="ident">Sym</span>, <span class="ident">method</span>: <span class="ident">PrivateElement</span>) {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="ident"><span class="self">Self</span>::Ordinary</span> {
-            <span class="ident">private_methods</span>, ..
-        } <span class="op">=</span> <span class="self">self</span>
-        {
-            <span class="ident">private_methods</span>.<span class="ident">push</span>((<span class="ident">name</span>, <span class="ident">method</span>));
+    <span class="doccomment">/// Pushes a private method to the `[[PrivateMethods]]` internal slot if present.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>push_private_method(<span class="kw-2">&amp;mut </span><span class="self">self</span>, name: Sym, method: PrivateElement) {
+        <span class="kw">if let </span><span class="self">Self</span>::Ordinary {
+            private_methods, ..
+        } = <span class="self">self
+        </span>{
+            private_methods.push((name, method));
         }
     }
 
-    <span class="doccomment">/// Returns the promise capability if the function is an async function.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_promise_capability</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">PromiseCapability</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="ident"><span class="self">Self</span>::Async</span> {
-            <span class="ident">promise_capability</span>, ..
-        } <span class="op">=</span> <span class="self">self</span>
-        {
-            <span class="prelude-val">Some</span>(<span class="ident">promise_capability</span>)
-        } <span class="kw">else</span> {
-            <span class="prelude-val">None</span>
-        }
+    <span class="doccomment">/// Returns the promise capability if the function is an async function.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_promise_capability(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>PromiseCapability&gt; {
+        <span class="kw">if let </span><span class="self">Self</span>::Async {
+            promise_capability, ..
+        } = <span class="self">self
+        </span>{
+            <span class="prelude-val">Some</span>(promise_capability)
+        } <span class="kw">else </span>{
+            <span class="prelude-val">None
+        </span>}
     }
 }
 
-<span class="doccomment">/// Creates a new member function of a `Object` or `prototype`.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// A function registered using this macro can then be called from Javascript using:</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// parent.name()</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// See the javascript &#39;Number.toString()&#39; as an example.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Arguments</span>
-<span class="doccomment">/// function: The function to register as a built in function.</span>
-<span class="doccomment">/// name: The name of the function (how it will be called but without the ()).</span>
-<span class="doccomment">/// parent: The object to register the function on, if the global object is used then the function is instead called as name()</span>
-<span class="doccomment">///     without requiring the parent, see parseInt() as an example.</span>
-<span class="doccomment">/// length: As described at &lt;https://tc39.es/ecma262/#sec-function-instances-length&gt;, The value of the &quot;length&quot; property is an integer that</span>
-<span class="doccomment">///     indicates the typical number of arguments expected by the function. However, the language permits the function to be invoked with</span>
-<span class="doccomment">///     some other number of arguments.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// If no length is provided, the length will be set to 0.</span>
-<span class="comment">// TODO: deprecate/remove this.</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">make_builtin_fn</span><span class="op">&lt;</span><span class="ident">N</span><span class="op">&gt;</span>(
-    <span class="ident">function</span>: <span class="ident">NativeFunctionSignature</span>,
-    <span class="ident">name</span>: <span class="ident">N</span>,
-    <span class="ident">parent</span>: <span class="kw-2">&amp;</span><span class="ident">JsObject</span>,
-    <span class="ident">length</span>: <span class="ident">usize</span>,
-    <span class="ident">interpreter</span>: <span class="kw-2">&amp;</span><span class="ident">Context</span>,
-) <span class="kw">where</span>
-    <span class="ident">N</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
+<span class="doccomment">/// Creates a new member function of a `Object` or `prototype`.
+///
+/// A function registered using this macro can then be called from Javascript using:
+///
+/// parent.name()
+///
+/// See the javascript &#39;Number.toString()&#39; as an example.
+///
+/// # Arguments
+/// function: The function to register as a built in function.
+/// name: The name of the function (how it will be called but without the ()).
+/// parent: The object to register the function on, if the global object is used then the function is instead called as name()
+///     without requiring the parent, see parseInt() as an example.
+/// length: As described at &lt;https://tc39.es/ecma262/#sec-function-instances-length&gt;, The value of the &quot;length&quot; property is an integer that
+///     indicates the typical number of arguments expected by the function. However, the language permits the function to be invoked with
+///     some other number of arguments.
+///
+/// If no length is provided, the length will be set to 0.
+</span><span class="comment">// TODO: deprecate/remove this.
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>make_builtin_fn&lt;N&gt;(
+    function: NativeFunctionSignature,
+    name: N,
+    parent: <span class="kw-2">&amp;</span>JsObject,
+    length: usize,
+    interpreter: <span class="kw-2">&amp;</span>Context,
+) <span class="kw">where
+    </span>N: Into&lt;String&gt;,
 {
-    <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="ident">name</span>.<span class="ident">into</span>();
-    <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;make_builtin_fn: {name}&quot;</span>), <span class="string">&quot;init&quot;</span>);
+    <span class="kw">let </span>name = name.into();
+    <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;make_builtin_fn: {name}&quot;</span>), <span class="string">&quot;init&quot;</span>);
 
-    <span class="kw">let</span> <span class="ident">function</span> <span class="op">=</span> <span class="ident">JsObject::from_proto_and_data</span>(
-        <span class="ident">interpreter</span>
-            .<span class="ident">intrinsics</span>()
-            .<span class="ident">constructors</span>()
-            .<span class="ident">function</span>()
-            .<span class="ident">prototype</span>(),
-        <span class="ident">ObjectData::function</span>(<span class="ident">Function::Native</span> {
-            <span class="ident">function</span>,
-            <span class="ident">constructor</span>: <span class="prelude-val">None</span>,
+    <span class="kw">let </span>function = JsObject::from_proto_and_data(
+        interpreter
+            .intrinsics()
+            .constructors()
+            .function()
+            .prototype(),
+        ObjectData::function(Function::Native {
+            function,
+            constructor: <span class="prelude-val">None</span>,
         }),
     );
-    <span class="kw">let</span> <span class="ident">attribute</span> <span class="op">=</span> <span class="ident">PropertyDescriptor::builder</span>()
-        .<span class="ident">writable</span>(<span class="bool-val">false</span>)
-        .<span class="ident">enumerable</span>(<span class="bool-val">false</span>)
-        .<span class="ident">configurable</span>(<span class="bool-val">true</span>);
-    <span class="ident">function</span>.<span class="ident">insert_property</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">attribute</span>.<span class="ident">clone</span>().<span class="ident">value</span>(<span class="ident">length</span>));
-    <span class="ident">function</span>.<span class="ident">insert_property</span>(<span class="string">&quot;name&quot;</span>, <span class="ident">attribute</span>.<span class="ident">value</span>(<span class="ident">name</span>.<span class="ident">as_str</span>()));
+    <span class="kw">let </span>attribute = PropertyDescriptor::builder()
+        .writable(<span class="bool-val">false</span>)
+        .enumerable(<span class="bool-val">false</span>)
+        .configurable(<span class="bool-val">true</span>);
+    function.insert_property(<span class="string">&quot;length&quot;</span>, attribute.clone().value(length));
+    function.insert_property(<span class="string">&quot;name&quot;</span>, attribute.value(name.as_str()));
 
-    <span class="ident">parent</span>.<span class="ident">clone</span>().<span class="ident">insert_property</span>(
-        <span class="ident">name</span>,
-        <span class="ident">PropertyDescriptor::builder</span>()
-            .<span class="ident">value</span>(<span class="ident">function</span>)
-            .<span class="ident">writable</span>(<span class="bool-val">true</span>)
-            .<span class="ident">enumerable</span>(<span class="bool-val">false</span>)
-            .<span class="ident">configurable</span>(<span class="bool-val">true</span>),
+    parent.clone().insert_property(
+        name,
+        PropertyDescriptor::builder()
+            .value(function)
+            .writable(<span class="bool-val">true</span>)
+            .enumerable(<span class="bool-val">false</span>)
+            .configurable(<span class="bool-val">true</span>),
     );
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">BuiltInFunctionObject</span>;
+<span class="attribute">#[derive(Debug, Clone, Copy)]
+</span><span class="kw">pub struct </span>BuiltInFunctionObject;
 
-<span class="kw">impl</span> <span class="ident">BuiltInFunctionObject</span> {
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">LENGTH</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">1</span>;
+<span class="kw">impl </span>BuiltInFunctionObject {
+    <span class="kw">pub const </span>LENGTH: usize = <span class="number">1</span>;
 
-    <span class="doccomment">/// `Function ( p1, p2, … , pn, body )`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The apply() method invokes self with the first argument as the `this` value</span>
-    <span class="doccomment">/// and the rest of the arguments provided as an array (or an array-like object).</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-function-p1-p2-pn-body</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/Function</span>
-    <span class="kw">fn</span> <span class="ident">constructor</span>(
-        <span class="ident">new_target</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
-        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="ident"><span class="self">Self</span>::create_dynamic_function</span>(<span class="ident">new_target</span>, <span class="ident">args</span>, <span class="bool-val">false</span>, <span class="bool-val">false</span>, <span class="ident">context</span>).<span class="ident">map</span>(<span class="ident">Into::into</span>)
+    <span class="doccomment">/// `Function ( p1, p2, … , pn, body )`
+    ///
+    /// The apply() method invokes self with the first argument as the `this` value
+    /// and the rest of the arguments provided as an array (or an array-like object).
+    ///
+    /// More information:
+    ///  - [MDN documentation][mdn]
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-function-p1-p2-pn-body
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/Function
+    </span><span class="kw">fn </span>constructor(
+        new_target: <span class="kw-2">&amp;</span>JsValue,
+        args: <span class="kw-2">&amp;</span>[JsValue],
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="self">Self</span>::create_dynamic_function(new_target, args, <span class="bool-val">false</span>, <span class="bool-val">false</span>, context).map(Into::into)
     }
 
-    <span class="doccomment">/// `CreateDynamicFunction ( constructor, newTarget, kind, args )`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-createdynamicfunction</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">create_dynamic_function</span>(
-        <span class="ident">new_target</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
-        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
-        <span class="ident">r#async</span>: <span class="ident">bool</span>,
-        <span class="ident">generator</span>: <span class="ident">bool</span>,
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsObject</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">default</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">r#async</span> <span class="op">&amp;&amp;</span> <span class="ident">generator</span> {
-            <span class="ident">StandardConstructors::async_generator_function</span>
-        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">r#async</span> {
-            <span class="ident">StandardConstructors::async_function</span>
-        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">generator</span> {
-            <span class="ident">StandardConstructors::generator_function</span>
-        } <span class="kw">else</span> {
-            <span class="ident">StandardConstructors::function</span>
+    <span class="doccomment">/// `CreateDynamicFunction ( constructor, newTarget, kind, args )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-createdynamicfunction
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>create_dynamic_function(
+        new_target: <span class="kw-2">&amp;</span>JsValue,
+        args: <span class="kw-2">&amp;</span>[JsValue],
+        r#async: bool,
+        generator: bool,
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;JsObject&gt; {
+        <span class="kw">let </span>default = <span class="kw">if </span>r#async &amp;&amp; generator {
+            StandardConstructors::async_generator_function
+        } <span class="kw">else if </span>r#async {
+            StandardConstructors::async_function
+        } <span class="kw">else if </span>generator {
+            StandardConstructors::generator_function
+        } <span class="kw">else </span>{
+            StandardConstructors::function
         };
 
-        <span class="kw">let</span> <span class="ident">prototype</span> <span class="op">=</span> <span class="ident">get_prototype_from_constructor</span>(<span class="ident">new_target</span>, <span class="ident">default</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">body_arg</span>, <span class="ident">args</span>)) <span class="op">=</span> <span class="ident">args</span>.<span class="ident">split_last</span>() {
-            <span class="kw">let</span> <span class="ident">parameters</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">args</span>.<span class="ident">is_empty</span>() {
-                <span class="ident">FormalParameterList::default</span>()
-            } <span class="kw">else</span> {
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">parameters</span> <span class="op">=</span> <span class="ident">Vec::with_capacity</span>(<span class="ident">args</span>.<span class="ident">len</span>());
-                <span class="kw">for</span> <span class="ident">arg</span> <span class="kw">in</span> <span class="ident">args</span> {
-                    <span class="ident">parameters</span>.<span class="ident">push</span>(<span class="ident">arg</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">as_slice</span>().<span class="ident">to_owned</span>());
+        <span class="kw">let </span>prototype = get_prototype_from_constructor(new_target, default, context)<span class="question-mark">?</span>;
+        <span class="kw">if let </span><span class="prelude-val">Some</span>((body_arg, args)) = args.split_last() {
+            <span class="kw">let </span>parameters = <span class="kw">if </span>args.is_empty() {
+                FormalParameterList::default()
+            } <span class="kw">else </span>{
+                <span class="kw">let </span><span class="kw-2">mut </span>parameters = Vec::with_capacity(args.len());
+                <span class="kw">for </span>arg <span class="kw">in </span>args {
+                    parameters.push(arg.to_string(context)<span class="question-mark">?</span>.as_slice().to_owned());
                 }
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">parameters</span> <span class="op">=</span> <span class="ident">parameters</span>.<span class="ident">join</span>(<span class="macro">utf16!</span>(<span class="string">&quot;,&quot;</span>));
-                <span class="ident">parameters</span>.<span class="ident">push</span>(<span class="ident">u16::from</span>(<span class="string">b&#39;)&#39;</span>));
+                <span class="kw">let </span><span class="kw-2">mut </span>parameters = parameters.join(<span class="macro">utf16!</span>(<span class="string">&quot;,&quot;</span>));
+                parameters.push(u16::from(<span class="string">b&#39;)&#39;</span>));
 
-                <span class="comment">// TODO: make parser generic to u32 iterators</span>
-                <span class="kw">let</span> <span class="ident">parameters</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">Parser::new</span>(<span class="ident">String::from_utf16_lossy</span>(<span class="kw-2">&amp;</span><span class="ident">parameters</span>).<span class="ident">as_bytes</span>())
-                    .<span class="ident">parse_formal_parameters</span>(<span class="ident">context</span>.<span class="ident">interner_mut</span>(), <span class="ident">generator</span>, <span class="ident">r#async</span>)
+                <span class="comment">// TODO: make parser generic to u32 iterators
+                </span><span class="kw">let </span>parameters = <span class="kw">match </span>Parser::new(String::from_utf16_lossy(<span class="kw-2">&amp;</span>parameters).as_bytes())
+                    .parse_formal_parameters(context.interner_mut(), generator, r#async)
                 {
-                    <span class="prelude-val">Ok</span>(<span class="ident">parameters</span>) =&gt; <span class="ident">parameters</span>,
-                    <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; {
-                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::syntax</span>()
-                            .<span class="ident">with_message</span>(<span class="macro">format!</span>(<span class="string">&quot;failed to parse function parameters: {e}&quot;</span>))
-                            .<span class="ident">into</span>())
+                    <span class="prelude-val">Ok</span>(parameters) =&gt; parameters,
+                    <span class="prelude-val">Err</span>(e) =&gt; {
+                        <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::syntax()
+                            .with_message(<span class="macro">format!</span>(<span class="string">&quot;failed to parse function parameters: {e}&quot;</span>))
+                            .into())
                     }
                 };
 
-                <span class="kw">if</span> <span class="ident">generator</span> <span class="op">&amp;&amp;</span> <span class="ident">parameters</span>.<span class="ident">contains_yield_expression</span>() {
-                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::syntax</span>().<span class="ident">with_message</span>(
+                <span class="kw">if </span>generator &amp;&amp; contains(<span class="kw-2">&amp;</span>parameters, ContainsSymbol::YieldExpression) {
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::syntax().with_message(
                             <span class="string">&quot;yield expression is not allowed in formal parameter list of generator function&quot;</span>,
-                        ).<span class="ident">into</span>());
+                        ).into());
                 }
 
-                <span class="ident">parameters</span>
+                parameters
             };
 
-            <span class="comment">// It is a Syntax Error if FormalParameters Contains YieldExpression is true.</span>
-            <span class="kw">if</span> <span class="ident">generator</span> <span class="op">&amp;&amp;</span> <span class="ident">r#async</span> <span class="op">&amp;&amp;</span> <span class="ident">parameters</span>.<span class="ident">contains_yield_expression</span>() {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::syntax</span>()
-                    .<span class="ident">with_message</span>(<span class="string">&quot;yield expression not allowed in async generator parameters&quot;</span>)
-                    .<span class="ident">into</span>());
+            <span class="comment">// It is a Syntax Error if FormalParameters Contains YieldExpression is true.
+            </span><span class="kw">if </span>generator &amp;&amp; r#async &amp;&amp; contains(<span class="kw-2">&amp;</span>parameters, ContainsSymbol::YieldExpression) {
+                <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::syntax()
+                    .with_message(<span class="string">&quot;yield expression not allowed in async generator parameters&quot;</span>)
+                    .into());
             }
 
-            <span class="comment">// It is a Syntax Error if FormalParameters Contains AwaitExpression is true.</span>
-            <span class="kw">if</span> <span class="ident">generator</span> <span class="op">&amp;&amp;</span> <span class="ident">r#async</span> <span class="op">&amp;&amp;</span> <span class="ident">parameters</span>.<span class="ident">contains_await_expression</span>() {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::syntax</span>()
-                    .<span class="ident">with_message</span>(<span class="string">&quot;await expression not allowed in async generator parameters&quot;</span>)
-                    .<span class="ident">into</span>());
+            <span class="comment">// It is a Syntax Error if FormalParameters Contains AwaitExpression is true.
+            </span><span class="kw">if </span>generator &amp;&amp; r#async &amp;&amp; contains(<span class="kw-2">&amp;</span>parameters, ContainsSymbol::AwaitExpression) {
+                <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::syntax()
+                    .with_message(<span class="string">&quot;await expression not allowed in async generator parameters&quot;</span>)
+                    .into());
             }
 
-            <span class="kw">let</span> <span class="ident">body_arg</span> <span class="op">=</span> <span class="ident">body_arg</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+            <span class="kw">let </span>body_arg = body_arg.to_string(context)<span class="question-mark">?</span>;
 
-            <span class="comment">// TODO: make parser generic to u32 iterators</span>
-            <span class="kw">let</span> <span class="ident">body</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">Parser::new</span>(<span class="ident">body_arg</span>.<span class="ident">to_std_string_escaped</span>().<span class="ident">as_bytes</span>())
-                .<span class="ident">parse_function_body</span>(<span class="ident">context</span>.<span class="ident">interner_mut</span>(), <span class="ident">generator</span>, <span class="ident">r#async</span>)
+            <span class="comment">// TODO: make parser generic to u32 iterators
+            </span><span class="kw">let </span>body = <span class="kw">match </span>Parser::new(body_arg.to_std_string_escaped().as_bytes())
+                .parse_function_body(context.interner_mut(), generator, r#async)
             {
-                <span class="prelude-val">Ok</span>(<span class="ident">statement_list</span>) =&gt; <span class="ident">statement_list</span>,
-                <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; {
-                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::syntax</span>()
-                        .<span class="ident">with_message</span>(<span class="macro">format!</span>(<span class="string">&quot;failed to parse function body: {e}&quot;</span>))
-                        .<span class="ident">into</span>())
+                <span class="prelude-val">Ok</span>(statement_list) =&gt; statement_list,
+                <span class="prelude-val">Err</span>(e) =&gt; {
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::syntax()
+                        .with_message(<span class="macro">format!</span>(<span class="string">&quot;failed to parse function body: {e}&quot;</span>))
+                        .into())
                 }
             };
 
-            <span class="comment">// Early Error: If BindingIdentifier is present and the source text matched by BindingIdentifier is strict mode code,</span>
-            <span class="comment">// it is a Syntax Error if the StringValue of BindingIdentifier is &quot;eval&quot; or &quot;arguments&quot;.</span>
-            <span class="kw">if</span> <span class="ident">body</span>.<span class="ident">strict</span>() {
-                <span class="kw">for</span> <span class="ident">parameter</span> <span class="kw">in</span> <span class="ident">parameters</span>.<span class="ident">as_ref</span>() {
-                    <span class="kw">for</span> <span class="ident">name</span> <span class="kw">in</span> <span class="ident">parameter</span>.<span class="ident">names</span>() {
-                        <span class="kw">if</span> <span class="ident">name</span> <span class="op">==</span> <span class="ident">Sym::ARGUMENTS</span> <span class="op">|</span><span class="op">|</span> <span class="ident">name</span> <span class="op">==</span> <span class="ident">Sym::EVAL</span> {
-                            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::syntax</span>()
-                                .<span class="ident">with_message</span>(<span class="string">&quot; Unexpected &#39;eval&#39; or &#39;arguments&#39; in strict mode&quot;</span>)
-                                .<span class="ident">into</span>());
+            <span class="comment">// Early Error: If BindingIdentifier is present and the source text matched by BindingIdentifier is strict mode code,
+            // it is a Syntax Error if the StringValue of BindingIdentifier is &quot;eval&quot; or &quot;arguments&quot;.
+            </span><span class="kw">if </span>body.strict() {
+                <span class="kw">for </span>parameter <span class="kw">in </span>parameters.as_ref() {
+                    <span class="kw">for </span>name <span class="kw">in </span>parameter.names() {
+                        <span class="kw">if </span>name == Sym::ARGUMENTS || name == Sym::EVAL {
+                            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::syntax()
+                                .with_message(<span class="string">&quot; Unexpected &#39;eval&#39; or &#39;arguments&#39; in strict mode&quot;</span>)
+                                .into());
                         }
                     }
                 }
             }
 
-            <span class="comment">// Early Error: If the source code matching FormalParameters is strict mode code,</span>
-            <span class="comment">// the Early Error rules for UniqueFormalParameters : FormalParameters are applied.</span>
-            <span class="kw">if</span> (<span class="ident">body</span>.<span class="ident">strict</span>()) <span class="op">&amp;&amp;</span> <span class="ident">parameters</span>.<span class="ident">has_duplicates</span>() {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::syntax</span>()
-                    .<span class="ident">with_message</span>(<span class="string">&quot;Duplicate parameter name not allowed in this context&quot;</span>)
-                    .<span class="ident">into</span>());
+            <span class="comment">// Early Error: If the source code matching FormalParameters is strict mode code,
+            // the Early Error rules for UniqueFormalParameters : FormalParameters are applied.
+            </span><span class="kw">if </span>(body.strict()) &amp;&amp; parameters.has_duplicates() {
+                <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::syntax()
+                    .with_message(<span class="string">&quot;Duplicate parameter name not allowed in this context&quot;</span>)
+                    .into());
             }
 
-            <span class="comment">// Early Error: It is a Syntax Error if FunctionBodyContainsUseStrict of GeneratorBody is true</span>
-            <span class="comment">// and IsSimpleParameterList of FormalParameters is false.</span>
-            <span class="kw">if</span> <span class="ident">body</span>.<span class="ident">strict</span>() <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">parameters</span>.<span class="ident">is_simple</span>() {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::syntax</span>()
-                    .<span class="ident">with_message</span>(
+            <span class="comment">// Early Error: It is a Syntax Error if FunctionBodyContainsUseStrict of GeneratorBody is true
+            // and IsSimpleParameterList of FormalParameters is false.
+            </span><span class="kw">if </span>body.strict() &amp;&amp; !parameters.is_simple() {
+                <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::syntax()
+                    .with_message(
                         <span class="string">&quot;Illegal &#39;use strict&#39; directive in function with non-simple parameter list&quot;</span>,
                     )
-                    .<span class="ident">into</span>());
+                    .into());
             }
 
-            <span class="comment">// It is a Syntax Error if any element of the BoundNames of FormalParameters</span>
-            <span class="comment">// also occurs in the LexicallyDeclaredNames of FunctionBody.</span>
-            <span class="comment">// https://tc39.es/ecma262/#sec-function-definitions-static-semantics-early-errors</span>
-            {
-                <span class="kw">let</span> <span class="ident">lexically_declared_names</span> <span class="op">=</span> <span class="ident">body</span>.<span class="ident">lexically_declared_names</span>();
-                <span class="kw">for</span> <span class="ident">param</span> <span class="kw">in</span> <span class="ident">parameters</span>.<span class="ident">as_ref</span>() {
-                    <span class="kw">for</span> <span class="ident">param_name</span> <span class="kw">in</span> <span class="ident">param</span>.<span class="ident">names</span>() {
-                        <span class="kw">if</span> <span class="ident">lexically_declared_names</span>
-                            .<span class="ident">iter</span>()
-                            .<span class="ident">any</span>(<span class="op">|</span>(<span class="ident">name</span>, <span class="kw">_</span>)<span class="op">|</span> <span class="kw-2">*</span><span class="ident">name</span> <span class="op">==</span> <span class="ident">param_name</span>)
+            <span class="comment">// It is a Syntax Error if any element of the BoundNames of FormalParameters
+            // also occurs in the LexicallyDeclaredNames of FunctionBody.
+            // https://tc39.es/ecma262/#sec-function-definitions-static-semantics-early-errors
+            </span>{
+                <span class="kw">let </span>lexically_declared_names = body.lexically_declared_names();
+                <span class="kw">for </span>param <span class="kw">in </span>parameters.as_ref() {
+                    <span class="kw">for </span>param_name <span class="kw">in </span>param.names() {
+                        <span class="kw">if </span>lexically_declared_names
+                            .iter()
+                            .any(|(name, <span class="kw">_</span>)| <span class="kw-2">*</span>name == param_name)
                         {
-                            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::syntax</span>()
-                                .<span class="ident">with_message</span>(<span class="macro">format!</span>(
+                            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::syntax()
+                                .with_message(<span class="macro">format!</span>(
                                     <span class="string">&quot;Redeclaration of formal parameter `{}`&quot;</span>,
-                                    <span class="ident">context</span>.<span class="ident">interner</span>().<span class="ident">resolve_expect</span>(<span class="ident">param_name</span>.<span class="ident">sym</span>())
+                                    context.interner().resolve_expect(param_name.sym())
                                 ))
-                                .<span class="ident">into</span>());
+                                .into());
                         }
                     }
                 }
             }
 
-            <span class="kw">let</span> <span class="ident">code</span> <span class="op">=</span> <span class="ident">FunctionCompiler::new</span>()
-                .<span class="ident">name</span>(<span class="ident">Sym::ANONYMOUS</span>)
-                .<span class="ident">generator</span>(<span class="ident">generator</span>)
-                .<span class="ident">r#async</span>(<span class="ident">r#async</span>)
-                .<span class="ident">compile</span>(<span class="kw-2">&amp;</span><span class="ident">parameters</span>, <span class="kw-2">&amp;</span><span class="ident">body</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+            <span class="kw">let </span>code = FunctionCompiler::new()
+                .name(Sym::ANONYMOUS)
+                .generator(generator)
+                .r#async(r#async)
+                .compile(<span class="kw-2">&amp;</span>parameters, <span class="kw-2">&amp;</span>body, context)<span class="question-mark">?</span>;
 
-            <span class="kw">let</span> <span class="ident">environments</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">realm</span>.<span class="ident">environments</span>.<span class="ident">pop_to_global</span>();
+            <span class="kw">let </span>environments = context.realm.environments.pop_to_global();
 
-            <span class="kw">let</span> <span class="ident">function_object</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">generator</span> {
-                <span class="ident"><span class="kw">crate</span>::vm::create_generator_function_object</span>(<span class="ident">code</span>, <span class="ident">r#async</span>, <span class="ident">context</span>)
-            } <span class="kw">else</span> {
-                <span class="ident"><span class="kw">crate</span>::vm::create_function_object</span>(<span class="ident">code</span>, <span class="ident">r#async</span>, <span class="bool-val">false</span>, <span class="prelude-val">Some</span>(<span class="ident">prototype</span>), <span class="ident">context</span>)
+            <span class="kw">let </span>function_object = <span class="kw">if </span>generator {
+                <span class="kw">crate</span>::vm::create_generator_function_object(code, r#async, context)
+            } <span class="kw">else </span>{
+                <span class="kw">crate</span>::vm::create_function_object(code, r#async, <span class="bool-val">false</span>, <span class="prelude-val">Some</span>(prototype), context)
             };
 
-            <span class="ident">context</span>.<span class="ident">realm</span>.<span class="ident">environments</span>.<span class="ident">extend</span>(<span class="ident">environments</span>);
+            context.realm.environments.extend(environments);
 
-            <span class="prelude-val">Ok</span>(<span class="ident">function_object</span>)
-        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">generator</span> {
-            <span class="kw">let</span> <span class="ident">code</span> <span class="op">=</span> <span class="ident">FunctionCompiler::new</span>()
-                .<span class="ident">name</span>(<span class="ident">Sym::ANONYMOUS</span>)
-                .<span class="ident">generator</span>(<span class="bool-val">true</span>)
-                .<span class="ident">compile</span>(
-                    <span class="kw-2">&amp;</span><span class="ident">FormalParameterList::default</span>(),
-                    <span class="kw-2">&amp;</span><span class="ident">StatementList::default</span>(),
-                    <span class="ident">context</span>,
+            <span class="prelude-val">Ok</span>(function_object)
+        } <span class="kw">else if </span>generator {
+            <span class="kw">let </span>code = FunctionCompiler::new()
+                .name(Sym::ANONYMOUS)
+                .generator(<span class="bool-val">true</span>)
+                .compile(
+                    <span class="kw-2">&amp;</span>FormalParameterList::default(),
+                    <span class="kw-2">&amp;</span>StatementList::default(),
+                    context,
                 )<span class="question-mark">?</span>;
 
-            <span class="kw">let</span> <span class="ident">environments</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">realm</span>.<span class="ident">environments</span>.<span class="ident">pop_to_global</span>();
-            <span class="kw">let</span> <span class="ident">function_object</span> <span class="op">=</span>
-                <span class="ident"><span class="kw">crate</span>::vm::create_generator_function_object</span>(<span class="ident">code</span>, <span class="ident">r#async</span>, <span class="ident">context</span>);
-            <span class="ident">context</span>.<span class="ident">realm</span>.<span class="ident">environments</span>.<span class="ident">extend</span>(<span class="ident">environments</span>);
+            <span class="kw">let </span>environments = context.realm.environments.pop_to_global();
+            <span class="kw">let </span>function_object =
+                <span class="kw">crate</span>::vm::create_generator_function_object(code, r#async, context);
+            context.realm.environments.extend(environments);
 
-            <span class="prelude-val">Ok</span>(<span class="ident">function_object</span>)
-        } <span class="kw">else</span> {
-            <span class="kw">let</span> <span class="ident">code</span> <span class="op">=</span> <span class="ident">FunctionCompiler::new</span>().<span class="ident">name</span>(<span class="ident">Sym::ANONYMOUS</span>).<span class="ident">compile</span>(
-                <span class="kw-2">&amp;</span><span class="ident">FormalParameterList::default</span>(),
-                <span class="kw-2">&amp;</span><span class="ident">StatementList::default</span>(),
-                <span class="ident">context</span>,
+            <span class="prelude-val">Ok</span>(function_object)
+        } <span class="kw">else </span>{
+            <span class="kw">let </span>code = FunctionCompiler::new().name(Sym::ANONYMOUS).compile(
+                <span class="kw-2">&amp;</span>FormalParameterList::default(),
+                <span class="kw-2">&amp;</span>StatementList::default(),
+                context,
             )<span class="question-mark">?</span>;
 
-            <span class="kw">let</span> <span class="ident">environments</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">realm</span>.<span class="ident">environments</span>.<span class="ident">pop_to_global</span>();
-            <span class="kw">let</span> <span class="ident">function_object</span> <span class="op">=</span>
-                <span class="ident"><span class="kw">crate</span>::vm::create_function_object</span>(<span class="ident">code</span>, <span class="ident">r#async</span>, <span class="bool-val">false</span>, <span class="prelude-val">Some</span>(<span class="ident">prototype</span>), <span class="ident">context</span>);
-            <span class="ident">context</span>.<span class="ident">realm</span>.<span class="ident">environments</span>.<span class="ident">extend</span>(<span class="ident">environments</span>);
+            <span class="kw">let </span>environments = context.realm.environments.pop_to_global();
+            <span class="kw">let </span>function_object =
+                <span class="kw">crate</span>::vm::create_function_object(code, r#async, <span class="bool-val">false</span>, <span class="prelude-val">Some</span>(prototype), context);
+            context.realm.environments.extend(environments);
 
-            <span class="prelude-val">Ok</span>(<span class="ident">function_object</span>)
+            <span class="prelude-val">Ok</span>(function_object)
         }
     }
 
-    <span class="doccomment">/// `Function.prototype.apply ( thisArg, argArray )`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The apply() method invokes self with the first argument as the `this` value</span>
-    <span class="doccomment">/// and the rest of the arguments provided as an array (or an array-like object).</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-function.prototype.apply</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/apply</span>
-    <span class="kw">fn</span> <span class="ident">apply</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="comment">// 1. Let func be the this value.</span>
-        <span class="comment">// 2. If IsCallable(func) is false, throw a TypeError exception.</span>
-        <span class="kw">let</span> <span class="ident">func</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">as_callable</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-            <span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="macro">format!</span>(<span class="string">&quot;{} is not a function&quot;</span>, <span class="ident">this</span>.<span class="ident">display</span>()))
+    <span class="doccomment">/// `Function.prototype.apply ( thisArg, argArray )`
+    ///
+    /// The apply() method invokes self with the first argument as the `this` value
+    /// and the rest of the arguments provided as an array (or an array-like object).
+    ///
+    /// More information:
+    ///  - [MDN documentation][mdn]
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-function.prototype.apply
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/apply
+    </span><span class="kw">fn </span>apply(this: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="comment">// 1. Let func be the this value.
+        // 2. If IsCallable(func) is false, throw a TypeError exception.
+        </span><span class="kw">let </span>func = this.as_callable().ok_or_else(|| {
+            JsNativeError::typ().with_message(<span class="macro">format!</span>(<span class="string">&quot;{} is not a function&quot;</span>, this.display()))
         })<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="ident">this_arg</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>);
-        <span class="kw">let</span> <span class="ident">arg_array</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">1</span>);
-        <span class="comment">// 3. If argArray is undefined or null, then</span>
-        <span class="kw">if</span> <span class="ident">arg_array</span>.<span class="ident">is_null_or_undefined</span>() {
-            <span class="comment">// a. Perform PrepareForTailCall().</span>
-            <span class="comment">// TODO?: 3.a. PrepareForTailCall</span>
+        <span class="kw">let </span>this_arg = args.get_or_undefined(<span class="number">0</span>);
+        <span class="kw">let </span>arg_array = args.get_or_undefined(<span class="number">1</span>);
+        <span class="comment">// 3. If argArray is undefined or null, then
+        </span><span class="kw">if </span>arg_array.is_null_or_undefined() {
+            <span class="comment">// a. Perform PrepareForTailCall().
+            // TODO?: 3.a. PrepareForTailCall
 
-            <span class="comment">// b. Return ? Call(func, thisArg).</span>
-            <span class="kw">return</span> <span class="ident">func</span>.<span class="ident">call</span>(<span class="ident">this_arg</span>, <span class="kw-2">&amp;</span>[], <span class="ident">context</span>);
+            // b. Return ? Call(func, thisArg).
+            </span><span class="kw">return </span>func.call(this_arg, <span class="kw-2">&amp;</span>[], context);
         }
 
-        <span class="comment">// 4. Let argList be ? CreateListFromArrayLike(argArray).</span>
-        <span class="kw">let</span> <span class="ident">arg_list</span> <span class="op">=</span> <span class="ident">arg_array</span>.<span class="ident">create_list_from_array_like</span>(<span class="kw-2">&amp;</span>[], <span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="comment">// 4. Let argList be ? CreateListFromArrayLike(argArray).
+        </span><span class="kw">let </span>arg_list = arg_array.create_list_from_array_like(<span class="kw-2">&amp;</span>[], context)<span class="question-mark">?</span>;
 
-        <span class="comment">// 5. Perform PrepareForTailCall().</span>
-        <span class="comment">// TODO?: 5. PrepareForTailCall</span>
+        <span class="comment">// 5. Perform PrepareForTailCall().
+        // TODO?: 5. PrepareForTailCall
 
-        <span class="comment">// 6. Return ? Call(func, thisArg, argList).</span>
-        <span class="ident">func</span>.<span class="ident">call</span>(<span class="ident">this_arg</span>, <span class="kw-2">&amp;</span><span class="ident">arg_list</span>, <span class="ident">context</span>)
+        // 6. Return ? Call(func, thisArg, argList).
+        </span>func.call(this_arg, <span class="kw-2">&amp;</span>arg_list, context)
     }
 
-    <span class="doccomment">/// `Function.prototype.bind ( thisArg, ...args )`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The bind() method creates a new function that, when called, has its</span>
-    <span class="doccomment">/// this keyword set to the provided value, with a given sequence of arguments</span>
-    <span class="doccomment">/// preceding any provided when the new function is called.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-function.prototype.bind</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_objects/Function/bind</span>
-    <span class="kw">fn</span> <span class="ident">bind</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="comment">// 1. Let Target be the this value.</span>
-        <span class="comment">// 2. If IsCallable(Target) is false, throw a TypeError exception.</span>
-        <span class="kw">let</span> <span class="ident">target</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">as_callable</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-            <span class="ident">JsNativeError::typ</span>()
-                .<span class="ident">with_message</span>(<span class="string">&quot;cannot bind `this` without a `[[Call]]` internal method&quot;</span>)
+    <span class="doccomment">/// `Function.prototype.bind ( thisArg, ...args )`
+    ///
+    /// The bind() method creates a new function that, when called, has its
+    /// this keyword set to the provided value, with a given sequence of arguments
+    /// preceding any provided when the new function is called.
+    ///
+    /// More information:
+    ///  - [MDN documentation][mdn]
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-function.prototype.bind
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_objects/Function/bind
+    </span><span class="kw">fn </span>bind(this: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="comment">// 1. Let Target be the this value.
+        // 2. If IsCallable(Target) is false, throw a TypeError exception.
+        </span><span class="kw">let </span>target = this.as_callable().ok_or_else(|| {
+            JsNativeError::typ()
+                .with_message(<span class="string">&quot;cannot bind `this` without a `[[Call]]` internal method&quot;</span>)
         })<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="ident">this_arg</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>).<span class="ident">clone</span>();
-        <span class="kw">let</span> <span class="ident">bound_args</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>..).<span class="ident">unwrap_or</span>(<span class="kw-2">&amp;</span>[]).<span class="ident">to_vec</span>();
-        <span class="kw">let</span> <span class="ident">arg_count</span> <span class="op">=</span> <span class="ident">bound_args</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">i64</span>;
+        <span class="kw">let </span>this_arg = args.get_or_undefined(<span class="number">0</span>).clone();
+        <span class="kw">let </span>bound_args = args.get(<span class="number">1</span>..).unwrap_or(<span class="kw-2">&amp;</span>[]).to_vec();
+        <span class="kw">let </span>arg_count = bound_args.len() <span class="kw">as </span>i64;
 
-        <span class="comment">// 3. Let F be ? BoundFunctionCreate(Target, thisArg, args).</span>
-        <span class="kw">let</span> <span class="ident">f</span> <span class="op">=</span> <span class="ident">BoundFunction::create</span>(<span class="ident">target</span>.<span class="ident">clone</span>(), <span class="ident">this_arg</span>, <span class="ident">bound_args</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="comment">// 3. Let F be ? BoundFunctionCreate(Target, thisArg, args).
+        </span><span class="kw">let </span>f = BoundFunction::create(target.clone(), this_arg, bound_args, context)<span class="question-mark">?</span>;
 
-        <span class="comment">// 4. Let L be 0.</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">l</span> <span class="op">=</span> <span class="ident">JsValue::new</span>(<span class="number">0</span>);
+        <span class="comment">// 4. Let L be 0.
+        </span><span class="kw">let </span><span class="kw-2">mut </span>l = JsValue::new(<span class="number">0</span>);
 
-        <span class="comment">// 5. Let targetHasLength be ? HasOwnProperty(Target, &quot;length&quot;).</span>
-        <span class="comment">// 6. If targetHasLength is true, then</span>
-        <span class="kw">if</span> <span class="ident">target</span>.<span class="ident">has_own_property</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span> {
-            <span class="comment">// a. Let targetLen be ? Get(Target, &quot;length&quot;).</span>
-            <span class="kw">let</span> <span class="ident">target_len</span> <span class="op">=</span> <span class="ident">target</span>.<span class="ident">get</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
-            <span class="comment">// b. If Type(targetLen) is Number, then</span>
-            <span class="kw">if</span> <span class="ident">target_len</span>.<span class="ident">is_number</span>() {
-                <span class="comment">// 1. Let targetLenAsInt be ! ToIntegerOrInfinity(targetLen).</span>
-                <span class="kw">match</span> <span class="ident">target_len</span>
-                    .<span class="ident">to_integer_or_infinity</span>(<span class="ident">context</span>)
-                    .<span class="ident">expect</span>(<span class="string">&quot;to_integer_or_infinity cannot fail for a number&quot;</span>)
+        <span class="comment">// 5. Let targetHasLength be ? HasOwnProperty(Target, &quot;length&quot;).
+        // 6. If targetHasLength is true, then
+        </span><span class="kw">if </span>target.has_own_property(<span class="string">&quot;length&quot;</span>, context)<span class="question-mark">? </span>{
+            <span class="comment">// a. Let targetLen be ? Get(Target, &quot;length&quot;).
+            </span><span class="kw">let </span>target_len = target.get(<span class="string">&quot;length&quot;</span>, context)<span class="question-mark">?</span>;
+            <span class="comment">// b. If Type(targetLen) is Number, then
+            </span><span class="kw">if </span>target_len.is_number() {
+                <span class="comment">// 1. Let targetLenAsInt be ! ToIntegerOrInfinity(targetLen).
+                </span><span class="kw">match </span>target_len
+                    .to_integer_or_infinity(context)
+                    .expect(<span class="string">&quot;to_integer_or_infinity cannot fail for a number&quot;</span>)
                 {
-                    <span class="comment">// i. If targetLen is +∞𝔽, set L to +∞.</span>
-                    <span class="ident">IntegerOrInfinity::PositiveInfinity</span> =&gt; <span class="ident">l</span> <span class="op">=</span> <span class="ident">f64::INFINITY</span>.<span class="ident">into</span>(),
-                    <span class="comment">// ii. Else if targetLen is -∞𝔽, set L to 0.</span>
-                    <span class="ident">IntegerOrInfinity::NegativeInfinity</span> =&gt; {}
-                    <span class="comment">// iii. Else,</span>
-                    <span class="ident">IntegerOrInfinity::Integer</span>(<span class="ident">target_len</span>) =&gt; {
-                        <span class="comment">// 2. Assert: targetLenAsInt is finite.</span>
-                        <span class="comment">// 3. Let argCount be the number of elements in args.</span>
-                        <span class="comment">// 4. Set L to max(targetLenAsInt - argCount, 0).</span>
-                        <span class="ident">l</span> <span class="op">=</span> (<span class="ident">target_len</span> <span class="op">-</span> <span class="ident">arg_count</span>).<span class="ident">max</span>(<span class="number">0</span>).<span class="ident">into</span>();
+                    <span class="comment">// i. If targetLen is +∞𝔽, set L to +∞.
+                    </span>IntegerOrInfinity::PositiveInfinity =&gt; l = f64::INFINITY.into(),
+                    <span class="comment">// ii. Else if targetLen is -∞𝔽, set L to 0.
+                    </span>IntegerOrInfinity::NegativeInfinity =&gt; {}
+                    <span class="comment">// iii. Else,
+                    </span>IntegerOrInfinity::Integer(target_len) =&gt; {
+                        <span class="comment">// 2. Assert: targetLenAsInt is finite.
+                        // 3. Let argCount be the number of elements in args.
+                        // 4. Set L to max(targetLenAsInt - argCount, 0).
+                        </span>l = (target_len - arg_count).max(<span class="number">0</span>).into();
                     }
                 }
             }
         }
 
-        <span class="comment">// 7. Perform ! SetFunctionLength(F, L).</span>
-        <span class="ident">f</span>.<span class="ident">define_property_or_throw</span>(
+        <span class="comment">// 7. Perform ! SetFunctionLength(F, L).
+        </span>f.define_property_or_throw(
             <span class="string">&quot;length&quot;</span>,
-            <span class="ident">PropertyDescriptor::builder</span>()
-                .<span class="ident">value</span>(<span class="ident">l</span>)
-                .<span class="ident">writable</span>(<span class="bool-val">false</span>)
-                .<span class="ident">enumerable</span>(<span class="bool-val">false</span>)
-                .<span class="ident">configurable</span>(<span class="bool-val">true</span>),
-            <span class="ident">context</span>,
+            PropertyDescriptor::builder()
+                .value(l)
+                .writable(<span class="bool-val">false</span>)
+                .enumerable(<span class="bool-val">false</span>)
+                .configurable(<span class="bool-val">true</span>),
+            context,
         )
-        .<span class="ident">expect</span>(<span class="string">&quot;defining the `length` property for a new object should not fail&quot;</span>);
+        .expect(<span class="string">&quot;defining the `length` property for a new object should not fail&quot;</span>);
 
-        <span class="comment">// 8. Let targetName be ? Get(Target, &quot;name&quot;).</span>
-        <span class="kw">let</span> <span class="ident">target_name</span> <span class="op">=</span> <span class="ident">target</span>.<span class="ident">get</span>(<span class="string">&quot;name&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="comment">// 8. Let targetName be ? Get(Target, &quot;name&quot;).
+        </span><span class="kw">let </span>target_name = target.get(<span class="string">&quot;name&quot;</span>, context)<span class="question-mark">?</span>;
 
-        <span class="comment">// 9. If Type(targetName) is not String, set targetName to the empty String.</span>
-        <span class="kw">let</span> <span class="ident">target_name</span> <span class="op">=</span> <span class="ident">target_name</span>.<span class="ident">as_string</span>().<span class="ident">map_or</span>(<span class="macro">js_string!</span>(), <span class="ident">Clone::clone</span>);
+        <span class="comment">// 9. If Type(targetName) is not String, set targetName to the empty String.
+        </span><span class="kw">let </span>target_name = target_name.as_string().map_or(<span class="macro">js_string!</span>(), Clone::clone);
 
-        <span class="comment">// 10. Perform SetFunctionName(F, targetName, &quot;bound&quot;).</span>
-        <span class="ident">set_function_name</span>(<span class="kw-2">&amp;</span><span class="ident">f</span>, <span class="kw-2">&amp;</span><span class="ident">target_name</span>.<span class="ident">into</span>(), <span class="prelude-val">Some</span>(<span class="macro">js_string!</span>(<span class="string">&quot;bound&quot;</span>)), <span class="ident">context</span>);
+        <span class="comment">// 10. Perform SetFunctionName(F, targetName, &quot;bound&quot;).
+        </span>set_function_name(<span class="kw-2">&amp;</span>f, <span class="kw-2">&amp;</span>target_name.into(), <span class="prelude-val">Some</span>(<span class="macro">js_string!</span>(<span class="string">&quot;bound&quot;</span>)), context);
 
-        <span class="comment">// 11. Return F.</span>
-        <span class="prelude-val">Ok</span>(<span class="ident">f</span>.<span class="ident">into</span>())
+        <span class="comment">// 11. Return F.
+        </span><span class="prelude-val">Ok</span>(f.into())
     }
 
-    <span class="doccomment">/// `Function.prototype.call ( thisArg, ...args )`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The call() method calls a function with a given this value and arguments provided individually.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-function.prototype.call</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/call</span>
-    <span class="kw">fn</span> <span class="ident">call</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="comment">// 1. Let func be the this value.</span>
-        <span class="comment">// 2. If IsCallable(func) is false, throw a TypeError exception.</span>
-        <span class="kw">let</span> <span class="ident">func</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">as_callable</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-            <span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="macro">format!</span>(<span class="string">&quot;{} is not a function&quot;</span>, <span class="ident">this</span>.<span class="ident">display</span>()))
+    <span class="doccomment">/// `Function.prototype.call ( thisArg, ...args )`
+    ///
+    /// The call() method calls a function with a given this value and arguments provided individually.
+    ///
+    /// More information:
+    ///  - [MDN documentation][mdn]
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-function.prototype.call
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/call
+    </span><span class="kw">fn </span>call(this: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="comment">// 1. Let func be the this value.
+        // 2. If IsCallable(func) is false, throw a TypeError exception.
+        </span><span class="kw">let </span>func = this.as_callable().ok_or_else(|| {
+            JsNativeError::typ().with_message(<span class="macro">format!</span>(<span class="string">&quot;{} is not a function&quot;</span>, this.display()))
         })<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">this_arg</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>);
+        <span class="kw">let </span>this_arg = args.get_or_undefined(<span class="number">0</span>);
 
-        <span class="comment">// 3. Perform PrepareForTailCall().</span>
-        <span class="comment">// TODO?: 3. Perform PrepareForTailCall</span>
+        <span class="comment">// 3. Perform PrepareForTailCall().
+        // TODO?: 3. Perform PrepareForTailCall
 
-        <span class="comment">// 4. Return ? Call(func, thisArg, args).</span>
-        <span class="ident">func</span>.<span class="ident">call</span>(<span class="ident">this_arg</span>, <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>..).<span class="ident">unwrap_or</span>(<span class="kw-2">&amp;</span>[]), <span class="ident">context</span>)
+        // 4. Return ? Call(func, thisArg, args).
+        </span>func.call(this_arg, args.get(<span class="number">1</span>..).unwrap_or(<span class="kw-2">&amp;</span>[]), context)
     }
 
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::wrong_self_convention</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">to_string</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">as_object</span>().<span class="ident">map</span>(<span class="ident">JsObject::borrow</span>);
-        <span class="kw">let</span> <span class="ident">function</span> <span class="op">=</span> <span class="ident">object</span>
-            .<span class="ident">as_deref</span>()
-            .<span class="ident">and_then</span>(<span class="ident">Object::as_function</span>)
-            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="string">&quot;Not a function&quot;</span>))<span class="question-mark">?</span>;
+    <span class="attribute">#[allow(clippy::wrong_self_convention)]
+    </span><span class="kw">fn </span>to_string(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="kw">let </span>object = this.as_object().map(JsObject::borrow);
+        <span class="kw">let </span>function = object
+            .as_deref()
+            .and_then(Object::as_function)
+            .ok_or_else(|| JsNativeError::typ().with_message(<span class="string">&quot;Not a function&quot;</span>))<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> {
-            <span class="comment">// Is there a case here where if there is no name field on a value</span>
-            <span class="comment">// name should default to None? Do all functions have names set?</span>
-            <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">this</span>
-                .<span class="ident">as_object</span>()
-                .<span class="ident">expect</span>(<span class="string">&quot;checked that `this` was an object above&quot;</span>)
-                .<span class="ident">get</span>(<span class="string">&quot;name&quot;</span>, <span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><span class="ident">context</span>)<span class="question-mark">?</span>;
-            <span class="kw">if</span> <span class="ident">value</span>.<span class="ident">is_null_or_undefined</span>() {
-                <span class="prelude-val">None</span>
-            } <span class="kw">else</span> {
-                <span class="prelude-val">Some</span>(<span class="ident">value</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>)
+        <span class="kw">let </span>name = {
+            <span class="comment">// Is there a case here where if there is no name field on a value
+            // name should default to None? Do all functions have names set?
+            </span><span class="kw">let </span>value = this
+                .as_object()
+                .expect(<span class="string">&quot;checked that `this` was an object above&quot;</span>)
+                .get(<span class="string">&quot;name&quot;</span>, <span class="kw-2">&amp;mut *</span>context)<span class="question-mark">?</span>;
+            <span class="kw">if </span>value.is_null_or_undefined() {
+                <span class="prelude-val">None
+            </span>} <span class="kw">else </span>{
+                <span class="prelude-val">Some</span>(value.to_string(context)<span class="question-mark">?</span>)
             }
         };
 
-        <span class="kw">match</span> (<span class="ident">function</span>, <span class="ident">name</span>) {
+        <span class="kw">match </span>(function, name) {
             (
-                <span class="ident">Function::Native</span> {
-                    <span class="ident">function</span>: <span class="kw">_</span>,
-                    <span class="ident">constructor</span>: <span class="kw">_</span>,
+                Function::Native {
+                    function: <span class="kw">_</span>,
+                    constructor: <span class="kw">_</span>,
                 },
-                <span class="prelude-val">Some</span>(<span class="ident">name</span>),
+                <span class="prelude-val">Some</span>(name),
             ) =&gt; <span class="prelude-val">Ok</span>(<span class="macro">js_string!</span>(
                 <span class="macro">utf16!</span>(<span class="string">&quot;function &quot;</span>),
-                <span class="kw-2">&amp;</span><span class="ident">name</span>,
+                <span class="kw-2">&amp;</span>name,
                 <span class="macro">utf16!</span>(<span class="string">&quot;() {{\n  [native Code]\n}}&quot;</span>)
             )
-            .<span class="ident">into</span>()),
-            (<span class="ident">Function::Ordinary</span> { .. }, <span class="prelude-val">Some</span>(<span class="ident">name</span>)) <span class="kw">if</span> <span class="ident">name</span>.<span class="ident">is_empty</span>() =&gt; {
-                <span class="prelude-val">Ok</span>(<span class="macro">js_string!</span>(<span class="string">&quot;[Function (anonymous)]&quot;</span>).<span class="ident">into</span>())
+            .into()),
+            (Function::Ordinary { .. }, <span class="prelude-val">Some</span>(name)) <span class="kw">if </span>name.is_empty() =&gt; {
+                <span class="prelude-val">Ok</span>(<span class="macro">js_string!</span>(<span class="string">&quot;[Function (anonymous)]&quot;</span>).into())
             }
-            (<span class="ident">Function::Ordinary</span> { .. }, <span class="prelude-val">Some</span>(<span class="ident">name</span>)) =&gt; {
-                <span class="prelude-val">Ok</span>(<span class="macro">js_string!</span>(<span class="macro">utf16!</span>(<span class="string">&quot;[Function: &quot;</span>), <span class="kw-2">&amp;</span><span class="ident">name</span>, <span class="macro">utf16!</span>(<span class="string">&quot;]&quot;</span>)).<span class="ident">into</span>())
+            (Function::Ordinary { .. }, <span class="prelude-val">Some</span>(name)) =&gt; {
+                <span class="prelude-val">Ok</span>(<span class="macro">js_string!</span>(<span class="macro">utf16!</span>(<span class="string">&quot;[Function: &quot;</span>), <span class="kw-2">&amp;</span>name, <span class="macro">utf16!</span>(<span class="string">&quot;]&quot;</span>)).into())
             }
-            (<span class="ident">Function::Ordinary</span> { .. }, <span class="prelude-val">None</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="macro">js_string!</span>(<span class="string">&quot;[Function (anonymous)]&quot;</span>).<span class="ident">into</span>()),
-            (<span class="ident">Function::Generator</span> { .. }, <span class="prelude-val">Some</span>(<span class="ident">name</span>)) =&gt; {
-                <span class="prelude-val">Ok</span>(<span class="macro">js_string!</span>(<span class="macro">utf16!</span>(<span class="string">&quot;[Function*: &quot;</span>), <span class="kw-2">&amp;</span><span class="ident">name</span>, <span class="macro">utf16!</span>(<span class="string">&quot;]&quot;</span>)).<span class="ident">into</span>())
+            (Function::Ordinary { .. }, <span class="prelude-val">None</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="macro">js_string!</span>(<span class="string">&quot;[Function (anonymous)]&quot;</span>).into()),
+            (Function::Generator { .. }, <span class="prelude-val">Some</span>(name)) =&gt; {
+                <span class="prelude-val">Ok</span>(<span class="macro">js_string!</span>(<span class="macro">utf16!</span>(<span class="string">&quot;[Function*: &quot;</span>), <span class="kw-2">&amp;</span>name, <span class="macro">utf16!</span>(<span class="string">&quot;]&quot;</span>)).into())
             }
-            (<span class="ident">Function::Generator</span> { .. }, <span class="prelude-val">None</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="macro">js_string!</span>(<span class="string">&quot;[Function* (anonymous)]&quot;</span>).<span class="ident">into</span>()),
-            <span class="kw">_</span> =&gt; <span class="prelude-val">Ok</span>(<span class="string">&quot;TODO&quot;</span>.<span class="ident">into</span>()),
+            (Function::Generator { .. }, <span class="prelude-val">None</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="macro">js_string!</span>(<span class="string">&quot;[Function* (anonymous)]&quot;</span>).into()),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">Ok</span>(<span class="string">&quot;TODO&quot;</span>.into()),
         }
     }
 
-    <span class="doccomment">/// `Function.prototype [ @@hasInstance ] ( V )`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-function.prototype-@@hasinstance</span>
-    <span class="kw">fn</span> <span class="ident">has_instance</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="comment">// 1. Let F be the this value.</span>
-        <span class="comment">// 2. Return ? OrdinaryHasInstance(F, V).</span>
-        <span class="prelude-val">Ok</span>(<span class="ident">JsValue::ordinary_has_instance</span>(<span class="ident">this</span>, <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>), <span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">into</span>())
+    <span class="doccomment">/// `Function.prototype [ @@hasInstance ] ( V )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-function.prototype-@@hasinstance
+    </span><span class="kw">fn </span>has_instance(this: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="comment">// 1. Let F be the this value.
+        // 2. Return ? OrdinaryHasInstance(F, V).
+        </span><span class="prelude-val">Ok</span>(JsValue::ordinary_has_instance(this, args.get_or_undefined(<span class="number">0</span>), context)<span class="question-mark">?</span>.into())
     }
 
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::unnecessary_wraps</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">prototype</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="kw">_</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">JsValue::undefined</span>())
+    <span class="attribute">#[allow(clippy::unnecessary_wraps)]
+    </span><span class="kw">fn </span>prototype(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="prelude-val">Ok</span>(JsValue::undefined())
     }
 }
 
-<span class="kw">impl</span> <span class="ident">BuiltIn</span> <span class="kw">for</span> <span class="ident">BuiltInFunctionObject</span> {
-    <span class="kw">const</span> <span class="ident">NAME</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;Function&quot;</span>;
+<span class="kw">impl </span>BuiltIn <span class="kw">for </span>BuiltInFunctionObject {
+    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;Function&quot;</span>;
 
-    <span class="kw">fn</span> <span class="ident">init</span>(<span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;function&quot;</span>, <span class="string">&quot;init&quot;</span>);
+    <span class="kw">fn </span>init(context: <span class="kw-2">&amp;mut </span>Context) -&gt; <span class="prelude-ty">Option</span>&lt;JsValue&gt; {
+        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;function&quot;</span>, <span class="string">&quot;init&quot;</span>);
 
-        <span class="kw">let</span> <span class="ident">function_prototype</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">intrinsics</span>().<span class="ident">constructors</span>().<span class="ident">function</span>().<span class="ident">prototype</span>();
-        <span class="ident">FunctionBuilder::native</span>(<span class="ident">context</span>, <span class="ident"><span class="self">Self</span>::prototype</span>)
-            .<span class="ident">name</span>(<span class="string">&quot;&quot;</span>)
-            .<span class="ident">length</span>(<span class="number">0</span>)
-            .<span class="ident">constructor</span>(<span class="bool-val">false</span>)
-            .<span class="ident">build_function_prototype</span>(<span class="kw-2">&amp;</span><span class="ident">function_prototype</span>);
+        <span class="kw">let </span>function_prototype = context.intrinsics().constructors().function().prototype();
+        FunctionBuilder::native(context, <span class="self">Self</span>::prototype)
+            .name(<span class="string">&quot;&quot;</span>)
+            .length(<span class="number">0</span>)
+            .constructor(<span class="bool-val">false</span>)
+            .build_function_prototype(<span class="kw-2">&amp;</span>function_prototype);
 
-        <span class="kw">let</span> <span class="ident">symbol_has_instance</span> <span class="op">=</span> <span class="ident">WellKnownSymbols::has_instance</span>();
+        <span class="kw">let </span>symbol_has_instance = WellKnownSymbols::has_instance();
 
-        <span class="kw">let</span> <span class="ident">has_instance</span> <span class="op">=</span> <span class="ident">FunctionBuilder::native</span>(<span class="ident">context</span>, <span class="ident"><span class="self">Self</span>::has_instance</span>)
-            .<span class="ident">name</span>(<span class="string">&quot;[Symbol.iterator]&quot;</span>)
-            .<span class="ident">length</span>(<span class="number">1</span>)
-            .<span class="ident">constructor</span>(<span class="bool-val">false</span>)
-            .<span class="ident">build</span>();
+        <span class="kw">let </span>has_instance = FunctionBuilder::native(context, <span class="self">Self</span>::has_instance)
+            .name(<span class="string">&quot;[Symbol.iterator]&quot;</span>)
+            .length(<span class="number">1</span>)
+            .constructor(<span class="bool-val">false</span>)
+            .build();
 
-        <span class="kw">let</span> <span class="ident">throw_type_error</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">intrinsics</span>().<span class="ident">objects</span>().<span class="ident">throw_type_error</span>();
+        <span class="kw">let </span>throw_type_error = context.intrinsics().objects().throw_type_error();
 
-        <span class="ident">ConstructorBuilder::with_standard_constructor</span>(
-            <span class="ident">context</span>,
-            <span class="ident"><span class="self">Self</span>::constructor</span>,
-            <span class="ident">context</span>.<span class="ident">intrinsics</span>().<span class="ident">constructors</span>().<span class="ident">function</span>().<span class="ident">clone</span>(),
+        ConstructorBuilder::with_standard_constructor(
+            context,
+            <span class="self">Self</span>::constructor,
+            context.intrinsics().constructors().function().clone(),
         )
-        .<span class="ident">name</span>(<span class="ident"><span class="self">Self</span>::NAME</span>)
-        .<span class="ident">length</span>(<span class="ident"><span class="self">Self</span>::LENGTH</span>)
-        .<span class="ident">method</span>(<span class="ident"><span class="self">Self</span>::apply</span>, <span class="string">&quot;apply&quot;</span>, <span class="number">2</span>)
-        .<span class="ident">method</span>(<span class="ident"><span class="self">Self</span>::bind</span>, <span class="string">&quot;bind&quot;</span>, <span class="number">1</span>)
-        .<span class="ident">method</span>(<span class="ident"><span class="self">Self</span>::call</span>, <span class="string">&quot;call&quot;</span>, <span class="number">1</span>)
-        .<span class="ident">method</span>(<span class="ident"><span class="self">Self</span>::to_string</span>, <span class="string">&quot;toString&quot;</span>, <span class="number">0</span>)
-        .<span class="ident">property</span>(<span class="ident">symbol_has_instance</span>, <span class="ident">has_instance</span>, <span class="ident">Attribute::default</span>())
-        .<span class="ident">property_descriptor</span>(
+        .name(<span class="self">Self</span>::NAME)
+        .length(<span class="self">Self</span>::LENGTH)
+        .method(<span class="self">Self</span>::apply, <span class="string">&quot;apply&quot;</span>, <span class="number">2</span>)
+        .method(<span class="self">Self</span>::bind, <span class="string">&quot;bind&quot;</span>, <span class="number">1</span>)
+        .method(<span class="self">Self</span>::call, <span class="string">&quot;call&quot;</span>, <span class="number">1</span>)
+        .method(<span class="self">Self</span>::to_string, <span class="string">&quot;toString&quot;</span>, <span class="number">0</span>)
+        .property(symbol_has_instance, has_instance, Attribute::default())
+        .property_descriptor(
             <span class="string">&quot;caller&quot;</span>,
-            <span class="ident">PropertyDescriptor::builder</span>()
-                .<span class="ident">get</span>(<span class="ident">throw_type_error</span>.<span class="ident">clone</span>())
-                .<span class="ident">set</span>(<span class="ident">throw_type_error</span>.<span class="ident">clone</span>())
-                .<span class="ident">enumerable</span>(<span class="bool-val">false</span>)
-                .<span class="ident">configurable</span>(<span class="bool-val">true</span>),
+            PropertyDescriptor::builder()
+                .get(throw_type_error.clone())
+                .set(throw_type_error.clone())
+                .enumerable(<span class="bool-val">false</span>)
+                .configurable(<span class="bool-val">true</span>),
         )
-        .<span class="ident">property_descriptor</span>(
+        .property_descriptor(
             <span class="string">&quot;arguments&quot;</span>,
-            <span class="ident">PropertyDescriptor::builder</span>()
-                .<span class="ident">get</span>(<span class="ident">throw_type_error</span>.<span class="ident">clone</span>())
-                .<span class="ident">set</span>(<span class="ident">throw_type_error</span>)
-                .<span class="ident">enumerable</span>(<span class="bool-val">false</span>)
-                .<span class="ident">configurable</span>(<span class="bool-val">true</span>),
+            PropertyDescriptor::builder()
+                .get(throw_type_error.clone())
+                .set(throw_type_error)
+                .enumerable(<span class="bool-val">false</span>)
+                .configurable(<span class="bool-val">true</span>),
         )
-        .<span class="ident">build</span>()
-        .<span class="ident">conv</span>::<span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span>()
-        .<span class="ident">pipe</span>(<span class="prelude-val">Some</span>)
+        .build()
+        .conv::&lt;JsValue&gt;()
+        .pipe(<span class="prelude-val">Some</span>)
     }
 }
 
-<span class="doccomment">/// Abstract operation `SetFunctionName`</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [ECMAScript reference][spec]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-setfunctionname</span>
-<span class="kw">fn</span> <span class="ident">set_function_name</span>(
-    <span class="ident">function</span>: <span class="kw-2">&amp;</span><span class="ident">JsObject</span>,
-    <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">PropertyKey</span>,
-    <span class="ident">prefix</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JsString</span><span class="op">&gt;</span>,
-    <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
+<span class="doccomment">/// Abstract operation `SetFunctionName`
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-setfunctionname
+</span><span class="kw">fn </span>set_function_name(
+    function: <span class="kw-2">&amp;</span>JsObject,
+    name: <span class="kw-2">&amp;</span>PropertyKey,
+    prefix: <span class="prelude-ty">Option</span>&lt;JsString&gt;,
+    context: <span class="kw-2">&amp;mut </span>Context,
 ) {
-    <span class="comment">// 1. Assert: F is an extensible object that does not have a &quot;name&quot; own property.</span>
-    <span class="comment">// 2. If Type(name) is Symbol, then</span>
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">name</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">name</span> {
-        <span class="ident">PropertyKey::Symbol</span>(<span class="ident">sym</span>) =&gt; {
-            <span class="comment">// a. Let description be name&#39;s [[Description]] value.</span>
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">desc</span>) <span class="op">=</span> <span class="ident">sym</span>.<span class="ident">description</span>() {
-                <span class="comment">// c. Else, set name to the string-concatenation of &quot;[&quot;, description, and &quot;]&quot;.</span>
-                <span class="macro">js_string!</span>(<span class="macro">utf16!</span>(<span class="string">&quot;[&quot;</span>), <span class="kw-2">&amp;</span><span class="ident">desc</span>, <span class="macro">utf16!</span>(<span class="string">&quot;]&quot;</span>))
-            } <span class="kw">else</span> {
-                <span class="comment">// b. If description is undefined, set name to the empty String.</span>
-                <span class="macro">js_string!</span>()
+    <span class="comment">// 1. Assert: F is an extensible object that does not have a &quot;name&quot; own property.
+    // 2. If Type(name) is Symbol, then
+    </span><span class="kw">let </span><span class="kw-2">mut </span>name = <span class="kw">match </span>name {
+        PropertyKey::Symbol(sym) =&gt; {
+            <span class="comment">// a. Let description be name&#39;s [[Description]] value.
+            </span><span class="kw">if let </span><span class="prelude-val">Some</span>(desc) = sym.description() {
+                <span class="comment">// c. Else, set name to the string-concatenation of &quot;[&quot;, description, and &quot;]&quot;.
+                </span><span class="macro">js_string!</span>(<span class="macro">utf16!</span>(<span class="string">&quot;[&quot;</span>), <span class="kw-2">&amp;</span>desc, <span class="macro">utf16!</span>(<span class="string">&quot;]&quot;</span>))
+            } <span class="kw">else </span>{
+                <span class="comment">// b. If description is undefined, set name to the empty String.
+                </span><span class="macro">js_string!</span>()
             }
         }
-        <span class="ident">PropertyKey::String</span>(<span class="ident">string</span>) =&gt; <span class="ident">string</span>.<span class="ident">clone</span>(),
-        <span class="ident">PropertyKey::Index</span>(<span class="ident">index</span>) =&gt; <span class="macro">js_string!</span>(<span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">index</span>)),
+        PropertyKey::String(string) =&gt; string.clone(),
+        PropertyKey::Index(index) =&gt; <span class="macro">js_string!</span>(<span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, index)),
     };
 
-    <span class="comment">// 3. Else if name is a Private Name, then</span>
-    <span class="comment">// a. Set name to name.[[Description]].</span>
-    <span class="comment">// todo: implement Private Names</span>
+    <span class="comment">// 3. Else if name is a Private Name, then
+    // a. Set name to name.[[Description]].
+    // todo: implement Private Names
 
-    <span class="comment">// 4. If F has an [[InitialName]] internal slot, then</span>
-    <span class="comment">// a. Set F.[[InitialName]] to name.</span>
-    <span class="comment">// todo: implement [[InitialName]] for builtins</span>
+    // 4. If F has an [[InitialName]] internal slot, then
+    // a. Set F.[[InitialName]] to name.
+    // todo: implement [[InitialName]] for builtins
 
-    <span class="comment">// 5. If prefix is present, then</span>
-    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">prefix</span>) <span class="op">=</span> <span class="ident">prefix</span> {
-        <span class="ident">name</span> <span class="op">=</span> <span class="macro">js_string!</span>(<span class="kw-2">&amp;</span><span class="ident">prefix</span>, <span class="macro">utf16!</span>(<span class="string">&quot; &quot;</span>), <span class="kw-2">&amp;</span><span class="ident">name</span>);
-        <span class="comment">// b. If F has an [[InitialName]] internal slot, then</span>
-        <span class="comment">// i. Optionally, set F.[[InitialName]] to name.</span>
-        <span class="comment">// todo: implement [[InitialName]] for builtins</span>
-    }
+    // 5. If prefix is present, then
+    </span><span class="kw">if let </span><span class="prelude-val">Some</span>(prefix) = prefix {
+        name = <span class="macro">js_string!</span>(<span class="kw-2">&amp;</span>prefix, <span class="macro">utf16!</span>(<span class="string">&quot; &quot;</span>), <span class="kw-2">&amp;</span>name);
+        <span class="comment">// b. If F has an [[InitialName]] internal slot, then
+        // i. Optionally, set F.[[InitialName]] to name.
+        // todo: implement [[InitialName]] for builtins
+    </span>}
 
-    <span class="comment">// 6. Return ! DefinePropertyOrThrow(F, &quot;name&quot;, PropertyDescriptor { [[Value]]: name,</span>
-    <span class="comment">// [[Writable]]: false, [[Enumerable]]: false, [[Configurable]]: true }).</span>
-    <span class="ident">function</span>
-        .<span class="ident">define_property_or_throw</span>(
+    <span class="comment">// 6. Return ! DefinePropertyOrThrow(F, &quot;name&quot;, PropertyDescriptor { [[Value]]: name,
+    // [[Writable]]: false, [[Enumerable]]: false, [[Configurable]]: true }).
+    </span>function
+        .define_property_or_throw(
             <span class="string">&quot;name&quot;</span>,
-            <span class="ident">PropertyDescriptor::builder</span>()
-                .<span class="ident">value</span>(<span class="ident">name</span>)
-                .<span class="ident">writable</span>(<span class="bool-val">false</span>)
-                .<span class="ident">enumerable</span>(<span class="bool-val">false</span>)
-                .<span class="ident">configurable</span>(<span class="bool-val">true</span>),
-            <span class="ident">context</span>,
+            PropertyDescriptor::builder()
+                .value(name)
+                .writable(<span class="bool-val">false</span>)
+                .enumerable(<span class="bool-val">false</span>)
+                .configurable(<span class="bool-val">true</span>),
+            context,
         )
-        .<span class="ident">expect</span>(<span class="string">&quot;defining the `name` property must not fail per the spec&quot;</span>);
+        .expect(<span class="string">&quot;defining the `name` property must not fail per the spec&quot;</span>);
 }
 
-<span class="doccomment">/// Binds a `Function Object` when `bind` is called.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Trace</span>, <span class="ident">Finalize</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">BoundFunction</span> {
-    <span class="ident">target_function</span>: <span class="ident">JsObject</span>,
-    <span class="ident">this</span>: <span class="ident">JsValue</span>,
-    <span class="ident">args</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span>,
+<span class="doccomment">/// Binds a `Function Object` when `bind` is called.
+</span><span class="attribute">#[derive(Debug, Trace, Finalize)]
+</span><span class="kw">pub struct </span>BoundFunction {
+    target_function: JsObject,
+    this: JsValue,
+    args: Vec&lt;JsValue&gt;,
 }
 
-<span class="kw">impl</span> <span class="ident">BoundFunction</span> {
-    <span class="doccomment">/// Abstract operation `BoundFunctionCreate`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-boundfunctioncreate</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create</span>(
-        <span class="ident">target_function</span>: <span class="ident">JsObject</span>,
-        <span class="ident">this</span>: <span class="ident">JsValue</span>,
-        <span class="ident">args</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span>,
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsObject</span><span class="op">&gt;</span> {
-        <span class="comment">// 1. Let proto be ? targetFunction.[[GetPrototypeOf]]().</span>
-        <span class="kw">let</span> <span class="ident">proto</span> <span class="op">=</span> <span class="ident">target_function</span>.<span class="ident">__get_prototype_of__</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">is_constructor</span> <span class="op">=</span> <span class="ident">target_function</span>.<span class="ident">is_constructor</span>();
+<span class="kw">impl </span>BoundFunction {
+    <span class="doccomment">/// Abstract operation `BoundFunctionCreate`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-boundfunctioncreate
+    </span><span class="kw">pub fn </span>create(
+        target_function: JsObject,
+        this: JsValue,
+        args: Vec&lt;JsValue&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;JsObject&gt; {
+        <span class="comment">// 1. Let proto be ? targetFunction.[[GetPrototypeOf]]().
+        </span><span class="kw">let </span>proto = target_function.__get_prototype_of__(context)<span class="question-mark">?</span>;
+        <span class="kw">let </span>is_constructor = target_function.is_constructor();
 
-        <span class="comment">// 2. Let internalSlotsList be the internal slots listed in Table 35, plus [[Prototype]] and [[Extensible]].</span>
-        <span class="comment">// 3. Let obj be ! MakeBasicObject(internalSlotsList).</span>
-        <span class="comment">// 4. Set obj.[[Prototype]] to proto.</span>
-        <span class="comment">// 5. Set obj.[[Call]] as described in 10.4.1.1.</span>
-        <span class="comment">// 6. If IsConstructor(targetFunction) is true, then</span>
-        <span class="comment">// a. Set obj.[[Construct]] as described in 10.4.1.2.</span>
-        <span class="comment">// 7. Set obj.[[BoundTargetFunction]] to targetFunction.</span>
-        <span class="comment">// 8. Set obj.[[BoundThis]] to boundThis.</span>
-        <span class="comment">// 9. Set obj.[[BoundArguments]] to boundArgs.</span>
-        <span class="comment">// 10. Return obj.</span>
-        <span class="prelude-val">Ok</span>(<span class="ident">JsObject::from_proto_and_data</span>(
-            <span class="ident">proto</span>,
-            <span class="ident">ObjectData::bound_function</span>(
-                <span class="self">Self</span> {
-                    <span class="ident">target_function</span>,
-                    <span class="ident">this</span>,
-                    <span class="ident">args</span>,
+        <span class="comment">// 2. Let internalSlotsList be the internal slots listed in Table 35, plus [[Prototype]] and [[Extensible]].
+        // 3. Let obj be ! MakeBasicObject(internalSlotsList).
+        // 4. Set obj.[[Prototype]] to proto.
+        // 5. Set obj.[[Call]] as described in 10.4.1.1.
+        // 6. If IsConstructor(targetFunction) is true, then
+        // a. Set obj.[[Construct]] as described in 10.4.1.2.
+        // 7. Set obj.[[BoundTargetFunction]] to targetFunction.
+        // 8. Set obj.[[BoundThis]] to boundThis.
+        // 9. Set obj.[[BoundArguments]] to boundArgs.
+        // 10. Return obj.
+        </span><span class="prelude-val">Ok</span>(JsObject::from_proto_and_data(
+            proto,
+            ObjectData::bound_function(
+                <span class="self">Self </span>{
+                    target_function,
+                    this,
+                    args,
                 },
-                <span class="ident">is_constructor</span>,
+                is_constructor,
             ),
         ))
     }
 
-    <span class="doccomment">/// Get a reference to the bound function&#39;s this.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">this</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">JsValue</span> {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">this</span>
+    <span class="doccomment">/// Get a reference to the bound function&#39;s this.
+    </span><span class="kw">pub fn </span>this(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>JsValue {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.this
     }
 
-    <span class="doccomment">/// Get a reference to the bound function&#39;s target function.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">target_function</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">JsObject</span> {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">target_function</span>
+    <span class="doccomment">/// Get a reference to the bound function&#39;s target function.
+    </span><span class="kw">pub fn </span>target_function(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>JsObject {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.target_function
     }
 
-    <span class="doccomment">/// Get a reference to the bound function&#39;s args.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">args</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>] {
-        <span class="self">self</span>.<span class="ident">args</span>.<span class="ident">as_slice</span>()
+    <span class="doccomment">/// Get a reference to the bound function&#39;s args.
+    </span><span class="kw">pub fn </span>args(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[JsValue] {
+        <span class="self">self</span>.args.as_slice()
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0 (a55dd71d5 2022-09-19)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0 (897e37553 2022-11-02)" ></div></body></html>

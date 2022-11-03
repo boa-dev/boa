@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_engine/src/vm/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../boa_engine/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../boa_engine/index.html"><div class="logo-container">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_engine/src/vm/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../boa_engine/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../boa_engine/index.html"><div class="logo-container">
                     <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../boa_engine/index.html">
                         <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -431,160 +431,160 @@
 <span id="429">429</span>
 <span id="430">430</span>
 <span id="431">431</span>
-</pre><pre class="rust"><code><span class="doccomment">//! The Virtual Machine (VM) handles generating instructions, then executing them.</span>
-<span class="doccomment">//! This module will provide an instruction set for the AST to use, various traits,</span>
-<span class="doccomment">//! plus an interpreter to execute those instructions</span>
+</pre><pre class="rust"><code><span class="doccomment">//! The Virtual Machine (VM) handles generating instructions, then executing them.
+//! This module will provide an instruction set for the AST to use, various traits,
+//! plus an interpreter to execute those instructions
 
-<span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">builtins::async_generator</span>::{<span class="ident">AsyncGenerator</span>, <span class="ident">AsyncGeneratorState</span>},
-    <span class="ident">vm</span>::{<span class="ident">call_frame::CatchAddresses</span>, <span class="ident">code_block::Readable</span>},
-    <span class="ident">Context</span>, <span class="ident">JsResult</span>, <span class="ident">JsValue</span>,
+</span><span class="kw">use crate</span>::{
+    builtins::async_generator::{AsyncGenerator, AsyncGeneratorState},
+    vm::{call_frame::CatchAddresses, code_block::Readable},
+    Context, JsResult, JsValue,
 };
-<span class="kw">use</span> <span class="ident">boa_interner::ToInternedString</span>;
-<span class="kw">use</span> <span class="ident">boa_profiler::Profiler</span>;
-<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">convert::TryInto</span>, <span class="ident">mem::size_of</span>, <span class="ident">time::Instant</span>};
+<span class="kw">use </span>boa_interner::ToInternedString;
+<span class="kw">use </span>boa_profiler::Profiler;
+<span class="kw">use </span>std::{convert::TryInto, mem::size_of, time::Instant};
 
-<span class="kw">mod</span> <span class="ident">call_frame</span>;
-<span class="kw">mod</span> <span class="ident">code_block</span>;
-<span class="kw">mod</span> <span class="ident">opcode</span>;
+<span class="kw">mod </span>call_frame;
+<span class="kw">mod </span>code_block;
+<span class="kw">mod </span>opcode;
 
-<span class="kw">pub</span> <span class="kw">use</span> {<span class="ident">call_frame::CallFrame</span>, <span class="ident">code_block::CodeBlock</span>, <span class="ident">opcode::Opcode</span>};
+<span class="kw">pub use </span>{call_frame::CallFrame, code_block::CodeBlock, opcode::Opcode};
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use</span> {
-    <span class="ident">call_frame</span>::{<span class="ident">FinallyReturn</span>, <span class="ident">GeneratorResumeKind</span>, <span class="ident">TryStackEntry</span>},
-    <span class="ident">code_block</span>::{<span class="ident">create_function_object</span>, <span class="ident">create_generator_function_object</span>},
-    <span class="ident">opcode::BindingOpcode</span>,
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>{
+    call_frame::{FinallyReturn, GeneratorResumeKind, TryStackEntry},
+    code_block::{create_function_object, create_generator_function_object},
+    opcode::BindingOpcode,
 };
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span>;
-<span class="doccomment">/// Virtual Machine.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Vm</span> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">frames</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">CallFrame</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">stack</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">trace</span>: <span class="ident">bool</span>,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">stack_size_limit</span>: <span class="ident">usize</span>,
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>tests;
+<span class="doccomment">/// Virtual Machine.
+</span><span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub struct </span>Vm {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) frames: Vec&lt;CallFrame&gt;,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) stack: Vec&lt;JsValue&gt;,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) trace: bool,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) stack_size_limit: usize,
 }
 
-<span class="kw">impl</span> <span class="ident">Vm</span> {
-    <span class="doccomment">/// Push a value on the stack.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">push</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">value</span>: <span class="ident">T</span>)
-    <span class="kw">where</span>
-        <span class="ident">T</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span>,
+<span class="kw">impl </span>Vm {
+    <span class="doccomment">/// Push a value on the stack.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>push&lt;T&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: T)
+    <span class="kw">where
+        </span>T: Into&lt;JsValue&gt;,
     {
-        <span class="self">self</span>.<span class="ident">stack</span>.<span class="ident">push</span>(<span class="ident">value</span>.<span class="ident">into</span>());
+        <span class="self">self</span>.stack.push(value.into());
     }
 
-    <span class="doccomment">/// Pop a value off the stack.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Panics</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If there is nothing to pop, then this will panic.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="attribute">#[<span class="ident">track_caller</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">pop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">JsValue</span> {
-        <span class="self">self</span>.<span class="ident">stack</span>.<span class="ident">pop</span>().<span class="ident">expect</span>(<span class="string">&quot;stack was empty&quot;</span>)
+    <span class="doccomment">/// Pop a value off the stack.
+    ///
+    /// # Panics
+    ///
+    /// If there is nothing to pop, then this will panic.
+    </span><span class="attribute">#[inline]
+    #[track_caller]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>pop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; JsValue {
+        <span class="self">self</span>.stack.pop().expect(<span class="string">&quot;stack was empty&quot;</span>)
     }
 
-    <span class="attribute">#[<span class="ident">track_caller</span>]</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">read</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Readable</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">T</span> {
-        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">frame</span>().<span class="ident">code</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="self">self</span>.<span class="ident">frame</span>().<span class="ident">pc</span>);
-        <span class="self">self</span>.<span class="ident">frame_mut</span>().<span class="ident">pc</span> <span class="op">+</span><span class="op">=</span> <span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>();
-        <span class="ident">value</span>
+    <span class="attribute">#[track_caller]
+    #[inline]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>read&lt;T: Readable&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; T {
+        <span class="kw">let </span>value = <span class="self">self</span>.frame().code.read::&lt;T&gt;(<span class="self">self</span>.frame().pc);
+        <span class="self">self</span>.frame_mut().pc += size_of::&lt;T&gt;();
+        value
     }
 
-    <span class="doccomment">/// Retrieves the VM frame</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Panics</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If there is no frame, then this will panic.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">frame</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">CallFrame</span> {
-        <span class="self">self</span>.<span class="ident">frames</span>.<span class="ident">last</span>().<span class="ident">expect</span>(<span class="string">&quot;no frame found&quot;</span>)
+    <span class="doccomment">/// Retrieves the VM frame
+    ///
+    /// # Panics
+    ///
+    /// If there is no frame, then this will panic.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>frame(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>CallFrame {
+        <span class="self">self</span>.frames.last().expect(<span class="string">&quot;no frame found&quot;</span>)
     }
 
-    <span class="doccomment">/// Retrieves the VM frame mutably</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Panics</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If there is no frame, then this will panic.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">frame_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">CallFrame</span> {
-        <span class="self">self</span>.<span class="ident">frames</span>.<span class="ident">last_mut</span>().<span class="ident">expect</span>(<span class="string">&quot;no frame found&quot;</span>)
+    <span class="doccomment">/// Retrieves the VM frame mutably
+    ///
+    /// # Panics
+    ///
+    /// If there is no frame, then this will panic.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>frame_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>CallFrame {
+        <span class="self">self</span>.frames.last_mut().expect(<span class="string">&quot;no frame found&quot;</span>)
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">push_frame</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">frame</span>: <span class="ident">CallFrame</span>) {
-        <span class="self">self</span>.<span class="ident">frames</span>.<span class="ident">push</span>(<span class="ident">frame</span>);
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>push_frame(<span class="kw-2">&amp;mut </span><span class="self">self</span>, frame: CallFrame) {
+        <span class="self">self</span>.frames.push(frame);
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">pop_frame</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">CallFrame</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">frames</span>.<span class="ident">pop</span>()
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>pop_frame(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;CallFrame&gt; {
+        <span class="self">self</span>.frames.pop()
     }
 }
 
-<span class="doccomment">/// Indicates if the execution should continue, exit or yield.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum</span> <span class="ident">ShouldExit</span> {
-    <span class="ident">True</span>,
-    <span class="ident">False</span>,
-    <span class="ident">Yield</span>,
-    <span class="ident">Await</span>,
+<span class="doccomment">/// Indicates if the execution should continue, exit or yield.
+</span><span class="attribute">#[derive(Debug, Clone, Copy)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum </span>ShouldExit {
+    True,
+    False,
+    Yield,
+    Await,
 }
 
-<span class="doccomment">/// Indicates if the execution of a codeblock has ended normally or has been yielded.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum</span> <span class="ident">ReturnType</span> {
-    <span class="ident">Normal</span>,
-    <span class="ident">Yield</span>,
+<span class="doccomment">/// Indicates if the execution of a codeblock has ended normally or has been yielded.
+</span><span class="attribute">#[derive(Debug, Clone, Copy)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum </span>ReturnType {
+    Normal,
+    Yield,
 }
 
-<span class="kw">impl</span> <span class="ident">Context</span> {
-    <span class="kw">fn</span> <span class="ident">execute_instruction</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">ShouldExit</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">opcode</span>: <span class="ident">Opcode</span> <span class="op">=</span> {
-            <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;Opcode retrieval&quot;</span>, <span class="string">&quot;vm&quot;</span>);
-            <span class="kw">let</span> <span class="ident">opcode</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">frame</span>().<span class="ident">code</span>.<span class="ident">code</span>[<span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">frame</span>().<span class="ident">pc</span>]
-                .<span class="ident">try_into</span>()
-                .<span class="ident">expect</span>(<span class="string">&quot;could not convert code at PC to opcode&quot;</span>);
-            <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">frame_mut</span>().<span class="ident">pc</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-            <span class="ident">opcode</span>
+<span class="kw">impl </span>Context {
+    <span class="kw">fn </span>execute_instruction(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; JsResult&lt;ShouldExit&gt; {
+        <span class="kw">let </span>opcode: Opcode = {
+            <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Opcode retrieval&quot;</span>, <span class="string">&quot;vm&quot;</span>);
+            <span class="kw">let </span>opcode = <span class="self">self</span>.vm.frame().code.code[<span class="self">self</span>.vm.frame().pc]
+                .try_into()
+                .expect(<span class="string">&quot;could not convert code at PC to opcode&quot;</span>);
+            <span class="self">self</span>.vm.frame_mut().pc += <span class="number">1</span>;
+            opcode
         };
 
-        <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="ident">opcode</span>.<span class="ident">as_instruction_str</span>(), <span class="string">&quot;vm&quot;</span>);
+        <span class="kw">let </span>_timer = Profiler::global().start_event(opcode.as_instruction_str(), <span class="string">&quot;vm&quot;</span>);
 
-        <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">opcode</span>.<span class="ident">execute</span>(<span class="self">self</span>)<span class="question-mark">?</span>;
+        <span class="kw">let </span>result = opcode.execute(<span class="self">self</span>)<span class="question-mark">?</span>;
 
-        <span class="prelude-val">Ok</span>(<span class="ident">result</span>)
+        <span class="prelude-val">Ok</span>(result)
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">run</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span>(<span class="ident">JsValue</span>, <span class="ident">ReturnType</span>)<span class="op">&gt;</span> {
-        <span class="kw">const</span> <span class="ident">COLUMN_WIDTH</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">26</span>;
-        <span class="kw">const</span> <span class="ident">TIME_COLUMN_WIDTH</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="ident">COLUMN_WIDTH</span> <span class="op">/</span> <span class="number">2</span>;
-        <span class="kw">const</span> <span class="ident">OPCODE_COLUMN_WIDTH</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="ident">COLUMN_WIDTH</span>;
-        <span class="kw">const</span> <span class="ident">OPERAND_COLUMN_WIDTH</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="ident">COLUMN_WIDTH</span>;
-        <span class="kw">const</span> <span class="ident">NUMBER_OF_COLUMNS</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">4</span>;
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>run(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; JsResult&lt;(JsValue, ReturnType)&gt; {
+        <span class="kw">const </span>COLUMN_WIDTH: usize = <span class="number">26</span>;
+        <span class="kw">const </span>TIME_COLUMN_WIDTH: usize = COLUMN_WIDTH / <span class="number">2</span>;
+        <span class="kw">const </span>OPCODE_COLUMN_WIDTH: usize = COLUMN_WIDTH;
+        <span class="kw">const </span>OPERAND_COLUMN_WIDTH: usize = COLUMN_WIDTH;
+        <span class="kw">const </span>NUMBER_OF_COLUMNS: usize = <span class="number">4</span>;
 
-        <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;run&quot;</span>, <span class="string">&quot;vm&quot;</span>);
+        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;run&quot;</span>, <span class="string">&quot;vm&quot;</span>);
 
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">trace</span> {
-            <span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">frames</span>.<span class="ident">last</span>().<span class="ident">is_some</span>() {
-                <span class="string">&quot; Call Frame &quot;</span>
-            } <span class="kw">else</span> {
-                <span class="string">&quot; VM Start &quot;</span>
-            };
+        <span class="kw">if </span><span class="self">self</span>.vm.trace {
+            <span class="kw">let </span>msg = <span class="kw">if </span><span class="self">self</span>.vm.frames.last().is_some() {
+                <span class="string">&quot; Call Frame &quot;
+            </span>} <span class="kw">else </span>{
+                <span class="string">&quot; VM Start &quot;
+            </span>};
 
             <span class="macro">println!</span>(
                 <span class="string">&quot;{}\n&quot;</span>,
-                <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">frame</span>().<span class="ident">code</span>.<span class="ident">to_interned_string</span>(<span class="self">self</span>.<span class="ident">interner</span>())
+                <span class="self">self</span>.vm.frame().code.to_interned_string(<span class="self">self</span>.interner())
             );
             <span class="macro">println!</span>(
                 <span class="string">&quot;{msg:-^width$}&quot;</span>,
-                <span class="ident">width</span> <span class="op">=</span> <span class="ident">COLUMN_WIDTH</span> <span class="op">*</span> <span class="ident">NUMBER_OF_COLUMNS</span> <span class="op">-</span> <span class="number">10</span>
-            );
+                width = COLUMN_WIDTH * NUMBER_OF_COLUMNS - <span class="number">10
+            </span>);
             <span class="macro">println!</span>(
                 <span class="string">&quot;{:&lt;TIME_COLUMN_WIDTH$} {:&lt;OPCODE_COLUMN_WIDTH$} {:&lt;OPERAND_COLUMN_WIDTH$} Top Of Stack\n&quot;</span>,
                 <span class="string">&quot;Time&quot;</span>,
@@ -593,274 +593,274 @@
             );
         }
 
-        <span class="kw">let</span> <span class="ident">start_stack_size</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">stack</span>.<span class="ident">len</span>();
+        <span class="kw">let </span>start_stack_size = <span class="self">self</span>.vm.stack.len();
 
-        <span class="comment">// If the current executing function is an async function we have to resolve/reject it&#39;s promise at the end.</span>
-        <span class="comment">// The relevant spec section is 3. in [AsyncBlockStart](https://tc39.es/ecma262/#sec-asyncblockstart).</span>
-        <span class="kw">let</span> <span class="ident">promise_capability</span> <span class="op">=</span> <span class="self">self</span>
-            .<span class="ident">realm</span>
-            .<span class="ident">environments</span>
-            .<span class="ident">get_this_environment</span>()
-            .<span class="ident">as_function_slots</span>()
-            .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">slots</span><span class="op">|</span> {
-                <span class="kw">let</span> <span class="ident">slots_borrow</span> <span class="op">=</span> <span class="ident">slots</span>.<span class="ident">borrow</span>();
-                <span class="kw">let</span> <span class="ident">function_object</span> <span class="op">=</span> <span class="ident">slots_borrow</span>.<span class="ident">function_object</span>();
-                <span class="kw">let</span> <span class="ident">function</span> <span class="op">=</span> <span class="ident">function_object</span>.<span class="ident">borrow</span>();
-                <span class="ident">function</span>
-                    .<span class="ident">as_function</span>()
-                    .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">f</span><span class="op">|</span> <span class="ident">f</span>.<span class="ident">get_promise_capability</span>().<span class="ident">cloned</span>())
+        <span class="comment">// If the current executing function is an async function we have to resolve/reject it&#39;s promise at the end.
+        // The relevant spec section is 3. in [AsyncBlockStart](https://tc39.es/ecma262/#sec-asyncblockstart).
+        </span><span class="kw">let </span>promise_capability = <span class="self">self
+            </span>.realm
+            .environments
+            .get_this_environment()
+            .as_function_slots()
+            .and_then(|slots| {
+                <span class="kw">let </span>slots_borrow = slots.borrow();
+                <span class="kw">let </span>function_object = slots_borrow.function_object();
+                <span class="kw">let </span>function = function_object.borrow();
+                function
+                    .as_function()
+                    .and_then(|f| f.get_promise_capability().cloned())
             });
 
-        <span class="kw">while</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">frame</span>().<span class="ident">pc</span> <span class="op">&lt;</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">frame</span>().<span class="ident">code</span>.<span class="ident">code</span>.<span class="ident">len</span>() {
-            <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">trace</span> {
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">pc</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">frame</span>().<span class="ident">pc</span>;
-                <span class="kw">let</span> <span class="ident">opcode</span>: <span class="ident">Opcode</span> <span class="op">=</span> <span class="self">self</span>
-                    .<span class="ident">vm</span>
-                    .<span class="ident">frame</span>()
-                    .<span class="ident">code</span>
-                    .<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>(<span class="ident">pc</span>)
-                    .<span class="ident">try_into</span>()
-                    .<span class="ident">expect</span>(<span class="string">&quot;invalid opcode&quot;</span>);
-                <span class="kw">let</span> <span class="ident">operands</span> <span class="op">=</span> <span class="self">self</span>
-                    .<span class="ident">vm</span>
-                    .<span class="ident">frame</span>()
-                    .<span class="ident">code</span>
-                    .<span class="ident">instruction_operands</span>(<span class="kw-2">&amp;mut</span> <span class="ident">pc</span>, <span class="self">self</span>.<span class="ident">interner</span>());
+        <span class="kw">while </span><span class="self">self</span>.vm.frame().pc &lt; <span class="self">self</span>.vm.frame().code.code.len() {
+            <span class="kw">let </span>result = <span class="kw">if </span><span class="self">self</span>.vm.trace {
+                <span class="kw">let </span><span class="kw-2">mut </span>pc = <span class="self">self</span>.vm.frame().pc;
+                <span class="kw">let </span>opcode: Opcode = <span class="self">self
+                    </span>.vm
+                    .frame()
+                    .code
+                    .read::&lt;u8&gt;(pc)
+                    .try_into()
+                    .expect(<span class="string">&quot;invalid opcode&quot;</span>);
+                <span class="kw">let </span>operands = <span class="self">self
+                    </span>.vm
+                    .frame()
+                    .code
+                    .instruction_operands(<span class="kw-2">&amp;mut </span>pc, <span class="self">self</span>.interner());
 
-                <span class="kw">let</span> <span class="ident">instant</span> <span class="op">=</span> <span class="ident">Instant::now</span>();
-                <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">execute_instruction</span>();
-                <span class="kw">let</span> <span class="ident">duration</span> <span class="op">=</span> <span class="ident">instant</span>.<span class="ident">elapsed</span>();
+                <span class="kw">let </span>instant = Instant::now();
+                <span class="kw">let </span>result = <span class="self">self</span>.execute_instruction();
+                <span class="kw">let </span>duration = instant.elapsed();
 
                 <span class="macro">println!</span>(
                     <span class="string">&quot;{:&lt;TIME_COLUMN_WIDTH$} {:&lt;OPCODE_COLUMN_WIDTH$} {operands:&lt;OPERAND_COLUMN_WIDTH$} {}&quot;</span>,
-                    <span class="macro">format!</span>(<span class="string">&quot;{}μs&quot;</span>, <span class="ident">duration</span>.<span class="ident">as_micros</span>()),
-                    <span class="ident">opcode</span>.<span class="ident">as_str</span>(),
-                    <span class="kw">match</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">stack</span>.<span class="ident">last</span>() {
-                        <span class="prelude-val">None</span> =&gt; <span class="string">&quot;&lt;empty&gt;&quot;</span>.<span class="ident">to_string</span>(),
-                        <span class="prelude-val">Some</span>(<span class="ident">value</span>) =&gt; {
-                            <span class="kw">if</span> <span class="ident">value</span>.<span class="ident">is_callable</span>() {
-                                <span class="string">&quot;[function]&quot;</span>.<span class="ident">to_string</span>()
-                            } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">value</span>.<span class="ident">is_object</span>() {
-                                <span class="string">&quot;[object]&quot;</span>.<span class="ident">to_string</span>()
-                            } <span class="kw">else</span> {
-                                <span class="ident">value</span>.<span class="ident">display</span>().<span class="ident">to_string</span>()
+                    <span class="macro">format!</span>(<span class="string">&quot;{}μs&quot;</span>, duration.as_micros()),
+                    opcode.as_str(),
+                    <span class="kw">match </span><span class="self">self</span>.vm.stack.last() {
+                        <span class="prelude-val">None </span>=&gt; <span class="string">&quot;&lt;empty&gt;&quot;</span>.to_string(),
+                        <span class="prelude-val">Some</span>(value) =&gt; {
+                            <span class="kw">if </span>value.is_callable() {
+                                <span class="string">&quot;[function]&quot;</span>.to_string()
+                            } <span class="kw">else if </span>value.is_object() {
+                                <span class="string">&quot;[object]&quot;</span>.to_string()
+                            } <span class="kw">else </span>{
+                                value.display().to_string()
                             }
                         }
                     },
                 );
 
-                <span class="ident">result</span>
-            } <span class="kw">else</span> {
-                <span class="self">self</span>.<span class="ident">execute_instruction</span>()
+                result
+            } <span class="kw">else </span>{
+                <span class="self">self</span>.execute_instruction()
             };
 
-            <span class="kw">match</span> <span class="ident">result</span> {
-                <span class="prelude-val">Ok</span>(<span class="ident">ShouldExit::True</span>) =&gt; {
-                    <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">pop</span>();
-                    <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">stack</span>.<span class="ident">truncate</span>(<span class="ident">start_stack_size</span>);
+            <span class="kw">match </span>result {
+                <span class="prelude-val">Ok</span>(ShouldExit::True) =&gt; {
+                    <span class="kw">let </span>result = <span class="self">self</span>.vm.pop();
+                    <span class="self">self</span>.vm.stack.truncate(start_stack_size);
 
-                    <span class="comment">// Step 3.e in [AsyncBlockStart](https://tc39.es/ecma262/#sec-asyncblockstart).</span>
-                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">promise_capability</span>) <span class="op">=</span> <span class="ident">promise_capability</span> {
-                        <span class="ident">promise_capability</span>
-                            .<span class="ident">resolve</span>()
-                            .<span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="ident">JsValue::undefined</span>(), <span class="kw-2">&amp;</span>[<span class="ident">result</span>.<span class="ident">clone</span>()], <span class="self">self</span>)
-                            .<span class="ident">expect</span>(<span class="string">&quot;cannot fail per spec&quot;</span>);
+                    <span class="comment">// Step 3.e in [AsyncBlockStart](https://tc39.es/ecma262/#sec-asyncblockstart).
+                    </span><span class="kw">if let </span><span class="prelude-val">Some</span>(promise_capability) = promise_capability {
+                        promise_capability
+                            .resolve()
+                            .call(<span class="kw-2">&amp;</span>JsValue::undefined(), <span class="kw-2">&amp;</span>[result.clone()], <span class="self">self</span>)
+                            .expect(<span class="string">&quot;cannot fail per spec&quot;</span>);
                     }
-                    <span class="comment">// Step 4.e-j in [AsyncGeneratorStart](https://tc39.es/ecma262/#sec-asyncgeneratorstart)</span>
-                    <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">generator_object</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">frame</span>().<span class="ident">async_generator</span>.<span class="ident">clone</span>() {
-                        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">generator_object_mut</span> <span class="op">=</span> <span class="ident">generator_object</span>.<span class="ident">borrow_mut</span>();
-                        <span class="kw">let</span> <span class="ident">generator</span> <span class="op">=</span> <span class="ident">generator_object_mut</span>
-                            .<span class="ident">as_async_generator_mut</span>()
-                            .<span class="ident">expect</span>(<span class="string">&quot;must be async generator&quot;</span>);
+                    <span class="comment">// Step 4.e-j in [AsyncGeneratorStart](https://tc39.es/ecma262/#sec-asyncgeneratorstart)
+                    </span><span class="kw">else if let </span><span class="prelude-val">Some</span>(generator_object) = <span class="self">self</span>.vm.frame().async_generator.clone() {
+                        <span class="kw">let </span><span class="kw-2">mut </span>generator_object_mut = generator_object.borrow_mut();
+                        <span class="kw">let </span>generator = generator_object_mut
+                            .as_async_generator_mut()
+                            .expect(<span class="string">&quot;must be async generator&quot;</span>);
 
-                        <span class="ident">generator</span>.<span class="ident">state</span> <span class="op">=</span> <span class="ident">AsyncGeneratorState::Completed</span>;
+                        generator.state = AsyncGeneratorState::Completed;
 
-                        <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <span class="ident">generator</span>
-                            .<span class="ident">queue</span>
-                            .<span class="ident">pop_front</span>()
-                            .<span class="ident">expect</span>(<span class="string">&quot;must have item in queue&quot;</span>);
-                        <span class="ident">drop</span>(<span class="ident">generator_object_mut</span>);
-                        <span class="ident">AsyncGenerator::complete_step</span>(<span class="kw-2">&amp;</span><span class="ident">next</span>, <span class="prelude-val">Ok</span>(<span class="ident">result</span>), <span class="bool-val">true</span>, <span class="self">self</span>);
-                        <span class="ident">AsyncGenerator::drain_queue</span>(<span class="kw-2">&amp;</span><span class="ident">generator_object</span>, <span class="self">self</span>);
-                        <span class="kw">return</span> <span class="prelude-val">Ok</span>((<span class="ident">JsValue::undefined</span>(), <span class="ident">ReturnType::Normal</span>));
+                        <span class="kw">let </span>next = generator
+                            .queue
+                            .pop_front()
+                            .expect(<span class="string">&quot;must have item in queue&quot;</span>);
+                        drop(generator_object_mut);
+                        AsyncGenerator::complete_step(<span class="kw-2">&amp;</span>next, <span class="prelude-val">Ok</span>(result), <span class="bool-val">true</span>, <span class="self">self</span>);
+                        AsyncGenerator::drain_queue(<span class="kw-2">&amp;</span>generator_object, <span class="self">self</span>);
+                        <span class="kw">return </span><span class="prelude-val">Ok</span>((JsValue::undefined(), ReturnType::Normal));
                     }
 
-                    <span class="kw">return</span> <span class="prelude-val">Ok</span>((<span class="ident">result</span>, <span class="ident">ReturnType::Normal</span>));
+                    <span class="kw">return </span><span class="prelude-val">Ok</span>((result, ReturnType::Normal));
                 }
-                <span class="prelude-val">Ok</span>(<span class="ident">ShouldExit::Await</span>) =&gt; {
-                    <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">pop</span>();
-                    <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">stack</span>.<span class="ident">truncate</span>(<span class="ident">start_stack_size</span>);
-                    <span class="kw">return</span> <span class="prelude-val">Ok</span>((<span class="ident">result</span>, <span class="ident">ReturnType::Normal</span>));
+                <span class="prelude-val">Ok</span>(ShouldExit::Await) =&gt; {
+                    <span class="kw">let </span>result = <span class="self">self</span>.vm.pop();
+                    <span class="self">self</span>.vm.stack.truncate(start_stack_size);
+                    <span class="kw">return </span><span class="prelude-val">Ok</span>((result, ReturnType::Normal));
                 }
-                <span class="prelude-val">Ok</span>(<span class="ident">ShouldExit::False</span>) =&gt; {}
-                <span class="prelude-val">Ok</span>(<span class="ident">ShouldExit::Yield</span>) =&gt; {
-                    <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">stack</span>.<span class="ident">pop</span>().<span class="ident">unwrap_or</span>(<span class="ident">JsValue::Undefined</span>);
-                    <span class="kw">return</span> <span class="prelude-val">Ok</span>((<span class="ident">result</span>, <span class="ident">ReturnType::Yield</span>));
+                <span class="prelude-val">Ok</span>(ShouldExit::False) =&gt; {}
+                <span class="prelude-val">Ok</span>(ShouldExit::Yield) =&gt; {
+                    <span class="kw">let </span>result = <span class="self">self</span>.vm.stack.pop().unwrap_or(JsValue::Undefined);
+                    <span class="kw">return </span><span class="prelude-val">Ok</span>((result, ReturnType::Yield));
                 }
-                <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; {
-                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">address</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">frame</span>().<span class="ident">catch</span>.<span class="ident">last</span>() {
-                        <span class="kw">let</span> <span class="ident">address</span> <span class="op">=</span> <span class="ident">address</span>.<span class="ident">next</span>;
-                        <span class="kw">let</span> <span class="ident">try_stack_entry</span> <span class="op">=</span> <span class="self">self</span>
-                            .<span class="ident">vm</span>
-                            .<span class="ident">frame_mut</span>()
-                            .<span class="ident">try_env_stack</span>
-                            .<span class="ident">last_mut</span>()
-                            .<span class="ident">expect</span>(<span class="string">&quot;must exist&quot;</span>);
-                        <span class="kw">let</span> <span class="ident">try_stack_entry_copy</span> <span class="op">=</span> <span class="kw-2">*</span><span class="ident">try_stack_entry</span>;
-                        <span class="ident">try_stack_entry</span>.<span class="ident">num_env</span> <span class="op">=</span> <span class="number">0</span>;
-                        <span class="ident">try_stack_entry</span>.<span class="ident">num_loop_stack_entries</span> <span class="op">=</span> <span class="number">0</span>;
-                        <span class="kw">for</span> <span class="kw">_</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">try_stack_entry_copy</span>.<span class="ident">num_env</span> {
-                            <span class="self">self</span>.<span class="ident">realm</span>.<span class="ident">environments</span>.<span class="ident">pop</span>();
+                <span class="prelude-val">Err</span>(e) =&gt; {
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(address) = <span class="self">self</span>.vm.frame().catch.last() {
+                        <span class="kw">let </span>address = address.next;
+                        <span class="kw">let </span>try_stack_entry = <span class="self">self
+                            </span>.vm
+                            .frame_mut()
+                            .try_env_stack
+                            .last_mut()
+                            .expect(<span class="string">&quot;must exist&quot;</span>);
+                        <span class="kw">let </span>try_stack_entry_copy = <span class="kw-2">*</span>try_stack_entry;
+                        try_stack_entry.num_env = <span class="number">0</span>;
+                        try_stack_entry.num_loop_stack_entries = <span class="number">0</span>;
+                        <span class="kw">for _ in </span><span class="number">0</span>..try_stack_entry_copy.num_env {
+                            <span class="self">self</span>.realm.environments.pop();
                         }
-                        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">num_env</span> <span class="op">=</span> <span class="ident">try_stack_entry_copy</span>.<span class="ident">num_env</span>;
-                        <span class="kw">for</span> <span class="kw">_</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">try_stack_entry_copy</span>.<span class="ident">num_loop_stack_entries</span> {
-                            <span class="ident">num_env</span> <span class="op">-</span><span class="op">=</span> <span class="self">self</span>
-                                .<span class="ident">vm</span>
-                                .<span class="ident">frame_mut</span>()
-                                .<span class="ident">loop_env_stack</span>
-                                .<span class="ident">pop</span>()
-                                .<span class="ident">expect</span>(<span class="string">&quot;must exist&quot;</span>);
+                        <span class="kw">let </span><span class="kw-2">mut </span>num_env = try_stack_entry_copy.num_env;
+                        <span class="kw">for _ in </span><span class="number">0</span>..try_stack_entry_copy.num_loop_stack_entries {
+                            num_env -= <span class="self">self
+                                </span>.vm
+                                .frame_mut()
+                                .loop_env_stack
+                                .pop()
+                                .expect(<span class="string">&quot;must exist&quot;</span>);
                         }
-                        <span class="kw-2">*</span><span class="self">self</span>
-                            .<span class="ident">vm</span>
-                            .<span class="ident">frame_mut</span>()
-                            .<span class="ident">loop_env_stack</span>
-                            .<span class="ident">last_mut</span>()
-                            .<span class="ident">expect</span>(<span class="string">&quot;must exist&quot;</span>) <span class="op">-</span><span class="op">=</span> <span class="ident">num_env</span>;
-                        <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">frame_mut</span>().<span class="ident">try_env_stack</span>.<span class="ident">pop</span>().<span class="ident">expect</span>(<span class="string">&quot;must exist&quot;</span>);
-                        <span class="kw">for</span> <span class="kw">_</span> <span class="kw">in</span> <span class="number">0</span>..<span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">frame</span>().<span class="ident">pop_on_return</span> {
-                            <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">pop</span>();
+                        <span class="kw-2">*</span><span class="self">self
+                            </span>.vm
+                            .frame_mut()
+                            .loop_env_stack
+                            .last_mut()
+                            .expect(<span class="string">&quot;must exist&quot;</span>) -= num_env;
+                        <span class="self">self</span>.vm.frame_mut().try_env_stack.pop().expect(<span class="string">&quot;must exist&quot;</span>);
+                        <span class="kw">for _ in </span><span class="number">0</span>..<span class="self">self</span>.vm.frame().pop_on_return {
+                            <span class="self">self</span>.vm.pop();
                         }
-                        <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">frame_mut</span>().<span class="ident">pop_on_return</span> <span class="op">=</span> <span class="number">0</span>;
-                        <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">frame_mut</span>().<span class="ident">pc</span> <span class="op">=</span> <span class="ident">address</span> <span class="kw">as</span> <span class="ident">usize</span>;
-                        <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">frame_mut</span>().<span class="ident">catch</span>.<span class="ident">pop</span>();
-                        <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">frame_mut</span>().<span class="ident">finally_return</span> <span class="op">=</span> <span class="ident">FinallyReturn::Err</span>;
-                        <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">frame_mut</span>().<span class="ident">thrown</span> <span class="op">=</span> <span class="bool-val">true</span>;
-                        <span class="kw">let</span> <span class="ident">e</span> <span class="op">=</span> <span class="ident">e</span>.<span class="ident">to_opaque</span>(<span class="self">self</span>);
-                        <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">push</span>(<span class="ident">e</span>);
-                    } <span class="kw">else</span> {
-                        <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">stack</span>.<span class="ident">truncate</span>(<span class="ident">start_stack_size</span>);
+                        <span class="self">self</span>.vm.frame_mut().pop_on_return = <span class="number">0</span>;
+                        <span class="self">self</span>.vm.frame_mut().pc = address <span class="kw">as </span>usize;
+                        <span class="self">self</span>.vm.frame_mut().catch.pop();
+                        <span class="self">self</span>.vm.frame_mut().finally_return = FinallyReturn::Err;
+                        <span class="self">self</span>.vm.frame_mut().thrown = <span class="bool-val">true</span>;
+                        <span class="kw">let </span>e = e.to_opaque(<span class="self">self</span>);
+                        <span class="self">self</span>.vm.push(e);
+                    } <span class="kw">else </span>{
+                        <span class="self">self</span>.vm.stack.truncate(start_stack_size);
 
-                        <span class="comment">// Step 3.f in [AsyncBlockStart](https://tc39.es/ecma262/#sec-asyncblockstart).</span>
-                        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">promise_capability</span>) <span class="op">=</span> <span class="ident">promise_capability</span> {
-                            <span class="kw">let</span> <span class="ident">e</span> <span class="op">=</span> <span class="ident">e</span>.<span class="ident">to_opaque</span>(<span class="self">self</span>);
-                            <span class="ident">promise_capability</span>
-                                .<span class="ident">reject</span>()
-                                .<span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="ident">JsValue::undefined</span>(), <span class="kw-2">&amp;</span>[<span class="ident">e</span>.<span class="ident">clone</span>()], <span class="self">self</span>)
-                                .<span class="ident">expect</span>(<span class="string">&quot;cannot fail per spec&quot;</span>);
+                        <span class="comment">// Step 3.f in [AsyncBlockStart](https://tc39.es/ecma262/#sec-asyncblockstart).
+                        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(promise_capability) = promise_capability {
+                            <span class="kw">let </span>e = e.to_opaque(<span class="self">self</span>);
+                            promise_capability
+                                .reject()
+                                .call(<span class="kw-2">&amp;</span>JsValue::undefined(), <span class="kw-2">&amp;</span>[e.clone()], <span class="self">self</span>)
+                                .expect(<span class="string">&quot;cannot fail per spec&quot;</span>);
 
-                            <span class="kw">return</span> <span class="prelude-val">Ok</span>((<span class="ident">e</span>, <span class="ident">ReturnType::Normal</span>));
+                            <span class="kw">return </span><span class="prelude-val">Ok</span>((e, ReturnType::Normal));
                         }
-                        <span class="comment">// Step 4.e-j in [AsyncGeneratorStart](https://tc39.es/ecma262/#sec-asyncgeneratorstart)</span>
-                        <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">generator_object</span>) <span class="op">=</span>
-                            <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">frame</span>().<span class="ident">async_generator</span>.<span class="ident">clone</span>()
+                        <span class="comment">// Step 4.e-j in [AsyncGeneratorStart](https://tc39.es/ecma262/#sec-asyncgeneratorstart)
+                        </span><span class="kw">else if let </span><span class="prelude-val">Some</span>(generator_object) =
+                            <span class="self">self</span>.vm.frame().async_generator.clone()
                         {
-                            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">generator_object_mut</span> <span class="op">=</span> <span class="ident">generator_object</span>.<span class="ident">borrow_mut</span>();
-                            <span class="kw">let</span> <span class="ident">generator</span> <span class="op">=</span> <span class="ident">generator_object_mut</span>
-                                .<span class="ident">as_async_generator_mut</span>()
-                                .<span class="ident">expect</span>(<span class="string">&quot;must be async generator&quot;</span>);
+                            <span class="kw">let </span><span class="kw-2">mut </span>generator_object_mut = generator_object.borrow_mut();
+                            <span class="kw">let </span>generator = generator_object_mut
+                                .as_async_generator_mut()
+                                .expect(<span class="string">&quot;must be async generator&quot;</span>);
 
-                            <span class="ident">generator</span>.<span class="ident">state</span> <span class="op">=</span> <span class="ident">AsyncGeneratorState::Completed</span>;
+                            generator.state = AsyncGeneratorState::Completed;
 
-                            <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <span class="ident">generator</span>
-                                .<span class="ident">queue</span>
-                                .<span class="ident">pop_front</span>()
-                                .<span class="ident">expect</span>(<span class="string">&quot;must have item in queue&quot;</span>);
-                            <span class="ident">drop</span>(<span class="ident">generator_object_mut</span>);
-                            <span class="ident">AsyncGenerator::complete_step</span>(<span class="kw-2">&amp;</span><span class="ident">next</span>, <span class="prelude-val">Err</span>(<span class="ident">e</span>), <span class="bool-val">true</span>, <span class="self">self</span>);
-                            <span class="ident">AsyncGenerator::drain_queue</span>(<span class="kw-2">&amp;</span><span class="ident">generator_object</span>, <span class="self">self</span>);
-                            <span class="kw">return</span> <span class="prelude-val">Ok</span>((<span class="ident">JsValue::undefined</span>(), <span class="ident">ReturnType::Normal</span>));
+                            <span class="kw">let </span>next = generator
+                                .queue
+                                .pop_front()
+                                .expect(<span class="string">&quot;must have item in queue&quot;</span>);
+                            drop(generator_object_mut);
+                            AsyncGenerator::complete_step(<span class="kw-2">&amp;</span>next, <span class="prelude-val">Err</span>(e), <span class="bool-val">true</span>, <span class="self">self</span>);
+                            AsyncGenerator::drain_queue(<span class="kw-2">&amp;</span>generator_object, <span class="self">self</span>);
+                            <span class="kw">return </span><span class="prelude-val">Ok</span>((JsValue::undefined(), ReturnType::Normal));
                         }
 
-                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>);
+                        <span class="kw">return </span><span class="prelude-val">Err</span>(e);
                     }
                 }
             }
         }
 
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">trace</span> {
+        <span class="kw">if </span><span class="self">self</span>.vm.trace {
             <span class="macro">println!</span>(<span class="string">&quot;\nStack:&quot;</span>);
-            <span class="kw">if</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">stack</span>.<span class="ident">is_empty</span>() {
+            <span class="kw">if </span><span class="self">self</span>.vm.stack.is_empty() {
                 <span class="macro">println!</span>(<span class="string">&quot;    &lt;empty&gt;&quot;</span>);
-            } <span class="kw">else</span> {
-                <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">value</span>) <span class="kw">in</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">stack</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
+            } <span class="kw">else </span>{
+                <span class="kw">for </span>(i, value) <span class="kw">in </span><span class="self">self</span>.vm.stack.iter().enumerate() {
                     <span class="macro">println!</span>(
                         <span class="string">&quot;{i:04}{:&lt;width$} {}&quot;</span>,
                         <span class="string">&quot;&quot;</span>,
-                        <span class="kw">if</span> <span class="ident">value</span>.<span class="ident">is_callable</span>() {
-                            <span class="string">&quot;[function]&quot;</span>.<span class="ident">to_string</span>()
-                        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">value</span>.<span class="ident">is_object</span>() {
-                            <span class="string">&quot;[object]&quot;</span>.<span class="ident">to_string</span>()
-                        } <span class="kw">else</span> {
-                            <span class="ident">value</span>.<span class="ident">display</span>().<span class="ident">to_string</span>()
+                        <span class="kw">if </span>value.is_callable() {
+                            <span class="string">&quot;[function]&quot;</span>.to_string()
+                        } <span class="kw">else if </span>value.is_object() {
+                            <span class="string">&quot;[object]&quot;</span>.to_string()
+                        } <span class="kw">else </span>{
+                            value.display().to_string()
                         },
-                        <span class="ident">width</span> <span class="op">=</span> <span class="ident">COLUMN_WIDTH</span> <span class="op">/</span> <span class="number">2</span> <span class="op">-</span> <span class="number">4</span>,
+                        width = COLUMN_WIDTH / <span class="number">2 </span>- <span class="number">4</span>,
                     );
                 }
             }
             <span class="macro">println!</span>(<span class="string">&quot;\n&quot;</span>);
         }
 
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">stack</span>.<span class="ident">len</span>() <span class="op">&lt;</span><span class="op">=</span> <span class="ident">start_stack_size</span> {
-            <span class="comment">// Step 3.d in [AsyncBlockStart](https://tc39.es/ecma262/#sec-asyncblockstart).</span>
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">promise_capability</span>) <span class="op">=</span> <span class="ident">promise_capability</span> {
-                <span class="ident">promise_capability</span>
-                    .<span class="ident">resolve</span>()
-                    .<span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="ident">JsValue::undefined</span>(), <span class="kw-2">&amp;</span>[], <span class="self">self</span>)
-                    .<span class="ident">expect</span>(<span class="string">&quot;cannot fail per spec&quot;</span>);
+        <span class="kw">if </span><span class="self">self</span>.vm.stack.len() &lt;= start_stack_size {
+            <span class="comment">// Step 3.d in [AsyncBlockStart](https://tc39.es/ecma262/#sec-asyncblockstart).
+            </span><span class="kw">if let </span><span class="prelude-val">Some</span>(promise_capability) = promise_capability {
+                promise_capability
+                    .resolve()
+                    .call(<span class="kw-2">&amp;</span>JsValue::undefined(), <span class="kw-2">&amp;</span>[], <span class="self">self</span>)
+                    .expect(<span class="string">&quot;cannot fail per spec&quot;</span>);
             }
-            <span class="comment">// Step 4.e-j in [AsyncGeneratorStart](https://tc39.es/ecma262/#sec-asyncgeneratorstart)</span>
-            <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">generator_object</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">frame</span>().<span class="ident">async_generator</span>.<span class="ident">clone</span>() {
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">generator_object_mut</span> <span class="op">=</span> <span class="ident">generator_object</span>.<span class="ident">borrow_mut</span>();
-                <span class="kw">let</span> <span class="ident">generator</span> <span class="op">=</span> <span class="ident">generator_object_mut</span>
-                    .<span class="ident">as_async_generator_mut</span>()
-                    .<span class="ident">expect</span>(<span class="string">&quot;must be async generator&quot;</span>);
+            <span class="comment">// Step 4.e-j in [AsyncGeneratorStart](https://tc39.es/ecma262/#sec-asyncgeneratorstart)
+            </span><span class="kw">else if let </span><span class="prelude-val">Some</span>(generator_object) = <span class="self">self</span>.vm.frame().async_generator.clone() {
+                <span class="kw">let </span><span class="kw-2">mut </span>generator_object_mut = generator_object.borrow_mut();
+                <span class="kw">let </span>generator = generator_object_mut
+                    .as_async_generator_mut()
+                    .expect(<span class="string">&quot;must be async generator&quot;</span>);
 
-                <span class="ident">generator</span>.<span class="ident">state</span> <span class="op">=</span> <span class="ident">AsyncGeneratorState::Completed</span>;
+                generator.state = AsyncGeneratorState::Completed;
 
-                <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <span class="ident">generator</span>
-                    .<span class="ident">queue</span>
-                    .<span class="ident">pop_front</span>()
-                    .<span class="ident">expect</span>(<span class="string">&quot;must have item in queue&quot;</span>);
-                <span class="ident">drop</span>(<span class="ident">generator_object_mut</span>);
-                <span class="ident">AsyncGenerator::complete_step</span>(<span class="kw-2">&amp;</span><span class="ident">next</span>, <span class="prelude-val">Ok</span>(<span class="ident">JsValue::undefined</span>()), <span class="bool-val">true</span>, <span class="self">self</span>);
-                <span class="ident">AsyncGenerator::drain_queue</span>(<span class="kw-2">&amp;</span><span class="ident">generator_object</span>, <span class="self">self</span>);
+                <span class="kw">let </span>next = generator
+                    .queue
+                    .pop_front()
+                    .expect(<span class="string">&quot;must have item in queue&quot;</span>);
+                drop(generator_object_mut);
+                AsyncGenerator::complete_step(<span class="kw-2">&amp;</span>next, <span class="prelude-val">Ok</span>(JsValue::undefined()), <span class="bool-val">true</span>, <span class="self">self</span>);
+                AsyncGenerator::drain_queue(<span class="kw-2">&amp;</span>generator_object, <span class="self">self</span>);
             }
 
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>((<span class="ident">JsValue::undefined</span>(), <span class="ident">ReturnType::Normal</span>));
+            <span class="kw">return </span><span class="prelude-val">Ok</span>((JsValue::undefined(), ReturnType::Normal));
         }
 
-        <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">pop</span>();
-        <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">stack</span>.<span class="ident">truncate</span>(<span class="ident">start_stack_size</span>);
+        <span class="kw">let </span>result = <span class="self">self</span>.vm.pop();
+        <span class="self">self</span>.vm.stack.truncate(start_stack_size);
 
-        <span class="comment">// Step 3.d in [AsyncBlockStart](https://tc39.es/ecma262/#sec-asyncblockstart).</span>
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">promise_capability</span>) <span class="op">=</span> <span class="ident">promise_capability</span> {
-            <span class="ident">promise_capability</span>
-                .<span class="ident">resolve</span>()
-                .<span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="ident">JsValue::undefined</span>(), <span class="kw-2">&amp;</span>[<span class="ident">result</span>.<span class="ident">clone</span>()], <span class="self">self</span>)
-                .<span class="ident">expect</span>(<span class="string">&quot;cannot fail per spec&quot;</span>);
+        <span class="comment">// Step 3.d in [AsyncBlockStart](https://tc39.es/ecma262/#sec-asyncblockstart).
+        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(promise_capability) = promise_capability {
+            promise_capability
+                .resolve()
+                .call(<span class="kw-2">&amp;</span>JsValue::undefined(), <span class="kw-2">&amp;</span>[result.clone()], <span class="self">self</span>)
+                .expect(<span class="string">&quot;cannot fail per spec&quot;</span>);
         }
-        <span class="comment">// Step 4.e-j in [AsyncGeneratorStart](https://tc39.es/ecma262/#sec-asyncgeneratorstart)</span>
-        <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">generator_object</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">frame</span>().<span class="ident">async_generator</span>.<span class="ident">clone</span>() {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">generator_object_mut</span> <span class="op">=</span> <span class="ident">generator_object</span>.<span class="ident">borrow_mut</span>();
-            <span class="kw">let</span> <span class="ident">generator</span> <span class="op">=</span> <span class="ident">generator_object_mut</span>
-                .<span class="ident">as_async_generator_mut</span>()
-                .<span class="ident">expect</span>(<span class="string">&quot;must be async generator&quot;</span>);
+        <span class="comment">// Step 4.e-j in [AsyncGeneratorStart](https://tc39.es/ecma262/#sec-asyncgeneratorstart)
+        </span><span class="kw">else if let </span><span class="prelude-val">Some</span>(generator_object) = <span class="self">self</span>.vm.frame().async_generator.clone() {
+            <span class="kw">let </span><span class="kw-2">mut </span>generator_object_mut = generator_object.borrow_mut();
+            <span class="kw">let </span>generator = generator_object_mut
+                .as_async_generator_mut()
+                .expect(<span class="string">&quot;must be async generator&quot;</span>);
 
-            <span class="ident">generator</span>.<span class="ident">state</span> <span class="op">=</span> <span class="ident">AsyncGeneratorState::Completed</span>;
+            generator.state = AsyncGeneratorState::Completed;
 
-            <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <span class="ident">generator</span>
-                .<span class="ident">queue</span>
-                .<span class="ident">pop_front</span>()
-                .<span class="ident">expect</span>(<span class="string">&quot;must have item in queue&quot;</span>);
-            <span class="ident">drop</span>(<span class="ident">generator_object_mut</span>);
-            <span class="ident">AsyncGenerator::complete_step</span>(<span class="kw-2">&amp;</span><span class="ident">next</span>, <span class="prelude-val">Ok</span>(<span class="ident">result</span>), <span class="bool-val">true</span>, <span class="self">self</span>);
-            <span class="ident">AsyncGenerator::drain_queue</span>(<span class="kw-2">&amp;</span><span class="ident">generator_object</span>, <span class="self">self</span>);
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>((<span class="ident">JsValue::undefined</span>(), <span class="ident">ReturnType::Normal</span>));
+            <span class="kw">let </span>next = generator
+                .queue
+                .pop_front()
+                .expect(<span class="string">&quot;must have item in queue&quot;</span>);
+            drop(generator_object_mut);
+            AsyncGenerator::complete_step(<span class="kw-2">&amp;</span>next, <span class="prelude-val">Ok</span>(result), <span class="bool-val">true</span>, <span class="self">self</span>);
+            AsyncGenerator::drain_queue(<span class="kw-2">&amp;</span>generator_object, <span class="self">self</span>);
+            <span class="kw">return </span><span class="prelude-val">Ok</span>((JsValue::undefined(), ReturnType::Normal));
         }
 
-        <span class="prelude-val">Ok</span>((<span class="ident">result</span>, <span class="ident">ReturnType::Normal</span>))
+        <span class="prelude-val">Ok</span>((result, ReturnType::Normal))
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0 (a55dd71d5 2022-09-19)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0 (897e37553 2022-11-02)" ></div></body></html>

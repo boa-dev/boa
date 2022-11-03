@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_engine/src/builtins/json/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_engine/src/builtins/json/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container">
                     <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../boa_engine/index.html">
                         <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -873,878 +873,878 @@
 <span id="871">871</span>
 <span id="872">872</span>
 <span id="873">873</span>
-</pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `JSON` object.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! The `JSON` object contains methods for parsing [JavaScript Object Notation (JSON)][spec]</span>
-<span class="doccomment">//! and converting values to JSON. It can&#39;t be called or constructed, and aside from its</span>
-<span class="doccomment">//! two method properties, it has no interesting functionality of its own.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! More information:</span>
-<span class="doccomment">//!  - [ECMAScript reference][spec]</span>
-<span class="doccomment">//!  - [MDN documentation][mdn]</span>
-<span class="doccomment">//!  - [JSON specification][json]</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! [spec]: https://tc39.es/ecma262/#sec-json</span>
-<span class="doccomment">//! [json]: https://www.json.org/json-en.html</span>
-<span class="doccomment">//! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON</span>
+</pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `JSON` object.
+//!
+//! The `JSON` object contains methods for parsing [JavaScript Object Notation (JSON)][spec]
+//! and converting values to JSON. It can&#39;t be called or constructed, and aside from its
+//! two method properties, it has no interesting functionality of its own.
+//!
+//! More information:
+//!  - [ECMAScript reference][spec]
+//!  - [MDN documentation][mdn]
+//!  - [JSON specification][json]
+//!
+//! [spec]: https://tc39.es/ecma262/#sec-json
+//! [json]: https://www.json.org/json-en.html
+//! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON
 
-<span class="kw">use</span> <span class="ident"><span class="kw">super</span>::JsArgs</span>;
-<span class="kw">use</span> <span class="ident">std</span>::{
-    <span class="ident">borrow::Cow</span>,
-    <span class="ident">iter</span>::{<span class="ident">once</span>, <span class="ident">FusedIterator</span>},
+</span><span class="kw">use </span><span class="kw">super</span>::JsArgs;
+<span class="kw">use </span>std::{
+    borrow::Cow,
+    iter::{once, FusedIterator},
 };
 
-<span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">builtins::BuiltIn</span>,
-    <span class="ident">error::JsNativeError</span>,
-    <span class="ident">js_string</span>,
-    <span class="ident">object</span>::{<span class="ident">JsObject</span>, <span class="ident">ObjectInitializer</span>, <span class="ident">RecursionLimiter</span>},
-    <span class="ident">property</span>::{<span class="ident">Attribute</span>, <span class="ident">PropertyNameKind</span>},
-    <span class="ident">string</span>::{<span class="ident">utf16</span>, <span class="ident">CodePoint</span>},
-    <span class="ident">symbol::WellKnownSymbols</span>,
-    <span class="ident">value::IntegerOrInfinity</span>,
-    <span class="ident">Context</span>, <span class="ident">JsResult</span>, <span class="ident">JsString</span>, <span class="ident">JsValue</span>,
+<span class="kw">use crate</span>::{
+    builtins::BuiltIn,
+    error::JsNativeError,
+    js_string,
+    object::{JsObject, ObjectInitializer, RecursionLimiter},
+    property::{Attribute, PropertyNameKind},
+    string::{utf16, CodePoint},
+    symbol::WellKnownSymbols,
+    value::IntegerOrInfinity,
+    Context, JsResult, JsString, JsValue,
 };
-<span class="kw">use</span> <span class="ident">boa_profiler::Profiler</span>;
-<span class="kw">use</span> <span class="ident">tap</span>::{<span class="ident">Conv</span>, <span class="ident">Pipe</span>};
+<span class="kw">use </span>boa_profiler::Profiler;
+<span class="kw">use </span>tap::{Conv, Pipe};
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span>;
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>tests;
 
-<span class="comment">// `Intersperse` impl taken from `itertools`</span>
-<span class="attribute">#[<span class="ident">must_use</span> <span class="op">=</span> <span class="string">&quot;iterator adaptors are lazy and do nothing unless consumed&quot;</span>]</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
-<span class="kw">struct</span> <span class="ident">Intersperse</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">I</span>: <span class="ident">Iterator</span>,
+<span class="comment">// `Intersperse` impl taken from `itertools`
+</span><span class="attribute">#[must_use = <span class="string">&quot;iterator adaptors are lazy and do nothing unless consumed&quot;</span>]
+#[derive(Clone, Debug)]
+</span><span class="kw">struct </span>Intersperse&lt;I&gt;
+<span class="kw">where
+    </span>I: Iterator,
 {
-    <span class="ident">element</span>: <span class="ident">I::Item</span>,
-    <span class="ident">iter</span>: <span class="ident">std::iter::Fuse</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>,
-    <span class="ident">peek</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">I::Item</span><span class="op">&gt;</span>,
+    element: I::Item,
+    iter: std::iter::Fuse&lt;I&gt;,
+    peek: <span class="prelude-ty">Option</span>&lt;I::Item&gt;,
 }
 
-<span class="kw">fn</span> <span class="ident">intersperse</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>(<span class="ident">iter</span>: <span class="ident">I</span>, <span class="ident">element</span>: <span class="ident">I::Item</span>) -&gt; <span class="ident">Intersperse</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">I</span>: <span class="ident">Iterator</span>,
+<span class="kw">fn </span>intersperse&lt;I&gt;(iter: I, element: I::Item) -&gt; Intersperse&lt;I&gt;
+<span class="kw">where
+    </span>I: Iterator,
 {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">iter</span> <span class="op">=</span> <span class="ident">iter</span>.<span class="ident">fuse</span>();
-    <span class="ident">Intersperse</span> {
-        <span class="ident">peek</span>: <span class="ident">iter</span>.<span class="ident">next</span>(),
-        <span class="ident">iter</span>,
-        <span class="ident">element</span>,
+    <span class="kw">let </span><span class="kw-2">mut </span>iter = iter.fuse();
+    Intersperse {
+        peek: iter.next(),
+        iter,
+        element,
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span> <span class="ident">Iterator</span> <span class="kw">for</span> <span class="ident">Intersperse</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">I</span>: <span class="ident">Iterator</span>,
-    <span class="ident">I::Item</span>: <span class="ident">Clone</span>,
+<span class="kw">impl</span>&lt;I&gt; Iterator <span class="kw">for </span>Intersperse&lt;I&gt;
+<span class="kw">where
+    </span>I: Iterator,
+    I::Item: Clone,
 {
-    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">I::Item</span>;
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">peek</span>.<span class="ident">is_some</span>() {
-            <span class="self">self</span>.<span class="ident">peek</span>.<span class="ident">take</span>()
-        } <span class="kw">else</span> {
-            <span class="self">self</span>.<span class="ident">peek</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">iter</span>.<span class="ident">next</span>();
-            <span class="kw">if</span> <span class="self">self</span>.<span class="ident">peek</span>.<span class="ident">is_some</span>() {
-                <span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">element</span>.<span class="ident">clone</span>())
-            } <span class="kw">else</span> {
-                <span class="prelude-val">None</span>
-            }
+    <span class="kw">type </span>Item = I::Item;
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
+        <span class="kw">if </span><span class="self">self</span>.peek.is_some() {
+            <span class="self">self</span>.peek.take()
+        } <span class="kw">else </span>{
+            <span class="self">self</span>.peek = <span class="self">self</span>.iter.next();
+            <span class="kw">if </span><span class="self">self</span>.peek.is_some() {
+                <span class="prelude-val">Some</span>(<span class="self">self</span>.element.clone())
+            } <span class="kw">else </span>{
+                <span class="prelude-val">None
+            </span>}
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">size_hint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<span class="ident">usize</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>) {
-        <span class="kw">type</span> <span class="ident">SizeHint</span> <span class="op">=</span> (<span class="ident">usize</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>);
-        <span class="kw">fn</span> <span class="ident">add</span>(<span class="ident">a</span>: <span class="ident">SizeHint</span>, <span class="ident">b</span>: <span class="ident">SizeHint</span>) -&gt; <span class="ident">SizeHint</span> {
-            <span class="kw">let</span> <span class="ident">min</span> <span class="op">=</span> <span class="ident">a</span>.<span class="number">0</span>.<span class="ident">saturating_add</span>(<span class="ident">b</span>.<span class="number">0</span>);
-            <span class="kw">let</span> <span class="ident">max</span> <span class="op">=</span> <span class="kw">match</span> (<span class="ident">a</span>.<span class="number">1</span>, <span class="ident">b</span>.<span class="number">1</span>) {
-                (<span class="prelude-val">Some</span>(<span class="ident">x</span>), <span class="prelude-val">Some</span>(<span class="ident">y</span>)) =&gt; <span class="ident">x</span>.<span class="ident">checked_add</span>(<span class="ident">y</span>),
-                <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
+    <span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (usize, <span class="prelude-ty">Option</span>&lt;usize&gt;) {
+        <span class="kw">type </span>SizeHint = (usize, <span class="prelude-ty">Option</span>&lt;usize&gt;);
+        <span class="kw">fn </span>add(a: SizeHint, b: SizeHint) -&gt; SizeHint {
+            <span class="kw">let </span>min = a.<span class="number">0</span>.saturating_add(b.<span class="number">0</span>);
+            <span class="kw">let </span>max = <span class="kw">match </span>(a.<span class="number">1</span>, b.<span class="number">1</span>) {
+                (<span class="prelude-val">Some</span>(x), <span class="prelude-val">Some</span>(y)) =&gt; x.checked_add(y),
+                <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
             };
 
-            (<span class="ident">min</span>, <span class="ident">max</span>)
+            (min, max)
         }
 
-        <span class="kw">fn</span> <span class="ident">add_scalar</span>(<span class="ident">sh</span>: <span class="ident">SizeHint</span>, <span class="ident">x</span>: <span class="ident">usize</span>) -&gt; <span class="ident">SizeHint</span> {
-            <span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">low</span>, <span class="kw-2">mut</span> <span class="ident">hi</span>) <span class="op">=</span> <span class="ident">sh</span>;
-            <span class="ident">low</span> <span class="op">=</span> <span class="ident">low</span>.<span class="ident">saturating_add</span>(<span class="ident">x</span>);
-            <span class="ident">hi</span> <span class="op">=</span> <span class="ident">hi</span>.<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">elt</span><span class="op">|</span> <span class="ident">elt</span>.<span class="ident">checked_add</span>(<span class="ident">x</span>));
-            (<span class="ident">low</span>, <span class="ident">hi</span>)
+        <span class="kw">fn </span>add_scalar(sh: SizeHint, x: usize) -&gt; SizeHint {
+            <span class="kw">let </span>(<span class="kw-2">mut </span>low, <span class="kw-2">mut </span>hi) = sh;
+            low = low.saturating_add(x);
+            hi = hi.and_then(|elt| elt.checked_add(x));
+            (low, hi)
         }
-        <span class="comment">// 2 * SH + { 1 or 0 }</span>
-        <span class="kw">let</span> <span class="ident">has_peek</span> <span class="op">=</span> <span class="ident">usize::from</span>(<span class="self">self</span>.<span class="ident">peek</span>.<span class="ident">is_some</span>());
-        <span class="kw">let</span> <span class="ident">sh</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">iter</span>.<span class="ident">size_hint</span>();
-        <span class="ident">add_scalar</span>(<span class="ident">add</span>(<span class="ident">sh</span>, <span class="ident">sh</span>), <span class="ident">has_peek</span>)
+        <span class="comment">// 2 * SH + { 1 or 0 }
+        </span><span class="kw">let </span>has_peek = usize::from(<span class="self">self</span>.peek.is_some());
+        <span class="kw">let </span>sh = <span class="self">self</span>.iter.size_hint();
+        add_scalar(add(sh, sh), has_peek)
     }
 
-    <span class="kw">fn</span> <span class="ident">fold</span><span class="op">&lt;</span><span class="ident">B</span>, <span class="ident">F</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">init</span>: <span class="ident">B</span>, <span class="kw-2">mut</span> <span class="ident">f</span>: <span class="ident">F</span>) -&gt; <span class="ident">B</span>
-    <span class="kw">where</span>
-        <span class="self">Self</span>: <span class="ident">Sized</span>,
-        <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="ident">B</span>, <span class="ident"><span class="self">Self</span>::Item</span>) -&gt; <span class="ident">B</span>,
+    <span class="kw">fn </span>fold&lt;B, F&gt;(<span class="kw-2">mut </span><span class="self">self</span>, init: B, <span class="kw-2">mut </span>f: F) -&gt; B
+    <span class="kw">where
+        </span><span class="self">Self</span>: Sized,
+        F: FnMut(B, <span class="self">Self</span>::Item) -&gt; B,
     {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">accum</span> <span class="op">=</span> <span class="ident">init</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>accum = init;
 
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">x</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">peek</span>.<span class="ident">take</span>() {
-            <span class="ident">accum</span> <span class="op">=</span> <span class="ident">f</span>(<span class="ident">accum</span>, <span class="ident">x</span>);
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(x) = <span class="self">self</span>.peek.take() {
+            accum = f(accum, x);
         }
 
-        <span class="kw">let</span> <span class="ident">element</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">element</span>;
+        <span class="kw">let </span>element = <span class="kw-2">&amp;mut </span><span class="self">self</span>.element;
 
-        <span class="self">self</span>.<span class="ident">iter</span>.<span class="ident">fold</span>(<span class="ident">accum</span>, <span class="op">|</span><span class="ident">accum</span>, <span class="ident">x</span><span class="op">|</span> {
-            <span class="kw">let</span> <span class="ident">accum</span> <span class="op">=</span> <span class="ident">f</span>(<span class="ident">accum</span>, <span class="ident">element</span>.<span class="ident">clone</span>());
-            <span class="ident">f</span>(<span class="ident">accum</span>, <span class="ident">x</span>)
+        <span class="self">self</span>.iter.fold(accum, |accum, x| {
+            <span class="kw">let </span>accum = f(accum, element.clone());
+            f(accum, x)
         })
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span> <span class="ident">FusedIterator</span> <span class="kw">for</span> <span class="ident">Intersperse</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">I</span>: <span class="ident">Iterator</span>,
-    <span class="ident">I::Item</span>: <span class="ident">Clone</span>,
+<span class="kw">impl</span>&lt;I&gt; FusedIterator <span class="kw">for </span>Intersperse&lt;I&gt;
+<span class="kw">where
+    </span>I: Iterator,
+    I::Item: Clone,
 {
 }
 
-<span class="doccomment">/// JavaScript `JSON` global object.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Ord</span>, <span class="ident">Hash</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">Json</span>;
+<span class="doccomment">/// JavaScript `JSON` global object.
+</span><span class="attribute">#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Json;
 
-<span class="kw">impl</span> <span class="ident">BuiltIn</span> <span class="kw">for</span> <span class="ident">Json</span> {
-    <span class="kw">const</span> <span class="ident">NAME</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;JSON&quot;</span>;
+<span class="kw">impl </span>BuiltIn <span class="kw">for </span>Json {
+    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;JSON&quot;</span>;
 
-    <span class="kw">fn</span> <span class="ident">init</span>(<span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="ident"><span class="self">Self</span>::NAME</span>, <span class="string">&quot;init&quot;</span>);
+    <span class="kw">fn </span>init(context: <span class="kw-2">&amp;mut </span>Context) -&gt; <span class="prelude-ty">Option</span>&lt;JsValue&gt; {
+        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="self">Self</span>::NAME, <span class="string">&quot;init&quot;</span>);
 
-        <span class="kw">let</span> <span class="ident">to_string_tag</span> <span class="op">=</span> <span class="ident">WellKnownSymbols::to_string_tag</span>();
-        <span class="kw">let</span> <span class="ident">attribute</span> <span class="op">=</span> <span class="ident">Attribute::READONLY</span> <span class="op">|</span> <span class="ident">Attribute::NON_ENUMERABLE</span> <span class="op">|</span> <span class="ident">Attribute::CONFIGURABLE</span>;
+        <span class="kw">let </span>to_string_tag = WellKnownSymbols::to_string_tag();
+        <span class="kw">let </span>attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE;
 
-        <span class="ident">ObjectInitializer::new</span>(<span class="ident">context</span>)
-            .<span class="ident">function</span>(<span class="ident"><span class="self">Self</span>::parse</span>, <span class="string">&quot;parse&quot;</span>, <span class="number">2</span>)
-            .<span class="ident">function</span>(<span class="ident"><span class="self">Self</span>::stringify</span>, <span class="string">&quot;stringify&quot;</span>, <span class="number">3</span>)
-            .<span class="ident">property</span>(<span class="ident">to_string_tag</span>, <span class="ident"><span class="self">Self</span>::NAME</span>, <span class="ident">attribute</span>)
-            .<span class="ident">build</span>()
-            .<span class="ident">conv</span>::<span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span>()
-            .<span class="ident">pipe</span>(<span class="prelude-val">Some</span>)
+        ObjectInitializer::new(context)
+            .function(<span class="self">Self</span>::parse, <span class="string">&quot;parse&quot;</span>, <span class="number">2</span>)
+            .function(<span class="self">Self</span>::stringify, <span class="string">&quot;stringify&quot;</span>, <span class="number">3</span>)
+            .property(to_string_tag, <span class="self">Self</span>::NAME, attribute)
+            .build()
+            .conv::&lt;JsValue&gt;()
+            .pipe(<span class="prelude-val">Some</span>)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Json</span> {
-    <span class="doccomment">/// `JSON.parse( text[, reviver] )`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This `JSON` method parses a JSON string, constructing the JavaScript value or object described by the string.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// An optional `reviver` function can be provided to perform a transformation on the resulting object before it is returned.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-json.parse</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/parse</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">parse</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="comment">// 1. Let jsonString be ? ToString(text).</span>
-        <span class="kw">let</span> <span class="ident">json_string</span> <span class="op">=</span> <span class="ident">args</span>
-            .<span class="ident">get</span>(<span class="number">0</span>)
-            .<span class="ident">cloned</span>()
-            .<span class="ident">unwrap_or_default</span>()
-            .<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>
-            .<span class="ident">to_std_string</span>()
-            .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">JsNativeError::syntax</span>().<span class="ident">with_message</span>(<span class="ident">e</span>.<span class="ident">to_string</span>()))<span class="question-mark">?</span>;
+<span class="kw">impl </span>Json {
+    <span class="doccomment">/// `JSON.parse( text[, reviver] )`
+    ///
+    /// This `JSON` method parses a JSON string, constructing the JavaScript value or object described by the string.
+    ///
+    /// An optional `reviver` function can be provided to perform a transformation on the resulting object before it is returned.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-json.parse
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/parse
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>parse(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="comment">// 1. Let jsonString be ? ToString(text).
+        </span><span class="kw">let </span>json_string = args
+            .get(<span class="number">0</span>)
+            .cloned()
+            .unwrap_or_default()
+            .to_string(context)<span class="question-mark">?
+            </span>.to_std_string()
+            .map_err(|e| JsNativeError::syntax().with_message(e.to_string()))<span class="question-mark">?</span>;
 
-        <span class="comment">// 2. Parse ! StringToCodePoints(jsonString) as a JSON text as specified in ECMA-404.</span>
-        <span class="comment">//    Throw a SyntaxError exception if it is not a valid JSON text as defined in that specification.</span>
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span> <span class="ident">serde_json::from_str</span>::<span class="op">&lt;</span><span class="ident">serde_json::Value</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="ident">json_string</span>) {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::syntax</span>().<span class="ident">with_message</span>(<span class="ident">e</span>.<span class="ident">to_string</span>()).<span class="ident">into</span>());
+        <span class="comment">// 2. Parse ! StringToCodePoints(jsonString) as a JSON text as specified in ECMA-404.
+        //    Throw a SyntaxError exception if it is not a valid JSON text as defined in that specification.
+        </span><span class="kw">if let </span><span class="prelude-val">Err</span>(e) = serde_json::from_str::&lt;serde_json::Value&gt;(<span class="kw-2">&amp;</span>json_string) {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::syntax().with_message(e.to_string()).into());
         }
 
-        <span class="comment">// 3. Let scriptString be the string-concatenation of &quot;(&quot;, jsonString, and &quot;);&quot;.</span>
-        <span class="comment">// TODO: fix script read for eval</span>
-        <span class="kw">let</span> <span class="ident">script_string</span> <span class="op">=</span> <span class="macro">format!</span>(<span class="string">&quot;({json_string});&quot;</span>);
+        <span class="comment">// 3. Let scriptString be the string-concatenation of &quot;(&quot;, jsonString, and &quot;);&quot;.
+        // TODO: fix script read for eval
+        </span><span class="kw">let </span>script_string = <span class="macro">format!</span>(<span class="string">&quot;({json_string});&quot;</span>);
 
-        <span class="comment">// 4. Let script be ParseText(! StringToCodePoints(scriptString), Script).</span>
-        <span class="comment">// 5. NOTE: The early error rules defined in 13.2.5.1 have special handling for the above invocation of ParseText.</span>
-        <span class="comment">// 6. Assert: script is a Parse Node.</span>
-        <span class="comment">// 7. Let completion be the result of evaluating script.</span>
-        <span class="comment">// 8. NOTE: The PropertyDefinitionEvaluation semantics defined in 13.2.5.5 have special handling for the above evaluation.</span>
-        <span class="comment">// 9. Let unfiltered be completion.[[Value]].</span>
-        <span class="comment">// 10. Assert: unfiltered is either a String, Number, Boolean, Null, or an Object that is defined by either an ArrayLiteral or an ObjectLiteral.</span>
-        <span class="kw">let</span> <span class="ident">unfiltered</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">eval</span>(<span class="ident">script_string</span>.<span class="ident">as_bytes</span>())<span class="question-mark">?</span>;
+        <span class="comment">// 4. Let script be ParseText(! StringToCodePoints(scriptString), Script).
+        // 5. NOTE: The early error rules defined in 13.2.5.1 have special handling for the above invocation of ParseText.
+        // 6. Assert: script is a Parse Node.
+        // 7. Let completion be the result of evaluating script.
+        // 8. NOTE: The PropertyDefinitionEvaluation semantics defined in 13.2.5.5 have special handling for the above evaluation.
+        // 9. Let unfiltered be completion.[[Value]].
+        // 10. Assert: unfiltered is either a String, Number, Boolean, Null, or an Object that is defined by either an ArrayLiteral or an ObjectLiteral.
+        </span><span class="kw">let </span>unfiltered = context.eval(script_string.as_bytes())<span class="question-mark">?</span>;
 
-        <span class="comment">// 11. If IsCallable(reviver) is true, then</span>
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">obj</span>) <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">1</span>).<span class="ident">as_callable</span>() {
-            <span class="comment">// a. Let root be ! OrdinaryObjectCreate(%Object.prototype%).</span>
-            <span class="kw">let</span> <span class="ident">root</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">construct_object</span>();
+        <span class="comment">// 11. If IsCallable(reviver) is true, then
+        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(obj) = args.get_or_undefined(<span class="number">1</span>).as_callable() {
+            <span class="comment">// a. Let root be ! OrdinaryObjectCreate(%Object.prototype%).
+            </span><span class="kw">let </span>root = context.construct_object();
 
-            <span class="comment">// b. Let rootName be the empty String.</span>
-            <span class="comment">// c. Perform ! CreateDataPropertyOrThrow(root, rootName, unfiltered).</span>
-            <span class="ident">root</span>.<span class="ident">create_data_property_or_throw</span>(<span class="string">&quot;&quot;</span>, <span class="ident">unfiltered</span>, <span class="ident">context</span>)
-                .<span class="ident">expect</span>(<span class="string">&quot;CreateDataPropertyOrThrow should never throw here&quot;</span>);
+            <span class="comment">// b. Let rootName be the empty String.
+            // c. Perform ! CreateDataPropertyOrThrow(root, rootName, unfiltered).
+            </span>root.create_data_property_or_throw(<span class="string">&quot;&quot;</span>, unfiltered, context)
+                .expect(<span class="string">&quot;CreateDataPropertyOrThrow should never throw here&quot;</span>);
 
-            <span class="comment">// d. Return ? InternalizeJSONProperty(root, rootName, reviver).</span>
-            <span class="ident"><span class="self">Self</span>::internalize_json_property</span>(<span class="kw-2">&amp;</span><span class="ident">root</span>, <span class="string">&quot;&quot;</span>.<span class="ident">into</span>(), <span class="ident">obj</span>, <span class="ident">context</span>)
-        } <span class="kw">else</span> {
-            <span class="comment">// 12. Else,</span>
-            <span class="comment">// a. Return unfiltered.</span>
-            <span class="prelude-val">Ok</span>(<span class="ident">unfiltered</span>)
+            <span class="comment">// d. Return ? InternalizeJSONProperty(root, rootName, reviver).
+            </span><span class="self">Self</span>::internalize_json_property(<span class="kw-2">&amp;</span>root, <span class="string">&quot;&quot;</span>.into(), obj, context)
+        } <span class="kw">else </span>{
+            <span class="comment">// 12. Else,
+            // a. Return unfiltered.
+            </span><span class="prelude-val">Ok</span>(unfiltered)
         }
     }
 
-    <span class="doccomment">/// `25.5.1.1 InternalizeJSONProperty ( holder, name, reviver )`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-internalizejsonproperty</span>
-    <span class="kw">fn</span> <span class="ident">internalize_json_property</span>(
-        <span class="ident">holder</span>: <span class="kw-2">&amp;</span><span class="ident">JsObject</span>,
-        <span class="ident">name</span>: <span class="ident">JsString</span>,
-        <span class="ident">reviver</span>: <span class="kw-2">&amp;</span><span class="ident">JsObject</span>,
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="comment">// 1. Let val be ? Get(holder, name).</span>
-        <span class="kw">let</span> <span class="ident">val</span> <span class="op">=</span> <span class="ident">holder</span>.<span class="ident">get</span>(<span class="ident">name</span>.<span class="ident">clone</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>;
+    <span class="doccomment">/// `25.5.1.1 InternalizeJSONProperty ( holder, name, reviver )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-internalizejsonproperty
+    </span><span class="kw">fn </span>internalize_json_property(
+        holder: <span class="kw-2">&amp;</span>JsObject,
+        name: JsString,
+        reviver: <span class="kw-2">&amp;</span>JsObject,
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="comment">// 1. Let val be ? Get(holder, name).
+        </span><span class="kw">let </span>val = holder.get(name.clone(), context)<span class="question-mark">?</span>;
 
-        <span class="comment">// 2. If Type(val) is Object, then</span>
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">obj</span>) <span class="op">=</span> <span class="ident">val</span>.<span class="ident">as_object</span>() {
-            <span class="comment">// a. Let isArray be ? IsArray(val).</span>
-            <span class="comment">// b. If isArray is true, then</span>
-            <span class="kw">if</span> <span class="ident">obj</span>.<span class="ident">is_array_abstract</span>(<span class="ident">context</span>)<span class="question-mark">?</span> {
-                <span class="comment">// i. Let I be 0.</span>
-                <span class="comment">// ii. Let len be ? LengthOfArrayLike(val).</span>
-                <span class="comment">// iii. Repeat, while I &lt; len,</span>
-                <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">obj</span>.<span class="ident">length_of_array_like</span>(<span class="ident">context</span>)<span class="question-mark">?</span> <span class="kw">as</span> <span class="ident">i64</span>;
-                <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">len</span> {
-                    <span class="comment">// 1. Let prop be ! ToString(𝔽(I)).</span>
-                    <span class="comment">// 2. Let newElement be ? InternalizeJSONProperty(val, prop, reviver).</span>
-                    <span class="kw">let</span> <span class="ident">new_element</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::internalize_json_property</span>(
-                        <span class="ident">obj</span>,
-                        <span class="ident">i</span>.<span class="ident">to_string</span>().<span class="ident">into</span>(),
-                        <span class="ident">reviver</span>,
-                        <span class="ident">context</span>,
+        <span class="comment">// 2. If Type(val) is Object, then
+        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(obj) = val.as_object() {
+            <span class="comment">// a. Let isArray be ? IsArray(val).
+            // b. If isArray is true, then
+            </span><span class="kw">if </span>obj.is_array_abstract()<span class="question-mark">? </span>{
+                <span class="comment">// i. Let I be 0.
+                // ii. Let len be ? LengthOfArrayLike(val).
+                // iii. Repeat, while I &lt; len,
+                </span><span class="kw">let </span>len = obj.length_of_array_like(context)<span class="question-mark">? </span><span class="kw">as </span>i64;
+                <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..len {
+                    <span class="comment">// 1. Let prop be ! ToString(𝔽(I)).
+                    // 2. Let newElement be ? InternalizeJSONProperty(val, prop, reviver).
+                    </span><span class="kw">let </span>new_element = <span class="self">Self</span>::internalize_json_property(
+                        obj,
+                        i.to_string().into(),
+                        reviver,
+                        context,
                     )<span class="question-mark">?</span>;
 
-                    <span class="comment">// 3. If newElement is undefined, then</span>
-                    <span class="kw">if</span> <span class="ident">new_element</span>.<span class="ident">is_undefined</span>() {
-                        <span class="comment">// a. Perform ? val.[[Delete]](prop).</span>
-                        <span class="ident">obj</span>.<span class="ident">__delete__</span>(<span class="kw-2">&amp;</span><span class="ident">i</span>.<span class="ident">into</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>;
+                    <span class="comment">// 3. If newElement is undefined, then
+                    </span><span class="kw">if </span>new_element.is_undefined() {
+                        <span class="comment">// a. Perform ? val.[[Delete]](prop).
+                        </span>obj.__delete__(<span class="kw-2">&amp;</span>i.into(), context)<span class="question-mark">?</span>;
                     }
-                    <span class="comment">// 4. Else,</span>
-                    <span class="kw">else</span> {
-                        <span class="comment">// a. Perform ? CreateDataProperty(val, prop, newElement).</span>
-                        <span class="ident">obj</span>.<span class="ident">create_data_property</span>(<span class="ident">i</span>, <span class="ident">new_element</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+                    <span class="comment">// 4. Else,
+                    </span><span class="kw">else </span>{
+                        <span class="comment">// a. Perform ? CreateDataProperty(val, prop, newElement).
+                        </span>obj.create_data_property(i, new_element, context)<span class="question-mark">?</span>;
                     }
                 }
             }
-            <span class="comment">// c. Else,</span>
-            <span class="kw">else</span> {
-                <span class="comment">// i. Let keys be ? EnumerableOwnPropertyNames(val, key).</span>
-                <span class="kw">let</span> <span class="ident">keys</span> <span class="op">=</span> <span class="ident">obj</span>.<span class="ident">enumerable_own_property_names</span>(<span class="ident">PropertyNameKind::Key</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+            <span class="comment">// c. Else,
+            </span><span class="kw">else </span>{
+                <span class="comment">// i. Let keys be ? EnumerableOwnPropertyNames(val, key).
+                </span><span class="kw">let </span>keys = obj.enumerable_own_property_names(PropertyNameKind::Key, context)<span class="question-mark">?</span>;
 
-                <span class="comment">// ii. For each String P of keys, do</span>
-                <span class="kw">for</span> <span class="ident">p</span> <span class="kw">in</span> <span class="ident">keys</span> {
-                    <span class="comment">// This is safe, because EnumerableOwnPropertyNames with &#39;key&#39; type only returns strings.</span>
-                    <span class="kw">let</span> <span class="ident">p</span> <span class="op">=</span> <span class="ident">p</span>
-                        .<span class="ident">as_string</span>()
-                        .<span class="ident">expect</span>(<span class="string">&quot;EnumerableOwnPropertyNames only returns strings&quot;</span>)
-                        .<span class="ident">clone</span>();
+                <span class="comment">// ii. For each String P of keys, do
+                </span><span class="kw">for </span>p <span class="kw">in </span>keys {
+                    <span class="comment">// This is safe, because EnumerableOwnPropertyNames with &#39;key&#39; type only returns strings.
+                    </span><span class="kw">let </span>p = p
+                        .as_string()
+                        .expect(<span class="string">&quot;EnumerableOwnPropertyNames only returns strings&quot;</span>)
+                        .clone();
 
-                    <span class="comment">// 1. Let newElement be ? InternalizeJSONProperty(val, P, reviver).</span>
-                    <span class="kw">let</span> <span class="ident">new_element</span> <span class="op">=</span>
-                        <span class="ident"><span class="self">Self</span>::internalize_json_property</span>(<span class="ident">obj</span>, <span class="ident">p</span>.<span class="ident">clone</span>(), <span class="ident">reviver</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+                    <span class="comment">// 1. Let newElement be ? InternalizeJSONProperty(val, P, reviver).
+                    </span><span class="kw">let </span>new_element =
+                        <span class="self">Self</span>::internalize_json_property(obj, p.clone(), reviver, context)<span class="question-mark">?</span>;
 
-                    <span class="comment">// 2. If newElement is undefined, then</span>
-                    <span class="kw">if</span> <span class="ident">new_element</span>.<span class="ident">is_undefined</span>() {
-                        <span class="comment">// a. Perform ? val.[[Delete]](P).</span>
-                        <span class="ident">obj</span>.<span class="ident">__delete__</span>(<span class="kw-2">&amp;</span><span class="ident">p</span>.<span class="ident">into</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>;
+                    <span class="comment">// 2. If newElement is undefined, then
+                    </span><span class="kw">if </span>new_element.is_undefined() {
+                        <span class="comment">// a. Perform ? val.[[Delete]](P).
+                        </span>obj.__delete__(<span class="kw-2">&amp;</span>p.into(), context)<span class="question-mark">?</span>;
                     }
-                    <span class="comment">// 3. Else,</span>
-                    <span class="kw">else</span> {
-                        <span class="comment">// a. Perform ? CreateDataProperty(val, P, newElement).</span>
-                        <span class="ident">obj</span>.<span class="ident">create_data_property</span>(<span class="ident">p</span>, <span class="ident">new_element</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+                    <span class="comment">// 3. Else,
+                    </span><span class="kw">else </span>{
+                        <span class="comment">// a. Perform ? CreateDataProperty(val, P, newElement).
+                        </span>obj.create_data_property(p, new_element, context)<span class="question-mark">?</span>;
                     }
                 }
             }
         }
 
-        <span class="comment">// 3. Return ? Call(reviver, holder, « name, val »).</span>
-        <span class="ident">reviver</span>.<span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="ident">holder</span>.<span class="ident">clone</span>().<span class="ident">into</span>(), <span class="kw-2">&amp;</span>[<span class="ident">name</span>.<span class="ident">into</span>(), <span class="ident">val</span>], <span class="ident">context</span>)
+        <span class="comment">// 3. Return ? Call(reviver, holder, « name, val »).
+        </span>reviver.call(<span class="kw-2">&amp;</span>holder.clone().into(), <span class="kw-2">&amp;</span>[name.into(), val], context)
     }
 
-    <span class="doccomment">/// `JSON.stringify( value[, replacer[, space]] )`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This `JSON` method converts a JavaScript object or value to a JSON string.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This method optionally replaces values if a `replacer` function is specified or</span>
-    <span class="doccomment">/// optionally including only the specified properties if a replacer array is specified.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// An optional `space` argument can be supplied of type `String` or `Number` that&#39;s used to insert</span>
-    <span class="doccomment">/// white space into the output JSON string for readability purposes.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-json.stringify</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">stringify</span>(
-        <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
-        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="comment">// 1. Let stack be a new empty List.</span>
-        <span class="kw">let</span> <span class="ident">stack</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
+    <span class="doccomment">/// `JSON.stringify( value[, replacer[, space]] )`
+    ///
+    /// This `JSON` method converts a JavaScript object or value to a JSON string.
+    ///
+    /// This method optionally replaces values if a `replacer` function is specified or
+    /// optionally including only the specified properties if a replacer array is specified.
+    ///
+    /// An optional `space` argument can be supplied of type `String` or `Number` that&#39;s used to insert
+    /// white space into the output JSON string for readability purposes.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-json.stringify
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>stringify(
+        <span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue,
+        args: <span class="kw-2">&amp;</span>[JsValue],
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="comment">// 1. Let stack be a new empty List.
+        </span><span class="kw">let </span>stack = Vec::new();
 
-        <span class="comment">// 2. Let indent be the empty String.</span>
-        <span class="kw">let</span> <span class="ident">indent</span> <span class="op">=</span> <span class="macro">js_string!</span>();
+        <span class="comment">// 2. Let indent be the empty String.
+        </span><span class="kw">let </span>indent = <span class="macro">js_string!</span>();
 
-        <span class="comment">// 3. Let PropertyList and ReplacerFunction be undefined.</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">property_list</span> <span class="op">=</span> <span class="prelude-val">None</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">replacer_function</span> <span class="op">=</span> <span class="prelude-val">None</span>;
+        <span class="comment">// 3. Let PropertyList and ReplacerFunction be undefined.
+        </span><span class="kw">let </span><span class="kw-2">mut </span>property_list = <span class="prelude-val">None</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>replacer_function = <span class="prelude-val">None</span>;
 
-        <span class="kw">let</span> <span class="ident">replacer</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">1</span>);
+        <span class="kw">let </span>replacer = args.get_or_undefined(<span class="number">1</span>);
 
-        <span class="comment">// 4. If Type(replacer) is Object, then</span>
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">replacer_obj</span>) <span class="op">=</span> <span class="ident">replacer</span>.<span class="ident">as_object</span>() {
-            <span class="comment">// a. If IsCallable(replacer) is true, then</span>
-            <span class="kw">if</span> <span class="ident">replacer_obj</span>.<span class="ident">is_callable</span>() {
-                <span class="comment">// i. Set ReplacerFunction to replacer.</span>
-                <span class="ident">replacer_function</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">replacer_obj</span>.<span class="ident">clone</span>());
-            <span class="comment">// b. Else,</span>
-            } <span class="kw">else</span> {
-                <span class="comment">// i. Let isArray be ? IsArray(replacer).</span>
-                <span class="comment">// ii. If isArray is true, then</span>
-                <span class="kw">if</span> <span class="ident">replacer_obj</span>.<span class="ident">is_array_abstract</span>(<span class="ident">context</span>)<span class="question-mark">?</span> {
-                    <span class="comment">// 1. Set PropertyList to a new empty List.</span>
-                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">property_set</span> <span class="op">=</span> <span class="ident">indexmap::IndexSet::new</span>();
+        <span class="comment">// 4. If Type(replacer) is Object, then
+        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(replacer_obj) = replacer.as_object() {
+            <span class="comment">// a. If IsCallable(replacer) is true, then
+            </span><span class="kw">if </span>replacer_obj.is_callable() {
+                <span class="comment">// i. Set ReplacerFunction to replacer.
+                </span>replacer_function = <span class="prelude-val">Some</span>(replacer_obj.clone());
+            <span class="comment">// b. Else,
+            </span>} <span class="kw">else </span>{
+                <span class="comment">// i. Let isArray be ? IsArray(replacer).
+                // ii. If isArray is true, then
+                </span><span class="kw">if </span>replacer_obj.is_array_abstract()<span class="question-mark">? </span>{
+                    <span class="comment">// 1. Set PropertyList to a new empty List.
+                    </span><span class="kw">let </span><span class="kw-2">mut </span>property_set = indexmap::IndexSet::new();
 
-                    <span class="comment">// 2. Let len be ? LengthOfArrayLike(replacer).</span>
-                    <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">replacer_obj</span>.<span class="ident">length_of_array_like</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+                    <span class="comment">// 2. Let len be ? LengthOfArrayLike(replacer).
+                    </span><span class="kw">let </span>len = replacer_obj.length_of_array_like(context)<span class="question-mark">?</span>;
 
-                    <span class="comment">// 3. Let k be 0.</span>
-                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">k</span> <span class="op">=</span> <span class="number">0</span>;
+                    <span class="comment">// 3. Let k be 0.
+                    </span><span class="kw">let </span><span class="kw-2">mut </span>k = <span class="number">0</span>;
 
-                    <span class="comment">// 4. Repeat, while k &lt; len,</span>
-                    <span class="kw">while</span> <span class="ident">k</span> <span class="op">&lt;</span> <span class="ident">len</span> {
-                        <span class="comment">// a. Let prop be ! ToString(𝔽(k)).</span>
-                        <span class="comment">// b. Let v be ? Get(replacer, prop).</span>
-                        <span class="kw">let</span> <span class="ident">v</span> <span class="op">=</span> <span class="ident">replacer_obj</span>.<span class="ident">get</span>(<span class="ident">k</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+                    <span class="comment">// 4. Repeat, while k &lt; len,
+                    </span><span class="kw">while </span>k &lt; len {
+                        <span class="comment">// a. Let prop be ! ToString(𝔽(k)).
+                        // b. Let v be ? Get(replacer, prop).
+                        </span><span class="kw">let </span>v = replacer_obj.get(k, context)<span class="question-mark">?</span>;
 
-                        <span class="comment">// c. Let item be undefined.</span>
-                        <span class="comment">// d. If Type(v) is String, set item to v.</span>
-                        <span class="comment">// e. Else if Type(v) is Number, set item to ! ToString(v).</span>
-                        <span class="comment">// f. Else if Type(v) is Object, then</span>
-                        <span class="comment">// g. If item is not undefined and item is not currently an element of PropertyList, then</span>
-                        <span class="comment">// i. Append item to the end of PropertyList.</span>
-                        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">s</span>) <span class="op">=</span> <span class="ident">v</span>.<span class="ident">as_string</span>() {
-                            <span class="ident">property_set</span>.<span class="ident">insert</span>(<span class="ident">s</span>.<span class="ident">clone</span>());
-                        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">v</span>.<span class="ident">is_number</span>() {
-                            <span class="ident">property_set</span>.<span class="ident">insert</span>(
-                                <span class="ident">v</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)
-                                    .<span class="ident">expect</span>(<span class="string">&quot;ToString cannot fail on number value&quot;</span>),
+                        <span class="comment">// c. Let item be undefined.
+                        // d. If Type(v) is String, set item to v.
+                        // e. Else if Type(v) is Number, set item to ! ToString(v).
+                        // f. Else if Type(v) is Object, then
+                        // g. If item is not undefined and item is not currently an element of PropertyList, then
+                        // i. Append item to the end of PropertyList.
+                        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(s) = v.as_string() {
+                            property_set.insert(s.clone());
+                        } <span class="kw">else if </span>v.is_number() {
+                            property_set.insert(
+                                v.to_string(context)
+                                    .expect(<span class="string">&quot;ToString cannot fail on number value&quot;</span>),
                             );
-                        } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">obj</span>) <span class="op">=</span> <span class="ident">v</span>.<span class="ident">as_object</span>() {
-                            <span class="comment">// i. If v has a [[StringData]] or [[NumberData]] internal slot, set item to ? ToString(v).</span>
-                            <span class="kw">if</span> <span class="ident">obj</span>.<span class="ident">is_string</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">obj</span>.<span class="ident">is_number</span>() {
-                                <span class="ident">property_set</span>.<span class="ident">insert</span>(<span class="ident">v</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>);
+                        } <span class="kw">else if let </span><span class="prelude-val">Some</span>(obj) = v.as_object() {
+                            <span class="comment">// i. If v has a [[StringData]] or [[NumberData]] internal slot, set item to ? ToString(v).
+                            </span><span class="kw">if </span>obj.is_string() || obj.is_number() {
+                                property_set.insert(v.to_string(context)<span class="question-mark">?</span>);
                             }
                         }
 
-                        <span class="comment">// h. Set k to k + 1.</span>
-                        <span class="ident">k</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+                        <span class="comment">// h. Set k to k + 1.
+                        </span>k += <span class="number">1</span>;
                     }
-                    <span class="ident">property_list</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">property_set</span>.<span class="ident">into_iter</span>().<span class="ident">collect</span>());
+                    property_list = <span class="prelude-val">Some</span>(property_set.into_iter().collect());
                 }
             }
         }
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">space</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">2</span>).<span class="ident">clone</span>();
+        <span class="kw">let </span><span class="kw-2">mut </span>space = args.get_or_undefined(<span class="number">2</span>).clone();
 
-        <span class="comment">// 5. If Type(space) is Object, then</span>
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">space_obj</span>) <span class="op">=</span> <span class="ident">space</span>.<span class="ident">as_object</span>() {
-            <span class="comment">// a. If space has a [[NumberData]] internal slot, then</span>
-            <span class="kw">if</span> <span class="ident">space_obj</span>.<span class="ident">is_number</span>() {
-                <span class="comment">// i. Set space to ? ToNumber(space).</span>
-                <span class="ident">space</span> <span class="op">=</span> <span class="ident">space</span>.<span class="ident">to_number</span>(<span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">into</span>();
+        <span class="comment">// 5. If Type(space) is Object, then
+        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(space_obj) = space.as_object() {
+            <span class="comment">// a. If space has a [[NumberData]] internal slot, then
+            </span><span class="kw">if </span>space_obj.is_number() {
+                <span class="comment">// i. Set space to ? ToNumber(space).
+                </span>space = space.to_number(context)<span class="question-mark">?</span>.into();
             }
-            <span class="comment">// b. Else if space has a [[StringData]] internal slot, then</span>
-            <span class="kw">else</span> <span class="kw">if</span> <span class="ident">space_obj</span>.<span class="ident">is_string</span>() {
-                <span class="comment">// i. Set space to ? ToString(space).</span>
-                <span class="ident">space</span> <span class="op">=</span> <span class="ident">space</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">into</span>();
+            <span class="comment">// b. Else if space has a [[StringData]] internal slot, then
+            </span><span class="kw">else if </span>space_obj.is_string() {
+                <span class="comment">// i. Set space to ? ToString(space).
+                </span>space = space.to_string(context)<span class="question-mark">?</span>.into();
             }
         }
 
-        <span class="comment">// 6. If Type(space) is Number, then</span>
-        <span class="kw">let</span> <span class="ident">gap</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">space</span>.<span class="ident">is_number</span>() {
-            <span class="comment">// a. Let spaceMV be ! ToIntegerOrInfinity(space).</span>
-            <span class="comment">// b. Set spaceMV to min(10, spaceMV).</span>
-            <span class="comment">// c. If spaceMV &lt; 1, let gap be the empty String; otherwise let gap be the String value containing spaceMV occurrences of the code unit 0x0020 (SPACE).</span>
-            <span class="kw">match</span> <span class="ident">space</span>
-                .<span class="ident">to_integer_or_infinity</span>(<span class="ident">context</span>)
-                .<span class="ident">expect</span>(<span class="string">&quot;ToIntegerOrInfinity cannot fail on number&quot;</span>)
+        <span class="comment">// 6. If Type(space) is Number, then
+        </span><span class="kw">let </span>gap = <span class="kw">if </span>space.is_number() {
+            <span class="comment">// a. Let spaceMV be ! ToIntegerOrInfinity(space).
+            // b. Set spaceMV to min(10, spaceMV).
+            // c. If spaceMV &lt; 1, let gap be the empty String; otherwise let gap be the String value containing spaceMV occurrences of the code unit 0x0020 (SPACE).
+            </span><span class="kw">match </span>space
+                .to_integer_or_infinity(context)
+                .expect(<span class="string">&quot;ToIntegerOrInfinity cannot fail on number&quot;</span>)
             {
-                <span class="ident">IntegerOrInfinity::PositiveInfinity</span> =&gt; <span class="macro">js_string!</span>(<span class="string">&quot;          &quot;</span>),
-                <span class="ident">IntegerOrInfinity::NegativeInfinity</span> =&gt; <span class="macro">js_string!</span>(),
-                <span class="ident">IntegerOrInfinity::Integer</span>(<span class="ident">i</span>) <span class="kw">if</span> <span class="ident">i</span> <span class="op">&lt;</span> <span class="number">1</span> =&gt; <span class="macro">js_string!</span>(),
-                <span class="ident">IntegerOrInfinity::Integer</span>(<span class="ident">i</span>) =&gt; {
-                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">String::new</span>();
-                    <span class="kw">let</span> <span class="ident">i</span> <span class="op">=</span> <span class="ident">std::cmp::min</span>(<span class="number">10</span>, <span class="ident">i</span>);
-                    <span class="kw">for</span> <span class="kw">_</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">i</span> {
-                        <span class="ident">s</span>.<span class="ident">push</span>(<span class="string">&#39; &#39;</span>);
+                IntegerOrInfinity::PositiveInfinity =&gt; <span class="macro">js_string!</span>(<span class="string">&quot;          &quot;</span>),
+                IntegerOrInfinity::NegativeInfinity =&gt; <span class="macro">js_string!</span>(),
+                IntegerOrInfinity::Integer(i) <span class="kw">if </span>i &lt; <span class="number">1 </span>=&gt; <span class="macro">js_string!</span>(),
+                IntegerOrInfinity::Integer(i) =&gt; {
+                    <span class="kw">let </span><span class="kw-2">mut </span>s = String::new();
+                    <span class="kw">let </span>i = std::cmp::min(<span class="number">10</span>, i);
+                    <span class="kw">for _ in </span><span class="number">0</span>..i {
+                        s.push(<span class="string">&#39; &#39;</span>);
                     }
-                    <span class="ident">s</span>.<span class="ident">into</span>()
+                    s.into()
                 }
             }
-        <span class="comment">// 7. Else if Type(space) is String, then</span>
-        } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">s</span>) <span class="op">=</span> <span class="ident">space</span>.<span class="ident">as_string</span>() {
-            <span class="comment">// a. If the length of space is 10 or less, let gap be space; otherwise let gap be the substring of space from 0 to 10.</span>
-            <span class="macro">js_string!</span>(<span class="ident">s</span>.<span class="ident">get</span>(..<span class="number">10</span>).<span class="ident">unwrap_or</span>(<span class="ident">s</span>))
-        <span class="comment">// 8. Else,</span>
-        } <span class="kw">else</span> {
-            <span class="comment">// a. Let gap be the empty String.</span>
-            <span class="macro">js_string!</span>()
+        <span class="comment">// 7. Else if Type(space) is String, then
+        </span>} <span class="kw">else if let </span><span class="prelude-val">Some</span>(s) = space.as_string() {
+            <span class="comment">// a. If the length of space is 10 or less, let gap be space; otherwise let gap be the substring of space from 0 to 10.
+            </span><span class="macro">js_string!</span>(s.get(..<span class="number">10</span>).unwrap_or(s))
+        <span class="comment">// 8. Else,
+        </span>} <span class="kw">else </span>{
+            <span class="comment">// a. Let gap be the empty String.
+            </span><span class="macro">js_string!</span>()
         };
 
-        <span class="comment">// 9. Let wrapper be ! OrdinaryObjectCreate(%Object.prototype%).</span>
-        <span class="kw">let</span> <span class="ident">wrapper</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">construct_object</span>();
+        <span class="comment">// 9. Let wrapper be ! OrdinaryObjectCreate(%Object.prototype%).
+        </span><span class="kw">let </span>wrapper = context.construct_object();
 
-        <span class="comment">// 10. Perform ! CreateDataPropertyOrThrow(wrapper, the empty String, value).</span>
-        <span class="ident">wrapper</span>
-            .<span class="ident">create_data_property_or_throw</span>(<span class="string">&quot;&quot;</span>, <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>).<span class="ident">clone</span>(), <span class="ident">context</span>)
-            .<span class="ident">expect</span>(<span class="string">&quot;CreateDataPropertyOrThrow should never fail here&quot;</span>);
+        <span class="comment">// 10. Perform ! CreateDataPropertyOrThrow(wrapper, the empty String, value).
+        </span>wrapper
+            .create_data_property_or_throw(<span class="string">&quot;&quot;</span>, args.get_or_undefined(<span class="number">0</span>).clone(), context)
+            .expect(<span class="string">&quot;CreateDataPropertyOrThrow should never fail here&quot;</span>);
 
-        <span class="comment">// 11. Let state be the Record { [[ReplacerFunction]]: ReplacerFunction, [[Stack]]: stack, [[Indent]]: indent, [[Gap]]: gap, [[PropertyList]]: PropertyList }.</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">state</span> <span class="op">=</span> <span class="ident">StateRecord</span> {
-            <span class="ident">replacer_function</span>,
-            <span class="ident">stack</span>,
-            <span class="ident">indent</span>,
-            <span class="ident">gap</span>,
-            <span class="ident">property_list</span>,
+        <span class="comment">// 11. Let state be the Record { [[ReplacerFunction]]: ReplacerFunction, [[Stack]]: stack, [[Indent]]: indent, [[Gap]]: gap, [[PropertyList]]: PropertyList }.
+        </span><span class="kw">let </span><span class="kw-2">mut </span>state = StateRecord {
+            replacer_function,
+            stack,
+            indent,
+            gap,
+            property_list,
         };
 
-        <span class="comment">// 12. Return ? SerializeJSONProperty(state, the empty String, wrapper).</span>
-        <span class="prelude-val">Ok</span>(
-            <span class="ident"><span class="self">Self</span>::serialize_json_property</span>(<span class="kw-2">&amp;mut</span> <span class="ident">state</span>, <span class="macro">js_string!</span>(), <span class="kw-2">&amp;</span><span class="ident">wrapper</span>, <span class="ident">context</span>)<span class="question-mark">?</span>
-                .<span class="ident">map</span>(<span class="ident">Into::into</span>)
-                .<span class="ident">unwrap_or_default</span>(),
+        <span class="comment">// 12. Return ? SerializeJSONProperty(state, the empty String, wrapper).
+        </span><span class="prelude-val">Ok</span>(
+            <span class="self">Self</span>::serialize_json_property(<span class="kw-2">&amp;mut </span>state, <span class="macro">js_string!</span>(), <span class="kw-2">&amp;</span>wrapper, context)<span class="question-mark">?
+                </span>.map(Into::into)
+                .unwrap_or_default(),
         )
     }
 
-    <span class="doccomment">/// `25.5.2.1 SerializeJSONProperty ( state, key, holder )`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-serializejsonproperty</span>
-    <span class="kw">fn</span> <span class="ident">serialize_json_property</span>(
-        <span class="ident">state</span>: <span class="kw-2">&amp;mut</span> <span class="ident">StateRecord</span>,
-        <span class="ident">key</span>: <span class="ident">JsString</span>,
-        <span class="ident">holder</span>: <span class="kw-2">&amp;</span><span class="ident">JsObject</span>,
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JsString</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="comment">// 1. Let value be ? Get(holder, key).</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">holder</span>.<span class="ident">get</span>(<span class="ident">key</span>.<span class="ident">clone</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>;
+    <span class="doccomment">/// `25.5.2.1 SerializeJSONProperty ( state, key, holder )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-serializejsonproperty
+    </span><span class="kw">fn </span>serialize_json_property(
+        state: <span class="kw-2">&amp;mut </span>StateRecord,
+        key: JsString,
+        holder: <span class="kw-2">&amp;</span>JsObject,
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;<span class="prelude-ty">Option</span>&lt;JsString&gt;&gt; {
+        <span class="comment">// 1. Let value be ? Get(holder, key).
+        </span><span class="kw">let </span><span class="kw-2">mut </span>value = holder.get(key.clone(), context)<span class="question-mark">?</span>;
 
-        <span class="comment">// 2. If Type(value) is Object or BigInt, then</span>
-        <span class="kw">if</span> <span class="ident">value</span>.<span class="ident">is_object</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">value</span>.<span class="ident">is_bigint</span>() {
-            <span class="comment">// a. Let toJSON be ? GetV(value, &quot;toJSON&quot;).</span>
-            <span class="kw">let</span> <span class="ident">to_json</span> <span class="op">=</span> <span class="ident">value</span>.<span class="ident">get_v</span>(<span class="string">&quot;toJSON&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="comment">// 2. If Type(value) is Object or BigInt, then
+        </span><span class="kw">if </span>value.is_object() || value.is_bigint() {
+            <span class="comment">// a. Let toJSON be ? GetV(value, &quot;toJSON&quot;).
+            </span><span class="kw">let </span>to_json = value.get_v(<span class="string">&quot;toJSON&quot;</span>, context)<span class="question-mark">?</span>;
 
-            <span class="comment">// b. If IsCallable(toJSON) is true, then</span>
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">obj</span>) <span class="op">=</span> <span class="ident">to_json</span>.<span class="ident">as_object</span>() {
-                <span class="kw">if</span> <span class="ident">obj</span>.<span class="ident">is_callable</span>() {
-                    <span class="comment">// i. Set value to ? Call(toJSON, value, « key »).</span>
-                    <span class="ident">value</span> <span class="op">=</span> <span class="ident">obj</span>.<span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="ident">value</span>, <span class="kw-2">&amp;</span>[<span class="ident">key</span>.<span class="ident">clone</span>().<span class="ident">into</span>()], <span class="ident">context</span>)<span class="question-mark">?</span>;
+            <span class="comment">// b. If IsCallable(toJSON) is true, then
+            </span><span class="kw">if let </span><span class="prelude-val">Some</span>(obj) = to_json.as_object() {
+                <span class="kw">if </span>obj.is_callable() {
+                    <span class="comment">// i. Set value to ? Call(toJSON, value, « key »).
+                    </span>value = obj.call(<span class="kw-2">&amp;</span>value, <span class="kw-2">&amp;</span>[key.clone().into()], context)<span class="question-mark">?</span>;
                 }
             }
         }
 
-        <span class="comment">// 3. If state.[[ReplacerFunction]] is not undefined, then</span>
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">obj</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">state</span>.<span class="ident">replacer_function</span> {
-            <span class="comment">// a. Set value to ? Call(state.[[ReplacerFunction]], holder, « key, value »).</span>
-            <span class="ident">value</span> <span class="op">=</span> <span class="ident">obj</span>.<span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="ident">holder</span>.<span class="ident">clone</span>().<span class="ident">into</span>(), <span class="kw-2">&amp;</span>[<span class="ident">key</span>.<span class="ident">into</span>(), <span class="ident">value</span>], <span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="comment">// 3. If state.[[ReplacerFunction]] is not undefined, then
+        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(obj) = <span class="kw-2">&amp;</span>state.replacer_function {
+            <span class="comment">// a. Set value to ? Call(state.[[ReplacerFunction]], holder, « key, value »).
+            </span>value = obj.call(<span class="kw-2">&amp;</span>holder.clone().into(), <span class="kw-2">&amp;</span>[key.into(), value], context)<span class="question-mark">?</span>;
         }
 
-        <span class="comment">// 4. If Type(value) is Object, then</span>
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">obj</span>) <span class="op">=</span> <span class="ident">value</span>.<span class="ident">as_object</span>().<span class="ident">cloned</span>() {
-            <span class="comment">// a. If value has a [[NumberData]] internal slot, then</span>
-            <span class="kw">if</span> <span class="ident">obj</span>.<span class="ident">is_number</span>() {
-                <span class="comment">// i. Set value to ? ToNumber(value).</span>
-                <span class="ident">value</span> <span class="op">=</span> <span class="ident">value</span>.<span class="ident">to_number</span>(<span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">into</span>();
+        <span class="comment">// 4. If Type(value) is Object, then
+        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(obj) = value.as_object().cloned() {
+            <span class="comment">// a. If value has a [[NumberData]] internal slot, then
+            </span><span class="kw">if </span>obj.is_number() {
+                <span class="comment">// i. Set value to ? ToNumber(value).
+                </span>value = value.to_number(context)<span class="question-mark">?</span>.into();
             }
-            <span class="comment">// b. Else if value has a [[StringData]] internal slot, then</span>
-            <span class="kw">else</span> <span class="kw">if</span> <span class="ident">obj</span>.<span class="ident">is_string</span>() {
-                <span class="comment">// i. Set value to ? ToString(value).</span>
-                <span class="ident">value</span> <span class="op">=</span> <span class="ident">value</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">into</span>();
+            <span class="comment">// b. Else if value has a [[StringData]] internal slot, then
+            </span><span class="kw">else if </span>obj.is_string() {
+                <span class="comment">// i. Set value to ? ToString(value).
+                </span>value = value.to_string(context)<span class="question-mark">?</span>.into();
             }
-            <span class="comment">// c. Else if value has a [[BooleanData]] internal slot, then</span>
-            <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">boolean</span>) <span class="op">=</span> <span class="ident">obj</span>.<span class="ident">borrow</span>().<span class="ident">as_boolean</span>() {
-                <span class="comment">// i. Set value to value.[[BooleanData]].</span>
-                <span class="ident">value</span> <span class="op">=</span> <span class="ident">boolean</span>.<span class="ident">into</span>();
+            <span class="comment">// c. Else if value has a [[BooleanData]] internal slot, then
+            </span><span class="kw">else if let </span><span class="prelude-val">Some</span>(boolean) = obj.borrow().as_boolean() {
+                <span class="comment">// i. Set value to value.[[BooleanData]].
+                </span>value = boolean.into();
             }
-            <span class="comment">// d. Else if value has a [[BigIntData]] internal slot, then</span>
-            <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">bigint</span>) <span class="op">=</span> <span class="ident">obj</span>.<span class="ident">borrow</span>().<span class="ident">as_bigint</span>() {
-                <span class="comment">// i. Set value to value.[[BigIntData]].</span>
-                <span class="ident">value</span> <span class="op">=</span> <span class="ident">bigint</span>.<span class="ident">clone</span>().<span class="ident">into</span>();
+            <span class="comment">// d. Else if value has a [[BigIntData]] internal slot, then
+            </span><span class="kw">else if let </span><span class="prelude-val">Some</span>(bigint) = obj.borrow().as_bigint() {
+                <span class="comment">// i. Set value to value.[[BigIntData]].
+                </span>value = bigint.clone().into();
             }
         }
 
-        <span class="comment">// 5. If value is null, return &quot;null&quot;.</span>
-        <span class="kw">if</span> <span class="ident">value</span>.<span class="ident">is_null</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="macro">js_string!</span>(<span class="string">&quot;null&quot;</span>)));
+        <span class="comment">// 5. If value is null, return &quot;null&quot;.
+        </span><span class="kw">if </span>value.is_null() {
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="macro">js_string!</span>(<span class="string">&quot;null&quot;</span>)));
         }
 
-        <span class="comment">// 6. If value is true, return &quot;true&quot;.</span>
-        <span class="comment">// 7. If value is false, return &quot;false&quot;.</span>
-        <span class="kw">if</span> <span class="ident">value</span>.<span class="ident">is_boolean</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="macro">js_string!</span>(<span class="kw">if</span> <span class="ident">value</span>.<span class="ident">to_boolean</span>() {
-                <span class="string">&quot;true&quot;</span>
-            } <span class="kw">else</span> {
-                <span class="string">&quot;false&quot;</span>
-            })));
+        <span class="comment">// 6. If value is true, return &quot;true&quot;.
+        // 7. If value is false, return &quot;false&quot;.
+        </span><span class="kw">if </span>value.is_boolean() {
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="macro">js_string!</span>(<span class="kw">if </span>value.to_boolean() {
+                <span class="string">&quot;true&quot;
+            </span>} <span class="kw">else </span>{
+                <span class="string">&quot;false&quot;
+            </span>})));
         }
 
-        <span class="comment">// 8. If Type(value) is String, return QuoteJSONString(value).</span>
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">s</span>) <span class="op">=</span> <span class="ident">value</span>.<span class="ident">as_string</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident"><span class="self">Self</span>::quote_json_string</span>(<span class="ident">s</span>)));
+        <span class="comment">// 8. If Type(value) is String, return QuoteJSONString(value).
+        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(s) = value.as_string() {
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="self">Self</span>::quote_json_string(s)));
         }
 
-        <span class="comment">// 9. If Type(value) is Number, then</span>
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">n</span>) <span class="op">=</span> <span class="ident">value</span>.<span class="ident">as_number</span>() {
-            <span class="comment">// a. If value is finite, return ! ToString(value).</span>
-            <span class="kw">if</span> <span class="ident">n</span>.<span class="ident">is_finite</span>() {
-                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(
-                    <span class="ident">value</span>
-                        .<span class="ident">to_string</span>(<span class="ident">context</span>)
-                        .<span class="ident">expect</span>(<span class="string">&quot;ToString should never fail here&quot;</span>),
+        <span class="comment">// 9. If Type(value) is Number, then
+        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(n) = value.as_number() {
+            <span class="comment">// a. If value is finite, return ! ToString(value).
+            </span><span class="kw">if </span>n.is_finite() {
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(
+                    value
+                        .to_string(context)
+                        .expect(<span class="string">&quot;ToString should never fail here&quot;</span>),
                 ));
             }
 
-            <span class="comment">// b. Return &quot;null&quot;.</span>
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="macro">js_string!</span>(<span class="string">&quot;null&quot;</span>)));
+            <span class="comment">// b. Return &quot;null&quot;.
+            </span><span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="macro">js_string!</span>(<span class="string">&quot;null&quot;</span>)));
         }
 
-        <span class="comment">// 10. If Type(value) is BigInt, throw a TypeError exception.</span>
-        <span class="kw">if</span> <span class="ident">value</span>.<span class="ident">is_bigint</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
-                .<span class="ident">with_message</span>(<span class="string">&quot;cannot serialize bigint to JSON&quot;</span>)
-                .<span class="ident">into</span>());
+        <span class="comment">// 10. If Type(value) is BigInt, throw a TypeError exception.
+        </span><span class="kw">if </span>value.is_bigint() {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
+                .with_message(<span class="string">&quot;cannot serialize bigint to JSON&quot;</span>)
+                .into());
         }
 
-        <span class="comment">// 11. If Type(value) is Object and IsCallable(value) is false, then</span>
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">obj</span>) <span class="op">=</span> <span class="ident">value</span>.<span class="ident">as_object</span>() {
-            <span class="kw">if</span> <span class="op">!</span><span class="ident">obj</span>.<span class="ident">is_callable</span>() {
-                <span class="comment">// a. Let isArray be ? IsArray(value).</span>
-                <span class="comment">// b. If isArray is true, return ? SerializeJSONArray(state, value).</span>
-                <span class="comment">// c. Return ? SerializeJSONObject(state, value).</span>
-                <span class="kw">return</span> <span class="kw">if</span> <span class="ident">obj</span>.<span class="ident">is_array_abstract</span>(<span class="ident">context</span>)<span class="question-mark">?</span> {
-                    <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident"><span class="self">Self</span>::serialize_json_array</span>(<span class="ident">state</span>, <span class="ident">obj</span>, <span class="ident">context</span>)<span class="question-mark">?</span>))
-                } <span class="kw">else</span> {
-                    <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident"><span class="self">Self</span>::serialize_json_object</span>(<span class="ident">state</span>, <span class="ident">obj</span>, <span class="ident">context</span>)<span class="question-mark">?</span>))
+        <span class="comment">// 11. If Type(value) is Object and IsCallable(value) is false, then
+        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(obj) = value.as_object() {
+            <span class="kw">if </span>!obj.is_callable() {
+                <span class="comment">// a. Let isArray be ? IsArray(value).
+                // b. If isArray is true, return ? SerializeJSONArray(state, value).
+                // c. Return ? SerializeJSONObject(state, value).
+                </span><span class="kw">return if </span>obj.is_array_abstract()<span class="question-mark">? </span>{
+                    <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="self">Self</span>::serialize_json_array(state, obj, context)<span class="question-mark">?</span>))
+                } <span class="kw">else </span>{
+                    <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="self">Self</span>::serialize_json_object(state, obj, context)<span class="question-mark">?</span>))
                 };
             }
         }
 
-        <span class="comment">// 12. Return undefined.</span>
-        <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>)
+        <span class="comment">// 12. Return undefined.
+        </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>)
     }
 
-    <span class="doccomment">/// `25.5.2.2 QuoteJSONString ( value )`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-quotejsonstring</span>
-    <span class="kw">fn</span> <span class="ident">quote_json_string</span>(<span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">JsString</span>) -&gt; <span class="ident">JsString</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> [<span class="number">0</span>; <span class="number">2</span>];
-        <span class="comment">// 1. Let product be the String value consisting solely of the code unit 0x0022 (QUOTATION MARK).</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">product</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="string">&#39;&quot;&#39;</span> <span class="kw">as</span> <span class="ident">u16</span>];
+    <span class="doccomment">/// `25.5.2.2 QuoteJSONString ( value )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-quotejsonstring
+    </span><span class="kw">fn </span>quote_json_string(value: <span class="kw-2">&amp;</span>JsString) -&gt; JsString {
+        <span class="kw">let </span><span class="kw-2">mut </span>buf = [<span class="number">0</span>; <span class="number">2</span>];
+        <span class="comment">// 1. Let product be the String value consisting solely of the code unit 0x0022 (QUOTATION MARK).
+        </span><span class="kw">let </span><span class="kw-2">mut </span>product = <span class="macro">vec!</span>[<span class="string">&#39;&quot;&#39; </span><span class="kw">as </span>u16];
 
-        <span class="comment">// 2. For each code point C of ! StringToCodePoints(value), do</span>
-        <span class="kw">for</span> <span class="ident">code_point</span> <span class="kw">in</span> <span class="ident">value</span>.<span class="ident">code_points</span>() {
-            <span class="kw">match</span> <span class="ident">code_point</span> {
-                <span class="comment">// a. If C is listed in the “Code Point” column of Table 73, then</span>
-                <span class="comment">// i. Set product to the string-concatenation of product and the</span>
-                <span class="comment">// escape sequence for C as specified in the “Escape Sequence”</span>
-                <span class="comment">// column of the corresponding row.</span>
-                <span class="ident">CodePoint::Unicode</span>(<span class="string">&#39;\u{0008}&#39;</span>) =&gt; <span class="ident">product</span>.<span class="ident">extend_from_slice</span>(<span class="macro">utf16!</span>(<span class="string">r&quot;\b&quot;</span>)),
-                <span class="ident">CodePoint::Unicode</span>(<span class="string">&#39;\u{0009}&#39;</span>) =&gt; <span class="ident">product</span>.<span class="ident">extend_from_slice</span>(<span class="macro">utf16!</span>(<span class="string">r&quot;\t&quot;</span>)),
-                <span class="ident">CodePoint::Unicode</span>(<span class="string">&#39;\u{000A}&#39;</span>) =&gt; <span class="ident">product</span>.<span class="ident">extend_from_slice</span>(<span class="macro">utf16!</span>(<span class="string">r&quot;\n&quot;</span>)),
-                <span class="ident">CodePoint::Unicode</span>(<span class="string">&#39;\u{000C}&#39;</span>) =&gt; <span class="ident">product</span>.<span class="ident">extend_from_slice</span>(<span class="macro">utf16!</span>(<span class="string">r&quot;\f&quot;</span>)),
-                <span class="ident">CodePoint::Unicode</span>(<span class="string">&#39;\u{000D}&#39;</span>) =&gt; <span class="ident">product</span>.<span class="ident">extend_from_slice</span>(<span class="macro">utf16!</span>(<span class="string">r&quot;\r&quot;</span>)),
-                <span class="ident">CodePoint::Unicode</span>(<span class="string">&#39;\u{0022}&#39;</span>) =&gt; <span class="ident">product</span>.<span class="ident">extend_from_slice</span>(<span class="macro">utf16!</span>(<span class="string">r#&quot;\&quot;&quot;#</span>)),
-                <span class="ident">CodePoint::Unicode</span>(<span class="string">&#39;\u{005C}&#39;</span>) =&gt; <span class="ident">product</span>.<span class="ident">extend_from_slice</span>(<span class="macro">utf16!</span>(<span class="string">r&quot;\\&quot;</span>)),
-                <span class="comment">// b. Else if C has a numeric value less than 0x0020 (SPACE), or</span>
-                <span class="comment">// if C has the same numeric value as a leading surrogate or</span>
-                <span class="comment">// trailing surrogate, then</span>
-                <span class="comment">//     i. Let unit be the code unit whose numeric value is that</span>
-                <span class="comment">//     of C.</span>
-                <span class="comment">//     ii. Set product to the string-concatenation of product</span>
-                <span class="comment">//     and UnicodeEscape(unit).</span>
-                <span class="ident">CodePoint::Unicode</span>(<span class="ident">c</span>) <span class="kw">if</span> <span class="ident">c</span> <span class="op">&lt;</span> <span class="string">&#39;\u{0020}&#39;</span> =&gt; {
-                    <span class="ident">product</span>.<span class="ident">extend</span>(<span class="macro">format!</span>(<span class="string">&quot;\\u{:04x}&quot;</span>, <span class="ident">c</span> <span class="kw">as</span> <span class="ident">u32</span>).<span class="ident">encode_utf16</span>());
+        <span class="comment">// 2. For each code point C of ! StringToCodePoints(value), do
+        </span><span class="kw">for </span>code_point <span class="kw">in </span>value.code_points() {
+            <span class="kw">match </span>code_point {
+                <span class="comment">// a. If C is listed in the “Code Point” column of Table 73, then
+                // i. Set product to the string-concatenation of product and the
+                // escape sequence for C as specified in the “Escape Sequence”
+                // column of the corresponding row.
+                </span>CodePoint::Unicode(<span class="string">&#39;\u{0008}&#39;</span>) =&gt; product.extend_from_slice(<span class="macro">utf16!</span>(<span class="string">r&quot;\b&quot;</span>)),
+                CodePoint::Unicode(<span class="string">&#39;\u{0009}&#39;</span>) =&gt; product.extend_from_slice(<span class="macro">utf16!</span>(<span class="string">r&quot;\t&quot;</span>)),
+                CodePoint::Unicode(<span class="string">&#39;\u{000A}&#39;</span>) =&gt; product.extend_from_slice(<span class="macro">utf16!</span>(<span class="string">r&quot;\n&quot;</span>)),
+                CodePoint::Unicode(<span class="string">&#39;\u{000C}&#39;</span>) =&gt; product.extend_from_slice(<span class="macro">utf16!</span>(<span class="string">r&quot;\f&quot;</span>)),
+                CodePoint::Unicode(<span class="string">&#39;\u{000D}&#39;</span>) =&gt; product.extend_from_slice(<span class="macro">utf16!</span>(<span class="string">r&quot;\r&quot;</span>)),
+                CodePoint::Unicode(<span class="string">&#39;\u{0022}&#39;</span>) =&gt; product.extend_from_slice(<span class="macro">utf16!</span>(<span class="string">r#&quot;\&quot;&quot;#</span>)),
+                CodePoint::Unicode(<span class="string">&#39;\u{005C}&#39;</span>) =&gt; product.extend_from_slice(<span class="macro">utf16!</span>(<span class="string">r&quot;\\&quot;</span>)),
+                <span class="comment">// b. Else if C has a numeric value less than 0x0020 (SPACE), or
+                // if C has the same numeric value as a leading surrogate or
+                // trailing surrogate, then
+                //     i. Let unit be the code unit whose numeric value is that
+                //     of C.
+                //     ii. Set product to the string-concatenation of product
+                //     and UnicodeEscape(unit).
+                </span>CodePoint::Unicode(c) <span class="kw">if </span>c &lt; <span class="string">&#39;\u{0020}&#39; </span>=&gt; {
+                    product.extend(<span class="macro">format!</span>(<span class="string">&quot;\\u{:04x}&quot;</span>, c <span class="kw">as </span>u32).encode_utf16());
                 }
-                <span class="ident">CodePoint::UnpairedSurrogate</span>(<span class="ident">surr</span>) =&gt; {
-                    <span class="ident">product</span>.<span class="ident">extend</span>(<span class="macro">format!</span>(<span class="string">&quot;\\u{surr:04x}&quot;</span>).<span class="ident">encode_utf16</span>());
+                CodePoint::UnpairedSurrogate(surr) =&gt; {
+                    product.extend(<span class="macro">format!</span>(<span class="string">&quot;\\u{surr:04x}&quot;</span>).encode_utf16());
                 }
-                <span class="comment">// c. Else,</span>
-                <span class="ident">CodePoint::Unicode</span>(<span class="ident">c</span>) =&gt; {
-                    <span class="comment">// i. Set product to the string-concatenation of product and ! UTF16EncodeCodePoint(C).</span>
-                    <span class="ident">product</span>.<span class="ident">extend_from_slice</span>(<span class="ident">c</span>.<span class="ident">encode_utf16</span>(<span class="kw-2">&amp;mut</span> <span class="ident">buf</span>));
+                <span class="comment">// c. Else,
+                </span>CodePoint::Unicode(c) =&gt; {
+                    <span class="comment">// i. Set product to the string-concatenation of product and ! UTF16EncodeCodePoint(C).
+                    </span>product.extend_from_slice(c.encode_utf16(<span class="kw-2">&amp;mut </span>buf));
                 }
             }
         }
 
-        <span class="comment">// 3. Set product to the string-concatenation of product and the code unit 0x0022 (QUOTATION MARK).</span>
-        <span class="ident">product</span>.<span class="ident">push</span>(<span class="string">&#39;&quot;&#39;</span> <span class="kw">as</span> <span class="ident">u16</span>);
+        <span class="comment">// 3. Set product to the string-concatenation of product and the code unit 0x0022 (QUOTATION MARK).
+        </span>product.push(<span class="string">&#39;&quot;&#39; </span><span class="kw">as </span>u16);
 
-        <span class="comment">// 4. Return product.</span>
-        <span class="macro">js_string!</span>(<span class="kw-2">&amp;</span><span class="ident">product</span>[..])
+        <span class="comment">// 4. Return product.
+        </span><span class="macro">js_string!</span>(<span class="kw-2">&amp;</span>product[..])
     }
 
-    <span class="doccomment">/// `25.5.2.4 SerializeJSONObject ( state, value )`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-serializejsonobject</span>
-    <span class="kw">fn</span> <span class="ident">serialize_json_object</span>(
-        <span class="ident">state</span>: <span class="kw-2">&amp;mut</span> <span class="ident">StateRecord</span>,
-        <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">JsObject</span>,
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsString</span><span class="op">&gt;</span> {
-        <span class="comment">// 1. If state.[[Stack]] contains value, throw a TypeError exception because the structure is cyclical.</span>
-        <span class="kw">let</span> <span class="ident">limiter</span> <span class="op">=</span> <span class="ident">RecursionLimiter::new</span>(<span class="ident">value</span>);
-        <span class="kw">if</span> <span class="ident">limiter</span>.<span class="ident">live</span> {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
-                .<span class="ident">with_message</span>(<span class="string">&quot;cyclic object value&quot;</span>)
-                .<span class="ident">into</span>());
+    <span class="doccomment">/// `25.5.2.4 SerializeJSONObject ( state, value )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-serializejsonobject
+    </span><span class="kw">fn </span>serialize_json_object(
+        state: <span class="kw-2">&amp;mut </span>StateRecord,
+        value: <span class="kw-2">&amp;</span>JsObject,
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;JsString&gt; {
+        <span class="comment">// 1. If state.[[Stack]] contains value, throw a TypeError exception because the structure is cyclical.
+        </span><span class="kw">let </span>limiter = RecursionLimiter::new(value);
+        <span class="kw">if </span>limiter.live {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
+                .with_message(<span class="string">&quot;cyclic object value&quot;</span>)
+                .into());
         }
 
-        <span class="comment">// 2. Append value to state.[[Stack]].</span>
-        <span class="ident">state</span>.<span class="ident">stack</span>.<span class="ident">push</span>(<span class="ident">value</span>.<span class="ident">clone</span>().<span class="ident">into</span>());
+        <span class="comment">// 2. Append value to state.[[Stack]].
+        </span>state.stack.push(value.clone().into());
 
-        <span class="comment">// 3. Let stepback be state.[[Indent]].</span>
-        <span class="kw">let</span> <span class="ident">stepback</span> <span class="op">=</span> <span class="ident">state</span>.<span class="ident">indent</span>.<span class="ident">clone</span>();
+        <span class="comment">// 3. Let stepback be state.[[Indent]].
+        </span><span class="kw">let </span>stepback = state.indent.clone();
 
-        <span class="comment">// 4. Set state.[[Indent]] to the string-concatenation of state.[[Indent]] and state.[[Gap]].</span>
-        <span class="ident">state</span>.<span class="ident">indent</span> <span class="op">=</span> <span class="macro">js_string!</span>(<span class="kw-2">&amp;</span><span class="ident">state</span>.<span class="ident">indent</span>, <span class="kw-2">&amp;</span><span class="ident">state</span>.<span class="ident">gap</span>);
+        <span class="comment">// 4. Set state.[[Indent]] to the string-concatenation of state.[[Indent]] and state.[[Gap]].
+        </span>state.indent = <span class="macro">js_string!</span>(<span class="kw-2">&amp;</span>state.indent, <span class="kw-2">&amp;</span>state.gap);
 
-        <span class="comment">// 5. If state.[[PropertyList]] is not undefined, then</span>
-        <span class="kw">let</span> <span class="ident">k</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">p</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">state</span>.<span class="ident">property_list</span> {
-            <span class="comment">// a. Let K be state.[[PropertyList]].</span>
-            <span class="ident">p</span>.<span class="ident">clone</span>()
-        <span class="comment">// 6. Else,</span>
-        } <span class="kw">else</span> {
-            <span class="comment">// a. Let K be ? EnumerableOwnPropertyNames(value, key).</span>
-            <span class="kw">let</span> <span class="ident">keys</span> <span class="op">=</span> <span class="ident">value</span>.<span class="ident">enumerable_own_property_names</span>(<span class="ident">PropertyNameKind::Key</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
-            <span class="comment">// Unwrap is safe, because EnumerableOwnPropertyNames with kind &quot;key&quot; only returns string values.</span>
-            <span class="ident">keys</span>.<span class="ident">iter</span>()
-                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> {
-                    <span class="ident">v</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)
-                        .<span class="ident">expect</span>(<span class="string">&quot;EnumerableOwnPropertyNames only returns strings&quot;</span>)
+        <span class="comment">// 5. If state.[[PropertyList]] is not undefined, then
+        </span><span class="kw">let </span>k = <span class="kw">if let </span><span class="prelude-val">Some</span>(p) = <span class="kw-2">&amp;</span>state.property_list {
+            <span class="comment">// a. Let K be state.[[PropertyList]].
+            </span>p.clone()
+        <span class="comment">// 6. Else,
+        </span>} <span class="kw">else </span>{
+            <span class="comment">// a. Let K be ? EnumerableOwnPropertyNames(value, key).
+            </span><span class="kw">let </span>keys = value.enumerable_own_property_names(PropertyNameKind::Key, context)<span class="question-mark">?</span>;
+            <span class="comment">// Unwrap is safe, because EnumerableOwnPropertyNames with kind &quot;key&quot; only returns string values.
+            </span>keys.iter()
+                .map(|v| {
+                    v.to_string(context)
+                        .expect(<span class="string">&quot;EnumerableOwnPropertyNames only returns strings&quot;</span>)
                 })
-                .<span class="ident">collect</span>()
+                .collect()
         };
 
-        <span class="comment">// 7. Let partial be a new empty List.</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">partial</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
+        <span class="comment">// 7. Let partial be a new empty List.
+        </span><span class="kw">let </span><span class="kw-2">mut </span>partial = Vec::new();
 
-        <span class="comment">// 8. For each element P of K, do</span>
-        <span class="kw">for</span> <span class="ident">p</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">k</span> {
-            <span class="comment">// a. Let strP be ? SerializeJSONProperty(state, P, value).</span>
-            <span class="kw">let</span> <span class="ident">str_p</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::serialize_json_property</span>(<span class="ident">state</span>, <span class="ident">p</span>.<span class="ident">clone</span>(), <span class="ident">value</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="comment">// 8. For each element P of K, do
+        </span><span class="kw">for </span>p <span class="kw">in </span><span class="kw-2">&amp;</span>k {
+            <span class="comment">// a. Let strP be ? SerializeJSONProperty(state, P, value).
+            </span><span class="kw">let </span>str_p = <span class="self">Self</span>::serialize_json_property(state, p.clone(), value, context)<span class="question-mark">?</span>;
 
-            <span class="comment">// b. If strP is not undefined, then</span>
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">str_p</span>) <span class="op">=</span> <span class="ident">str_p</span> {
-                <span class="comment">// i. Let member be QuoteJSONString(P).</span>
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">member</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::quote_json_string</span>(<span class="ident">p</span>).<span class="ident">to_vec</span>();
+            <span class="comment">// b. If strP is not undefined, then
+            </span><span class="kw">if let </span><span class="prelude-val">Some</span>(str_p) = str_p {
+                <span class="comment">// i. Let member be QuoteJSONString(P).
+                </span><span class="kw">let </span><span class="kw-2">mut </span>member = <span class="self">Self</span>::quote_json_string(p).to_vec();
 
-                <span class="comment">// ii. Set member to the string-concatenation of member and &quot;:&quot;.</span>
-                <span class="ident">member</span>.<span class="ident">push</span>(<span class="string">&#39;:&#39;</span> <span class="kw">as</span> <span class="ident">u16</span>);
+                <span class="comment">// ii. Set member to the string-concatenation of member and &quot;:&quot;.
+                </span>member.push(<span class="string">&#39;:&#39; </span><span class="kw">as </span>u16);
 
-                <span class="comment">// iii. If state.[[Gap]] is not the empty String, then</span>
-                <span class="kw">if</span> <span class="op">!</span><span class="ident">state</span>.<span class="ident">gap</span>.<span class="ident">is_empty</span>() {
-                    <span class="comment">// 1. Set member to the string-concatenation of member and the code unit 0x0020 (SPACE).</span>
-                    <span class="ident">member</span>.<span class="ident">push</span>(<span class="string">&#39; &#39;</span> <span class="kw">as</span> <span class="ident">u16</span>);
+                <span class="comment">// iii. If state.[[Gap]] is not the empty String, then
+                </span><span class="kw">if </span>!state.gap.is_empty() {
+                    <span class="comment">// 1. Set member to the string-concatenation of member and the code unit 0x0020 (SPACE).
+                    </span>member.push(<span class="string">&#39; &#39; </span><span class="kw">as </span>u16);
                 }
 
-                <span class="comment">// iv. Set member to the string-concatenation of member and strP.</span>
-                <span class="ident">member</span>.<span class="ident">extend_from_slice</span>(<span class="kw-2">&amp;</span><span class="ident">str_p</span>);
+                <span class="comment">// iv. Set member to the string-concatenation of member and strP.
+                </span>member.extend_from_slice(<span class="kw-2">&amp;</span>str_p);
 
-                <span class="comment">// v. Append member to partial.</span>
-                <span class="ident">partial</span>.<span class="ident">push</span>(<span class="ident">member</span>);
+                <span class="comment">// v. Append member to partial.
+                </span>partial.push(member);
             }
         }
 
-        <span class="comment">// 9. If partial is empty, then</span>
-        <span class="kw">let</span> <span class="ident">r#final</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">partial</span>.<span class="ident">is_empty</span>() {
-            <span class="comment">// a. Let final be &quot;{}&quot;.</span>
-            <span class="macro">js_string!</span>(<span class="string">&quot;{}&quot;</span>)
-        <span class="comment">// 10. Else,</span>
-        } <span class="kw">else</span> {
-            <span class="comment">// a. If state.[[Gap]] is the empty String, then</span>
-            <span class="kw">if</span> <span class="ident">state</span>.<span class="ident">gap</span>.<span class="ident">is_empty</span>() {
-                <span class="comment">// i. Let properties be the String value formed by concatenating all the element Strings of partial</span>
-                <span class="comment">//    with each adjacent pair of Strings separated with the code unit 0x002C (COMMA).</span>
-                <span class="comment">//    A comma is not inserted either before the first String or after the last String.</span>
-                <span class="comment">// ii. Let final be the string-concatenation of &quot;{&quot;, properties, and &quot;}&quot;.</span>
-                <span class="kw">let</span> <span class="ident">separator</span> <span class="op">=</span> <span class="macro">utf16!</span>(<span class="string">&quot;,&quot;</span>);
-                <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">once</span>(<span class="macro">utf16!</span>(<span class="string">&quot;{&quot;</span>))
-                    .<span class="ident">chain</span>(<span class="ident">intersperse</span>(<span class="ident">partial</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="ident">Vec::as_slice</span>), <span class="ident">separator</span>))
-                    .<span class="ident">chain</span>(<span class="ident">once</span>(<span class="macro">utf16!</span>(<span class="string">&quot;}&quot;</span>)))
-                    .<span class="ident">flatten</span>()
-                    .<span class="ident">copied</span>()
-                    .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>();
-                <span class="macro">js_string!</span>(<span class="kw-2">&amp;</span><span class="ident">result</span>[..])
-            <span class="comment">// b. Else,</span>
-            } <span class="kw">else</span> {
-                <span class="comment">// i. Let separator be the string-concatenation of the code unit 0x002C (COMMA),</span>
-                <span class="comment">//    the code unit 0x000A (LINE FEED), and state.[[Indent]].</span>
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">separator</span> <span class="op">=</span> <span class="macro">utf16!</span>(<span class="string">&quot;,\n&quot;</span>).<span class="ident">to_vec</span>();
-                <span class="ident">separator</span>.<span class="ident">extend_from_slice</span>(<span class="kw-2">&amp;</span><span class="ident">state</span>.<span class="ident">indent</span>);
-                <span class="comment">// ii. Let properties be the String value formed by concatenating all the element Strings of partial</span>
-                <span class="comment">//     with each adjacent pair of Strings separated with separator.</span>
-                <span class="comment">//     The separator String is not inserted either before the first String or after the last String.</span>
-                <span class="comment">// iii. Let final be the string-concatenation of &quot;{&quot;, the code</span>
-                <span class="comment">//      unit 0x000A (LINE FEED), state.[[Indent]], properties,</span>
-                <span class="comment">//      the code unit 0x000A (LINE FEED), stepback, and &quot;}&quot;.</span>
-                <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> [<span class="macro">utf16!</span>(<span class="string">&quot;{\n&quot;</span>), <span class="kw-2">&amp;</span><span class="ident">state</span>.<span class="ident">indent</span>[..]]
-                    .<span class="ident">into_iter</span>()
-                    .<span class="ident">chain</span>(<span class="ident">intersperse</span>(<span class="ident">partial</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="ident">Vec::as_slice</span>), <span class="kw-2">&amp;</span><span class="ident">separator</span>))
-                    .<span class="ident">chain</span>([<span class="macro">utf16!</span>(<span class="string">&quot;\n&quot;</span>), <span class="kw-2">&amp;</span><span class="ident">stepback</span>[..], <span class="macro">utf16!</span>(<span class="string">&quot;}&quot;</span>)].<span class="ident">into_iter</span>())
-                    .<span class="ident">flatten</span>()
-                    .<span class="ident">copied</span>()
-                    .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>();
-                <span class="macro">js_string!</span>(<span class="kw-2">&amp;</span><span class="ident">result</span>[..])
+        <span class="comment">// 9. If partial is empty, then
+        </span><span class="kw">let </span>r#final = <span class="kw">if </span>partial.is_empty() {
+            <span class="comment">// a. Let final be &quot;{}&quot;.
+            </span><span class="macro">js_string!</span>(<span class="string">&quot;{}&quot;</span>)
+        <span class="comment">// 10. Else,
+        </span>} <span class="kw">else </span>{
+            <span class="comment">// a. If state.[[Gap]] is the empty String, then
+            </span><span class="kw">if </span>state.gap.is_empty() {
+                <span class="comment">// i. Let properties be the String value formed by concatenating all the element Strings of partial
+                //    with each adjacent pair of Strings separated with the code unit 0x002C (COMMA).
+                //    A comma is not inserted either before the first String or after the last String.
+                // ii. Let final be the string-concatenation of &quot;{&quot;, properties, and &quot;}&quot;.
+                </span><span class="kw">let </span>separator = <span class="macro">utf16!</span>(<span class="string">&quot;,&quot;</span>);
+                <span class="kw">let </span>result = once(<span class="macro">utf16!</span>(<span class="string">&quot;{&quot;</span>))
+                    .chain(intersperse(partial.iter().map(Vec::as_slice), separator))
+                    .chain(once(<span class="macro">utf16!</span>(<span class="string">&quot;}&quot;</span>)))
+                    .flatten()
+                    .copied()
+                    .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
+                <span class="macro">js_string!</span>(<span class="kw-2">&amp;</span>result[..])
+            <span class="comment">// b. Else,
+            </span>} <span class="kw">else </span>{
+                <span class="comment">// i. Let separator be the string-concatenation of the code unit 0x002C (COMMA),
+                //    the code unit 0x000A (LINE FEED), and state.[[Indent]].
+                </span><span class="kw">let </span><span class="kw-2">mut </span>separator = <span class="macro">utf16!</span>(<span class="string">&quot;,\n&quot;</span>).to_vec();
+                separator.extend_from_slice(<span class="kw-2">&amp;</span>state.indent);
+                <span class="comment">// ii. Let properties be the String value formed by concatenating all the element Strings of partial
+                //     with each adjacent pair of Strings separated with separator.
+                //     The separator String is not inserted either before the first String or after the last String.
+                // iii. Let final be the string-concatenation of &quot;{&quot;, the code
+                //      unit 0x000A (LINE FEED), state.[[Indent]], properties,
+                //      the code unit 0x000A (LINE FEED), stepback, and &quot;}&quot;.
+                </span><span class="kw">let </span>result = [<span class="macro">utf16!</span>(<span class="string">&quot;{\n&quot;</span>), <span class="kw-2">&amp;</span>state.indent[..]]
+                    .into_iter()
+                    .chain(intersperse(partial.iter().map(Vec::as_slice), <span class="kw-2">&amp;</span>separator))
+                    .chain([<span class="macro">utf16!</span>(<span class="string">&quot;\n&quot;</span>), <span class="kw-2">&amp;</span>stepback[..], <span class="macro">utf16!</span>(<span class="string">&quot;}&quot;</span>)].into_iter())
+                    .flatten()
+                    .copied()
+                    .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
+                <span class="macro">js_string!</span>(<span class="kw-2">&amp;</span>result[..])
             }
         };
 
-        <span class="comment">// 11. Remove the last element of state.[[Stack]].</span>
-        <span class="ident">state</span>.<span class="ident">stack</span>.<span class="ident">pop</span>();
+        <span class="comment">// 11. Remove the last element of state.[[Stack]].
+        </span>state.stack.pop();
 
-        <span class="comment">// 12. Set state.[[Indent]] to stepback.</span>
-        <span class="ident">state</span>.<span class="ident">indent</span> <span class="op">=</span> <span class="ident">stepback</span>;
+        <span class="comment">// 12. Set state.[[Indent]] to stepback.
+        </span>state.indent = stepback;
 
-        <span class="comment">// 13. Return final.</span>
-        <span class="prelude-val">Ok</span>(<span class="ident">r#final</span>)
+        <span class="comment">// 13. Return final.
+        </span><span class="prelude-val">Ok</span>(r#final)
     }
 
-    <span class="doccomment">/// `25.5.2.5 SerializeJSONArray ( state, value )`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-serializejsonarray</span>
-    <span class="kw">fn</span> <span class="ident">serialize_json_array</span>(
-        <span class="ident">state</span>: <span class="kw-2">&amp;mut</span> <span class="ident">StateRecord</span>,
-        <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">JsObject</span>,
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsString</span><span class="op">&gt;</span> {
-        <span class="comment">// 1. If state.[[Stack]] contains value, throw a TypeError exception because the structure is cyclical.</span>
-        <span class="kw">let</span> <span class="ident">limiter</span> <span class="op">=</span> <span class="ident">RecursionLimiter::new</span>(<span class="ident">value</span>);
-        <span class="kw">if</span> <span class="ident">limiter</span>.<span class="ident">live</span> {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
-                .<span class="ident">with_message</span>(<span class="string">&quot;cyclic object value&quot;</span>)
-                .<span class="ident">into</span>());
+    <span class="doccomment">/// `25.5.2.5 SerializeJSONArray ( state, value )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-serializejsonarray
+    </span><span class="kw">fn </span>serialize_json_array(
+        state: <span class="kw-2">&amp;mut </span>StateRecord,
+        value: <span class="kw-2">&amp;</span>JsObject,
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;JsString&gt; {
+        <span class="comment">// 1. If state.[[Stack]] contains value, throw a TypeError exception because the structure is cyclical.
+        </span><span class="kw">let </span>limiter = RecursionLimiter::new(value);
+        <span class="kw">if </span>limiter.live {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
+                .with_message(<span class="string">&quot;cyclic object value&quot;</span>)
+                .into());
         }
 
-        <span class="comment">// 2. Append value to state.[[Stack]].</span>
-        <span class="ident">state</span>.<span class="ident">stack</span>.<span class="ident">push</span>(<span class="ident">value</span>.<span class="ident">clone</span>().<span class="ident">into</span>());
+        <span class="comment">// 2. Append value to state.[[Stack]].
+        </span>state.stack.push(value.clone().into());
 
-        <span class="comment">// 3. Let stepback be state.[[Indent]].</span>
-        <span class="kw">let</span> <span class="ident">stepback</span> <span class="op">=</span> <span class="ident">state</span>.<span class="ident">indent</span>.<span class="ident">clone</span>();
+        <span class="comment">// 3. Let stepback be state.[[Indent]].
+        </span><span class="kw">let </span>stepback = state.indent.clone();
 
-        <span class="comment">// 4. Set state.[[Indent]] to the string-concatenation of state.[[Indent]] and state.[[Gap]].</span>
-        <span class="ident">state</span>.<span class="ident">indent</span> <span class="op">=</span> <span class="macro">js_string!</span>(<span class="kw-2">&amp;</span><span class="ident">state</span>.<span class="ident">indent</span>, <span class="kw-2">&amp;</span><span class="ident">state</span>.<span class="ident">gap</span>);
+        <span class="comment">// 4. Set state.[[Indent]] to the string-concatenation of state.[[Indent]] and state.[[Gap]].
+        </span>state.indent = <span class="macro">js_string!</span>(<span class="kw-2">&amp;</span>state.indent, <span class="kw-2">&amp;</span>state.gap);
 
-        <span class="comment">// 5. Let partial be a new empty List.</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">partial</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
+        <span class="comment">// 5. Let partial be a new empty List.
+        </span><span class="kw">let </span><span class="kw-2">mut </span>partial = Vec::new();
 
-        <span class="comment">// 6. Let len be ? LengthOfArrayLike(value).</span>
-        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">value</span>.<span class="ident">length_of_array_like</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="comment">// 6. Let len be ? LengthOfArrayLike(value).
+        </span><span class="kw">let </span>len = value.length_of_array_like(context)<span class="question-mark">?</span>;
 
-        <span class="comment">// 7. Let index be 0.</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">index</span> <span class="op">=</span> <span class="number">0</span>;
+        <span class="comment">// 7. Let index be 0.
+        </span><span class="kw">let </span><span class="kw-2">mut </span>index = <span class="number">0</span>;
 
-        <span class="comment">// 8. Repeat, while index &lt; len,</span>
-        <span class="kw">while</span> <span class="ident">index</span> <span class="op">&lt;</span> <span class="ident">len</span> {
-            <span class="comment">// a. Let strP be ? SerializeJSONProperty(state, ! ToString(𝔽(index)), value).</span>
-            <span class="kw">let</span> <span class="ident">str_p</span> <span class="op">=</span>
-                <span class="ident"><span class="self">Self</span>::serialize_json_property</span>(<span class="ident">state</span>, <span class="ident">index</span>.<span class="ident">to_string</span>().<span class="ident">into</span>(), <span class="ident">value</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="comment">// 8. Repeat, while index &lt; len,
+        </span><span class="kw">while </span>index &lt; len {
+            <span class="comment">// a. Let strP be ? SerializeJSONProperty(state, ! ToString(𝔽(index)), value).
+            </span><span class="kw">let </span>str_p =
+                <span class="self">Self</span>::serialize_json_property(state, index.to_string().into(), value, context)<span class="question-mark">?</span>;
 
-            <span class="comment">// b. If strP is undefined, then</span>
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">str_p</span>) <span class="op">=</span> <span class="ident">str_p</span> {
-                <span class="comment">// i. Append strP to partial.</span>
-                <span class="ident">partial</span>.<span class="ident">push</span>(<span class="ident">Cow::Owned</span>(<span class="ident">str_p</span>.<span class="ident">to_vec</span>()));
-            <span class="comment">// c. Else,</span>
-            } <span class="kw">else</span> {
-                <span class="comment">// i. Append &quot;null&quot; to partial.</span>
-                <span class="ident">partial</span>.<span class="ident">push</span>(<span class="ident">Cow::Borrowed</span>(<span class="macro">utf16!</span>(<span class="string">&quot;null&quot;</span>)));
+            <span class="comment">// b. If strP is undefined, then
+            </span><span class="kw">if let </span><span class="prelude-val">Some</span>(str_p) = str_p {
+                <span class="comment">// i. Append strP to partial.
+                </span>partial.push(Cow::Owned(str_p.to_vec()));
+            <span class="comment">// c. Else,
+            </span>} <span class="kw">else </span>{
+                <span class="comment">// i. Append &quot;null&quot; to partial.
+                </span>partial.push(Cow::Borrowed(<span class="macro">utf16!</span>(<span class="string">&quot;null&quot;</span>)));
             }
 
-            <span class="comment">// d. Set index to index + 1.</span>
-            <span class="ident">index</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+            <span class="comment">// d. Set index to index + 1.
+            </span>index += <span class="number">1</span>;
         }
 
-        <span class="comment">// 9. If partial is empty, then</span>
-        <span class="kw">let</span> <span class="ident">r#final</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">partial</span>.<span class="ident">is_empty</span>() {
-            <span class="comment">// a. Let final be &quot;[]&quot;.</span>
-            <span class="macro">js_string!</span>(<span class="string">&quot;[]&quot;</span>)
-        <span class="comment">// 10. Else,</span>
-        } <span class="kw">else</span> {
-            <span class="comment">// a. If state.[[Gap]] is the empty String, then</span>
-            <span class="kw">if</span> <span class="ident">state</span>.<span class="ident">gap</span>.<span class="ident">is_empty</span>() {
-                <span class="comment">// i. Let properties be the String value formed by concatenating all the element Strings of partial</span>
-                <span class="comment">//    with each adjacent pair of Strings separated with the code unit 0x002C (COMMA).</span>
-                <span class="comment">//    A comma is not inserted either before the first String or after the last String.</span>
-                <span class="comment">// ii. Let final be the string-concatenation of &quot;[&quot;, properties, and &quot;]&quot;.</span>
-                <span class="kw">let</span> <span class="ident">separator</span> <span class="op">=</span> <span class="macro">utf16!</span>(<span class="string">&quot;,&quot;</span>);
-                <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">once</span>(<span class="macro">utf16!</span>(<span class="string">&quot;[&quot;</span>))
-                    .<span class="ident">chain</span>(<span class="ident">intersperse</span>(<span class="ident">partial</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="ident">Cow::as_ref</span>), <span class="ident">separator</span>))
-                    .<span class="ident">chain</span>(<span class="ident">once</span>(<span class="macro">utf16!</span>(<span class="string">&quot;]&quot;</span>)))
-                    .<span class="ident">flatten</span>()
-                    .<span class="ident">copied</span>()
-                    .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>();
-                <span class="macro">js_string!</span>(<span class="kw-2">&amp;</span><span class="ident">result</span>[..])
-            <span class="comment">// b. Else,</span>
-            } <span class="kw">else</span> {
-                <span class="comment">// i. Let separator be the string-concatenation of the code unit 0x002C (COMMA),</span>
-                <span class="comment">//    the code unit 0x000A (LINE FEED), and state.[[Indent]].</span>
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">separator</span> <span class="op">=</span> <span class="macro">utf16!</span>(<span class="string">&quot;,\n&quot;</span>).<span class="ident">to_vec</span>();
-                <span class="ident">separator</span>.<span class="ident">extend_from_slice</span>(<span class="kw-2">&amp;</span><span class="ident">state</span>.<span class="ident">indent</span>);
-                <span class="comment">// ii. Let properties be the String value formed by concatenating all the element Strings of partial</span>
-                <span class="comment">//     with each adjacent pair of Strings separated with separator.</span>
-                <span class="comment">//     The separator String is not inserted either before the first String or after the last String.</span>
-                <span class="comment">// iii. Let final be the string-concatenation of &quot;[&quot;, the code unit 0x000A (LINE FEED), state.[[Indent]], properties, the code unit 0x000A (LINE FEED), stepback, and &quot;]&quot;.</span>
-                <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> [<span class="macro">utf16!</span>(<span class="string">&quot;[\n&quot;</span>), <span class="kw-2">&amp;</span><span class="ident">state</span>.<span class="ident">indent</span>[..]]
-                    .<span class="ident">into_iter</span>()
-                    .<span class="ident">chain</span>(<span class="ident">intersperse</span>(<span class="ident">partial</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="ident">Cow::as_ref</span>), <span class="kw-2">&amp;</span><span class="ident">separator</span>))
-                    .<span class="ident">chain</span>([<span class="macro">utf16!</span>(<span class="string">&quot;\n&quot;</span>), <span class="kw-2">&amp;</span><span class="ident">stepback</span>[..], <span class="macro">utf16!</span>(<span class="string">&quot;]&quot;</span>)].<span class="ident">into_iter</span>())
-                    .<span class="ident">flatten</span>()
-                    .<span class="ident">copied</span>()
-                    .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>();
-                <span class="macro">js_string!</span>(<span class="kw-2">&amp;</span><span class="ident">result</span>[..])
+        <span class="comment">// 9. If partial is empty, then
+        </span><span class="kw">let </span>r#final = <span class="kw">if </span>partial.is_empty() {
+            <span class="comment">// a. Let final be &quot;[]&quot;.
+            </span><span class="macro">js_string!</span>(<span class="string">&quot;[]&quot;</span>)
+        <span class="comment">// 10. Else,
+        </span>} <span class="kw">else </span>{
+            <span class="comment">// a. If state.[[Gap]] is the empty String, then
+            </span><span class="kw">if </span>state.gap.is_empty() {
+                <span class="comment">// i. Let properties be the String value formed by concatenating all the element Strings of partial
+                //    with each adjacent pair of Strings separated with the code unit 0x002C (COMMA).
+                //    A comma is not inserted either before the first String or after the last String.
+                // ii. Let final be the string-concatenation of &quot;[&quot;, properties, and &quot;]&quot;.
+                </span><span class="kw">let </span>separator = <span class="macro">utf16!</span>(<span class="string">&quot;,&quot;</span>);
+                <span class="kw">let </span>result = once(<span class="macro">utf16!</span>(<span class="string">&quot;[&quot;</span>))
+                    .chain(intersperse(partial.iter().map(Cow::as_ref), separator))
+                    .chain(once(<span class="macro">utf16!</span>(<span class="string">&quot;]&quot;</span>)))
+                    .flatten()
+                    .copied()
+                    .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
+                <span class="macro">js_string!</span>(<span class="kw-2">&amp;</span>result[..])
+            <span class="comment">// b. Else,
+            </span>} <span class="kw">else </span>{
+                <span class="comment">// i. Let separator be the string-concatenation of the code unit 0x002C (COMMA),
+                //    the code unit 0x000A (LINE FEED), and state.[[Indent]].
+                </span><span class="kw">let </span><span class="kw-2">mut </span>separator = <span class="macro">utf16!</span>(<span class="string">&quot;,\n&quot;</span>).to_vec();
+                separator.extend_from_slice(<span class="kw-2">&amp;</span>state.indent);
+                <span class="comment">// ii. Let properties be the String value formed by concatenating all the element Strings of partial
+                //     with each adjacent pair of Strings separated with separator.
+                //     The separator String is not inserted either before the first String or after the last String.
+                // iii. Let final be the string-concatenation of &quot;[&quot;, the code unit 0x000A (LINE FEED), state.[[Indent]], properties, the code unit 0x000A (LINE FEED), stepback, and &quot;]&quot;.
+                </span><span class="kw">let </span>result = [<span class="macro">utf16!</span>(<span class="string">&quot;[\n&quot;</span>), <span class="kw-2">&amp;</span>state.indent[..]]
+                    .into_iter()
+                    .chain(intersperse(partial.iter().map(Cow::as_ref), <span class="kw-2">&amp;</span>separator))
+                    .chain([<span class="macro">utf16!</span>(<span class="string">&quot;\n&quot;</span>), <span class="kw-2">&amp;</span>stepback[..], <span class="macro">utf16!</span>(<span class="string">&quot;]&quot;</span>)].into_iter())
+                    .flatten()
+                    .copied()
+                    .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
+                <span class="macro">js_string!</span>(<span class="kw-2">&amp;</span>result[..])
             }
         };
 
-        <span class="comment">// 11. Remove the last element of state.[[Stack]].</span>
-        <span class="ident">state</span>.<span class="ident">stack</span>.<span class="ident">pop</span>();
+        <span class="comment">// 11. Remove the last element of state.[[Stack]].
+        </span>state.stack.pop();
 
-        <span class="comment">// 12. Set state.[[Indent]] to stepback.</span>
-        <span class="ident">state</span>.<span class="ident">indent</span> <span class="op">=</span> <span class="ident">stepback</span>;
+        <span class="comment">// 12. Set state.[[Indent]] to stepback.
+        </span>state.indent = stepback;
 
-        <span class="comment">// 13. Return final.</span>
-        <span class="prelude-val">Ok</span>(<span class="ident">r#final</span>)
+        <span class="comment">// 13. Return final.
+        </span><span class="prelude-val">Ok</span>(r#final)
     }
 }
 
-<span class="kw">struct</span> <span class="ident">StateRecord</span> {
-    <span class="ident">replacer_function</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JsObject</span><span class="op">&gt;</span>,
-    <span class="ident">stack</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span>,
-    <span class="ident">indent</span>: <span class="ident">JsString</span>,
-    <span class="ident">gap</span>: <span class="ident">JsString</span>,
-    <span class="ident">property_list</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">JsString</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+<span class="kw">struct </span>StateRecord {
+    replacer_function: <span class="prelude-ty">Option</span>&lt;JsObject&gt;,
+    stack: Vec&lt;JsValue&gt;,
+    indent: JsString,
+    gap: JsString,
+    property_list: <span class="prelude-ty">Option</span>&lt;Vec&lt;JsString&gt;&gt;,
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0 (a55dd71d5 2022-09-19)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0 (897e37553 2022-11-02)" ></div></body></html>

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_engine/src/value/serde_json.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>serde_json.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../boa_engine/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../boa_engine/index.html"><div class="logo-container">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_engine/src/value/serde_json.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>serde_json.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../boa_engine/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../boa_engine/index.html"><div class="logo-container">
                     <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../boa_engine/index.html">
                         <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -284,177 +284,177 @@
 <span id="282">282</span>
 <span id="283">283</span>
 <span id="284">284</span>
-</pre><pre class="rust"><code><span class="doccomment">//! This module implements the conversions from and into [`serde_json::Value`].</span>
+</pre><pre class="rust"><code><span class="doccomment">//! This module implements the conversions from and into [`serde_json::Value`].
 
-<span class="kw">use</span> <span class="ident"><span class="kw">super</span>::JsValue</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">builtins::Array</span>,
-    <span class="ident">error::JsNativeError</span>,
-    <span class="ident">property</span>::{<span class="ident">PropertyDescriptor</span>, <span class="ident">PropertyKey</span>},
-    <span class="ident">Context</span>, <span class="ident">JsResult</span>,
+</span><span class="kw">use </span><span class="kw">super</span>::JsValue;
+<span class="kw">use crate</span>::{
+    builtins::Array,
+    error::JsNativeError,
+    property::{PropertyDescriptor, PropertyKey},
+    Context, JsResult,
 };
-<span class="kw">use</span> <span class="ident">serde_json</span>::{<span class="ident">Map</span>, <span class="ident">Value</span>};
+<span class="kw">use </span>serde_json::{Map, Value};
 
-<span class="kw">impl</span> <span class="ident">JsValue</span> {
-    <span class="doccomment">/// Converts a [`serde_json::Value`] to a `JsValue`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Example</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use boa_engine::{Context, JsValue};</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let data = r#&quot;</span>
-    <span class="doccomment">///     {</span>
-    <span class="doccomment">///         &quot;name&quot;: &quot;John Doe&quot;,</span>
-    <span class="doccomment">///         &quot;age&quot;: 43,</span>
-    <span class="doccomment">///         &quot;phones&quot;: [</span>
-    <span class="doccomment">///             &quot;+44 1234567&quot;,</span>
-    <span class="doccomment">///             &quot;+44 2345678&quot;</span>
-    <span class="doccomment">///         ]</span>
-    <span class="doccomment">///      }&quot;#;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let json: serde_json::Value = serde_json::from_str(data).unwrap();</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let mut context = Context::default();</span>
-    <span class="doccomment">/// let value = JsValue::from_json(&amp;json, &amp;mut context).unwrap();</span>
-    <span class="doccomment">/// #</span>
-    <span class="doccomment">/// # assert_eq!(json, value.to_json(&amp;mut context).unwrap());</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_json</span>(<span class="ident">json</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="doccomment">/// Biggest possible integer, as i64.</span>
-        <span class="kw">const</span> <span class="ident">MAX_INT</span>: <span class="ident">i64</span> <span class="op">=</span> <span class="ident">i32::MAX</span> <span class="kw">as</span> <span class="ident">i64</span>;
+<span class="kw">impl </span>JsValue {
+    <span class="doccomment">/// Converts a [`serde_json::Value`] to a `JsValue`.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use boa_engine::{Context, JsValue};
+    ///
+    /// let data = r#&quot;
+    ///     {
+    ///         &quot;name&quot;: &quot;John Doe&quot;,
+    ///         &quot;age&quot;: 43,
+    ///         &quot;phones&quot;: [
+    ///             &quot;+44 1234567&quot;,
+    ///             &quot;+44 2345678&quot;
+    ///         ]
+    ///      }&quot;#;
+    ///
+    /// let json: serde_json::Value = serde_json::from_str(data).unwrap();
+    ///
+    /// let mut context = Context::default();
+    /// let value = JsValue::from_json(&amp;json, &amp;mut context).unwrap();
+    /// #
+    /// # assert_eq!(json, value.to_json(&amp;mut context).unwrap());
+    /// ```
+    </span><span class="kw">pub fn </span>from_json(json: <span class="kw-2">&amp;</span>Value, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
+        <span class="doccomment">/// Biggest possible integer, as i64.
+        </span><span class="kw">const </span>MAX_INT: i64 = i32::MAX <span class="kw">as </span>i64;
 
-        <span class="doccomment">/// Smallest possible integer, as i64.</span>
-        <span class="kw">const</span> <span class="ident">MIN_INT</span>: <span class="ident">i64</span> <span class="op">=</span> <span class="ident">i32::MIN</span> <span class="kw">as</span> <span class="ident">i64</span>;
+        <span class="doccomment">/// Smallest possible integer, as i64.
+        </span><span class="kw">const </span>MIN_INT: i64 = i32::MIN <span class="kw">as </span>i64;
 
-        <span class="kw">match</span> <span class="ident">json</span> {
-            <span class="ident">Value::Null</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::Null</span>),
-            <span class="ident">Value::Bool</span>(<span class="ident">b</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::Boolean</span>(<span class="kw-2">*</span><span class="ident">b</span>)),
-            <span class="ident">Value::Number</span>(<span class="ident">num</span>) =&gt; <span class="ident">num</span>
-                .<span class="ident">as_i64</span>()
-                .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">n</span><span class="op">|</span> (<span class="ident">MIN_INT</span>..<span class="op">=</span><span class="ident">MAX_INT</span>).<span class="ident">contains</span>(<span class="ident">n</span>))
-                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">i</span><span class="op">|</span> <span class="ident"><span class="self">Self</span>::Integer</span>(<span class="ident">i</span> <span class="kw">as</span> <span class="ident">i32</span>))
-                .<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">num</span>.<span class="ident">as_f64</span>().<span class="ident">map</span>(<span class="ident"><span class="self">Self</span>::Rational</span>))
-                .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-                    <span class="ident">JsNativeError::typ</span>()
-                        .<span class="ident">with_message</span>(<span class="macro">format!</span>(<span class="string">&quot;could not convert JSON number {num} to JsValue&quot;</span>))
-                        .<span class="ident">into</span>()
+        <span class="kw">match </span>json {
+            Value::Null =&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::Null),
+            Value::Bool(b) =&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::Boolean(<span class="kw-2">*</span>b)),
+            Value::Number(num) =&gt; num
+                .as_i64()
+                .filter(|n| (MIN_INT..=MAX_INT).contains(n))
+                .map(|i| <span class="self">Self</span>::Integer(i <span class="kw">as </span>i32))
+                .or_else(|| num.as_f64().map(<span class="self">Self</span>::Rational))
+                .ok_or_else(|| {
+                    JsNativeError::typ()
+                        .with_message(<span class="macro">format!</span>(<span class="string">&quot;could not convert JSON number {num} to JsValue&quot;</span>))
+                        .into()
                 }),
-            <span class="ident">Value::String</span>(<span class="ident">string</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::from</span>(<span class="ident">string</span>.<span class="ident">as_str</span>())),
-            <span class="ident">Value::Array</span>(<span class="ident">vec</span>) =&gt; {
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">arr</span> <span class="op">=</span> <span class="ident">Vec::with_capacity</span>(<span class="ident">vec</span>.<span class="ident">len</span>());
-                <span class="kw">for</span> <span class="ident">val</span> <span class="kw">in</span> <span class="ident">vec</span> {
-                    <span class="ident">arr</span>.<span class="ident">push</span>(<span class="ident"><span class="self">Self</span>::from_json</span>(<span class="ident">val</span>, <span class="ident">context</span>)<span class="question-mark">?</span>);
+            Value::String(string) =&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::from(string.as_str())),
+            Value::Array(vec) =&gt; {
+                <span class="kw">let </span><span class="kw-2">mut </span>arr = Vec::with_capacity(vec.len());
+                <span class="kw">for </span>val <span class="kw">in </span>vec {
+                    arr.push(<span class="self">Self</span>::from_json(val, context)<span class="question-mark">?</span>);
                 }
-                <span class="prelude-val">Ok</span>(<span class="ident">Array::create_array_from_list</span>(<span class="ident">arr</span>, <span class="ident">context</span>).<span class="ident">into</span>())
+                <span class="prelude-val">Ok</span>(Array::create_array_from_list(arr, context).into())
             }
-            <span class="ident">Value::Object</span>(<span class="ident">obj</span>) =&gt; {
-                <span class="kw">let</span> <span class="ident">js_obj</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">construct_object</span>();
-                <span class="kw">for</span> (<span class="ident">key</span>, <span class="ident">value</span>) <span class="kw">in</span> <span class="ident">obj</span> {
-                    <span class="kw">let</span> <span class="ident">property</span> <span class="op">=</span> <span class="ident">PropertyDescriptor::builder</span>()
-                        .<span class="ident">value</span>(<span class="ident"><span class="self">Self</span>::from_json</span>(<span class="ident">value</span>, <span class="ident">context</span>)<span class="question-mark">?</span>)
-                        .<span class="ident">writable</span>(<span class="bool-val">true</span>)
-                        .<span class="ident">enumerable</span>(<span class="bool-val">true</span>)
-                        .<span class="ident">configurable</span>(<span class="bool-val">true</span>);
-                    <span class="ident">js_obj</span>.<span class="ident">borrow_mut</span>().<span class="ident">insert</span>(<span class="ident">key</span>.<span class="ident">as_str</span>(), <span class="ident">property</span>);
+            Value::Object(obj) =&gt; {
+                <span class="kw">let </span>js_obj = context.construct_object();
+                <span class="kw">for </span>(key, value) <span class="kw">in </span>obj {
+                    <span class="kw">let </span>property = PropertyDescriptor::builder()
+                        .value(<span class="self">Self</span>::from_json(value, context)<span class="question-mark">?</span>)
+                        .writable(<span class="bool-val">true</span>)
+                        .enumerable(<span class="bool-val">true</span>)
+                        .configurable(<span class="bool-val">true</span>);
+                    js_obj.borrow_mut().insert(key.as_str(), property);
                 }
 
-                <span class="prelude-val">Ok</span>(<span class="ident">js_obj</span>.<span class="ident">into</span>())
+                <span class="prelude-val">Ok</span>(js_obj.into())
             }
         }
     }
 
-    <span class="doccomment">/// Converts the `JsValue` to a [`serde_json::Value`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Example</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use boa_engine::{Context, JsValue};</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let data = r#&quot;</span>
-    <span class="doccomment">///     {</span>
-    <span class="doccomment">///         &quot;name&quot;: &quot;John Doe&quot;,</span>
-    <span class="doccomment">///         &quot;age&quot;: 43,</span>
-    <span class="doccomment">///         &quot;phones&quot;: [</span>
-    <span class="doccomment">///             &quot;+44 1234567&quot;,</span>
-    <span class="doccomment">///             &quot;+44 2345678&quot;</span>
-    <span class="doccomment">///         ]</span>
-    <span class="doccomment">///      }&quot;#;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let json: serde_json::Value = serde_json::from_str(data).unwrap();</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let mut context = Context::default();</span>
-    <span class="doccomment">/// let value = JsValue::from_json(&amp;json, &amp;mut context).unwrap();</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let back_to_json = value.to_json(&amp;mut context).unwrap();</span>
-    <span class="doccomment">/// #</span>
-    <span class="doccomment">/// # assert_eq!(json, back_to_json);</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_json</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident"><span class="self">Self</span>::Null</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">Value::Null</span>),
-            <span class="ident"><span class="self">Self</span>::Undefined</span> =&gt; <span class="macro">todo!</span>(<span class="string">&quot;undefined to JSON&quot;</span>),
-            <span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::Boolean</span>(<span class="ident">b</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">b</span>.<span class="ident">into</span>()),
-            <span class="ident"><span class="self">Self</span>::String</span>(<span class="ident">string</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">string</span>.<span class="ident">to_std_string_escaped</span>().<span class="ident">into</span>()),
-            <span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::Rational</span>(<span class="ident">rat</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">rat</span>.<span class="ident">into</span>()),
-            <span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::Integer</span>(<span class="ident">int</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">int</span>.<span class="ident">into</span>()),
-            <span class="ident"><span class="self">Self</span>::BigInt</span>(<span class="ident">_bigint</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
-                .<span class="ident">with_message</span>(<span class="string">&quot;cannot convert bigint to JSON&quot;</span>)
-                .<span class="ident">into</span>()),
-            <span class="ident"><span class="self">Self</span>::Object</span>(<span class="ident">obj</span>) =&gt; {
-                <span class="kw">if</span> <span class="ident">obj</span>.<span class="ident">is_array</span>() {
-                    <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">obj</span>.<span class="ident">length_of_array_like</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
-                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">arr</span> <span class="op">=</span> <span class="ident">Vec::with_capacity</span>(<span class="ident">len</span> <span class="kw">as</span> <span class="ident">usize</span>);
+    <span class="doccomment">/// Converts the `JsValue` to a [`serde_json::Value`].
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use boa_engine::{Context, JsValue};
+    ///
+    /// let data = r#&quot;
+    ///     {
+    ///         &quot;name&quot;: &quot;John Doe&quot;,
+    ///         &quot;age&quot;: 43,
+    ///         &quot;phones&quot;: [
+    ///             &quot;+44 1234567&quot;,
+    ///             &quot;+44 2345678&quot;
+    ///         ]
+    ///      }&quot;#;
+    ///
+    /// let json: serde_json::Value = serde_json::from_str(data).unwrap();
+    ///
+    /// let mut context = Context::default();
+    /// let value = JsValue::from_json(&amp;json, &amp;mut context).unwrap();
+    ///
+    /// let back_to_json = value.to_json(&amp;mut context).unwrap();
+    /// #
+    /// # assert_eq!(json, back_to_json);
+    /// ```
+    </span><span class="kw">pub fn </span>to_json(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;Value&gt; {
+        <span class="kw">match </span><span class="self">self </span>{
+            <span class="self">Self</span>::Null =&gt; <span class="prelude-val">Ok</span>(Value::Null),
+            <span class="self">Self</span>::Undefined =&gt; <span class="macro">todo!</span>(<span class="string">&quot;undefined to JSON&quot;</span>),
+            <span class="kw-2">&amp;</span><span class="self">Self</span>::Boolean(b) =&gt; <span class="prelude-val">Ok</span>(b.into()),
+            <span class="self">Self</span>::String(string) =&gt; <span class="prelude-val">Ok</span>(string.to_std_string_escaped().into()),
+            <span class="kw-2">&amp;</span><span class="self">Self</span>::Rational(rat) =&gt; <span class="prelude-val">Ok</span>(rat.into()),
+            <span class="kw-2">&amp;</span><span class="self">Self</span>::Integer(int) =&gt; <span class="prelude-val">Ok</span>(int.into()),
+            <span class="self">Self</span>::BigInt(_bigint) =&gt; <span class="prelude-val">Err</span>(JsNativeError::typ()
+                .with_message(<span class="string">&quot;cannot convert bigint to JSON&quot;</span>)
+                .into()),
+            <span class="self">Self</span>::Object(obj) =&gt; {
+                <span class="kw">if </span>obj.is_array() {
+                    <span class="kw">let </span>len = obj.length_of_array_like(context)<span class="question-mark">?</span>;
+                    <span class="kw">let </span><span class="kw-2">mut </span>arr = Vec::with_capacity(len <span class="kw">as </span>usize);
 
-                    <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">obj</span>.<span class="ident">borrow</span>();
+                    <span class="kw">let </span>obj = obj.borrow();
 
-                    <span class="kw">for</span> <span class="ident">k</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">len</span> <span class="kw">as</span> <span class="ident">u32</span> {
-                        <span class="kw">let</span> <span class="ident">val</span> <span class="op">=</span> <span class="ident">obj</span>.<span class="ident">properties</span>().<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">k</span>.<span class="ident">into</span>()).<span class="ident">map_or</span>(<span class="ident"><span class="self">Self</span>::Null</span>, <span class="op">|</span><span class="ident">desc</span><span class="op">|</span> {
-                            <span class="ident">desc</span>.<span class="ident">value</span>().<span class="ident">cloned</span>().<span class="ident">unwrap_or</span>(<span class="ident"><span class="self">Self</span>::Null</span>)
+                    <span class="kw">for </span>k <span class="kw">in </span><span class="number">0</span>..len <span class="kw">as </span>u32 {
+                        <span class="kw">let </span>val = obj.properties().get(<span class="kw-2">&amp;</span>k.into()).map_or(<span class="self">Self</span>::Null, |desc| {
+                            desc.value().cloned().unwrap_or(<span class="self">Self</span>::Null)
                         });
-                        <span class="ident">arr</span>.<span class="ident">push</span>(<span class="ident">val</span>.<span class="ident">to_json</span>(<span class="ident">context</span>)<span class="question-mark">?</span>);
+                        arr.push(val.to_json(context)<span class="question-mark">?</span>);
                     }
 
-                    <span class="prelude-val">Ok</span>(<span class="ident">Value::Array</span>(<span class="ident">arr</span>))
-                } <span class="kw">else</span> {
-                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">map</span> <span class="op">=</span> <span class="ident">Map::new</span>();
-                    <span class="kw">for</span> (<span class="ident">key</span>, <span class="ident">property</span>) <span class="kw">in</span> <span class="ident">obj</span>.<span class="ident">borrow</span>().<span class="ident">properties</span>().<span class="ident">iter</span>() {
-                        <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">key</span> {
-                            <span class="ident">PropertyKey::String</span>(<span class="ident">string</span>) =&gt; <span class="ident">string</span>.<span class="ident">to_std_string_escaped</span>(),
-                            <span class="ident">PropertyKey::Index</span>(<span class="ident">i</span>) =&gt; <span class="ident">i</span>.<span class="ident">to_string</span>(),
-                            <span class="ident">PropertyKey::Symbol</span>(<span class="ident">_sym</span>) =&gt; {
-                                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
-                                    .<span class="ident">with_message</span>(<span class="string">&quot;cannot convert Symbol to JSON&quot;</span>)
-                                    .<span class="ident">into</span>())
+                    <span class="prelude-val">Ok</span>(Value::Array(arr))
+                } <span class="kw">else </span>{
+                    <span class="kw">let </span><span class="kw-2">mut </span>map = Map::new();
+                    <span class="kw">for </span>(key, property) <span class="kw">in </span>obj.borrow().properties().iter() {
+                        <span class="kw">let </span>key = <span class="kw">match </span><span class="kw-2">&amp;</span>key {
+                            PropertyKey::String(string) =&gt; string.to_std_string_escaped(),
+                            PropertyKey::Index(i) =&gt; i.to_string(),
+                            PropertyKey::Symbol(_sym) =&gt; {
+                                <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
+                                    .with_message(<span class="string">&quot;cannot convert Symbol to JSON&quot;</span>)
+                                    .into())
                             }
                         };
 
-                        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">property</span>.<span class="ident">value</span>() {
-                            <span class="prelude-val">Some</span>(<span class="ident">val</span>) =&gt; <span class="ident">val</span>.<span class="ident">to_json</span>(<span class="ident">context</span>)<span class="question-mark">?</span>,
-                            <span class="prelude-val">None</span> =&gt; <span class="ident">Value::Null</span>,
+                        <span class="kw">let </span>value = <span class="kw">match </span>property.value() {
+                            <span class="prelude-val">Some</span>(val) =&gt; val.to_json(context)<span class="question-mark">?</span>,
+                            <span class="prelude-val">None </span>=&gt; Value::Null,
                         };
 
-                        <span class="ident">map</span>.<span class="ident">insert</span>(<span class="ident">key</span>, <span class="ident">value</span>);
+                        map.insert(key, value);
                     }
 
-                    <span class="prelude-val">Ok</span>(<span class="ident">Value::Object</span>(<span class="ident">map</span>))
+                    <span class="prelude-val">Ok</span>(Value::Object(map))
                 }
             }
-            <span class="ident"><span class="self">Self</span>::Symbol</span>(<span class="ident">_sym</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
-                .<span class="ident">with_message</span>(<span class="string">&quot;cannot convert Symbol to JSON&quot;</span>)
-                .<span class="ident">into</span>()),
+            <span class="self">Self</span>::Symbol(_sym) =&gt; <span class="prelude-val">Err</span>(JsNativeError::typ()
+                .with_message(<span class="string">&quot;cannot convert Symbol to JSON&quot;</span>)
+                .into()),
         }
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span> {
-    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::object::JsArray</span>;
-    <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">Context</span>, <span class="ident">JsValue</span>};
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>tests {
+    <span class="kw">use </span><span class="kw">crate</span>::object::JsArray;
+    <span class="kw">use crate</span>::{Context, JsValue};
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">ut_json_conversions</span>() {
-        <span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="string">r#&quot;
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>ut_json_conversions() {
+        <span class="kw">let </span>data = <span class="string">r#&quot;
          {
              &quot;name&quot;: &quot;John Doe&quot;,
              &quot;age&quot;: 43,
@@ -471,102 +471,102 @@
              ]
           }&quot;#</span>;
 
-        <span class="kw">let</span> <span class="ident">json</span>: <span class="ident">serde_json::Value</span> <span class="op">=</span> <span class="ident">serde_json::from_str</span>(<span class="ident">data</span>).<span class="ident">unwrap</span>();
-        <span class="macro">assert!</span>(<span class="ident">json</span>.<span class="ident">is_object</span>());
+        <span class="kw">let </span>json: serde_json::Value = serde_json::from_str(data).unwrap();
+        <span class="macro">assert!</span>(json.is_object());
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">context</span> <span class="op">=</span> <span class="ident">Context::default</span>();
-        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">JsValue::from_json</span>(<span class="kw-2">&amp;</span><span class="ident">json</span>, <span class="kw-2">&amp;mut</span> <span class="ident">context</span>).<span class="ident">unwrap</span>();
+        <span class="kw">let </span><span class="kw-2">mut </span>context = Context::default();
+        <span class="kw">let </span>value = JsValue::from_json(<span class="kw-2">&amp;</span>json, <span class="kw-2">&amp;mut </span>context).unwrap();
 
-        <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">value</span>.<span class="ident">as_object</span>().<span class="ident">unwrap</span>();
-        <span class="macro">assert_eq!</span>(<span class="ident">obj</span>.<span class="ident">get</span>(<span class="string">&quot;name&quot;</span>, <span class="kw-2">&amp;mut</span> <span class="ident">context</span>).<span class="ident">unwrap</span>(), <span class="string">&quot;John Doe&quot;</span>.<span class="ident">into</span>());
-        <span class="macro">assert_eq!</span>(<span class="ident">obj</span>.<span class="ident">get</span>(<span class="string">&quot;age&quot;</span>, <span class="kw-2">&amp;mut</span> <span class="ident">context</span>).<span class="ident">unwrap</span>(), <span class="number">43_i32</span>.<span class="ident">into</span>());
-        <span class="macro">assert_eq!</span>(<span class="ident">obj</span>.<span class="ident">get</span>(<span class="string">&quot;minor&quot;</span>, <span class="kw-2">&amp;mut</span> <span class="ident">context</span>).<span class="ident">unwrap</span>(), <span class="bool-val">false</span>.<span class="ident">into</span>());
-        <span class="macro">assert_eq!</span>(<span class="ident">obj</span>.<span class="ident">get</span>(<span class="string">&quot;adult&quot;</span>, <span class="kw-2">&amp;mut</span> <span class="ident">context</span>).<span class="ident">unwrap</span>(), <span class="bool-val">true</span>.<span class="ident">into</span>());
+        <span class="kw">let </span>obj = value.as_object().unwrap();
+        <span class="macro">assert_eq!</span>(obj.get(<span class="string">&quot;name&quot;</span>, <span class="kw-2">&amp;mut </span>context).unwrap(), <span class="string">&quot;John Doe&quot;</span>.into());
+        <span class="macro">assert_eq!</span>(obj.get(<span class="string">&quot;age&quot;</span>, <span class="kw-2">&amp;mut </span>context).unwrap(), <span class="number">43_i32</span>.into());
+        <span class="macro">assert_eq!</span>(obj.get(<span class="string">&quot;minor&quot;</span>, <span class="kw-2">&amp;mut </span>context).unwrap(), <span class="bool-val">false</span>.into());
+        <span class="macro">assert_eq!</span>(obj.get(<span class="string">&quot;adult&quot;</span>, <span class="kw-2">&amp;mut </span>context).unwrap(), <span class="bool-val">true</span>.into());
         {
-            <span class="kw">let</span> <span class="ident">extra</span> <span class="op">=</span> <span class="ident">obj</span>.<span class="ident">get</span>(<span class="string">&quot;extra&quot;</span>, <span class="kw-2">&amp;mut</span> <span class="ident">context</span>).<span class="ident">unwrap</span>();
-            <span class="kw">let</span> <span class="ident">extra</span> <span class="op">=</span> <span class="ident">extra</span>.<span class="ident">as_object</span>().<span class="ident">unwrap</span>();
-            <span class="macro">assert!</span>(<span class="ident">extra</span>.<span class="ident">get</span>(<span class="string">&quot;address&quot;</span>, <span class="kw-2">&amp;mut</span> <span class="ident">context</span>).<span class="ident">unwrap</span>().<span class="ident">is_null</span>());
+            <span class="kw">let </span>extra = obj.get(<span class="string">&quot;extra&quot;</span>, <span class="kw-2">&amp;mut </span>context).unwrap();
+            <span class="kw">let </span>extra = extra.as_object().unwrap();
+            <span class="macro">assert!</span>(extra.get(<span class="string">&quot;address&quot;</span>, <span class="kw-2">&amp;mut </span>context).unwrap().is_null());
         }
         {
-            <span class="kw">let</span> <span class="ident">phones</span> <span class="op">=</span> <span class="ident">obj</span>.<span class="ident">get</span>(<span class="string">&quot;phones&quot;</span>, <span class="kw-2">&amp;mut</span> <span class="ident">context</span>).<span class="ident">unwrap</span>();
-            <span class="kw">let</span> <span class="ident">phones</span> <span class="op">=</span> <span class="ident">phones</span>.<span class="ident">as_object</span>().<span class="ident">unwrap</span>();
+            <span class="kw">let </span>phones = obj.get(<span class="string">&quot;phones&quot;</span>, <span class="kw-2">&amp;mut </span>context).unwrap();
+            <span class="kw">let </span>phones = phones.as_object().unwrap();
 
-            <span class="kw">let</span> <span class="ident">arr</span> <span class="op">=</span> <span class="ident">JsArray::from_object</span>(<span class="ident">phones</span>.<span class="ident">clone</span>()).<span class="ident">unwrap</span>();
-            <span class="macro">assert_eq!</span>(<span class="ident">arr</span>.<span class="ident">at</span>(<span class="number">0</span>, <span class="kw-2">&amp;mut</span> <span class="ident">context</span>).<span class="ident">unwrap</span>(), <span class="string">&quot;+44 1234567&quot;</span>.<span class="ident">into</span>());
-            <span class="macro">assert_eq!</span>(<span class="ident">arr</span>.<span class="ident">at</span>(<span class="number">1</span>, <span class="kw-2">&amp;mut</span> <span class="ident">context</span>).<span class="ident">unwrap</span>(), <span class="ident">JsValue::from</span>(<span class="op">-</span><span class="number">45_i32</span>));
-            <span class="macro">assert!</span>(<span class="ident">arr</span>.<span class="ident">at</span>(<span class="number">2</span>, <span class="kw-2">&amp;mut</span> <span class="ident">context</span>).<span class="ident">unwrap</span>().<span class="ident">is_object</span>());
-            <span class="macro">assert_eq!</span>(<span class="ident">arr</span>.<span class="ident">at</span>(<span class="number">3</span>, <span class="kw-2">&amp;mut</span> <span class="ident">context</span>).<span class="ident">unwrap</span>(), <span class="bool-val">true</span>.<span class="ident">into</span>());
+            <span class="kw">let </span>arr = JsArray::from_object(phones.clone()).unwrap();
+            <span class="macro">assert_eq!</span>(arr.at(<span class="number">0</span>, <span class="kw-2">&amp;mut </span>context).unwrap(), <span class="string">&quot;+44 1234567&quot;</span>.into());
+            <span class="macro">assert_eq!</span>(arr.at(<span class="number">1</span>, <span class="kw-2">&amp;mut </span>context).unwrap(), JsValue::from(-<span class="number">45_i32</span>));
+            <span class="macro">assert!</span>(arr.at(<span class="number">2</span>, <span class="kw-2">&amp;mut </span>context).unwrap().is_object());
+            <span class="macro">assert_eq!</span>(arr.at(<span class="number">3</span>, <span class="kw-2">&amp;mut </span>context).unwrap(), <span class="bool-val">true</span>.into());
         }
 
-        <span class="macro">assert_eq!</span>(<span class="ident">json</span>, <span class="ident">value</span>.<span class="ident">to_json</span>(<span class="kw-2">&amp;mut</span> <span class="ident">context</span>).<span class="ident">unwrap</span>());
+        <span class="macro">assert_eq!</span>(json, value.to_json(<span class="kw-2">&amp;mut </span>context).unwrap());
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">integer_ops_to_json</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">context</span> <span class="op">=</span> <span class="ident">Context::default</span>();
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>integer_ops_to_json() {
+        <span class="kw">let </span><span class="kw-2">mut </span>context = Context::default();
 
-        <span class="kw">let</span> <span class="ident">add</span> <span class="op">=</span> <span class="ident">context</span>
-            .<span class="ident">eval</span>(
+        <span class="kw">let </span>add = context
+            .eval(
                 <span class="string">r#&quot;
                 1000000 + 500
             &quot;#</span>,
             )
-            .<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">add</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="ident">serde_json::from_value</span>(<span class="ident">add</span>.<span class="ident">to_json</span>(<span class="kw-2">&amp;mut</span> <span class="ident">context</span>).<span class="ident">unwrap</span>()).<span class="ident">unwrap</span>();
-        <span class="macro">assert_eq!</span>(<span class="ident">add</span>, <span class="number">1_000_500</span>);
+            .unwrap();
+        <span class="kw">let </span>add: u32 = serde_json::from_value(add.to_json(<span class="kw-2">&amp;mut </span>context).unwrap()).unwrap();
+        <span class="macro">assert_eq!</span>(add, <span class="number">1_000_500</span>);
 
-        <span class="kw">let</span> <span class="ident">sub</span> <span class="op">=</span> <span class="ident">context</span>
-            .<span class="ident">eval</span>(
+        <span class="kw">let </span>sub = context
+            .eval(
                 <span class="string">r#&quot;
                 1000000 - 500
             &quot;#</span>,
             )
-            .<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">sub</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="ident">serde_json::from_value</span>(<span class="ident">sub</span>.<span class="ident">to_json</span>(<span class="kw-2">&amp;mut</span> <span class="ident">context</span>).<span class="ident">unwrap</span>()).<span class="ident">unwrap</span>();
-        <span class="macro">assert_eq!</span>(<span class="ident">sub</span>, <span class="number">999_500</span>);
+            .unwrap();
+        <span class="kw">let </span>sub: u32 = serde_json::from_value(sub.to_json(<span class="kw-2">&amp;mut </span>context).unwrap()).unwrap();
+        <span class="macro">assert_eq!</span>(sub, <span class="number">999_500</span>);
 
-        <span class="kw">let</span> <span class="ident">mult</span> <span class="op">=</span> <span class="ident">context</span>
-            .<span class="ident">eval</span>(
+        <span class="kw">let </span>mult = context
+            .eval(
                 <span class="string">r#&quot;
                 1000000 * 500
             &quot;#</span>,
             )
-            .<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">mult</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="ident">serde_json::from_value</span>(<span class="ident">mult</span>.<span class="ident">to_json</span>(<span class="kw-2">&amp;mut</span> <span class="ident">context</span>).<span class="ident">unwrap</span>()).<span class="ident">unwrap</span>();
-        <span class="macro">assert_eq!</span>(<span class="ident">mult</span>, <span class="number">500_000_000</span>);
+            .unwrap();
+        <span class="kw">let </span>mult: u32 = serde_json::from_value(mult.to_json(<span class="kw-2">&amp;mut </span>context).unwrap()).unwrap();
+        <span class="macro">assert_eq!</span>(mult, <span class="number">500_000_000</span>);
 
-        <span class="kw">let</span> <span class="ident">div</span> <span class="op">=</span> <span class="ident">context</span>
-            .<span class="ident">eval</span>(
+        <span class="kw">let </span>div = context
+            .eval(
                 <span class="string">r#&quot;
                 1000000 / 500
             &quot;#</span>,
             )
-            .<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">div</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="ident">serde_json::from_value</span>(<span class="ident">div</span>.<span class="ident">to_json</span>(<span class="kw-2">&amp;mut</span> <span class="ident">context</span>).<span class="ident">unwrap</span>()).<span class="ident">unwrap</span>();
-        <span class="macro">assert_eq!</span>(<span class="ident">div</span>, <span class="number">2000</span>);
+            .unwrap();
+        <span class="kw">let </span>div: u32 = serde_json::from_value(div.to_json(<span class="kw-2">&amp;mut </span>context).unwrap()).unwrap();
+        <span class="macro">assert_eq!</span>(div, <span class="number">2000</span>);
 
-        <span class="kw">let</span> <span class="ident">rem</span> <span class="op">=</span> <span class="ident">context</span>
-            .<span class="ident">eval</span>(
+        <span class="kw">let </span>rem = context
+            .eval(
                 <span class="string">r#&quot;
                 233894 % 500
             &quot;#</span>,
             )
-            .<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">rem</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="ident">serde_json::from_value</span>(<span class="ident">rem</span>.<span class="ident">to_json</span>(<span class="kw-2">&amp;mut</span> <span class="ident">context</span>).<span class="ident">unwrap</span>()).<span class="ident">unwrap</span>();
-        <span class="macro">assert_eq!</span>(<span class="ident">rem</span>, <span class="number">394</span>);
+            .unwrap();
+        <span class="kw">let </span>rem: u32 = serde_json::from_value(rem.to_json(<span class="kw-2">&amp;mut </span>context).unwrap()).unwrap();
+        <span class="macro">assert_eq!</span>(rem, <span class="number">394</span>);
 
-        <span class="kw">let</span> <span class="ident">pow</span> <span class="op">=</span> <span class="ident">context</span>
-            .<span class="ident">eval</span>(
+        <span class="kw">let </span>pow = context
+            .eval(
                 <span class="string">r#&quot;
                 36 ** 5
             &quot;#</span>,
             )
-            .<span class="ident">unwrap</span>();
+            .unwrap();
 
-        <span class="kw">let</span> <span class="ident">pow</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="ident">serde_json::from_value</span>(<span class="ident">pow</span>.<span class="ident">to_json</span>(<span class="kw-2">&amp;mut</span> <span class="ident">context</span>).<span class="ident">unwrap</span>()).<span class="ident">unwrap</span>();
+        <span class="kw">let </span>pow: u32 = serde_json::from_value(pow.to_json(<span class="kw-2">&amp;mut </span>context).unwrap()).unwrap();
 
-        <span class="macro">assert_eq!</span>(<span class="ident">pow</span>, <span class="number">60466176</span>);
+        <span class="macro">assert_eq!</span>(pow, <span class="number">60466176</span>);
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0 (a55dd71d5 2022-09-19)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0 (897e37553 2022-11-02)" ></div></body></html>

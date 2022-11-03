@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_engine/src/vm/opcode/environment/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../../storage.js"></script><script defer src="../../../../../source-script.js"></script><script defer src="../../../../../source-files.js"></script><script defer src="../../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../../boa_engine/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../../boa_engine/index.html"><div class="logo-container">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_engine/src/vm/opcode/environment/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../../normalize.css"><link rel="stylesheet" href="../../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../../dark.css" disabled><link rel="stylesheet" href="../../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../../storage.js"></script><script defer src="../../../../../source-script.js"></script><script defer src="../../../../../source-files.js"></script><script defer src="../../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../../boa_engine/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../../boa_engine/index.html"><div class="logo-container">
                     <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../../boa_engine/index.html">
                         <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -275,280 +275,280 @@
 <span id="273">273</span>
 <span id="274">274</span>
 <span id="275">275</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">environments::EnvironmentSlots</span>,
-    <span class="ident">error::JsNativeError</span>,
-    <span class="ident">vm</span>::{<span class="ident">code_block::initialize_instance_elements</span>, <span class="ident">opcode::Operation</span>, <span class="ident">ShouldExit</span>},
-    <span class="ident">Context</span>, <span class="ident">JsResult</span>, <span class="ident">JsValue</span>,
+</pre><pre class="rust"><code><span class="kw">use crate</span>::{
+    environments::EnvironmentSlots,
+    error::JsNativeError,
+    vm::{code_block::initialize_instance_elements, opcode::Operation, ShouldExit},
+    Context, JsResult, JsValue,
 };
 
-<span class="doccomment">/// `This` implements the Opcode Operation for `Opcode::This`</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Operation:</span>
-<span class="doccomment">///  - Pushes `this` value.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">This</span>;
+<span class="doccomment">/// `This` implements the Opcode Operation for `Opcode::This`
+///
+/// Operation:
+///  - Pushes `this` value.
+</span><span class="attribute">#[derive(Debug, Clone, Copy)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>This;
 
-<span class="kw">impl</span> <span class="ident">Operation</span> <span class="kw">for</span> <span class="ident">This</span> {
-    <span class="kw">const</span> <span class="ident">NAME</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;This&quot;</span>;
-    <span class="kw">const</span> <span class="ident">INSTRUCTION</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;INST - This&quot;</span>;
+<span class="kw">impl </span>Operation <span class="kw">for </span>This {
+    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;This&quot;</span>;
+    <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - This&quot;</span>;
 
-    <span class="kw">fn</span> <span class="ident">execute</span>(<span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">ShouldExit</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">env</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">realm</span>.<span class="ident">environments</span>.<span class="ident">get_this_environment</span>();
-        <span class="kw">match</span> <span class="ident">env</span> {
-            <span class="ident">EnvironmentSlots::Function</span>(<span class="ident">env</span>) =&gt; <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">push</span>(<span class="ident">env</span>.<span class="ident">borrow</span>().<span class="ident">get_this_binding</span>()<span class="question-mark">?</span>),
-            <span class="ident">EnvironmentSlots::Global</span> =&gt; {
-                <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">realm</span>.<span class="ident">global_object</span>();
-                <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">push</span>(<span class="ident">this</span>.<span class="ident">clone</span>());
+    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;ShouldExit&gt; {
+        <span class="kw">let </span>env = context.realm.environments.get_this_environment();
+        <span class="kw">match </span>env {
+            EnvironmentSlots::Function(env) =&gt; context.vm.push(env.borrow().get_this_binding()<span class="question-mark">?</span>),
+            EnvironmentSlots::Global =&gt; {
+                <span class="kw">let </span>this = context.realm.global_object();
+                context.vm.push(this.clone());
             }
         }
-        <span class="prelude-val">Ok</span>(<span class="ident">ShouldExit::False</span>)
+        <span class="prelude-val">Ok</span>(ShouldExit::False)
     }
 }
 
-<span class="doccomment">/// `Super` implements the Opcode Operation for `Opcode::Super`</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Operation:</span>
-<span class="doccomment">///  - Pushes the current `super` value to the stack.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">Super</span>;
+<span class="doccomment">/// `Super` implements the Opcode Operation for `Opcode::Super`
+///
+/// Operation:
+///  - Pushes the current `super` value to the stack.
+</span><span class="attribute">#[derive(Debug, Clone, Copy)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Super;
 
-<span class="kw">impl</span> <span class="ident">Operation</span> <span class="kw">for</span> <span class="ident">Super</span> {
-    <span class="kw">const</span> <span class="ident">NAME</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;Super&quot;</span>;
-    <span class="kw">const</span> <span class="ident">INSTRUCTION</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;INST - Super&quot;</span>;
+<span class="kw">impl </span>Operation <span class="kw">for </span>Super {
+    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;Super&quot;</span>;
+    <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - Super&quot;</span>;
 
-    <span class="kw">fn</span> <span class="ident">execute</span>(<span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">ShouldExit</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">home</span> <span class="op">=</span> {
-            <span class="kw">let</span> <span class="ident">env</span> <span class="op">=</span> <span class="ident">context</span>
-                .<span class="ident">realm</span>
-                .<span class="ident">environments</span>
-                .<span class="ident">get_this_environment</span>()
-                .<span class="ident">as_function_slots</span>()
-                .<span class="ident">expect</span>(<span class="string">&quot;super access must be in a function environment&quot;</span>);
-            <span class="kw">let</span> <span class="ident">env</span> <span class="op">=</span> <span class="ident">env</span>.<span class="ident">borrow</span>();
-            <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="ident">env</span>.<span class="ident">get_this_binding</span>()<span class="question-mark">?</span>;
-            <span class="kw">let</span> <span class="ident">function_object</span> <span class="op">=</span> <span class="ident">env</span>.<span class="ident">function_object</span>().<span class="ident">borrow</span>();
-            <span class="kw">let</span> <span class="ident">function</span> <span class="op">=</span> <span class="ident">function_object</span>
-                .<span class="ident">as_function</span>()
-                .<span class="ident">expect</span>(<span class="string">&quot;must be function object&quot;</span>);
+    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;ShouldExit&gt; {
+        <span class="kw">let </span>home = {
+            <span class="kw">let </span>env = context
+                .realm
+                .environments
+                .get_this_environment()
+                .as_function_slots()
+                .expect(<span class="string">&quot;super access must be in a function environment&quot;</span>);
+            <span class="kw">let </span>env = env.borrow();
+            <span class="kw">let </span>this = env.get_this_binding()<span class="question-mark">?</span>;
+            <span class="kw">let </span>function_object = env.function_object().borrow();
+            <span class="kw">let </span>function = function_object
+                .as_function()
+                .expect(<span class="string">&quot;must be function object&quot;</span>);
 
-            <span class="ident">function</span>.<span class="ident">get_home_object</span>().<span class="ident">or</span>(<span class="ident">this</span>.<span class="ident">as_object</span>()).<span class="ident">cloned</span>()
+            function.get_home_object().or(this.as_object()).cloned()
         };
 
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">home</span>) <span class="op">=</span> <span class="ident">home</span> {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">proto</span>) <span class="op">=</span> <span class="ident">home</span>.<span class="ident">__get_prototype_of__</span>(<span class="ident">context</span>)<span class="question-mark">?</span> {
-                <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">push</span>(<span class="ident">JsValue::from</span>(<span class="ident">proto</span>));
-            } <span class="kw">else</span> {
-                <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">push</span>(<span class="ident">JsValue::Null</span>);
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(home) = home {
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(proto) = home.__get_prototype_of__(context)<span class="question-mark">? </span>{
+                context.vm.push(JsValue::from(proto));
+            } <span class="kw">else </span>{
+                context.vm.push(JsValue::Null);
             }
-        } <span class="kw">else</span> {
-            <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">push</span>(<span class="ident">JsValue::Null</span>);
+        } <span class="kw">else </span>{
+            context.vm.push(JsValue::Null);
         };
-        <span class="prelude-val">Ok</span>(<span class="ident">ShouldExit::False</span>)
+        <span class="prelude-val">Ok</span>(ShouldExit::False)
     }
 }
 
-<span class="doccomment">/// `SuperCall` implements the Opcode Operation for `Opcode::SuperCall`</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Operation:</span>
-<span class="doccomment">///  - Execute the `super()` method.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">SuperCall</span>;
+<span class="doccomment">/// `SuperCall` implements the Opcode Operation for `Opcode::SuperCall`
+///
+/// Operation:
+///  - Execute the `super()` method.
+</span><span class="attribute">#[derive(Debug, Clone, Copy)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>SuperCall;
 
-<span class="kw">impl</span> <span class="ident">Operation</span> <span class="kw">for</span> <span class="ident">SuperCall</span> {
-    <span class="kw">const</span> <span class="ident">NAME</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;SuperCall&quot;</span>;
-    <span class="kw">const</span> <span class="ident">INSTRUCTION</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;INST - SuperCall&quot;</span>;
+<span class="kw">impl </span>Operation <span class="kw">for </span>SuperCall {
+    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;SuperCall&quot;</span>;
+    <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - SuperCall&quot;</span>;
 
-    <span class="kw">fn</span> <span class="ident">execute</span>(<span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">ShouldExit</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">argument_count</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">arguments</span> <span class="op">=</span> <span class="ident">Vec::with_capacity</span>(<span class="ident">argument_count</span> <span class="kw">as</span> <span class="ident">usize</span>);
-        <span class="kw">for</span> <span class="kw">_</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">argument_count</span> {
-            <span class="ident">arguments</span>.<span class="ident">push</span>(<span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">pop</span>());
+    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;ShouldExit&gt; {
+        <span class="kw">let </span>argument_count = context.vm.read::&lt;u32&gt;();
+        <span class="kw">let </span><span class="kw-2">mut </span>arguments = Vec::with_capacity(argument_count <span class="kw">as </span>usize);
+        <span class="kw">for _ in </span><span class="number">0</span>..argument_count {
+            arguments.push(context.vm.pop());
         }
-        <span class="ident">arguments</span>.<span class="ident">reverse</span>();
+        arguments.reverse();
 
-        <span class="kw">let</span> (<span class="ident">new_target</span>, <span class="ident">active_function</span>) <span class="op">=</span> {
-            <span class="kw">let</span> <span class="ident">this_env</span> <span class="op">=</span> <span class="ident">context</span>
-                .<span class="ident">realm</span>
-                .<span class="ident">environments</span>
-                .<span class="ident">get_this_environment</span>()
-                .<span class="ident">as_function_slots</span>()
-                .<span class="ident">expect</span>(<span class="string">&quot;super call must be in function environment&quot;</span>);
-            <span class="kw">let</span> <span class="ident">this_env_borrow</span> <span class="op">=</span> <span class="ident">this_env</span>.<span class="ident">borrow</span>();
-            <span class="kw">let</span> <span class="ident">new_target</span> <span class="op">=</span> <span class="ident">this_env_borrow</span>
-                .<span class="ident">new_target</span>()
-                .<span class="ident">expect</span>(<span class="string">&quot;must have new target&quot;</span>)
-                .<span class="ident">clone</span>();
-            <span class="kw">let</span> <span class="ident">active_function</span> <span class="op">=</span> <span class="ident">this_env</span>.<span class="ident">borrow</span>().<span class="ident">function_object</span>().<span class="ident">clone</span>();
-            (<span class="ident">new_target</span>, <span class="ident">active_function</span>)
+        <span class="kw">let </span>(new_target, active_function) = {
+            <span class="kw">let </span>this_env = context
+                .realm
+                .environments
+                .get_this_environment()
+                .as_function_slots()
+                .expect(<span class="string">&quot;super call must be in function environment&quot;</span>);
+            <span class="kw">let </span>this_env_borrow = this_env.borrow();
+            <span class="kw">let </span>new_target = this_env_borrow
+                .new_target()
+                .expect(<span class="string">&quot;must have new target&quot;</span>)
+                .clone();
+            <span class="kw">let </span>active_function = this_env.borrow().function_object().clone();
+            (new_target, active_function)
         };
-        <span class="kw">let</span> <span class="ident">super_constructor</span> <span class="op">=</span> <span class="ident">active_function</span>
-            .<span class="ident">__get_prototype_of__</span>(<span class="ident">context</span>)
-            .<span class="ident">expect</span>(<span class="string">&quot;function object must have prototype&quot;</span>)
-            .<span class="ident">expect</span>(<span class="string">&quot;function object must have prototype&quot;</span>);
+        <span class="kw">let </span>super_constructor = active_function
+            .__get_prototype_of__(context)
+            .expect(<span class="string">&quot;function object must have prototype&quot;</span>)
+            .expect(<span class="string">&quot;function object must have prototype&quot;</span>);
 
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">super_constructor</span>.<span class="ident">is_constructor</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
-                .<span class="ident">with_message</span>(<span class="string">&quot;super constructor object must be constructor&quot;</span>)
-                .<span class="ident">into</span>());
+        <span class="kw">if </span>!super_constructor.is_constructor() {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
+                .with_message(<span class="string">&quot;super constructor object must be constructor&quot;</span>)
+                .into());
         }
 
-        <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">super_constructor</span>.<span class="ident">__construct__</span>(<span class="kw-2">&amp;</span><span class="ident">arguments</span>, <span class="kw-2">&amp;</span><span class="ident">new_target</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let </span>result = super_constructor.__construct__(<span class="kw-2">&amp;</span>arguments, <span class="kw-2">&amp;</span>new_target, context)<span class="question-mark">?</span>;
 
-        <span class="ident">initialize_instance_elements</span>(<span class="kw-2">&amp;</span><span class="ident">result</span>, <span class="kw-2">&amp;</span><span class="ident">active_function</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+        initialize_instance_elements(<span class="kw-2">&amp;</span>result, <span class="kw-2">&amp;</span>active_function, context)<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="ident">this_env</span> <span class="op">=</span> <span class="ident">context</span>
-            .<span class="ident">realm</span>
-            .<span class="ident">environments</span>
-            .<span class="ident">get_this_environment</span>()
-            .<span class="ident">as_function_slots</span>()
-            .<span class="ident">expect</span>(<span class="string">&quot;super call must be in function environment&quot;</span>);
+        <span class="kw">let </span>this_env = context
+            .realm
+            .environments
+            .get_this_environment()
+            .as_function_slots()
+            .expect(<span class="string">&quot;super call must be in function environment&quot;</span>);
 
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">this_env</span>.<span class="ident">borrow_mut</span>().<span class="ident">bind_this_value</span>(<span class="kw-2">&amp;</span><span class="ident">result</span>) {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::reference</span>()
-                .<span class="ident">with_message</span>(<span class="string">&quot;this already initialized&quot;</span>)
-                .<span class="ident">into</span>());
+        <span class="kw">if </span>!this_env.borrow_mut().bind_this_value(<span class="kw-2">&amp;</span>result) {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::reference()
+                .with_message(<span class="string">&quot;this already initialized&quot;</span>)
+                .into());
         }
-        <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">push</span>(<span class="ident">result</span>);
-        <span class="prelude-val">Ok</span>(<span class="ident">ShouldExit::False</span>)
+        context.vm.push(result);
+        <span class="prelude-val">Ok</span>(ShouldExit::False)
     }
 }
 
-<span class="doccomment">/// `SuperCallSpread` implements the Opcode Operation for `Opcode::SuperCallSpread`</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Operation:</span>
-<span class="doccomment">///  - Execute the `super()` method where the arguments contain spreads.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">SuperCallSpread</span>;
+<span class="doccomment">/// `SuperCallSpread` implements the Opcode Operation for `Opcode::SuperCallSpread`
+///
+/// Operation:
+///  - Execute the `super()` method where the arguments contain spreads.
+</span><span class="attribute">#[derive(Debug, Clone, Copy)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>SuperCallSpread;
 
-<span class="kw">impl</span> <span class="ident">Operation</span> <span class="kw">for</span> <span class="ident">SuperCallSpread</span> {
-    <span class="kw">const</span> <span class="ident">NAME</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;SuperCallWithRest&quot;</span>;
-    <span class="kw">const</span> <span class="ident">INSTRUCTION</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;INST - SuperCallWithRest&quot;</span>;
+<span class="kw">impl </span>Operation <span class="kw">for </span>SuperCallSpread {
+    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;SuperCallWithRest&quot;</span>;
+    <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - SuperCallWithRest&quot;</span>;
 
-    <span class="kw">fn</span> <span class="ident">execute</span>(<span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">ShouldExit</span><span class="op">&gt;</span> {
-        <span class="comment">// Get the arguments that are stored as an array object on the stack.</span>
-        <span class="kw">let</span> <span class="ident">arguments_array</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">pop</span>();
-        <span class="kw">let</span> <span class="ident">arguments_array_object</span> <span class="op">=</span> <span class="ident">arguments_array</span>
-            .<span class="ident">as_object</span>()
-            .<span class="ident">expect</span>(<span class="string">&quot;arguments array in call spread function must be an object&quot;</span>);
-        <span class="kw">let</span> <span class="ident">arguments</span> <span class="op">=</span> <span class="ident">arguments_array_object</span>
-            .<span class="ident">borrow</span>()
-            .<span class="ident">properties</span>()
-            .<span class="ident">dense_indexed_properties</span>()
-            .<span class="ident">expect</span>(<span class="string">&quot;arguments array in call spread function must be dense&quot;</span>)
-            .<span class="ident">clone</span>();
+    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;ShouldExit&gt; {
+        <span class="comment">// Get the arguments that are stored as an array object on the stack.
+        </span><span class="kw">let </span>arguments_array = context.vm.pop();
+        <span class="kw">let </span>arguments_array_object = arguments_array
+            .as_object()
+            .expect(<span class="string">&quot;arguments array in call spread function must be an object&quot;</span>);
+        <span class="kw">let </span>arguments = arguments_array_object
+            .borrow()
+            .properties()
+            .dense_indexed_properties()
+            .expect(<span class="string">&quot;arguments array in call spread function must be dense&quot;</span>)
+            .clone();
 
-        <span class="kw">let</span> (<span class="ident">new_target</span>, <span class="ident">active_function</span>) <span class="op">=</span> {
-            <span class="kw">let</span> <span class="ident">this_env</span> <span class="op">=</span> <span class="ident">context</span>
-                .<span class="ident">realm</span>
-                .<span class="ident">environments</span>
-                .<span class="ident">get_this_environment</span>()
-                .<span class="ident">as_function_slots</span>()
-                .<span class="ident">expect</span>(<span class="string">&quot;super call must be in function environment&quot;</span>);
-            <span class="kw">let</span> <span class="ident">this_env_borrow</span> <span class="op">=</span> <span class="ident">this_env</span>.<span class="ident">borrow</span>();
-            <span class="kw">let</span> <span class="ident">new_target</span> <span class="op">=</span> <span class="ident">this_env_borrow</span>
-                .<span class="ident">new_target</span>()
-                .<span class="ident">expect</span>(<span class="string">&quot;must have new target&quot;</span>)
-                .<span class="ident">clone</span>();
-            <span class="kw">let</span> <span class="ident">active_function</span> <span class="op">=</span> <span class="ident">this_env</span>.<span class="ident">borrow</span>().<span class="ident">function_object</span>().<span class="ident">clone</span>();
-            (<span class="ident">new_target</span>, <span class="ident">active_function</span>)
+        <span class="kw">let </span>(new_target, active_function) = {
+            <span class="kw">let </span>this_env = context
+                .realm
+                .environments
+                .get_this_environment()
+                .as_function_slots()
+                .expect(<span class="string">&quot;super call must be in function environment&quot;</span>);
+            <span class="kw">let </span>this_env_borrow = this_env.borrow();
+            <span class="kw">let </span>new_target = this_env_borrow
+                .new_target()
+                .expect(<span class="string">&quot;must have new target&quot;</span>)
+                .clone();
+            <span class="kw">let </span>active_function = this_env.borrow().function_object().clone();
+            (new_target, active_function)
         };
-        <span class="kw">let</span> <span class="ident">super_constructor</span> <span class="op">=</span> <span class="ident">active_function</span>
-            .<span class="ident">__get_prototype_of__</span>(<span class="ident">context</span>)
-            .<span class="ident">expect</span>(<span class="string">&quot;function object must have prototype&quot;</span>)
-            .<span class="ident">expect</span>(<span class="string">&quot;function object must have prototype&quot;</span>);
+        <span class="kw">let </span>super_constructor = active_function
+            .__get_prototype_of__(context)
+            .expect(<span class="string">&quot;function object must have prototype&quot;</span>)
+            .expect(<span class="string">&quot;function object must have prototype&quot;</span>);
 
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">super_constructor</span>.<span class="ident">is_constructor</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
-                .<span class="ident">with_message</span>(<span class="string">&quot;super constructor object must be constructor&quot;</span>)
-                .<span class="ident">into</span>());
+        <span class="kw">if </span>!super_constructor.is_constructor() {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
+                .with_message(<span class="string">&quot;super constructor object must be constructor&quot;</span>)
+                .into());
         }
 
-        <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">super_constructor</span>.<span class="ident">__construct__</span>(<span class="kw-2">&amp;</span><span class="ident">arguments</span>, <span class="kw-2">&amp;</span><span class="ident">new_target</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let </span>result = super_constructor.__construct__(<span class="kw-2">&amp;</span>arguments, <span class="kw-2">&amp;</span>new_target, context)<span class="question-mark">?</span>;
 
-        <span class="ident">initialize_instance_elements</span>(<span class="kw-2">&amp;</span><span class="ident">result</span>, <span class="kw-2">&amp;</span><span class="ident">active_function</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+        initialize_instance_elements(<span class="kw-2">&amp;</span>result, <span class="kw-2">&amp;</span>active_function, context)<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="ident">this_env</span> <span class="op">=</span> <span class="ident">context</span>
-            .<span class="ident">realm</span>
-            .<span class="ident">environments</span>
-            .<span class="ident">get_this_environment</span>()
-            .<span class="ident">as_function_slots</span>()
-            .<span class="ident">expect</span>(<span class="string">&quot;super call must be in function environment&quot;</span>);
+        <span class="kw">let </span>this_env = context
+            .realm
+            .environments
+            .get_this_environment()
+            .as_function_slots()
+            .expect(<span class="string">&quot;super call must be in function environment&quot;</span>);
 
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">this_env</span>.<span class="ident">borrow_mut</span>().<span class="ident">bind_this_value</span>(<span class="kw-2">&amp;</span><span class="ident">result</span>) {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::reference</span>()
-                .<span class="ident">with_message</span>(<span class="string">&quot;this already initialized&quot;</span>)
-                .<span class="ident">into</span>());
+        <span class="kw">if </span>!this_env.borrow_mut().bind_this_value(<span class="kw-2">&amp;</span>result) {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::reference()
+                .with_message(<span class="string">&quot;this already initialized&quot;</span>)
+                .into());
         }
-        <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">push</span>(<span class="ident">result</span>);
-        <span class="prelude-val">Ok</span>(<span class="ident">ShouldExit::False</span>)
+        context.vm.push(result);
+        <span class="prelude-val">Ok</span>(ShouldExit::False)
     }
 }
 
-<span class="doccomment">/// `SuperCallDerived` implements the Opcode Operation for `Opcode::SuperCallDerived`</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Operation:</span>
-<span class="doccomment">///  - Execute the `super()` method when no constructor of the class is defined.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">SuperCallDerived</span>;
+<span class="doccomment">/// `SuperCallDerived` implements the Opcode Operation for `Opcode::SuperCallDerived`
+///
+/// Operation:
+///  - Execute the `super()` method when no constructor of the class is defined.
+</span><span class="attribute">#[derive(Debug, Clone, Copy)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>SuperCallDerived;
 
-<span class="kw">impl</span> <span class="ident">Operation</span> <span class="kw">for</span> <span class="ident">SuperCallDerived</span> {
-    <span class="kw">const</span> <span class="ident">NAME</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;SuperCallDerived&quot;</span>;
-    <span class="kw">const</span> <span class="ident">INSTRUCTION</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;INST - SuperCallDerived&quot;</span>;
+<span class="kw">impl </span>Operation <span class="kw">for </span>SuperCallDerived {
+    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;SuperCallDerived&quot;</span>;
+    <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - SuperCallDerived&quot;</span>;
 
-    <span class="kw">fn</span> <span class="ident">execute</span>(<span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">ShouldExit</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">argument_count</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">frame</span>().<span class="ident">arg_count</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">arguments</span> <span class="op">=</span> <span class="ident">Vec::with_capacity</span>(<span class="ident">argument_count</span>);
-        <span class="kw">for</span> <span class="kw">_</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">argument_count</span> {
-            <span class="ident">arguments</span>.<span class="ident">push</span>(<span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">pop</span>());
+    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;ShouldExit&gt; {
+        <span class="kw">let </span>argument_count = context.vm.frame().arg_count;
+        <span class="kw">let </span><span class="kw-2">mut </span>arguments = Vec::with_capacity(argument_count);
+        <span class="kw">for _ in </span><span class="number">0</span>..argument_count {
+            arguments.push(context.vm.pop());
         }
-        <span class="ident">arguments</span>.<span class="ident">reverse</span>();
+        arguments.reverse();
 
-        <span class="kw">let</span> (<span class="ident">new_target</span>, <span class="ident">active_function</span>) <span class="op">=</span> {
-            <span class="kw">let</span> <span class="ident">this_env</span> <span class="op">=</span> <span class="ident">context</span>
-                .<span class="ident">realm</span>
-                .<span class="ident">environments</span>
-                .<span class="ident">get_this_environment</span>()
-                .<span class="ident">as_function_slots</span>()
-                .<span class="ident">expect</span>(<span class="string">&quot;super call must be in function environment&quot;</span>);
-            <span class="kw">let</span> <span class="ident">this_env_borrow</span> <span class="op">=</span> <span class="ident">this_env</span>.<span class="ident">borrow</span>();
-            <span class="kw">let</span> <span class="ident">new_target</span> <span class="op">=</span> <span class="ident">this_env_borrow</span>
-                .<span class="ident">new_target</span>()
-                .<span class="ident">expect</span>(<span class="string">&quot;must have new target&quot;</span>)
-                .<span class="ident">clone</span>();
-            <span class="kw">let</span> <span class="ident">active_function</span> <span class="op">=</span> <span class="ident">this_env</span>.<span class="ident">borrow</span>().<span class="ident">function_object</span>().<span class="ident">clone</span>();
-            (<span class="ident">new_target</span>, <span class="ident">active_function</span>)
+        <span class="kw">let </span>(new_target, active_function) = {
+            <span class="kw">let </span>this_env = context
+                .realm
+                .environments
+                .get_this_environment()
+                .as_function_slots()
+                .expect(<span class="string">&quot;super call must be in function environment&quot;</span>);
+            <span class="kw">let </span>this_env_borrow = this_env.borrow();
+            <span class="kw">let </span>new_target = this_env_borrow
+                .new_target()
+                .expect(<span class="string">&quot;must have new target&quot;</span>)
+                .clone();
+            <span class="kw">let </span>active_function = this_env.borrow().function_object().clone();
+            (new_target, active_function)
         };
-        <span class="kw">let</span> <span class="ident">super_constructor</span> <span class="op">=</span> <span class="ident">active_function</span>
-            .<span class="ident">__get_prototype_of__</span>(<span class="ident">context</span>)
-            .<span class="ident">expect</span>(<span class="string">&quot;function object must have prototype&quot;</span>)
-            .<span class="ident">expect</span>(<span class="string">&quot;function object must have prototype&quot;</span>);
+        <span class="kw">let </span>super_constructor = active_function
+            .__get_prototype_of__(context)
+            .expect(<span class="string">&quot;function object must have prototype&quot;</span>)
+            .expect(<span class="string">&quot;function object must have prototype&quot;</span>);
 
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">super_constructor</span>.<span class="ident">is_constructor</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
-                .<span class="ident">with_message</span>(<span class="string">&quot;super constructor object must be constructor&quot;</span>)
-                .<span class="ident">into</span>());
+        <span class="kw">if </span>!super_constructor.is_constructor() {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
+                .with_message(<span class="string">&quot;super constructor object must be constructor&quot;</span>)
+                .into());
         }
 
-        <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">super_constructor</span>.<span class="ident">__construct__</span>(<span class="kw-2">&amp;</span><span class="ident">arguments</span>, <span class="kw-2">&amp;</span><span class="ident">new_target</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let </span>result = super_constructor.__construct__(<span class="kw-2">&amp;</span>arguments, <span class="kw-2">&amp;</span>new_target, context)<span class="question-mark">?</span>;
 
-        <span class="ident">initialize_instance_elements</span>(<span class="kw-2">&amp;</span><span class="ident">result</span>, <span class="kw-2">&amp;</span><span class="ident">active_function</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+        initialize_instance_elements(<span class="kw-2">&amp;</span>result, <span class="kw-2">&amp;</span>active_function, context)<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="ident">this_env</span> <span class="op">=</span> <span class="ident">context</span>
-            .<span class="ident">realm</span>
-            .<span class="ident">environments</span>
-            .<span class="ident">get_this_environment</span>()
-            .<span class="ident">as_function_slots</span>()
-            .<span class="ident">expect</span>(<span class="string">&quot;super call must be in function environment&quot;</span>);
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">this_env</span>.<span class="ident">borrow_mut</span>().<span class="ident">bind_this_value</span>(<span class="kw-2">&amp;</span><span class="ident">result</span>) {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::reference</span>()
-                .<span class="ident">with_message</span>(<span class="string">&quot;this already initialized&quot;</span>)
-                .<span class="ident">into</span>());
+        <span class="kw">let </span>this_env = context
+            .realm
+            .environments
+            .get_this_environment()
+            .as_function_slots()
+            .expect(<span class="string">&quot;super call must be in function environment&quot;</span>);
+        <span class="kw">if </span>!this_env.borrow_mut().bind_this_value(<span class="kw-2">&amp;</span>result) {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::reference()
+                .with_message(<span class="string">&quot;this already initialized&quot;</span>)
+                .into());
         }
 
-        <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">push</span>(<span class="ident">result</span>);
-        <span class="prelude-val">Ok</span>(<span class="ident">ShouldExit::False</span>)
+        context.vm.push(result);
+        <span class="prelude-val">Ok</span>(ShouldExit::False)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0 (a55dd71d5 2022-09-19)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0 (897e37553 2022-11-02)" ></div></body></html>

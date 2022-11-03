@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_engine/src/syntax/parser/statement/declaration/lexical.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lexical.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../../../storage.js"></script><script defer src="../../../../../../source-script.js"></script><script defer src="../../../../../../source-files.js"></script><script defer src="../../../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../../../boa_engine/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../../../boa_engine/index.html"><div class="logo-container">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_engine/src/syntax/parser/statement/declaration/lexical.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lexical.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../../../normalize.css"><link rel="stylesheet" href="../../../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../../../dark.css" disabled><link rel="stylesheet" href="../../../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../../../storage.js"></script><script defer src="../../../../../../source-script.js"></script><script defer src="../../../../../../source-files.js"></script><script defer src="../../../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../../../boa_engine/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../../../boa_engine/index.html"><div class="logo-container">
                     <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../../../boa_engine/index.html">
                         <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -358,363 +358,363 @@
 <span id="356">356</span>
 <span id="357">357</span>
 <span id="358">358</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Lexical declaration parsing.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! This parses `let` and `const` declarations.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! More information:</span>
-<span class="doccomment">//!  - [ECMAScript specification][spec]</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! [spec]: https://tc39.es/ecma262/#sec-let-and-const-declarations</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Lexical declaration parsing.
+//!
+//! This parses `let` and `const` declarations.
+//!
+//! More information:
+//!  - [ECMAScript specification][spec]
+//!
+//! [spec]: https://tc39.es/ecma262/#sec-let-and-const-declarations
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax</span>::{
-    <span class="ident">lexer</span>::{<span class="ident">Error</span> <span class="kw">as</span> <span class="ident">LexError</span>, <span class="ident">TokenKind</span>},
-    <span class="ident">parser</span>::{
-        <span class="ident">cursor</span>::{<span class="ident">Cursor</span>, <span class="ident">SemicolonResult</span>},
-        <span class="ident">expression::Initializer</span>,
-        <span class="ident">statement</span>::{<span class="ident">ArrayBindingPattern</span>, <span class="ident">BindingIdentifier</span>, <span class="ident">ObjectBindingPattern</span>},
-        <span class="ident">AllowAwait</span>, <span class="ident">AllowIn</span>, <span class="ident">AllowYield</span>, <span class="ident">ParseError</span>, <span class="ident">ParseResult</span>, <span class="ident">TokenParser</span>,
+</span><span class="kw">use </span><span class="kw">crate</span>::syntax::{
+    lexer::{Error <span class="kw">as </span>LexError, TokenKind},
+    parser::{
+        cursor::{Cursor, SemicolonResult},
+        expression::Initializer,
+        statement::{ArrayBindingPattern, BindingIdentifier, ObjectBindingPattern},
+        AllowAwait, AllowIn, AllowYield, ParseError, ParseResult, TokenParser,
     },
 };
-<span class="kw">use</span> <span class="ident">boa_ast</span>::{<span class="self">self</span> <span class="kw">as</span> <span class="ident">ast</span>, <span class="ident">declaration::Variable</span>, <span class="ident">pattern::Pattern</span>, <span class="ident">Keyword</span>, <span class="ident">Punctuator</span>};
-<span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">Sym</span>};
-<span class="kw">use</span> <span class="ident">boa_profiler::Profiler</span>;
-<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">convert::TryInto</span>, <span class="ident">io::Read</span>};
+<span class="kw">use </span>boa_ast::{<span class="self">self </span><span class="kw">as </span>ast, declaration::Variable, pattern::Pattern, Keyword, Punctuator};
+<span class="kw">use </span>boa_interner::{Interner, Sym};
+<span class="kw">use </span>boa_profiler::Profiler;
+<span class="kw">use </span>std::{convert::TryInto, io::Read};
 
-<span class="doccomment">/// Parses a lexical declaration.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [ECMAScript specification][spec]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-LexicalDeclaration</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">in</span> <span class="ident"><span class="kw">crate</span>::syntax::parser</span>) <span class="kw">struct</span> <span class="ident">LexicalDeclaration</span> {
-    <span class="ident">allow_in</span>: <span class="ident">AllowIn</span>,
-    <span class="ident">allow_yield</span>: <span class="ident">AllowYield</span>,
-    <span class="ident">allow_await</span>: <span class="ident">AllowAwait</span>,
-    <span class="ident">loop_init</span>: <span class="ident">bool</span>,
+<span class="doccomment">/// Parses a lexical declaration.
+///
+/// More information:
+///  - [ECMAScript specification][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#prod-LexicalDeclaration
+</span><span class="attribute">#[derive(Debug, Clone, Copy)]
+</span><span class="kw">pub</span>(<span class="kw">in </span><span class="kw">crate</span>::syntax::parser) <span class="kw">struct </span>LexicalDeclaration {
+    allow_in: AllowIn,
+    allow_yield: AllowYield,
+    allow_await: AllowAwait,
+    loop_init: bool,
 }
 
-<span class="kw">impl</span> <span class="ident">LexicalDeclaration</span> {
-    <span class="doccomment">/// Creates a new `LexicalDeclaration` parser.</span>
-    <span class="kw">pub</span>(<span class="kw">in</span> <span class="ident"><span class="kw">crate</span>::syntax::parser</span>) <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">Y</span>, <span class="ident">A</span><span class="op">&gt;</span>(
-        <span class="ident">allow_in</span>: <span class="ident">I</span>,
-        <span class="ident">allow_yield</span>: <span class="ident">Y</span>,
-        <span class="ident">allow_await</span>: <span class="ident">A</span>,
-        <span class="ident">loop_init</span>: <span class="ident">bool</span>,
-    ) -&gt; <span class="self">Self</span>
-    <span class="kw">where</span>
-        <span class="ident">I</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowIn</span><span class="op">&gt;</span>,
-        <span class="ident">Y</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowYield</span><span class="op">&gt;</span>,
-        <span class="ident">A</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowAwait</span><span class="op">&gt;</span>,
+<span class="kw">impl </span>LexicalDeclaration {
+    <span class="doccomment">/// Creates a new `LexicalDeclaration` parser.
+    </span><span class="kw">pub</span>(<span class="kw">in </span><span class="kw">crate</span>::syntax::parser) <span class="kw">fn </span>new&lt;I, Y, A&gt;(
+        allow_in: I,
+        allow_yield: Y,
+        allow_await: A,
+        loop_init: bool,
+    ) -&gt; <span class="self">Self
+    </span><span class="kw">where
+        </span>I: Into&lt;AllowIn&gt;,
+        Y: Into&lt;AllowYield&gt;,
+        A: Into&lt;AllowAwait&gt;,
     {
-        <span class="self">Self</span> {
-            <span class="ident">allow_in</span>: <span class="ident">allow_in</span>.<span class="ident">into</span>(),
-            <span class="ident">allow_yield</span>: <span class="ident">allow_yield</span>.<span class="ident">into</span>(),
-            <span class="ident">allow_await</span>: <span class="ident">allow_await</span>.<span class="ident">into</span>(),
-            <span class="ident">loop_init</span>,
+        <span class="self">Self </span>{
+            allow_in: allow_in.into(),
+            allow_yield: allow_yield.into(),
+            allow_await: allow_await.into(),
+            loop_init,
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="ident">TokenParser</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">LexicalDeclaration</span>
-<span class="kw">where</span>
-    <span class="ident">R</span>: <span class="ident">Read</span>,
+<span class="kw">impl</span>&lt;R&gt; TokenParser&lt;R&gt; <span class="kw">for </span>LexicalDeclaration
+<span class="kw">where
+    </span>R: Read,
 {
-    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">ast::declaration::LexicalDeclaration</span>;
+    <span class="kw">type </span>Output = ast::declaration::LexicalDeclaration;
 
-    <span class="kw">fn</span> <span class="ident">parse</span>(<span class="self">self</span>, <span class="ident">cursor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Interner</span>) -&gt; <span class="ident">ParseResult</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;LexicalDeclaration&quot;</span>, <span class="string">&quot;Parsing&quot;</span>);
-        <span class="kw">let</span> <span class="ident">tok</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">next</span>(<span class="ident">interner</span>)<span class="question-mark">?</span>.<span class="ident">ok_or</span>(<span class="ident">ParseError::AbruptEnd</span>)<span class="question-mark">?</span>;
+    <span class="kw">fn </span>parse(<span class="self">self</span>, cursor: <span class="kw-2">&amp;mut </span>Cursor&lt;R&gt;, interner: <span class="kw-2">&amp;mut </span>Interner) -&gt; ParseResult&lt;<span class="self">Self</span>::Output&gt; {
+        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;LexicalDeclaration&quot;</span>, <span class="string">&quot;Parsing&quot;</span>);
+        <span class="kw">let </span>tok = cursor.next(interner)<span class="question-mark">?</span>.ok_or(ParseError::AbruptEnd)<span class="question-mark">?</span>;
 
-        <span class="kw">match</span> <span class="ident">tok</span>.<span class="ident">kind</span>() {
-            <span class="ident">TokenKind::Keyword</span>((<span class="ident">Keyword::Const</span> <span class="op">|</span> <span class="ident">Keyword::Let</span>, <span class="bool-val">true</span>)) =&gt; <span class="prelude-val">Err</span>(<span class="ident">ParseError::general</span>(
+        <span class="kw">match </span>tok.kind() {
+            TokenKind::Keyword((Keyword::Const | Keyword::Let, <span class="bool-val">true</span>)) =&gt; <span class="prelude-val">Err</span>(ParseError::general(
                 <span class="string">&quot;Keyword must not contain escaped characters&quot;</span>,
-                <span class="ident">tok</span>.<span class="ident">span</span>().<span class="ident">start</span>(),
+                tok.span().start(),
             )),
-            <span class="ident">TokenKind::Keyword</span>((<span class="ident">Keyword::Const</span>, <span class="bool-val">false</span>)) =&gt; <span class="ident">BindingList::new</span>(
-                <span class="self">self</span>.<span class="ident">allow_in</span>,
-                <span class="self">self</span>.<span class="ident">allow_yield</span>,
-                <span class="self">self</span>.<span class="ident">allow_await</span>,
+            TokenKind::Keyword((Keyword::Const, <span class="bool-val">false</span>)) =&gt; BindingList::new(
+                <span class="self">self</span>.allow_in,
+                <span class="self">self</span>.allow_yield,
+                <span class="self">self</span>.allow_await,
                 <span class="bool-val">true</span>,
-                <span class="self">self</span>.<span class="ident">loop_init</span>,
+                <span class="self">self</span>.loop_init,
             )
-            .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>),
-            <span class="ident">TokenKind::Keyword</span>((<span class="ident">Keyword::Let</span>, <span class="bool-val">false</span>)) =&gt; <span class="ident">BindingList::new</span>(
-                <span class="self">self</span>.<span class="ident">allow_in</span>,
-                <span class="self">self</span>.<span class="ident">allow_yield</span>,
-                <span class="self">self</span>.<span class="ident">allow_await</span>,
+            .parse(cursor, interner),
+            TokenKind::Keyword((Keyword::Let, <span class="bool-val">false</span>)) =&gt; BindingList::new(
+                <span class="self">self</span>.allow_in,
+                <span class="self">self</span>.allow_yield,
+                <span class="self">self</span>.allow_await,
                 <span class="bool-val">false</span>,
-                <span class="self">self</span>.<span class="ident">loop_init</span>,
+                <span class="self">self</span>.loop_init,
             )
-            .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>),
-            <span class="kw">_</span> =&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;unknown token found: {:?}&quot;</span>, <span class="ident">tok</span>),
+            .parse(cursor, interner),
+            <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;unknown token found: {:?}&quot;</span>, tok),
         }
     }
 }
 
-<span class="doccomment">/// Parses a binding list.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// It will return an error if a `const` declaration is being parsed and there is no</span>
-<span class="doccomment">/// initializer.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [ECMAScript specification][spec]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-BindingList</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
-<span class="kw">struct</span> <span class="ident">BindingList</span> {
-    <span class="ident">allow_in</span>: <span class="ident">AllowIn</span>,
-    <span class="ident">allow_yield</span>: <span class="ident">AllowYield</span>,
-    <span class="ident">allow_await</span>: <span class="ident">AllowAwait</span>,
-    <span class="ident">is_const</span>: <span class="ident">bool</span>,
-    <span class="ident">loop_init</span>: <span class="ident">bool</span>,
+<span class="doccomment">/// Parses a binding list.
+///
+/// It will return an error if a `const` declaration is being parsed and there is no
+/// initializer.
+///
+/// More information:
+///  - [ECMAScript specification][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#prod-BindingList
+</span><span class="attribute">#[derive(Debug, Clone, Copy)]
+</span><span class="kw">struct </span>BindingList {
+    allow_in: AllowIn,
+    allow_yield: AllowYield,
+    allow_await: AllowAwait,
+    is_const: bool,
+    loop_init: bool,
 }
 
-<span class="kw">impl</span> <span class="ident">BindingList</span> {
-    <span class="doccomment">/// Creates a new `BindingList` parser.</span>
-    <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">Y</span>, <span class="ident">A</span><span class="op">&gt;</span>(
-        <span class="ident">allow_in</span>: <span class="ident">I</span>,
-        <span class="ident">allow_yield</span>: <span class="ident">Y</span>,
-        <span class="ident">allow_await</span>: <span class="ident">A</span>,
-        <span class="ident">is_const</span>: <span class="ident">bool</span>,
-        <span class="ident">loop_init</span>: <span class="ident">bool</span>,
-    ) -&gt; <span class="self">Self</span>
-    <span class="kw">where</span>
-        <span class="ident">I</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowIn</span><span class="op">&gt;</span>,
-        <span class="ident">Y</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowYield</span><span class="op">&gt;</span>,
-        <span class="ident">A</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowAwait</span><span class="op">&gt;</span>,
+<span class="kw">impl </span>BindingList {
+    <span class="doccomment">/// Creates a new `BindingList` parser.
+    </span><span class="kw">fn </span>new&lt;I, Y, A&gt;(
+        allow_in: I,
+        allow_yield: Y,
+        allow_await: A,
+        is_const: bool,
+        loop_init: bool,
+    ) -&gt; <span class="self">Self
+    </span><span class="kw">where
+        </span>I: Into&lt;AllowIn&gt;,
+        Y: Into&lt;AllowYield&gt;,
+        A: Into&lt;AllowAwait&gt;,
     {
-        <span class="self">Self</span> {
-            <span class="ident">allow_in</span>: <span class="ident">allow_in</span>.<span class="ident">into</span>(),
-            <span class="ident">allow_yield</span>: <span class="ident">allow_yield</span>.<span class="ident">into</span>(),
-            <span class="ident">allow_await</span>: <span class="ident">allow_await</span>.<span class="ident">into</span>(),
-            <span class="ident">is_const</span>,
-            <span class="ident">loop_init</span>,
+        <span class="self">Self </span>{
+            allow_in: allow_in.into(),
+            allow_yield: allow_yield.into(),
+            allow_await: allow_await.into(),
+            is_const,
+            loop_init,
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="ident">TokenParser</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">BindingList</span>
-<span class="kw">where</span>
-    <span class="ident">R</span>: <span class="ident">Read</span>,
+<span class="kw">impl</span>&lt;R&gt; TokenParser&lt;R&gt; <span class="kw">for </span>BindingList
+<span class="kw">where
+    </span>R: Read,
 {
-    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">ast::declaration::LexicalDeclaration</span>;
+    <span class="kw">type </span>Output = ast::declaration::LexicalDeclaration;
 
-    <span class="kw">fn</span> <span class="ident">parse</span>(<span class="self">self</span>, <span class="ident">cursor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Interner</span>) -&gt; <span class="ident">ParseResult</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;BindingList&quot;</span>, <span class="string">&quot;Parsing&quot;</span>);
+    <span class="kw">fn </span>parse(<span class="self">self</span>, cursor: <span class="kw-2">&amp;mut </span>Cursor&lt;R&gt;, interner: <span class="kw-2">&amp;mut </span>Interner) -&gt; ParseResult&lt;<span class="self">Self</span>::Output&gt; {
+        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;BindingList&quot;</span>, <span class="string">&quot;Parsing&quot;</span>);
 
-        <span class="comment">// Create vectors to store the variable declarations</span>
-        <span class="comment">// Const and Let signatures are slightly different, Const needs definitions, Lets don&#39;t</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">decls</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
+        <span class="comment">// Create vectors to store the variable declarations
+        // Const and Let signatures are slightly different, Const needs definitions, Lets don&#39;t
+        </span><span class="kw">let </span><span class="kw-2">mut </span>decls = Vec::new();
 
-        <span class="kw">loop</span> {
-            <span class="kw">let</span> <span class="ident">decl</span> <span class="op">=</span> <span class="ident">LexicalBinding::new</span>(<span class="self">self</span>.<span class="ident">allow_in</span>, <span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
-                .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
+        <span class="kw">loop </span>{
+            <span class="kw">let </span>decl = LexicalBinding::new(<span class="self">self</span>.allow_in, <span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await)
+                .parse(cursor, interner)<span class="question-mark">?</span>;
 
-            <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_const</span> {
-                <span class="kw">let</span> <span class="ident">init_is_some</span> <span class="op">=</span> <span class="ident">decl</span>.<span class="ident">init</span>().<span class="ident">is_some</span>();
+            <span class="kw">if </span><span class="self">self</span>.is_const {
+                <span class="kw">let </span>init_is_some = decl.init().is_some();
 
-                <span class="kw">if</span> <span class="ident">init_is_some</span> <span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">loop_init</span> {
-                    <span class="ident">decls</span>.<span class="ident">push</span>(<span class="ident">decl</span>);
-                } <span class="kw">else</span> {
-                    <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">next</span>(<span class="ident">interner</span>)<span class="question-mark">?</span>.<span class="ident">ok_or</span>(<span class="ident">ParseError::AbruptEnd</span>)<span class="question-mark">?</span>;
-                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::general</span>(
+                <span class="kw">if </span>init_is_some || <span class="self">self</span>.loop_init {
+                    decls.push(decl);
+                } <span class="kw">else </span>{
+                    <span class="kw">let </span>next = cursor.next(interner)<span class="question-mark">?</span>.ok_or(ParseError::AbruptEnd)<span class="question-mark">?</span>;
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(ParseError::general(
                         <span class="string">&quot;Expected initializer for const declaration&quot;</span>,
-                        <span class="ident">next</span>.<span class="ident">span</span>().<span class="ident">start</span>(),
+                        next.span().start(),
                     ));
                 }
-            } <span class="kw">else</span> {
-                <span class="ident">decls</span>.<span class="ident">push</span>(<span class="ident">decl</span>);
+            } <span class="kw">else </span>{
+                decls.push(decl);
             }
 
-            <span class="kw">match</span> <span class="ident">cursor</span>.<span class="ident">peek_semicolon</span>(<span class="ident">interner</span>)<span class="question-mark">?</span> {
-                <span class="ident">SemicolonResult::Found</span>(<span class="kw">_</span>) =&gt; <span class="kw">break</span>,
-                <span class="ident">SemicolonResult::NotFound</span>(<span class="ident">tk</span>)
-                    <span class="kw">if</span> <span class="ident">tk</span>.<span class="ident">kind</span>() <span class="op">==</span> <span class="kw-2">&amp;</span><span class="ident">TokenKind::Keyword</span>((<span class="ident">Keyword::Of</span>, <span class="bool-val">true</span>))
-                        <span class="op">|</span><span class="op">|</span> <span class="ident">tk</span>.<span class="ident">kind</span>() <span class="op">==</span> <span class="kw-2">&amp;</span><span class="ident">TokenKind::Keyword</span>((<span class="ident">Keyword::In</span>, <span class="bool-val">true</span>)) =&gt;
+            <span class="kw">match </span>cursor.peek_semicolon(interner)<span class="question-mark">? </span>{
+                SemicolonResult::Found(<span class="kw">_</span>) =&gt; <span class="kw">break</span>,
+                SemicolonResult::NotFound(tk)
+                    <span class="kw">if </span>tk.kind() == <span class="kw-2">&amp;</span>TokenKind::Keyword((Keyword::Of, <span class="bool-val">true</span>))
+                        || tk.kind() == <span class="kw-2">&amp;</span>TokenKind::Keyword((Keyword::In, <span class="bool-val">true</span>)) =&gt;
                 {
-                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::general</span>(
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(ParseError::general(
                         <span class="string">&quot;Keyword must not contain escaped characters&quot;</span>,
-                        <span class="ident">tk</span>.<span class="ident">span</span>().<span class="ident">start</span>(),
+                        tk.span().start(),
                     ));
                 }
-                <span class="ident">SemicolonResult::NotFound</span>(<span class="ident">tk</span>)
-                    <span class="kw">if</span> <span class="ident">tk</span>.<span class="ident">kind</span>() <span class="op">==</span> <span class="kw-2">&amp;</span><span class="ident">TokenKind::Keyword</span>((<span class="ident">Keyword::Of</span>, <span class="bool-val">false</span>))
-                        <span class="op">|</span><span class="op">|</span> <span class="ident">tk</span>.<span class="ident">kind</span>() <span class="op">==</span> <span class="kw-2">&amp;</span><span class="ident">TokenKind::Keyword</span>((<span class="ident">Keyword::In</span>, <span class="bool-val">false</span>)) =&gt;
+                SemicolonResult::NotFound(tk)
+                    <span class="kw">if </span>tk.kind() == <span class="kw-2">&amp;</span>TokenKind::Keyword((Keyword::Of, <span class="bool-val">false</span>))
+                        || tk.kind() == <span class="kw-2">&amp;</span>TokenKind::Keyword((Keyword::In, <span class="bool-val">false</span>)) =&gt;
                 {
-                    <span class="kw">break</span>
-                }
-                <span class="ident">SemicolonResult::NotFound</span>(<span class="ident">tk</span>)
-                    <span class="kw">if</span> <span class="ident">tk</span>.<span class="ident">kind</span>() <span class="op">==</span> <span class="kw-2">&amp;</span><span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::Comma</span>) =&gt;
+                    <span class="kw">break
+                </span>}
+                SemicolonResult::NotFound(tk)
+                    <span class="kw">if </span>tk.kind() == <span class="kw-2">&amp;</span>TokenKind::Punctuator(Punctuator::Comma) =&gt;
                 {
-                    <span class="comment">// We discard the comma</span>
-                    <span class="kw">let</span> <span class="ident">_comma</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">next</span>(<span class="ident">interner</span>)<span class="question-mark">?</span>;
+                    <span class="comment">// We discard the comma
+                    </span><span class="kw">let </span>_comma = cursor.next(interner)<span class="question-mark">?</span>;
                 }
-                <span class="ident">SemicolonResult::NotFound</span>(<span class="kw">_</span>) <span class="kw">if</span> <span class="self">self</span>.<span class="ident">loop_init</span> =&gt; <span class="kw">break</span>,
-                <span class="ident">SemicolonResult::NotFound</span>(<span class="kw">_</span>) =&gt; {
-                    <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">next</span>(<span class="ident">interner</span>)<span class="question-mark">?</span>.<span class="ident">ok_or</span>(<span class="ident">ParseError::AbruptEnd</span>)<span class="question-mark">?</span>;
-                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::expected</span>(
-                        [<span class="string">&quot;;&quot;</span>.<span class="ident">to_owned</span>(), <span class="string">&quot;line terminator&quot;</span>.<span class="ident">to_owned</span>()],
-                        <span class="ident">next</span>.<span class="ident">to_string</span>(<span class="ident">interner</span>),
-                        <span class="ident">next</span>.<span class="ident">span</span>(),
+                SemicolonResult::NotFound(<span class="kw">_</span>) <span class="kw">if </span><span class="self">self</span>.loop_init =&gt; <span class="kw">break</span>,
+                SemicolonResult::NotFound(<span class="kw">_</span>) =&gt; {
+                    <span class="kw">let </span>next = cursor.next(interner)<span class="question-mark">?</span>.ok_or(ParseError::AbruptEnd)<span class="question-mark">?</span>;
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(ParseError::expected(
+                        [<span class="string">&quot;;&quot;</span>.to_owned(), <span class="string">&quot;line terminator&quot;</span>.to_owned()],
+                        next.to_string(interner),
+                        next.span(),
                         <span class="string">&quot;lexical declaration binding list&quot;</span>,
                     ));
                 }
             }
         }
 
-        <span class="kw">let</span> <span class="ident">decls</span> <span class="op">=</span> <span class="ident">decls</span>
-            .<span class="ident">try_into</span>()
-            .<span class="ident">expect</span>(<span class="string">&quot;`LexicalBinding` must return at least one variable&quot;</span>);
+        <span class="kw">let </span>decls = decls
+            .try_into()
+            .expect(<span class="string">&quot;`LexicalBinding` must return at least one variable&quot;</span>);
 
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_const</span> {
-            <span class="prelude-val">Ok</span>(<span class="ident">ast::declaration::LexicalDeclaration::Const</span>(<span class="ident">decls</span>))
-        } <span class="kw">else</span> {
-            <span class="prelude-val">Ok</span>(<span class="ident">ast::declaration::LexicalDeclaration::Let</span>(<span class="ident">decls</span>))
+        <span class="kw">if </span><span class="self">self</span>.is_const {
+            <span class="prelude-val">Ok</span>(ast::declaration::LexicalDeclaration::Const(decls))
+        } <span class="kw">else </span>{
+            <span class="prelude-val">Ok</span>(ast::declaration::LexicalDeclaration::Let(decls))
         }
     }
 }
 
-<span class="doccomment">/// Lexical binding parsing.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [ECMAScript specification][spec]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-LexicalBinding</span>
-<span class="kw">struct</span> <span class="ident">LexicalBinding</span> {
-    <span class="ident">allow_in</span>: <span class="ident">AllowIn</span>,
-    <span class="ident">allow_yield</span>: <span class="ident">AllowYield</span>,
-    <span class="ident">allow_await</span>: <span class="ident">AllowAwait</span>,
+<span class="doccomment">/// Lexical binding parsing.
+///
+/// More information:
+///  - [ECMAScript specification][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#prod-LexicalBinding
+</span><span class="kw">struct </span>LexicalBinding {
+    allow_in: AllowIn,
+    allow_yield: AllowYield,
+    allow_await: AllowAwait,
 }
 
-<span class="kw">impl</span> <span class="ident">LexicalBinding</span> {
-    <span class="doccomment">/// Creates a new `BindingList` parser.</span>
-    <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">Y</span>, <span class="ident">A</span><span class="op">&gt;</span>(<span class="ident">allow_in</span>: <span class="ident">I</span>, <span class="ident">allow_yield</span>: <span class="ident">Y</span>, <span class="ident">allow_await</span>: <span class="ident">A</span>) -&gt; <span class="self">Self</span>
-    <span class="kw">where</span>
-        <span class="ident">I</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowIn</span><span class="op">&gt;</span>,
-        <span class="ident">Y</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowYield</span><span class="op">&gt;</span>,
-        <span class="ident">A</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowAwait</span><span class="op">&gt;</span>,
+<span class="kw">impl </span>LexicalBinding {
+    <span class="doccomment">/// Creates a new `BindingList` parser.
+    </span><span class="kw">fn </span>new&lt;I, Y, A&gt;(allow_in: I, allow_yield: Y, allow_await: A) -&gt; <span class="self">Self
+    </span><span class="kw">where
+        </span>I: Into&lt;AllowIn&gt;,
+        Y: Into&lt;AllowYield&gt;,
+        A: Into&lt;AllowAwait&gt;,
     {
-        <span class="self">Self</span> {
-            <span class="ident">allow_in</span>: <span class="ident">allow_in</span>.<span class="ident">into</span>(),
-            <span class="ident">allow_yield</span>: <span class="ident">allow_yield</span>.<span class="ident">into</span>(),
-            <span class="ident">allow_await</span>: <span class="ident">allow_await</span>.<span class="ident">into</span>(),
+        <span class="self">Self </span>{
+            allow_in: allow_in.into(),
+            allow_yield: allow_yield.into(),
+            allow_await: allow_await.into(),
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="ident">TokenParser</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">LexicalBinding</span>
-<span class="kw">where</span>
-    <span class="ident">R</span>: <span class="ident">Read</span>,
+<span class="kw">impl</span>&lt;R&gt; TokenParser&lt;R&gt; <span class="kw">for </span>LexicalBinding
+<span class="kw">where
+    </span>R: Read,
 {
-    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">Variable</span>;
+    <span class="kw">type </span>Output = Variable;
 
-    <span class="kw">fn</span> <span class="ident">parse</span>(<span class="self">self</span>, <span class="ident">cursor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Interner</span>) -&gt; <span class="ident">ParseResult</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;LexicalBinding&quot;</span>, <span class="string">&quot;Parsing&quot;</span>);
+    <span class="kw">fn </span>parse(<span class="self">self</span>, cursor: <span class="kw-2">&amp;mut </span>Cursor&lt;R&gt;, interner: <span class="kw-2">&amp;mut </span>Interner) -&gt; ParseResult&lt;<span class="self">Self</span>::Output&gt; {
+        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;LexicalBinding&quot;</span>, <span class="string">&quot;Parsing&quot;</span>);
 
-        <span class="kw">let</span> <span class="ident">peek_token</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">0</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>.<span class="ident">ok_or</span>(<span class="ident">ParseError::AbruptEnd</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">position</span> <span class="op">=</span> <span class="ident">peek_token</span>.<span class="ident">span</span>().<span class="ident">start</span>();
+        <span class="kw">let </span>peek_token = cursor.peek(<span class="number">0</span>, interner)<span class="question-mark">?</span>.ok_or(ParseError::AbruptEnd)<span class="question-mark">?</span>;
+        <span class="kw">let </span>position = peek_token.span().start();
 
-        <span class="kw">match</span> <span class="ident">peek_token</span>.<span class="ident">kind</span>() {
-            <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::OpenBlock</span>) =&gt; {
-                <span class="kw">let</span> <span class="ident">bindings</span> <span class="op">=</span> <span class="ident">ObjectBindingPattern::new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
-                    .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
+        <span class="kw">match </span>peek_token.kind() {
+            TokenKind::Punctuator(Punctuator::OpenBlock) =&gt; {
+                <span class="kw">let </span>bindings = ObjectBindingPattern::new(<span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await)
+                    .parse(cursor, interner)<span class="question-mark">?</span>;
 
-                <span class="kw">let</span> <span class="ident">init</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">t</span>) <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">0</span>, <span class="ident">interner</span>)<span class="question-mark">?</span> {
-                    <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">t</span>.<span class="ident">kind</span>() <span class="op">==</span> <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::Assign</span>) {
+                <span class="kw">let </span>init = <span class="kw">if let </span><span class="prelude-val">Some</span>(t) = cursor.peek(<span class="number">0</span>, interner)<span class="question-mark">? </span>{
+                    <span class="kw">if </span><span class="kw-2">*</span>t.kind() == TokenKind::Punctuator(Punctuator::Assign) {
                         <span class="prelude-val">Some</span>(
-                            <span class="ident">Initializer::new</span>(
+                            Initializer::new(
                                 <span class="prelude-val">None</span>,
-                                <span class="self">self</span>.<span class="ident">allow_in</span>,
-                                <span class="self">self</span>.<span class="ident">allow_yield</span>,
-                                <span class="self">self</span>.<span class="ident">allow_await</span>,
+                                <span class="self">self</span>.allow_in,
+                                <span class="self">self</span>.allow_yield,
+                                <span class="self">self</span>.allow_await,
                             )
-                            .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>,
+                            .parse(cursor, interner)<span class="question-mark">?</span>,
                         )
-                    } <span class="kw">else</span> {
-                        <span class="prelude-val">None</span>
-                    }
-                } <span class="kw">else</span> {
-                    <span class="prelude-val">None</span>
-                };
+                    } <span class="kw">else </span>{
+                        <span class="prelude-val">None
+                    </span>}
+                } <span class="kw">else </span>{
+                    <span class="prelude-val">None
+                </span>};
 
-                <span class="kw">let</span> <span class="ident">declaration</span> <span class="op">=</span> <span class="ident">Pattern::Object</span>(<span class="ident">bindings</span>.<span class="ident">into</span>());
+                <span class="kw">let </span>declaration = Pattern::Object(bindings.into());
 
-                <span class="kw">if</span> <span class="ident">declaration</span>.<span class="ident">idents</span>().<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">Sym::LET</span>.<span class="ident">into</span>()) {
-                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::lex</span>(<span class="ident">LexError::Syntax</span>(
-                        <span class="string">&quot;&#39;let&#39; is disallowed as a lexically bound name&quot;</span>.<span class="ident">into</span>(),
-                        <span class="ident">position</span>,
+                <span class="kw">if </span>declaration.idents().contains(<span class="kw-2">&amp;</span>Sym::LET.into()) {
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(ParseError::lex(LexError::Syntax(
+                        <span class="string">&quot;&#39;let&#39; is disallowed as a lexically bound name&quot;</span>.into(),
+                        position,
                     )));
                 }
 
-                <span class="prelude-val">Ok</span>(<span class="ident">Variable::from_pattern</span>(<span class="ident">declaration</span>, <span class="ident">init</span>))
+                <span class="prelude-val">Ok</span>(Variable::from_pattern(declaration, init))
             }
-            <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::OpenBracket</span>) =&gt; {
-                <span class="kw">let</span> <span class="ident">bindings</span> <span class="op">=</span> <span class="ident">ArrayBindingPattern::new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
-                    .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
+            TokenKind::Punctuator(Punctuator::OpenBracket) =&gt; {
+                <span class="kw">let </span>bindings = ArrayBindingPattern::new(<span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await)
+                    .parse(cursor, interner)<span class="question-mark">?</span>;
 
-                <span class="kw">let</span> <span class="ident">init</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">t</span>) <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">0</span>, <span class="ident">interner</span>)<span class="question-mark">?</span> {
-                    <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">t</span>.<span class="ident">kind</span>() <span class="op">==</span> <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::Assign</span>) {
+                <span class="kw">let </span>init = <span class="kw">if let </span><span class="prelude-val">Some</span>(t) = cursor.peek(<span class="number">0</span>, interner)<span class="question-mark">? </span>{
+                    <span class="kw">if </span><span class="kw-2">*</span>t.kind() == TokenKind::Punctuator(Punctuator::Assign) {
                         <span class="prelude-val">Some</span>(
-                            <span class="ident">Initializer::new</span>(
+                            Initializer::new(
                                 <span class="prelude-val">None</span>,
-                                <span class="self">self</span>.<span class="ident">allow_in</span>,
-                                <span class="self">self</span>.<span class="ident">allow_yield</span>,
-                                <span class="self">self</span>.<span class="ident">allow_await</span>,
+                                <span class="self">self</span>.allow_in,
+                                <span class="self">self</span>.allow_yield,
+                                <span class="self">self</span>.allow_await,
                             )
-                            .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>,
+                            .parse(cursor, interner)<span class="question-mark">?</span>,
                         )
-                    } <span class="kw">else</span> {
-                        <span class="prelude-val">None</span>
-                    }
-                } <span class="kw">else</span> {
-                    <span class="prelude-val">None</span>
-                };
+                    } <span class="kw">else </span>{
+                        <span class="prelude-val">None
+                    </span>}
+                } <span class="kw">else </span>{
+                    <span class="prelude-val">None
+                </span>};
 
-                <span class="kw">let</span> <span class="ident">declaration</span> <span class="op">=</span> <span class="ident">Pattern::Array</span>(<span class="ident">bindings</span>.<span class="ident">into</span>());
+                <span class="kw">let </span>declaration = Pattern::Array(bindings.into());
 
-                <span class="kw">if</span> <span class="ident">declaration</span>.<span class="ident">idents</span>().<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">Sym::LET</span>.<span class="ident">into</span>()) {
-                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::lex</span>(<span class="ident">LexError::Syntax</span>(
-                        <span class="string">&quot;&#39;let&#39; is disallowed as a lexically bound name&quot;</span>.<span class="ident">into</span>(),
-                        <span class="ident">position</span>,
+                <span class="kw">if </span>declaration.idents().contains(<span class="kw-2">&amp;</span>Sym::LET.into()) {
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(ParseError::lex(LexError::Syntax(
+                        <span class="string">&quot;&#39;let&#39; is disallowed as a lexically bound name&quot;</span>.into(),
+                        position,
                     )));
                 }
 
-                <span class="prelude-val">Ok</span>(<span class="ident">Variable::from_pattern</span>(<span class="ident">declaration</span>, <span class="ident">init</span>))
+                <span class="prelude-val">Ok</span>(Variable::from_pattern(declaration, init))
             }
-            <span class="kw">_</span> =&gt; {
-                <span class="kw">let</span> <span class="ident">ident</span> <span class="op">=</span> <span class="ident">BindingIdentifier::new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
-                    .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
+            <span class="kw">_ </span>=&gt; {
+                <span class="kw">let </span>ident = BindingIdentifier::new(<span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await)
+                    .parse(cursor, interner)<span class="question-mark">?</span>;
 
-                <span class="kw">if</span> <span class="ident">ident</span> <span class="op">==</span> <span class="ident">Sym::LET</span> {
-                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::lex</span>(<span class="ident">LexError::Syntax</span>(
-                        <span class="string">&quot;&#39;let&#39; is disallowed as a lexically bound name&quot;</span>.<span class="ident">into</span>(),
-                        <span class="ident">position</span>,
+                <span class="kw">if </span>ident == Sym::LET {
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(ParseError::lex(LexError::Syntax(
+                        <span class="string">&quot;&#39;let&#39; is disallowed as a lexically bound name&quot;</span>.into(),
+                        position,
                     )));
                 }
 
-                <span class="kw">let</span> <span class="ident">init</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">t</span>) <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">0</span>, <span class="ident">interner</span>)<span class="question-mark">?</span> {
-                    <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">t</span>.<span class="ident">kind</span>() <span class="op">==</span> <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::Assign</span>) {
+                <span class="kw">let </span>init = <span class="kw">if let </span><span class="prelude-val">Some</span>(t) = cursor.peek(<span class="number">0</span>, interner)<span class="question-mark">? </span>{
+                    <span class="kw">if </span><span class="kw-2">*</span>t.kind() == TokenKind::Punctuator(Punctuator::Assign) {
                         <span class="prelude-val">Some</span>(
-                            <span class="ident">Initializer::new</span>(
-                                <span class="prelude-val">Some</span>(<span class="ident">ident</span>),
-                                <span class="self">self</span>.<span class="ident">allow_in</span>,
-                                <span class="self">self</span>.<span class="ident">allow_yield</span>,
-                                <span class="self">self</span>.<span class="ident">allow_await</span>,
+                            Initializer::new(
+                                <span class="prelude-val">Some</span>(ident),
+                                <span class="self">self</span>.allow_in,
+                                <span class="self">self</span>.allow_yield,
+                                <span class="self">self</span>.allow_await,
                             )
-                            .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>,
+                            .parse(cursor, interner)<span class="question-mark">?</span>,
                         )
-                    } <span class="kw">else</span> {
-                        <span class="prelude-val">None</span>
-                    }
-                } <span class="kw">else</span> {
-                    <span class="prelude-val">None</span>
-                };
-                <span class="prelude-val">Ok</span>(<span class="ident">Variable::from_identifier</span>(<span class="ident">ident</span>, <span class="ident">init</span>))
+                    } <span class="kw">else </span>{
+                        <span class="prelude-val">None
+                    </span>}
+                } <span class="kw">else </span>{
+                    <span class="prelude-val">None
+                </span>};
+                <span class="prelude-val">Ok</span>(Variable::from_identifier(ident, init))
             }
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0 (a55dd71d5 2022-09-19)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0 (897e37553 2022-11-02)" ></div></body></html>

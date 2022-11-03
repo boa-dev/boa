@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_interner/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../boa_interner/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../boa_interner/index.html"><div class="logo-container">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_interner/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../boa_interner/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../boa_interner/index.html"><div class="logo-container">
                     <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../boa_interner/index.html">
                         <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -431,436 +431,436 @@
 <span id="429">429</span>
 <span id="430">430</span>
 <span id="431">431</span>
-</pre><pre class="rust"><code><span class="doccomment">//! String interner for Boa.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! The idea behind using a string interner is that in most of the code, strings such as</span>
-<span class="doccomment">//! identifiers and literals are often repeated. This causes extra burden when comparing them and</span>
-<span class="doccomment">//! storing them. A string interner stores a unique `usize` symbol for each string, making sure</span>
-<span class="doccomment">//! that there are no duplicates. This makes it much easier to compare, since it&#39;s just comparing</span>
-<span class="doccomment">//! to `usize`, and also it&#39;s easier to store, since instead of a heap-allocated string, you only</span>
-<span class="doccomment">//! need to store a `usize`. This reduces memory consumption and improves performance in the</span>
-<span class="doccomment">//! compiler.</span>
+</pre><pre class="rust"><code><span class="doccomment">//! String interner for Boa.
+//!
+//! The idea behind using a string interner is that in most of the code, strings such as
+//! identifiers and literals are often repeated. This causes extra burden when comparing them and
+//! storing them. A string interner stores a unique `usize` symbol for each string, making sure
+//! that there are no duplicates. This makes it much easier to compare, since it&#39;s just comparing
+//! to `usize`, and also it&#39;s easier to store, since instead of a heap-allocated string, you only
+//! need to store a `usize`. This reduces memory consumption and improves performance in the
+//! compiler.
 
-<span class="attribute">#![<span class="ident">doc</span>(
-    <span class="ident">html_logo_url</span> <span class="op">=</span> <span class="string">&quot;https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg&quot;</span>,
-    <span class="ident">html_favicon_url</span> <span class="op">=</span> <span class="string">&quot;https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg&quot;</span>
-)]</span>
-<span class="attribute">#![<span class="ident">cfg_attr</span>(<span class="ident">not</span>(<span class="ident">test</span>), <span class="ident">forbid</span>(<span class="ident">clippy::unwrap_used</span>))]</span>
-<span class="attribute">#![<span class="ident">warn</span>(
-    <span class="ident">clippy::perf</span>,
-    <span class="ident">clippy::single_match_else</span>,
-    <span class="ident">clippy::dbg_macro</span>,
-    <span class="ident">clippy::doc_markdown</span>,
-    <span class="ident">clippy::wildcard_imports</span>,
-    <span class="ident">clippy::struct_excessive_bools</span>,
-    <span class="ident">clippy::doc_markdown</span>,
-    <span class="ident">clippy::semicolon_if_nothing_returned</span>,
-    <span class="ident">clippy::pedantic</span>
-)]</span>
-<span class="attribute">#![<span class="ident">deny</span>(
-    <span class="ident">clippy::all</span>,
-    <span class="ident">clippy::cast_lossless</span>,
-    <span class="ident">clippy::redundant_closure_for_method_calls</span>,
-    <span class="ident">clippy::use_self</span>,
-    <span class="ident">clippy::unnested_or_patterns</span>,
-    <span class="ident">clippy::trivially_copy_pass_by_ref</span>,
-    <span class="ident">clippy::needless_pass_by_value</span>,
-    <span class="ident">clippy::match_wildcard_for_single_variants</span>,
-    <span class="ident">clippy::map_unwrap_or</span>,
-    <span class="ident">unused_qualifications</span>,
-    <span class="ident">unused_import_braces</span>,
-    <span class="ident">unused_lifetimes</span>,
-    <span class="ident">unreachable_pub</span>,
-    <span class="ident">trivial_numeric_casts</span>,
-    <span class="comment">// rustdoc,</span>
-    <span class="ident">missing_debug_implementations</span>,
-    <span class="ident">missing_copy_implementations</span>,
-    <span class="ident">deprecated_in_future</span>,
-    <span class="ident">meta_variable_misuse</span>,
-    <span class="ident">non_ascii_idents</span>,
-    <span class="ident">rust_2018_compatibility</span>,
-    <span class="ident">rust_2018_idioms</span>,
-    <span class="ident">future_incompatible</span>,
-    <span class="ident">nonstandard_style</span>,
-    <span class="ident">unsafe_op_in_unsafe_fn</span>
-)]</span>
-<span class="attribute">#![<span class="ident">allow</span>(
-    <span class="ident">clippy::module_name_repetitions</span>,
-    <span class="ident">clippy::cast_possible_truncation</span>,
-    <span class="ident">clippy::cast_sign_loss</span>,
-    <span class="ident">clippy::cast_precision_loss</span>,
-    <span class="ident">clippy::cast_possible_wrap</span>,
-    <span class="ident">clippy::cast_ptr_alignment</span>,
-    <span class="ident">clippy::missing_panics_doc</span>,
-    <span class="ident">clippy::too_many_lines</span>,
-    <span class="ident">clippy::unreadable_literal</span>,
-    <span class="ident">clippy::missing_inline_in_public_items</span>,
-    <span class="ident">clippy::cognitive_complexity</span>,
-    <span class="ident">clippy::must_use_candidate</span>,
-    <span class="ident">clippy::missing_errors_doc</span>,
-    <span class="ident">clippy::as_conversions</span>,
-    <span class="ident">clippy::let_unit_value</span>,
-    <span class="comment">// TODO deny once false positive is fixed (https://github.com/rust-lang/rust-clippy/issues/9626).</span>
-    <span class="ident">clippy::trait_duplication_in_bounds</span>,
-    <span class="ident">rustdoc::missing_doc_code_examples</span>,
-)]</span>
+</span><span class="attribute">#![doc(
+    html_logo_url = <span class="string">&quot;https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg&quot;</span>,
+    html_favicon_url = <span class="string">&quot;https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg&quot;
+</span>)]
+#![cfg_attr(not(test), forbid(clippy::unwrap_used))]
+#![warn(
+    clippy::perf,
+    clippy::single_match_else,
+    clippy::dbg_macro,
+    clippy::doc_markdown,
+    clippy::wildcard_imports,
+    clippy::struct_excessive_bools,
+    clippy::doc_markdown,
+    clippy::semicolon_if_nothing_returned,
+    clippy::pedantic
+)]
+#![deny(
+    clippy::all,
+    clippy::cast_lossless,
+    clippy::redundant_closure_for_method_calls,
+    clippy::use_self,
+    clippy::unnested_or_patterns,
+    clippy::trivially_copy_pass_by_ref,
+    clippy::needless_pass_by_value,
+    clippy::match_wildcard_for_single_variants,
+    clippy::map_unwrap_or,
+    unused_qualifications,
+    unused_import_braces,
+    unused_lifetimes,
+    unreachable_pub,
+    trivial_numeric_casts,
+    <span class="comment">// rustdoc,
+    </span>missing_debug_implementations,
+    missing_copy_implementations,
+    deprecated_in_future,
+    meta_variable_misuse,
+    non_ascii_idents,
+    rust_2018_compatibility,
+    rust_2018_idioms,
+    future_incompatible,
+    nonstandard_style,
+    unsafe_op_in_unsafe_fn
+)]
+#![allow(
+    clippy::module_name_repetitions,
+    clippy::cast_possible_truncation,
+    clippy::cast_sign_loss,
+    clippy::cast_precision_loss,
+    clippy::cast_possible_wrap,
+    clippy::cast_ptr_alignment,
+    clippy::missing_panics_doc,
+    clippy::too_many_lines,
+    clippy::unreadable_literal,
+    clippy::missing_inline_in_public_items,
+    clippy::cognitive_complexity,
+    clippy::must_use_candidate,
+    clippy::missing_errors_doc,
+    clippy::as_conversions,
+    clippy::let_unit_value,
+    <span class="comment">// TODO deny once false positive is fixed (https://github.com/rust-lang/rust-clippy/issues/9626).
+    </span>clippy::trait_duplication_in_bounds,
+    rustdoc::missing_doc_code_examples,
+)]
 
-<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">static_assertions</span> <span class="kw">as</span> <span class="ident">sa</span>;
+</span><span class="kw">extern crate </span>static_assertions <span class="kw">as </span>sa;
 
-<span class="kw">mod</span> <span class="ident">fixed_string</span>;
-<span class="kw">mod</span> <span class="ident">interned_str</span>;
-<span class="kw">mod</span> <span class="ident">raw</span>;
-<span class="kw">mod</span> <span class="ident">sym</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span>;
+<span class="kw">mod </span>fixed_string;
+<span class="kw">mod </span>interned_str;
+<span class="kw">mod </span>raw;
+<span class="kw">mod </span>sym;
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>tests;
 
-<span class="kw">use</span> <span class="ident">std::borrow::Cow</span>;
+<span class="kw">use </span>std::borrow::Cow;
 
-<span class="kw">use</span> <span class="ident">raw::RawInterner</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">sym</span>::<span class="kw-2">*</span>;
+<span class="kw">use </span>raw::RawInterner;
+<span class="kw">pub use </span>sym::<span class="kw-2">*</span>;
 
-<span class="doccomment">/// An enumeration of all slice types [`Interner`] can internally store.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This struct allows us to intern either `UTF-8` or `UTF-16` str references, which are the two</span>
-<span class="doccomment">/// encodings [`Interner`] can store.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">JStrRef</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="ident">Utf8</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>),
-    <span class="ident">Utf16</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">u16</span>]),
+<span class="doccomment">/// An enumeration of all slice types [`Interner`] can internally store.
+///
+/// This struct allows us to intern either `UTF-8` or `UTF-16` str references, which are the two
+/// encodings [`Interner`] can store.
+</span><span class="attribute">#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+</span><span class="kw">pub enum </span>JStrRef&lt;<span class="lifetime">&#39;a</span>&gt; {
+    Utf8(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str),
+    Utf16(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u16]),
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">JStrRef</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">JStrRef::Utf8</span>(<span class="ident">s</span>)
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str&gt; <span class="kw">for </span>JStrRef&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">fn </span>from(s: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str) -&gt; <span class="self">Self </span>{
+        JStrRef::Utf8(s)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">u16</span>]<span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">JStrRef</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">u16</span>]) -&gt; <span class="self">Self</span> {
-        <span class="ident">JStrRef::Utf16</span>(<span class="ident">s</span>)
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u16]&gt; <span class="kw">for </span>JStrRef&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">fn </span>from(s: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u16]) -&gt; <span class="self">Self </span>{
+        JStrRef::Utf16(s)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="kw">const</span> <span class="ident">N</span>: <span class="ident">usize</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">u16</span>; <span class="ident">N</span>]<span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">JStrRef</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">u16</span>; <span class="ident">N</span>]) -&gt; <span class="self">Self</span> {
-        <span class="ident">JStrRef::Utf16</span>(<span class="ident">s</span>)
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="kw">const </span>N: usize&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u16; N]&gt; <span class="kw">for </span>JStrRef&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">fn </span>from(s: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u16; N]) -&gt; <span class="self">Self </span>{
+        JStrRef::Utf16(s)
     }
 }
 
-<span class="doccomment">/// A double reference to an interned string inside [`Interner`].</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [`JSInternedStrRef::utf8`] returns an [`Option`], since not every `UTF-16` string is fully</span>
-<span class="doccomment">/// representable as a `UTF-8` string (because of unpaired surrogates). However, every `UTF-8`</span>
-<span class="doccomment">/// string is representable as a `UTF-16` string, so `JSInternedStrRef::utf8` returns a</span>
-<span class="doccomment">/// [&lt;code&gt;&amp;\[u16\]&lt;/code&gt;][std::slice].</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">JSInternedStrRef</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span><span class="op">&gt;</span> {
-    <span class="ident">utf8</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span><span class="op">&gt;</span>,
-    <span class="ident">utf16</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> [<span class="ident">u16</span>],
+<span class="doccomment">/// A double reference to an interned string inside [`Interner`].
+///
+/// [`JSInternedStrRef::utf8`] returns an [`Option`], since not every `UTF-16` string is fully
+/// representable as a `UTF-8` string (because of unpaired surrogates). However, every `UTF-8`
+/// string is representable as a `UTF-16` string, so `JSInternedStrRef::utf8` returns a
+/// [&lt;code&gt;&amp;\[u16\]&lt;/code&gt;][std::slice].
+</span><span class="attribute">#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+</span><span class="kw">pub struct </span>JSInternedStrRef&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>&gt; {
+    utf8: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str&gt;,
+    utf16: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>[u16],
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span><span class="op">&gt;</span> <span class="ident">JSInternedStrRef</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Returns the inner reference to the interned string in `UTF-8` encoding.</span>
-    <span class="doccomment">/// if the string is not representable in `UTF-8`, returns [`None`]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">utf8</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">utf8</span>
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>&gt; JSInternedStrRef&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>&gt; {
+    <span class="doccomment">/// Returns the inner reference to the interned string in `UTF-8` encoding.
+    /// if the string is not representable in `UTF-8`, returns [`None`]
+    </span><span class="kw">pub fn </span>utf8(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str&gt; {
+        <span class="self">self</span>.utf8
     }
 
-    <span class="doccomment">/// Returns the inner reference to the interned string in `UTF-16` encoding.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">utf16</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> [<span class="ident">u16</span>] {
-        <span class="self">self</span>.<span class="ident">utf16</span>
+    <span class="doccomment">/// Returns the inner reference to the interned string in `UTF-16` encoding.
+    </span><span class="kw">pub fn </span>utf16(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>[u16] {
+        <span class="self">self</span>.utf16
     }
 
-    <span class="doccomment">/// Joins the result of both possible strings into a common type.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If `self` is representable by a `UTF-8` string and the `prioritize_utf8` argument is set,</span>
-    <span class="doccomment">/// it will prioritize calling `f`, and will only call `g` if `self` is only representable by a</span>
-    <span class="doccomment">/// `UTF-16` string. Otherwise, it will directly call `g`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">join</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">G</span>, <span class="ident">T</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>, <span class="ident">g</span>: <span class="ident">G</span>, <span class="ident">prioritize_utf8</span>: <span class="ident">bool</span>) -&gt; <span class="ident">T</span>
-    <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>) -&gt; <span class="ident">T</span>,
-        <span class="ident">G</span>: <span class="ident">FnOnce</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> [<span class="ident">u16</span>]) -&gt; <span class="ident">T</span>,
+    <span class="doccomment">/// Joins the result of both possible strings into a common type.
+    ///
+    /// If `self` is representable by a `UTF-8` string and the `prioritize_utf8` argument is set,
+    /// it will prioritize calling `f`, and will only call `g` if `self` is only representable by a
+    /// `UTF-16` string. Otherwise, it will directly call `g`.
+    </span><span class="kw">pub fn </span>join&lt;F, G, T&gt;(<span class="self">self</span>, f: F, g: G, prioritize_utf8: bool) -&gt; T
+    <span class="kw">where
+        </span>F: FnOnce(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str) -&gt; T,
+        G: FnOnce(<span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>[u16]) -&gt; T,
     {
-        <span class="kw">if</span> <span class="ident">prioritize_utf8</span> {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">str</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">utf8</span> {
-                <span class="kw">return</span> <span class="ident">f</span>(<span class="ident">str</span>);
+        <span class="kw">if </span>prioritize_utf8 {
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(str) = <span class="self">self</span>.utf8 {
+                <span class="kw">return </span>f(str);
             }
         }
-        <span class="ident">g</span>(<span class="self">self</span>.<span class="ident">utf16</span>)
+        g(<span class="self">self</span>.utf16)
     }
 
-    <span class="doccomment">/// Same as [`join`][`JSInternedStrRef::join`], but where you can pass an additional context.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Useful when you have a `&amp;mut Context` context that cannot be borrowed by both closures at</span>
-    <span class="doccomment">/// the same time.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">join_with_context</span><span class="op">&lt;</span><span class="ident">C</span>, <span class="ident">F</span>, <span class="ident">G</span>, <span class="ident">T</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>, <span class="ident">g</span>: <span class="ident">G</span>, <span class="ident">ctx</span>: <span class="ident">C</span>, <span class="ident">prioritize_utf8</span>: <span class="ident">bool</span>) -&gt; <span class="ident">T</span>
-    <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>, <span class="ident">C</span>) -&gt; <span class="ident">T</span>,
-        <span class="ident">G</span>: <span class="ident">FnOnce</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> [<span class="ident">u16</span>], <span class="ident">C</span>) -&gt; <span class="ident">T</span>,
+    <span class="doccomment">/// Same as [`join`][`JSInternedStrRef::join`], but where you can pass an additional context.
+    ///
+    /// Useful when you have a `&amp;mut Context` context that cannot be borrowed by both closures at
+    /// the same time.
+    </span><span class="kw">pub fn </span>join_with_context&lt;C, F, G, T&gt;(<span class="self">self</span>, f: F, g: G, ctx: C, prioritize_utf8: bool) -&gt; T
+    <span class="kw">where
+        </span>F: FnOnce(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str, C) -&gt; T,
+        G: FnOnce(<span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>[u16], C) -&gt; T,
     {
-        <span class="kw">if</span> <span class="ident">prioritize_utf8</span> {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">str</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">utf8</span> {
-                <span class="kw">return</span> <span class="ident">f</span>(<span class="ident">str</span>, <span class="ident">ctx</span>);
+        <span class="kw">if </span>prioritize_utf8 {
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(str) = <span class="self">self</span>.utf8 {
+                <span class="kw">return </span>f(str, ctx);
             }
         }
-        <span class="ident">g</span>(<span class="self">self</span>.<span class="ident">utf16</span>, <span class="ident">ctx</span>)
+        g(<span class="self">self</span>.utf16, ctx)
     }
 
-    <span class="doccomment">/// Converts both string types into a common type `C`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If `self` is representable by a `UTF-8` string and the `prioritize_utf8` argument is set, it</span>
-    <span class="doccomment">/// will prioritize converting its `UTF-8` representation first, and will only convert its</span>
-    <span class="doccomment">/// `UTF-16` representation if it is only representable by a `UTF-16` string. Otherwise, it will</span>
-    <span class="doccomment">/// directly convert its `UTF-16` representation.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_common</span><span class="op">&lt;</span><span class="ident">C</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">prioritize_utf8</span>: <span class="ident">bool</span>) -&gt; <span class="ident">C</span>
-    <span class="kw">where</span>
-        <span class="ident">C</span>: <span class="ident">From</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">From</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> [<span class="ident">u16</span>]<span class="op">&gt;</span>,
+    <span class="doccomment">/// Converts both string types into a common type `C`.
+    ///
+    /// If `self` is representable by a `UTF-8` string and the `prioritize_utf8` argument is set, it
+    /// will prioritize converting its `UTF-8` representation first, and will only convert its
+    /// `UTF-16` representation if it is only representable by a `UTF-16` string. Otherwise, it will
+    /// directly convert its `UTF-16` representation.
+    </span><span class="kw">pub fn </span>into_common&lt;C&gt;(<span class="self">self</span>, prioritize_utf8: bool) -&gt; C
+    <span class="kw">where
+        </span>C: From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str&gt; + From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>[u16]&gt;,
     {
-        <span class="self">self</span>.<span class="ident">join</span>(<span class="ident">Into::into</span>, <span class="ident">Into::into</span>, <span class="ident">prioritize_utf8</span>)
+        <span class="self">self</span>.join(Into::into, Into::into, prioritize_utf8)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span><span class="op">&gt;</span> <span class="ident">std::fmt::Display</span> <span class="kw">for</span> <span class="ident">JSInternedStrRef</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">std::fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">std::fmt::Result</span> {
-        <span class="self">self</span>.<span class="ident">join_with_context</span>(
-            <span class="ident">std::fmt::Display::fmt</span>,
-            <span class="op">|</span><span class="ident">js</span>, <span class="ident">f</span><span class="op">|</span> {
-                <span class="ident">char::decode_utf16</span>(<span class="ident">js</span>.<span class="ident">iter</span>().<span class="ident">copied</span>())
-                    .<span class="ident">map</span>(<span class="op">|</span><span class="ident">r</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">r</span> {
-                        <span class="prelude-val">Ok</span>(<span class="ident">c</span>) =&gt; <span class="ident">String::from</span>(<span class="ident">c</span>),
-                        <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; <span class="macro">format!</span>(<span class="string">&quot;\\u{:04X}&quot;</span>, <span class="ident">e</span>.<span class="ident">unpaired_surrogate</span>()),
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>&gt; std::fmt::Display <span class="kw">for </span>JSInternedStrRef&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
+        <span class="self">self</span>.join_with_context(
+            std::fmt::Display::fmt,
+            |js, f| {
+                char::decode_utf16(js.iter().copied())
+                    .map(|r| <span class="kw">match </span>r {
+                        <span class="prelude-val">Ok</span>(c) =&gt; String::from(c),
+                        <span class="prelude-val">Err</span>(e) =&gt; <span class="macro">format!</span>(<span class="string">&quot;\\u{:04X}&quot;</span>, e.unpaired_surrogate()),
                     })
-                    .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>()
-                    .<span class="ident">fmt</span>(<span class="ident">f</span>)
+                    .collect::&lt;String&gt;()
+                    .fmt(f)
             },
-            <span class="ident">f</span>,
+            f,
             <span class="bool-val">true</span>,
         )
     }
 }
 
-<span class="doccomment">/// The string interner for Boa.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Default</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Interner</span> {
-    <span class="ident">utf8_interner</span>: <span class="ident">RawInterner</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
-    <span class="ident">utf16_interner</span>: <span class="ident">RawInterner</span><span class="op">&lt;</span><span class="ident">u16</span><span class="op">&gt;</span>,
+<span class="doccomment">/// The string interner for Boa.
+</span><span class="attribute">#[derive(Debug, Default)]
+</span><span class="kw">pub struct </span>Interner {
+    utf8_interner: RawInterner&lt;u8&gt;,
+    utf16_interner: RawInterner&lt;u16&gt;,
 }
 
-<span class="kw">impl</span> <span class="ident">Interner</span> {
-    <span class="doccomment">/// Creates a new [`Interner`].</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::default</span>()
+<span class="kw">impl </span>Interner {
+    <span class="doccomment">/// Creates a new [`Interner`].
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::default()
     }
 
-    <span class="doccomment">/// Creates a new [`Interner`] with the specified capacity.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_capacity</span>(<span class="ident">capacity</span>: <span class="ident">usize</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">utf8_interner</span>: <span class="ident">RawInterner::with_capacity</span>(<span class="ident">capacity</span>),
-            <span class="ident">utf16_interner</span>: <span class="ident">RawInterner::with_capacity</span>(<span class="ident">capacity</span>),
+    <span class="doccomment">/// Creates a new [`Interner`] with the specified capacity.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>with_capacity(capacity: usize) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            utf8_interner: RawInterner::with_capacity(capacity),
+            utf16_interner: RawInterner::with_capacity(capacity),
         }
     }
 
-    <span class="doccomment">/// Returns the number of strings interned by the interner.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span> {
-        <span class="comment">// `utf16_interner.len()` == `utf8_interner.len()`,</span>
-        <span class="comment">// so we can use any of them.</span>
-        <span class="ident">COMMON_STRINGS_UTF8</span>.<span class="ident">len</span>() <span class="op">+</span> <span class="self">self</span>.<span class="ident">utf16_interner</span>.<span class="ident">len</span>()
+    <span class="doccomment">/// Returns the number of strings interned by the interner.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="comment">// `utf16_interner.len()` == `utf8_interner.len()`,
+        // so we can use any of them.
+        </span>COMMON_STRINGS_UTF8.len() + <span class="self">self</span>.utf16_interner.len()
     }
 
-    <span class="doccomment">/// Returns `true` if the [`Interner`] contains no interned strings.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_empty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="ident">COMMON_STRINGS_UTF8</span>.<span class="ident">is_empty</span>() <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">utf16_interner</span>.<span class="ident">is_empty</span>()
+    <span class="doccomment">/// Returns `true` if the [`Interner`] contains no interned strings.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        COMMON_STRINGS_UTF8.is_empty() &amp;&amp; <span class="self">self</span>.utf16_interner.is_empty()
     }
 
-    <span class="doccomment">/// Returns the symbol for the given string if any.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Can be used to query if a string has already been interned without interning.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">string</span>: <span class="ident">T</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Sym</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">T</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">JStrRef</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// Returns the symbol for the given string if any.
+    ///
+    /// Can be used to query if a string has already been interned without interning.
+    </span><span class="kw">pub fn </span>get&lt;<span class="lifetime">&#39;a</span>, T&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, string: T) -&gt; <span class="prelude-ty">Option</span>&lt;Sym&gt;
+    <span class="kw">where
+        </span>T: Into&lt;JStrRef&lt;<span class="lifetime">&#39;a</span>&gt;&gt;,
     {
-        <span class="kw">let</span> <span class="ident">string</span> <span class="op">=</span> <span class="ident">string</span>.<span class="ident">into</span>();
-        <span class="ident"><span class="self">Self</span>::get_common</span>(<span class="ident">string</span>).<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> {
-            <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">string</span> {
-                <span class="ident">JStrRef::Utf8</span>(<span class="ident">s</span>) =&gt; <span class="self">self</span>.<span class="ident">utf8_interner</span>.<span class="ident">get</span>(<span class="ident">s</span>.<span class="ident">as_bytes</span>()),
-                <span class="ident">JStrRef::Utf16</span>(<span class="ident">s</span>) =&gt; <span class="self">self</span>.<span class="ident">utf16_interner</span>.<span class="ident">get</span>(<span class="ident">s</span>),
+        <span class="kw">let </span>string = string.into();
+        <span class="self">Self</span>::get_common(string).or_else(|| {
+            <span class="kw">let </span>index = <span class="kw">match </span>string {
+                JStrRef::Utf8(s) =&gt; <span class="self">self</span>.utf8_interner.get(s.as_bytes()),
+                JStrRef::Utf16(s) =&gt; <span class="self">self</span>.utf16_interner.get(s),
             };
-            <span class="comment">// SAFETY:</span>
-            <span class="comment">// `get_or_intern/get_or_intern_static` already have checks to avoid returning indices</span>
-            <span class="comment">// that could cause overflows, meaning the indices returned by</span>
-            <span class="comment">// `idx + 1 + COMMON_STRINGS_UTF8.len()` cannot cause overflows.</span>
-            <span class="kw">unsafe</span> { <span class="ident">index</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">i</span><span class="op">|</span> <span class="ident">Sym::new_unchecked</span>(<span class="ident">i</span> <span class="op">+</span> <span class="number">1</span> <span class="op">+</span> <span class="ident">COMMON_STRINGS_UTF8</span>.<span class="ident">len</span>())) }
+            <span class="comment">// SAFETY:
+            // `get_or_intern/get_or_intern_static` already have checks to avoid returning indices
+            // that could cause overflows, meaning the indices returned by
+            // `idx + 1 + COMMON_STRINGS_UTF8.len()` cannot cause overflows.
+            </span><span class="kw">unsafe </span>{ index.map(|i| Sym::new_unchecked(i + <span class="number">1 </span>+ COMMON_STRINGS_UTF8.len())) }
         })
     }
 
-    <span class="doccomment">/// Interns the given string.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Returns a symbol for resolution into the original string.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Panics</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If the interner already interns the maximum number of strings possible by the chosen symbol type.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_or_intern</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">string</span>: <span class="ident">T</span>) -&gt; <span class="ident">Sym</span>
-    <span class="kw">where</span>
-        <span class="ident">T</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">JStrRef</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// Interns the given string.
+    ///
+    /// Returns a symbol for resolution into the original string.
+    ///
+    /// # Panics
+    ///
+    /// If the interner already interns the maximum number of strings possible by the chosen symbol type.
+    </span><span class="kw">pub fn </span>get_or_intern&lt;<span class="lifetime">&#39;a</span>, T&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, string: T) -&gt; Sym
+    <span class="kw">where
+        </span>T: Into&lt;JStrRef&lt;<span class="lifetime">&#39;a</span>&gt;&gt;,
     {
-        <span class="kw">let</span> <span class="ident">string</span> <span class="op">=</span> <span class="ident">string</span>.<span class="ident">into</span>();
-        <span class="self">self</span>.<span class="ident">get</span>(<span class="ident">string</span>).<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-            <span class="kw">let</span> (<span class="ident">utf8</span>, <span class="ident">utf16</span>) <span class="op">=</span> <span class="kw">match</span> <span class="ident">string</span> {
-                <span class="ident">JStrRef::Utf8</span>(<span class="ident">s</span>) =&gt; (
-                    <span class="prelude-val">Some</span>(<span class="ident">Cow::Borrowed</span>(<span class="ident">s</span>)),
-                    <span class="ident">Cow::Owned</span>(<span class="ident">s</span>.<span class="ident">encode_utf16</span>().<span class="ident">collect</span>()),
+        <span class="kw">let </span>string = string.into();
+        <span class="self">self</span>.get(string).unwrap_or_else(|| {
+            <span class="kw">let </span>(utf8, utf16) = <span class="kw">match </span>string {
+                JStrRef::Utf8(s) =&gt; (
+                    <span class="prelude-val">Some</span>(Cow::Borrowed(s)),
+                    Cow::Owned(s.encode_utf16().collect()),
                 ),
-                <span class="ident">JStrRef::Utf16</span>(<span class="ident">s</span>) =&gt; (<span class="ident">String::from_utf16</span>(<span class="ident">s</span>).<span class="ident">ok</span>().<span class="ident">map</span>(<span class="ident">Cow::Owned</span>), <span class="ident">Cow::Borrowed</span>(<span class="ident">s</span>)),
+                JStrRef::Utf16(s) =&gt; (String::from_utf16(s).ok().map(Cow::Owned), Cow::Borrowed(s)),
             };
 
-            <span class="comment">// We need a way to check for the strings that can be interned by `utf16_interner` but</span>
-            <span class="comment">// not by `utf8_interner` (since there are some UTF-16 strings with surrogates that are</span>
-            <span class="comment">// not representable in UTF-8), so we use the sentinel value `&quot;&quot;` as a marker indicating</span>
-            <span class="comment">// that the `Sym` corresponding to that string is only available in `utf16_interner`.</span>
-            <span class="comment">//</span>
-            <span class="comment">// We don&#39;t need to worry about matches with `&quot;&quot;` inside `get`, because</span>
-            <span class="comment">// `COMMON_STRINGS_UTF8` filters all the empty strings before interning.</span>
-            <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">utf8</span>) <span class="op">=</span> <span class="ident">utf8</span> {
-                <span class="self">self</span>.<span class="ident">utf8_interner</span>.<span class="ident">intern</span>(<span class="ident">utf8</span>.<span class="ident">as_bytes</span>())
-            } <span class="kw">else</span> {
-                <span class="self">self</span>.<span class="ident">utf8_interner</span>.<span class="ident">intern_static</span>(<span class="string">b&quot;&quot;</span>)
+            <span class="comment">// We need a way to check for the strings that can be interned by `utf16_interner` but
+            // not by `utf8_interner` (since there are some UTF-16 strings with surrogates that are
+            // not representable in UTF-8), so we use the sentinel value `&quot;&quot;` as a marker indicating
+            // that the `Sym` corresponding to that string is only available in `utf16_interner`.
+            //
+            // We don&#39;t need to worry about matches with `&quot;&quot;` inside `get`, because
+            // `COMMON_STRINGS_UTF8` filters all the empty strings before interning.
+            </span><span class="kw">let </span>index = <span class="kw">if let </span><span class="prelude-val">Some</span>(utf8) = utf8 {
+                <span class="self">self</span>.utf8_interner.intern(utf8.as_bytes())
+            } <span class="kw">else </span>{
+                <span class="self">self</span>.utf8_interner.intern_static(<span class="string">b&quot;&quot;</span>)
             };
 
-            <span class="kw">let</span> <span class="ident">utf16_index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">utf16_interner</span>.<span class="ident">intern</span>(<span class="kw-2">&amp;</span><span class="ident">utf16</span>);
+            <span class="kw">let </span>utf16_index = <span class="self">self</span>.utf16_interner.intern(<span class="kw-2">&amp;</span>utf16);
 
-            <span class="comment">// Just to check everything is okay</span>
-            <span class="macro">assert_eq!</span>(<span class="ident">index</span>, <span class="ident">utf16_index</span>);
+            <span class="comment">// Just to check everything is okay
+            </span><span class="macro">assert_eq!</span>(index, utf16_index);
 
-            <span class="ident">index</span>
-                .<span class="ident">checked_add</span>(<span class="number">1</span> <span class="op">+</span> <span class="ident">COMMON_STRINGS_UTF8</span>.<span class="ident">len</span>())
-                .<span class="ident">and_then</span>(<span class="ident">Sym::new</span>)
-                .<span class="ident">expect</span>(<span class="string">&quot;Cannot intern new string: integer overflow&quot;</span>)
+            index
+                .checked_add(<span class="number">1 </span>+ COMMON_STRINGS_UTF8.len())
+                .and_then(Sym::new)
+                .expect(<span class="string">&quot;Cannot intern new string: integer overflow&quot;</span>)
         })
     }
 
-    <span class="doccomment">/// Interns the given `&#39;static` string.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Returns a symbol for resolution into the original string.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Note</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This is more efficient than [`Interner::get_or_intern`], since it avoids allocating space</span>
-    <span class="doccomment">/// for one `string` inside the [`Interner`], with the disadvantage that you need to provide</span>
-    <span class="doccomment">/// both the `UTF-8` and the `UTF-16` representation of the string.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Panics</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If the interner already interns the maximum number of strings possible by the chosen symbol type.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_or_intern_static</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">utf8</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>, <span class="ident">utf16</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> [<span class="ident">u16</span>]) -&gt; <span class="ident">Sym</span> {
-        <span class="comment">// Uses the utf8 because it&#39;s quicker to check inside `COMMON_STRINGS_UTF8`</span>
-        <span class="comment">// (which is a perfect hash set) than to check inside `COMMON_STRINGS_UTF16`</span>
-        <span class="comment">// (which is a lazy static hash set).</span>
-        <span class="self">self</span>.<span class="ident">get</span>(<span class="ident">utf8</span>).<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-            <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">utf8_interner</span>.<span class="ident">intern</span>(<span class="ident">utf8</span>.<span class="ident">as_bytes</span>());
-            <span class="kw">let</span> <span class="ident">utf16_index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">utf16_interner</span>.<span class="ident">intern</span>(<span class="ident">utf16</span>);
+    <span class="doccomment">/// Interns the given `&#39;static` string.
+    ///
+    /// Returns a symbol for resolution into the original string.
+    ///
+    /// # Note
+    ///
+    /// This is more efficient than [`Interner::get_or_intern`], since it avoids allocating space
+    /// for one `string` inside the [`Interner`], with the disadvantage that you need to provide
+    /// both the `UTF-8` and the `UTF-16` representation of the string.
+    ///
+    /// # Panics
+    ///
+    /// If the interner already interns the maximum number of strings possible by the chosen symbol type.
+    </span><span class="kw">pub fn </span>get_or_intern_static(<span class="kw-2">&amp;mut </span><span class="self">self</span>, utf8: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str, utf16: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[u16]) -&gt; Sym {
+        <span class="comment">// Uses the utf8 because it&#39;s quicker to check inside `COMMON_STRINGS_UTF8`
+        // (which is a perfect hash set) than to check inside `COMMON_STRINGS_UTF16`
+        // (which is a lazy static hash set).
+        </span><span class="self">self</span>.get(utf8).unwrap_or_else(|| {
+            <span class="kw">let </span>index = <span class="self">self</span>.utf8_interner.intern(utf8.as_bytes());
+            <span class="kw">let </span>utf16_index = <span class="self">self</span>.utf16_interner.intern(utf16);
 
-            <span class="comment">// Just to check everything is okay</span>
-            <span class="macro">debug_assert_eq!</span>(<span class="ident">index</span>, <span class="ident">utf16_index</span>);
+            <span class="comment">// Just to check everything is okay
+            </span><span class="macro">debug_assert_eq!</span>(index, utf16_index);
 
-            <span class="ident">index</span>
-                .<span class="ident">checked_add</span>(<span class="number">1</span> <span class="op">+</span> <span class="ident">COMMON_STRINGS_UTF8</span>.<span class="ident">len</span>())
-                .<span class="ident">and_then</span>(<span class="ident">Sym::new</span>)
-                .<span class="ident">expect</span>(<span class="string">&quot;Cannot intern new string: integer overflow&quot;</span>)
+            index
+                .checked_add(<span class="number">1 </span>+ COMMON_STRINGS_UTF8.len())
+                .and_then(Sym::new)
+                .expect(<span class="string">&quot;Cannot intern new string: integer overflow&quot;</span>)
         })
     }
 
-    <span class="doccomment">/// Returns the string for the given symbol if any.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">resolve</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">symbol</span>: <span class="ident">Sym</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JSInternedStrRef</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="ident">symbol</span>.<span class="ident">get</span>() <span class="op">-</span> <span class="number">1</span>;
+    <span class="doccomment">/// Returns the string for the given symbol if any.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>resolve(<span class="kw-2">&amp;</span><span class="self">self</span>, symbol: Sym) -&gt; <span class="prelude-ty">Option</span>&lt;JSInternedStrRef&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>&gt;&gt; {
+        <span class="kw">let </span>index = symbol.get() - <span class="number">1</span>;
 
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">utf8</span>) <span class="op">=</span> <span class="ident">COMMON_STRINGS_UTF8</span>.<span class="ident">index</span>(<span class="ident">index</span>).<span class="ident">copied</span>() {
-            <span class="kw">let</span> <span class="ident">utf16</span> <span class="op">=</span> <span class="ident">COMMON_STRINGS_UTF16</span>
-                .<span class="ident">get_index</span>(<span class="ident">index</span>)
-                .<span class="ident">copied</span>()
-                .<span class="ident">expect</span>(<span class="string">&quot;The sizes of both statics must be equal&quot;</span>);
-            <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident">JSInternedStrRef</span> {
-                <span class="ident">utf8</span>: <span class="prelude-val">Some</span>(<span class="ident">utf8</span>),
-                <span class="ident">utf16</span>,
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(utf8) = COMMON_STRINGS_UTF8.index(index).copied() {
+            <span class="kw">let </span>utf16 = COMMON_STRINGS_UTF16
+                .get_index(index)
+                .copied()
+                .expect(<span class="string">&quot;The sizes of both statics must be equal&quot;</span>);
+            <span class="kw">return </span><span class="prelude-val">Some</span>(JSInternedStrRef {
+                utf8: <span class="prelude-val">Some</span>(utf8),
+                utf16,
             });
         }
 
-        <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="ident">index</span> <span class="op">-</span> <span class="ident">COMMON_STRINGS_UTF8</span>.<span class="ident">len</span>();
+        <span class="kw">let </span>index = index - COMMON_STRINGS_UTF8.len();
 
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">utf16</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">utf16_interner</span>.<span class="ident">index</span>(<span class="ident">index</span>) {
-            <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="ident">index</span> <span class="op">-</span> (<span class="self">self</span>.<span class="ident">utf16_interner</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="self">self</span>.<span class="ident">utf8_interner</span>.<span class="ident">len</span>());
-            <span class="comment">// SAFETY:</span>
-            <span class="comment">// We only manipulate valid UTF-8 `str`s and convert them to `[u8]` for convenience,</span>
-            <span class="comment">// so converting back to a `str` is safe.</span>
-            <span class="kw">let</span> <span class="ident">utf8</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-                <span class="ident">std::str::from_utf8_unchecked</span>(
-                    <span class="self">self</span>.<span class="ident">utf8_interner</span>
-                        .<span class="ident">index</span>(<span class="ident">index</span>)
-                        .<span class="ident">expect</span>(<span class="string">&quot;both interners must have the same size&quot;</span>),
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(utf16) = <span class="self">self</span>.utf16_interner.index(index) {
+            <span class="kw">let </span>index = index - (<span class="self">self</span>.utf16_interner.len() - <span class="self">self</span>.utf8_interner.len());
+            <span class="comment">// SAFETY:
+            // We only manipulate valid UTF-8 `str`s and convert them to `[u8]` for convenience,
+            // so converting back to a `str` is safe.
+            </span><span class="kw">let </span>utf8 = <span class="kw">unsafe </span>{
+                std::str::from_utf8_unchecked(
+                    <span class="self">self</span>.utf8_interner
+                        .index(index)
+                        .expect(<span class="string">&quot;both interners must have the same size&quot;</span>),
                 )
             };
-            <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident">JSInternedStrRef</span> {
-                <span class="ident">utf8</span>: <span class="kw">if</span> <span class="ident">utf8</span>.<span class="ident">is_empty</span>() { <span class="prelude-val">None</span> } <span class="kw">else</span> { <span class="prelude-val">Some</span>(<span class="ident">utf8</span>) },
-                <span class="ident">utf16</span>,
+            <span class="kw">return </span><span class="prelude-val">Some</span>(JSInternedStrRef {
+                utf8: <span class="kw">if </span>utf8.is_empty() { <span class="prelude-val">None </span>} <span class="kw">else </span>{ <span class="prelude-val">Some</span>(utf8) },
+                utf16,
             });
         }
 
-        <span class="prelude-val">None</span>
+        <span class="prelude-val">None
+    </span>}
+
+    <span class="doccomment">/// Returns the string for the given symbol.
+    ///
+    /// # Panics
+    ///
+    /// If the interner cannot resolve the given symbol.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>resolve_expect(<span class="kw-2">&amp;</span><span class="self">self</span>, symbol: Sym) -&gt; JSInternedStrRef&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>&gt; {
+        <span class="self">self</span>.resolve(symbol).expect(<span class="string">&quot;string disappeared&quot;</span>)
     }
 
-    <span class="doccomment">/// Returns the string for the given symbol.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Panics</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If the interner cannot resolve the given symbol.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">resolve_expect</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">symbol</span>: <span class="ident">Sym</span>) -&gt; <span class="ident">JSInternedStrRef</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">resolve</span>(<span class="ident">symbol</span>).<span class="ident">expect</span>(<span class="string">&quot;string disappeared&quot;</span>)
-    }
-
-    <span class="doccomment">/// Gets the symbol of the common string if one of them</span>
-    <span class="kw">fn</span> <span class="ident">get_common</span>(<span class="ident">string</span>: <span class="ident">JStrRef</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Sym</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="ident">string</span> {
-            <span class="ident">JStrRef::Utf8</span>(<span class="ident">s</span>) =&gt; <span class="ident">COMMON_STRINGS_UTF8</span>.<span class="ident">get_index</span>(<span class="ident">s</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">idx</span><span class="op">|</span> {
-                <span class="comment">// SAFETY: `idx &gt;= 0`, since it&#39;s an `usize`, and `idx + 1 &gt; 0`.</span>
-                <span class="comment">// In this case, we don&#39;t need to worry about overflows because we have a static</span>
-                <span class="comment">// assertion in place checking that `COMMON_STRINGS.len() &lt; usize::MAX`.</span>
-                <span class="kw">unsafe</span> { <span class="ident">Sym::new_unchecked</span>(<span class="ident">idx</span> <span class="op">+</span> <span class="number">1</span>) }
+    <span class="doccomment">/// Gets the symbol of the common string if one of them
+    </span><span class="kw">fn </span>get_common(string: JStrRef&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;Sym&gt; {
+        <span class="kw">match </span>string {
+            JStrRef::Utf8(s) =&gt; COMMON_STRINGS_UTF8.get_index(s).map(|idx| {
+                <span class="comment">// SAFETY: `idx &gt;= 0`, since it&#39;s an `usize`, and `idx + 1 &gt; 0`.
+                // In this case, we don&#39;t need to worry about overflows because we have a static
+                // assertion in place checking that `COMMON_STRINGS.len() &lt; usize::MAX`.
+                </span><span class="kw">unsafe </span>{ Sym::new_unchecked(idx + <span class="number">1</span>) }
             }),
-            <span class="ident">JStrRef::Utf16</span>(<span class="ident">s</span>) =&gt; <span class="ident">COMMON_STRINGS_UTF16</span>.<span class="ident">get_index_of</span>(<span class="kw-2">&amp;</span><span class="ident">s</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">idx</span><span class="op">|</span> {
-                <span class="comment">// SAFETY: `idx &gt;= 0`, since it&#39;s an `usize`, and `idx + 1 &gt; 0`.</span>
-                <span class="comment">// In this case, we don&#39;t need to worry about overflows because we have a static</span>
-                <span class="comment">// assertion in place checking that `COMMON_STRINGS.len() &lt; usize::MAX`.</span>
-                <span class="kw">unsafe</span> { <span class="ident">Sym::new_unchecked</span>(<span class="ident">idx</span> <span class="op">+</span> <span class="number">1</span>) }
+            JStrRef::Utf16(s) =&gt; COMMON_STRINGS_UTF16.get_index_of(<span class="kw-2">&amp;</span>s).map(|idx| {
+                <span class="comment">// SAFETY: `idx &gt;= 0`, since it&#39;s an `usize`, and `idx + 1 &gt; 0`.
+                // In this case, we don&#39;t need to worry about overflows because we have a static
+                // assertion in place checking that `COMMON_STRINGS.len() &lt; usize::MAX`.
+                </span><span class="kw">unsafe </span>{ Sym::new_unchecked(idx + <span class="number">1</span>) }
             }),
         }
     }
 }
 
-<span class="doccomment">/// Implements the display formatting with indentation.</span>
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">ToIndentedString</span> {
-    <span class="doccomment">/// Converts the element to a string using an interner, with the given indentation.</span>
-    <span class="kw">fn</span> <span class="ident">to_indented_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;</span><span class="ident">Interner</span>, <span class="ident">indentation</span>: <span class="ident">usize</span>) -&gt; <span class="ident">String</span>;
+<span class="doccomment">/// Implements the display formatting with indentation.
+</span><span class="kw">pub trait </span>ToIndentedString {
+    <span class="doccomment">/// Converts the element to a string using an interner, with the given indentation.
+    </span><span class="kw">fn </span>to_indented_string(<span class="kw-2">&amp;</span><span class="self">self</span>, interner: <span class="kw-2">&amp;</span>Interner, indentation: usize) -&gt; String;
 }
 
-<span class="doccomment">/// Converts a given element to a string using an interner.</span>
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">ToInternedString</span> {
-    <span class="doccomment">/// Converts a given element to a string using an interner.</span>
-    <span class="kw">fn</span> <span class="ident">to_interned_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;</span><span class="ident">Interner</span>) -&gt; <span class="ident">String</span>;
+<span class="doccomment">/// Converts a given element to a string using an interner.
+</span><span class="kw">pub trait </span>ToInternedString {
+    <span class="doccomment">/// Converts a given element to a string using an interner.
+    </span><span class="kw">fn </span>to_interned_string(<span class="kw-2">&amp;</span><span class="self">self</span>, interner: <span class="kw-2">&amp;</span>Interner) -&gt; String;
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">ToInternedString</span> <span class="kw">for</span> <span class="ident">T</span>
-<span class="kw">where</span>
-    <span class="ident">T</span>: <span class="ident">ToIndentedString</span>,
+<span class="kw">impl</span>&lt;T&gt; ToInternedString <span class="kw">for </span>T
+<span class="kw">where
+    </span>T: ToIndentedString,
 {
-    <span class="kw">fn</span> <span class="ident">to_interned_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;</span><span class="ident">Interner</span>) -&gt; <span class="ident">String</span> {
-        <span class="self">self</span>.<span class="ident">to_indented_string</span>(<span class="ident">interner</span>, <span class="number">0</span>)
+    <span class="kw">fn </span>to_interned_string(<span class="kw-2">&amp;</span><span class="self">self</span>, interner: <span class="kw-2">&amp;</span>Interner) -&gt; String {
+        <span class="self">self</span>.to_indented_string(interner, <span class="number">0</span>)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="boa_interner" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0 (a55dd71d5 2022-09-19)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="boa_interner" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0 (897e37553 2022-11-02)" ></div></body></html>

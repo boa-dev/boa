@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_engine/src/value/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../boa_engine/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../boa_engine/index.html"><div class="logo-container">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_engine/src/value/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../boa_engine/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../boa_engine/index.html"><div class="logo-container">
                     <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../boa_engine/index.html">
                         <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -1117,1122 +1117,1122 @@
 <span id="1115">1115</span>
 <span id="1116">1116</span>
 <span id="1117">1117</span>
-</pre><pre class="rust"><code><span class="doccomment">//! This module implements the JavaScript Value.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! Javascript values, utility methods and conversion between Javascript values and Rust values.</span>
+</pre><pre class="rust"><code><span class="doccomment">//! This module implements the JavaScript Value.
+//!
+//! Javascript values, utility methods and conversion between Javascript values and Rust values.
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span>;
+</span><span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>tests;
 
-<span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">builtins</span>::{
-        <span class="ident">number</span>::{<span class="ident">f64_to_int32</span>, <span class="ident">f64_to_uint32</span>},
-        <span class="ident">Number</span>,
+<span class="kw">use crate</span>::{
+    builtins::{
+        number::{f64_to_int32, f64_to_uint32},
+        Number,
     },
-    <span class="ident">error::JsNativeError</span>,
-    <span class="ident">js_string</span>,
-    <span class="ident">object</span>::{<span class="ident">JsObject</span>, <span class="ident">ObjectData</span>},
-    <span class="ident">property</span>::{<span class="ident">PropertyDescriptor</span>, <span class="ident">PropertyKey</span>},
-    <span class="ident">symbol</span>::{<span class="ident">JsSymbol</span>, <span class="ident">WellKnownSymbols</span>},
-    <span class="ident">Context</span>, <span class="ident">JsBigInt</span>, <span class="ident">JsResult</span>, <span class="ident">JsString</span>,
+    error::JsNativeError,
+    js_string,
+    object::{JsObject, ObjectData},
+    property::{PropertyDescriptor, PropertyKey},
+    symbol::{JsSymbol, WellKnownSymbols},
+    Context, JsBigInt, JsResult, JsString,
 };
-<span class="kw">use</span> <span class="ident">boa_gc</span>::{<span class="ident">custom_trace</span>, <span class="ident">Finalize</span>, <span class="ident">Trace</span>};
-<span class="kw">use</span> <span class="ident">boa_profiler::Profiler</span>;
-<span class="kw">use</span> <span class="ident">num_bigint::BigInt</span>;
-<span class="kw">use</span> <span class="ident">num_integer::Integer</span>;
-<span class="kw">use</span> <span class="ident">num_traits::Zero</span>;
-<span class="kw">use</span> <span class="ident">once_cell::sync::Lazy</span>;
-<span class="kw">use</span> <span class="ident">std</span>::{
-    <span class="ident">collections::HashSet</span>,
-    <span class="ident">fmt</span>::{<span class="self">self</span>, <span class="ident">Display</span>},
-    <span class="ident">ops::Sub</span>,
+<span class="kw">use </span>boa_gc::{custom_trace, Finalize, Trace};
+<span class="kw">use </span>boa_profiler::Profiler;
+<span class="kw">use </span>num_bigint::BigInt;
+<span class="kw">use </span>num_integer::Integer;
+<span class="kw">use </span>num_traits::Zero;
+<span class="kw">use </span>once_cell::sync::Lazy;
+<span class="kw">use </span>std::{
+    collections::HashSet,
+    fmt::{<span class="self">self</span>, Display},
+    ops::Sub,
 };
 
-<span class="kw">mod</span> <span class="ident">conversions</span>;
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod</span> <span class="ident">display</span>;
-<span class="kw">mod</span> <span class="ident">equality</span>;
-<span class="kw">mod</span> <span class="ident">hash</span>;
-<span class="kw">mod</span> <span class="ident">integer</span>;
-<span class="kw">mod</span> <span class="ident">operations</span>;
-<span class="kw">mod</span> <span class="ident">serde_json</span>;
-<span class="kw">mod</span> <span class="ident">r#type</span>;
+<span class="kw">mod </span>conversions;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>display;
+<span class="kw">mod </span>equality;
+<span class="kw">mod </span>hash;
+<span class="kw">mod </span>integer;
+<span class="kw">mod </span>operations;
+<span class="kw">mod </span>serde_json;
+<span class="kw">mod </span>r#type;
 
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">conversions</span>::<span class="kw-2">*</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">display::ValueDisplay</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">integer::IntegerOrInfinity</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">operations</span>::<span class="kw-2">*</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">r#type</span><span class="ident">::Type</span>;
+<span class="kw">pub use </span>conversions::<span class="kw-2">*</span>;
+<span class="kw">pub use </span>display::ValueDisplay;
+<span class="kw">pub use </span>integer::IntegerOrInfinity;
+<span class="kw">pub use </span>operations::<span class="kw-2">*</span>;
+<span class="kw">pub use </span>r#type::Type;
 
-<span class="kw">static</span> <span class="ident">TWO_E_64</span>: <span class="ident">Lazy</span><span class="op">&lt;</span><span class="ident">BigInt</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Lazy::new</span>(<span class="op">|</span><span class="op">|</span> {
-    <span class="kw">const</span> <span class="ident">TWO_E_64</span>: <span class="ident">u128</span> <span class="op">=</span> <span class="number">2u128</span>.<span class="ident">pow</span>(<span class="number">64</span>);
-    <span class="ident">BigInt::from</span>(<span class="ident">TWO_E_64</span>)
+<span class="kw">static </span>TWO_E_64: Lazy&lt;BigInt&gt; = Lazy::new(|| {
+    <span class="kw">const </span>TWO_E_64: u128 = <span class="number">2u128</span>.pow(<span class="number">64</span>);
+    BigInt::from(TWO_E_64)
 });
 
-<span class="kw">static</span> <span class="ident">TWO_E_63</span>: <span class="ident">Lazy</span><span class="op">&lt;</span><span class="ident">BigInt</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Lazy::new</span>(<span class="op">|</span><span class="op">|</span> {
-    <span class="kw">const</span> <span class="ident">TWO_E_63</span>: <span class="ident">u128</span> <span class="op">=</span> <span class="number">2u128</span>.<span class="ident">pow</span>(<span class="number">63</span>);
-    <span class="ident">BigInt::from</span>(<span class="ident">TWO_E_63</span>)
+<span class="kw">static </span>TWO_E_63: Lazy&lt;BigInt&gt; = Lazy::new(|| {
+    <span class="kw">const </span>TWO_E_63: u128 = <span class="number">2u128</span>.pow(<span class="number">63</span>);
+    BigInt::from(TWO_E_63)
 });
 
-<span class="doccomment">/// A Javascript value</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Finalize</span>, <span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">JsValue</span> {
-    <span class="doccomment">/// `null` - A null value, for when a value doesn&#39;t exist.</span>
-    <span class="ident">Null</span>,
-    <span class="doccomment">/// `undefined` - An undefined value, for when a field or index doesn&#39;t exist.</span>
-    <span class="ident">Undefined</span>,
-    <span class="doccomment">/// `boolean` - A `true` / `false` value, for if a certain criteria is met.</span>
-    <span class="ident">Boolean</span>(<span class="ident">bool</span>),
-    <span class="doccomment">/// `String` - A UTF-16 string, such as `&quot;Hello, world&quot;`.</span>
-    <span class="ident">String</span>(<span class="ident">JsString</span>),
-    <span class="doccomment">/// `Number` - A 64-bit floating point number, such as `3.1415`</span>
-    <span class="ident">Rational</span>(<span class="ident">f64</span>),
-    <span class="doccomment">/// `Number` - A 32-bit integer, such as `42`.</span>
-    <span class="ident">Integer</span>(<span class="ident">i32</span>),
-    <span class="doccomment">/// `BigInt` - holds any arbitrary large signed integer.</span>
-    <span class="ident">BigInt</span>(<span class="ident">JsBigInt</span>),
-    <span class="doccomment">/// `Object` - An object, such as `Math`, represented by a binary tree of string keys to Javascript values.</span>
-    <span class="ident">Object</span>(<span class="ident">JsObject</span>),
-    <span class="doccomment">/// `Symbol` - A Symbol Primitive type.</span>
-    <span class="ident">Symbol</span>(<span class="ident">JsSymbol</span>),
+<span class="doccomment">/// A Javascript value
+</span><span class="attribute">#[derive(Finalize, Debug, Clone)]
+</span><span class="kw">pub enum </span>JsValue {
+    <span class="doccomment">/// `null` - A null value, for when a value doesn&#39;t exist.
+    </span>Null,
+    <span class="doccomment">/// `undefined` - An undefined value, for when a field or index doesn&#39;t exist.
+    </span>Undefined,
+    <span class="doccomment">/// `boolean` - A `true` / `false` value, for if a certain criteria is met.
+    </span>Boolean(bool),
+    <span class="doccomment">/// `String` - A UTF-16 string, such as `&quot;Hello, world&quot;`.
+    </span>String(JsString),
+    <span class="doccomment">/// `Number` - A 64-bit floating point number, such as `3.1415`
+    </span>Rational(f64),
+    <span class="doccomment">/// `Number` - A 32-bit integer, such as `42`.
+    </span>Integer(i32),
+    <span class="doccomment">/// `BigInt` - holds any arbitrary large signed integer.
+    </span>BigInt(JsBigInt),
+    <span class="doccomment">/// `Object` - An object, such as `Math`, represented by a binary tree of string keys to Javascript values.
+    </span>Object(JsObject),
+    <span class="doccomment">/// `Symbol` - A Symbol Primitive type.
+    </span>Symbol(JsSymbol),
 }
 
-<span class="kw">unsafe</span> <span class="kw">impl</span> <span class="ident">Trace</span> <span class="kw">for</span> <span class="ident">JsValue</span> {
-    <span class="macro">custom_trace!</span> {<span class="ident">this</span>, {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="ident"><span class="self">Self</span>::Object</span>(<span class="ident">o</span>) <span class="op">=</span> <span class="ident">this</span> {
-            <span class="ident">mark</span>(<span class="ident">o</span>);
+<span class="kw">unsafe impl </span>Trace <span class="kw">for </span>JsValue {
+    <span class="macro">custom_trace! </span>{this, {
+        <span class="kw">if let </span><span class="self">Self</span>::Object(o) = this {
+            mark(o);
         }
     }}
 }
 
-<span class="kw">impl</span> <span class="ident">JsValue</span> {
-    <span class="doccomment">/// Create a new [`JsValue`].</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">value</span>: <span class="ident">T</span>) -&gt; <span class="self">Self</span>
-    <span class="kw">where</span>
-        <span class="ident">T</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>,
+<span class="kw">impl </span>JsValue {
+    <span class="doccomment">/// Create a new [`JsValue`].
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>new&lt;T&gt;(value: T) -&gt; <span class="self">Self
+    </span><span class="kw">where
+        </span>T: Into&lt;<span class="self">Self</span>&gt;,
     {
-        <span class="ident">value</span>.<span class="ident">into</span>()
+        value.into()
     }
 
-    <span class="doccomment">/// Creates a new `undefined` value.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">undefined</span>() -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::Undefined</span>
+    <span class="doccomment">/// Creates a new `undefined` value.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>undefined() -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::Undefined
     }
 
-    <span class="doccomment">/// Creates a new `null` value.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">null</span>() -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::Null</span>
+    <span class="doccomment">/// Creates a new `null` value.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>null() -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::Null
     }
 
-    <span class="doccomment">/// Creates a new number with `NaN` value.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">nan</span>() -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::Rational</span>(<span class="ident">f64::NAN</span>)
+    <span class="doccomment">/// Creates a new number with `NaN` value.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>nan() -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::Rational(f64::NAN)
     }
 
-    <span class="doccomment">/// Creates a new number with `Infinity` value.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">positive_infinity</span>() -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::Rational</span>(<span class="ident">f64::INFINITY</span>)
+    <span class="doccomment">/// Creates a new number with `Infinity` value.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>positive_infinity() -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::Rational(f64::INFINITY)
     }
 
-    <span class="doccomment">/// Creates a new number with `-Infinity` value.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">negative_infinity</span>() -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::Rational</span>(<span class="ident">f64::NEG_INFINITY</span>)
+    <span class="doccomment">/// Creates a new number with `-Infinity` value.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>negative_infinity() -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::Rational(f64::NEG_INFINITY)
     }
 
-    <span class="doccomment">/// Returns true if the value is an object</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_object</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="ident"><span class="self">Self</span>::Object</span>(<span class="kw">_</span>))
+    <span class="doccomment">/// Returns true if the value is an object
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>is_object(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="self">Self</span>::Object(<span class="kw">_</span>))
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_object</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">JsObject</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident"><span class="self">Self</span>::Object</span>(<span class="kw-2">ref</span> <span class="ident">o</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">o</span>),
-            <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>as_object(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>JsObject&gt; {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+            <span class="self">Self</span>::Object(<span class="kw-2">ref </span>o) =&gt; <span class="prelude-val">Some</span>(o),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         }
     }
 
-    <span class="doccomment">/// It determines if the value is a callable function with a `[[Call]]` internal method.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">/// - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-iscallable</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_callable</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="ident"><span class="self">Self</span>::Object</span>(<span class="ident">obj</span>) <span class="kw">if</span> <span class="ident">obj</span>.<span class="ident">is_callable</span>())
+    <span class="doccomment">/// It determines if the value is a callable function with a `[[Call]]` internal method.
+    ///
+    /// More information:
+    /// - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-iscallable
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>is_callable(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="self">Self</span>::Object(obj) <span class="kw">if </span>obj.is_callable())
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_callable</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">JsObject</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">as_object</span>().<span class="ident">filter</span>(<span class="op">|</span><span class="ident">obj</span><span class="op">|</span> <span class="ident">obj</span>.<span class="ident">is_callable</span>())
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>as_callable(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>JsObject&gt; {
+        <span class="self">self</span>.as_object().filter(|obj| obj.is_callable())
     }
 
-    <span class="doccomment">/// Returns true if the value is a constructor object.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_constructor</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="ident"><span class="self">Self</span>::Object</span>(<span class="ident">obj</span>) <span class="kw">if</span> <span class="ident">obj</span>.<span class="ident">is_constructor</span>())
+    <span class="doccomment">/// Returns true if the value is a constructor object.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>is_constructor(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="self">Self</span>::Object(obj) <span class="kw">if </span>obj.is_constructor())
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_constructor</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">JsObject</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">as_object</span>().<span class="ident">filter</span>(<span class="op">|</span><span class="ident">obj</span><span class="op">|</span> <span class="ident">obj</span>.<span class="ident">is_constructor</span>())
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>as_constructor(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>JsObject&gt; {
+        <span class="self">self</span>.as_object().filter(|obj| obj.is_constructor())
     }
 
-    <span class="doccomment">/// Returns true if the value is a promise object.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_promise</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="ident"><span class="self">Self</span>::Object</span>(<span class="ident">obj</span>) <span class="kw">if</span> <span class="ident">obj</span>.<span class="ident">is_promise</span>())
+    <span class="doccomment">/// Returns true if the value is a promise object.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>is_promise(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="self">Self</span>::Object(obj) <span class="kw">if </span>obj.is_promise())
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_promise</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">JsObject</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">as_object</span>().<span class="ident">filter</span>(<span class="op">|</span><span class="ident">obj</span><span class="op">|</span> <span class="ident">obj</span>.<span class="ident">is_promise</span>())
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>as_promise(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>JsObject&gt; {
+        <span class="self">self</span>.as_object().filter(|obj| obj.is_promise())
     }
 
-    <span class="doccomment">/// Returns true if the value is a symbol.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_symbol</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="ident"><span class="self">Self</span>::Symbol</span>(<span class="kw">_</span>))
+    <span class="doccomment">/// Returns true if the value is a symbol.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>is_symbol(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="self">Self</span>::Symbol(<span class="kw">_</span>))
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_symbol</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JsSymbol</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident"><span class="self">Self</span>::Symbol</span>(<span class="ident">symbol</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">symbol</span>.<span class="ident">clone</span>()),
-            <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
+    <span class="kw">pub fn </span>as_symbol(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;JsSymbol&gt; {
+        <span class="kw">match </span><span class="self">self </span>{
+            <span class="self">Self</span>::Symbol(symbol) =&gt; <span class="prelude-val">Some</span>(symbol.clone()),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         }
     }
 
-    <span class="doccomment">/// Returns true if the value is undefined.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_undefined</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="ident"><span class="self">Self</span>::Undefined</span>)
+    <span class="doccomment">/// Returns true if the value is undefined.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>is_undefined(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="self">Self</span>::Undefined)
     }
 
-    <span class="doccomment">/// Returns true if the value is null.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_null</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="ident"><span class="self">Self</span>::Null</span>)
+    <span class="doccomment">/// Returns true if the value is null.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>is_null(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="self">Self</span>::Null)
     }
 
-    <span class="doccomment">/// Returns true if the value is null or undefined.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_null_or_undefined</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="ident"><span class="self">Self</span>::Null</span> <span class="op">|</span> <span class="ident"><span class="self">Self</span>::Undefined</span>)
+    <span class="doccomment">/// Returns true if the value is null or undefined.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>is_null_or_undefined(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="self">Self</span>::Null | <span class="self">Self</span>::Undefined)
     }
 
-    <span class="doccomment">/// Returns true if the value is a 64-bit floating-point number.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_double</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="ident"><span class="self">Self</span>::Rational</span>(<span class="kw">_</span>))
+    <span class="doccomment">/// Returns true if the value is a 64-bit floating-point number.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>is_double(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="self">Self</span>::Rational(<span class="kw">_</span>))
     }
 
-    <span class="doccomment">/// Returns true if the value is integer.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::float_cmp</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_integer</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="comment">// If it can fit in a i32 and the truncated version is</span>
-        <span class="comment">// equal to the original then it is an integer.</span>
-        <span class="kw">let</span> <span class="ident">is_rational_integer</span> <span class="op">=</span> <span class="op">|</span><span class="ident">n</span>: <span class="ident">f64</span><span class="op">|</span> <span class="ident">n</span> <span class="op">==</span> <span class="ident">f64::from</span>(<span class="ident">n</span> <span class="kw">as</span> <span class="ident">i32</span>);
+    <span class="doccomment">/// Returns true if the value is integer.
+    </span><span class="attribute">#[inline]
+    #[allow(clippy::float_cmp)]
+    </span><span class="kw">pub fn </span>is_integer(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="comment">// If it can fit in a i32 and the truncated version is
+        // equal to the original then it is an integer.
+        </span><span class="kw">let </span>is_rational_integer = |n: f64| n == f64::from(n <span class="kw">as </span>i32);
 
-        <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident"><span class="self">Self</span>::Integer</span>(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
-            <span class="ident"><span class="self">Self</span>::Rational</span>(<span class="ident">n</span>) <span class="kw">if</span> <span class="ident">is_rational_integer</span>(<span class="ident">n</span>) =&gt; <span class="bool-val">true</span>,
-            <span class="kw">_</span> =&gt; <span class="bool-val">false</span>,
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+            <span class="self">Self</span>::Integer(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
+            <span class="self">Self</span>::Rational(n) <span class="kw">if </span>is_rational_integer(n) =&gt; <span class="bool-val">true</span>,
+            <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
         }
     }
 
-    <span class="doccomment">/// Returns true if the value is a number.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_number</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="ident"><span class="self">Self</span>::Rational</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident"><span class="self">Self</span>::Integer</span>(<span class="kw">_</span>))
+    <span class="doccomment">/// Returns true if the value is a number.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>is_number(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="self">Self</span>::Rational(<span class="kw">_</span>) | <span class="self">Self</span>::Integer(<span class="kw">_</span>))
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_number</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident"><span class="self">Self</span>::Integer</span>(<span class="ident">integer</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">integer</span>.<span class="ident">into</span>()),
-            <span class="ident"><span class="self">Self</span>::Rational</span>(<span class="ident">rational</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">rational</span>),
-            <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>as_number(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;f64&gt; {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+            <span class="self">Self</span>::Integer(integer) =&gt; <span class="prelude-val">Some</span>(integer.into()),
+            <span class="self">Self</span>::Rational(rational) =&gt; <span class="prelude-val">Some</span>(rational),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         }
     }
 
-    <span class="doccomment">/// Returns true if the value is a string.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="ident"><span class="self">Self</span>::String</span>(<span class="kw">_</span>))
+    <span class="doccomment">/// Returns true if the value is a string.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>is_string(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="self">Self</span>::String(<span class="kw">_</span>))
     }
 
-    <span class="doccomment">/// Returns the string if the values is a string, otherwise `None`.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">JsString</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident"><span class="self">Self</span>::String</span>(<span class="kw-2">ref</span> <span class="ident">string</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">string</span>),
-            <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
+    <span class="doccomment">/// Returns the string if the values is a string, otherwise `None`.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>as_string(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>JsString&gt; {
+        <span class="kw">match </span><span class="self">self </span>{
+            <span class="self">Self</span>::String(<span class="kw-2">ref </span>string) =&gt; <span class="prelude-val">Some</span>(string),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         }
     }
 
-    <span class="doccomment">/// Returns true if the value is a boolean.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_boolean</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="ident"><span class="self">Self</span>::Boolean</span>(<span class="kw">_</span>))
+    <span class="doccomment">/// Returns true if the value is a boolean.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>is_boolean(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="self">Self</span>::Boolean(<span class="kw">_</span>))
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_boolean</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident"><span class="self">Self</span>::Boolean</span>(<span class="ident">boolean</span>) =&gt; <span class="prelude-val">Some</span>(<span class="kw-2">*</span><span class="ident">boolean</span>),
-            <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>as_boolean(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;bool&gt; {
+        <span class="kw">match </span><span class="self">self </span>{
+            <span class="self">Self</span>::Boolean(boolean) =&gt; <span class="prelude-val">Some</span>(<span class="kw-2">*</span>boolean),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         }
     }
 
-    <span class="doccomment">/// Returns true if the value is a bigint.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_bigint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="ident"><span class="self">Self</span>::BigInt</span>(<span class="kw">_</span>))
+    <span class="doccomment">/// Returns true if the value is a bigint.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>is_bigint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="self">Self</span>::BigInt(<span class="kw">_</span>))
     }
 
-    <span class="doccomment">/// Returns an optional reference to a `BigInt` if the value is a `BigInt` primitive.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_bigint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">JsBigInt</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident"><span class="self">Self</span>::BigInt</span>(<span class="ident">bigint</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">bigint</span>),
-            <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
+    <span class="doccomment">/// Returns an optional reference to a `BigInt` if the value is a `BigInt` primitive.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>as_bigint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>JsBigInt&gt; {
+        <span class="kw">match </span><span class="self">self </span>{
+            <span class="self">Self</span>::BigInt(bigint) =&gt; <span class="prelude-val">Some</span>(bigint),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         }
     }
 
-    <span class="doccomment">/// Converts the value to a `bool` type.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-toboolean</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_boolean</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident"><span class="self">Self</span>::Symbol</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident"><span class="self">Self</span>::Object</span>(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
-            <span class="ident"><span class="self">Self</span>::String</span>(<span class="kw-2">ref</span> <span class="ident">s</span>) <span class="kw">if</span> <span class="op">!</span><span class="ident">s</span>.<span class="ident">is_empty</span>() =&gt; <span class="bool-val">true</span>,
-            <span class="ident"><span class="self">Self</span>::Rational</span>(<span class="ident">n</span>) <span class="kw">if</span> <span class="ident">n</span> <span class="op">!</span><span class="op">=</span> <span class="number">0.0</span> <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">n</span>.<span class="ident">is_nan</span>() =&gt; <span class="bool-val">true</span>,
-            <span class="ident"><span class="self">Self</span>::Integer</span>(<span class="ident">n</span>) <span class="kw">if</span> <span class="ident">n</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> =&gt; <span class="bool-val">true</span>,
-            <span class="ident"><span class="self">Self</span>::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">n</span>) <span class="kw">if</span> <span class="op">!</span><span class="ident">n</span>.<span class="ident">is_zero</span>() =&gt; <span class="bool-val">true</span>,
-            <span class="ident"><span class="self">Self</span>::Boolean</span>(<span class="ident">v</span>) =&gt; <span class="ident">v</span>,
-            <span class="kw">_</span> =&gt; <span class="bool-val">false</span>,
+    <span class="doccomment">/// Converts the value to a `bool` type.
+    ///
+    /// More information:
+    ///  - [ECMAScript][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-toboolean
+    </span><span class="kw">pub fn </span>to_boolean(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+            <span class="self">Self</span>::Symbol(<span class="kw">_</span>) | <span class="self">Self</span>::Object(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
+            <span class="self">Self</span>::String(<span class="kw-2">ref </span>s) <span class="kw">if </span>!s.is_empty() =&gt; <span class="bool-val">true</span>,
+            <span class="self">Self</span>::Rational(n) <span class="kw">if </span>n != <span class="number">0.0 </span>&amp;&amp; !n.is_nan() =&gt; <span class="bool-val">true</span>,
+            <span class="self">Self</span>::Integer(n) <span class="kw">if </span>n != <span class="number">0 </span>=&gt; <span class="bool-val">true</span>,
+            <span class="self">Self</span>::BigInt(<span class="kw-2">ref </span>n) <span class="kw">if </span>!n.is_zero() =&gt; <span class="bool-val">true</span>,
+            <span class="self">Self</span>::Boolean(v) =&gt; v,
+            <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
         }
     }
 
-    <span class="doccomment">/// Resolve the property in the object.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// A copy of the Property is returned.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_property</span><span class="op">&lt;</span><span class="ident">Key</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">key</span>: <span class="ident">Key</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PropertyDescriptor</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">Key</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">PropertyKey</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// Resolve the property in the object.
+    ///
+    /// A copy of the Property is returned.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_property&lt;Key&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, key: Key) -&gt; <span class="prelude-ty">Option</span>&lt;PropertyDescriptor&gt;
+    <span class="kw">where
+        </span>Key: Into&lt;PropertyKey&gt;,
     {
-        <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="ident">key</span>.<span class="ident">into</span>();
-        <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;Value::get_property&quot;</span>, <span class="string">&quot;value&quot;</span>);
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident"><span class="self">Self</span>::Object</span>(<span class="kw-2">ref</span> <span class="ident">object</span>) =&gt; {
-                <span class="comment">// TODO: had to skip `__get_own_properties__` since we don&#39;t have context here</span>
-                <span class="kw">let</span> <span class="ident">property</span> <span class="op">=</span> <span class="ident">object</span>.<span class="ident">borrow</span>().<span class="ident">properties</span>().<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">key</span>);
-                <span class="kw">if</span> <span class="ident">property</span>.<span class="ident">is_some</span>() {
-                    <span class="kw">return</span> <span class="ident">property</span>;
+        <span class="kw">let </span>key = key.into();
+        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Value::get_property&quot;</span>, <span class="string">&quot;value&quot;</span>);
+        <span class="kw">match </span><span class="self">self </span>{
+            <span class="self">Self</span>::Object(<span class="kw-2">ref </span>object) =&gt; {
+                <span class="comment">// TODO: had to skip `__get_own_properties__` since we don&#39;t have context here
+                </span><span class="kw">let </span>property = object.borrow().properties().get(<span class="kw-2">&amp;</span>key);
+                <span class="kw">if </span>property.is_some() {
+                    <span class="kw">return </span>property;
                 }
 
-                <span class="ident">object</span>
-                    .<span class="ident">prototype</span>()
-                    .<span class="ident">as_ref</span>()
-                    .<span class="ident">map_or</span>(<span class="ident"><span class="self">Self</span>::Null</span>, <span class="op">|</span><span class="ident">obj</span><span class="op">|</span> <span class="ident">obj</span>.<span class="ident">clone</span>().<span class="ident">into</span>())
-                    .<span class="ident">get_property</span>(<span class="ident">key</span>)
+                object
+                    .prototype()
+                    .as_ref()
+                    .map_or(<span class="self">Self</span>::Null, |obj| obj.clone().into())
+                    .get_property(key)
             }
-            <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         }
     }
 
-    <span class="doccomment">/// Set the kind of an object.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_data</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">data</span>: <span class="ident">ObjectData</span>) {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="ident"><span class="self">Self</span>::Object</span>(<span class="kw-2">ref</span> <span class="ident">obj</span>) <span class="op">=</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident">obj</span>.<span class="ident">borrow_mut</span>().<span class="ident">data</span> <span class="op">=</span> <span class="ident">data</span>;
+    <span class="doccomment">/// Set the kind of an object.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>set_data(<span class="kw-2">&amp;</span><span class="self">self</span>, data: ObjectData) {
+        <span class="kw">if let </span><span class="self">Self</span>::Object(<span class="kw-2">ref </span>obj) = <span class="kw-2">*</span><span class="self">self </span>{
+            obj.borrow_mut().data = data;
         }
     }
 
-    <span class="doccomment">/// The abstract operation `ToPrimitive` takes an input argument and an optional argumen`PreferredType`pe.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// &lt;https://tc39.es/ecma262/#sec-toprimitive&gt;</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_primitive</span>(
+    <span class="doccomment">/// The abstract operation `ToPrimitive` takes an input argument and an optional argumen`PreferredType`pe.
+    ///
+    /// &lt;https://tc39.es/ecma262/#sec-toprimitive&gt;
+    </span><span class="kw">pub fn </span>to_primitive(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-        <span class="ident">preferred_type</span>: <span class="ident">PreferredType</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="comment">// 1. Assert: input is an ECMAScript language value. (always a value not need to check)</span>
-        <span class="comment">// 2. If Type(input) is Object, then</span>
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">input</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">as_object</span>() {
-            <span class="comment">// a. Let exoticToPrim be ? GetMethod(input, @@toPrimitive).</span>
-            <span class="kw">let</span> <span class="ident">exotic_to_prim</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">get_method</span>(<span class="ident">WellKnownSymbols::to_primitive</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>;
+        context: <span class="kw-2">&amp;mut </span>Context,
+        preferred_type: PreferredType,
+    ) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
+        <span class="comment">// 1. Assert: input is an ECMAScript language value. (always a value not need to check)
+        // 2. If Type(input) is Object, then
+        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(input) = <span class="self">self</span>.as_object() {
+            <span class="comment">// a. Let exoticToPrim be ? GetMethod(input, @@toPrimitive).
+            </span><span class="kw">let </span>exotic_to_prim = input.get_method(WellKnownSymbols::to_primitive(), context)<span class="question-mark">?</span>;
 
-            <span class="comment">// b. If exoticToPrim is not undefined, then</span>
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">exotic_to_prim</span>) <span class="op">=</span> <span class="ident">exotic_to_prim</span> {
-                <span class="comment">// i. If preferredType is not present, let hint be &quot;default&quot;.</span>
-                <span class="comment">// ii. Else if preferredType is string, let hint be &quot;string&quot;.</span>
-                <span class="comment">// iii. Else,</span>
-                <span class="comment">//     1. Assert: preferredType is number.</span>
-                <span class="comment">//     2. Let hint be &quot;number&quot;.</span>
-                <span class="kw">let</span> <span class="ident">hint</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">preferred_type</span> {
-                    <span class="ident">PreferredType::Default</span> =&gt; <span class="string">&quot;default&quot;</span>,
-                    <span class="ident">PreferredType::String</span> =&gt; <span class="string">&quot;string&quot;</span>,
-                    <span class="ident">PreferredType::Number</span> =&gt; <span class="string">&quot;number&quot;</span>,
+            <span class="comment">// b. If exoticToPrim is not undefined, then
+            </span><span class="kw">if let </span><span class="prelude-val">Some</span>(exotic_to_prim) = exotic_to_prim {
+                <span class="comment">// i. If preferredType is not present, let hint be &quot;default&quot;.
+                // ii. Else if preferredType is string, let hint be &quot;string&quot;.
+                // iii. Else,
+                //     1. Assert: preferredType is number.
+                //     2. Let hint be &quot;number&quot;.
+                </span><span class="kw">let </span>hint = <span class="kw">match </span>preferred_type {
+                    PreferredType::Default =&gt; <span class="string">&quot;default&quot;</span>,
+                    PreferredType::String =&gt; <span class="string">&quot;string&quot;</span>,
+                    PreferredType::Number =&gt; <span class="string">&quot;number&quot;</span>,
                 }
-                .<span class="ident">into</span>();
+                .into();
 
-                <span class="comment">// iv. Let result be ? Call(exoticToPrim, input, « hint »).</span>
-                <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">exotic_to_prim</span>.<span class="ident">call</span>(<span class="self">self</span>, <span class="kw-2">&amp;</span>[<span class="ident">hint</span>], <span class="ident">context</span>)<span class="question-mark">?</span>;
-                <span class="comment">// v. If Type(result) is not Object, return result.</span>
-                <span class="comment">// vi. Throw a TypeError exception.</span>
-                <span class="kw">return</span> <span class="kw">if</span> <span class="ident">result</span>.<span class="ident">is_object</span>() {
-                    <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
-                        .<span class="ident">with_message</span>(<span class="string">&quot;Symbol.toPrimitive cannot return an object&quot;</span>)
-                        .<span class="ident">into</span>())
-                } <span class="kw">else</span> {
-                    <span class="prelude-val">Ok</span>(<span class="ident">result</span>)
+                <span class="comment">// iv. Let result be ? Call(exoticToPrim, input, « hint »).
+                </span><span class="kw">let </span>result = exotic_to_prim.call(<span class="self">self</span>, <span class="kw-2">&amp;</span>[hint], context)<span class="question-mark">?</span>;
+                <span class="comment">// v. If Type(result) is not Object, return result.
+                // vi. Throw a TypeError exception.
+                </span><span class="kw">return if </span>result.is_object() {
+                    <span class="prelude-val">Err</span>(JsNativeError::typ()
+                        .with_message(<span class="string">&quot;Symbol.toPrimitive cannot return an object&quot;</span>)
+                        .into())
+                } <span class="kw">else </span>{
+                    <span class="prelude-val">Ok</span>(result)
                 };
             }
 
-            <span class="comment">// c. If preferredType is not present, let preferredType be number.</span>
-            <span class="kw">let</span> <span class="ident">preferred_type</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">preferred_type</span> {
-                <span class="ident">PreferredType::Default</span> <span class="op">|</span> <span class="ident">PreferredType::Number</span> =&gt; <span class="ident">PreferredType::Number</span>,
-                <span class="ident">PreferredType::String</span> =&gt; <span class="ident">PreferredType::String</span>,
+            <span class="comment">// c. If preferredType is not present, let preferredType be number.
+            </span><span class="kw">let </span>preferred_type = <span class="kw">match </span>preferred_type {
+                PreferredType::Default | PreferredType::Number =&gt; PreferredType::Number,
+                PreferredType::String =&gt; PreferredType::String,
             };
 
-            <span class="comment">// d. Return ? OrdinaryToPrimitive(input, preferredType).</span>
-            <span class="kw">return</span> <span class="ident">input</span>.<span class="ident">ordinary_to_primitive</span>(<span class="ident">context</span>, <span class="ident">preferred_type</span>);
+            <span class="comment">// d. Return ? OrdinaryToPrimitive(input, preferredType).
+            </span><span class="kw">return </span>input.ordinary_to_primitive(context, preferred_type);
         }
 
-        <span class="comment">// 3. Return input.</span>
-        <span class="prelude-val">Ok</span>(<span class="self">self</span>.<span class="ident">clone</span>())
+        <span class="comment">// 3. Return input.
+        </span><span class="prelude-val">Ok</span>(<span class="self">self</span>.clone())
     }
 
-    <span class="doccomment">/// `7.1.13 ToBigInt ( argument )`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-tobigint</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_bigint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsBigInt</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident"><span class="self">Self</span>::Null</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
-                .<span class="ident">with_message</span>(<span class="string">&quot;cannot convert null to a BigInt&quot;</span>)
-                .<span class="ident">into</span>()),
-            <span class="ident"><span class="self">Self</span>::Undefined</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
-                .<span class="ident">with_message</span>(<span class="string">&quot;cannot convert undefined to a BigInt&quot;</span>)
-                .<span class="ident">into</span>()),
-            <span class="ident"><span class="self">Self</span>::String</span>(<span class="kw-2">ref</span> <span class="ident">string</span>) =&gt; {
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">value</span>) <span class="op">=</span> <span class="ident">string</span>.<span class="ident">to_big_int</span>() {
-                    <span class="prelude-val">Ok</span>(<span class="ident">value</span>)
-                } <span class="kw">else</span> {
-                    <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::syntax</span>()
-                        .<span class="ident">with_message</span>(<span class="macro">format!</span>(
+    <span class="doccomment">/// `7.1.13 ToBigInt ( argument )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-tobigint
+    </span><span class="kw">pub fn </span>to_bigint(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsBigInt&gt; {
+        <span class="kw">match </span><span class="self">self </span>{
+            <span class="self">Self</span>::Null =&gt; <span class="prelude-val">Err</span>(JsNativeError::typ()
+                .with_message(<span class="string">&quot;cannot convert null to a BigInt&quot;</span>)
+                .into()),
+            <span class="self">Self</span>::Undefined =&gt; <span class="prelude-val">Err</span>(JsNativeError::typ()
+                .with_message(<span class="string">&quot;cannot convert undefined to a BigInt&quot;</span>)
+                .into()),
+            <span class="self">Self</span>::String(<span class="kw-2">ref </span>string) =&gt; {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(value) = string.to_big_int() {
+                    <span class="prelude-val">Ok</span>(value)
+                } <span class="kw">else </span>{
+                    <span class="prelude-val">Err</span>(JsNativeError::syntax()
+                        .with_message(<span class="macro">format!</span>(
                             <span class="string">&quot;cannot convert string &#39;{}&#39; to bigint primitive&quot;</span>,
-                            <span class="ident">string</span>.<span class="ident">to_std_string_escaped</span>()
+                            string.to_std_string_escaped()
                         ))
-                        .<span class="ident">into</span>())
+                        .into())
                 }
             }
-            <span class="ident"><span class="self">Self</span>::Boolean</span>(<span class="bool-val">true</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">JsBigInt::one</span>()),
-            <span class="ident"><span class="self">Self</span>::Boolean</span>(<span class="bool-val">false</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">JsBigInt::zero</span>()),
-            <span class="ident"><span class="self">Self</span>::Integer</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident"><span class="self">Self</span>::Rational</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
-                .<span class="ident">with_message</span>(<span class="string">&quot;cannot convert Number to a BigInt&quot;</span>)
-                .<span class="ident">into</span>()),
-            <span class="ident"><span class="self">Self</span>::BigInt</span>(<span class="ident">b</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">b</span>.<span class="ident">clone</span>()),
-            <span class="ident"><span class="self">Self</span>::Object</span>(<span class="kw">_</span>) =&gt; {
-                <span class="kw">let</span> <span class="ident">primitive</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">to_primitive</span>(<span class="ident">context</span>, <span class="ident">PreferredType::Number</span>)<span class="question-mark">?</span>;
-                <span class="ident">primitive</span>.<span class="ident">to_bigint</span>(<span class="ident">context</span>)
+            <span class="self">Self</span>::Boolean(<span class="bool-val">true</span>) =&gt; <span class="prelude-val">Ok</span>(JsBigInt::one()),
+            <span class="self">Self</span>::Boolean(<span class="bool-val">false</span>) =&gt; <span class="prelude-val">Ok</span>(JsBigInt::zero()),
+            <span class="self">Self</span>::Integer(<span class="kw">_</span>) | <span class="self">Self</span>::Rational(<span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(JsNativeError::typ()
+                .with_message(<span class="string">&quot;cannot convert Number to a BigInt&quot;</span>)
+                .into()),
+            <span class="self">Self</span>::BigInt(b) =&gt; <span class="prelude-val">Ok</span>(b.clone()),
+            <span class="self">Self</span>::Object(<span class="kw">_</span>) =&gt; {
+                <span class="kw">let </span>primitive = <span class="self">self</span>.to_primitive(context, PreferredType::Number)<span class="question-mark">?</span>;
+                primitive.to_bigint(context)
             }
-            <span class="ident"><span class="self">Self</span>::Symbol</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
-                .<span class="ident">with_message</span>(<span class="string">&quot;cannot convert Symbol to a BigInt&quot;</span>)
-                .<span class="ident">into</span>()),
+            <span class="self">Self</span>::Symbol(<span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(JsNativeError::typ()
+                .with_message(<span class="string">&quot;cannot convert Symbol to a BigInt&quot;</span>)
+                .into()),
         }
     }
 
-    <span class="doccomment">/// Returns an object that implements `Display`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// By default the internals are not shown, but they can be toggled</span>
-    <span class="doccomment">/// with [`ValueDisplay::internals`] method.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use boa_engine::JsValue;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let value = JsValue::new(3);</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// println!(&quot;{}&quot;, value.display());</span>
-    <span class="doccomment">/// ```</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">display</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">ValueDisplay</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
-        <span class="ident">ValueDisplay</span> {
-            <span class="ident">value</span>: <span class="self">self</span>,
-            <span class="ident">internals</span>: <span class="bool-val">false</span>,
+    <span class="doccomment">/// Returns an object that implements `Display`.
+    ///
+    /// By default the internals are not shown, but they can be toggled
+    /// with [`ValueDisplay::internals`] method.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use boa_engine::JsValue;
+    ///
+    /// let value = JsValue::new(3);
+    ///
+    /// println!(&quot;{}&quot;, value.display());
+    /// ```
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>display(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; ValueDisplay&lt;<span class="lifetime">&#39;_</span>&gt; {
+        ValueDisplay {
+            value: <span class="self">self</span>,
+            internals: <span class="bool-val">false</span>,
         }
     }
 
-    <span class="doccomment">/// Converts the value to a string.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function is equivalent to `String(value)` in JavaScript.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsString</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident"><span class="self">Self</span>::Null</span> =&gt; <span class="prelude-val">Ok</span>(<span class="string">&quot;null&quot;</span>.<span class="ident">into</span>()),
-            <span class="ident"><span class="self">Self</span>::Undefined</span> =&gt; <span class="prelude-val">Ok</span>(<span class="string">&quot;undefined&quot;</span>.<span class="ident">into</span>()),
-            <span class="ident"><span class="self">Self</span>::Boolean</span>(<span class="ident">boolean</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">boolean</span>.<span class="ident">to_string</span>().<span class="ident">into</span>()),
-            <span class="ident"><span class="self">Self</span>::Rational</span>(<span class="ident">rational</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">Number::to_native_string</span>(<span class="kw-2">*</span><span class="ident">rational</span>).<span class="ident">into</span>()),
-            <span class="ident"><span class="self">Self</span>::Integer</span>(<span class="ident">integer</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">integer</span>.<span class="ident">to_string</span>().<span class="ident">into</span>()),
-            <span class="ident"><span class="self">Self</span>::String</span>(<span class="ident">string</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">string</span>.<span class="ident">clone</span>()),
-            <span class="ident"><span class="self">Self</span>::Symbol</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
-                .<span class="ident">with_message</span>(<span class="string">&quot;can&#39;t convert symbol to string&quot;</span>)
-                .<span class="ident">into</span>()),
-            <span class="ident"><span class="self">Self</span>::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">bigint</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">bigint</span>.<span class="ident">to_string</span>().<span class="ident">into</span>()),
-            <span class="ident"><span class="self">Self</span>::Object</span>(<span class="kw">_</span>) =&gt; {
-                <span class="kw">let</span> <span class="ident">primitive</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">to_primitive</span>(<span class="ident">context</span>, <span class="ident">PreferredType::String</span>)<span class="question-mark">?</span>;
-                <span class="ident">primitive</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)
+    <span class="doccomment">/// Converts the value to a string.
+    ///
+    /// This function is equivalent to `String(value)` in JavaScript.
+    </span><span class="kw">pub fn </span>to_string(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsString&gt; {
+        <span class="kw">match </span><span class="self">self </span>{
+            <span class="self">Self</span>::Null =&gt; <span class="prelude-val">Ok</span>(<span class="string">&quot;null&quot;</span>.into()),
+            <span class="self">Self</span>::Undefined =&gt; <span class="prelude-val">Ok</span>(<span class="string">&quot;undefined&quot;</span>.into()),
+            <span class="self">Self</span>::Boolean(boolean) =&gt; <span class="prelude-val">Ok</span>(boolean.to_string().into()),
+            <span class="self">Self</span>::Rational(rational) =&gt; <span class="prelude-val">Ok</span>(Number::to_native_string(<span class="kw-2">*</span>rational).into()),
+            <span class="self">Self</span>::Integer(integer) =&gt; <span class="prelude-val">Ok</span>(integer.to_string().into()),
+            <span class="self">Self</span>::String(string) =&gt; <span class="prelude-val">Ok</span>(string.clone()),
+            <span class="self">Self</span>::Symbol(<span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(JsNativeError::typ()
+                .with_message(<span class="string">&quot;can&#39;t convert symbol to string&quot;</span>)
+                .into()),
+            <span class="self">Self</span>::BigInt(<span class="kw-2">ref </span>bigint) =&gt; <span class="prelude-val">Ok</span>(bigint.to_string().into()),
+            <span class="self">Self</span>::Object(<span class="kw">_</span>) =&gt; {
+                <span class="kw">let </span>primitive = <span class="self">self</span>.to_primitive(context, PreferredType::String)<span class="question-mark">?</span>;
+                primitive.to_string(context)
             }
         }
     }
 
-    <span class="doccomment">/// Converts the value to an Object.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function is equivalent to `Object(value)` in JavaScript.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// See: &lt;https://tc39.es/ecma262/#sec-toobject&gt;</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_object</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsObject</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident"><span class="self">Self</span>::Undefined</span> <span class="op">|</span> <span class="ident"><span class="self">Self</span>::Null</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
-                .<span class="ident">with_message</span>(<span class="string">&quot;cannot convert &#39;null&#39; or &#39;undefined&#39; to object&quot;</span>)
-                .<span class="ident">into</span>()),
-            <span class="ident"><span class="self">Self</span>::Boolean</span>(<span class="ident">boolean</span>) =&gt; {
-                <span class="kw">let</span> <span class="ident">prototype</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">intrinsics</span>().<span class="ident">constructors</span>().<span class="ident">boolean</span>().<span class="ident">prototype</span>();
-                <span class="prelude-val">Ok</span>(<span class="ident">JsObject::from_proto_and_data</span>(
-                    <span class="ident">prototype</span>,
-                    <span class="ident">ObjectData::boolean</span>(<span class="kw-2">*</span><span class="ident">boolean</span>),
+    <span class="doccomment">/// Converts the value to an Object.
+    ///
+    /// This function is equivalent to `Object(value)` in JavaScript.
+    ///
+    /// See: &lt;https://tc39.es/ecma262/#sec-toobject&gt;
+    </span><span class="kw">pub fn </span>to_object(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsObject&gt; {
+        <span class="kw">match </span><span class="self">self </span>{
+            <span class="self">Self</span>::Undefined | <span class="self">Self</span>::Null =&gt; <span class="prelude-val">Err</span>(JsNativeError::typ()
+                .with_message(<span class="string">&quot;cannot convert &#39;null&#39; or &#39;undefined&#39; to object&quot;</span>)
+                .into()),
+            <span class="self">Self</span>::Boolean(boolean) =&gt; {
+                <span class="kw">let </span>prototype = context.intrinsics().constructors().boolean().prototype();
+                <span class="prelude-val">Ok</span>(JsObject::from_proto_and_data(
+                    prototype,
+                    ObjectData::boolean(<span class="kw-2">*</span>boolean),
                 ))
             }
-            <span class="ident"><span class="self">Self</span>::Integer</span>(<span class="ident">integer</span>) =&gt; {
-                <span class="kw">let</span> <span class="ident">prototype</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">intrinsics</span>().<span class="ident">constructors</span>().<span class="ident">number</span>().<span class="ident">prototype</span>();
-                <span class="prelude-val">Ok</span>(<span class="ident">JsObject::from_proto_and_data</span>(
-                    <span class="ident">prototype</span>,
-                    <span class="ident">ObjectData::number</span>(<span class="ident">f64::from</span>(<span class="kw-2">*</span><span class="ident">integer</span>)),
+            <span class="self">Self</span>::Integer(integer) =&gt; {
+                <span class="kw">let </span>prototype = context.intrinsics().constructors().number().prototype();
+                <span class="prelude-val">Ok</span>(JsObject::from_proto_and_data(
+                    prototype,
+                    ObjectData::number(f64::from(<span class="kw-2">*</span>integer)),
                 ))
             }
-            <span class="ident"><span class="self">Self</span>::Rational</span>(<span class="ident">rational</span>) =&gt; {
-                <span class="kw">let</span> <span class="ident">prototype</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">intrinsics</span>().<span class="ident">constructors</span>().<span class="ident">number</span>().<span class="ident">prototype</span>();
-                <span class="prelude-val">Ok</span>(<span class="ident">JsObject::from_proto_and_data</span>(
-                    <span class="ident">prototype</span>,
-                    <span class="ident">ObjectData::number</span>(<span class="kw-2">*</span><span class="ident">rational</span>),
+            <span class="self">Self</span>::Rational(rational) =&gt; {
+                <span class="kw">let </span>prototype = context.intrinsics().constructors().number().prototype();
+                <span class="prelude-val">Ok</span>(JsObject::from_proto_and_data(
+                    prototype,
+                    ObjectData::number(<span class="kw-2">*</span>rational),
                 ))
             }
-            <span class="ident"><span class="self">Self</span>::String</span>(<span class="kw-2">ref</span> <span class="ident">string</span>) =&gt; {
-                <span class="kw">let</span> <span class="ident">prototype</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">intrinsics</span>().<span class="ident">constructors</span>().<span class="ident">string</span>().<span class="ident">prototype</span>();
+            <span class="self">Self</span>::String(<span class="kw-2">ref </span>string) =&gt; {
+                <span class="kw">let </span>prototype = context.intrinsics().constructors().string().prototype();
 
-                <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span>
-                    <span class="ident">JsObject::from_proto_and_data</span>(<span class="ident">prototype</span>, <span class="ident">ObjectData::string</span>(<span class="ident">string</span>.<span class="ident">clone</span>()));
-                <span class="comment">// Make sure the correct length is set on our new string object</span>
-                <span class="ident">object</span>.<span class="ident">insert_property</span>(
+                <span class="kw">let </span>object =
+                    JsObject::from_proto_and_data(prototype, ObjectData::string(string.clone()));
+                <span class="comment">// Make sure the correct length is set on our new string object
+                </span>object.insert_property(
                     <span class="macro">js_string!</span>(<span class="string">&quot;length&quot;</span>),
-                    <span class="ident">PropertyDescriptor::builder</span>()
-                        .<span class="ident">value</span>(<span class="ident">string</span>.<span class="ident">len</span>())
-                        .<span class="ident">writable</span>(<span class="bool-val">false</span>)
-                        .<span class="ident">enumerable</span>(<span class="bool-val">false</span>)
-                        .<span class="ident">configurable</span>(<span class="bool-val">false</span>),
+                    PropertyDescriptor::builder()
+                        .value(string.len())
+                        .writable(<span class="bool-val">false</span>)
+                        .enumerable(<span class="bool-val">false</span>)
+                        .configurable(<span class="bool-val">false</span>),
                 );
-                <span class="prelude-val">Ok</span>(<span class="ident">object</span>)
+                <span class="prelude-val">Ok</span>(object)
             }
-            <span class="ident"><span class="self">Self</span>::Symbol</span>(<span class="kw-2">ref</span> <span class="ident">symbol</span>) =&gt; {
-                <span class="kw">let</span> <span class="ident">prototype</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">intrinsics</span>().<span class="ident">constructors</span>().<span class="ident">symbol</span>().<span class="ident">prototype</span>();
-                <span class="prelude-val">Ok</span>(<span class="ident">JsObject::from_proto_and_data</span>(
-                    <span class="ident">prototype</span>,
-                    <span class="ident">ObjectData::symbol</span>(<span class="ident">symbol</span>.<span class="ident">clone</span>()),
+            <span class="self">Self</span>::Symbol(<span class="kw-2">ref </span>symbol) =&gt; {
+                <span class="kw">let </span>prototype = context.intrinsics().constructors().symbol().prototype();
+                <span class="prelude-val">Ok</span>(JsObject::from_proto_and_data(
+                    prototype,
+                    ObjectData::symbol(symbol.clone()),
                 ))
             }
-            <span class="ident"><span class="self">Self</span>::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">bigint</span>) =&gt; {
-                <span class="kw">let</span> <span class="ident">prototype</span> <span class="op">=</span> <span class="ident">context</span>
-                    .<span class="ident">intrinsics</span>()
-                    .<span class="ident">constructors</span>()
-                    .<span class="ident">bigint_object</span>()
-                    .<span class="ident">prototype</span>();
-                <span class="prelude-val">Ok</span>(<span class="ident">JsObject::from_proto_and_data</span>(
-                    <span class="ident">prototype</span>,
-                    <span class="ident">ObjectData::big_int</span>(<span class="ident">bigint</span>.<span class="ident">clone</span>()),
+            <span class="self">Self</span>::BigInt(<span class="kw-2">ref </span>bigint) =&gt; {
+                <span class="kw">let </span>prototype = context
+                    .intrinsics()
+                    .constructors()
+                    .bigint_object()
+                    .prototype();
+                <span class="prelude-val">Ok</span>(JsObject::from_proto_and_data(
+                    prototype,
+                    ObjectData::big_int(bigint.clone()),
                 ))
             }
-            <span class="ident"><span class="self">Self</span>::Object</span>(<span class="ident">jsobject</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">jsobject</span>.<span class="ident">clone</span>()),
+            <span class="self">Self</span>::Object(jsobject) =&gt; <span class="prelude-val">Ok</span>(jsobject.clone()),
         }
     }
 
-    <span class="doccomment">/// Converts the value to a `PropertyKey`, that can be used as a key for properties.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// See &lt;https://tc39.es/ecma262/#sec-topropertykey&gt;</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_property_key</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">PropertyKey</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="kw">match</span> <span class="self">self</span> {
-            <span class="comment">// Fast path:</span>
-            <span class="ident"><span class="self">Self</span>::String</span>(<span class="ident">string</span>) =&gt; <span class="ident">string</span>.<span class="ident">clone</span>().<span class="ident">into</span>(),
-            <span class="ident"><span class="self">Self</span>::Symbol</span>(<span class="ident">symbol</span>) =&gt; <span class="ident">symbol</span>.<span class="ident">clone</span>().<span class="ident">into</span>(),
-            <span class="ident"><span class="self">Self</span>::Integer</span>(<span class="ident">integer</span>) =&gt; (<span class="kw-2">*</span><span class="ident">integer</span>).<span class="ident">into</span>(),
-            <span class="comment">// Slow path:</span>
-            <span class="ident"><span class="self">Self</span>::Object</span>(<span class="kw">_</span>) =&gt; <span class="kw">match</span> <span class="self">self</span>.<span class="ident">to_primitive</span>(<span class="ident">context</span>, <span class="ident">PreferredType::String</span>)<span class="question-mark">?</span> {
-                <span class="ident"><span class="self">Self</span>::String</span>(<span class="kw-2">ref</span> <span class="ident">string</span>) =&gt; <span class="ident">string</span>.<span class="ident">clone</span>().<span class="ident">into</span>(),
-                <span class="ident"><span class="self">Self</span>::Symbol</span>(<span class="kw-2">ref</span> <span class="ident">symbol</span>) =&gt; <span class="ident">symbol</span>.<span class="ident">clone</span>().<span class="ident">into</span>(),
-                <span class="ident"><span class="self">Self</span>::Integer</span>(<span class="ident">integer</span>) =&gt; <span class="ident">integer</span>.<span class="ident">into</span>(),
-                <span class="ident">primitive</span> =&gt; <span class="ident">primitive</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">into</span>(),
+    <span class="doccomment">/// Converts the value to a `PropertyKey`, that can be used as a key for properties.
+    ///
+    /// See &lt;https://tc39.es/ecma262/#sec-topropertykey&gt;
+    </span><span class="kw">pub fn </span>to_property_key(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;PropertyKey&gt; {
+        <span class="prelude-val">Ok</span>(<span class="kw">match </span><span class="self">self </span>{
+            <span class="comment">// Fast path:
+            </span><span class="self">Self</span>::String(string) =&gt; string.clone().into(),
+            <span class="self">Self</span>::Symbol(symbol) =&gt; symbol.clone().into(),
+            <span class="self">Self</span>::Integer(integer) =&gt; (<span class="kw-2">*</span>integer).into(),
+            <span class="comment">// Slow path:
+            </span><span class="self">Self</span>::Object(<span class="kw">_</span>) =&gt; <span class="kw">match </span><span class="self">self</span>.to_primitive(context, PreferredType::String)<span class="question-mark">? </span>{
+                <span class="self">Self</span>::String(<span class="kw-2">ref </span>string) =&gt; string.clone().into(),
+                <span class="self">Self</span>::Symbol(<span class="kw-2">ref </span>symbol) =&gt; symbol.clone().into(),
+                <span class="self">Self</span>::Integer(integer) =&gt; integer.into(),
+                primitive =&gt; primitive.to_string(context)<span class="question-mark">?</span>.into(),
             },
-            <span class="ident">primitive</span> =&gt; <span class="ident">primitive</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">into</span>(),
+            primitive =&gt; primitive.to_string(context)<span class="question-mark">?</span>.into(),
         })
     }
 
-    <span class="doccomment">/// It returns value converted to a numeric value of type `Number` or `BigInt`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// See: &lt;https://tc39.es/ecma262/#sec-tonumeric&gt;</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_numeric</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">Numeric</span><span class="op">&gt;</span> {
-        <span class="comment">// 1. Let primValue be ? ToPrimitive(value, number).</span>
-        <span class="kw">let</span> <span class="ident">primitive</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">to_primitive</span>(<span class="ident">context</span>, <span class="ident">PreferredType::Number</span>)<span class="question-mark">?</span>;
+    <span class="doccomment">/// It returns value converted to a numeric value of type `Number` or `BigInt`.
+    ///
+    /// See: &lt;https://tc39.es/ecma262/#sec-tonumeric&gt;
+    </span><span class="kw">pub fn </span>to_numeric(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;Numeric&gt; {
+        <span class="comment">// 1. Let primValue be ? ToPrimitive(value, number).
+        </span><span class="kw">let </span>primitive = <span class="self">self</span>.to_primitive(context, PreferredType::Number)<span class="question-mark">?</span>;
 
-        <span class="comment">// 2. If primValue is a BigInt, return primValue.</span>
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">bigint</span>) <span class="op">=</span> <span class="ident">primitive</span>.<span class="ident">as_bigint</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">bigint</span>.<span class="ident">clone</span>().<span class="ident">into</span>());
+        <span class="comment">// 2. If primValue is a BigInt, return primValue.
+        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(bigint) = primitive.as_bigint() {
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(bigint.clone().into());
         }
 
-        <span class="comment">// 3. Return ? ToNumber(primValue).</span>
-        <span class="prelude-val">Ok</span>(<span class="ident">primitive</span>.<span class="ident">to_number</span>(<span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">into</span>())
+        <span class="comment">// 3. Return ? ToNumber(primValue).
+        </span><span class="prelude-val">Ok</span>(primitive.to_number(context)<span class="question-mark">?</span>.into())
     }
 
-    <span class="doccomment">/// Converts a value to an integral 32 bit unsigned integer.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function is equivalent to `value | 0` in JavaScript</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// See: &lt;https://tc39.es/ecma262/#sec-touint32&gt;</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_u32</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span> {
-        <span class="comment">// This is the fast path, if the value is Integer we can just return it.</span>
-        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">JsValue::Integer</span>(<span class="ident">number</span>) <span class="op">=</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">number</span> <span class="kw">as</span> <span class="ident">u32</span>);
+    <span class="doccomment">/// Converts a value to an integral 32 bit unsigned integer.
+    ///
+    /// This function is equivalent to `value | 0` in JavaScript
+    ///
+    /// See: &lt;https://tc39.es/ecma262/#sec-touint32&gt;
+    </span><span class="kw">pub fn </span>to_u32(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;u32&gt; {
+        <span class="comment">// This is the fast path, if the value is Integer we can just return it.
+        </span><span class="kw">if let </span>JsValue::Integer(number) = <span class="kw-2">*</span><span class="self">self </span>{
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(number <span class="kw">as </span>u32);
         }
-        <span class="kw">let</span> <span class="ident">number</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">to_number</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let </span>number = <span class="self">self</span>.to_number(context)<span class="question-mark">?</span>;
 
-        <span class="prelude-val">Ok</span>(<span class="ident">f64_to_uint32</span>(<span class="ident">number</span>))
+        <span class="prelude-val">Ok</span>(f64_to_uint32(number))
     }
 
-    <span class="doccomment">/// Converts a value to an integral 32 bit signed integer.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// See: &lt;https://tc39.es/ecma262/#sec-toint32&gt;</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_i32</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span> {
-        <span class="comment">// This is the fast path, if the value is Integer we can just return it.</span>
-        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">JsValue::Integer</span>(<span class="ident">number</span>) <span class="op">=</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">number</span>);
+    <span class="doccomment">/// Converts a value to an integral 32 bit signed integer.
+    ///
+    /// See: &lt;https://tc39.es/ecma262/#sec-toint32&gt;
+    </span><span class="kw">pub fn </span>to_i32(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;i32&gt; {
+        <span class="comment">// This is the fast path, if the value is Integer we can just return it.
+        </span><span class="kw">if let </span>JsValue::Integer(number) = <span class="kw-2">*</span><span class="self">self </span>{
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(number);
         }
-        <span class="kw">let</span> <span class="ident">number</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">to_number</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let </span>number = <span class="self">self</span>.to_number(context)<span class="question-mark">?</span>;
 
-        <span class="prelude-val">Ok</span>(<span class="ident">f64_to_int32</span>(<span class="ident">number</span>))
+        <span class="prelude-val">Ok</span>(f64_to_int32(number))
     }
 
-    <span class="doccomment">/// `7.1.10 ToInt8 ( argument )`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-toint8</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_int8</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">i8</span><span class="op">&gt;</span> {
-        <span class="comment">// 1. Let number be ? ToNumber(argument).</span>
-        <span class="kw">let</span> <span class="ident">number</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">to_number</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+    <span class="doccomment">/// `7.1.10 ToInt8 ( argument )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-toint8
+    </span><span class="kw">pub fn </span>to_int8(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;i8&gt; {
+        <span class="comment">// 1. Let number be ? ToNumber(argument).
+        </span><span class="kw">let </span>number = <span class="self">self</span>.to_number(context)<span class="question-mark">?</span>;
 
-        <span class="comment">// 2. If number is NaN, +0𝔽, -0𝔽, +∞𝔽, or -∞𝔽, return +0𝔽.</span>
-        <span class="kw">if</span> <span class="ident">number</span>.<span class="ident">is_nan</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">number</span>.<span class="ident">is_zero</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">number</span>.<span class="ident">is_infinite</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="number">0</span>);
+        <span class="comment">// 2. If number is NaN, +0𝔽, -0𝔽, +∞𝔽, or -∞𝔽, return +0𝔽.
+        </span><span class="kw">if </span>number.is_nan() || number.is_zero() || number.is_infinite() {
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="number">0</span>);
         }
 
-        <span class="comment">// 3. Let int be the mathematical value whose sign is the sign of number and whose magnitude is floor(abs(ℝ(number))).</span>
-        <span class="kw">let</span> <span class="ident">int</span> <span class="op">=</span> <span class="ident">number</span>.<span class="ident">abs</span>().<span class="ident">floor</span>().<span class="ident">copysign</span>(<span class="ident">number</span>) <span class="kw">as</span> <span class="ident">i64</span>;
+        <span class="comment">// 3. Let int be the mathematical value whose sign is the sign of number and whose magnitude is floor(abs(ℝ(number))).
+        </span><span class="kw">let </span>int = number.abs().floor().copysign(number) <span class="kw">as </span>i64;
 
-        <span class="comment">// 4. Let int8bit be int modulo 2^8.</span>
-        <span class="kw">let</span> <span class="ident">int_8_bit</span> <span class="op">=</span> <span class="ident">int</span> <span class="op">%</span> <span class="number">2i64</span>.<span class="ident">pow</span>(<span class="number">8</span>);
+        <span class="comment">// 4. Let int8bit be int modulo 2^8.
+        </span><span class="kw">let </span>int_8_bit = int % <span class="number">2i64</span>.pow(<span class="number">8</span>);
 
-        <span class="comment">// 5. If int8bit ≥ 2^7, return 𝔽(int8bit - 2^8); otherwise return 𝔽(int8bit).</span>
-        <span class="kw">if</span> <span class="ident">int_8_bit</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">2i64</span>.<span class="ident">pow</span>(<span class="number">7</span>) {
-            <span class="prelude-val">Ok</span>((<span class="ident">int_8_bit</span> <span class="op">-</span> <span class="number">2i64</span>.<span class="ident">pow</span>(<span class="number">8</span>)) <span class="kw">as</span> <span class="ident">i8</span>)
-        } <span class="kw">else</span> {
-            <span class="prelude-val">Ok</span>(<span class="ident">int_8_bit</span> <span class="kw">as</span> <span class="ident">i8</span>)
-        }
-    }
-
-    <span class="doccomment">/// `7.1.11 ToUint8 ( argument )`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-touint8</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_uint8</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> {
-        <span class="comment">// 1. Let number be ? ToNumber(argument).</span>
-        <span class="kw">let</span> <span class="ident">number</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">to_number</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
-
-        <span class="comment">// 2. If number is NaN, +0𝔽, -0𝔽, +∞𝔽, or -∞𝔽, return +0𝔽.</span>
-        <span class="kw">if</span> <span class="ident">number</span>.<span class="ident">is_nan</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">number</span>.<span class="ident">is_zero</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">number</span>.<span class="ident">is_infinite</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="number">0</span>);
-        }
-
-        <span class="comment">// 3. Let int be the mathematical value whose sign is the sign of number and whose magnitude is floor(abs(ℝ(number))).</span>
-        <span class="kw">let</span> <span class="ident">int</span> <span class="op">=</span> <span class="ident">number</span>.<span class="ident">abs</span>().<span class="ident">floor</span>().<span class="ident">copysign</span>(<span class="ident">number</span>) <span class="kw">as</span> <span class="ident">i64</span>;
-
-        <span class="comment">// 4. Let int8bit be int modulo 2^8.</span>
-        <span class="kw">let</span> <span class="ident">int_8_bit</span> <span class="op">=</span> <span class="ident">int</span> <span class="op">%</span> <span class="number">2i64</span>.<span class="ident">pow</span>(<span class="number">8</span>);
-
-        <span class="comment">// 5. Return 𝔽(int8bit).</span>
-        <span class="prelude-val">Ok</span>(<span class="ident">int_8_bit</span> <span class="kw">as</span> <span class="ident">u8</span>)
-    }
-
-    <span class="doccomment">/// `7.1.12 ToUint8Clamp ( argument )`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-touint8clamp</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_uint8_clamp</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> {
-        <span class="comment">// 1. Let number be ? ToNumber(argument).</span>
-        <span class="kw">let</span> <span class="ident">number</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">to_number</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
-
-        <span class="comment">// 2. If number is NaN, return +0𝔽.</span>
-        <span class="kw">if</span> <span class="ident">number</span>.<span class="ident">is_nan</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="number">0</span>);
-        }
-
-        <span class="comment">// 3. If ℝ(number) ≤ 0, return +0𝔽.</span>
-        <span class="kw">if</span> <span class="ident">number</span> <span class="op">&lt;</span><span class="op">=</span> <span class="number">0.0</span> {
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="number">0</span>);
-        }
-
-        <span class="comment">// 4. If ℝ(number) ≥ 255, return 255𝔽.</span>
-        <span class="kw">if</span> <span class="ident">number</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">255.0</span> {
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="number">255</span>);
-        }
-
-        <span class="comment">// 5. Let f be floor(ℝ(number)).</span>
-        <span class="kw">let</span> <span class="ident">f</span> <span class="op">=</span> <span class="ident">number</span>.<span class="ident">floor</span>();
-
-        <span class="comment">// 6. If f + 0.5 &lt; ℝ(number), return 𝔽(f + 1).</span>
-        <span class="kw">if</span> <span class="ident">f</span> <span class="op">+</span> <span class="number">0.5</span> <span class="op">&lt;</span> <span class="ident">number</span> {
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">f</span> <span class="kw">as</span> <span class="ident">u8</span> <span class="op">+</span> <span class="number">1</span>);
-        }
-
-        <span class="comment">// 7. If ℝ(number) &lt; f + 0.5, return 𝔽(f).</span>
-        <span class="kw">if</span> <span class="ident">number</span> <span class="op">&lt;</span> <span class="ident">f</span> <span class="op">+</span> <span class="number">0.5</span> {
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">f</span> <span class="kw">as</span> <span class="ident">u8</span>);
-        }
-
-        <span class="comment">// 8. If f is odd, return 𝔽(f + 1).</span>
-        <span class="kw">if</span> <span class="ident">f</span> <span class="kw">as</span> <span class="ident">u8</span> <span class="op">%</span> <span class="number">2</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">f</span> <span class="kw">as</span> <span class="ident">u8</span> <span class="op">+</span> <span class="number">1</span>);
-        }
-
-        <span class="comment">// 9. Return 𝔽(f).</span>
-        <span class="prelude-val">Ok</span>(<span class="ident">f</span> <span class="kw">as</span> <span class="ident">u8</span>)
-    }
-
-    <span class="doccomment">/// `7.1.8 ToInt16 ( argument )`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-toint16</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_int16</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">i16</span><span class="op">&gt;</span> {
-        <span class="comment">// 1. Let number be ? ToNumber(argument).</span>
-        <span class="kw">let</span> <span class="ident">number</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">to_number</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
-
-        <span class="comment">// 2. If number is NaN, +0𝔽, -0𝔽, +∞𝔽, or -∞𝔽, return +0𝔽.</span>
-        <span class="kw">if</span> <span class="ident">number</span>.<span class="ident">is_nan</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">number</span>.<span class="ident">is_zero</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">number</span>.<span class="ident">is_infinite</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="number">0</span>);
-        }
-
-        <span class="comment">// 3. Let int be the mathematical value whose sign is the sign of number and whose magnitude is floor(abs(ℝ(number))).</span>
-        <span class="kw">let</span> <span class="ident">int</span> <span class="op">=</span> <span class="ident">number</span>.<span class="ident">abs</span>().<span class="ident">floor</span>().<span class="ident">copysign</span>(<span class="ident">number</span>) <span class="kw">as</span> <span class="ident">i64</span>;
-
-        <span class="comment">// 4. Let int16bit be int modulo 2^16.</span>
-        <span class="kw">let</span> <span class="ident">int_16_bit</span> <span class="op">=</span> <span class="ident">int</span> <span class="op">%</span> <span class="number">2i64</span>.<span class="ident">pow</span>(<span class="number">16</span>);
-
-        <span class="comment">// 5. If int16bit ≥ 2^15, return 𝔽(int16bit - 2^16); otherwise return 𝔽(int16bit).</span>
-        <span class="kw">if</span> <span class="ident">int_16_bit</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">2i64</span>.<span class="ident">pow</span>(<span class="number">15</span>) {
-            <span class="prelude-val">Ok</span>((<span class="ident">int_16_bit</span> <span class="op">-</span> <span class="number">2i64</span>.<span class="ident">pow</span>(<span class="number">16</span>)) <span class="kw">as</span> <span class="ident">i16</span>)
-        } <span class="kw">else</span> {
-            <span class="prelude-val">Ok</span>(<span class="ident">int_16_bit</span> <span class="kw">as</span> <span class="ident">i16</span>)
+        <span class="comment">// 5. If int8bit ≥ 2^7, return 𝔽(int8bit - 2^8); otherwise return 𝔽(int8bit).
+        </span><span class="kw">if </span>int_8_bit &gt;= <span class="number">2i64</span>.pow(<span class="number">7</span>) {
+            <span class="prelude-val">Ok</span>((int_8_bit - <span class="number">2i64</span>.pow(<span class="number">8</span>)) <span class="kw">as </span>i8)
+        } <span class="kw">else </span>{
+            <span class="prelude-val">Ok</span>(int_8_bit <span class="kw">as </span>i8)
         }
     }
 
-    <span class="doccomment">/// `7.1.9 ToUint16 ( argument )`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-touint16</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_uint16</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">u16</span><span class="op">&gt;</span> {
-        <span class="comment">// 1. Let number be ? ToNumber(argument).</span>
-        <span class="kw">let</span> <span class="ident">number</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">to_number</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+    <span class="doccomment">/// `7.1.11 ToUint8 ( argument )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-touint8
+    </span><span class="kw">pub fn </span>to_uint8(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;u8&gt; {
+        <span class="comment">// 1. Let number be ? ToNumber(argument).
+        </span><span class="kw">let </span>number = <span class="self">self</span>.to_number(context)<span class="question-mark">?</span>;
 
-        <span class="comment">// 2. If number is NaN, +0𝔽, -0𝔽, +∞𝔽, or -∞𝔽, return +0𝔽.</span>
-        <span class="kw">if</span> <span class="ident">number</span>.<span class="ident">is_nan</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">number</span>.<span class="ident">is_zero</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">number</span>.<span class="ident">is_infinite</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="number">0</span>);
+        <span class="comment">// 2. If number is NaN, +0𝔽, -0𝔽, +∞𝔽, or -∞𝔽, return +0𝔽.
+        </span><span class="kw">if </span>number.is_nan() || number.is_zero() || number.is_infinite() {
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="number">0</span>);
         }
 
-        <span class="comment">// 3. Let int be the mathematical value whose sign is the sign of number and whose magnitude is floor(abs(ℝ(number))).</span>
-        <span class="kw">let</span> <span class="ident">int</span> <span class="op">=</span> <span class="ident">number</span>.<span class="ident">abs</span>().<span class="ident">floor</span>().<span class="ident">copysign</span>(<span class="ident">number</span>) <span class="kw">as</span> <span class="ident">i64</span>;
+        <span class="comment">// 3. Let int be the mathematical value whose sign is the sign of number and whose magnitude is floor(abs(ℝ(number))).
+        </span><span class="kw">let </span>int = number.abs().floor().copysign(number) <span class="kw">as </span>i64;
 
-        <span class="comment">// 4. Let int16bit be int modulo 2^16.</span>
-        <span class="kw">let</span> <span class="ident">int_16_bit</span> <span class="op">=</span> <span class="ident">int</span> <span class="op">%</span> <span class="number">2i64</span>.<span class="ident">pow</span>(<span class="number">16</span>);
+        <span class="comment">// 4. Let int8bit be int modulo 2^8.
+        </span><span class="kw">let </span>int_8_bit = int % <span class="number">2i64</span>.pow(<span class="number">8</span>);
 
-        <span class="comment">// 5. Return 𝔽(int16bit).</span>
-        <span class="prelude-val">Ok</span>(<span class="ident">int_16_bit</span> <span class="kw">as</span> <span class="ident">u16</span>)
+        <span class="comment">// 5. Return 𝔽(int8bit).
+        </span><span class="prelude-val">Ok</span>(int_8_bit <span class="kw">as </span>u8)
     }
 
-    <span class="doccomment">/// `7.1.15 ToBigInt64 ( argument )`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-tobigint64</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_big_int64</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">BigInt</span><span class="op">&gt;</span> {
-        <span class="comment">// 1. Let n be ? ToBigInt(argument).</span>
-        <span class="kw">let</span> <span class="ident">n</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">to_bigint</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+    <span class="doccomment">/// `7.1.12 ToUint8Clamp ( argument )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-touint8clamp
+    </span><span class="kw">pub fn </span>to_uint8_clamp(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;u8&gt; {
+        <span class="comment">// 1. Let number be ? ToNumber(argument).
+        </span><span class="kw">let </span>number = <span class="self">self</span>.to_number(context)<span class="question-mark">?</span>;
 
-        <span class="comment">// 2. Let int64bit be ℝ(n) modulo 2^64.</span>
-        <span class="kw">let</span> <span class="ident">int64_bit</span> <span class="op">=</span> <span class="ident">n</span>.<span class="ident">as_inner</span>().<span class="ident">mod_floor</span>(<span class="kw-2">&amp;</span><span class="ident">TWO_E_64</span>);
-
-        <span class="comment">// 3. If int64bit ≥ 2^63, return ℤ(int64bit - 2^64); otherwise return ℤ(int64bit).</span>
-        <span class="kw">if</span> <span class="ident">int64_bit</span> <span class="op">&gt;</span><span class="op">=</span> <span class="kw-2">*</span><span class="ident">TWO_E_63</span> {
-            <span class="prelude-val">Ok</span>(<span class="ident">int64_bit</span>.<span class="ident">sub</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">TWO_E_64</span>))
-        } <span class="kw">else</span> {
-            <span class="prelude-val">Ok</span>(<span class="ident">int64_bit</span>)
-        }
-    }
-
-    <span class="doccomment">/// `7.1.16 ToBigUint64 ( argument )`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-tobiguint64</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_big_uint64</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">BigInt</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">two_e_64</span>: <span class="ident">u128</span> <span class="op">=</span> <span class="number">0x1_0000_0000_0000_0000</span>;
-        <span class="kw">let</span> <span class="ident">two_e_64</span> <span class="op">=</span> <span class="ident">BigInt::from</span>(<span class="ident">two_e_64</span>);
-
-        <span class="comment">// 1. Let n be ? ToBigInt(argument).</span>
-        <span class="kw">let</span> <span class="ident">n</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">to_bigint</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
-
-        <span class="comment">// 2. Let int64bit be ℝ(n) modulo 2^64.</span>
-        <span class="comment">// 3. Return ℤ(int64bit).</span>
-        <span class="prelude-val">Ok</span>(<span class="ident">n</span>.<span class="ident">as_inner</span>().<span class="ident">mod_floor</span>(<span class="kw-2">&amp;</span><span class="ident">two_e_64</span>))
-    }
-
-    <span class="doccomment">/// Converts a value to a non-negative integer if it is a valid integer index value.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// See: &lt;https://tc39.es/ecma262/#sec-toindex&gt;</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_index</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span> {
-        <span class="comment">// 1. If value is undefined, then</span>
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_undefined</span>() {
-            <span class="comment">// a. Return 0.</span>
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="number">0</span>);
+        <span class="comment">// 2. If number is NaN, return +0𝔽.
+        </span><span class="kw">if </span>number.is_nan() {
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="number">0</span>);
         }
 
-        <span class="comment">// 2. Else,</span>
-        <span class="comment">// a. Let integer be ? ToIntegerOrInfinity(value).</span>
-        <span class="kw">let</span> <span class="ident">integer</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">to_integer_or_infinity</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
-
-        <span class="comment">// b. Let clamped be ! ToLength(𝔽(integer)).</span>
-        <span class="kw">let</span> <span class="ident">clamped</span> <span class="op">=</span> <span class="ident">integer</span>.<span class="ident">clamp_finite</span>(<span class="number">0</span>, <span class="ident">Number::MAX_SAFE_INTEGER</span> <span class="kw">as</span> <span class="ident">i64</span>);
-
-        <span class="comment">// c. If ! SameValue(𝔽(integer), clamped) is false, throw a RangeError exception.</span>
-        <span class="kw">if</span> <span class="ident">integer</span> <span class="op">!</span><span class="op">=</span> <span class="ident">clamped</span> {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::range</span>()
-                .<span class="ident">with_message</span>(<span class="string">&quot;Index must be between 0 and  2^53 - 1&quot;</span>)
-                .<span class="ident">into</span>());
+        <span class="comment">// 3. If ℝ(number) ≤ 0, return +0𝔽.
+        </span><span class="kw">if </span>number &lt;= <span class="number">0.0 </span>{
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="number">0</span>);
         }
 
-        <span class="comment">// d. Assert: 0 ≤ integer ≤ 2^53 - 1.</span>
-        <span class="macro">debug_assert!</span>(<span class="number">0</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">clamped</span> <span class="op">&amp;&amp;</span> <span class="ident">clamped</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">Number::MAX_SAFE_INTEGER</span> <span class="kw">as</span> <span class="ident">i64</span>);
+        <span class="comment">// 4. If ℝ(number) ≥ 255, return 255𝔽.
+        </span><span class="kw">if </span>number &gt;= <span class="number">255.0 </span>{
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="number">255</span>);
+        }
 
-        <span class="comment">// e. Return integer.</span>
-        <span class="prelude-val">Ok</span>(<span class="ident">clamped</span> <span class="kw">as</span> <span class="ident">u64</span>)
+        <span class="comment">// 5. Let f be floor(ℝ(number)).
+        </span><span class="kw">let </span>f = number.floor();
+
+        <span class="comment">// 6. If f + 0.5 &lt; ℝ(number), return 𝔽(f + 1).
+        </span><span class="kw">if </span>f + <span class="number">0.5 </span>&lt; number {
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(f <span class="kw">as </span>u8 + <span class="number">1</span>);
+        }
+
+        <span class="comment">// 7. If ℝ(number) &lt; f + 0.5, return 𝔽(f).
+        </span><span class="kw">if </span>number &lt; f + <span class="number">0.5 </span>{
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(f <span class="kw">as </span>u8);
+        }
+
+        <span class="comment">// 8. If f is odd, return 𝔽(f + 1).
+        </span><span class="kw">if </span>f <span class="kw">as </span>u8 % <span class="number">2 </span>!= <span class="number">0 </span>{
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(f <span class="kw">as </span>u8 + <span class="number">1</span>);
+        }
+
+        <span class="comment">// 9. Return 𝔽(f).
+        </span><span class="prelude-val">Ok</span>(f <span class="kw">as </span>u8)
     }
 
-    <span class="doccomment">/// Converts argument to an integer suitable for use as the length of an array-like object.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// See: &lt;https://tc39.es/ecma262/#sec-tolength&gt;</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_length</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span> {
-        <span class="comment">// 1. Let len be ? ToInteger(argument).</span>
-        <span class="comment">// 2. If len ≤ +0, return +0.</span>
-        <span class="comment">// 3. Return min(len, 2^53 - 1).</span>
-        <span class="prelude-val">Ok</span>(<span class="self">self</span>
-            .<span class="ident">to_integer_or_infinity</span>(<span class="ident">context</span>)<span class="question-mark">?</span>
-            .<span class="ident">clamp_finite</span>(<span class="number">0</span>, <span class="ident">Number::MAX_SAFE_INTEGER</span> <span class="kw">as</span> <span class="ident">i64</span>) <span class="kw">as</span> <span class="ident">u64</span>)
-    }
+    <span class="doccomment">/// `7.1.8 ToInt16 ( argument )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-toint16
+    </span><span class="kw">pub fn </span>to_int16(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;i16&gt; {
+        <span class="comment">// 1. Let number be ? ToNumber(argument).
+        </span><span class="kw">let </span>number = <span class="self">self</span>.to_number(context)<span class="question-mark">?</span>;
 
-    <span class="doccomment">/// Abstract operation `ToIntegerOrInfinity ( argument )`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This method converts a `Value` to an integer representing its `Number` value with</span>
-    <span class="doccomment">/// fractional part truncated, or to +∞ or -∞ when that `Number` value is infinite.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">/// - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-tointegerorinfinity</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_integer_or_infinity</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">IntegerOrInfinity</span><span class="op">&gt;</span> {
-        <span class="comment">// 1. Let number be ? ToNumber(argument).</span>
-        <span class="kw">let</span> <span class="ident">number</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">to_number</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="comment">// 2. If number is NaN, +0𝔽, -0𝔽, +∞𝔽, or -∞𝔽, return +0𝔽.
+        </span><span class="kw">if </span>number.is_nan() || number.is_zero() || number.is_infinite() {
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="number">0</span>);
+        }
 
-        <span class="kw">if</span> <span class="ident">number</span>.<span class="ident">is_nan</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">number</span> <span class="op">==</span> <span class="number">0.0</span> {
-            <span class="comment">// 2. If number is NaN, +0𝔽, or -0𝔽, return 0.</span>
-            <span class="prelude-val">Ok</span>(<span class="ident">IntegerOrInfinity::Integer</span>(<span class="number">0</span>))
-        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">number</span> <span class="op">==</span> <span class="ident">f64::INFINITY</span> {
-            <span class="comment">// 3. If number is +∞𝔽, return +∞.</span>
-            <span class="prelude-val">Ok</span>(<span class="ident">IntegerOrInfinity::PositiveInfinity</span>)
-        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">number</span> <span class="op">==</span> <span class="ident">f64::NEG_INFINITY</span> {
-            <span class="comment">// 4. If number is -∞𝔽, return -∞.</span>
-            <span class="prelude-val">Ok</span>(<span class="ident">IntegerOrInfinity::NegativeInfinity</span>)
-        } <span class="kw">else</span> {
-            <span class="comment">// 5. Let integer be floor(abs(ℝ(number))).</span>
-            <span class="comment">// 6. If number &lt; +0𝔽, set integer to -integer.</span>
-            <span class="kw">let</span> <span class="ident">integer</span> <span class="op">=</span> <span class="ident">number</span>.<span class="ident">abs</span>().<span class="ident">floor</span>().<span class="ident">copysign</span>(<span class="ident">number</span>) <span class="kw">as</span> <span class="ident">i64</span>;
+        <span class="comment">// 3. Let int be the mathematical value whose sign is the sign of number and whose magnitude is floor(abs(ℝ(number))).
+        </span><span class="kw">let </span>int = number.abs().floor().copysign(number) <span class="kw">as </span>i64;
 
-            <span class="comment">// 7. Return integer.</span>
-            <span class="prelude-val">Ok</span>(<span class="ident">IntegerOrInfinity::Integer</span>(<span class="ident">integer</span>))
+        <span class="comment">// 4. Let int16bit be int modulo 2^16.
+        </span><span class="kw">let </span>int_16_bit = int % <span class="number">2i64</span>.pow(<span class="number">16</span>);
+
+        <span class="comment">// 5. If int16bit ≥ 2^15, return 𝔽(int16bit - 2^16); otherwise return 𝔽(int16bit).
+        </span><span class="kw">if </span>int_16_bit &gt;= <span class="number">2i64</span>.pow(<span class="number">15</span>) {
+            <span class="prelude-val">Ok</span>((int_16_bit - <span class="number">2i64</span>.pow(<span class="number">16</span>)) <span class="kw">as </span>i16)
+        } <span class="kw">else </span>{
+            <span class="prelude-val">Ok</span>(int_16_bit <span class="kw">as </span>i16)
         }
     }
 
-    <span class="doccomment">/// Converts a value to a double precision floating point.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function is equivalent to the unary `+` operator (`+value`) in JavaScript</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// See: &lt;https://tc39.es/ecma262/#sec-tonumber&gt;</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_number</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident"><span class="self">Self</span>::Null</span> =&gt; <span class="prelude-val">Ok</span>(<span class="number">0.0</span>),
-            <span class="ident"><span class="self">Self</span>::Undefined</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">f64::NAN</span>),
-            <span class="ident"><span class="self">Self</span>::Boolean</span>(<span class="ident">b</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="kw">if</span> <span class="ident">b</span> { <span class="number">1.0</span> } <span class="kw">else</span> { <span class="number">0.0</span> }),
-            <span class="ident"><span class="self">Self</span>::String</span>(<span class="kw-2">ref</span> <span class="ident">string</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">string</span>.<span class="ident">to_number</span>()),
-            <span class="ident"><span class="self">Self</span>::Rational</span>(<span class="ident">number</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">number</span>),
-            <span class="ident"><span class="self">Self</span>::Integer</span>(<span class="ident">integer</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">f64::from</span>(<span class="ident">integer</span>)),
-            <span class="ident"><span class="self">Self</span>::Symbol</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
-                .<span class="ident">with_message</span>(<span class="string">&quot;argument must not be a symbol&quot;</span>)
-                .<span class="ident">into</span>()),
-            <span class="ident"><span class="self">Self</span>::BigInt</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
-                .<span class="ident">with_message</span>(<span class="string">&quot;argument must not be a bigint&quot;</span>)
-                .<span class="ident">into</span>()),
-            <span class="ident"><span class="self">Self</span>::Object</span>(<span class="kw">_</span>) =&gt; {
-                <span class="kw">let</span> <span class="ident">primitive</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">to_primitive</span>(<span class="ident">context</span>, <span class="ident">PreferredType::Number</span>)<span class="question-mark">?</span>;
-                <span class="ident">primitive</span>.<span class="ident">to_number</span>(<span class="ident">context</span>)
+    <span class="doccomment">/// `7.1.9 ToUint16 ( argument )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-touint16
+    </span><span class="kw">pub fn </span>to_uint16(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;u16&gt; {
+        <span class="comment">// 1. Let number be ? ToNumber(argument).
+        </span><span class="kw">let </span>number = <span class="self">self</span>.to_number(context)<span class="question-mark">?</span>;
+
+        <span class="comment">// 2. If number is NaN, +0𝔽, -0𝔽, +∞𝔽, or -∞𝔽, return +0𝔽.
+        </span><span class="kw">if </span>number.is_nan() || number.is_zero() || number.is_infinite() {
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="number">0</span>);
+        }
+
+        <span class="comment">// 3. Let int be the mathematical value whose sign is the sign of number and whose magnitude is floor(abs(ℝ(number))).
+        </span><span class="kw">let </span>int = number.abs().floor().copysign(number) <span class="kw">as </span>i64;
+
+        <span class="comment">// 4. Let int16bit be int modulo 2^16.
+        </span><span class="kw">let </span>int_16_bit = int % <span class="number">2i64</span>.pow(<span class="number">16</span>);
+
+        <span class="comment">// 5. Return 𝔽(int16bit).
+        </span><span class="prelude-val">Ok</span>(int_16_bit <span class="kw">as </span>u16)
+    }
+
+    <span class="doccomment">/// `7.1.15 ToBigInt64 ( argument )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-tobigint64
+    </span><span class="kw">pub fn </span>to_big_int64(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;BigInt&gt; {
+        <span class="comment">// 1. Let n be ? ToBigInt(argument).
+        </span><span class="kw">let </span>n = <span class="self">self</span>.to_bigint(context)<span class="question-mark">?</span>;
+
+        <span class="comment">// 2. Let int64bit be ℝ(n) modulo 2^64.
+        </span><span class="kw">let </span>int64_bit = n.as_inner().mod_floor(<span class="kw-2">&amp;</span>TWO_E_64);
+
+        <span class="comment">// 3. If int64bit ≥ 2^63, return ℤ(int64bit - 2^64); otherwise return ℤ(int64bit).
+        </span><span class="kw">if </span>int64_bit &gt;= <span class="kw-2">*</span>TWO_E_63 {
+            <span class="prelude-val">Ok</span>(int64_bit.sub(<span class="kw-2">&amp;*</span>TWO_E_64))
+        } <span class="kw">else </span>{
+            <span class="prelude-val">Ok</span>(int64_bit)
+        }
+    }
+
+    <span class="doccomment">/// `7.1.16 ToBigUint64 ( argument )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-tobiguint64
+    </span><span class="kw">pub fn </span>to_big_uint64(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;BigInt&gt; {
+        <span class="kw">let </span>two_e_64: u128 = <span class="number">0x1_0000_0000_0000_0000</span>;
+        <span class="kw">let </span>two_e_64 = BigInt::from(two_e_64);
+
+        <span class="comment">// 1. Let n be ? ToBigInt(argument).
+        </span><span class="kw">let </span>n = <span class="self">self</span>.to_bigint(context)<span class="question-mark">?</span>;
+
+        <span class="comment">// 2. Let int64bit be ℝ(n) modulo 2^64.
+        // 3. Return ℤ(int64bit).
+        </span><span class="prelude-val">Ok</span>(n.as_inner().mod_floor(<span class="kw-2">&amp;</span>two_e_64))
+    }
+
+    <span class="doccomment">/// Converts a value to a non-negative integer if it is a valid integer index value.
+    ///
+    /// See: &lt;https://tc39.es/ecma262/#sec-toindex&gt;
+    </span><span class="kw">pub fn </span>to_index(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;u64&gt; {
+        <span class="comment">// 1. If value is undefined, then
+        </span><span class="kw">if </span><span class="self">self</span>.is_undefined() {
+            <span class="comment">// a. Return 0.
+            </span><span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="number">0</span>);
+        }
+
+        <span class="comment">// 2. Else,
+        // a. Let integer be ? ToIntegerOrInfinity(value).
+        </span><span class="kw">let </span>integer = <span class="self">self</span>.to_integer_or_infinity(context)<span class="question-mark">?</span>;
+
+        <span class="comment">// b. Let clamped be ! ToLength(𝔽(integer)).
+        </span><span class="kw">let </span>clamped = integer.clamp_finite(<span class="number">0</span>, Number::MAX_SAFE_INTEGER <span class="kw">as </span>i64);
+
+        <span class="comment">// c. If ! SameValue(𝔽(integer), clamped) is false, throw a RangeError exception.
+        </span><span class="kw">if </span>integer != clamped {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::range()
+                .with_message(<span class="string">&quot;Index must be between 0 and  2^53 - 1&quot;</span>)
+                .into());
+        }
+
+        <span class="comment">// d. Assert: 0 ≤ integer ≤ 2^53 - 1.
+        </span><span class="macro">debug_assert!</span>(<span class="number">0 </span>&lt;= clamped &amp;&amp; clamped &lt;= Number::MAX_SAFE_INTEGER <span class="kw">as </span>i64);
+
+        <span class="comment">// e. Return integer.
+        </span><span class="prelude-val">Ok</span>(clamped <span class="kw">as </span>u64)
+    }
+
+    <span class="doccomment">/// Converts argument to an integer suitable for use as the length of an array-like object.
+    ///
+    /// See: &lt;https://tc39.es/ecma262/#sec-tolength&gt;
+    </span><span class="kw">pub fn </span>to_length(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;u64&gt; {
+        <span class="comment">// 1. Let len be ? ToInteger(argument).
+        // 2. If len ≤ +0, return +0.
+        // 3. Return min(len, 2^53 - 1).
+        </span><span class="prelude-val">Ok</span>(<span class="self">self
+            </span>.to_integer_or_infinity(context)<span class="question-mark">?
+            </span>.clamp_finite(<span class="number">0</span>, Number::MAX_SAFE_INTEGER <span class="kw">as </span>i64) <span class="kw">as </span>u64)
+    }
+
+    <span class="doccomment">/// Abstract operation `ToIntegerOrInfinity ( argument )`
+    ///
+    /// This method converts a `Value` to an integer representing its `Number` value with
+    /// fractional part truncated, or to +∞ or -∞ when that `Number` value is infinite.
+    ///
+    /// More information:
+    /// - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-tointegerorinfinity
+    </span><span class="kw">pub fn </span>to_integer_or_infinity(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;IntegerOrInfinity&gt; {
+        <span class="comment">// 1. Let number be ? ToNumber(argument).
+        </span><span class="kw">let </span>number = <span class="self">self</span>.to_number(context)<span class="question-mark">?</span>;
+
+        <span class="kw">if </span>number.is_nan() || number == <span class="number">0.0 </span>{
+            <span class="comment">// 2. If number is NaN, +0𝔽, or -0𝔽, return 0.
+            </span><span class="prelude-val">Ok</span>(IntegerOrInfinity::Integer(<span class="number">0</span>))
+        } <span class="kw">else if </span>number == f64::INFINITY {
+            <span class="comment">// 3. If number is +∞𝔽, return +∞.
+            </span><span class="prelude-val">Ok</span>(IntegerOrInfinity::PositiveInfinity)
+        } <span class="kw">else if </span>number == f64::NEG_INFINITY {
+            <span class="comment">// 4. If number is -∞𝔽, return -∞.
+            </span><span class="prelude-val">Ok</span>(IntegerOrInfinity::NegativeInfinity)
+        } <span class="kw">else </span>{
+            <span class="comment">// 5. Let integer be floor(abs(ℝ(number))).
+            // 6. If number &lt; +0𝔽, set integer to -integer.
+            </span><span class="kw">let </span>integer = number.abs().floor().copysign(number) <span class="kw">as </span>i64;
+
+            <span class="comment">// 7. Return integer.
+            </span><span class="prelude-val">Ok</span>(IntegerOrInfinity::Integer(integer))
+        }
+    }
+
+    <span class="doccomment">/// Converts a value to a double precision floating point.
+    ///
+    /// This function is equivalent to the unary `+` operator (`+value`) in JavaScript
+    ///
+    /// See: &lt;https://tc39.es/ecma262/#sec-tonumber&gt;
+    </span><span class="kw">pub fn </span>to_number(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;f64&gt; {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+            <span class="self">Self</span>::Null =&gt; <span class="prelude-val">Ok</span>(<span class="number">0.0</span>),
+            <span class="self">Self</span>::Undefined =&gt; <span class="prelude-val">Ok</span>(f64::NAN),
+            <span class="self">Self</span>::Boolean(b) =&gt; <span class="prelude-val">Ok</span>(<span class="kw">if </span>b { <span class="number">1.0 </span>} <span class="kw">else </span>{ <span class="number">0.0 </span>}),
+            <span class="self">Self</span>::String(<span class="kw-2">ref </span>string) =&gt; <span class="prelude-val">Ok</span>(string.to_number()),
+            <span class="self">Self</span>::Rational(number) =&gt; <span class="prelude-val">Ok</span>(number),
+            <span class="self">Self</span>::Integer(integer) =&gt; <span class="prelude-val">Ok</span>(f64::from(integer)),
+            <span class="self">Self</span>::Symbol(<span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(JsNativeError::typ()
+                .with_message(<span class="string">&quot;argument must not be a symbol&quot;</span>)
+                .into()),
+            <span class="self">Self</span>::BigInt(<span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(JsNativeError::typ()
+                .with_message(<span class="string">&quot;argument must not be a bigint&quot;</span>)
+                .into()),
+            <span class="self">Self</span>::Object(<span class="kw">_</span>) =&gt; {
+                <span class="kw">let </span>primitive = <span class="self">self</span>.to_primitive(context, PreferredType::Number)<span class="question-mark">?</span>;
+                primitive.to_number(context)
             }
         }
     }
 
-    <span class="doccomment">/// This is a more specialized version of `to_numeric`, including `BigInt`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function is equivalent to `Number(value)` in JavaScript</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// See: &lt;https://tc39.es/ecma262/#sec-tonumeric&gt;</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_numeric_number</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">primitive</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">to_primitive</span>(<span class="ident">context</span>, <span class="ident">PreferredType::Number</span>)<span class="question-mark">?</span>;
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">bigint</span>) <span class="op">=</span> <span class="ident">primitive</span>.<span class="ident">as_bigint</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">bigint</span>.<span class="ident">to_f64</span>());
+    <span class="doccomment">/// This is a more specialized version of `to_numeric`, including `BigInt`.
+    ///
+    /// This function is equivalent to `Number(value)` in JavaScript
+    ///
+    /// See: &lt;https://tc39.es/ecma262/#sec-tonumeric&gt;
+    </span><span class="kw">pub fn </span>to_numeric_number(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;f64&gt; {
+        <span class="kw">let </span>primitive = <span class="self">self</span>.to_primitive(context, PreferredType::Number)<span class="question-mark">?</span>;
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(bigint) = primitive.as_bigint() {
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(bigint.to_f64());
         }
-        <span class="ident">primitive</span>.<span class="ident">to_number</span>(<span class="ident">context</span>)
+        primitive.to_number(context)
     }
 
-    <span class="doccomment">/// Check if the `Value` can be converted to an `Object`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The abstract operation `RequireObjectCoercible` takes argument argument.</span>
-    <span class="doccomment">/// It throws an error if argument is a value that cannot be converted to an Object using `ToObject`.</span>
-    <span class="doccomment">/// It is defined by [Table 15][table]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [table]: https://tc39.es/ecma262/#table-14</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-requireobjectcoercible</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">require_object_coercible</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_null_or_undefined</span>() {
-            <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
-                .<span class="ident">with_message</span>(<span class="string">&quot;cannot convert null or undefined to Object&quot;</span>)
-                .<span class="ident">into</span>())
-        } <span class="kw">else</span> {
+    <span class="doccomment">/// Check if the `Value` can be converted to an `Object`
+    ///
+    /// The abstract operation `RequireObjectCoercible` takes argument argument.
+    /// It throws an error if argument is a value that cannot be converted to an Object using `ToObject`.
+    /// It is defined by [Table 15][table]
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [table]: https://tc39.es/ecma262/#table-14
+    /// [spec]: https://tc39.es/ecma262/#sec-requireobjectcoercible
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>require_object_coercible(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsResult&lt;<span class="kw-2">&amp;</span><span class="self">Self</span>&gt; {
+        <span class="kw">if </span><span class="self">self</span>.is_null_or_undefined() {
+            <span class="prelude-val">Err</span>(JsNativeError::typ()
+                .with_message(<span class="string">&quot;cannot convert null or undefined to Object&quot;</span>)
+                .into())
+        } <span class="kw">else </span>{
             <span class="prelude-val">Ok</span>(<span class="self">self</span>)
         }
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_property_descriptor</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">PropertyDescriptor</span><span class="op">&gt;</span> {
-        <span class="comment">// 1. If Type(Obj) is not Object, throw a TypeError exception.</span>
-        <span class="self">self</span>.<span class="ident">as_object</span>()
-            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-                <span class="ident">JsNativeError::typ</span>()
-                    .<span class="ident">with_message</span>(<span class="string">&quot;Cannot construct a property descriptor from a non-object&quot;</span>)
-                    .<span class="ident">into</span>()
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>to_property_descriptor(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;PropertyDescriptor&gt; {
+        <span class="comment">// 1. If Type(Obj) is not Object, throw a TypeError exception.
+        </span><span class="self">self</span>.as_object()
+            .ok_or_else(|| {
+                JsNativeError::typ()
+                    .with_message(<span class="string">&quot;Cannot construct a property descriptor from a non-object&quot;</span>)
+                    .into()
             })
-            .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">obj</span><span class="op">|</span> <span class="ident">obj</span>.<span class="ident">to_property_descriptor</span>(<span class="ident">context</span>))
+            .and_then(|obj| obj.to_property_descriptor(context))
     }
 
-    <span class="doccomment">/// `typeof` operator. Returns a string representing the type of the</span>
-    <span class="doccomment">/// given ECMA Value.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">/// - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-typeof-operator</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">type_of</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">JsString</span> {
-        <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident"><span class="self">Self</span>::Rational</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident"><span class="self">Self</span>::Integer</span>(<span class="kw">_</span>) =&gt; <span class="string">&quot;number&quot;</span>,
-            <span class="ident"><span class="self">Self</span>::String</span>(<span class="kw">_</span>) =&gt; <span class="string">&quot;string&quot;</span>,
-            <span class="ident"><span class="self">Self</span>::Boolean</span>(<span class="kw">_</span>) =&gt; <span class="string">&quot;boolean&quot;</span>,
-            <span class="ident"><span class="self">Self</span>::Symbol</span>(<span class="kw">_</span>) =&gt; <span class="string">&quot;symbol&quot;</span>,
-            <span class="ident"><span class="self">Self</span>::Null</span> =&gt; <span class="string">&quot;object&quot;</span>,
-            <span class="ident"><span class="self">Self</span>::Undefined</span> =&gt; <span class="string">&quot;undefined&quot;</span>,
-            <span class="ident"><span class="self">Self</span>::BigInt</span>(<span class="kw">_</span>) =&gt; <span class="string">&quot;bigint&quot;</span>,
-            <span class="ident"><span class="self">Self</span>::Object</span>(<span class="kw-2">ref</span> <span class="ident">object</span>) =&gt; {
-                <span class="kw">if</span> <span class="ident">object</span>.<span class="ident">is_callable</span>() {
-                    <span class="string">&quot;function&quot;</span>
-                } <span class="kw">else</span> {
-                    <span class="string">&quot;object&quot;</span>
-                }
+    <span class="doccomment">/// `typeof` operator. Returns a string representing the type of the
+    /// given ECMA Value.
+    ///
+    /// More information:
+    /// - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-typeof-operator
+    </span><span class="kw">pub fn </span>type_of(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsString {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+            <span class="self">Self</span>::Rational(<span class="kw">_</span>) | <span class="self">Self</span>::Integer(<span class="kw">_</span>) =&gt; <span class="string">&quot;number&quot;</span>,
+            <span class="self">Self</span>::String(<span class="kw">_</span>) =&gt; <span class="string">&quot;string&quot;</span>,
+            <span class="self">Self</span>::Boolean(<span class="kw">_</span>) =&gt; <span class="string">&quot;boolean&quot;</span>,
+            <span class="self">Self</span>::Symbol(<span class="kw">_</span>) =&gt; <span class="string">&quot;symbol&quot;</span>,
+            <span class="self">Self</span>::Null =&gt; <span class="string">&quot;object&quot;</span>,
+            <span class="self">Self</span>::Undefined =&gt; <span class="string">&quot;undefined&quot;</span>,
+            <span class="self">Self</span>::BigInt(<span class="kw">_</span>) =&gt; <span class="string">&quot;bigint&quot;</span>,
+            <span class="self">Self</span>::Object(<span class="kw-2">ref </span>object) =&gt; {
+                <span class="kw">if </span>object.is_callable() {
+                    <span class="string">&quot;function&quot;
+                </span>} <span class="kw">else </span>{
+                    <span class="string">&quot;object&quot;
+                </span>}
             }
         }
-        .<span class="ident">into</span>()
+        .into()
     }
 
-    <span class="doccomment">/// Abstract operation `IsArray ( argument )`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Check if a value is an array.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-isarray</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">is_array</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
-        <span class="comment">// Note: The spec specifies this function for JsValue.</span>
-        <span class="comment">// The main part of the function is implemented for JsObject.</span>
+    <span class="doccomment">/// Abstract operation `IsArray ( argument )`
+    ///
+    /// Check if a value is an array.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-isarray
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_array(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsResult&lt;bool&gt; {
+        <span class="comment">// Note: The spec specifies this function for JsValue.
+        // The main part of the function is implemented for JsObject.
 
-        <span class="comment">// 1. If Type(argument) is not Object, return false.</span>
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">object</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">as_object</span>() {
-            <span class="ident">object</span>.<span class="ident">is_array_abstract</span>(<span class="ident">context</span>)
+        // 1. If Type(argument) is not Object, return false.
+        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(object) = <span class="self">self</span>.as_object() {
+            object.is_array_abstract()
         }
-        <span class="comment">// 4. Return false.</span>
-        <span class="kw">else</span> {
+        <span class="comment">// 4. Return false.
+        </span><span class="kw">else </span>{
             <span class="prelude-val">Ok</span>(<span class="bool-val">false</span>)
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">JsValue</span> {
-    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::Undefined</span>
+<span class="kw">impl </span>Default <span class="kw">for </span>JsValue {
+    <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::Undefined
     }
 }
 
-<span class="doccomment">/// The preferred type to convert an object to a primitive `Value`.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Ord</span>, <span class="ident">Hash</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">PreferredType</span> {
-    <span class="ident">String</span>,
-    <span class="ident">Number</span>,
-    <span class="ident">Default</span>,
+<span class="doccomment">/// The preferred type to convert an object to a primitive `Value`.
+</span><span class="attribute">#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+</span><span class="kw">pub enum </span>PreferredType {
+    String,
+    Number,
+    Default,
 }
 
-<span class="doccomment">/// Numeric value which can be of two types `Number`, `BigInt`.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">PartialEq</span>, <span class="ident">PartialOrd</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Numeric</span> {
-    <span class="doccomment">/// Double precision floating point number.</span>
-    <span class="ident">Number</span>(<span class="ident">f64</span>),
-    <span class="doccomment">/// BigInt an integer of arbitrary size.</span>
-    <span class="ident">BigInt</span>(<span class="ident">JsBigInt</span>),
+<span class="doccomment">/// Numeric value which can be of two types `Number`, `BigInt`.
+</span><span class="attribute">#[derive(Debug, Clone, PartialEq, PartialOrd)]
+</span><span class="kw">pub enum </span>Numeric {
+    <span class="doccomment">/// Double precision floating point number.
+    </span>Number(f64),
+    <span class="doccomment">/// BigInt an integer of arbitrary size.
+    </span>BigInt(JsBigInt),
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Numeric</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <span class="ident">f64</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::Number</span>(<span class="ident">value</span>)
+<span class="kw">impl </span>From&lt;f64&gt; <span class="kw">for </span>Numeric {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(value: f64) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::Number(value)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">f32</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Numeric</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <span class="ident">f32</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::Number</span>(<span class="ident">value</span>.<span class="ident">into</span>())
+<span class="kw">impl </span>From&lt;f32&gt; <span class="kw">for </span>Numeric {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(value: f32) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::Number(value.into())
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">i64</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Numeric</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <span class="ident">i64</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::BigInt</span>(<span class="ident">value</span>.<span class="ident">into</span>())
+<span class="kw">impl </span>From&lt;i64&gt; <span class="kw">for </span>Numeric {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(value: i64) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::BigInt(value.into())
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Numeric</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <span class="ident">i32</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::Number</span>(<span class="ident">value</span>.<span class="ident">into</span>())
+<span class="kw">impl </span>From&lt;i32&gt; <span class="kw">for </span>Numeric {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(value: i32) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::Number(value.into())
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">i16</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Numeric</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <span class="ident">i16</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::Number</span>(<span class="ident">value</span>.<span class="ident">into</span>())
+<span class="kw">impl </span>From&lt;i16&gt; <span class="kw">for </span>Numeric {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(value: i16) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::Number(value.into())
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">i8</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Numeric</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <span class="ident">i8</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::Number</span>(<span class="ident">value</span>.<span class="ident">into</span>())
+<span class="kw">impl </span>From&lt;i8&gt; <span class="kw">for </span>Numeric {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(value: i8) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::Number(value.into())
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Numeric</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <span class="ident">u64</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::BigInt</span>(<span class="ident">value</span>.<span class="ident">into</span>())
+<span class="kw">impl </span>From&lt;u64&gt; <span class="kw">for </span>Numeric {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(value: u64) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::BigInt(value.into())
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Numeric</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <span class="ident">u32</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::Number</span>(<span class="ident">value</span>.<span class="ident">into</span>())
+<span class="kw">impl </span>From&lt;u32&gt; <span class="kw">for </span>Numeric {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(value: u32) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::Number(value.into())
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">u16</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Numeric</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <span class="ident">u16</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::Number</span>(<span class="ident">value</span>.<span class="ident">into</span>())
+<span class="kw">impl </span>From&lt;u16&gt; <span class="kw">for </span>Numeric {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(value: u16) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::Number(value.into())
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Numeric</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <span class="ident">u8</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::Number</span>(<span class="ident">value</span>.<span class="ident">into</span>())
+<span class="kw">impl </span>From&lt;u8&gt; <span class="kw">for </span>Numeric {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(value: u8) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::Number(value.into())
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">JsBigInt</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Numeric</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <span class="ident">JsBigInt</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::BigInt</span>(<span class="ident">value</span>)
+<span class="kw">impl </span>From&lt;JsBigInt&gt; <span class="kw">for </span>Numeric {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(value: JsBigInt) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::BigInt(value)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Numeric</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">JsValue</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <span class="ident">Numeric</span>) -&gt; <span class="self">Self</span> {
-        <span class="kw">match</span> <span class="ident">value</span> {
-            <span class="ident">Numeric::Number</span>(<span class="ident">number</span>) =&gt; <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">number</span>),
-            <span class="ident">Numeric::BigInt</span>(<span class="ident">bigint</span>) =&gt; <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">bigint</span>),
+<span class="kw">impl </span>From&lt;Numeric&gt; <span class="kw">for </span>JsValue {
+    <span class="kw">fn </span>from(value: Numeric) -&gt; <span class="self">Self </span>{
+        <span class="kw">match </span>value {
+            Numeric::Number(number) =&gt; <span class="self">Self</span>::new(number),
+            Numeric::BigInt(bigint) =&gt; <span class="self">Self</span>::new(bigint),
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0 (a55dd71d5 2022-09-19)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0 (897e37553 2022-11-02)" ></div></body></html>

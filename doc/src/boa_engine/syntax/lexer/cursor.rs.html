@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_engine/src/syntax/lexer/cursor.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>cursor.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_engine/src/syntax/lexer/cursor.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>cursor.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container">
                     <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../boa_engine/index.html">
                         <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -526,335 +526,335 @@
 <span id="524">524</span>
 <span id="525">525</span>
 <span id="526">526</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Module implementing the lexer cursor. This is used for managing the input byte stream.</span>
-<span class="kw">use</span> <span class="ident">boa_ast::Position</span>;
-<span class="kw">use</span> <span class="ident">boa_profiler::Profiler</span>;
-<span class="kw">use</span> <span class="ident">std::io</span>::{<span class="self">self</span>, <span class="ident">Bytes</span>, <span class="ident">Error</span>, <span class="ident">ErrorKind</span>, <span class="ident">Read</span>};
+</pre><pre class="rust"><code><span class="doccomment">//! Module implementing the lexer cursor. This is used for managing the input byte stream.
+</span><span class="kw">use </span>boa_ast::Position;
+<span class="kw">use </span>boa_profiler::Profiler;
+<span class="kw">use </span>std::io::{<span class="self">self</span>, Bytes, Error, ErrorKind, Read};
 
-<span class="doccomment">/// Cursor over the source code.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
-    <span class="ident">iter</span>: <span class="ident">InnerIter</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>,
-    <span class="ident">pos</span>: <span class="ident">Position</span>,
-    <span class="ident">strict_mode</span>: <span class="ident">bool</span>,
+<span class="doccomment">/// Cursor over the source code.
+</span><span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>Cursor&lt;R&gt; {
+    iter: InnerIter&lt;R&gt;,
+    pos: Position,
+    strict_mode: bool,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Gets the current position of the cursor in the source code.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">pos</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Position</span> {
-        <span class="self">self</span>.<span class="ident">pos</span>
+<span class="kw">impl</span>&lt;R&gt; Cursor&lt;R&gt; {
+    <span class="doccomment">/// Gets the current position of the cursor in the source code.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>pos(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Position {
+        <span class="self">self</span>.pos
     }
-    <span class="doccomment">/// Advances the position to the next column.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">next_column</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="kw">let</span> <span class="ident">current_line</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">pos</span>.<span class="ident">line_number</span>();
-        <span class="kw">let</span> <span class="ident">next_column</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">pos</span>.<span class="ident">column_number</span>() <span class="op">+</span> <span class="number">1</span>;
-        <span class="self">self</span>.<span class="ident">pos</span> <span class="op">=</span> <span class="ident">Position::new</span>(<span class="ident">current_line</span>, <span class="ident">next_column</span>);
-    }
-
-    <span class="doccomment">/// Advances the position to the next line.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">next_line</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="kw">let</span> <span class="ident">next_line</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">pos</span>.<span class="ident">line_number</span>() <span class="op">+</span> <span class="number">1</span>;
-        <span class="self">self</span>.<span class="ident">pos</span> <span class="op">=</span> <span class="ident">Position::new</span>(<span class="ident">next_line</span>, <span class="number">1</span>);
+    <span class="doccomment">/// Advances the position to the next column.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>next_column(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="kw">let </span>current_line = <span class="self">self</span>.pos.line_number();
+        <span class="kw">let </span>next_column = <span class="self">self</span>.pos.column_number() + <span class="number">1</span>;
+        <span class="self">self</span>.pos = Position::new(current_line, next_column);
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="doccomment">/// Returns if strict mode is currently active.</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">strict_mode</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">strict_mode</span>
+    <span class="doccomment">/// Advances the position to the next line.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">fn </span>next_line(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="kw">let </span>next_line = <span class="self">self</span>.pos.line_number() + <span class="number">1</span>;
+        <span class="self">self</span>.pos = Position::new(next_line, <span class="number">1</span>);
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="doccomment">/// Sets the current strict mode.</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">set_strict_mode</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">strict_mode</span>: <span class="ident">bool</span>) {
-        <span class="self">self</span>.<span class="ident">strict_mode</span> <span class="op">=</span> <span class="ident">strict_mode</span>;
+    <span class="attribute">#[inline]
+    </span><span class="doccomment">/// Returns if strict mode is currently active.
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>strict_mode(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.strict_mode
+    }
+
+    <span class="attribute">#[inline]
+    </span><span class="doccomment">/// Sets the current strict mode.
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>set_strict_mode(<span class="kw-2">&amp;mut </span><span class="self">self</span>, strict_mode: bool) {
+        <span class="self">self</span>.strict_mode = strict_mode;
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">R</span>: <span class="ident">Read</span>,
+<span class="kw">impl</span>&lt;R&gt; Cursor&lt;R&gt;
+<span class="kw">where
+    </span>R: Read,
 {
-    <span class="doccomment">/// Creates a new Lexer cursor.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">inner</span>: <span class="ident">R</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">iter</span>: <span class="ident">InnerIter::new</span>(<span class="ident">inner</span>.<span class="ident">bytes</span>()),
-            <span class="ident">pos</span>: <span class="ident">Position::new</span>(<span class="number">1</span>, <span class="number">1</span>),
-            <span class="ident">strict_mode</span>: <span class="bool-val">false</span>,
+    <span class="doccomment">/// Creates a new Lexer cursor.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new(inner: R) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            iter: InnerIter::new(inner.bytes()),
+            pos: Position::new(<span class="number">1</span>, <span class="number">1</span>),
+            strict_mode: <span class="bool-val">false</span>,
         }
     }
 
-    <span class="doccomment">/// Creates a new Lexer cursor with an initial position.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">with_position</span>(<span class="ident">inner</span>: <span class="ident">R</span>, <span class="ident">pos</span>: <span class="ident">Position</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">iter</span>: <span class="ident">InnerIter::new</span>(<span class="ident">inner</span>.<span class="ident">bytes</span>()),
-            <span class="ident">pos</span>,
-            <span class="ident">strict_mode</span>: <span class="bool-val">false</span>,
+    <span class="doccomment">/// Creates a new Lexer cursor with an initial position.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>with_position(inner: R, pos: Position) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            iter: InnerIter::new(inner.bytes()),
+            pos,
+            strict_mode: <span class="bool-val">false</span>,
         }
     }
 
-    <span class="doccomment">/// Peeks the next byte.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">peek</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;cursor::peek()&quot;</span>, <span class="string">&quot;Lexing&quot;</span>);
+    <span class="doccomment">/// Peeks the next byte.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>peek(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;u8&gt;, Error&gt; {
+        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;cursor::peek()&quot;</span>, <span class="string">&quot;Lexing&quot;</span>);
 
-        <span class="self">self</span>.<span class="ident">iter</span>.<span class="ident">peek_byte</span>()
+        <span class="self">self</span>.iter.peek_byte()
     }
 
-    <span class="doccomment">/// Peeks the next n bytes, the maximum number of peeked bytes is 4 (n &lt;= 4).</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">peek_n</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">n</span>: <span class="ident">u8</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">Error</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;cursor::peek_n()&quot;</span>, <span class="string">&quot;Lexing&quot;</span>);
+    <span class="doccomment">/// Peeks the next n bytes, the maximum number of peeked bytes is 4 (n &lt;= 4).
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>peek_n(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: u8) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span>[u8], Error&gt; {
+        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;cursor::peek_n()&quot;</span>, <span class="string">&quot;Lexing&quot;</span>);
 
-        <span class="self">self</span>.<span class="ident">iter</span>.<span class="ident">peek_n_bytes</span>(<span class="ident">n</span>)
+        <span class="self">self</span>.iter.peek_n_bytes(n)
     }
 
-    <span class="doccomment">/// Peeks the next UTF-8 character in u32 code point.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">peek_char</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;cursor::peek_char()&quot;</span>, <span class="string">&quot;Lexing&quot;</span>);
+    <span class="doccomment">/// Peeks the next UTF-8 character in u32 code point.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>peek_char(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;u32&gt;, Error&gt; {
+        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;cursor::peek_char()&quot;</span>, <span class="string">&quot;Lexing&quot;</span>);
 
-        <span class="self">self</span>.<span class="ident">iter</span>.<span class="ident">peek_char</span>()
+        <span class="self">self</span>.iter.peek_char()
     }
 
-    <span class="doccomment">/// Compares the byte passed in to the next byte, if they match true is returned and the buffer is incremented</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">next_is</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">byte</span>: <span class="ident">u8</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;cursor::next_is()&quot;</span>, <span class="string">&quot;Lexing&quot;</span>);
+    <span class="doccomment">/// Compares the byte passed in to the next byte, if they match true is returned and the buffer is incremented
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>next_is(<span class="kw-2">&amp;mut </span><span class="self">self</span>, byte: u8) -&gt; io::Result&lt;bool&gt; {
+        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;cursor::next_is()&quot;</span>, <span class="string">&quot;Lexing&quot;</span>);
 
-        <span class="prelude-val">Ok</span>(<span class="kw">match</span> <span class="self">self</span>.<span class="ident">peek</span>()<span class="question-mark">?</span> {
-            <span class="prelude-val">Some</span>(<span class="ident">next</span>) <span class="kw">if</span> <span class="ident">next</span> <span class="op">==</span> <span class="ident">byte</span> =&gt; {
-                <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">next_byte</span>()<span class="question-mark">?</span>;
-                <span class="bool-val">true</span>
-            }
-            <span class="kw">_</span> =&gt; <span class="bool-val">false</span>,
+        <span class="prelude-val">Ok</span>(<span class="kw">match </span><span class="self">self</span>.peek()<span class="question-mark">? </span>{
+            <span class="prelude-val">Some</span>(next) <span class="kw">if </span>next == byte =&gt; {
+                <span class="kw">let _ </span>= <span class="self">self</span>.next_byte()<span class="question-mark">?</span>;
+                <span class="bool-val">true
+            </span>}
+            <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
         })
     }
 
-    <span class="doccomment">/// Applies the predicate to the next character and returns the result.</span>
-    <span class="doccomment">/// Returns false if the next character is not a valid ascii or there is no next character.</span>
-    <span class="doccomment">/// Otherwise returns the result from the predicate on the ascii in char</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The buffer is not incremented.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">next_is_ascii_pred</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">pred</span>: <span class="kw-2">&amp;</span><span class="ident">F</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="ident">char</span>) -&gt; <span class="ident">bool</span>,
+    <span class="doccomment">/// Applies the predicate to the next character and returns the result.
+    /// Returns false if the next character is not a valid ascii or there is no next character.
+    /// Otherwise returns the result from the predicate on the ascii in char
+    ///
+    /// The buffer is not incremented.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>next_is_ascii_pred&lt;F&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, pred: <span class="kw-2">&amp;</span>F) -&gt; io::Result&lt;bool&gt;
+    <span class="kw">where
+        </span>F: Fn(char) -&gt; bool,
     {
-        <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;cursor::next_is_ascii_pred()&quot;</span>, <span class="string">&quot;Lexing&quot;</span>);
+        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;cursor::next_is_ascii_pred()&quot;</span>, <span class="string">&quot;Lexing&quot;</span>);
 
-        <span class="prelude-val">Ok</span>(<span class="kw">match</span> <span class="self">self</span>.<span class="ident">peek</span>()<span class="question-mark">?</span> {
-            <span class="prelude-val">Some</span>(<span class="ident">byte</span>) =&gt; <span class="kw">match</span> <span class="ident">byte</span> {
-                <span class="number">0</span>..<span class="op">=</span><span class="number">0x7F</span> =&gt; <span class="ident">pred</span>(<span class="ident">char::from</span>(<span class="ident">byte</span>)),
-                <span class="kw">_</span> =&gt; <span class="bool-val">false</span>,
+        <span class="prelude-val">Ok</span>(<span class="kw">match </span><span class="self">self</span>.peek()<span class="question-mark">? </span>{
+            <span class="prelude-val">Some</span>(byte) =&gt; <span class="kw">match </span>byte {
+                <span class="number">0</span>..=<span class="number">0x7F </span>=&gt; pred(char::from(byte)),
+                <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
             },
-            <span class="prelude-val">None</span> =&gt; <span class="bool-val">false</span>,
+            <span class="prelude-val">None </span>=&gt; <span class="bool-val">false</span>,
         })
     }
 
-    <span class="doccomment">/// Applies the predicate to the next UTF-8 character and returns the result.</span>
-    <span class="doccomment">/// Returns false if there is no next character, otherwise returns the result from the</span>
-    <span class="doccomment">/// predicate on the ascii char</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The buffer is not incremented.</span>
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">dead_code</span>)]</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">next_is_char_pred</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">pred</span>: <span class="kw-2">&amp;</span><span class="ident">F</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="ident">u32</span>) -&gt; <span class="ident">bool</span>,
+    <span class="doccomment">/// Applies the predicate to the next UTF-8 character and returns the result.
+    /// Returns false if there is no next character, otherwise returns the result from the
+    /// predicate on the ascii char
+    ///
+    /// The buffer is not incremented.
+    </span><span class="attribute">#[allow(dead_code)]
+    #[inline]
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>next_is_char_pred&lt;F&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, pred: <span class="kw-2">&amp;</span>F) -&gt; io::Result&lt;bool&gt;
+    <span class="kw">where
+        </span>F: Fn(u32) -&gt; bool,
     {
-        <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;cursor::next_is_char_pred()&quot;</span>, <span class="string">&quot;Lexing&quot;</span>);
+        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;cursor::next_is_char_pred()&quot;</span>, <span class="string">&quot;Lexing&quot;</span>);
 
-        <span class="prelude-val">Ok</span>(<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">peek</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">peek_char</span>()<span class="question-mark">?</span> {
-            <span class="ident">pred</span>(<span class="ident">peek</span>)
-        } <span class="kw">else</span> {
-            <span class="bool-val">false</span>
-        })
+        <span class="prelude-val">Ok</span>(<span class="kw">if let </span><span class="prelude-val">Some</span>(peek) = <span class="self">self</span>.peek_char()<span class="question-mark">? </span>{
+            pred(peek)
+        } <span class="kw">else </span>{
+            <span class="bool-val">false
+        </span>})
     }
 
-    <span class="doccomment">/// Fills the buffer with all bytes until the stop byte is found.</span>
-    <span class="doccomment">/// Returns error when reaching the end of the buffer.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Note that all bytes up until the stop byte are added to the buffer, including the byte right before.</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">take_until</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">stop</span>: <span class="ident">u8</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;cursor::take_until()&quot;</span>, <span class="string">&quot;Lexing&quot;</span>);
+    <span class="doccomment">/// Fills the buffer with all bytes until the stop byte is found.
+    /// Returns error when reaching the end of the buffer.
+    ///
+    /// Note that all bytes up until the stop byte are added to the buffer, including the byte right before.
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>take_until(<span class="kw-2">&amp;mut </span><span class="self">self</span>, stop: u8, buf: <span class="kw-2">&amp;mut </span>Vec&lt;u8&gt;) -&gt; io::Result&lt;()&gt; {
+        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;cursor::take_until()&quot;</span>, <span class="string">&quot;Lexing&quot;</span>);
 
-        <span class="kw">loop</span> {
-            <span class="kw">if</span> <span class="self">self</span>.<span class="ident">next_is</span>(<span class="ident">stop</span>)<span class="question-mark">?</span> {
-                <span class="kw">return</span> <span class="prelude-val">Ok</span>(());
-            } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">byte</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">next_byte</span>()<span class="question-mark">?</span> {
-                <span class="ident">buf</span>.<span class="ident">push</span>(<span class="ident">byte</span>);
-            } <span class="kw">else</span> {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">io::Error::new</span>(
-                    <span class="ident">ErrorKind::UnexpectedEof</span>,
+        <span class="kw">loop </span>{
+            <span class="kw">if </span><span class="self">self</span>.next_is(stop)<span class="question-mark">? </span>{
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(());
+            } <span class="kw">else if let </span><span class="prelude-val">Some</span>(byte) = <span class="self">self</span>.next_byte()<span class="question-mark">? </span>{
+                buf.push(byte);
+            } <span class="kw">else </span>{
+                <span class="kw">return </span><span class="prelude-val">Err</span>(io::Error::new(
+                    ErrorKind::UnexpectedEof,
                     <span class="macro">format!</span>(<span class="string">&quot;Unexpected end of file when looking for character {stop}&quot;</span>),
                 ));
             }
         }
     }
 
-    <span class="doccomment">/// Fills the buffer with characters until the first ascii character for which the predicate (pred) is false.</span>
-    <span class="doccomment">/// It also stops when the next character is not an ascii or there is no next character.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Note that all characters up until the stop character are added to the buffer, including the character right before.</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">take_while_ascii_pred</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>, <span class="ident">pred</span>: <span class="kw-2">&amp;</span><span class="ident">F</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="ident">char</span>) -&gt; <span class="ident">bool</span>,
+    <span class="doccomment">/// Fills the buffer with characters until the first ascii character for which the predicate (pred) is false.
+    /// It also stops when the next character is not an ascii or there is no next character.
+    ///
+    /// Note that all characters up until the stop character are added to the buffer, including the character right before.
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>take_while_ascii_pred&lt;F&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>Vec&lt;u8&gt;, pred: <span class="kw-2">&amp;</span>F) -&gt; io::Result&lt;()&gt;
+    <span class="kw">where
+        </span>F: Fn(char) -&gt; bool,
     {
-        <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;cursor::take_while_ascii_pred()&quot;</span>, <span class="string">&quot;Lexing&quot;</span>);
+        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;cursor::take_while_ascii_pred()&quot;</span>, <span class="string">&quot;Lexing&quot;</span>);
 
-        <span class="kw">loop</span> {
-            <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">next_is_ascii_pred</span>(<span class="ident">pred</span>)<span class="question-mark">?</span> {
-                <span class="kw">return</span> <span class="prelude-val">Ok</span>(());
-            } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">byte</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">next_byte</span>()<span class="question-mark">?</span> {
-                <span class="ident">buf</span>.<span class="ident">push</span>(<span class="ident">byte</span>);
-            } <span class="kw">else</span> {
-                <span class="comment">// next_is_pred will return false if the next value is None so the None case should already be handled.</span>
-                <span class="macro">unreachable!</span>();
+        <span class="kw">loop </span>{
+            <span class="kw">if </span>!<span class="self">self</span>.next_is_ascii_pred(pred)<span class="question-mark">? </span>{
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(());
+            } <span class="kw">else if let </span><span class="prelude-val">Some</span>(byte) = <span class="self">self</span>.next_byte()<span class="question-mark">? </span>{
+                buf.push(byte);
+            } <span class="kw">else </span>{
+                <span class="comment">// next_is_pred will return false if the next value is None so the None case should already be handled.
+                </span><span class="macro">unreachable!</span>();
             }
         }
     }
 
-    <span class="doccomment">/// Fills the buffer with characters until the first character for which the predicate (pred) is false.</span>
-    <span class="doccomment">/// It also stops when there is no next character.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Note that all characters up until the stop character are added to the buffer, including the character right before.</span>
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">dead_code</span>)]</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">take_while_char_pred</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>, <span class="ident">pred</span>: <span class="kw-2">&amp;</span><span class="ident">F</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="ident">u32</span>) -&gt; <span class="ident">bool</span>,
+    <span class="doccomment">/// Fills the buffer with characters until the first character for which the predicate (pred) is false.
+    /// It also stops when there is no next character.
+    ///
+    /// Note that all characters up until the stop character are added to the buffer, including the character right before.
+    </span><span class="attribute">#[allow(dead_code)]
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>take_while_char_pred&lt;F&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>Vec&lt;u8&gt;, pred: <span class="kw-2">&amp;</span>F) -&gt; io::Result&lt;()&gt;
+    <span class="kw">where
+        </span>F: Fn(u32) -&gt; bool,
     {
-        <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;cursor::take_while_char_pred()&quot;</span>, <span class="string">&quot;Lexing&quot;</span>);
+        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;cursor::take_while_char_pred()&quot;</span>, <span class="string">&quot;Lexing&quot;</span>);
 
-        <span class="kw">loop</span> {
-            <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">next_is_char_pred</span>(<span class="ident">pred</span>)<span class="question-mark">?</span> {
-                <span class="kw">return</span> <span class="prelude-val">Ok</span>(());
-            } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">ch</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">peek_char</span>()<span class="question-mark">?</span> {
-                <span class="kw">for</span> <span class="kw">_</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">utf8_len</span>(<span class="ident">ch</span>) {
-                    <span class="ident">buf</span>.<span class="ident">push</span>(
-                        <span class="self">self</span>.<span class="ident">next_byte</span>()<span class="question-mark">?</span>
-                            .<span class="ident">expect</span>(<span class="string">&quot;already checked that the next character exists&quot;</span>),
+        <span class="kw">loop </span>{
+            <span class="kw">if </span>!<span class="self">self</span>.next_is_char_pred(pred)<span class="question-mark">? </span>{
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(());
+            } <span class="kw">else if let </span><span class="prelude-val">Some</span>(ch) = <span class="self">self</span>.peek_char()<span class="question-mark">? </span>{
+                <span class="kw">for _ in </span><span class="number">0</span>..utf8_len(ch) {
+                    buf.push(
+                        <span class="self">self</span>.next_byte()<span class="question-mark">?
+                            </span>.expect(<span class="string">&quot;already checked that the next character exists&quot;</span>),
                     );
                 }
-            } <span class="kw">else</span> {
-                <span class="comment">// next_is_pred will return false if the next value is None so the None case should already be handled.</span>
-                <span class="macro">unreachable!</span>();
+            } <span class="kw">else </span>{
+                <span class="comment">// next_is_pred will return false if the next value is None so the None case should already be handled.
+                </span><span class="macro">unreachable!</span>();
             }
         }
     }
 
-    <span class="doccomment">/// It will fill the buffer with bytes.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This expects for the buffer to be fully filled. If it&#39;s not, it will fail with an</span>
-    <span class="doccomment">/// `UnexpectedEof` I/O error.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">fill_bytes</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">u8</span>]) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;cursor::fill_bytes()&quot;</span>, <span class="string">&quot;Lexing&quot;</span>);
+    <span class="doccomment">/// It will fill the buffer with bytes.
+    ///
+    /// This expects for the buffer to be fully filled. If it&#39;s not, it will fail with an
+    /// `UnexpectedEof` I/O error.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>fill_bytes(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>[u8]) -&gt; io::Result&lt;()&gt; {
+        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;cursor::fill_bytes()&quot;</span>, <span class="string">&quot;Lexing&quot;</span>);
 
-        <span class="self">self</span>.<span class="ident">iter</span>.<span class="ident">fill_bytes</span>(<span class="ident">buf</span>)
+        <span class="self">self</span>.iter.fill_bytes(buf)
     }
 
-    <span class="doccomment">/// Retrieves the next byte.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">next_byte</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;cursor::next_byte()&quot;</span>, <span class="string">&quot;Lexing&quot;</span>);
+    <span class="doccomment">/// Retrieves the next byte.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>next_byte(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;u8&gt;, Error&gt; {
+        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;cursor::next_byte()&quot;</span>, <span class="string">&quot;Lexing&quot;</span>);
 
-        <span class="kw">let</span> <span class="ident">byte</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">iter</span>.<span class="ident">next_byte</span>()<span class="question-mark">?</span>;
+        <span class="kw">let </span>byte = <span class="self">self</span>.iter.next_byte()<span class="question-mark">?</span>;
 
-        <span class="kw">match</span> <span class="ident">byte</span> {
+        <span class="kw">match </span>byte {
             <span class="prelude-val">Some</span>(<span class="string">b&#39;\r&#39;</span>) =&gt; {
-                <span class="comment">// Try to take a newline if it&#39;s next, for windows &quot;\r\n&quot; newlines</span>
-                <span class="comment">// Otherwise, treat as a Mac OS9 bare &#39;\r&#39; newline</span>
-                <span class="kw">if</span> <span class="self">self</span>.<span class="ident">peek</span>()<span class="question-mark">?</span> <span class="op">==</span> <span class="prelude-val">Some</span>(<span class="string">b&#39;\n&#39;</span>) {
-                    <span class="kw">let</span> <span class="ident">_next</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">iter</span>.<span class="ident">next_byte</span>();
+                <span class="comment">// Try to take a newline if it&#39;s next, for windows &quot;\r\n&quot; newlines
+                // Otherwise, treat as a Mac OS9 bare &#39;\r&#39; newline
+                </span><span class="kw">if </span><span class="self">self</span>.peek()<span class="question-mark">? </span>== <span class="prelude-val">Some</span>(<span class="string">b&#39;\n&#39;</span>) {
+                    <span class="kw">let </span>_next = <span class="self">self</span>.iter.next_byte();
                 }
-                <span class="self">self</span>.<span class="ident">next_line</span>();
+                <span class="self">self</span>.next_line();
             }
-            <span class="prelude-val">Some</span>(<span class="string">b&#39;\n&#39;</span>) =&gt; <span class="self">self</span>.<span class="ident">next_line</span>(),
+            <span class="prelude-val">Some</span>(<span class="string">b&#39;\n&#39;</span>) =&gt; <span class="self">self</span>.next_line(),
             <span class="prelude-val">Some</span>(<span class="number">0xE2</span>) =&gt; {
-                <span class="comment">// Try to match &#39;\u{2028}&#39; (e2 80 a8) and &#39;\u{2029}&#39; (e2 80 a9)</span>
-                <span class="kw">let</span> <span class="ident">next_bytes</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">peek_n</span>(<span class="number">2</span>)<span class="question-mark">?</span>;
-                <span class="kw">if</span> <span class="ident">next_bytes</span> <span class="op">==</span> [<span class="number">0x80</span>, <span class="number">0xA8</span>] <span class="op">|</span><span class="op">|</span> <span class="ident">next_bytes</span> <span class="op">==</span> [<span class="number">0x80</span>, <span class="number">0xA9</span>] {
-                    <span class="self">self</span>.<span class="ident">next_line</span>();
-                } <span class="kw">else</span> {
-                    <span class="comment">// 0xE2 is a utf8 first byte</span>
-                    <span class="self">self</span>.<span class="ident">next_column</span>();
+                <span class="comment">// Try to match &#39;\u{2028}&#39; (e2 80 a8) and &#39;\u{2029}&#39; (e2 80 a9)
+                </span><span class="kw">let </span>next_bytes = <span class="self">self</span>.peek_n(<span class="number">2</span>)<span class="question-mark">?</span>;
+                <span class="kw">if </span>next_bytes == [<span class="number">0x80</span>, <span class="number">0xA8</span>] || next_bytes == [<span class="number">0x80</span>, <span class="number">0xA9</span>] {
+                    <span class="self">self</span>.next_line();
+                } <span class="kw">else </span>{
+                    <span class="comment">// 0xE2 is a utf8 first byte
+                    </span><span class="self">self</span>.next_column();
                 }
             }
-            <span class="prelude-val">Some</span>(<span class="ident">b</span>) <span class="kw">if</span> <span class="ident">utf8_is_first_byte</span>(<span class="ident">b</span>) =&gt; <span class="self">self</span>.<span class="ident">next_column</span>(),
-            <span class="kw">_</span> =&gt; {}
+            <span class="prelude-val">Some</span>(b) <span class="kw">if </span>utf8_is_first_byte(b) =&gt; <span class="self">self</span>.next_column(),
+            <span class="kw">_ </span>=&gt; {}
         }
 
-        <span class="prelude-val">Ok</span>(<span class="ident">byte</span>)
+        <span class="prelude-val">Ok</span>(byte)
     }
 
-    <span class="doccomment">/// Retrieves the next UTF-8 character.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">next_char</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;cursor::next_char()&quot;</span>, <span class="string">&quot;Lexing&quot;</span>);
+    <span class="doccomment">/// Retrieves the next UTF-8 character.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>next_char(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;u32&gt;, Error&gt; {
+        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;cursor::next_char()&quot;</span>, <span class="string">&quot;Lexing&quot;</span>);
 
-        <span class="kw">let</span> <span class="ident">ch</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">iter</span>.<span class="ident">next_char</span>()<span class="question-mark">?</span>;
+        <span class="kw">let </span>ch = <span class="self">self</span>.iter.next_char()<span class="question-mark">?</span>;
 
-        <span class="kw">match</span> <span class="ident">ch</span> {
+        <span class="kw">match </span>ch {
             <span class="prelude-val">Some</span>(<span class="number">0xD</span>) =&gt; {
-                <span class="comment">// Try to take a newline if it&#39;s next, for windows &quot;\r\n&quot; newlines</span>
-                <span class="comment">// Otherwise, treat as a Mac OS9 bare &#39;\r&#39; newline</span>
-                <span class="kw">if</span> <span class="self">self</span>.<span class="ident">peek</span>()<span class="question-mark">?</span> <span class="op">==</span> <span class="prelude-val">Some</span>(<span class="number">0xA</span>) {
-                    <span class="kw">let</span> <span class="ident">_next</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">iter</span>.<span class="ident">next_byte</span>();
+                <span class="comment">// Try to take a newline if it&#39;s next, for windows &quot;\r\n&quot; newlines
+                // Otherwise, treat as a Mac OS9 bare &#39;\r&#39; newline
+                </span><span class="kw">if </span><span class="self">self</span>.peek()<span class="question-mark">? </span>== <span class="prelude-val">Some</span>(<span class="number">0xA</span>) {
+                    <span class="kw">let </span>_next = <span class="self">self</span>.iter.next_byte();
                 }
-                <span class="self">self</span>.<span class="ident">next_line</span>();
+                <span class="self">self</span>.next_line();
             }
-            <span class="comment">// &#39;\n&#39; | &#39;\u{2028}&#39; | &#39;\u{2029}&#39;</span>
-            <span class="prelude-val">Some</span>(<span class="number">0xA</span> <span class="op">|</span> <span class="number">0x2028</span> <span class="op">|</span> <span class="number">0x2029</span>) =&gt; <span class="self">self</span>.<span class="ident">next_line</span>(),
-            <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; <span class="self">self</span>.<span class="ident">next_column</span>(),
-            <span class="kw">_</span> =&gt; {}
+            <span class="comment">// &#39;\n&#39; | &#39;\u{2028}&#39; | &#39;\u{2029}&#39;
+            </span><span class="prelude-val">Some</span>(<span class="number">0xA </span>| <span class="number">0x2028 </span>| <span class="number">0x2029</span>) =&gt; <span class="self">self</span>.next_line(),
+            <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; <span class="self">self</span>.next_column(),
+            <span class="kw">_ </span>=&gt; {}
         }
 
-        <span class="prelude-val">Ok</span>(<span class="ident">ch</span>)
+        <span class="prelude-val">Ok</span>(ch)
     }
 }
 
-<span class="doccomment">/// Inner iterator for a cursor.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::option_option</span>)]</span>
-<span class="kw">struct</span> <span class="ident">InnerIter</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
-    <span class="ident">iter</span>: <span class="ident">Bytes</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>,
-    <span class="ident">num_peeked_bytes</span>: <span class="ident">u8</span>,
-    <span class="ident">peeked_bytes</span>: [<span class="ident">u8</span>; <span class="number">4</span>],
-    <span class="ident">peeked_char</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+<span class="doccomment">/// Inner iterator for a cursor.
+</span><span class="attribute">#[derive(Debug)]
+#[allow(clippy::option_option)]
+</span><span class="kw">struct </span>InnerIter&lt;R&gt; {
+    iter: Bytes&lt;R&gt;,
+    num_peeked_bytes: u8,
+    peeked_bytes: [u8; <span class="number">4</span>],
+    peeked_char: <span class="prelude-ty">Option</span>&lt;<span class="prelude-ty">Option</span>&lt;u32&gt;&gt;,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="ident">InnerIter</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Creates a new inner iterator.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">iter</span>: <span class="ident">Bytes</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">iter</span>,
-            <span class="ident">num_peeked_bytes</span>: <span class="number">0</span>,
-            <span class="ident">peeked_bytes</span>: [<span class="number">0</span>; <span class="number">4</span>],
-            <span class="ident">peeked_char</span>: <span class="prelude-val">None</span>,
+<span class="kw">impl</span>&lt;R&gt; InnerIter&lt;R&gt; {
+    <span class="doccomment">/// Creates a new inner iterator.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">fn </span>new(iter: Bytes&lt;R&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            iter,
+            num_peeked_bytes: <span class="number">0</span>,
+            peeked_bytes: [<span class="number">0</span>; <span class="number">4</span>],
+            peeked_char: <span class="prelude-val">None</span>,
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="ident">InnerIter</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">R</span>: <span class="ident">Read</span>,
+<span class="kw">impl</span>&lt;R&gt; InnerIter&lt;R&gt;
+<span class="kw">where
+    </span>R: Read,
 {
-    <span class="doccomment">/// It will fill the buffer with checked ascii bytes.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This expects for the buffer to be fully filled. If it&#39;s not, it will fail with an</span>
-    <span class="doccomment">/// `UnexpectedEof` I/O error.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">fill_bytes</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">u8</span>]) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="kw">for</span> <span class="ident">byte</span> <span class="kw">in</span> <span class="ident">buf</span>.<span class="ident">iter_mut</span>() {
-            <span class="kw-2">*</span><span class="ident">byte</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">next_byte</span>()<span class="question-mark">?</span>.<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-                <span class="ident">io::Error::new</span>(
-                    <span class="ident">io::ErrorKind::UnexpectedEof</span>,
+    <span class="doccomment">/// It will fill the buffer with checked ascii bytes.
+    ///
+    /// This expects for the buffer to be fully filled. If it&#39;s not, it will fail with an
+    /// `UnexpectedEof` I/O error.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">fn </span>fill_bytes(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>[u8]) -&gt; io::Result&lt;()&gt; {
+        <span class="kw">for </span>byte <span class="kw">in </span>buf.iter_mut() {
+            <span class="kw-2">*</span>byte = <span class="self">self</span>.next_byte()<span class="question-mark">?</span>.ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::UnexpectedEof,
                     <span class="string">&quot;unexpected EOF when filling buffer&quot;</span>,
                 )
             })<span class="question-mark">?</span>;
@@ -862,195 +862,195 @@
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="doccomment">/// Increments the iter by n bytes.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">increment</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">n</span>: <span class="ident">u32</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Error</span><span class="op">&gt;</span> {
-        <span class="kw">for</span> <span class="kw">_</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">n</span> {
-            <span class="kw">if</span> <span class="prelude-val">None</span> <span class="op">==</span> <span class="self">self</span>.<span class="ident">next_byte</span>()<span class="question-mark">?</span> {
+    <span class="doccomment">/// Increments the iter by n bytes.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">fn </span>increment(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: u32) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
+        <span class="kw">for _ in </span><span class="number">0</span>..n {
+            <span class="kw">if </span>(<span class="self">self</span>.next_byte()<span class="question-mark">?</span>).is_none() {
                 <span class="kw">break</span>;
             }
         }
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="doccomment">/// Peeks the next byte.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">peek_byte</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">num_peeked_bytes</span> <span class="op">&gt;</span> <span class="number">0</span> {
-            <span class="kw">let</span> <span class="ident">byte</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">peeked_bytes</span>[<span class="number">0</span>];
-            <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">byte</span>))
-        } <span class="kw">else</span> {
-            <span class="kw">match</span> <span class="self">self</span>.<span class="ident">iter</span>.<span class="ident">next</span>().<span class="ident">transpose</span>()<span class="question-mark">?</span> {
-                <span class="prelude-val">Some</span>(<span class="ident">byte</span>) =&gt; {
-                    <span class="self">self</span>.<span class="ident">num_peeked_bytes</span> <span class="op">=</span> <span class="number">1</span>;
-                    <span class="self">self</span>.<span class="ident">peeked_bytes</span>[<span class="number">0</span>] <span class="op">=</span> <span class="ident">byte</span>;
-                    <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">byte</span>))
+    <span class="doccomment">/// Peeks the next byte.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>peek_byte(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;u8&gt;, Error&gt; {
+        <span class="kw">if </span><span class="self">self</span>.num_peeked_bytes &gt; <span class="number">0 </span>{
+            <span class="kw">let </span>byte = <span class="self">self</span>.peeked_bytes[<span class="number">0</span>];
+            <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(byte))
+        } <span class="kw">else </span>{
+            <span class="kw">match </span><span class="self">self</span>.iter.next().transpose()<span class="question-mark">? </span>{
+                <span class="prelude-val">Some</span>(byte) =&gt; {
+                    <span class="self">self</span>.num_peeked_bytes = <span class="number">1</span>;
+                    <span class="self">self</span>.peeked_bytes[<span class="number">0</span>] = byte;
+                    <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(byte))
                 }
-                <span class="prelude-val">None</span> =&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
+                <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
             }
         }
     }
 
-    <span class="doccomment">/// Peeks the next n bytes, the maximum number of peeked bytes is 4 (n &lt;= 4).</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">peek_n_bytes</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">n</span>: <span class="ident">u8</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">Error</span><span class="op">&gt;</span> {
-        <span class="kw">while</span> <span class="self">self</span>.<span class="ident">num_peeked_bytes</span> <span class="op">&lt;</span> <span class="ident">n</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">num_peeked_bytes</span> <span class="op">&lt;</span> <span class="number">4</span> {
-            <span class="kw">match</span> <span class="self">self</span>.<span class="ident">iter</span>.<span class="ident">next</span>().<span class="ident">transpose</span>()<span class="question-mark">?</span> {
-                <span class="prelude-val">Some</span>(<span class="ident">byte</span>) =&gt; {
-                    <span class="self">self</span>.<span class="ident">peeked_bytes</span>[<span class="ident">usize::from</span>(<span class="self">self</span>.<span class="ident">num_peeked_bytes</span>)] <span class="op">=</span> <span class="ident">byte</span>;
-                    <span class="self">self</span>.<span class="ident">num_peeked_bytes</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+    <span class="doccomment">/// Peeks the next n bytes, the maximum number of peeked bytes is 4 (n &lt;= 4).
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>peek_n_bytes(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: u8) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span>[u8], Error&gt; {
+        <span class="kw">while </span><span class="self">self</span>.num_peeked_bytes &lt; n &amp;&amp; <span class="self">self</span>.num_peeked_bytes &lt; <span class="number">4 </span>{
+            <span class="kw">match </span><span class="self">self</span>.iter.next().transpose()<span class="question-mark">? </span>{
+                <span class="prelude-val">Some</span>(byte) =&gt; {
+                    <span class="self">self</span>.peeked_bytes[usize::from(<span class="self">self</span>.num_peeked_bytes)] = byte;
+                    <span class="self">self</span>.num_peeked_bytes += <span class="number">1</span>;
                 }
-                <span class="prelude-val">None</span> =&gt; <span class="kw">break</span>,
+                <span class="prelude-val">None </span>=&gt; <span class="kw">break</span>,
             };
         }
-        <span class="prelude-val">Ok</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">peeked_bytes</span>[..<span class="ident">usize::from</span>(<span class="ident">u8::min</span>(<span class="ident">n</span>, <span class="self">self</span>.<span class="ident">num_peeked_bytes</span>))])
+        <span class="prelude-val">Ok</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.peeked_bytes[..usize::from(u8::min(n, <span class="self">self</span>.num_peeked_bytes))])
     }
 
-    <span class="doccomment">/// Peeks the next unchecked character in u32 code point.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">peek_char</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">ch</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">peeked_char</span> {
-            <span class="prelude-val">Ok</span>(<span class="ident">ch</span>)
-        } <span class="kw">else</span> {
-            <span class="comment">// Decode UTF-8</span>
-            <span class="kw">let</span> (<span class="ident">x</span>, <span class="ident">y</span>, <span class="ident">z</span>, <span class="ident">w</span>) <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">peek_n_bytes</span>(<span class="number">4</span>)<span class="question-mark">?</span> {
-                [<span class="ident">b</span>, ..] <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">b</span> <span class="op">&lt;</span> <span class="number">128</span> =&gt; {
-                    <span class="kw">let</span> <span class="ident">char</span> <span class="op">=</span> <span class="ident">u32::from</span>(<span class="kw-2">*</span><span class="ident">b</span>);
-                    <span class="self">self</span>.<span class="ident">peeked_char</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="prelude-val">Some</span>(<span class="ident">char</span>));
-                    <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">char</span>));
+    <span class="doccomment">/// Peeks the next unchecked character in u32 code point.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>peek_char(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;u32&gt;, Error&gt; {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(ch) = <span class="self">self</span>.peeked_char {
+            <span class="prelude-val">Ok</span>(ch)
+        } <span class="kw">else </span>{
+            <span class="comment">// Decode UTF-8
+            </span><span class="kw">let </span>(x, y, z, w) = <span class="kw">match </span><span class="self">self</span>.peek_n_bytes(<span class="number">4</span>)<span class="question-mark">? </span>{
+                [b, ..] <span class="kw">if </span><span class="kw-2">*</span>b &lt; <span class="number">128 </span>=&gt; {
+                    <span class="kw">let </span>char = u32::from(<span class="kw-2">*</span>b);
+                    <span class="self">self</span>.peeked_char = <span class="prelude-val">Some</span>(<span class="prelude-val">Some</span>(char));
+                    <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(char));
                 }
                 [] =&gt; {
-                    <span class="self">self</span>.<span class="ident">peeked_char</span> <span class="op">=</span> <span class="prelude-val">None</span>;
-                    <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
+                    <span class="self">self</span>.peeked_char = <span class="prelude-val">None</span>;
+                    <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
                 }
-                <span class="ident">bytes</span> =&gt; (
-                    <span class="ident">bytes</span>[<span class="number">0</span>],
-                    <span class="ident">bytes</span>.<span class="ident">get</span>(<span class="number">1</span>).<span class="ident">copied</span>(),
-                    <span class="ident">bytes</span>.<span class="ident">get</span>(<span class="number">2</span>).<span class="ident">copied</span>(),
-                    <span class="ident">bytes</span>.<span class="ident">get</span>(<span class="number">3</span>).<span class="ident">copied</span>(),
+                bytes =&gt; (
+                    bytes[<span class="number">0</span>],
+                    bytes.get(<span class="number">1</span>).copied(),
+                    bytes.get(<span class="number">2</span>).copied(),
+                    bytes.get(<span class="number">3</span>).copied(),
                 ),
             };
 
-            <span class="comment">// Multibyte case follows</span>
-            <span class="comment">// Decode from a byte combination out of: [[[x y] z] w]</span>
-            <span class="comment">// NOTE: Performance is sensitive to the exact formulation here</span>
-            <span class="kw">let</span> <span class="ident">init</span> <span class="op">=</span> <span class="ident">utf8_first_byte</span>(<span class="ident">x</span>, <span class="number">2</span>);
-            <span class="kw">let</span> <span class="ident">y</span> <span class="op">=</span> <span class="ident">y</span>.<span class="ident">unwrap_or_default</span>();
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">ch</span> <span class="op">=</span> <span class="ident">utf8_acc_cont_byte</span>(<span class="ident">init</span>, <span class="ident">y</span>);
-            <span class="kw">if</span> <span class="ident">x</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">0xE0</span> {
-                <span class="comment">// [[x y z] w] case</span>
-                <span class="comment">// 5th bit in 0xE0 .. 0xEF is always clear, so `init` is still valid</span>
-                <span class="kw">let</span> <span class="ident">z</span> <span class="op">=</span> <span class="ident">z</span>.<span class="ident">unwrap_or_default</span>();
-                <span class="kw">let</span> <span class="ident">y_z</span> <span class="op">=</span> <span class="ident">utf8_acc_cont_byte</span>(<span class="ident">u32::from</span>(<span class="ident">y</span> <span class="op">&amp;</span> <span class="ident">CONT_MASK</span>), <span class="ident">z</span>);
-                <span class="ident">ch</span> <span class="op">=</span> <span class="ident">init</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">12</span> <span class="op">|</span> <span class="ident">y_z</span>;
-                <span class="kw">if</span> <span class="ident">x</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">0xF0</span> {
-                    <span class="comment">// [x y z w] case</span>
-                    <span class="comment">// use only the lower 3 bits of `init`</span>
-                    <span class="kw">let</span> <span class="ident">w</span> <span class="op">=</span> <span class="ident">w</span>.<span class="ident">unwrap_or_default</span>();
-                    <span class="ident">ch</span> <span class="op">=</span> (<span class="ident">init</span> <span class="op">&amp;</span> <span class="number">7</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">18</span> <span class="op">|</span> <span class="ident">utf8_acc_cont_byte</span>(<span class="ident">y_z</span>, <span class="ident">w</span>);
+            <span class="comment">// Multibyte case follows
+            // Decode from a byte combination out of: [[[x y] z] w]
+            // NOTE: Performance is sensitive to the exact formulation here
+            </span><span class="kw">let </span>init = utf8_first_byte(x, <span class="number">2</span>);
+            <span class="kw">let </span>y = y.unwrap_or_default();
+            <span class="kw">let </span><span class="kw-2">mut </span>ch = utf8_acc_cont_byte(init, y);
+            <span class="kw">if </span>x &gt;= <span class="number">0xE0 </span>{
+                <span class="comment">// [[x y z] w] case
+                // 5th bit in 0xE0 .. 0xEF is always clear, so `init` is still valid
+                </span><span class="kw">let </span>z = z.unwrap_or_default();
+                <span class="kw">let </span>y_z = utf8_acc_cont_byte(u32::from(y &amp; CONT_MASK), z);
+                ch = init &lt;&lt; <span class="number">12 </span>| y_z;
+                <span class="kw">if </span>x &gt;= <span class="number">0xF0 </span>{
+                    <span class="comment">// [x y z w] case
+                    // use only the lower 3 bits of `init`
+                    </span><span class="kw">let </span>w = w.unwrap_or_default();
+                    ch = (init &amp; <span class="number">7</span>) &lt;&lt; <span class="number">18 </span>| utf8_acc_cont_byte(y_z, w);
                 }
             };
 
-            <span class="self">self</span>.<span class="ident">peeked_char</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="prelude-val">Some</span>(<span class="ident">ch</span>));
-            <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">ch</span>))
+            <span class="self">self</span>.peeked_char = <span class="prelude-val">Some</span>(<span class="prelude-val">Some</span>(ch));
+            <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(ch))
         }
     }
 
-    <span class="doccomment">/// Retrieves the next byte</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">next_byte</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">peeked_char</span> <span class="op">=</span> <span class="prelude-val">None</span>;
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">num_peeked_bytes</span> <span class="op">&gt;</span> <span class="number">0</span> {
-            <span class="kw">let</span> <span class="ident">byte</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">peeked_bytes</span>[<span class="number">0</span>];
-            <span class="self">self</span>.<span class="ident">num_peeked_bytes</span> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>;
-            <span class="self">self</span>.<span class="ident">peeked_bytes</span>.<span class="ident">rotate_left</span>(<span class="number">1</span>);
-            <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">byte</span>))
-        } <span class="kw">else</span> {
-            <span class="self">self</span>.<span class="ident">iter</span>.<span class="ident">next</span>().<span class="ident">transpose</span>()
+    <span class="doccomment">/// Retrieves the next byte
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">fn </span>next_byte(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; io::Result&lt;<span class="prelude-ty">Option</span>&lt;u8&gt;&gt; {
+        <span class="self">self</span>.peeked_char = <span class="prelude-val">None</span>;
+        <span class="kw">if </span><span class="self">self</span>.num_peeked_bytes &gt; <span class="number">0 </span>{
+            <span class="kw">let </span>byte = <span class="self">self</span>.peeked_bytes[<span class="number">0</span>];
+            <span class="self">self</span>.num_peeked_bytes -= <span class="number">1</span>;
+            <span class="self">self</span>.peeked_bytes.rotate_left(<span class="number">1</span>);
+            <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(byte))
+        } <span class="kw">else </span>{
+            <span class="self">self</span>.iter.next().transpose()
         }
     }
 
-    <span class="doccomment">/// Retrieves the next unchecked char in u32 code point.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">next_char</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">ch</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">peeked_char</span>.<span class="ident">take</span>() {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">c</span>) <span class="op">=</span> <span class="ident">ch</span> {
-                <span class="self">self</span>.<span class="ident">increment</span>(<span class="ident">utf8_len</span>(<span class="ident">c</span>))<span class="question-mark">?</span>;
+    <span class="doccomment">/// Retrieves the next unchecked char in u32 code point.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">fn </span>next_char(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; io::Result&lt;<span class="prelude-ty">Option</span>&lt;u32&gt;&gt; {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(ch) = <span class="self">self</span>.peeked_char.take() {
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(c) = ch {
+                <span class="self">self</span>.increment(utf8_len(c))<span class="question-mark">?</span>;
             }
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">ch</span>);
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(ch);
         }
 
-        <span class="comment">// Decode UTF-8</span>
-        <span class="kw">let</span> <span class="ident">x</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">next_byte</span>()<span class="question-mark">?</span> {
-            <span class="prelude-val">Some</span>(<span class="ident">b</span>) <span class="kw">if</span> <span class="ident">b</span> <span class="op">&lt;</span> <span class="number">128</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">u32::from</span>(<span class="ident">b</span>))),
-            <span class="prelude-val">Some</span>(<span class="ident">b</span>) =&gt; <span class="ident">b</span>,
-            <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
+        <span class="comment">// Decode UTF-8
+        </span><span class="kw">let </span>x = <span class="kw">match </span><span class="self">self</span>.next_byte()<span class="question-mark">? </span>{
+            <span class="prelude-val">Some</span>(b) <span class="kw">if </span>b &lt; <span class="number">128 </span>=&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(u32::from(b))),
+            <span class="prelude-val">Some</span>(b) =&gt; b,
+            <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
         };
 
-        <span class="comment">// Multibyte case follows</span>
-        <span class="comment">// Decode from a byte combination out of: [[[x y] z] w]</span>
-        <span class="comment">// NOTE: Performance is sensitive to the exact formulation here</span>
-        <span class="kw">let</span> <span class="ident">init</span> <span class="op">=</span> <span class="ident">utf8_first_byte</span>(<span class="ident">x</span>, <span class="number">2</span>);
-        <span class="kw">let</span> <span class="ident">y</span> <span class="op">=</span> <span class="ident">unwrap_or_0</span>(<span class="self">self</span>.<span class="ident">next_byte</span>()<span class="question-mark">?</span>);
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">ch</span> <span class="op">=</span> <span class="ident">utf8_acc_cont_byte</span>(<span class="ident">init</span>, <span class="ident">y</span>);
-        <span class="kw">if</span> <span class="ident">x</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">0xE0</span> {
-            <span class="comment">// [[x y z] w] case</span>
-            <span class="comment">// 5th bit in 0xE0 .. 0xEF is always clear, so `init` is still valid</span>
-            <span class="kw">let</span> <span class="ident">z</span> <span class="op">=</span> <span class="ident">unwrap_or_0</span>(<span class="self">self</span>.<span class="ident">next_byte</span>()<span class="question-mark">?</span>);
-            <span class="kw">let</span> <span class="ident">y_z</span> <span class="op">=</span> <span class="ident">utf8_acc_cont_byte</span>(<span class="ident">u32::from</span>(<span class="ident">y</span> <span class="op">&amp;</span> <span class="ident">CONT_MASK</span>), <span class="ident">z</span>);
-            <span class="ident">ch</span> <span class="op">=</span> <span class="ident">init</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">12</span> <span class="op">|</span> <span class="ident">y_z</span>;
-            <span class="kw">if</span> <span class="ident">x</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">0xF0</span> {
-                <span class="comment">// [x y z w] case</span>
-                <span class="comment">// use only the lower 3 bits of `init`</span>
-                <span class="kw">let</span> <span class="ident">w</span> <span class="op">=</span> <span class="ident">unwrap_or_0</span>(<span class="self">self</span>.<span class="ident">next_byte</span>()<span class="question-mark">?</span>);
-                <span class="ident">ch</span> <span class="op">=</span> (<span class="ident">init</span> <span class="op">&amp;</span> <span class="number">7</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">18</span> <span class="op">|</span> <span class="ident">utf8_acc_cont_byte</span>(<span class="ident">y_z</span>, <span class="ident">w</span>);
+        <span class="comment">// Multibyte case follows
+        // Decode from a byte combination out of: [[[x y] z] w]
+        // NOTE: Performance is sensitive to the exact formulation here
+        </span><span class="kw">let </span>init = utf8_first_byte(x, <span class="number">2</span>);
+        <span class="kw">let </span>y = unwrap_or_0(<span class="self">self</span>.next_byte()<span class="question-mark">?</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>ch = utf8_acc_cont_byte(init, y);
+        <span class="kw">if </span>x &gt;= <span class="number">0xE0 </span>{
+            <span class="comment">// [[x y z] w] case
+            // 5th bit in 0xE0 .. 0xEF is always clear, so `init` is still valid
+            </span><span class="kw">let </span>z = unwrap_or_0(<span class="self">self</span>.next_byte()<span class="question-mark">?</span>);
+            <span class="kw">let </span>y_z = utf8_acc_cont_byte(u32::from(y &amp; CONT_MASK), z);
+            ch = init &lt;&lt; <span class="number">12 </span>| y_z;
+            <span class="kw">if </span>x &gt;= <span class="number">0xF0 </span>{
+                <span class="comment">// [x y z w] case
+                // use only the lower 3 bits of `init`
+                </span><span class="kw">let </span>w = unwrap_or_0(<span class="self">self</span>.next_byte()<span class="question-mark">?</span>);
+                ch = (init &amp; <span class="number">7</span>) &lt;&lt; <span class="number">18 </span>| utf8_acc_cont_byte(y_z, w);
             }
         };
 
-        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">ch</span>))
+        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(ch))
     }
 }
 
-<span class="doccomment">/// Mask of the value bits of a continuation byte.</span>
-<span class="kw">const</span> <span class="ident">CONT_MASK</span>: <span class="ident">u8</span> <span class="op">=</span> <span class="number">0b0011_1111</span>;
+<span class="doccomment">/// Mask of the value bits of a continuation byte.
+</span><span class="kw">const </span>CONT_MASK: u8 = <span class="number">0b0011_1111</span>;
 
-<span class="doccomment">/// Returns the initial codepoint accumulator for the first byte.</span>
-<span class="doccomment">/// The first byte is special, only want bottom 5 bits for width 2, 4 bits</span>
-<span class="doccomment">/// for width 3, and 3 bits for width 4.</span>
-<span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">fn</span> <span class="ident">utf8_first_byte</span>(<span class="ident">byte</span>: <span class="ident">u8</span>, <span class="ident">width</span>: <span class="ident">u32</span>) -&gt; <span class="ident">u32</span> {
-    <span class="ident">u32::from</span>(<span class="ident">byte</span> <span class="op">&amp;</span> (<span class="number">0x7F</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">width</span>))
+<span class="doccomment">/// Returns the initial codepoint accumulator for the first byte.
+/// The first byte is special, only want bottom 5 bits for width 2, 4 bits
+/// for width 3, and 3 bits for width 4.
+</span><span class="attribute">#[inline]
+</span><span class="kw">fn </span>utf8_first_byte(byte: u8, width: u32) -&gt; u32 {
+    u32::from(byte &amp; (<span class="number">0x7F </span>&gt;&gt; width))
 }
 
-<span class="doccomment">/// Returns the value of `ch` updated with continuation byte `byte`.</span>
-<span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">fn</span> <span class="ident">utf8_acc_cont_byte</span>(<span class="ident">ch</span>: <span class="ident">u32</span>, <span class="ident">byte</span>: <span class="ident">u8</span>) -&gt; <span class="ident">u32</span> {
-    (<span class="ident">ch</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">6</span>) <span class="op">|</span> <span class="ident">u32::from</span>(<span class="ident">byte</span> <span class="op">&amp;</span> <span class="ident">CONT_MASK</span>)
+<span class="doccomment">/// Returns the value of `ch` updated with continuation byte `byte`.
+</span><span class="attribute">#[inline]
+</span><span class="kw">fn </span>utf8_acc_cont_byte(ch: u32, byte: u8) -&gt; u32 {
+    (ch &lt;&lt; <span class="number">6</span>) | u32::from(byte &amp; CONT_MASK)
 }
 
-<span class="doccomment">/// Checks whether the byte is a UTF-8 first byte (i.e., ascii byte or starts with the</span>
-<span class="doccomment">/// bits `11`).</span>
-<span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">fn</span> <span class="ident">utf8_is_first_byte</span>(<span class="ident">byte</span>: <span class="ident">u8</span>) -&gt; <span class="ident">bool</span> {
-    <span class="ident">byte</span> <span class="op">&lt;</span><span class="op">=</span> <span class="number">0x7F</span> <span class="op">|</span><span class="op">|</span> (<span class="ident">byte</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">6</span>) <span class="op">==</span> <span class="number">0x11</span>
+<span class="doccomment">/// Checks whether the byte is a UTF-8 first byte (i.e., ascii byte or starts with the
+/// bits `11`).
+</span><span class="attribute">#[inline]
+</span><span class="kw">fn </span>utf8_is_first_byte(byte: u8) -&gt; bool {
+    byte &lt;= <span class="number">0x7F </span>|| (byte &gt;&gt; <span class="number">6</span>) == <span class="number">0x11
+</span>}
+
+<span class="attribute">#[inline]
+</span><span class="kw">fn </span>unwrap_or_0(opt: <span class="prelude-ty">Option</span>&lt;u8&gt;) -&gt; u8 {
+    opt.unwrap_or(<span class="number">0</span>)
 }
 
-<span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">fn</span> <span class="ident">unwrap_or_0</span>(<span class="ident">opt</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>) -&gt; <span class="ident">u8</span> {
-    <span class="ident">opt</span>.<span class="ident">unwrap_or</span>(<span class="number">0</span>)
-}
-
-<span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">fn</span> <span class="ident">utf8_len</span>(<span class="ident">ch</span>: <span class="ident">u32</span>) -&gt; <span class="ident">u32</span> {
-    <span class="kw">if</span> <span class="ident">ch</span> <span class="op">&lt;</span><span class="op">=</span> <span class="number">0x7F</span> {
-        <span class="number">1</span>
-    } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">ch</span> <span class="op">&lt;</span><span class="op">=</span> <span class="number">0x7FF</span> {
-        <span class="number">2</span>
-    } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">ch</span> <span class="op">&lt;</span><span class="op">=</span> <span class="number">0xFFFF</span> {
-        <span class="number">3</span>
-    } <span class="kw">else</span> {
-        <span class="number">4</span>
-    }
+<span class="attribute">#[inline]
+</span><span class="kw">fn </span>utf8_len(ch: u32) -&gt; u32 {
+    <span class="kw">if </span>ch &lt;= <span class="number">0x7F </span>{
+        <span class="number">1
+    </span>} <span class="kw">else if </span>ch &lt;= <span class="number">0x7FF </span>{
+        <span class="number">2
+    </span>} <span class="kw">else if </span>ch &lt;= <span class="number">0xFFFF </span>{
+        <span class="number">3
+    </span>} <span class="kw">else </span>{
+        <span class="number">4
+    </span>}
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0 (a55dd71d5 2022-09-19)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0 (897e37553 2022-11-02)" ></div></body></html>

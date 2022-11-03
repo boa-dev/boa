@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_engine/src/value/display.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>display.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../boa_engine/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../boa_engine/index.html"><div class="logo-container">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_engine/src/value/display.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>display.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../boa_engine/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../boa_engine/index.html"><div class="logo-container">
                     <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../boa_engine/index.html">
                         <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -313,318 +313,318 @@
 <span id="311">311</span>
 <span id="312">312</span>
 <span id="313">313</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">js_string</span>, <span class="ident">object::ObjectKind</span>, <span class="ident">property::PropertyDescriptor</span>};
+</pre><pre class="rust"><code><span class="kw">use crate</span>::{js_string, object::ObjectKind, property::PropertyDescriptor};
 
-<span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">fmt</span>, <span class="ident">Display</span>, <span class="ident">HashSet</span>, <span class="ident">JsValue</span>, <span class="ident">PropertyKey</span>};
+<span class="kw">use super</span>::{fmt, Display, HashSet, JsValue, PropertyKey};
 
-<span class="doccomment">/// This object is used for displaying a `Value`.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ValueDisplay</span><span class="op">&lt;</span><span class="lifetime">&#39;value</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;value</span> <span class="ident">JsValue</span>,
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">internals</span>: <span class="ident">bool</span>,
+<span class="doccomment">/// This object is used for displaying a `Value`.
+</span><span class="attribute">#[derive(Debug, Clone, Copy)]
+</span><span class="kw">pub struct </span>ValueDisplay&lt;<span class="lifetime">&#39;value</span>&gt; {
+    <span class="kw">pub</span>(<span class="kw">super</span>) value: <span class="kw-2">&amp;</span><span class="lifetime">&#39;value </span>JsValue,
+    <span class="kw">pub</span>(<span class="kw">super</span>) internals: bool,
 }
 
-<span class="kw">impl</span> <span class="ident">ValueDisplay</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Display internal information about value.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// By default this is `false`.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">internals</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">yes</span>: <span class="ident">bool</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">self</span>.<span class="ident">internals</span> <span class="op">=</span> <span class="ident">yes</span>;
-        <span class="self">self</span>
-    }
+<span class="kw">impl </span>ValueDisplay&lt;<span class="lifetime">&#39;_</span>&gt; {
+    <span class="doccomment">/// Display internal information about value.
+    ///
+    /// By default this is `false`.
+    </span><span class="attribute">#[inline]
+    #[must_use]
+    </span><span class="kw">pub fn </span>internals(<span class="kw-2">mut </span><span class="self">self</span>, yes: bool) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.internals = yes;
+        <span class="self">self
+    </span>}
 }
 
-<span class="doccomment">/// A helper macro for printing objects</span>
-<span class="doccomment">/// Can be used to print both properties and internal slots</span>
-<span class="doccomment">/// All of the overloads take:</span>
-<span class="doccomment">/// - The object to be printed</span>
-<span class="doccomment">/// - The function with which to print</span>
-<span class="doccomment">/// - The indentation for the current level (for nested objects)</span>
-<span class="doccomment">/// - A `HashSet` with the addresses of the already printed objects for the current branch</span>
-<span class="doccomment">///      (used to avoid infinite loops when there are cyclic deps)</span>
-<span class="macro">macro_rules!</span> <span class="ident">print_obj_value</span> {
-    (<span class="ident">all</span> <span class="ident">of</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">obj</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">display_fn</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">indent</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">encounters</span>:<span class="ident">expr</span>) =&gt; {
+<span class="doccomment">/// A helper macro for printing objects
+/// Can be used to print both properties and internal slots
+/// All of the overloads take:
+/// - The object to be printed
+/// - The function with which to print
+/// - The indentation for the current level (for nested objects)
+/// - A `HashSet` with the addresses of the already printed objects for the current branch
+///      (used to avoid infinite loops when there are cyclic deps)
+</span><span class="macro">macro_rules! </span>print_obj_value {
+    (all of <span class="macro-nonterminal">$obj</span>:expr, <span class="macro-nonterminal">$display_fn</span>:ident, <span class="macro-nonterminal">$indent</span>:expr, <span class="macro-nonterminal">$encounters</span>:expr) =&gt; {
         {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">internals</span> <span class="op">=</span> <span class="macro">print_obj_value!</span>(<span class="ident">internals</span> <span class="ident">of</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">obj</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">display_fn</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">indent</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">encounters</span>);
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">props</span> <span class="op">=</span> <span class="macro">print_obj_value!</span>(<span class="ident">props</span> <span class="ident">of</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">obj</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">display_fn</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">indent</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">encounters</span>, <span class="bool-val">true</span>);
+            <span class="kw">let </span><span class="kw-2">mut </span>internals = <span class="macro">print_obj_value!</span>(internals of <span class="macro-nonterminal">$obj</span>, <span class="macro-nonterminal">$display_fn</span>, <span class="macro-nonterminal">$indent</span>, <span class="macro-nonterminal">$encounters</span>);
+            <span class="kw">let </span><span class="kw-2">mut </span>props = <span class="macro">print_obj_value!</span>(props of <span class="macro-nonterminal">$obj</span>, <span class="macro-nonterminal">$display_fn</span>, <span class="macro-nonterminal">$indent</span>, <span class="macro-nonterminal">$encounters</span>, <span class="bool-val">true</span>);
 
-            <span class="ident">props</span>.<span class="ident">reserve</span>(<span class="ident">internals</span>.<span class="ident">len</span>());
-            <span class="ident">props</span>.<span class="ident">append</span>(<span class="kw-2">&amp;mut</span> <span class="ident">internals</span>);
+            props.reserve(internals.len());
+            props.append(<span class="kw-2">&amp;mut </span>internals);
 
-            <span class="ident">props</span>
+            props
         }
     };
-    (<span class="ident">internals</span> <span class="ident">of</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">obj</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">display_fn</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">indent</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">encounters</span>:<span class="ident">expr</span>) =&gt; {
+    (internals of <span class="macro-nonterminal">$obj</span>:expr, <span class="macro-nonterminal">$display_fn</span>:ident, <span class="macro-nonterminal">$indent</span>:expr, <span class="macro-nonterminal">$encounters</span>:expr) =&gt; {
         {
-            <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">obj</span>.<span class="ident">borrow</span>();
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">object</span>) <span class="op">=</span> <span class="ident">object</span>.<span class="ident">prototype</span>() {
+            <span class="kw">let </span>object = <span class="macro-nonterminal">$obj</span>.borrow();
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(object) = object.prototype() {
                 <span class="macro">vec!</span>[<span class="macro">format!</span>(
                     <span class="string">&quot;{:&gt;width$}: {}&quot;</span>,
                     <span class="string">&quot;__proto__&quot;</span>,
-                    <span class="macro-nonterminal">$</span><span class="macro-nonterminal">display_fn</span>(<span class="kw-2">&amp;</span><span class="ident">object</span>.<span class="ident">clone</span>().<span class="ident">into</span>(), <span class="macro-nonterminal">$</span><span class="macro-nonterminal">encounters</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">indent</span>.<span class="ident">wrapping_add</span>(<span class="number">4</span>), <span class="bool-val">true</span>),
-                    <span class="ident">width</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">indent</span>,
+                    <span class="macro-nonterminal">$display_fn</span>(<span class="kw-2">&amp;</span>object.clone().into(), <span class="macro-nonterminal">$encounters</span>, <span class="macro-nonterminal">$indent</span>.wrapping_add(<span class="number">4</span>), <span class="bool-val">true</span>),
+                    width = <span class="macro-nonterminal">$indent</span>,
                 )]
-            } <span class="kw">else</span> {
+            } <span class="kw">else </span>{
                 <span class="macro">vec!</span>[<span class="macro">format!</span>(
                     <span class="string">&quot;{:&gt;width$}: {}&quot;</span>,
                     <span class="string">&quot;__proto__&quot;</span>,
-                    <span class="ident">JsValue::Null</span>.<span class="ident">display</span>(),
-                    <span class="ident">width</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">indent</span>,
+                    JsValue::Null.display(),
+                    width = <span class="macro-nonterminal">$indent</span>,
                 )]
             }
         }
     };
-    (<span class="ident">props</span> <span class="ident">of</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">obj</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">display_fn</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">indent</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">encounters</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">print_internals</span>:<span class="ident">expr</span>) =&gt; {
-        <span class="macro">print_obj_value!</span>(<span class="kw">impl</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">obj</span>, <span class="op">|</span>(<span class="ident">key</span>, <span class="ident">val</span>)<span class="op">|</span> {
-            <span class="kw">if</span> <span class="ident">val</span>.<span class="ident">is_data_descriptor</span>() {
-                <span class="kw">let</span> <span class="ident">v</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">val</span>.<span class="ident">expect_value</span>();
+    (props of <span class="macro-nonterminal">$obj</span>:expr, <span class="macro-nonterminal">$display_fn</span>:ident, <span class="macro-nonterminal">$indent</span>:expr, <span class="macro-nonterminal">$encounters</span>:expr, <span class="macro-nonterminal">$print_internals</span>:expr) =&gt; {
+        <span class="macro">print_obj_value!</span>(<span class="kw">impl </span><span class="macro-nonterminal">$obj</span>, |(key, val)| {
+            <span class="kw">if </span>val.is_data_descriptor() {
+                <span class="kw">let </span>v = <span class="kw-2">&amp;</span>val.expect_value();
                 <span class="macro">format!</span>(
                     <span class="string">&quot;{:&gt;width$}: {}&quot;</span>,
-                    <span class="ident">key</span>,
-                    <span class="macro-nonterminal">$</span><span class="macro-nonterminal">display_fn</span>(<span class="ident">v</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">encounters</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">indent</span>.<span class="ident">wrapping_add</span>(<span class="number">4</span>), <span class="macro-nonterminal">$</span><span class="macro-nonterminal">print_internals</span>),
-                    <span class="ident">width</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">indent</span>,
+                    key,
+                    <span class="macro-nonterminal">$display_fn</span>(v, <span class="macro-nonterminal">$encounters</span>, <span class="macro-nonterminal">$indent</span>.wrapping_add(<span class="number">4</span>), <span class="macro-nonterminal">$print_internals</span>),
+                    width = <span class="macro-nonterminal">$indent</span>,
                 )
-            } <span class="kw">else</span> {
-               <span class="kw">let</span> <span class="ident">display</span> <span class="op">=</span> <span class="kw">match</span> (<span class="ident">val</span>.<span class="ident">set</span>().<span class="ident">is_some</span>(), <span class="ident">val</span>.<span class="ident">get</span>().<span class="ident">is_some</span>()) {
+            } <span class="kw">else </span>{
+               <span class="kw">let </span>display = <span class="kw">match </span>(val.set().is_some(), val.get().is_some()) {
                     (<span class="bool-val">true</span>, <span class="bool-val">true</span>) =&gt; <span class="string">&quot;Getter &amp; Setter&quot;</span>,
                     (<span class="bool-val">true</span>, <span class="bool-val">false</span>) =&gt; <span class="string">&quot;Setter&quot;</span>,
                     (<span class="bool-val">false</span>, <span class="bool-val">true</span>) =&gt; <span class="string">&quot;Getter&quot;</span>,
-                    <span class="kw">_</span> =&gt; <span class="string">&quot;No Getter/Setter&quot;</span>
-                };
-               <span class="macro">format!</span>(<span class="string">&quot;{:&gt;width$}: {}&quot;</span>, <span class="ident">key</span>, <span class="ident">display</span>, <span class="ident">width</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">indent</span>)
+                    <span class="kw">_ </span>=&gt; <span class="string">&quot;No Getter/Setter&quot;
+                </span>};
+               <span class="macro">format!</span>(<span class="string">&quot;{:&gt;width$}: {}&quot;</span>, key, display, width = <span class="macro-nonterminal">$indent</span>)
             }
         })
     };
 
-    <span class="comment">// A private overload of the macro</span>
-    <span class="comment">// DO NOT use directly</span>
-    (<span class="kw">impl</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">v</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">f</span>:<span class="ident">expr</span>) =&gt; {
-        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">v</span>
-            .<span class="ident">borrow</span>()
-            .<span class="ident">properties</span>()
-            .<span class="ident">iter</span>()
-            .<span class="ident">map</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">f</span>)
-            .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span><span class="op">&gt;</span>()
+    <span class="comment">// A private overload of the macro
+    // DO NOT use directly
+    </span>(<span class="kw">impl </span><span class="macro-nonterminal">$v</span>:expr, <span class="macro-nonterminal">$f</span>:expr) =&gt; {
+        <span class="macro-nonterminal">$v
+            </span>.borrow()
+            .properties()
+            .iter()
+            .map(<span class="macro-nonterminal">$f</span>)
+            .collect::&lt;Vec&lt;String&gt;&gt;()
     };
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">log_string_from</span>(<span class="ident">x</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">print_internals</span>: <span class="ident">bool</span>, <span class="ident">print_children</span>: <span class="ident">bool</span>) -&gt; <span class="ident">String</span> {
-    <span class="kw">match</span> <span class="ident">x</span> {
-        <span class="comment">// We don&#39;t want to print private (compiler) or prototype properties</span>
-        <span class="ident">JsValue::Object</span>(<span class="kw-2">ref</span> <span class="ident">v</span>) =&gt; {
-            <span class="comment">// Can use the private &quot;type&quot; field of an Object to match on</span>
-            <span class="comment">// which type of Object it represents for special printing</span>
-            <span class="kw">match</span> <span class="ident">v</span>.<span class="ident">borrow</span>().<span class="ident">kind</span>() {
-                <span class="ident">ObjectKind::String</span>(<span class="kw-2">ref</span> <span class="ident">string</span>) =&gt; {
-                    <span class="macro">format!</span>(<span class="string">&quot;String {{ \&quot;{}\&quot; }}&quot;</span>, <span class="ident">string</span>.<span class="ident">to_std_string_escaped</span>())
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>log_string_from(x: <span class="kw-2">&amp;</span>JsValue, print_internals: bool, print_children: bool) -&gt; String {
+    <span class="kw">match </span>x {
+        <span class="comment">// We don&#39;t want to print private (compiler) or prototype properties
+        </span>JsValue::Object(<span class="kw-2">ref </span>v) =&gt; {
+            <span class="comment">// Can use the private &quot;type&quot; field of an Object to match on
+            // which type of Object it represents for special printing
+            </span><span class="kw">match </span>v.borrow().kind() {
+                ObjectKind::String(<span class="kw-2">ref </span>string) =&gt; {
+                    <span class="macro">format!</span>(<span class="string">&quot;String {{ \&quot;{}\&quot; }}&quot;</span>, string.to_std_string_escaped())
                 }
-                <span class="ident">ObjectKind::Boolean</span>(<span class="ident">boolean</span>) =&gt; <span class="macro">format!</span>(<span class="string">&quot;Boolean {{ {boolean} }}&quot;</span>),
-                <span class="ident">ObjectKind::Number</span>(<span class="ident">rational</span>) =&gt; {
-                    <span class="kw">if</span> <span class="ident">rational</span>.<span class="ident">is_sign_negative</span>() <span class="op">&amp;&amp;</span> <span class="kw-2">*</span><span class="ident">rational</span> <span class="op">==</span> <span class="number">0.0</span> {
-                        <span class="string">&quot;Number { -0 }&quot;</span>.<span class="ident">to_string</span>()
-                    } <span class="kw">else</span> {
-                        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buffer</span> <span class="op">=</span> <span class="ident">ryu_js::Buffer::new</span>();
-                        <span class="macro">format!</span>(<span class="string">&quot;Number {{ {} }}&quot;</span>, <span class="ident">buffer</span>.<span class="ident">format</span>(<span class="kw-2">*</span><span class="ident">rational</span>))
+                ObjectKind::Boolean(boolean) =&gt; <span class="macro">format!</span>(<span class="string">&quot;Boolean {{ {boolean} }}&quot;</span>),
+                ObjectKind::Number(rational) =&gt; {
+                    <span class="kw">if </span>rational.is_sign_negative() &amp;&amp; <span class="kw-2">*</span>rational == <span class="number">0.0 </span>{
+                        <span class="string">&quot;Number { -0 }&quot;</span>.to_string()
+                    } <span class="kw">else </span>{
+                        <span class="kw">let </span><span class="kw-2">mut </span>buffer = ryu_js::Buffer::new();
+                        <span class="macro">format!</span>(<span class="string">&quot;Number {{ {} }}&quot;</span>, buffer.format(<span class="kw-2">*</span>rational))
                     }
                 }
-                <span class="ident">ObjectKind::Array</span> =&gt; {
-                    <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">v</span>
-                        .<span class="ident">borrow</span>()
-                        .<span class="ident">properties</span>()
-                        .<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">PropertyKey::from</span>(<span class="macro">js_string!</span>(<span class="string">&quot;length&quot;</span>)))
-                        .<span class="ident">expect</span>(<span class="string">&quot;array object must have &#39;length&#39; property&quot;</span>)
-                        <span class="comment">// FIXME: handle accessor descriptors</span>
-                        .<span class="ident">expect_value</span>()
-                        .<span class="ident">as_number</span>()
-                        .<span class="ident">map</span>(<span class="op">|</span><span class="ident">n</span><span class="op">|</span> <span class="ident">n</span> <span class="kw">as</span> <span class="ident">i32</span>)
-                        .<span class="ident">unwrap_or_default</span>();
+                ObjectKind::Array =&gt; {
+                    <span class="kw">let </span>len = v
+                        .borrow()
+                        .properties()
+                        .get(<span class="kw-2">&amp;</span>PropertyKey::from(<span class="macro">js_string!</span>(<span class="string">&quot;length&quot;</span>)))
+                        .expect(<span class="string">&quot;array object must have &#39;length&#39; property&quot;</span>)
+                        <span class="comment">// FIXME: handle accessor descriptors
+                        </span>.expect_value()
+                        .as_number()
+                        .map(|n| n <span class="kw">as </span>i32)
+                        .unwrap_or_default();
 
-                    <span class="kw">if</span> <span class="ident">print_children</span> {
-                        <span class="kw">if</span> <span class="ident">len</span> <span class="op">==</span> <span class="number">0</span> {
-                            <span class="kw">return</span> <span class="ident">String::from</span>(<span class="string">&quot;[]&quot;</span>);
+                    <span class="kw">if </span>print_children {
+                        <span class="kw">if </span>len == <span class="number">0 </span>{
+                            <span class="kw">return </span>String::from(<span class="string">&quot;[]&quot;</span>);
                         }
 
-                        <span class="kw">let</span> <span class="ident">arr</span> <span class="op">=</span> (<span class="number">0</span>..<span class="ident">len</span>)
-                            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">i</span><span class="op">|</span> {
-                                <span class="comment">// Introduce recursive call to stringify any objects</span>
-                                <span class="comment">// which are part of the Array</span>
+                        <span class="kw">let </span>arr = (<span class="number">0</span>..len)
+                            .map(|i| {
+                                <span class="comment">// Introduce recursive call to stringify any objects
+                                // which are part of the Array
 
-                                <span class="comment">// FIXME: handle accessor descriptors</span>
-                                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">value</span>) <span class="op">=</span> <span class="ident">v</span>
-                                    .<span class="ident">borrow</span>()
-                                    .<span class="ident">properties</span>()
-                                    .<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">i</span>.<span class="ident">into</span>())
-                                    .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span>.<span class="ident">value</span>().<span class="ident">cloned</span>())
+                                // FIXME: handle accessor descriptors
+                                </span><span class="kw">if let </span><span class="prelude-val">Some</span>(value) = v
+                                    .borrow()
+                                    .properties()
+                                    .get(<span class="kw-2">&amp;</span>i.into())
+                                    .and_then(|x| x.value().cloned())
                                 {
-                                    <span class="ident">log_string_from</span>(<span class="kw-2">&amp;</span><span class="ident">value</span>, <span class="ident">print_internals</span>, <span class="bool-val">false</span>)
-                                } <span class="kw">else</span> {
-                                    <span class="ident">String::from</span>(<span class="string">&quot;&lt;empty&gt;&quot;</span>)
+                                    log_string_from(<span class="kw-2">&amp;</span>value, print_internals, <span class="bool-val">false</span>)
+                                } <span class="kw">else </span>{
+                                    String::from(<span class="string">&quot;&lt;empty&gt;&quot;</span>)
                                 }
                             })
-                            .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span><span class="op">&gt;</span>()
-                            .<span class="ident">join</span>(<span class="string">&quot;, &quot;</span>);
+                            .collect::&lt;Vec&lt;String&gt;&gt;()
+                            .join(<span class="string">&quot;, &quot;</span>);
 
                         <span class="macro">format!</span>(<span class="string">&quot;[ {arr} ]&quot;</span>)
-                    } <span class="kw">else</span> {
+                    } <span class="kw">else </span>{
                         <span class="macro">format!</span>(<span class="string">&quot;Array({len})&quot;</span>)
                     }
                 }
-                <span class="ident">ObjectKind::Map</span>(<span class="kw-2">ref</span> <span class="ident">map</span>) =&gt; {
-                    <span class="kw">let</span> <span class="ident">size</span> <span class="op">=</span> <span class="ident">map</span>.<span class="ident">len</span>();
-                    <span class="kw">if</span> <span class="ident">size</span> <span class="op">==</span> <span class="number">0</span> {
-                        <span class="kw">return</span> <span class="ident">String::from</span>(<span class="string">&quot;Map(0)&quot;</span>);
+                ObjectKind::Map(<span class="kw-2">ref </span>map) =&gt; {
+                    <span class="kw">let </span>size = map.len();
+                    <span class="kw">if </span>size == <span class="number">0 </span>{
+                        <span class="kw">return </span>String::from(<span class="string">&quot;Map(0)&quot;</span>);
                     }
 
-                    <span class="kw">if</span> <span class="ident">print_children</span> {
-                        <span class="kw">let</span> <span class="ident">mappings</span> <span class="op">=</span> <span class="ident">map</span>
-                            .<span class="ident">iter</span>()
-                            .<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">key</span>, <span class="ident">value</span>)<span class="op">|</span> {
-                                <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="ident">log_string_from</span>(<span class="ident">key</span>, <span class="ident">print_internals</span>, <span class="bool-val">false</span>);
-                                <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">log_string_from</span>(<span class="ident">value</span>, <span class="ident">print_internals</span>, <span class="bool-val">false</span>);
+                    <span class="kw">if </span>print_children {
+                        <span class="kw">let </span>mappings = map
+                            .iter()
+                            .map(|(key, value)| {
+                                <span class="kw">let </span>key = log_string_from(key, print_internals, <span class="bool-val">false</span>);
+                                <span class="kw">let </span>value = log_string_from(value, print_internals, <span class="bool-val">false</span>);
                                 <span class="macro">format!</span>(<span class="string">&quot;{key} → {value}&quot;</span>)
                             })
-                            .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span><span class="op">&gt;</span>()
-                            .<span class="ident">join</span>(<span class="string">&quot;, &quot;</span>);
+                            .collect::&lt;Vec&lt;String&gt;&gt;()
+                            .join(<span class="string">&quot;, &quot;</span>);
                         <span class="macro">format!</span>(<span class="string">&quot;Map {{ {mappings} }}&quot;</span>)
-                    } <span class="kw">else</span> {
+                    } <span class="kw">else </span>{
                         <span class="macro">format!</span>(<span class="string">&quot;Map({size})&quot;</span>)
                     }
                 }
-                <span class="ident">ObjectKind::Set</span>(<span class="kw-2">ref</span> <span class="ident">set</span>) =&gt; {
-                    <span class="kw">let</span> <span class="ident">size</span> <span class="op">=</span> <span class="ident">set</span>.<span class="ident">size</span>();
+                ObjectKind::Set(<span class="kw-2">ref </span>set) =&gt; {
+                    <span class="kw">let </span>size = set.size();
 
-                    <span class="kw">if</span> <span class="ident">size</span> <span class="op">==</span> <span class="number">0</span> {
-                        <span class="kw">return</span> <span class="ident">String::from</span>(<span class="string">&quot;Set(0)&quot;</span>);
+                    <span class="kw">if </span>size == <span class="number">0 </span>{
+                        <span class="kw">return </span>String::from(<span class="string">&quot;Set(0)&quot;</span>);
                     }
 
-                    <span class="kw">if</span> <span class="ident">print_children</span> {
-                        <span class="kw">let</span> <span class="ident">entries</span> <span class="op">=</span> <span class="ident">set</span>
-                            .<span class="ident">iter</span>()
-                            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">value</span><span class="op">|</span> <span class="ident">log_string_from</span>(<span class="ident">value</span>, <span class="ident">print_internals</span>, <span class="bool-val">false</span>))
-                            .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span><span class="op">&gt;</span>()
-                            .<span class="ident">join</span>(<span class="string">&quot;, &quot;</span>);
+                    <span class="kw">if </span>print_children {
+                        <span class="kw">let </span>entries = set
+                            .iter()
+                            .map(|value| log_string_from(value, print_internals, <span class="bool-val">false</span>))
+                            .collect::&lt;Vec&lt;String&gt;&gt;()
+                            .join(<span class="string">&quot;, &quot;</span>);
                         <span class="macro">format!</span>(<span class="string">&quot;Set {{ {entries} }}&quot;</span>)
-                    } <span class="kw">else</span> {
+                    } <span class="kw">else </span>{
                         <span class="macro">format!</span>(<span class="string">&quot;Set({size})&quot;</span>)
                     }
                 }
-                <span class="kw">_</span> =&gt; <span class="ident">display_obj</span>(<span class="ident">x</span>, <span class="ident">print_internals</span>),
+                <span class="kw">_ </span>=&gt; display_obj(x, print_internals),
             }
         }
-        <span class="kw">_</span> =&gt; <span class="ident">x</span>.<span class="ident">display</span>().<span class="ident">to_string</span>(),
+        <span class="kw">_ </span>=&gt; x.display().to_string(),
     }
 }
 
-<span class="doccomment">/// A helper function for specifically printing object values</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">display_obj</span>(<span class="ident">v</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">print_internals</span>: <span class="ident">bool</span>) -&gt; <span class="ident">String</span> {
-    <span class="comment">// A simple helper for getting the address of a value</span>
-    <span class="comment">// TODO: Find a more general place for this, as it can be used in other situations as well</span>
-    <span class="kw">fn</span> <span class="ident">address_of</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">t</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>) -&gt; <span class="ident">usize</span> {
-        <span class="kw">let</span> <span class="ident">my_ptr</span>: <span class="kw-2">*const</span> <span class="ident">T</span> <span class="op">=</span> <span class="ident">t</span>;
-        <span class="ident">my_ptr</span> <span class="kw">as</span> <span class="ident">usize</span>
+<span class="doccomment">/// A helper function for specifically printing object values
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>display_obj(v: <span class="kw-2">&amp;</span>JsValue, print_internals: bool) -&gt; String {
+    <span class="comment">// A simple helper for getting the address of a value
+    // TODO: Find a more general place for this, as it can be used in other situations as well
+    </span><span class="kw">fn </span>address_of&lt;T&gt;(t: <span class="kw-2">&amp;</span>T) -&gt; usize {
+        <span class="kw">let </span>my_ptr: <span class="kw-2">*const </span>T = t;
+        my_ptr <span class="kw">as </span>usize
     }
 
-    <span class="kw">fn</span> <span class="ident">display_obj_internal</span>(
-        <span class="ident">data</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
-        <span class="ident">encounters</span>: <span class="kw-2">&amp;mut</span> <span class="ident">HashSet</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>,
-        <span class="ident">indent</span>: <span class="ident">usize</span>,
-        <span class="ident">print_internals</span>: <span class="ident">bool</span>,
-    ) -&gt; <span class="ident">String</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">JsValue::Object</span>(<span class="kw-2">ref</span> <span class="ident">v</span>) <span class="op">=</span> <span class="kw-2">*</span><span class="ident">data</span> {
-            <span class="comment">// The in-memory address of the current object</span>
-            <span class="kw">let</span> <span class="ident">addr</span> <span class="op">=</span> <span class="ident">address_of</span>(<span class="ident">v</span>.<span class="ident">as_ref</span>());
+    <span class="kw">fn </span>display_obj_internal(
+        data: <span class="kw-2">&amp;</span>JsValue,
+        encounters: <span class="kw-2">&amp;mut </span>HashSet&lt;usize&gt;,
+        indent: usize,
+        print_internals: bool,
+    ) -&gt; String {
+        <span class="kw">if let </span>JsValue::Object(<span class="kw-2">ref </span>v) = <span class="kw-2">*</span>data {
+            <span class="comment">// The in-memory address of the current object
+            </span><span class="kw">let </span>addr = address_of(v.as_ref());
 
-            <span class="comment">// We need not continue if this object has already been</span>
-            <span class="comment">// printed up the current chain</span>
-            <span class="kw">if</span> <span class="ident">encounters</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">addr</span>) {
-                <span class="kw">return</span> <span class="ident">String::from</span>(<span class="string">&quot;[Cycle]&quot;</span>);
+            <span class="comment">// We need not continue if this object has already been
+            // printed up the current chain
+            </span><span class="kw">if </span>encounters.contains(<span class="kw-2">&amp;</span>addr) {
+                <span class="kw">return </span>String::from(<span class="string">&quot;[Cycle]&quot;</span>);
             }
 
-            <span class="comment">// Mark the current object as encountered</span>
-            <span class="ident">encounters</span>.<span class="ident">insert</span>(<span class="ident">addr</span>);
+            <span class="comment">// Mark the current object as encountered
+            </span>encounters.insert(addr);
 
-            <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">print_internals</span> {
-                <span class="macro">print_obj_value!</span>(<span class="ident">all</span> <span class="ident">of</span> <span class="ident">v</span>, <span class="ident">display_obj_internal</span>, <span class="ident">indent</span>, <span class="ident">encounters</span>).<span class="ident">join</span>(<span class="string">&quot;,\n&quot;</span>)
-            } <span class="kw">else</span> {
-                <span class="macro">print_obj_value!</span>(<span class="ident">props</span> <span class="ident">of</span> <span class="ident">v</span>, <span class="ident">display_obj_internal</span>, <span class="ident">indent</span>, <span class="ident">encounters</span>, <span class="ident">print_internals</span>)
-                        .<span class="ident">join</span>(<span class="string">&quot;,\n&quot;</span>)
+            <span class="kw">let </span>result = <span class="kw">if </span>print_internals {
+                <span class="macro">print_obj_value!</span>(all of v, display_obj_internal, indent, encounters).join(<span class="string">&quot;,\n&quot;</span>)
+            } <span class="kw">else </span>{
+                <span class="macro">print_obj_value!</span>(props of v, display_obj_internal, indent, encounters, print_internals)
+                        .join(<span class="string">&quot;,\n&quot;</span>)
             };
 
-            <span class="comment">// If the current object is referenced in a different branch,</span>
-            <span class="comment">// it will not cause an infinite printing loop, so it is safe to be printed again</span>
-            <span class="ident">encounters</span>.<span class="ident">remove</span>(<span class="kw-2">&amp;</span><span class="ident">addr</span>);
+            <span class="comment">// If the current object is referenced in a different branch,
+            // it will not cause an infinite printing loop, so it is safe to be printed again
+            </span>encounters.remove(<span class="kw-2">&amp;</span>addr);
 
-            <span class="kw">let</span> <span class="ident">closing_indent</span> <span class="op">=</span> <span class="ident">String::from_utf8</span>(<span class="macro">vec!</span>[<span class="string">b&#39; &#39;</span>; <span class="ident">indent</span>.<span class="ident">wrapping_sub</span>(<span class="number">4</span>)])
-                .<span class="ident">expect</span>(<span class="string">&quot;Could not create the closing brace&#39;s indentation string&quot;</span>);
+            <span class="kw">let </span>closing_indent = String::from_utf8(<span class="macro">vec!</span>[<span class="string">b&#39; &#39;</span>; indent.wrapping_sub(<span class="number">4</span>)])
+                .expect(<span class="string">&quot;Could not create the closing brace&#39;s indentation string&quot;</span>);
 
             <span class="macro">format!</span>(<span class="string">&quot;{{\n{result}\n{closing_indent}}}&quot;</span>)
-        } <span class="kw">else</span> {
-            <span class="comment">// Every other type of data is printed with the display method</span>
-            <span class="ident">data</span>.<span class="ident">display</span>().<span class="ident">to_string</span>()
+        } <span class="kw">else </span>{
+            <span class="comment">// Every other type of data is printed with the display method
+            </span>data.display().to_string()
         }
     }
 
-    <span class="comment">// We keep track of which objects we have encountered by keeping their</span>
-    <span class="comment">// in-memory address in this set</span>
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">encounters</span> <span class="op">=</span> <span class="ident">HashSet::new</span>();
+    <span class="comment">// We keep track of which objects we have encountered by keeping their
+    // in-memory address in this set
+    </span><span class="kw">let </span><span class="kw-2">mut </span>encounters = HashSet::new();
 
-    <span class="kw">if</span> <span class="kw">let</span> <span class="ident">JsValue::Object</span>(<span class="ident">object</span>) <span class="op">=</span> <span class="ident">v</span> {
-        <span class="kw">if</span> <span class="ident">object</span>.<span class="ident">borrow</span>().<span class="ident">is_error</span>() {
-            <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="ident">v</span>
-                .<span class="ident">get_property</span>(<span class="string">&quot;name&quot;</span>)
-                .<span class="ident">as_ref</span>()
-                .<span class="ident">and_then</span>(<span class="ident">PropertyDescriptor::value</span>)
-                .<span class="ident">unwrap_or</span>(<span class="kw-2">&amp;</span><span class="ident">JsValue::Undefined</span>)
-                .<span class="ident">display</span>()
-                .<span class="ident">to_string</span>();
-            <span class="kw">let</span> <span class="ident">message</span> <span class="op">=</span> <span class="ident">v</span>
-                .<span class="ident">get_property</span>(<span class="string">&quot;message&quot;</span>)
-                .<span class="ident">as_ref</span>()
-                .<span class="ident">and_then</span>(<span class="ident">PropertyDescriptor::value</span>)
-                .<span class="ident">unwrap_or</span>(<span class="kw-2">&amp;</span><span class="ident">JsValue::Undefined</span>)
-                .<span class="ident">display</span>()
-                .<span class="ident">to_string</span>();
-            <span class="kw">return</span> <span class="macro">format!</span>(<span class="string">&quot;{name}: {message}&quot;</span>);
+    <span class="kw">if let </span>JsValue::Object(object) = v {
+        <span class="kw">if </span>object.borrow().is_error() {
+            <span class="kw">let </span>name = v
+                .get_property(<span class="string">&quot;name&quot;</span>)
+                .as_ref()
+                .and_then(PropertyDescriptor::value)
+                .unwrap_or(<span class="kw-2">&amp;</span>JsValue::Undefined)
+                .display()
+                .to_string();
+            <span class="kw">let </span>message = v
+                .get_property(<span class="string">&quot;message&quot;</span>)
+                .as_ref()
+                .and_then(PropertyDescriptor::value)
+                .unwrap_or(<span class="kw-2">&amp;</span>JsValue::Undefined)
+                .display()
+                .to_string();
+            <span class="kw">return </span><span class="macro">format!</span>(<span class="string">&quot;{name}: {message}&quot;</span>);
         }
     }
 
-    <span class="ident">display_obj_internal</span>(<span class="ident">v</span>, <span class="kw-2">&amp;mut</span> <span class="ident">encounters</span>, <span class="number">4</span>, <span class="ident">print_internals</span>)
+    display_obj_internal(v, <span class="kw-2">&amp;mut </span>encounters, <span class="number">4</span>, print_internals)
 }
 
-<span class="kw">impl</span> <span class="ident">Display</span> <span class="kw">for</span> <span class="ident">ValueDisplay</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
-        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">value</span> {
-            <span class="ident">JsValue::Null</span> =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;null&quot;</span>),
-            <span class="ident">JsValue::Undefined</span> =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;undefined&quot;</span>),
-            <span class="ident">JsValue::Boolean</span>(<span class="ident">v</span>) =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{v}&quot;</span>),
-            <span class="ident">JsValue::Symbol</span>(<span class="kw-2">ref</span> <span class="ident">symbol</span>) =&gt; {
-                <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident">symbol</span>.<span class="ident">descriptive_string</span>().<span class="ident">to_std_string_escaped</span>())
+<span class="kw">impl </span>Display <span class="kw">for </span>ValueDisplay&lt;<span class="lifetime">&#39;_</span>&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="kw">match </span><span class="self">self</span>.value {
+            JsValue::Null =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;null&quot;</span>),
+            JsValue::Undefined =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;undefined&quot;</span>),
+            JsValue::Boolean(v) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;{v}&quot;</span>),
+            JsValue::Symbol(<span class="kw-2">ref </span>symbol) =&gt; {
+                <span class="macro">write!</span>(f, <span class="string">&quot;{}&quot;</span>, symbol.descriptive_string().to_std_string_escaped())
             }
-            <span class="ident">JsValue::String</span>(<span class="kw-2">ref</span> <span class="ident">v</span>) =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;\&quot;{}\&quot;&quot;</span>, <span class="ident">v</span>.<span class="ident">to_std_string_escaped</span>()),
-            <span class="ident">JsValue::Rational</span>(<span class="ident">v</span>) =&gt; <span class="ident">format_rational</span>(<span class="kw-2">*</span><span class="ident">v</span>, <span class="ident">f</span>),
-            <span class="ident">JsValue::Object</span>(<span class="kw">_</span>) =&gt; {
-                <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident">log_string_from</span>(<span class="self">self</span>.<span class="ident">value</span>, <span class="self">self</span>.<span class="ident">internals</span>, <span class="bool-val">true</span>))
+            JsValue::String(<span class="kw-2">ref </span>v) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;\&quot;{}\&quot;&quot;</span>, v.to_std_string_escaped()),
+            JsValue::Rational(v) =&gt; format_rational(<span class="kw-2">*</span>v, f),
+            JsValue::Object(<span class="kw">_</span>) =&gt; {
+                <span class="macro">write!</span>(f, <span class="string">&quot;{}&quot;</span>, log_string_from(<span class="self">self</span>.value, <span class="self">self</span>.internals, <span class="bool-val">true</span>))
             }
-            <span class="ident">JsValue::Integer</span>(<span class="ident">v</span>) =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{v}&quot;</span>),
-            <span class="ident">JsValue::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">num</span>) =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{num}n&quot;</span>),
+            JsValue::Integer(v) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;{v}&quot;</span>),
+            JsValue::BigInt(<span class="kw-2">ref </span>num) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;{num}n&quot;</span>),
         }
     }
 }
 
-<span class="doccomment">/// This is different from the ECMAScript compliant number to string, in the printing of `-0`.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This function prints `-0` as `-0` instead of positive `0` as the specification says.</span>
-<span class="doccomment">/// This is done to make it easer for the user of the REPL to identify what is a `-0` vs `0`,</span>
-<span class="doccomment">/// since the REPL is not bound to the ECMAScript specification we can do this.</span>
-<span class="kw">fn</span> <span class="ident">format_rational</span>(<span class="ident">v</span>: <span class="ident">f64</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
-    <span class="kw">if</span> <span class="ident">v</span>.<span class="ident">is_sign_negative</span>() <span class="op">&amp;&amp;</span> <span class="ident">v</span> <span class="op">==</span> <span class="number">0.0</span> {
-        <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;-0&quot;</span>)
-    } <span class="kw">else</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buffer</span> <span class="op">=</span> <span class="ident">ryu_js::Buffer::new</span>();
-        <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident">buffer</span>.<span class="ident">format</span>(<span class="ident">v</span>))
+<span class="doccomment">/// This is different from the ECMAScript compliant number to string, in the printing of `-0`.
+///
+/// This function prints `-0` as `-0` instead of positive `0` as the specification says.
+/// This is done to make it easer for the user of the REPL to identify what is a `-0` vs `0`,
+/// since the REPL is not bound to the ECMAScript specification we can do this.
+</span><span class="kw">fn </span>format_rational(v: f64, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+    <span class="kw">if </span>v.is_sign_negative() &amp;&amp; v == <span class="number">0.0 </span>{
+        f.write_str(<span class="string">&quot;-0&quot;</span>)
+    } <span class="kw">else </span>{
+        <span class="kw">let </span><span class="kw-2">mut </span>buffer = ryu_js::Buffer::new();
+        <span class="macro">write!</span>(f, <span class="string">&quot;{}&quot;</span>, buffer.format(v))
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0 (a55dd71d5 2022-09-19)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0 (897e37553 2022-11-02)" ></div></body></html>

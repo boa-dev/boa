@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_engine/src/vm/opcode/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_engine/src/vm/opcode/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container">
                     <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../boa_engine/index.html">
                         <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -1460,1465 +1460,1465 @@
 <span id="1458">1458</span>
 <span id="1459">1459</span>
 <span id="1460">1460</span>
-</pre><pre class="rust"><code><span class="doccomment">/// The opcodes of the vm.</span>
-<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">vm::ShouldExit</span>, <span class="ident">Context</span>, <span class="ident">JsResult</span>};
+</pre><pre class="rust"><code><span class="doccomment">/// The opcodes of the vm.
+</span><span class="kw">use crate</span>::{vm::ShouldExit, Context, JsResult};
 
-<span class="comment">// Operation modules</span>
-<span class="kw">mod</span> <span class="ident">await_stm</span>;
-<span class="kw">mod</span> <span class="ident">binary_ops</span>;
-<span class="kw">mod</span> <span class="ident">call</span>;
-<span class="kw">mod</span> <span class="ident">concat</span>;
-<span class="kw">mod</span> <span class="ident">copy</span>;
-<span class="kw">mod</span> <span class="ident">define</span>;
-<span class="kw">mod</span> <span class="ident">delete</span>;
-<span class="kw">mod</span> <span class="ident">dup</span>;
-<span class="kw">mod</span> <span class="ident">environment</span>;
-<span class="kw">mod</span> <span class="ident">generator</span>;
-<span class="kw">mod</span> <span class="ident">get</span>;
-<span class="kw">mod</span> <span class="ident">iteration</span>;
-<span class="kw">mod</span> <span class="ident">jump</span>;
-<span class="kw">mod</span> <span class="ident">new</span>;
-<span class="kw">mod</span> <span class="ident">nop</span>;
-<span class="kw">mod</span> <span class="ident">pop</span>;
-<span class="kw">mod</span> <span class="ident">promise</span>;
-<span class="kw">mod</span> <span class="ident">push</span>;
-<span class="kw">mod</span> <span class="ident">require</span>;
-<span class="kw">mod</span> <span class="ident">rest_parameter</span>;
-<span class="kw">mod</span> <span class="ident">return_stm</span>;
-<span class="kw">mod</span> <span class="ident">set</span>;
-<span class="kw">mod</span> <span class="ident">swap</span>;
-<span class="kw">mod</span> <span class="ident">switch</span>;
-<span class="kw">mod</span> <span class="ident">throw</span>;
-<span class="kw">mod</span> <span class="ident">to</span>;
-<span class="kw">mod</span> <span class="ident">try_catch</span>;
-<span class="kw">mod</span> <span class="ident">unary_ops</span>;
-<span class="kw">mod</span> <span class="ident">value</span>;
+<span class="comment">// Operation modules
+</span><span class="kw">mod </span>await_stm;
+<span class="kw">mod </span>binary_ops;
+<span class="kw">mod </span>call;
+<span class="kw">mod </span>concat;
+<span class="kw">mod </span>copy;
+<span class="kw">mod </span>define;
+<span class="kw">mod </span>delete;
+<span class="kw">mod </span>dup;
+<span class="kw">mod </span>environment;
+<span class="kw">mod </span>generator;
+<span class="kw">mod </span>get;
+<span class="kw">mod </span>iteration;
+<span class="kw">mod </span>jump;
+<span class="kw">mod </span>new;
+<span class="kw">mod </span>nop;
+<span class="kw">mod </span>pop;
+<span class="kw">mod </span>promise;
+<span class="kw">mod </span>push;
+<span class="kw">mod </span>require;
+<span class="kw">mod </span>rest_parameter;
+<span class="kw">mod </span>return_stm;
+<span class="kw">mod </span>set;
+<span class="kw">mod </span>swap;
+<span class="kw">mod </span>switch;
+<span class="kw">mod </span>throw;
+<span class="kw">mod </span>to;
+<span class="kw">mod </span>try_catch;
+<span class="kw">mod </span>unary_ops;
+<span class="kw">mod </span>value;
 
-<span class="comment">// Operation structs</span>
-<span class="attribute">#[<span class="ident">doc</span>(<span class="ident">inline</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use</span> <span class="ident">await_stm</span>::<span class="kw-2">*</span>;
-<span class="attribute">#[<span class="ident">doc</span>(<span class="ident">inline</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use</span> <span class="ident">binary_ops</span>::<span class="kw-2">*</span>;
-<span class="attribute">#[<span class="ident">doc</span>(<span class="ident">inline</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use</span> <span class="ident">call</span>::<span class="kw-2">*</span>;
-<span class="attribute">#[<span class="ident">doc</span>(<span class="ident">inline</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use</span> <span class="ident">concat</span>::<span class="kw-2">*</span>;
-<span class="attribute">#[<span class="ident">doc</span>(<span class="ident">inline</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use</span> <span class="ident">copy</span>::<span class="kw-2">*</span>;
-<span class="attribute">#[<span class="ident">doc</span>(<span class="ident">inline</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use</span> <span class="ident">define</span>::<span class="kw-2">*</span>;
-<span class="attribute">#[<span class="ident">doc</span>(<span class="ident">inline</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use</span> <span class="ident">delete</span>::<span class="kw-2">*</span>;
-<span class="attribute">#[<span class="ident">doc</span>(<span class="ident">inline</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use</span> <span class="ident">dup</span>::<span class="kw-2">*</span>;
-<span class="attribute">#[<span class="ident">doc</span>(<span class="ident">inline</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use</span> <span class="ident">environment</span>::<span class="kw-2">*</span>;
-<span class="attribute">#[<span class="ident">doc</span>(<span class="ident">inline</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use</span> <span class="ident">generator</span>::<span class="kw-2">*</span>;
-<span class="attribute">#[<span class="ident">doc</span>(<span class="ident">inline</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use</span> <span class="ident">get</span>::<span class="kw-2">*</span>;
-<span class="attribute">#[<span class="ident">doc</span>(<span class="ident">inline</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use</span> <span class="ident">iteration</span>::<span class="kw-2">*</span>;
-<span class="attribute">#[<span class="ident">doc</span>(<span class="ident">inline</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use</span> <span class="ident">jump</span>::<span class="kw-2">*</span>;
-<span class="attribute">#[<span class="ident">doc</span>(<span class="ident">inline</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use</span> <span class="ident">new</span>::<span class="kw-2">*</span>;
-<span class="attribute">#[<span class="ident">doc</span>(<span class="ident">inline</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use</span> <span class="ident">nop</span>::<span class="kw-2">*</span>;
-<span class="attribute">#[<span class="ident">doc</span>(<span class="ident">inline</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use</span> <span class="ident">pop</span>::<span class="kw-2">*</span>;
-<span class="attribute">#[<span class="ident">doc</span>(<span class="ident">inline</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use</span> <span class="ident">promise</span>::<span class="kw-2">*</span>;
-<span class="attribute">#[<span class="ident">doc</span>(<span class="ident">inline</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use</span> <span class="ident">push</span>::<span class="kw-2">*</span>;
-<span class="attribute">#[<span class="ident">doc</span>(<span class="ident">inline</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use</span> <span class="ident">require</span>::<span class="kw-2">*</span>;
-<span class="attribute">#[<span class="ident">doc</span>(<span class="ident">inline</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use</span> <span class="ident">rest_parameter</span>::<span class="kw-2">*</span>;
-<span class="attribute">#[<span class="ident">doc</span>(<span class="ident">inline</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use</span> <span class="ident">return_stm</span>::<span class="kw-2">*</span>;
-<span class="attribute">#[<span class="ident">doc</span>(<span class="ident">inline</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use</span> <span class="ident">set</span>::<span class="kw-2">*</span>;
-<span class="attribute">#[<span class="ident">doc</span>(<span class="ident">inline</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use</span> <span class="ident">swap</span>::<span class="kw-2">*</span>;
-<span class="attribute">#[<span class="ident">doc</span>(<span class="ident">inline</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use</span> <span class="ident">switch</span>::<span class="kw-2">*</span>;
-<span class="attribute">#[<span class="ident">doc</span>(<span class="ident">inline</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use</span> <span class="ident">throw</span>::<span class="kw-2">*</span>;
-<span class="attribute">#[<span class="ident">doc</span>(<span class="ident">inline</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use</span> <span class="ident">to</span>::<span class="kw-2">*</span>;
-<span class="attribute">#[<span class="ident">doc</span>(<span class="ident">inline</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use</span> <span class="ident">try_catch</span>::<span class="kw-2">*</span>;
-<span class="attribute">#[<span class="ident">doc</span>(<span class="ident">inline</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use</span> <span class="ident">unary_ops</span>::<span class="kw-2">*</span>;
-<span class="attribute">#[<span class="ident">doc</span>(<span class="ident">inline</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use</span> <span class="ident">value</span>::<span class="kw-2">*</span>;
+<span class="comment">// Operation structs
+</span><span class="attribute">#[doc(inline)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>await_stm::<span class="kw-2">*</span>;
+<span class="attribute">#[doc(inline)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>binary_ops::<span class="kw-2">*</span>;
+<span class="attribute">#[doc(inline)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>call::<span class="kw-2">*</span>;
+<span class="attribute">#[doc(inline)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>concat::<span class="kw-2">*</span>;
+<span class="attribute">#[doc(inline)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>copy::<span class="kw-2">*</span>;
+<span class="attribute">#[doc(inline)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>define::<span class="kw-2">*</span>;
+<span class="attribute">#[doc(inline)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>delete::<span class="kw-2">*</span>;
+<span class="attribute">#[doc(inline)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>dup::<span class="kw-2">*</span>;
+<span class="attribute">#[doc(inline)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>environment::<span class="kw-2">*</span>;
+<span class="attribute">#[doc(inline)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>generator::<span class="kw-2">*</span>;
+<span class="attribute">#[doc(inline)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>get::<span class="kw-2">*</span>;
+<span class="attribute">#[doc(inline)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>iteration::<span class="kw-2">*</span>;
+<span class="attribute">#[doc(inline)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>jump::<span class="kw-2">*</span>;
+<span class="attribute">#[doc(inline)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>new::<span class="kw-2">*</span>;
+<span class="attribute">#[doc(inline)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>nop::<span class="kw-2">*</span>;
+<span class="attribute">#[doc(inline)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>pop::<span class="kw-2">*</span>;
+<span class="attribute">#[doc(inline)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>promise::<span class="kw-2">*</span>;
+<span class="attribute">#[doc(inline)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>push::<span class="kw-2">*</span>;
+<span class="attribute">#[doc(inline)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>require::<span class="kw-2">*</span>;
+<span class="attribute">#[doc(inline)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>rest_parameter::<span class="kw-2">*</span>;
+<span class="attribute">#[doc(inline)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>return_stm::<span class="kw-2">*</span>;
+<span class="attribute">#[doc(inline)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>set::<span class="kw-2">*</span>;
+<span class="attribute">#[doc(inline)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>swap::<span class="kw-2">*</span>;
+<span class="attribute">#[doc(inline)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>switch::<span class="kw-2">*</span>;
+<span class="attribute">#[doc(inline)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>throw::<span class="kw-2">*</span>;
+<span class="attribute">#[doc(inline)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>to::<span class="kw-2">*</span>;
+<span class="attribute">#[doc(inline)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>try_catch::<span class="kw-2">*</span>;
+<span class="attribute">#[doc(inline)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>unary_ops::<span class="kw-2">*</span>;
+<span class="attribute">#[doc(inline)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>value::<span class="kw-2">*</span>;
 
-<span class="macro">macro_rules!</span> <span class="ident">generate_impl</span> {
+<span class="macro">macro_rules! </span>generate_impl {
     (
-        $(<span class="attribute">#[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">outer</span>:<span class="ident">meta</span>]</span>)<span class="op">*</span>
-        <span class="kw">pub</span> <span class="kw">enum</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">Type</span>:<span class="ident">ident</span> {
+        $(<span class="attribute">#[<span class="macro-nonterminal">$outer</span>:meta]</span>)*
+        <span class="kw">pub enum </span><span class="macro-nonterminal">$Type</span>:ident {
             $(
-                $(<span class="attribute">#[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">inner</span>:<span class="ident">ident</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>]</span>)<span class="op">*</span>
-                <span class="macro-nonterminal">$</span><span class="macro-nonterminal">Variant</span>:<span class="ident">ident</span>
-            ),<span class="op">*</span>
-            $(,)<span class="question-mark">?</span>
-        }
+                $(<span class="attribute">#[<span class="macro-nonterminal">$inner</span>:ident $(<span class="macro-nonterminal">$args</span>:tt)<span class="kw-2">*</span>]</span>)*
+                <span class="macro-nonterminal">$Variant</span>:ident
+            ),*
+            $(,)<span class="question-mark">?
+        </span>}
     ) =&gt; {
-        $(<span class="attribute">#[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">outer</span>]</span>)<span class="op">*</span>
-        <span class="kw">pub</span> <span class="kw">enum</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">Type</span> {
+        $(<span class="attribute">#[<span class="macro-nonterminal">$outer</span>]</span>)*
+        <span class="kw">pub enum </span><span class="macro-nonterminal">$Type </span>{
             $(
-                $(<span class="attribute">#[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">inner</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>)<span class="kw-2">*</span>]</span>)<span class="op">*</span>
-                <span class="macro-nonterminal">$</span><span class="macro-nonterminal">Variant</span>
-            ),<span class="op">*</span>
+                $(<span class="attribute">#[<span class="macro-nonterminal">$inner </span>$(<span class="macro-nonterminal">$args</span>)<span class="kw-2">*</span>]</span>)*
+                <span class="macro-nonterminal">$Variant
+            </span>),*
         }
 
-        <span class="kw">impl</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">Type</span> {
+        <span class="kw">impl </span><span class="macro-nonterminal">$Type </span>{
 
-            <span class="doccomment">/// Create opcode from `u8` byte.</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// # Safety</span>
-            <span class="doccomment">///</span>
-            <span class="doccomment">/// Does not check if `u8` type is a valid `Opcode`.</span>
-            <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_raw</span>(<span class="ident">value</span>: <span class="ident">u8</span>) -&gt; <span class="self">Self</span> {
-                <span class="ident">std::mem::transmute</span>(<span class="ident">value</span>)
+            <span class="doccomment">/// Create opcode from `u8` byte.
+            ///
+            /// # Safety
+            ///
+            /// Does not check if `u8` type is a valid `Opcode`.
+            </span><span class="kw">pub unsafe fn </span>from_raw(value: u8) -&gt; <span class="self">Self </span>{
+                std::mem::transmute(value)
             }
 
-            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_str</span>(<span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> {
-                <span class="kw">match</span> <span class="self">self</span> {
+            <span class="kw">pub fn </span>as_str(<span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str {
+                <span class="kw">match </span><span class="self">self </span>{
                     $(
-                        <span class="self">Self</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">Variant</span> =&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">Variant::NAME</span>
-                    ),<span class="op">*</span>
+                        <span class="self">Self</span>::<span class="macro-nonterminal">$Variant </span>=&gt; <span class="macro-nonterminal">$Variant::NAME
+                    </span>),*
                 }
             }
 
-            <span class="doccomment">/// Name of the profiler event for this opcode</span>
-            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_instruction_str</span>(<span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> {
-                <span class="kw">match</span> <span class="self">self</span> {
+            <span class="doccomment">/// Name of the profiler event for this opcode
+            </span><span class="kw">pub fn </span>as_instruction_str(<span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str {
+                <span class="kw">match </span><span class="self">self </span>{
                     $(
-                        <span class="self">Self</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">Variant</span> =&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">Variant::INSTRUCTION</span>
-                    ),<span class="op">*</span>
+                        <span class="self">Self</span>::<span class="macro-nonterminal">$Variant </span>=&gt; <span class="macro-nonterminal">$Variant::INSTRUCTION
+                    </span>),*
                 }
             }
 
-            <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">execute</span>(<span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">ShouldExit</span><span class="op">&gt;</span> {
-                <span class="kw">match</span> <span class="self">self</span> {
+            <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>execute(<span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;ShouldExit&gt; {
+                <span class="kw">match </span><span class="self">self </span>{
                     $(
-                        <span class="self">Self</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">Variant</span> =&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">Variant::execute</span>(<span class="ident">context</span>)
-                    ),<span class="op">*</span>
+                        <span class="self">Self</span>::<span class="macro-nonterminal">$Variant </span>=&gt; <span class="macro-nonterminal">$Variant::execute</span>(context)
+                    ),*
                 }
             }
         }
     };
 }
 
-<span class="doccomment">/// The `Operation` trait implements the execution code along with the</span>
-<span class="doccomment">/// identifying Name and Instruction value for an Boa Opcode.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This trait should be implemented for a struct that corresponds with</span>
-<span class="doccomment">/// any arm of the `OpCode` enum.</span>
-<span class="doccomment">///</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">trait</span> <span class="ident">Operation</span> {
-    <span class="kw">const</span> <span class="ident">NAME</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>;
-    <span class="kw">const</span> <span class="ident">INSTRUCTION</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>;
+<span class="doccomment">/// The `Operation` trait implements the execution code along with the
+/// identifying Name and Instruction value for an Boa Opcode.
+///
+/// This trait should be implemented for a struct that corresponds with
+/// any arm of the `OpCode` enum.
+///
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">trait </span>Operation {
+    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str;
+    <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str;
 
-    <span class="kw">fn</span> <span class="ident">execute</span>(<span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">ShouldExit</span><span class="op">&gt;</span>;
+    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;ShouldExit&gt;;
 }
 
-<span class="macro">generate_impl!</span> {
-    <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
-    <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">u8</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Opcode</span> {
-        <span class="doccomment">/// Pop the top value from the stack.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: value **=&gt;**</span>
-        <span class="ident">Pop</span>,
-
-        <span class="doccomment">/// Pop the top value from the stack if the last try block has thrown a value.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: value **=&gt;**</span>
-        <span class="ident">PopIfThrown</span>,
-
-        <span class="doccomment">/// Push a copy of the top value on the stack.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: value **=&gt;** value, value</span>
-        <span class="ident">Dup</span>,
-
-        <span class="doccomment">/// Swap the top two values on the stack.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: second, first **=&gt;** first, second</span>
-        <span class="ident">Swap</span>,
-
-        <span class="doccomment">/// Rotates the top `n` values of the stack to the left by `1`.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Equivalent to calling [`slice::rotate_left`] with argument `1` on the top `n` values of the</span>
-        <span class="doccomment">/// stack.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands: n: `u8`</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: v\[n\], v\[n-1\], ... , v\[1\], v\[0\] **=&gt;** v\[n-1\], ... , v\[1\], v\[0\], v\[n\]</span>
-        <span class="ident">RotateLeft</span>,
-
-        <span class="doccomment">/// Rotates the top `n` values of the stack to the right by `1`.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Equivalent to calling [`slice::rotate_right`] with argument `1` on the top `n` values of the</span>
-        <span class="doccomment">/// stack.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands: n: `u8`</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: v\[n\], v\[n-1\], ... , v\[1\], v\[0\] **=&gt;** v\[0\], v\[n\], v\[n-1\], ... , v\[1\]</span>
-        <span class="ident">RotateRight</span>,
-
-        <span class="doccomment">/// Push integer `0` on the stack.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: **=&gt;** `0`</span>
-        <span class="ident">PushZero</span>,
-
-        <span class="doccomment">/// Push integer `1` on the stack.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: **=&gt;** `1`</span>
-        <span class="ident">PushOne</span>,
-
-        <span class="doccomment">/// Push `i8` value on the stack.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands: value: `i8`</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: **=&gt;** value</span>
-        <span class="ident">PushInt8</span>,
-
-        <span class="doccomment">/// Push i16 value on the stack.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands: value: `i16`</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: **=&gt;** value</span>
-        <span class="ident">PushInt16</span>,
-
-        <span class="doccomment">/// Push i32 value on the stack.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands: value: `i32`</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: **=&gt;** value</span>
-        <span class="ident">PushInt32</span>,
-
-        <span class="doccomment">/// Push `f64` value on the stack.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands: value: `f64`</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: **=&gt;** value</span>
-        <span class="ident">PushRational</span>,
-
-        <span class="doccomment">/// Push `NaN` integer on the stack.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: **=&gt;** `NaN`</span>
-        <span class="ident">PushNaN</span>,
-
-        <span class="doccomment">/// Push `Infinity` value on the stack.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: **=&gt;** `Infinity`</span>
-        <span class="ident">PushPositiveInfinity</span>,
-
-        <span class="doccomment">/// Push `-Infinity` value on the stack.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: **=&gt;** `-Infinity`</span>
-        <span class="ident">PushNegativeInfinity</span>,
-
-        <span class="doccomment">/// Push `null` value on the stack.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: **=&gt;** `null`</span>
-        <span class="ident">PushNull</span>,
-
-        <span class="doccomment">/// Push `true` value on the stack.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: **=&gt;** `true`</span>
-        <span class="ident">PushTrue</span>,
-
-        <span class="doccomment">/// Push `false` value on the stack.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: **=&gt;** `false`</span>
-        <span class="ident">PushFalse</span>,
-
-        <span class="doccomment">/// Push `undefined` value on the stack.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: **=&gt;** `undefined`</span>
-        <span class="ident">PushUndefined</span>,
-
-        <span class="doccomment">/// Push literal value on the stack.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Like strings and bigints. The index operand is used to index into the `literals`</span>
-        <span class="doccomment">/// array to get the value.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands: index: `u32`</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: **=&gt;** (`literals[index]`)</span>
-        <span class="ident">PushLiteral</span>,
-
-        <span class="doccomment">/// Push empty object `{}` value on the stack.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: **=&gt;** `{}`</span>
-        <span class="ident">PushEmptyObject</span>,
-
-        <span class="doccomment">/// Get the prototype of a superclass and push it on the stack.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: class, superclass **=&gt;** class, superclass.prototype</span>
-        <span class="ident">PushClassPrototype</span>,
-
-        <span class="doccomment">/// Set the prototype of a class object.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: class, prototype **=&gt;** class.prototype</span>
-        <span class="ident">SetClassPrototype</span>,
-
-        <span class="doccomment">/// Set home object internal slot of a function object.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: home, function **=&gt;** home, function</span>
-        <span class="ident">SetHomeObject</span>,
-
-        <span class="doccomment">/// Push an empty array value on the stack.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: **=&gt;** `[]`</span>
-        <span class="ident">PushNewArray</span>,
-
-        <span class="doccomment">/// Push a value to an array.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: array, value **=&gt;** array</span>
-        <span class="ident">PushValueToArray</span>,
-
-        <span class="doccomment">/// Push an empty element/hole to an array.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: array **=&gt;** array</span>
-        <span class="ident">PushElisionToArray</span>,
-
-        <span class="doccomment">/// Push all iterator values to an array.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: array, iterator, next_method, done **=&gt;** array</span>
-        <span class="ident">PushIteratorToArray</span>,
-
-        <span class="doccomment">/// Binary `+` operator.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: lhs, rhs **=&gt;** (lhs + rhs)</span>
-        <span class="ident">Add</span>,
-
-        <span class="doccomment">/// Binary `-` operator.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: lhs, rhs **=&gt;** (lhs - rhs)</span>
-        <span class="ident">Sub</span>,
-
-        <span class="doccomment">/// Binary `/` operator.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: lhs, rhs **=&gt;** (lhs / rhs)</span>
-        <span class="ident">Div</span>,
-
-        <span class="doccomment">/// Binary `*` operator.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: lhs, rhs **=&gt;** (lhs * rhs)</span>
-        <span class="ident">Mul</span>,
-
-        <span class="doccomment">/// Binary `%` operator.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: lhs, rhs **=&gt;** (lhs % rhs)</span>
-        <span class="ident">Mod</span>,
-
-        <span class="doccomment">/// Binary `**` operator.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: lhs, rhs **=&gt;** (lhs ** rhs)</span>
-        <span class="ident">Pow</span>,
-
-        <span class="doccomment">/// Binary `&gt;&gt;` operator.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: lhs, rhs **=&gt;** (lhs &gt;&gt; rhs)</span>
-        <span class="ident">ShiftRight</span>,
-
-        <span class="doccomment">/// Binary `&lt;&lt;` operator.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: lhs, rhs **=&gt;** (lhs &lt;&lt; rhs)</span>
-        <span class="ident">ShiftLeft</span>,
-
-        <span class="doccomment">/// Binary `&gt;&gt;&gt;` operator.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: lhs, rhs **=&gt;** (lhs &gt;&gt;&gt; rhs)</span>
-        <span class="ident">UnsignedShiftRight</span>,
-
-        <span class="doccomment">/// Binary bitwise `|` operator.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: lhs, rhs **=&gt;** (lhs | rhs)</span>
-        <span class="ident">BitOr</span>,
-
-        <span class="doccomment">/// Binary bitwise `&amp;` operator.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: lhs, rhs **=&gt;** (lhs &amp; rhs)</span>
-        <span class="ident">BitAnd</span>,
-
-        <span class="doccomment">/// Binary bitwise `^` operator.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: lhs, rhs **=&gt;** (lhs ^ rhs)</span>
-        <span class="ident">BitXor</span>,
-
-        <span class="doccomment">/// Unary bitwise `~` operator.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: value **=&gt;** ~value</span>
-        <span class="ident">BitNot</span>,
-
-        <span class="doccomment">/// Binary `in` operator.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: lhs, rhs **=&gt;** (lhs `in` rhs)</span>
-        <span class="ident">In</span>,
-
-        <span class="doccomment">/// Binary `==` operator.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: lhs, rhs **=&gt;** (lhs `==` rhs)</span>
-        <span class="ident">Eq</span>,
-
-        <span class="doccomment">/// Binary `===` operator.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: lhs, rhs **=&gt;** (lhs `===` rhs)</span>
-        <span class="ident">StrictEq</span>,
-
-        <span class="doccomment">/// Binary `!=` operator.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: lhs, rhs **=&gt;** (lhs `!=` rhs)</span>
-        <span class="ident">NotEq</span>,
-
-        <span class="doccomment">/// Binary `!==` operator.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: lhs, rhs **=&gt;** (lhs `!==` rhs)</span>
-        <span class="ident">StrictNotEq</span>,
-
-        <span class="doccomment">/// Binary `&gt;` operator.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: lhs, rhs **=&gt;** (lhs &gt; rhs)</span>
-        <span class="ident">GreaterThan</span>,
-
-        <span class="doccomment">/// Binary `&gt;=` operator.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: lhs, rhs **=&gt;** (lhs &gt;= rhs)</span>
-        <span class="ident">GreaterThanOrEq</span>,
-
-        <span class="doccomment">/// Binary `&lt;` operator.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: lhs, rhs **=&gt;** (lhs &lt; rhs)</span>
-        <span class="ident">LessThan</span>,
-
-        <span class="doccomment">/// Binary `&lt;=` operator.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: lhs, rhs **=&gt;** (lhs &lt;= rhs)</span>
-        <span class="ident">LessThanOrEq</span>,
-
-        <span class="doccomment">/// Binary `instanceof` operator.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: lhs, rhs **=&gt;** (lhs instanceof rhs)</span>
-        <span class="ident">InstanceOf</span>,
-
-        <span class="doccomment">/// Binary logical `&amp;&amp;` operator.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// This is a short-circuit operator, if the `lhs` value is `false`, then it jumps to `exit` address.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands: exit: `u32`</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: lhs, rhs **=&gt;** (lhs &amp;&amp; rhs)</span>
-        <span class="ident">LogicalAnd</span>,
-
-        <span class="doccomment">/// Binary logical `||` operator.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// This is a short-circuit operator, if the `lhs` value is `true`, then it jumps to `exit` address.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands: exit: `u32`</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: lhs, rhs **=&gt;** (lhs || rhs)</span>
-        <span class="ident">LogicalOr</span>,
-
-        <span class="doccomment">/// Binary `??` operator.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// This is a short-circuit operator, if the `lhs` value is **not** `null` or `undefined`,</span>
-        <span class="doccomment">/// then it jumps to `exit` address.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands: exit: `u32`</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: lhs, rhs **=&gt;** (lhs ?? rhs)</span>
-        <span class="ident">Coalesce</span>,
-
-        <span class="doccomment">/// Unary `typeof` operator.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: value **=&gt;** (`typeof` value)</span>
-        <span class="ident">TypeOf</span>,
-
-        <span class="doccomment">/// Unary `void` operator.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: value **=&gt;** `undefined`</span>
-        <span class="ident">Void</span>,
-
-        <span class="doccomment">/// Unary logical `!` operator.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: value **=&gt;** (!value)</span>
-        <span class="ident">LogicalNot</span>,
-
-        <span class="doccomment">/// Unary `+` operator.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: value **=&gt;** (+value)</span>
-        <span class="ident">Pos</span>,
-
-        <span class="doccomment">/// Unary `-` operator.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: value **=&gt;** (-value)</span>
-        <span class="ident">Neg</span>,
-
-        <span class="doccomment">/// Unary `++` operator.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: value **=&gt;** (value + 1)</span>
-        <span class="ident">Inc</span>,
-
-        <span class="doccomment">/// Unary postfix `++` operator.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: value **=&gt;** (ToNumeric(value)), (value + 1)</span>
-        <span class="ident">IncPost</span>,
-
-        <span class="doccomment">/// Unary `--` operator.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: value **=&gt;** (value - 1)</span>
-        <span class="ident">Dec</span>,
-
-        <span class="doccomment">/// Unary postfix `--` operator.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: value **=&gt;** (ToNumeric(value)), (value - 1)</span>
-        <span class="ident">DecPost</span>,
-
-        <span class="doccomment">/// Declare and initialize a function argument.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands: name_index: `u32`</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: value **=&gt;**</span>
-        <span class="ident">DefInitArg</span>,
-
-        <span class="doccomment">/// Declare `var` type variable.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands: name_index: `u32`</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: **=&gt;**</span>
-        <span class="ident">DefVar</span>,
-
-        <span class="doccomment">/// Declare and initialize `var` type variable.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands: name_index: `u32`</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: value, has_declarative_binding **=&gt;**</span>
-        <span class="ident">DefInitVar</span>,
-
-        <span class="doccomment">/// Declare `let` type variable.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands: name_index: `u32`</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: **=&gt;**</span>
-        <span class="ident">DefLet</span>,
-
-        <span class="doccomment">/// Declare and initialize `let` type variable.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands: name_index: `u32`</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: value **=&gt;**</span>
-        <span class="ident">DefInitLet</span>,
-
-        <span class="doccomment">/// Declare and initialize `const` type variable.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands: name_index: `u32`</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: value **=&gt;**</span>
-        <span class="ident">DefInitConst</span>,
-
-        <span class="doccomment">/// Find a binding on the environment chain and push its value.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands: name_index: `u32`</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: **=&gt;** value</span>
-        <span class="ident">GetName</span>,
-
-        <span class="doccomment">/// Find a binding on the environment chain and push its value. If the binding does not exist push undefined.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands: name_index: `u32`</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: **=&gt;** value</span>
-        <span class="ident">GetNameOrUndefined</span>,
-
-        <span class="doccomment">/// Find a binding on the environment chain and assign its value.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands: name_index: `u32`</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: value **=&gt;**</span>
-        <span class="ident">SetName</span>,
-
-        <span class="doccomment">/// Deletes a property of the global object.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands: name_index: `u32`</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: **=&gt;** deleted</span>
-        <span class="ident">DeleteName</span>,
-
-        <span class="doccomment">/// Get a property by name from an object an push it on the stack.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Like `object.name`</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands: name_index: `u32`</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: object **=&gt;** value</span>
-        <span class="ident">GetPropertyByName</span>,
-
-        <span class="doccomment">/// Get a property by value from an object an push it on the stack.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Like `object[key]`</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: object, key **=&gt;** value</span>
-        <span class="ident">GetPropertyByValue</span>,
-
-        <span class="doccomment">/// Get a property by value from an object an push the key and value on the stack.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Like `object[key]`</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: object, key **=&gt;** key, value</span>
-        <span class="ident">GetPropertyByValuePush</span>,
-
-        <span class="doccomment">/// Sets a property by name of an object.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Like `object.name = value`</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands: name_index: `u32`</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: object, value **=&gt;** value</span>
-        <span class="ident">SetPropertyByName</span>,
-
-        <span class="doccomment">/// Defines a own property of an object by name.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands: name_index: `u32`</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: object, value **=&gt;**</span>
-        <span class="ident">DefineOwnPropertyByName</span>,
-
-        <span class="doccomment">/// Defines a class method by name.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands: name_index: `u32`</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: object, value **=&gt;**</span>
-        <span class="ident">DefineClassMethodByName</span>,
-
-        <span class="doccomment">/// Sets a property by value of an object.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Like `object[key] = value`</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: object, key, value **=&gt;** value</span>
-        <span class="ident">SetPropertyByValue</span>,
-
-        <span class="doccomment">/// Defines a own property of an object by value.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: object, key, value **=&gt;**</span>
-        <span class="ident">DefineOwnPropertyByValue</span>,
-
-        <span class="doccomment">/// Defines a class method by value.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: object, key, value **=&gt;**</span>
-        <span class="ident">DefineClassMethodByValue</span>,
-
-        <span class="doccomment">/// Sets a getter property by name of an object.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Like `get name() value`</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands: name_index: `u32`</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: object, value **=&gt;**</span>
-        <span class="ident">SetPropertyGetterByName</span>,
-
-        <span class="doccomment">/// Defines a getter class method by name.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Like `get name() value`</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands: name_index: `u32`</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: object, value **=&gt;**</span>
-        <span class="ident">DefineClassGetterByName</span>,
-
-        <span class="doccomment">/// Sets a getter property by value of an object.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Like `get [key]() value`</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: object, key, value **=&gt;**</span>
-        <span class="ident">SetPropertyGetterByValue</span>,
-
-        <span class="doccomment">/// Defines a getter class method by value.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Like `get [key]() value`</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: object, key, value **=&gt;**</span>
-        <span class="ident">DefineClassGetterByValue</span>,
-
-        <span class="doccomment">/// Sets a setter property by name of an object.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Like `set name() value`</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands: name_index: `u32`</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: object, value **=&gt;**</span>
-        <span class="ident">SetPropertySetterByName</span>,
-
-        <span class="doccomment">/// Defines a setter class method by name.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Like `set name() value`</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands: name_index: `u32`</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: object, value **=&gt;**</span>
-        <span class="ident">DefineClassSetterByName</span>,
-
-        <span class="doccomment">/// Sets a setter property by value of an object.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Like `set [key]() value`</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: object, key, value **=&gt;**</span>
-        <span class="ident">SetPropertySetterByValue</span>,
-
-        <span class="doccomment">/// Defines a setter class method by value.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Like `set [key]() value`</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: object, key, value **=&gt;**</span>
-        <span class="ident">DefineClassSetterByValue</span>,
-
-        <span class="doccomment">/// Assign the value of a private property of an object by it&#39;s name.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Like `obj.#name = value`</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands: name_index: `u32`</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: object, value **=&gt;** value</span>
-        <span class="ident">AssignPrivateField</span>,
-
-        <span class="doccomment">/// Set a private property of a class constructor by it&#39;s name.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Like `#name = value`</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands: name_index: `u32`</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: object, value **=&gt;**</span>
-        <span class="ident">SetPrivateField</span>,
-
-        <span class="doccomment">/// Set a private method of a class constructor by it&#39;s name.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Like `#name() {}`</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands: name_index: `u32`</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: object, value **=&gt;**</span>
-        <span class="ident">SetPrivateMethod</span>,
-
-        <span class="doccomment">/// Set a private setter property of a class constructor by it&#39;s name.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Like `set #name() {}`</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands: name_index: `u32`</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: object, value **=&gt;**</span>
-        <span class="ident">SetPrivateSetter</span>,
-
-        <span class="doccomment">/// Set a private getter property of a class constructor by it&#39;s name.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Like `get #name() {}`</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands: name_index: `u32`</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: object, value **=&gt;**</span>
-        <span class="ident">SetPrivateGetter</span>,
-
-        <span class="doccomment">/// Get a private property by name from an object an push it on the stack.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Like `object.#name`</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands: name_index: `u32`</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: object **=&gt;** value</span>
-        <span class="ident">GetPrivateField</span>,
-
-        <span class="doccomment">/// Push a field to a class.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: class, field_name, field_function **=&gt;**</span>
-        <span class="ident">PushClassField</span>,
-
-        <span class="doccomment">/// Push a private field to the class.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands: name_index: `u32`</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: class, field_function **=&gt;**</span>
-        <span class="ident">PushClassFieldPrivate</span>,
-
-        <span class="doccomment">/// Push a private getter to the class.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands: name_index: `u32`</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: class, getter **=&gt;**</span>
-        <span class="ident">PushClassPrivateGetter</span>,
-
-        <span class="doccomment">/// Push a private setter to the class.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands: name_index: `u32`</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: class, setter **=&gt;**</span>
-        <span class="ident">PushClassPrivateSetter</span>,
-
-        <span class="doccomment">/// Push a private method to the class.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands: name_index: `u32`</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: class, method **=&gt;**</span>
-        <span class="ident">PushClassPrivateMethod</span>,
-
-        <span class="doccomment">/// Deletes a property by name of an object.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Like `delete object.key`</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands: name_index: `u32`</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: object **=&gt;**</span>
-        <span class="ident">DeletePropertyByName</span>,
-
-        <span class="doccomment">/// Deletes a property by value of an object.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Like `delete object[key]`</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: object, key **=&gt;**</span>
-        <span class="ident">DeletePropertyByValue</span>,
-
-        <span class="doccomment">/// Throws an error when trying to delete a property of `super`</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: **=&gt;**</span>
-        <span class="ident">DeleteSuperThrow</span>,
-
-        <span class="doccomment">/// Copy all properties of one object to another object.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands: excluded_key_count: `u32`, excluded_key_count_computed: `u32`</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: excluded_key_computed_0 ... excluded_key_computed_n, source, value, excluded_key_0 ... excluded_key_n **=&gt;** value</span>
-        <span class="ident">CopyDataProperties</span>,
-
-        <span class="doccomment">/// Call ToPropertyKey on the value on the stack.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: value **=&gt;** key</span>
-        <span class="ident">ToPropertyKey</span>,
-
-        <span class="doccomment">/// Unconditional jump to address.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands: address: `u32`</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: **=&gt;**</span>
-        <span class="ident">Jump</span>,
-
-        <span class="doccomment">/// Conditional jump to address.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// If the value popped is [`falsy`][falsy] then jump to `address`.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands: address: `u32`</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: cond **=&gt;**</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// [falsy]: https://developer.mozilla.org/en-US/docs/Glossary/Falsy</span>
-        <span class="ident">JumpIfFalse</span>,
-
-        <span class="doccomment">/// Conditional jump to address.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// If the value popped is not undefined jump to `address`.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands: address: `u32`</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: value **=&gt;** value</span>
-        <span class="ident">JumpIfNotUndefined</span>,
-
-        <span class="doccomment">/// Conditional jump to address.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// If the value popped is undefined jump to `address`.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands: address: `u32`</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: value **=&gt;** value</span>
-        <span class="ident">JumpIfNullOrUndefined</span>,
-
-        <span class="doccomment">/// Throw exception</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: value **=&gt;**</span>
-        <span class="ident">Throw</span>,
-
-        <span class="doccomment">/// Start of a try block.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands: next_address: `u32`, finally_address: `u32`</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: **=&gt;**</span>
-        <span class="ident">TryStart</span>,
-
-        <span class="doccomment">/// End of a try block.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: **=&gt;**</span>
-        <span class="ident">TryEnd</span>,
-
-        <span class="doccomment">/// Start of a catch block.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: **=&gt;**</span>
-        <span class="ident">CatchStart</span>,
-
-        <span class="doccomment">/// End of a catch block.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: **=&gt;**</span>
-        <span class="ident">CatchEnd</span>,
-
-        <span class="doccomment">/// End of a catch block.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: **=&gt;**</span>
-        <span class="ident">CatchEnd2</span>,
-
-        <span class="doccomment">/// Start of a finally block.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: **=&gt;**</span>
-        <span class="ident">FinallyStart</span>,
-
-        <span class="doccomment">/// End of a finally block.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: **=&gt;**</span>
-        <span class="ident">FinallyEnd</span>,
-
-        <span class="doccomment">/// Set the address for a finally jump.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: **=&gt;**</span>
-        <span class="ident">FinallySetJump</span>,
-
-        <span class="doccomment">/// Pops value converts it to boolean and pushes it back.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: value **=&gt;** (`ToBoolean(value)`)</span>
-        <span class="ident">ToBoolean</span>,
-
-        <span class="doccomment">/// Pushes `this` value</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: **=&gt;** this</span>
-        <span class="ident">This</span>,
-
-        <span class="doccomment">/// Pushes the current `super` value to the stack.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: **=&gt;** super</span>
-        <span class="ident">Super</span>,
-
-        <span class="doccomment">/// Execute the `super()` method.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands: argument_count: `u32`</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: argument_1, ... argument_n **=&gt;**</span>
-        <span class="ident">SuperCall</span>,
-
-        <span class="doccomment">/// Execute the `super()` method where the arguments contain spreads.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: arguments_array **=&gt;**</span>
-        <span class="ident">SuperCallSpread</span>,
-
-        <span class="doccomment">/// Execute the `super()` method when no constructor of the class is defined.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: argument_1, ... argument_n **=&gt;**</span>
-        <span class="ident">SuperCallDerived</span>,
-
-        <span class="doccomment">/// Pop the two values of the stack, strict equal compares the two values,</span>
-        <span class="doccomment">/// if true jumps to address, otherwise push the second pop&#39;ed value.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands: address: `u32`</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: value, cond **=&gt;** cond (if `cond !== value`).</span>
-        <span class="ident">Case</span>,
-
-        <span class="doccomment">/// Pops the top of stack and jump to address.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands: address: `u32`</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: `value` **=&gt;**</span>
-        <span class="ident">Default</span>,
-
-        <span class="doccomment">/// Get arrow function from the pre-compiled inner functions.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands: address: `u32`</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: **=&gt;** func</span>
-        <span class="ident">GetArrowFunction</span>,
-
-        <span class="doccomment">/// Get function from the pre-compiled inner functions.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands: address: `u32`</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: **=&gt;** func</span>
-        <span class="ident">GetFunction</span>,
-
-        <span class="doccomment">/// Get async function from the pre-compiled inner functions.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands: address: `u32`</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: **=&gt;** func</span>
-        <span class="ident">GetFunctionAsync</span>,
-
-        <span class="doccomment">/// Get generator function from the pre-compiled inner functions.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands: address: `u32`</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: **=&gt;** func</span>
-        <span class="ident">GetGenerator</span>,
-
-        <span class="doccomment">/// Get async generator function from the pre-compiled inner functions.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands: address: `u32`</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: **=&gt;** func</span>
-        <span class="ident">GetGeneratorAsync</span>,
-
-        <span class="doccomment">/// Call a function named &quot;eval&quot;.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands: argument_count: `u32`</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: this, func, argument_1, ... argument_n **=&gt;** result</span>
-        <span class="ident">CallEval</span>,
-
-        <span class="doccomment">/// Call a function named &quot;eval&quot; where the arguments contain spreads.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: this, func, arguments_array **=&gt;** result</span>
-        <span class="ident">CallEvalSpread</span>,
-
-        <span class="doccomment">/// Call a function.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands: argument_count: `u32`</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: this, func, argument_1, ... argument_n **=&gt;** result</span>
-        <span class="ident">Call</span>,
-
-        <span class="doccomment">/// Call a function where the arguments contain spreads.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: this, func, arguments_array **=&gt;** result</span>
-        <span class="ident">CallSpread</span>,
-
-        <span class="doccomment">/// Call construct on a function.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands: argument_count: `u32`</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: func, argument_1, ... argument_n **=&gt;** result</span>
-        <span class="ident">New</span>,
-
-        <span class="doccomment">/// Call construct on a function where the arguments contain spreads.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: arguments_array, func **=&gt;** result</span>
-        <span class="ident">NewSpread</span>,
-
-        <span class="doccomment">/// Return from a function.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: **=&gt;**</span>
-        <span class="ident">Return</span>,
-
-        <span class="doccomment">/// Push a declarative environment.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands: num_bindings: `u32`, compile_environments_index: `u32`</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: **=&gt;**</span>
-        <span class="ident">PushDeclarativeEnvironment</span>,
-
-        <span class="doccomment">/// Push a function environment.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands: num_bindings: `u32`, compile_environments_index: `u32`</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: **=&gt;**</span>
-        <span class="ident">PushFunctionEnvironment</span>,
-
-        <span class="doccomment">/// Pop the current environment.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: **=&gt;**</span>
-        <span class="ident">PopEnvironment</span>,
-
-        <span class="doccomment">/// Push loop start marker.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: **=&gt;**</span>
-        <span class="ident">LoopStart</span>,
-
-        <span class="doccomment">/// Clean up environments when a loop continues.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: **=&gt;**</span>
-        <span class="ident">LoopContinue</span>,
-
-        <span class="doccomment">/// Clean up environments at the end of a loop.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: **=&gt;**</span>
-        <span class="ident">LoopEnd</span>,
-
-        <span class="doccomment">/// Initialize the iterator for a for..in loop or jump to after the loop if object is null or undefined.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands: address: `u32`</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: object **=&gt;** iterator, next_method, done</span>
-        <span class="ident">ForInLoopInitIterator</span>,
-
-        <span class="doccomment">/// Initialize an iterator.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: object **=&gt;** iterator, next_method, done</span>
-        <span class="ident">InitIterator</span>,
-
-        <span class="doccomment">/// Initialize an async iterator.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: object **=&gt;** iterator, next_method, done</span>
-        <span class="ident">InitIteratorAsync</span>,
-
-        <span class="doccomment">/// Advance the iterator by one and put the value on the stack.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: iterator, next_method, done **=&gt;** iterator, next_method, done, next_value</span>
-        <span class="ident">IteratorNext</span>,
-
-        <span class="doccomment">/// Close an iterator.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: iterator, next_method, done **=&gt;**</span>
-        <span class="ident">IteratorClose</span>,
-
-        <span class="doccomment">/// Consume the iterator and construct and array with all the values.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: iterator, next_method, done **=&gt;** iterator, next_method, done, array</span>
-        <span class="ident">IteratorToArray</span>,
-
-        <span class="doccomment">/// Move to the next value in a for..in loop or jump to exit of the loop if done.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Note: next_result is only pushed if the iterator is not done.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands: address: `u32`</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: iterator, next_method, done **=&gt;** iterator, next_method, done, next_result</span>
-        <span class="ident">ForInLoopNext</span>,
-
-        <span class="doccomment">/// Move to the next value in a for await..of loop.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: iterator, next_method, done **=&gt;** iterator, next_method, next_result</span>
-        <span class="ident">ForAwaitOfLoopIterate</span>,
-
-        <span class="doccomment">/// Get the value from a for await..of loop next result.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands: address: `u32`</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: next_result **=&gt;** done, value</span>
-        <span class="ident">ForAwaitOfLoopNext</span>,
-
-        <span class="doccomment">/// Concat multiple stack objects into a string.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands: value_count: `u32`</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: value_1,...value_n **=&gt;** string</span>
-        <span class="ident">ConcatToString</span>,
-
-        <span class="doccomment">/// Call RequireObjectCoercible on the stack value.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: value **=&gt;** value</span>
-        <span class="ident">RequireObjectCoercible</span>,
-
-        <span class="doccomment">/// Require the stack value to be neither null nor undefined.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: value **=&gt;** value</span>
-        <span class="ident">ValueNotNullOrUndefined</span>,
-
-        <span class="doccomment">/// Initialize the rest parameter value of a function from the remaining arguments.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: `argument_1` .. `argument_n` **=&gt;** `array`</span>
-        <span class="ident">RestParameterInit</span>,
-
-        <span class="doccomment">/// Pop the remaining arguments of a function.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: `argument_1` .. `argument_n` **=&gt;**</span>
-        <span class="ident">RestParameterPop</span>,
-
-        <span class="doccomment">/// Add one to the pop on return count.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: **=&gt;**</span>
-        <span class="ident">PopOnReturnAdd</span>,
-
-        <span class="doccomment">/// Subtract one from the pop on return count.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: **=&gt;**</span>
-        <span class="ident">PopOnReturnSub</span>,
-
-        <span class="doccomment">/// Yield from the current execution.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: value **=&gt;**</span>
-        <span class="ident">Yield</span>,
-
-        <span class="doccomment">/// Resumes the current generator function.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: received **=&gt;**</span>
-        <span class="ident">GeneratorNext</span>,
-
-        <span class="doccomment">/// Resumes the current generator function.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: received **=&gt;** Option&lt;value&gt;, skip_0, skip_1</span>
-        <span class="ident">AsyncGeneratorNext</span>,
-
-        <span class="doccomment">/// Delegates the current generator function another generator.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands: done_address: `u32`</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: iterator, next_method, done, received **=&gt;** iterator, next_method, done</span>
-        <span class="ident">GeneratorNextDelegate</span>,
-
-        <span class="doccomment">/// Stops the current async function and schedules it to resume later.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: promise **=&gt;**</span>
-        <span class="ident">Await</span>,
-
-        <span class="doccomment">/// Push the current new target to the stack.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: **=&gt;** new_target</span>
-        <span class="ident">PushNewTarget</span>,
-
-        <span class="doccomment">/// No-operation instruction, does nothing.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Operands:</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: **=&gt;**</span>
-        <span class="comment">// Safety: Must be last in the list since, we use this for range checking</span>
-        <span class="comment">// in TryFrom&lt;u8&gt; impl.</span>
-        <span class="ident">Nop</span>,
+<span class="macro">generate_impl! </span>{
+    <span class="attribute">#[derive(Debug, Clone, Copy)]
+    #[repr(u8)]
+    </span><span class="kw">pub enum </span>Opcode {
+        <span class="doccomment">/// Pop the top value from the stack.
+        ///
+        /// Operands:
+        ///
+        /// Stack: value **=&gt;**
+        </span>Pop,
+
+        <span class="doccomment">/// Pop the top value from the stack if the last try block has thrown a value.
+        ///
+        /// Operands:
+        ///
+        /// Stack: value **=&gt;**
+        </span>PopIfThrown,
+
+        <span class="doccomment">/// Push a copy of the top value on the stack.
+        ///
+        /// Operands:
+        ///
+        /// Stack: value **=&gt;** value, value
+        </span>Dup,
+
+        <span class="doccomment">/// Swap the top two values on the stack.
+        ///
+        /// Operands:
+        ///
+        /// Stack: second, first **=&gt;** first, second
+        </span>Swap,
+
+        <span class="doccomment">/// Rotates the top `n` values of the stack to the left by `1`.
+        ///
+        /// Equivalent to calling [`slice::rotate_left`] with argument `1` on the top `n` values of the
+        /// stack.
+        ///
+        /// Operands: n: `u8`
+        ///
+        /// Stack: v\[n\], v\[n-1\], ... , v\[1\], v\[0\] **=&gt;** v\[n-1\], ... , v\[1\], v\[0\], v\[n\]
+        </span>RotateLeft,
+
+        <span class="doccomment">/// Rotates the top `n` values of the stack to the right by `1`.
+        ///
+        /// Equivalent to calling [`slice::rotate_right`] with argument `1` on the top `n` values of the
+        /// stack.
+        ///
+        /// Operands: n: `u8`
+        ///
+        /// Stack: v\[n\], v\[n-1\], ... , v\[1\], v\[0\] **=&gt;** v\[0\], v\[n\], v\[n-1\], ... , v\[1\]
+        </span>RotateRight,
+
+        <span class="doccomment">/// Push integer `0` on the stack.
+        ///
+        /// Operands:
+        ///
+        /// Stack: **=&gt;** `0`
+        </span>PushZero,
+
+        <span class="doccomment">/// Push integer `1` on the stack.
+        ///
+        /// Operands:
+        ///
+        /// Stack: **=&gt;** `1`
+        </span>PushOne,
+
+        <span class="doccomment">/// Push `i8` value on the stack.
+        ///
+        /// Operands: value: `i8`
+        ///
+        /// Stack: **=&gt;** value
+        </span>PushInt8,
+
+        <span class="doccomment">/// Push i16 value on the stack.
+        ///
+        /// Operands: value: `i16`
+        ///
+        /// Stack: **=&gt;** value
+        </span>PushInt16,
+
+        <span class="doccomment">/// Push i32 value on the stack.
+        ///
+        /// Operands: value: `i32`
+        ///
+        /// Stack: **=&gt;** value
+        </span>PushInt32,
+
+        <span class="doccomment">/// Push `f64` value on the stack.
+        ///
+        /// Operands: value: `f64`
+        ///
+        /// Stack: **=&gt;** value
+        </span>PushRational,
+
+        <span class="doccomment">/// Push `NaN` integer on the stack.
+        ///
+        /// Operands:
+        ///
+        /// Stack: **=&gt;** `NaN`
+        </span>PushNaN,
+
+        <span class="doccomment">/// Push `Infinity` value on the stack.
+        ///
+        /// Operands:
+        ///
+        /// Stack: **=&gt;** `Infinity`
+        </span>PushPositiveInfinity,
+
+        <span class="doccomment">/// Push `-Infinity` value on the stack.
+        ///
+        /// Operands:
+        ///
+        /// Stack: **=&gt;** `-Infinity`
+        </span>PushNegativeInfinity,
+
+        <span class="doccomment">/// Push `null` value on the stack.
+        ///
+        /// Operands:
+        ///
+        /// Stack: **=&gt;** `null`
+        </span>PushNull,
+
+        <span class="doccomment">/// Push `true` value on the stack.
+        ///
+        /// Operands:
+        ///
+        /// Stack: **=&gt;** `true`
+        </span>PushTrue,
+
+        <span class="doccomment">/// Push `false` value on the stack.
+        ///
+        /// Operands:
+        ///
+        /// Stack: **=&gt;** `false`
+        </span>PushFalse,
+
+        <span class="doccomment">/// Push `undefined` value on the stack.
+        ///
+        /// Operands:
+        ///
+        /// Stack: **=&gt;** `undefined`
+        </span>PushUndefined,
+
+        <span class="doccomment">/// Push literal value on the stack.
+        ///
+        /// Like strings and bigints. The index operand is used to index into the `literals`
+        /// array to get the value.
+        ///
+        /// Operands: index: `u32`
+        ///
+        /// Stack: **=&gt;** (`literals[index]`)
+        </span>PushLiteral,
+
+        <span class="doccomment">/// Push empty object `{}` value on the stack.
+        ///
+        /// Operands:
+        ///
+        /// Stack: **=&gt;** `{}`
+        </span>PushEmptyObject,
+
+        <span class="doccomment">/// Get the prototype of a superclass and push it on the stack.
+        ///
+        /// Operands:
+        ///
+        /// Stack: class, superclass **=&gt;** class, superclass.prototype
+        </span>PushClassPrototype,
+
+        <span class="doccomment">/// Set the prototype of a class object.
+        ///
+        /// Operands:
+        ///
+        /// Stack: class, prototype **=&gt;** class.prototype
+        </span>SetClassPrototype,
+
+        <span class="doccomment">/// Set home object internal slot of a function object.
+        ///
+        /// Operands:
+        ///
+        /// Stack: home, function **=&gt;** home, function
+        </span>SetHomeObject,
+
+        <span class="doccomment">/// Push an empty array value on the stack.
+        ///
+        /// Operands:
+        ///
+        /// Stack: **=&gt;** `[]`
+        </span>PushNewArray,
+
+        <span class="doccomment">/// Push a value to an array.
+        ///
+        /// Operands:
+        ///
+        /// Stack: array, value **=&gt;** array
+        </span>PushValueToArray,
+
+        <span class="doccomment">/// Push an empty element/hole to an array.
+        ///
+        /// Operands:
+        ///
+        /// Stack: array **=&gt;** array
+        </span>PushElisionToArray,
+
+        <span class="doccomment">/// Push all iterator values to an array.
+        ///
+        /// Operands:
+        ///
+        /// Stack: array, iterator, next_method, done **=&gt;** array
+        </span>PushIteratorToArray,
+
+        <span class="doccomment">/// Binary `+` operator.
+        ///
+        /// Operands:
+        ///
+        /// Stack: lhs, rhs **=&gt;** (lhs + rhs)
+        </span>Add,
+
+        <span class="doccomment">/// Binary `-` operator.
+        ///
+        /// Operands:
+        ///
+        /// Stack: lhs, rhs **=&gt;** (lhs - rhs)
+        </span>Sub,
+
+        <span class="doccomment">/// Binary `/` operator.
+        ///
+        /// Operands:
+        ///
+        /// Stack: lhs, rhs **=&gt;** (lhs / rhs)
+        </span>Div,
+
+        <span class="doccomment">/// Binary `*` operator.
+        ///
+        /// Operands:
+        ///
+        /// Stack: lhs, rhs **=&gt;** (lhs * rhs)
+        </span>Mul,
+
+        <span class="doccomment">/// Binary `%` operator.
+        ///
+        /// Operands:
+        ///
+        /// Stack: lhs, rhs **=&gt;** (lhs % rhs)
+        </span>Mod,
+
+        <span class="doccomment">/// Binary `**` operator.
+        ///
+        /// Operands:
+        ///
+        /// Stack: lhs, rhs **=&gt;** (lhs ** rhs)
+        </span>Pow,
+
+        <span class="doccomment">/// Binary `&gt;&gt;` operator.
+        ///
+        /// Operands:
+        ///
+        /// Stack: lhs, rhs **=&gt;** (lhs &gt;&gt; rhs)
+        </span>ShiftRight,
+
+        <span class="doccomment">/// Binary `&lt;&lt;` operator.
+        ///
+        /// Operands:
+        ///
+        /// Stack: lhs, rhs **=&gt;** (lhs &lt;&lt; rhs)
+        </span>ShiftLeft,
+
+        <span class="doccomment">/// Binary `&gt;&gt;&gt;` operator.
+        ///
+        /// Operands:
+        ///
+        /// Stack: lhs, rhs **=&gt;** (lhs &gt;&gt;&gt; rhs)
+        </span>UnsignedShiftRight,
+
+        <span class="doccomment">/// Binary bitwise `|` operator.
+        ///
+        /// Operands:
+        ///
+        /// Stack: lhs, rhs **=&gt;** (lhs | rhs)
+        </span>BitOr,
+
+        <span class="doccomment">/// Binary bitwise `&amp;` operator.
+        ///
+        /// Operands:
+        ///
+        /// Stack: lhs, rhs **=&gt;** (lhs &amp; rhs)
+        </span>BitAnd,
+
+        <span class="doccomment">/// Binary bitwise `^` operator.
+        ///
+        /// Operands:
+        ///
+        /// Stack: lhs, rhs **=&gt;** (lhs ^ rhs)
+        </span>BitXor,
+
+        <span class="doccomment">/// Unary bitwise `~` operator.
+        ///
+        /// Operands:
+        ///
+        /// Stack: value **=&gt;** ~value
+        </span>BitNot,
+
+        <span class="doccomment">/// Binary `in` operator.
+        ///
+        /// Operands:
+        ///
+        /// Stack: lhs, rhs **=&gt;** (lhs `in` rhs)
+        </span>In,
+
+        <span class="doccomment">/// Binary `==` operator.
+        ///
+        /// Operands:
+        ///
+        /// Stack: lhs, rhs **=&gt;** (lhs `==` rhs)
+        </span>Eq,
+
+        <span class="doccomment">/// Binary `===` operator.
+        ///
+        /// Operands:
+        ///
+        /// Stack: lhs, rhs **=&gt;** (lhs `===` rhs)
+        </span>StrictEq,
+
+        <span class="doccomment">/// Binary `!=` operator.
+        ///
+        /// Operands:
+        ///
+        /// Stack: lhs, rhs **=&gt;** (lhs `!=` rhs)
+        </span>NotEq,
+
+        <span class="doccomment">/// Binary `!==` operator.
+        ///
+        /// Operands:
+        ///
+        /// Stack: lhs, rhs **=&gt;** (lhs `!==` rhs)
+        </span>StrictNotEq,
+
+        <span class="doccomment">/// Binary `&gt;` operator.
+        ///
+        /// Operands:
+        ///
+        /// Stack: lhs, rhs **=&gt;** (lhs &gt; rhs)
+        </span>GreaterThan,
+
+        <span class="doccomment">/// Binary `&gt;=` operator.
+        ///
+        /// Operands:
+        ///
+        /// Stack: lhs, rhs **=&gt;** (lhs &gt;= rhs)
+        </span>GreaterThanOrEq,
+
+        <span class="doccomment">/// Binary `&lt;` operator.
+        ///
+        /// Operands:
+        ///
+        /// Stack: lhs, rhs **=&gt;** (lhs &lt; rhs)
+        </span>LessThan,
+
+        <span class="doccomment">/// Binary `&lt;=` operator.
+        ///
+        /// Operands:
+        ///
+        /// Stack: lhs, rhs **=&gt;** (lhs &lt;= rhs)
+        </span>LessThanOrEq,
+
+        <span class="doccomment">/// Binary `instanceof` operator.
+        ///
+        /// Operands:
+        ///
+        /// Stack: lhs, rhs **=&gt;** (lhs instanceof rhs)
+        </span>InstanceOf,
+
+        <span class="doccomment">/// Binary logical `&amp;&amp;` operator.
+        ///
+        /// This is a short-circuit operator, if the `lhs` value is `false`, then it jumps to `exit` address.
+        ///
+        /// Operands: exit: `u32`
+        ///
+        /// Stack: lhs, rhs **=&gt;** (lhs &amp;&amp; rhs)
+        </span>LogicalAnd,
+
+        <span class="doccomment">/// Binary logical `||` operator.
+        ///
+        /// This is a short-circuit operator, if the `lhs` value is `true`, then it jumps to `exit` address.
+        ///
+        /// Operands: exit: `u32`
+        ///
+        /// Stack: lhs, rhs **=&gt;** (lhs || rhs)
+        </span>LogicalOr,
+
+        <span class="doccomment">/// Binary `??` operator.
+        ///
+        /// This is a short-circuit operator, if the `lhs` value is **not** `null` or `undefined`,
+        /// then it jumps to `exit` address.
+        ///
+        /// Operands: exit: `u32`
+        ///
+        /// Stack: lhs, rhs **=&gt;** (lhs ?? rhs)
+        </span>Coalesce,
+
+        <span class="doccomment">/// Unary `typeof` operator.
+        ///
+        /// Operands:
+        ///
+        /// Stack: value **=&gt;** (`typeof` value)
+        </span>TypeOf,
+
+        <span class="doccomment">/// Unary `void` operator.
+        ///
+        /// Operands:
+        ///
+        /// Stack: value **=&gt;** `undefined`
+        </span>Void,
+
+        <span class="doccomment">/// Unary logical `!` operator.
+        ///
+        /// Operands:
+        ///
+        /// Stack: value **=&gt;** (!value)
+        </span>LogicalNot,
+
+        <span class="doccomment">/// Unary `+` operator.
+        ///
+        /// Operands:
+        ///
+        /// Stack: value **=&gt;** (+value)
+        </span>Pos,
+
+        <span class="doccomment">/// Unary `-` operator.
+        ///
+        /// Operands:
+        ///
+        /// Stack: value **=&gt;** (-value)
+        </span>Neg,
+
+        <span class="doccomment">/// Unary `++` operator.
+        ///
+        /// Operands:
+        ///
+        /// Stack: value **=&gt;** (value + 1)
+        </span>Inc,
+
+        <span class="doccomment">/// Unary postfix `++` operator.
+        ///
+        /// Operands:
+        ///
+        /// Stack: value **=&gt;** (ToNumeric(value)), (value + 1)
+        </span>IncPost,
+
+        <span class="doccomment">/// Unary `--` operator.
+        ///
+        /// Operands:
+        ///
+        /// Stack: value **=&gt;** (value - 1)
+        </span>Dec,
+
+        <span class="doccomment">/// Unary postfix `--` operator.
+        ///
+        /// Operands:
+        ///
+        /// Stack: value **=&gt;** (ToNumeric(value)), (value - 1)
+        </span>DecPost,
+
+        <span class="doccomment">/// Declare and initialize a function argument.
+        ///
+        /// Operands: name_index: `u32`
+        ///
+        /// Stack: value **=&gt;**
+        </span>DefInitArg,
+
+        <span class="doccomment">/// Declare `var` type variable.
+        ///
+        /// Operands: name_index: `u32`
+        ///
+        /// Stack: **=&gt;**
+        </span>DefVar,
+
+        <span class="doccomment">/// Declare and initialize `var` type variable.
+        ///
+        /// Operands: name_index: `u32`
+        ///
+        /// Stack: value, has_declarative_binding **=&gt;**
+        </span>DefInitVar,
+
+        <span class="doccomment">/// Declare `let` type variable.
+        ///
+        /// Operands: name_index: `u32`
+        ///
+        /// Stack: **=&gt;**
+        </span>DefLet,
+
+        <span class="doccomment">/// Declare and initialize `let` type variable.
+        ///
+        /// Operands: name_index: `u32`
+        ///
+        /// Stack: value **=&gt;**
+        </span>DefInitLet,
+
+        <span class="doccomment">/// Declare and initialize `const` type variable.
+        ///
+        /// Operands: name_index: `u32`
+        ///
+        /// Stack: value **=&gt;**
+        </span>DefInitConst,
+
+        <span class="doccomment">/// Find a binding on the environment chain and push its value.
+        ///
+        /// Operands: name_index: `u32`
+        ///
+        /// Stack: **=&gt;** value
+        </span>GetName,
+
+        <span class="doccomment">/// Find a binding on the environment chain and push its value. If the binding does not exist push undefined.
+        ///
+        /// Operands: name_index: `u32`
+        ///
+        /// Stack: **=&gt;** value
+        </span>GetNameOrUndefined,
+
+        <span class="doccomment">/// Find a binding on the environment chain and assign its value.
+        ///
+        /// Operands: name_index: `u32`
+        ///
+        /// Stack: value **=&gt;**
+        </span>SetName,
+
+        <span class="doccomment">/// Deletes a property of the global object.
+        ///
+        /// Operands: name_index: `u32`
+        ///
+        /// Stack: **=&gt;** deleted
+        </span>DeleteName,
+
+        <span class="doccomment">/// Get a property by name from an object an push it on the stack.
+        ///
+        /// Like `object.name`
+        ///
+        /// Operands: name_index: `u32`
+        ///
+        /// Stack: object **=&gt;** value
+        </span>GetPropertyByName,
+
+        <span class="doccomment">/// Get a property by value from an object an push it on the stack.
+        ///
+        /// Like `object[key]`
+        ///
+        /// Operands:
+        ///
+        /// Stack: object, key **=&gt;** value
+        </span>GetPropertyByValue,
+
+        <span class="doccomment">/// Get a property by value from an object an push the key and value on the stack.
+        ///
+        /// Like `object[key]`
+        ///
+        /// Operands:
+        ///
+        /// Stack: object, key **=&gt;** key, value
+        </span>GetPropertyByValuePush,
+
+        <span class="doccomment">/// Sets a property by name of an object.
+        ///
+        /// Like `object.name = value`
+        ///
+        /// Operands: name_index: `u32`
+        ///
+        /// Stack: object, value **=&gt;** value
+        </span>SetPropertyByName,
+
+        <span class="doccomment">/// Defines a own property of an object by name.
+        ///
+        /// Operands: name_index: `u32`
+        ///
+        /// Stack: object, value **=&gt;**
+        </span>DefineOwnPropertyByName,
+
+        <span class="doccomment">/// Defines a class method by name.
+        ///
+        /// Operands: name_index: `u32`
+        ///
+        /// Stack: object, value **=&gt;**
+        </span>DefineClassMethodByName,
+
+        <span class="doccomment">/// Sets a property by value of an object.
+        ///
+        /// Like `object[key] = value`
+        ///
+        /// Operands:
+        ///
+        /// Stack: object, key, value **=&gt;** value
+        </span>SetPropertyByValue,
+
+        <span class="doccomment">/// Defines a own property of an object by value.
+        ///
+        /// Operands:
+        ///
+        /// Stack: object, key, value **=&gt;**
+        </span>DefineOwnPropertyByValue,
+
+        <span class="doccomment">/// Defines a class method by value.
+        ///
+        /// Operands:
+        ///
+        /// Stack: object, key, value **=&gt;**
+        </span>DefineClassMethodByValue,
+
+        <span class="doccomment">/// Sets a getter property by name of an object.
+        ///
+        /// Like `get name() value`
+        ///
+        /// Operands: name_index: `u32`
+        ///
+        /// Stack: object, value **=&gt;**
+        </span>SetPropertyGetterByName,
+
+        <span class="doccomment">/// Defines a getter class method by name.
+        ///
+        /// Like `get name() value`
+        ///
+        /// Operands: name_index: `u32`
+        ///
+        /// Stack: object, value **=&gt;**
+        </span>DefineClassGetterByName,
+
+        <span class="doccomment">/// Sets a getter property by value of an object.
+        ///
+        /// Like `get [key]() value`
+        ///
+        /// Operands:
+        ///
+        /// Stack: object, key, value **=&gt;**
+        </span>SetPropertyGetterByValue,
+
+        <span class="doccomment">/// Defines a getter class method by value.
+        ///
+        /// Like `get [key]() value`
+        ///
+        /// Operands:
+        ///
+        /// Stack: object, key, value **=&gt;**
+        </span>DefineClassGetterByValue,
+
+        <span class="doccomment">/// Sets a setter property by name of an object.
+        ///
+        /// Like `set name() value`
+        ///
+        /// Operands: name_index: `u32`
+        ///
+        /// Stack: object, value **=&gt;**
+        </span>SetPropertySetterByName,
+
+        <span class="doccomment">/// Defines a setter class method by name.
+        ///
+        /// Like `set name() value`
+        ///
+        /// Operands: name_index: `u32`
+        ///
+        /// Stack: object, value **=&gt;**
+        </span>DefineClassSetterByName,
+
+        <span class="doccomment">/// Sets a setter property by value of an object.
+        ///
+        /// Like `set [key]() value`
+        ///
+        /// Operands:
+        ///
+        /// Stack: object, key, value **=&gt;**
+        </span>SetPropertySetterByValue,
+
+        <span class="doccomment">/// Defines a setter class method by value.
+        ///
+        /// Like `set [key]() value`
+        ///
+        /// Operands:
+        ///
+        /// Stack: object, key, value **=&gt;**
+        </span>DefineClassSetterByValue,
+
+        <span class="doccomment">/// Assign the value of a private property of an object by it&#39;s name.
+        ///
+        /// Like `obj.#name = value`
+        ///
+        /// Operands: name_index: `u32`
+        ///
+        /// Stack: object, value **=&gt;** value
+        </span>AssignPrivateField,
+
+        <span class="doccomment">/// Set a private property of a class constructor by it&#39;s name.
+        ///
+        /// Like `#name = value`
+        ///
+        /// Operands: name_index: `u32`
+        ///
+        /// Stack: object, value **=&gt;**
+        </span>SetPrivateField,
+
+        <span class="doccomment">/// Set a private method of a class constructor by it&#39;s name.
+        ///
+        /// Like `#name() {}`
+        ///
+        /// Operands: name_index: `u32`
+        ///
+        /// Stack: object, value **=&gt;**
+        </span>SetPrivateMethod,
+
+        <span class="doccomment">/// Set a private setter property of a class constructor by it&#39;s name.
+        ///
+        /// Like `set #name() {}`
+        ///
+        /// Operands: name_index: `u32`
+        ///
+        /// Stack: object, value **=&gt;**
+        </span>SetPrivateSetter,
+
+        <span class="doccomment">/// Set a private getter property of a class constructor by it&#39;s name.
+        ///
+        /// Like `get #name() {}`
+        ///
+        /// Operands: name_index: `u32`
+        ///
+        /// Stack: object, value **=&gt;**
+        </span>SetPrivateGetter,
+
+        <span class="doccomment">/// Get a private property by name from an object an push it on the stack.
+        ///
+        /// Like `object.#name`
+        ///
+        /// Operands: name_index: `u32`
+        ///
+        /// Stack: object **=&gt;** value
+        </span>GetPrivateField,
+
+        <span class="doccomment">/// Push a field to a class.
+        ///
+        /// Operands:
+        ///
+        /// Stack: class, field_name, field_function **=&gt;**
+        </span>PushClassField,
+
+        <span class="doccomment">/// Push a private field to the class.
+        ///
+        /// Operands: name_index: `u32`
+        ///
+        /// Stack: class, field_function **=&gt;**
+        </span>PushClassFieldPrivate,
+
+        <span class="doccomment">/// Push a private getter to the class.
+        ///
+        /// Operands: name_index: `u32`
+        ///
+        /// Stack: class, getter **=&gt;**
+        </span>PushClassPrivateGetter,
+
+        <span class="doccomment">/// Push a private setter to the class.
+        ///
+        /// Operands: name_index: `u32`
+        ///
+        /// Stack: class, setter **=&gt;**
+        </span>PushClassPrivateSetter,
+
+        <span class="doccomment">/// Push a private method to the class.
+        ///
+        /// Operands: name_index: `u32`
+        ///
+        /// Stack: class, method **=&gt;**
+        </span>PushClassPrivateMethod,
+
+        <span class="doccomment">/// Deletes a property by name of an object.
+        ///
+        /// Like `delete object.key`
+        ///
+        /// Operands: name_index: `u32`
+        ///
+        /// Stack: object **=&gt;**
+        </span>DeletePropertyByName,
+
+        <span class="doccomment">/// Deletes a property by value of an object.
+        ///
+        /// Like `delete object[key]`
+        ///
+        /// Operands:
+        ///
+        /// Stack: object, key **=&gt;**
+        </span>DeletePropertyByValue,
+
+        <span class="doccomment">/// Throws an error when trying to delete a property of `super`
+        ///
+        /// Operands:
+        ///
+        /// Stack: **=&gt;**
+        </span>DeleteSuperThrow,
+
+        <span class="doccomment">/// Copy all properties of one object to another object.
+        ///
+        /// Operands: excluded_key_count: `u32`, excluded_key_count_computed: `u32`
+        ///
+        /// Stack: excluded_key_computed_0 ... excluded_key_computed_n, source, value, excluded_key_0 ... excluded_key_n **=&gt;** value
+        </span>CopyDataProperties,
+
+        <span class="doccomment">/// Call ToPropertyKey on the value on the stack.
+        ///
+        /// Operands:
+        ///
+        /// Stack: value **=&gt;** key
+        </span>ToPropertyKey,
+
+        <span class="doccomment">/// Unconditional jump to address.
+        ///
+        /// Operands: address: `u32`
+        ///
+        /// Stack: **=&gt;**
+        </span>Jump,
+
+        <span class="doccomment">/// Conditional jump to address.
+        ///
+        /// If the value popped is [`falsy`][falsy] then jump to `address`.
+        ///
+        /// Operands: address: `u32`
+        ///
+        /// Stack: cond **=&gt;**
+        ///
+        /// [falsy]: https://developer.mozilla.org/en-US/docs/Glossary/Falsy
+        </span>JumpIfFalse,
+
+        <span class="doccomment">/// Conditional jump to address.
+        ///
+        /// If the value popped is not undefined jump to `address`.
+        ///
+        /// Operands: address: `u32`
+        ///
+        /// Stack: value **=&gt;** value
+        </span>JumpIfNotUndefined,
+
+        <span class="doccomment">/// Conditional jump to address.
+        ///
+        /// If the value popped is undefined jump to `address`.
+        ///
+        /// Operands: address: `u32`
+        ///
+        /// Stack: value **=&gt;** value
+        </span>JumpIfNullOrUndefined,
+
+        <span class="doccomment">/// Throw exception
+        ///
+        /// Operands:
+        ///
+        /// Stack: value **=&gt;**
+        </span>Throw,
+
+        <span class="doccomment">/// Start of a try block.
+        ///
+        /// Operands: next_address: `u32`, finally_address: `u32`
+        ///
+        /// Stack: **=&gt;**
+        </span>TryStart,
+
+        <span class="doccomment">/// End of a try block.
+        ///
+        /// Operands:
+        ///
+        /// Stack: **=&gt;**
+        </span>TryEnd,
+
+        <span class="doccomment">/// Start of a catch block.
+        ///
+        /// Operands:
+        ///
+        /// Stack: **=&gt;**
+        </span>CatchStart,
+
+        <span class="doccomment">/// End of a catch block.
+        ///
+        /// Operands:
+        ///
+        /// Stack: **=&gt;**
+        </span>CatchEnd,
+
+        <span class="doccomment">/// End of a catch block.
+        ///
+        /// Operands:
+        ///
+        /// Stack: **=&gt;**
+        </span>CatchEnd2,
+
+        <span class="doccomment">/// Start of a finally block.
+        ///
+        /// Operands:
+        ///
+        /// Stack: **=&gt;**
+        </span>FinallyStart,
+
+        <span class="doccomment">/// End of a finally block.
+        ///
+        /// Operands:
+        ///
+        /// Stack: **=&gt;**
+        </span>FinallyEnd,
+
+        <span class="doccomment">/// Set the address for a finally jump.
+        ///
+        /// Operands:
+        ///
+        /// Stack: **=&gt;**
+        </span>FinallySetJump,
+
+        <span class="doccomment">/// Pops value converts it to boolean and pushes it back.
+        ///
+        /// Operands:
+        ///
+        /// Stack: value **=&gt;** (`ToBoolean(value)`)
+        </span>ToBoolean,
+
+        <span class="doccomment">/// Pushes `this` value
+        ///
+        /// Operands:
+        ///
+        /// Stack: **=&gt;** this
+        </span>This,
+
+        <span class="doccomment">/// Pushes the current `super` value to the stack.
+        ///
+        /// Operands:
+        ///
+        /// Stack: **=&gt;** super
+        </span>Super,
+
+        <span class="doccomment">/// Execute the `super()` method.
+        ///
+        /// Operands: argument_count: `u32`
+        ///
+        /// Stack: argument_1, ... argument_n **=&gt;**
+        </span>SuperCall,
+
+        <span class="doccomment">/// Execute the `super()` method where the arguments contain spreads.
+        ///
+        /// Operands:
+        ///
+        /// Stack: arguments_array **=&gt;**
+        </span>SuperCallSpread,
+
+        <span class="doccomment">/// Execute the `super()` method when no constructor of the class is defined.
+        ///
+        /// Operands:
+        ///
+        /// Stack: argument_1, ... argument_n **=&gt;**
+        </span>SuperCallDerived,
+
+        <span class="doccomment">/// Pop the two values of the stack, strict equal compares the two values,
+        /// if true jumps to address, otherwise push the second pop&#39;ed value.
+        ///
+        /// Operands: address: `u32`
+        ///
+        /// Stack: value, cond **=&gt;** cond (if `cond !== value`).
+        </span>Case,
+
+        <span class="doccomment">/// Pops the top of stack and jump to address.
+        ///
+        /// Operands: address: `u32`
+        ///
+        /// Stack: `value` **=&gt;**
+        </span>Default,
+
+        <span class="doccomment">/// Get arrow function from the pre-compiled inner functions.
+        ///
+        /// Operands: address: `u32`
+        ///
+        /// Stack: **=&gt;** func
+        </span>GetArrowFunction,
+
+        <span class="doccomment">/// Get function from the pre-compiled inner functions.
+        ///
+        /// Operands: address: `u32`
+        ///
+        /// Stack: **=&gt;** func
+        </span>GetFunction,
+
+        <span class="doccomment">/// Get async function from the pre-compiled inner functions.
+        ///
+        /// Operands: address: `u32`
+        ///
+        /// Stack: **=&gt;** func
+        </span>GetFunctionAsync,
+
+        <span class="doccomment">/// Get generator function from the pre-compiled inner functions.
+        ///
+        /// Operands: address: `u32`
+        ///
+        /// Stack: **=&gt;** func
+        </span>GetGenerator,
+
+        <span class="doccomment">/// Get async generator function from the pre-compiled inner functions.
+        ///
+        /// Operands: address: `u32`
+        ///
+        /// Stack: **=&gt;** func
+        </span>GetGeneratorAsync,
+
+        <span class="doccomment">/// Call a function named &quot;eval&quot;.
+        ///
+        /// Operands: argument_count: `u32`
+        ///
+        /// Stack: this, func, argument_1, ... argument_n **=&gt;** result
+        </span>CallEval,
+
+        <span class="doccomment">/// Call a function named &quot;eval&quot; where the arguments contain spreads.
+        ///
+        /// Operands:
+        ///
+        /// Stack: this, func, arguments_array **=&gt;** result
+        </span>CallEvalSpread,
+
+        <span class="doccomment">/// Call a function.
+        ///
+        /// Operands: argument_count: `u32`
+        ///
+        /// Stack: this, func, argument_1, ... argument_n **=&gt;** result
+        </span>Call,
+
+        <span class="doccomment">/// Call a function where the arguments contain spreads.
+        ///
+        /// Operands:
+        ///
+        /// Stack: this, func, arguments_array **=&gt;** result
+        </span>CallSpread,
+
+        <span class="doccomment">/// Call construct on a function.
+        ///
+        /// Operands: argument_count: `u32`
+        ///
+        /// Stack: func, argument_1, ... argument_n **=&gt;** result
+        </span>New,
+
+        <span class="doccomment">/// Call construct on a function where the arguments contain spreads.
+        ///
+        /// Operands:
+        ///
+        /// Stack: arguments_array, func **=&gt;** result
+        </span>NewSpread,
+
+        <span class="doccomment">/// Return from a function.
+        ///
+        /// Operands:
+        ///
+        /// Stack: **=&gt;**
+        </span>Return,
+
+        <span class="doccomment">/// Push a declarative environment.
+        ///
+        /// Operands: num_bindings: `u32`, compile_environments_index: `u32`
+        ///
+        /// Stack: **=&gt;**
+        </span>PushDeclarativeEnvironment,
+
+        <span class="doccomment">/// Push a function environment.
+        ///
+        /// Operands: num_bindings: `u32`, compile_environments_index: `u32`
+        ///
+        /// Stack: **=&gt;**
+        </span>PushFunctionEnvironment,
+
+        <span class="doccomment">/// Pop the current environment.
+        ///
+        /// Operands:
+        ///
+        /// Stack: **=&gt;**
+        </span>PopEnvironment,
+
+        <span class="doccomment">/// Push loop start marker.
+        ///
+        /// Operands:
+        ///
+        /// Stack: **=&gt;**
+        </span>LoopStart,
+
+        <span class="doccomment">/// Clean up environments when a loop continues.
+        ///
+        /// Operands:
+        ///
+        /// Stack: **=&gt;**
+        </span>LoopContinue,
+
+        <span class="doccomment">/// Clean up environments at the end of a loop.
+        ///
+        /// Operands:
+        ///
+        /// Stack: **=&gt;**
+        </span>LoopEnd,
+
+        <span class="doccomment">/// Initialize the iterator for a for..in loop or jump to after the loop if object is null or undefined.
+        ///
+        /// Operands: address: `u32`
+        ///
+        /// Stack: object **=&gt;** iterator, next_method, done
+        </span>ForInLoopInitIterator,
+
+        <span class="doccomment">/// Initialize an iterator.
+        ///
+        /// Operands:
+        ///
+        /// Stack: object **=&gt;** iterator, next_method, done
+        </span>InitIterator,
+
+        <span class="doccomment">/// Initialize an async iterator.
+        ///
+        /// Operands:
+        ///
+        /// Stack: object **=&gt;** iterator, next_method, done
+        </span>InitIteratorAsync,
+
+        <span class="doccomment">/// Advance the iterator by one and put the value on the stack.
+        ///
+        /// Operands:
+        ///
+        /// Stack: iterator, next_method, done **=&gt;** iterator, next_method, done, next_value
+        </span>IteratorNext,
+
+        <span class="doccomment">/// Close an iterator.
+        ///
+        /// Operands:
+        ///
+        /// Stack: iterator, next_method, done **=&gt;**
+        </span>IteratorClose,
+
+        <span class="doccomment">/// Consume the iterator and construct and array with all the values.
+        ///
+        /// Operands:
+        ///
+        /// Stack: iterator, next_method, done **=&gt;** iterator, next_method, done, array
+        </span>IteratorToArray,
+
+        <span class="doccomment">/// Move to the next value in a for..in loop or jump to exit of the loop if done.
+        ///
+        /// Note: next_result is only pushed if the iterator is not done.
+        ///
+        /// Operands: address: `u32`
+        ///
+        /// Stack: iterator, next_method, done **=&gt;** iterator, next_method, done, next_result
+        </span>ForInLoopNext,
+
+        <span class="doccomment">/// Move to the next value in a for await..of loop.
+        ///
+        /// Operands:
+        ///
+        /// Stack: iterator, next_method, done **=&gt;** iterator, next_method, next_result
+        </span>ForAwaitOfLoopIterate,
+
+        <span class="doccomment">/// Get the value from a for await..of loop next result.
+        ///
+        /// Operands: address: `u32`
+        ///
+        /// Stack: next_result **=&gt;** done, value
+        </span>ForAwaitOfLoopNext,
+
+        <span class="doccomment">/// Concat multiple stack objects into a string.
+        ///
+        /// Operands: value_count: `u32`
+        ///
+        /// Stack: value_1,...value_n **=&gt;** string
+        </span>ConcatToString,
+
+        <span class="doccomment">/// Call RequireObjectCoercible on the stack value.
+        ///
+        /// Operands:
+        ///
+        /// Stack: value **=&gt;** value
+        </span>RequireObjectCoercible,
+
+        <span class="doccomment">/// Require the stack value to be neither null nor undefined.
+        ///
+        /// Operands:
+        ///
+        /// Stack: value **=&gt;** value
+        </span>ValueNotNullOrUndefined,
+
+        <span class="doccomment">/// Initialize the rest parameter value of a function from the remaining arguments.
+        ///
+        /// Operands:
+        ///
+        /// Stack: `argument_1` .. `argument_n` **=&gt;** `array`
+        </span>RestParameterInit,
+
+        <span class="doccomment">/// Pop the remaining arguments of a function.
+        ///
+        /// Operands:
+        ///
+        /// Stack: `argument_1` .. `argument_n` **=&gt;**
+        </span>RestParameterPop,
+
+        <span class="doccomment">/// Add one to the pop on return count.
+        ///
+        /// Operands:
+        ///
+        /// Stack: **=&gt;**
+        </span>PopOnReturnAdd,
+
+        <span class="doccomment">/// Subtract one from the pop on return count.
+        ///
+        /// Operands:
+        ///
+        /// Stack: **=&gt;**
+        </span>PopOnReturnSub,
+
+        <span class="doccomment">/// Yield from the current execution.
+        ///
+        /// Operands:
+        ///
+        /// Stack: value **=&gt;**
+        </span>Yield,
+
+        <span class="doccomment">/// Resumes the current generator function.
+        ///
+        /// Operands:
+        ///
+        /// Stack: received **=&gt;**
+        </span>GeneratorNext,
+
+        <span class="doccomment">/// Resumes the current generator function.
+        ///
+        /// Operands:
+        ///
+        /// Stack: received **=&gt;** Option&lt;value&gt;, skip_0, skip_1
+        </span>AsyncGeneratorNext,
+
+        <span class="doccomment">/// Delegates the current generator function another generator.
+        ///
+        /// Operands: done_address: `u32`
+        ///
+        /// Stack: iterator, next_method, done, received **=&gt;** iterator, next_method, done
+        </span>GeneratorNextDelegate,
+
+        <span class="doccomment">/// Stops the current async function and schedules it to resume later.
+        ///
+        /// Operands:
+        ///
+        /// Stack: promise **=&gt;**
+        </span>Await,
+
+        <span class="doccomment">/// Push the current new target to the stack.
+        ///
+        /// Operands:
+        ///
+        /// Stack: **=&gt;** new_target
+        </span>PushNewTarget,
+
+        <span class="doccomment">/// No-operation instruction, does nothing.
+        ///
+        /// Operands:
+        ///
+        /// Stack: **=&gt;**
+        </span><span class="comment">// Safety: Must be last in the list since, we use this for range checking
+        // in TryFrom&lt;u8&gt; impl.
+        </span>Nop,
     }
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">InvalidOpcodeError</span> {
-    <span class="ident">value</span>: <span class="ident">u8</span>,
+<span class="attribute">#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+</span><span class="kw">pub struct </span>InvalidOpcodeError {
+    value: u8,
 }
 
-<span class="kw">impl</span> <span class="ident">std::fmt::Display</span> <span class="kw">for</span> <span class="ident">InvalidOpcodeError</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">std::fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">std::fmt::Result</span> {
-        <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;invalid opcode: {:#04x}&quot;</span>, <span class="self">self</span>.<span class="ident">value</span>)
+<span class="kw">impl </span>std::fmt::Display <span class="kw">for </span>InvalidOpcodeError {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
+        <span class="macro">write!</span>(f, <span class="string">&quot;invalid opcode: {:#04x}&quot;</span>, <span class="self">self</span>.value)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">std::error::Error</span> <span class="kw">for</span> <span class="ident">InvalidOpcodeError</span> {}
+<span class="kw">impl </span>std::error::Error <span class="kw">for </span>InvalidOpcodeError {}
 
-<span class="kw">impl</span> <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Opcode</span> {
-    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">InvalidOpcodeError</span>;
+<span class="kw">impl </span>TryFrom&lt;u8&gt; <span class="kw">for </span>Opcode {
+    <span class="kw">type </span>Error = InvalidOpcodeError;
 
-    <span class="kw">fn</span> <span class="ident">try_from</span>(<span class="ident">value</span>: <span class="ident">u8</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="ident">value</span> <span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::Nop</span> <span class="kw">as</span> <span class="ident">u8</span> {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">InvalidOpcodeError</span> { <span class="ident">value</span> });
+    <span class="kw">fn </span>try_from(value: u8) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <span class="self">Self</span>::Error&gt; {
+        <span class="kw">if </span>value &gt; <span class="self">Self</span>::Nop <span class="kw">as </span>u8 {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(InvalidOpcodeError { value });
         }
 
-        <span class="comment">// Safety: we already checked if it is in the Opcode range,</span>
-        <span class="comment">// so this is safe.</span>
-        <span class="kw">let</span> <span class="ident">opcode</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident"><span class="self">Self</span>::from_raw</span>(<span class="ident">value</span>) };
+        <span class="comment">// Safety: we already checked if it is in the Opcode range,
+        // so this is safe.
+        </span><span class="kw">let </span>opcode = <span class="kw">unsafe </span>{ <span class="self">Self</span>::from_raw(value) };
 
-        <span class="prelude-val">Ok</span>(<span class="ident">opcode</span>)
+        <span class="prelude-val">Ok</span>(opcode)
     }
 }
 
-<span class="doccomment">/// Specific opcodes for bindings.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This separate enum exists to make matching exhaustive where needed.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum</span> <span class="ident">BindingOpcode</span> {
-    <span class="ident">Var</span>,
-    <span class="ident">Let</span>,
-    <span class="ident">InitVar</span>,
-    <span class="ident">InitLet</span>,
-    <span class="ident">InitArg</span>,
-    <span class="ident">InitConst</span>,
-    <span class="ident">SetName</span>,
+<span class="doccomment">/// Specific opcodes for bindings.
+///
+/// This separate enum exists to make matching exhaustive where needed.
+</span><span class="attribute">#[derive(Clone, Copy, Debug)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum </span>BindingOpcode {
+    Var,
+    Let,
+    InitVar,
+    InitLet,
+    InitArg,
+    InitConst,
+    SetName,
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0 (a55dd71d5 2022-09-19)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0 (897e37553 2022-11-02)" ></div></body></html>

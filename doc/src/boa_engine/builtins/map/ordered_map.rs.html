@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_engine/src/builtins/map/ordered_map.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>ordered_map.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_engine/src/builtins/map/ordered_map.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>ordered_map.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container">
                     <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../boa_engine/index.html">
                         <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -225,230 +225,230 @@
 <span id="223">223</span>
 <span id="224">224</span>
 <span id="225">225</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">object::JsObject</span>, <span class="ident">JsValue</span>};
-<span class="kw">use</span> <span class="ident">boa_gc</span>::{<span class="ident">custom_trace</span>, <span class="ident">Finalize</span>, <span class="ident">Trace</span>};
-<span class="kw">use</span> <span class="ident">indexmap</span>::{<span class="ident">Equivalent</span>, <span class="ident">IndexMap</span>};
-<span class="kw">use</span> <span class="ident">std</span>::{
-    <span class="ident">collections::hash_map::RandomState</span>,
-    <span class="ident">fmt::Debug</span>,
-    <span class="ident">hash</span>::{<span class="ident">BuildHasher</span>, <span class="ident">Hash</span>, <span class="ident">Hasher</span>},
+</pre><pre class="rust"><code><span class="kw">use crate</span>::{object::JsObject, JsValue};
+<span class="kw">use </span>boa_gc::{custom_trace, Finalize, Trace};
+<span class="kw">use </span>indexmap::{Equivalent, IndexMap};
+<span class="kw">use </span>std::{
+    collections::hash_map::RandomState,
+    fmt::Debug,
+    hash::{BuildHasher, Hash, Hasher},
 };
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
-<span class="kw">enum</span> <span class="ident">MapKey</span> {
-    <span class="ident">Key</span>(<span class="ident">JsValue</span>),
-    <span class="ident">Empty</span>(<span class="ident">usize</span>), <span class="comment">// Necessary to ensure empty keys are still unique.</span>
-}
+<span class="attribute">#[derive(PartialEq, Eq, Clone, Debug)]
+</span><span class="kw">enum </span>MapKey {
+    Key(JsValue),
+    Empty(usize), <span class="comment">// Necessary to ensure empty keys are still unique.
+</span>}
 
-<span class="comment">// This ensures that a MapKey::Key(value) hashes to the same as value. The derived PartialEq implementation still holds.</span>
-<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::derive_hash_xor_eq</span>)]</span>
-<span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">MapKey</span> {
-    <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span>: <span class="ident">Hasher</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;mut</span> <span class="ident">H</span>) {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">MapKey::Key</span>(<span class="ident">v</span>) =&gt; <span class="ident">v</span>.<span class="ident">hash</span>(<span class="ident">state</span>),
-            <span class="ident">MapKey::Empty</span>(<span class="ident">e</span>) =&gt; <span class="ident">e</span>.<span class="ident">hash</span>(<span class="ident">state</span>),
+<span class="comment">// This ensures that a MapKey::Key(value) hashes to the same as value. The derived PartialEq implementation still holds.
+</span><span class="attribute">#[allow(clippy::derive_hash_xor_eq)]
+</span><span class="kw">impl </span>Hash <span class="kw">for </span>MapKey {
+    <span class="kw">fn </span>hash&lt;H: Hasher&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, state: <span class="kw-2">&amp;mut </span>H) {
+        <span class="kw">match </span><span class="self">self </span>{
+            MapKey::Key(v) =&gt; v.hash(state),
+            MapKey::Empty(e) =&gt; e.hash(state),
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Equivalent</span><span class="op">&lt;</span><span class="ident">MapKey</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">JsValue</span> {
-    <span class="kw">fn</span> <span class="ident">equivalent</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">key</span>: <span class="kw-2">&amp;</span><span class="ident">MapKey</span>) -&gt; <span class="ident">bool</span> {
-        <span class="kw">match</span> <span class="ident">key</span> {
-            <span class="ident">MapKey::Key</span>(<span class="ident">v</span>) =&gt; <span class="ident">v</span> <span class="op">==</span> <span class="self">self</span>,
-            <span class="ident">MapKey::Empty</span>(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
+<span class="kw">impl </span>Equivalent&lt;MapKey&gt; <span class="kw">for </span>JsValue {
+    <span class="kw">fn </span>equivalent(<span class="kw-2">&amp;</span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>MapKey) -&gt; bool {
+        <span class="kw">match </span>key {
+            MapKey::Key(v) =&gt; v == <span class="self">self</span>,
+            MapKey::Empty(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
         }
     }
 }
 
-<span class="doccomment">/// A structure wrapping `indexmap::IndexMap`.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">OrderedMap</span><span class="op">&lt;</span><span class="ident">V</span>, <span class="ident">S</span> <span class="op">=</span> <span class="ident">RandomState</span><span class="op">&gt;</span> {
-    <span class="ident">map</span>: <span class="ident">IndexMap</span><span class="op">&lt;</span><span class="ident">MapKey</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>, <span class="ident">S</span><span class="op">&gt;</span>,
-    <span class="ident">lock</span>: <span class="ident">u32</span>,
-    <span class="ident">empty_count</span>: <span class="ident">usize</span>,
+<span class="doccomment">/// A structure wrapping `indexmap::IndexMap`.
+</span><span class="attribute">#[derive(Clone)]
+</span><span class="kw">pub struct </span>OrderedMap&lt;V, S = RandomState&gt; {
+    map: IndexMap&lt;MapKey, <span class="prelude-ty">Option</span>&lt;V&gt;, S&gt;,
+    lock: u32,
+    empty_count: usize,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">V</span>: <span class="ident">Trace</span>, <span class="ident">S</span>: <span class="ident">BuildHasher</span><span class="op">&gt;</span> <span class="ident">Finalize</span> <span class="kw">for</span> <span class="ident">OrderedMap</span><span class="op">&lt;</span><span class="ident">V</span>, <span class="ident">S</span><span class="op">&gt;</span> {}
-<span class="kw">unsafe</span> <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">V</span>: <span class="ident">Trace</span>, <span class="ident">S</span>: <span class="ident">BuildHasher</span><span class="op">&gt;</span> <span class="ident">Trace</span> <span class="kw">for</span> <span class="ident">OrderedMap</span><span class="op">&lt;</span><span class="ident">V</span>, <span class="ident">S</span><span class="op">&gt;</span> {
-    <span class="macro">custom_trace!</span>(<span class="ident">this</span>, {
-        <span class="kw">for</span> (<span class="ident">k</span>, <span class="ident">v</span>) <span class="kw">in</span> <span class="ident">this</span>.<span class="ident">map</span>.<span class="ident">iter</span>() {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="ident">MapKey::Key</span>(<span class="ident">key</span>) <span class="op">=</span> <span class="ident">k</span> {
-                <span class="ident">mark</span>(<span class="ident">key</span>);
+<span class="kw">impl</span>&lt;V: Trace, S: BuildHasher&gt; Finalize <span class="kw">for </span>OrderedMap&lt;V, S&gt; {}
+<span class="kw">unsafe impl</span>&lt;V: Trace, S: BuildHasher&gt; Trace <span class="kw">for </span>OrderedMap&lt;V, S&gt; {
+    <span class="macro">custom_trace!</span>(this, {
+        <span class="kw">for </span>(k, v) <span class="kw">in </span>this.map.iter() {
+            <span class="kw">if let </span>MapKey::Key(key) = k {
+                mark(key);
             }
-            <span class="ident">mark</span>(<span class="ident">v</span>);
+            mark(v);
         }
     });
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">V</span>: <span class="ident">Debug</span><span class="op">&gt;</span> <span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">OrderedMap</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">formatter</span>: <span class="kw-2">&amp;mut</span> <span class="ident">std::fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">std::fmt::Error</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">map</span>.<span class="ident">fmt</span>(<span class="ident">formatter</span>)
+<span class="kw">impl</span>&lt;V: Debug&gt; Debug <span class="kw">for </span>OrderedMap&lt;V&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, formatter: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), std::fmt::Error&gt; {
+        <span class="self">self</span>.map.fmt(formatter)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">OrderedMap</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::new</span>()
+<span class="kw">impl</span>&lt;V&gt; Default <span class="kw">for </span>OrderedMap&lt;V&gt; {
+    <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::new()
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span> <span class="ident">OrderedMap</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">map</span>: <span class="ident">IndexMap::new</span>(),
-            <span class="ident">lock</span>: <span class="number">0</span>,
-            <span class="ident">empty_count</span>: <span class="number">0</span>,
+<span class="kw">impl</span>&lt;V&gt; OrderedMap&lt;V&gt; {
+    <span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            map: IndexMap::new(),
+            lock: <span class="number">0</span>,
+            empty_count: <span class="number">0</span>,
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_capacity</span>(<span class="ident">capacity</span>: <span class="ident">usize</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">map</span>: <span class="ident">IndexMap::with_capacity</span>(<span class="ident">capacity</span>),
-            <span class="ident">lock</span>: <span class="number">0</span>,
-            <span class="ident">empty_count</span>: <span class="number">0</span>,
+    <span class="kw">pub fn </span>with_capacity(capacity: usize) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            map: IndexMap::with_capacity(capacity),
+            lock: <span class="number">0</span>,
+            empty_count: <span class="number">0</span>,
         }
     }
 
-    <span class="doccomment">/// Return the number of key-value pairs in the map, including empty values.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Computes in **O(1)** time.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">full_len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span> {
-        <span class="self">self</span>.<span class="ident">map</span>.<span class="ident">len</span>()
+    <span class="doccomment">/// Return the number of key-value pairs in the map, including empty values.
+    ///
+    /// Computes in **O(1)** time.
+    </span><span class="kw">pub fn </span>full_len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.map.len()
     }
 
-    <span class="doccomment">/// Gets the number of key-value pairs in the map, not including empty values.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Computes in **O(1)** time.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span> {
-        <span class="self">self</span>.<span class="ident">map</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="self">self</span>.<span class="ident">empty_count</span>
+    <span class="doccomment">/// Gets the number of key-value pairs in the map, not including empty values.
+    ///
+    /// Computes in **O(1)** time.
+    </span><span class="kw">pub fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.map.len() - <span class="self">self</span>.empty_count
     }
 
-    <span class="doccomment">/// Returns true if the map contains no elements.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Computes in **O(1)** time.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_empty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">0</span>
+    <span class="doccomment">/// Returns true if the map contains no elements.
+    ///
+    /// Computes in **O(1)** time.
+    </span><span class="kw">pub fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.len() == <span class="number">0
+    </span>}
+
+    <span class="doccomment">/// Insert a key-value pair in the map.
+    ///
+    /// If an equivalent key already exists in the map: the key remains and
+    /// retains in its place in the order, its corresponding value is updated
+    /// with `value` and the older value is returned inside `Some(_)`.
+    ///
+    /// If no equivalent key existed in the map: the new key-value pair is
+    /// inserted, last in order, and `None` is returned.
+    ///
+    /// Computes in **O(1)** time (amortized average).
+    </span><span class="kw">pub fn </span>insert(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: JsValue, value: V) -&gt; <span class="prelude-ty">Option</span>&lt;V&gt; {
+        <span class="self">self</span>.map.insert(MapKey::Key(key), <span class="prelude-val">Some</span>(value)).flatten()
     }
 
-    <span class="doccomment">/// Insert a key-value pair in the map.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If an equivalent key already exists in the map: the key remains and</span>
-    <span class="doccomment">/// retains in its place in the order, its corresponding value is updated</span>
-    <span class="doccomment">/// with `value` and the older value is returned inside `Some(_)`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If no equivalent key existed in the map: the new key-value pair is</span>
-    <span class="doccomment">/// inserted, last in order, and `None` is returned.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Computes in **O(1)** time (amortized average).</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">insert</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">key</span>: <span class="ident">JsValue</span>, <span class="ident">value</span>: <span class="ident">V</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">map</span>.<span class="ident">insert</span>(<span class="ident">MapKey::Key</span>(<span class="ident">key</span>), <span class="prelude-val">Some</span>(<span class="ident">value</span>)).<span class="ident">flatten</span>()
+    <span class="doccomment">/// Remove the key-value pair equivalent to `key` and return
+    /// its value.
+    ///
+    /// Like `Vec::remove`, the pair is removed by shifting all of the
+    /// elements that follow it, preserving their relative order.
+    /// **This perturbs the index of all of those elements!**
+    ///
+    /// Return `None` if `key` is not in map.
+    ///
+    /// Computes in **O(n)** time (average).
+    </span><span class="kw">pub fn </span>remove(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>JsValue) -&gt; <span class="prelude-ty">Option</span>&lt;V&gt; {
+        <span class="kw">if </span><span class="self">self</span>.lock == <span class="number">0 </span>{
+            <span class="self">self</span>.map.shift_remove(key).flatten()
+        } <span class="kw">else if </span><span class="self">self</span>.map.contains_key(key) {
+            <span class="self">self</span>.map.insert(MapKey::Empty(<span class="self">self</span>.empty_count), <span class="prelude-val">None</span>);
+            <span class="self">self</span>.empty_count += <span class="number">1</span>;
+            <span class="self">self</span>.map.swap_remove(key).flatten()
+        } <span class="kw">else </span>{
+            <span class="prelude-val">None
+        </span>}
     }
 
-    <span class="doccomment">/// Remove the key-value pair equivalent to `key` and return</span>
-    <span class="doccomment">/// its value.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Like `Vec::remove`, the pair is removed by shifting all of the</span>
-    <span class="doccomment">/// elements that follow it, preserving their relative order.</span>
-    <span class="doccomment">/// **This perturbs the index of all of those elements!**</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Return `None` if `key` is not in map.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Computes in **O(n)** time (average).</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">remove</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">key</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">lock</span> <span class="op">==</span> <span class="number">0</span> {
-            <span class="self">self</span>.<span class="ident">map</span>.<span class="ident">shift_remove</span>(<span class="ident">key</span>).<span class="ident">flatten</span>()
-        } <span class="kw">else</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">map</span>.<span class="ident">contains_key</span>(<span class="ident">key</span>) {
-            <span class="self">self</span>.<span class="ident">map</span>.<span class="ident">insert</span>(<span class="ident">MapKey::Empty</span>(<span class="self">self</span>.<span class="ident">empty_count</span>), <span class="prelude-val">None</span>);
-            <span class="self">self</span>.<span class="ident">empty_count</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-            <span class="self">self</span>.<span class="ident">map</span>.<span class="ident">swap_remove</span>(<span class="ident">key</span>).<span class="ident">flatten</span>()
-        } <span class="kw">else</span> {
-            <span class="prelude-val">None</span>
-        }
+    <span class="doccomment">/// Removes all elements from the map and resets the counter of
+    /// empty entries.
+    </span><span class="kw">pub fn </span>clear(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="self">self</span>.map.clear();
+        <span class="self">self</span>.map.shrink_to_fit();
+        <span class="self">self</span>.empty_count = <span class="number">0</span>;
     }
 
-    <span class="doccomment">/// Removes all elements from the map and resets the counter of</span>
-    <span class="doccomment">/// empty entries.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">clear</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="self">self</span>.<span class="ident">map</span>.<span class="ident">clear</span>();
-        <span class="self">self</span>.<span class="ident">map</span>.<span class="ident">shrink_to_fit</span>();
-        <span class="self">self</span>.<span class="ident">empty_count</span> <span class="op">=</span> <span class="number">0</span>;
+    <span class="doccomment">/// Return a reference to the value stored for `key`, if it is present,
+    /// else `None`.
+    ///
+    /// Computes in **O(1)** time (average).
+    </span><span class="kw">pub fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>JsValue) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>V&gt; {
+        <span class="self">self</span>.map.get(key).and_then(Option::as_ref)
     }
 
-    <span class="doccomment">/// Return a reference to the value stored for `key`, if it is present,</span>
-    <span class="doccomment">/// else `None`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Computes in **O(1)** time (average).</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">key</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">V</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">map</span>.<span class="ident">get</span>(<span class="ident">key</span>).<span class="ident">and_then</span>(<span class="ident">Option::as_ref</span>)
+    <span class="doccomment">/// Get a key-value pair by index.
+    ///
+    /// Valid indices are `0 &lt;= index &lt; self.full_len()`.
+    ///
+    /// Computes in O(1) time.
+    </span><span class="kw">pub fn </span>get_index(<span class="kw-2">&amp;</span><span class="self">self</span>, index: usize) -&gt; <span class="prelude-ty">Option</span>&lt;(<span class="kw-2">&amp;</span>JsValue, <span class="kw-2">&amp;</span>V)&gt; {
+        <span class="kw">if let </span>(MapKey::Key(key), <span class="prelude-val">Some</span>(value)) = <span class="self">self</span>.map.get_index(index)<span class="question-mark">? </span>{
+            <span class="prelude-val">Some</span>((key, value))
+        } <span class="kw">else </span>{
+            <span class="prelude-val">None
+        </span>}
     }
 
-    <span class="doccomment">/// Get a key-value pair by index.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Valid indices are `0 &lt;= index &lt; self.full_len()`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Computes in O(1) time.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_index</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">index</span>: <span class="ident">usize</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="kw-2">&amp;</span><span class="ident">V</span>)<span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="kw">let</span> (<span class="ident">MapKey::Key</span>(<span class="ident">key</span>), <span class="prelude-val">Some</span>(<span class="ident">value</span>)) <span class="op">=</span> <span class="self">self</span>.<span class="ident">map</span>.<span class="ident">get_index</span>(<span class="ident">index</span>)<span class="question-mark">?</span> {
-            <span class="prelude-val">Some</span>((<span class="ident">key</span>, <span class="ident">value</span>))
-        } <span class="kw">else</span> {
-            <span class="prelude-val">None</span>
-        }
-    }
-
-    <span class="doccomment">/// Return an iterator over the key-value pairs of the map, in their order</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">iter</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> (<span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="kw-2">&amp;</span><span class="ident">V</span>)<span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">map</span>.<span class="ident">iter</span>().<span class="ident">filter_map</span>(<span class="op">|</span><span class="ident">o</span><span class="op">|</span> {
-            <span class="kw">if</span> <span class="kw">let</span> (<span class="ident">MapKey::Key</span>(<span class="ident">key</span>), <span class="prelude-val">Some</span>(<span class="ident">value</span>)) <span class="op">=</span> <span class="ident">o</span> {
-                <span class="prelude-val">Some</span>((<span class="ident">key</span>, <span class="ident">value</span>))
-            } <span class="kw">else</span> {
-                <span class="prelude-val">None</span>
-            }
+    <span class="doccomment">/// Return an iterator over the key-value pairs of the map, in their order
+    </span><span class="kw">pub fn </span>iter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = (<span class="kw-2">&amp;</span>JsValue, <span class="kw-2">&amp;</span>V)&gt; {
+        <span class="self">self</span>.map.iter().filter_map(|o| {
+            <span class="kw">if let </span>(MapKey::Key(key), <span class="prelude-val">Some</span>(value)) = o {
+                <span class="prelude-val">Some</span>((key, value))
+            } <span class="kw">else </span>{
+                <span class="prelude-val">None
+            </span>}
         })
     }
 
-    <span class="doccomment">/// Return `true` if an equivalent to `key` exists in the map.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Computes in **O(1)** time (average).</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">contains_key</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">key</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">map</span>.<span class="ident">contains_key</span>(<span class="ident">key</span>)
+    <span class="doccomment">/// Return `true` if an equivalent to `key` exists in the map.
+    ///
+    /// Computes in **O(1)** time (average).
+    </span><span class="kw">pub fn </span>contains_key(<span class="kw-2">&amp;</span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>JsValue) -&gt; bool {
+        <span class="self">self</span>.map.contains_key(key)
     }
 
-    <span class="doccomment">/// Increases the lock counter and returns a lock object that will decrement the counter when dropped.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This allows objects to be removed from the map during iteration without affecting the indexes until the iteration has completed.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">lock</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">map</span>: <span class="ident">JsObject</span>) -&gt; <span class="ident">MapLock</span> {
-        <span class="self">self</span>.<span class="ident">lock</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-        <span class="ident">MapLock</span>(<span class="ident">map</span>)
+    <span class="doccomment">/// Increases the lock counter and returns a lock object that will decrement the counter when dropped.
+    ///
+    /// This allows objects to be removed from the map during iteration without affecting the indexes until the iteration has completed.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>lock(<span class="kw-2">&amp;mut </span><span class="self">self</span>, map: JsObject) -&gt; MapLock {
+        <span class="self">self</span>.lock += <span class="number">1</span>;
+        MapLock(map)
     }
 
-    <span class="doccomment">/// Decreases the lock counter and, if 0, removes all empty entries.</span>
-    <span class="kw">fn</span> <span class="ident">unlock</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="self">self</span>.<span class="ident">lock</span> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>;
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">lock</span> <span class="op">==</span> <span class="number">0</span> {
-            <span class="self">self</span>.<span class="ident">map</span>.<span class="ident">retain</span>(<span class="op">|</span><span class="ident">k</span>, <span class="kw">_</span><span class="op">|</span> <span class="macro">matches!</span>(<span class="ident">k</span>, <span class="ident">MapKey::Key</span>(<span class="kw">_</span>)));
-            <span class="self">self</span>.<span class="ident">empty_count</span> <span class="op">=</span> <span class="number">0</span>;
+    <span class="doccomment">/// Decreases the lock counter and, if 0, removes all empty entries.
+    </span><span class="kw">fn </span>unlock(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="self">self</span>.lock -= <span class="number">1</span>;
+        <span class="kw">if </span><span class="self">self</span>.lock == <span class="number">0 </span>{
+            <span class="self">self</span>.map.retain(|k, <span class="kw">_</span>| <span class="macro">matches!</span>(k, MapKey::Key(<span class="kw">_</span>)));
+            <span class="self">self</span>.empty_count = <span class="number">0</span>;
         }
     }
 }
 
-<span class="doccomment">/// Increases the lock count of the map for the lifetime of the guard. This should not be dropped until iteration has completed.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Trace</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">MapLock</span>(<span class="ident">JsObject</span>);
+<span class="doccomment">/// Increases the lock count of the map for the lifetime of the guard. This should not be dropped until iteration has completed.
+</span><span class="attribute">#[derive(Debug, Trace)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>MapLock(JsObject);
 
-<span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">MapLock</span> {
-    <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">map</span> <span class="op">=</span> <span class="self">self</span>.<span class="number">0</span>.<span class="ident">borrow_mut</span>();
-        <span class="kw">let</span> <span class="ident">map</span> <span class="op">=</span> <span class="ident">map</span>.<span class="ident">as_map_mut</span>().<span class="ident">expect</span>(<span class="string">&quot;MapLock does not point to a map&quot;</span>);
-        <span class="ident">map</span>.<span class="ident">lock</span>(<span class="self">self</span>.<span class="number">0</span>.<span class="ident">clone</span>())
+<span class="kw">impl </span>Clone <span class="kw">for </span>MapLock {
+    <span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span><span class="kw-2">mut </span>map = <span class="self">self</span>.<span class="number">0</span>.borrow_mut();
+        <span class="kw">let </span>map = map.as_map_mut().expect(<span class="string">&quot;MapLock does not point to a map&quot;</span>);
+        map.lock(<span class="self">self</span>.<span class="number">0</span>.clone())
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Finalize</span> <span class="kw">for</span> <span class="ident">MapLock</span> {
-    <span class="kw">fn</span> <span class="ident">finalize</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">map</span> <span class="op">=</span> <span class="self">self</span>.<span class="number">0</span>.<span class="ident">borrow_mut</span>();
-        <span class="kw">let</span> <span class="ident">map</span> <span class="op">=</span> <span class="ident">map</span>.<span class="ident">as_map_mut</span>().<span class="ident">expect</span>(<span class="string">&quot;MapLock does not point to a map&quot;</span>);
-        <span class="ident">map</span>.<span class="ident">unlock</span>();
+<span class="kw">impl </span>Finalize <span class="kw">for </span>MapLock {
+    <span class="kw">fn </span>finalize(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+        <span class="kw">let </span><span class="kw-2">mut </span>map = <span class="self">self</span>.<span class="number">0</span>.borrow_mut();
+        <span class="kw">let </span>map = map.as_map_mut().expect(<span class="string">&quot;MapLock does not point to a map&quot;</span>);
+        map.unlock();
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0 (a55dd71d5 2022-09-19)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0 (897e37553 2022-11-02)" ></div></body></html>

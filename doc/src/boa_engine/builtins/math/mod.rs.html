@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_engine/src/builtins/math/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_engine/src/builtins/math/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container">
                     <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../boa_engine/index.html">
                         <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -889,894 +889,894 @@
 <span id="887">887</span>
 <span id="888">888</span>
 <span id="889">889</span>
-</pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `Math` object.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! `Math` is a built-in object that has properties and methods for mathematical constants and functions. It’s not a function object.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! `Math` works with the `Number` type. It doesn&#39;t work with `BigInt`.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! More information:</span>
-<span class="doccomment">//!  - [ECMAScript reference][spec]</span>
-<span class="doccomment">//!  - [MDN documentation][mdn]</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! [spec]: https://tc39.es/ecma262/#sec-math-object</span>
-<span class="doccomment">//! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math</span>
+</pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `Math` object.
+//!
+//! `Math` is a built-in object that has properties and methods for mathematical constants and functions. It’s not a function object.
+//!
+//! `Math` works with the `Number` type. It doesn&#39;t work with `BigInt`.
+//!
+//! More information:
+//!  - [ECMAScript reference][spec]
+//!  - [MDN documentation][mdn]
+//!
+//! [spec]: https://tc39.es/ecma262/#sec-math-object
+//! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math
 
-<span class="kw">use</span> <span class="ident"><span class="kw">super</span>::JsArgs</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">builtins::BuiltIn</span>, <span class="ident">object::ObjectInitializer</span>, <span class="ident">property::Attribute</span>, <span class="ident">symbol::WellKnownSymbols</span>,
-    <span class="ident">Context</span>, <span class="ident">JsResult</span>, <span class="ident">JsValue</span>,
+</span><span class="kw">use </span><span class="kw">super</span>::JsArgs;
+<span class="kw">use crate</span>::{
+    builtins::BuiltIn, object::ObjectInitializer, property::Attribute, symbol::WellKnownSymbols,
+    Context, JsResult, JsValue,
 };
-<span class="kw">use</span> <span class="ident">boa_profiler::Profiler</span>;
-<span class="kw">use</span> <span class="ident">tap</span>::{<span class="ident">Conv</span>, <span class="ident">Pipe</span>};
+<span class="kw">use </span>boa_profiler::Profiler;
+<span class="kw">use </span>tap::{Conv, Pipe};
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span>;
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>tests;
 
-<span class="doccomment">/// Javascript `Math` object.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Ord</span>, <span class="ident">Hash</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">Math</span>;
+<span class="doccomment">/// Javascript `Math` object.
+</span><span class="attribute">#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Math;
 
-<span class="kw">impl</span> <span class="ident">BuiltIn</span> <span class="kw">for</span> <span class="ident">Math</span> {
-    <span class="kw">const</span> <span class="ident">NAME</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;Math&quot;</span>;
+<span class="kw">impl </span>BuiltIn <span class="kw">for </span>Math {
+    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;Math&quot;</span>;
 
-    <span class="kw">fn</span> <span class="ident">init</span>(<span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="ident"><span class="self">Self</span>::NAME</span>, <span class="string">&quot;init&quot;</span>);
+    <span class="kw">fn </span>init(context: <span class="kw-2">&amp;mut </span>Context) -&gt; <span class="prelude-ty">Option</span>&lt;JsValue&gt; {
+        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="self">Self</span>::NAME, <span class="string">&quot;init&quot;</span>);
 
-        <span class="kw">let</span> <span class="ident">attribute</span> <span class="op">=</span> <span class="ident">Attribute::READONLY</span> <span class="op">|</span> <span class="ident">Attribute::NON_ENUMERABLE</span> <span class="op">|</span> <span class="ident">Attribute::PERMANENT</span>;
-        <span class="kw">let</span> <span class="ident">string_tag</span> <span class="op">=</span> <span class="ident">WellKnownSymbols::to_string_tag</span>();
-        <span class="ident">ObjectInitializer::new</span>(<span class="ident">context</span>)
-            .<span class="ident">property</span>(<span class="string">&quot;E&quot;</span>, <span class="ident">std::f64::consts::E</span>, <span class="ident">attribute</span>)
-            .<span class="ident">property</span>(<span class="string">&quot;LN10&quot;</span>, <span class="ident">std::f64::consts::LN_10</span>, <span class="ident">attribute</span>)
-            .<span class="ident">property</span>(<span class="string">&quot;LN2&quot;</span>, <span class="ident">std::f64::consts::LN_2</span>, <span class="ident">attribute</span>)
-            .<span class="ident">property</span>(<span class="string">&quot;LOG10E&quot;</span>, <span class="ident">std::f64::consts::LOG10_E</span>, <span class="ident">attribute</span>)
-            .<span class="ident">property</span>(<span class="string">&quot;LOG2E&quot;</span>, <span class="ident">std::f64::consts::LOG2_E</span>, <span class="ident">attribute</span>)
-            .<span class="ident">property</span>(<span class="string">&quot;PI&quot;</span>, <span class="ident">std::f64::consts::PI</span>, <span class="ident">attribute</span>)
-            .<span class="ident">property</span>(<span class="string">&quot;SQRT1_2&quot;</span>, <span class="ident">std::f64::consts::FRAC_1_SQRT_2</span>, <span class="ident">attribute</span>)
-            .<span class="ident">property</span>(<span class="string">&quot;SQRT2&quot;</span>, <span class="ident">std::f64::consts::SQRT_2</span>, <span class="ident">attribute</span>)
-            .<span class="ident">function</span>(<span class="ident"><span class="self">Self</span>::abs</span>, <span class="string">&quot;abs&quot;</span>, <span class="number">1</span>)
-            .<span class="ident">function</span>(<span class="ident"><span class="self">Self</span>::acos</span>, <span class="string">&quot;acos&quot;</span>, <span class="number">1</span>)
-            .<span class="ident">function</span>(<span class="ident"><span class="self">Self</span>::acosh</span>, <span class="string">&quot;acosh&quot;</span>, <span class="number">1</span>)
-            .<span class="ident">function</span>(<span class="ident"><span class="self">Self</span>::asin</span>, <span class="string">&quot;asin&quot;</span>, <span class="number">1</span>)
-            .<span class="ident">function</span>(<span class="ident"><span class="self">Self</span>::asinh</span>, <span class="string">&quot;asinh&quot;</span>, <span class="number">1</span>)
-            .<span class="ident">function</span>(<span class="ident"><span class="self">Self</span>::atan</span>, <span class="string">&quot;atan&quot;</span>, <span class="number">1</span>)
-            .<span class="ident">function</span>(<span class="ident"><span class="self">Self</span>::atanh</span>, <span class="string">&quot;atanh&quot;</span>, <span class="number">1</span>)
-            .<span class="ident">function</span>(<span class="ident"><span class="self">Self</span>::atan2</span>, <span class="string">&quot;atan2&quot;</span>, <span class="number">2</span>)
-            .<span class="ident">function</span>(<span class="ident"><span class="self">Self</span>::cbrt</span>, <span class="string">&quot;cbrt&quot;</span>, <span class="number">1</span>)
-            .<span class="ident">function</span>(<span class="ident"><span class="self">Self</span>::ceil</span>, <span class="string">&quot;ceil&quot;</span>, <span class="number">1</span>)
-            .<span class="ident">function</span>(<span class="ident"><span class="self">Self</span>::clz32</span>, <span class="string">&quot;clz32&quot;</span>, <span class="number">1</span>)
-            .<span class="ident">function</span>(<span class="ident"><span class="self">Self</span>::cos</span>, <span class="string">&quot;cos&quot;</span>, <span class="number">1</span>)
-            .<span class="ident">function</span>(<span class="ident"><span class="self">Self</span>::cosh</span>, <span class="string">&quot;cosh&quot;</span>, <span class="number">1</span>)
-            .<span class="ident">function</span>(<span class="ident"><span class="self">Self</span>::exp</span>, <span class="string">&quot;exp&quot;</span>, <span class="number">1</span>)
-            .<span class="ident">function</span>(<span class="ident"><span class="self">Self</span>::expm1</span>, <span class="string">&quot;expm1&quot;</span>, <span class="number">1</span>)
-            .<span class="ident">function</span>(<span class="ident"><span class="self">Self</span>::floor</span>, <span class="string">&quot;floor&quot;</span>, <span class="number">1</span>)
-            .<span class="ident">function</span>(<span class="ident"><span class="self">Self</span>::fround</span>, <span class="string">&quot;fround&quot;</span>, <span class="number">1</span>)
-            .<span class="ident">function</span>(<span class="ident"><span class="self">Self</span>::hypot</span>, <span class="string">&quot;hypot&quot;</span>, <span class="number">2</span>)
-            .<span class="ident">function</span>(<span class="ident"><span class="self">Self</span>::imul</span>, <span class="string">&quot;imul&quot;</span>, <span class="number">2</span>)
-            .<span class="ident">function</span>(<span class="ident"><span class="self">Self</span>::log</span>, <span class="string">&quot;log&quot;</span>, <span class="number">1</span>)
-            .<span class="ident">function</span>(<span class="ident"><span class="self">Self</span>::log1p</span>, <span class="string">&quot;log1p&quot;</span>, <span class="number">1</span>)
-            .<span class="ident">function</span>(<span class="ident"><span class="self">Self</span>::log10</span>, <span class="string">&quot;log10&quot;</span>, <span class="number">1</span>)
-            .<span class="ident">function</span>(<span class="ident"><span class="self">Self</span>::log2</span>, <span class="string">&quot;log2&quot;</span>, <span class="number">1</span>)
-            .<span class="ident">function</span>(<span class="ident"><span class="self">Self</span>::max</span>, <span class="string">&quot;max&quot;</span>, <span class="number">2</span>)
-            .<span class="ident">function</span>(<span class="ident"><span class="self">Self</span>::min</span>, <span class="string">&quot;min&quot;</span>, <span class="number">2</span>)
-            .<span class="ident">function</span>(<span class="ident"><span class="self">Self</span>::pow</span>, <span class="string">&quot;pow&quot;</span>, <span class="number">2</span>)
-            .<span class="ident">function</span>(<span class="ident"><span class="self">Self</span>::random</span>, <span class="string">&quot;random&quot;</span>, <span class="number">0</span>)
-            .<span class="ident">function</span>(<span class="ident"><span class="self">Self</span>::round</span>, <span class="string">&quot;round&quot;</span>, <span class="number">1</span>)
-            .<span class="ident">function</span>(<span class="ident"><span class="self">Self</span>::sign</span>, <span class="string">&quot;sign&quot;</span>, <span class="number">1</span>)
-            .<span class="ident">function</span>(<span class="ident"><span class="self">Self</span>::sin</span>, <span class="string">&quot;sin&quot;</span>, <span class="number">1</span>)
-            .<span class="ident">function</span>(<span class="ident"><span class="self">Self</span>::sinh</span>, <span class="string">&quot;sinh&quot;</span>, <span class="number">1</span>)
-            .<span class="ident">function</span>(<span class="ident"><span class="self">Self</span>::sqrt</span>, <span class="string">&quot;sqrt&quot;</span>, <span class="number">1</span>)
-            .<span class="ident">function</span>(<span class="ident"><span class="self">Self</span>::tan</span>, <span class="string">&quot;tan&quot;</span>, <span class="number">1</span>)
-            .<span class="ident">function</span>(<span class="ident"><span class="self">Self</span>::tanh</span>, <span class="string">&quot;tanh&quot;</span>, <span class="number">1</span>)
-            .<span class="ident">function</span>(<span class="ident"><span class="self">Self</span>::trunc</span>, <span class="string">&quot;trunc&quot;</span>, <span class="number">1</span>)
-            .<span class="ident">property</span>(
-                <span class="ident">string_tag</span>,
-                <span class="ident"><span class="self">Self</span>::NAME</span>,
-                <span class="ident">Attribute::READONLY</span> <span class="op">|</span> <span class="ident">Attribute::NON_ENUMERABLE</span> <span class="op">|</span> <span class="ident">Attribute::CONFIGURABLE</span>,
+        <span class="kw">let </span>attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT;
+        <span class="kw">let </span>string_tag = WellKnownSymbols::to_string_tag();
+        ObjectInitializer::new(context)
+            .property(<span class="string">&quot;E&quot;</span>, std::f64::consts::E, attribute)
+            .property(<span class="string">&quot;LN10&quot;</span>, std::f64::consts::LN_10, attribute)
+            .property(<span class="string">&quot;LN2&quot;</span>, std::f64::consts::LN_2, attribute)
+            .property(<span class="string">&quot;LOG10E&quot;</span>, std::f64::consts::LOG10_E, attribute)
+            .property(<span class="string">&quot;LOG2E&quot;</span>, std::f64::consts::LOG2_E, attribute)
+            .property(<span class="string">&quot;PI&quot;</span>, std::f64::consts::PI, attribute)
+            .property(<span class="string">&quot;SQRT1_2&quot;</span>, std::f64::consts::FRAC_1_SQRT_2, attribute)
+            .property(<span class="string">&quot;SQRT2&quot;</span>, std::f64::consts::SQRT_2, attribute)
+            .function(<span class="self">Self</span>::abs, <span class="string">&quot;abs&quot;</span>, <span class="number">1</span>)
+            .function(<span class="self">Self</span>::acos, <span class="string">&quot;acos&quot;</span>, <span class="number">1</span>)
+            .function(<span class="self">Self</span>::acosh, <span class="string">&quot;acosh&quot;</span>, <span class="number">1</span>)
+            .function(<span class="self">Self</span>::asin, <span class="string">&quot;asin&quot;</span>, <span class="number">1</span>)
+            .function(<span class="self">Self</span>::asinh, <span class="string">&quot;asinh&quot;</span>, <span class="number">1</span>)
+            .function(<span class="self">Self</span>::atan, <span class="string">&quot;atan&quot;</span>, <span class="number">1</span>)
+            .function(<span class="self">Self</span>::atanh, <span class="string">&quot;atanh&quot;</span>, <span class="number">1</span>)
+            .function(<span class="self">Self</span>::atan2, <span class="string">&quot;atan2&quot;</span>, <span class="number">2</span>)
+            .function(<span class="self">Self</span>::cbrt, <span class="string">&quot;cbrt&quot;</span>, <span class="number">1</span>)
+            .function(<span class="self">Self</span>::ceil, <span class="string">&quot;ceil&quot;</span>, <span class="number">1</span>)
+            .function(<span class="self">Self</span>::clz32, <span class="string">&quot;clz32&quot;</span>, <span class="number">1</span>)
+            .function(<span class="self">Self</span>::cos, <span class="string">&quot;cos&quot;</span>, <span class="number">1</span>)
+            .function(<span class="self">Self</span>::cosh, <span class="string">&quot;cosh&quot;</span>, <span class="number">1</span>)
+            .function(<span class="self">Self</span>::exp, <span class="string">&quot;exp&quot;</span>, <span class="number">1</span>)
+            .function(<span class="self">Self</span>::expm1, <span class="string">&quot;expm1&quot;</span>, <span class="number">1</span>)
+            .function(<span class="self">Self</span>::floor, <span class="string">&quot;floor&quot;</span>, <span class="number">1</span>)
+            .function(<span class="self">Self</span>::fround, <span class="string">&quot;fround&quot;</span>, <span class="number">1</span>)
+            .function(<span class="self">Self</span>::hypot, <span class="string">&quot;hypot&quot;</span>, <span class="number">2</span>)
+            .function(<span class="self">Self</span>::imul, <span class="string">&quot;imul&quot;</span>, <span class="number">2</span>)
+            .function(<span class="self">Self</span>::log, <span class="string">&quot;log&quot;</span>, <span class="number">1</span>)
+            .function(<span class="self">Self</span>::log1p, <span class="string">&quot;log1p&quot;</span>, <span class="number">1</span>)
+            .function(<span class="self">Self</span>::log10, <span class="string">&quot;log10&quot;</span>, <span class="number">1</span>)
+            .function(<span class="self">Self</span>::log2, <span class="string">&quot;log2&quot;</span>, <span class="number">1</span>)
+            .function(<span class="self">Self</span>::max, <span class="string">&quot;max&quot;</span>, <span class="number">2</span>)
+            .function(<span class="self">Self</span>::min, <span class="string">&quot;min&quot;</span>, <span class="number">2</span>)
+            .function(<span class="self">Self</span>::pow, <span class="string">&quot;pow&quot;</span>, <span class="number">2</span>)
+            .function(<span class="self">Self</span>::random, <span class="string">&quot;random&quot;</span>, <span class="number">0</span>)
+            .function(<span class="self">Self</span>::round, <span class="string">&quot;round&quot;</span>, <span class="number">1</span>)
+            .function(<span class="self">Self</span>::sign, <span class="string">&quot;sign&quot;</span>, <span class="number">1</span>)
+            .function(<span class="self">Self</span>::sin, <span class="string">&quot;sin&quot;</span>, <span class="number">1</span>)
+            .function(<span class="self">Self</span>::sinh, <span class="string">&quot;sinh&quot;</span>, <span class="number">1</span>)
+            .function(<span class="self">Self</span>::sqrt, <span class="string">&quot;sqrt&quot;</span>, <span class="number">1</span>)
+            .function(<span class="self">Self</span>::tan, <span class="string">&quot;tan&quot;</span>, <span class="number">1</span>)
+            .function(<span class="self">Self</span>::tanh, <span class="string">&quot;tanh&quot;</span>, <span class="number">1</span>)
+            .function(<span class="self">Self</span>::trunc, <span class="string">&quot;trunc&quot;</span>, <span class="number">1</span>)
+            .property(
+                string_tag,
+                <span class="self">Self</span>::NAME,
+                Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
-            .<span class="ident">build</span>()
-            .<span class="ident">conv</span>::<span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span>()
-            .<span class="ident">pipe</span>(<span class="prelude-val">Some</span>)
+            .build()
+            .conv::&lt;JsValue&gt;()
+            .pipe(<span class="prelude-val">Some</span>)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Math</span> {
-    <span class="doccomment">/// Get the absolute value of a number.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-math.abs</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/abs</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">abs</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">args</span>
-            .<span class="ident">get_or_undefined</span>(<span class="number">0</span>)
-            <span class="comment">// 1. Let n be ? ToNumber(x).</span>
-            .<span class="ident">to_number</span>(<span class="ident">context</span>)<span class="question-mark">?</span>
-            <span class="comment">// 3. If n is -0𝔽, return +0𝔽.</span>
-            <span class="comment">// 2. If n is NaN, return NaN.</span>
-            <span class="comment">// 4. If n is -∞𝔽, return +∞𝔽.</span>
-            <span class="comment">// 5. If n &lt; +0𝔽, return -n.</span>
-            <span class="comment">// 6. Return n.</span>
-            .<span class="ident">abs</span>()
-            .<span class="ident">into</span>())
+<span class="kw">impl </span>Math {
+    <span class="doccomment">/// Get the absolute value of a number.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-math.abs
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/abs
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>abs(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="prelude-val">Ok</span>(args
+            .get_or_undefined(<span class="number">0</span>)
+            <span class="comment">// 1. Let n be ? ToNumber(x).
+            </span>.to_number(context)<span class="question-mark">?
+            </span><span class="comment">// 3. If n is -0𝔽, return +0𝔽.
+            // 2. If n is NaN, return NaN.
+            // 4. If n is -∞𝔽, return +∞𝔽.
+            // 5. If n &lt; +0𝔽, return -n.
+            // 6. Return n.
+            </span>.abs()
+            .into())
     }
 
-    <span class="doccomment">/// Get the arccos of a number.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-math.acos</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/acos</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">acos</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">args</span>
-            .<span class="ident">get_or_undefined</span>(<span class="number">0</span>)
-            <span class="comment">// 1. Let n be ? ToNumber(x).</span>
-            .<span class="ident">to_number</span>(<span class="ident">context</span>)<span class="question-mark">?</span>
-            <span class="comment">// 2. If n is NaN, n &gt; 1𝔽, or n &lt; -1𝔽, return NaN.</span>
-            <span class="comment">// 3. If n is 1𝔽, return +0𝔽.</span>
-            <span class="comment">// 4. Return an implementation-approximated value representing the result of the inverse cosine of ℝ(n).</span>
-            .<span class="ident">acos</span>()
-            .<span class="ident">into</span>())
+    <span class="doccomment">/// Get the arccos of a number.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-math.acos
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/acos
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>acos(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="prelude-val">Ok</span>(args
+            .get_or_undefined(<span class="number">0</span>)
+            <span class="comment">// 1. Let n be ? ToNumber(x).
+            </span>.to_number(context)<span class="question-mark">?
+            </span><span class="comment">// 2. If n is NaN, n &gt; 1𝔽, or n &lt; -1𝔽, return NaN.
+            // 3. If n is 1𝔽, return +0𝔽.
+            // 4. Return an implementation-approximated value representing the result of the inverse cosine of ℝ(n).
+            </span>.acos()
+            .into())
     }
 
-    <span class="doccomment">/// Get the hyperbolic arccos of a number.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-math.acosh</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/acosh</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">acosh</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">args</span>
-            .<span class="ident">get_or_undefined</span>(<span class="number">0</span>)
-            <span class="comment">// 1. Let n be ? ToNumber(x).</span>
-            .<span class="ident">to_number</span>(<span class="ident">context</span>)<span class="question-mark">?</span>
-            <span class="comment">// 4. If n &lt; 1𝔽, return NaN.</span>
-            <span class="comment">// 2. If n is NaN or n is +∞𝔽, return n.</span>
-            <span class="comment">// 3. If n is 1𝔽, return +0𝔽.</span>
-            <span class="comment">// 5. Return an implementation-approximated value representing the result of the inverse hyperbolic cosine of ℝ(n).</span>
-            .<span class="ident">acosh</span>()
-            .<span class="ident">into</span>())
+    <span class="doccomment">/// Get the hyperbolic arccos of a number.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-math.acosh
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/acosh
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>acosh(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="prelude-val">Ok</span>(args
+            .get_or_undefined(<span class="number">0</span>)
+            <span class="comment">// 1. Let n be ? ToNumber(x).
+            </span>.to_number(context)<span class="question-mark">?
+            </span><span class="comment">// 4. If n &lt; 1𝔽, return NaN.
+            // 2. If n is NaN or n is +∞𝔽, return n.
+            // 3. If n is 1𝔽, return +0𝔽.
+            // 5. Return an implementation-approximated value representing the result of the inverse hyperbolic cosine of ℝ(n).
+            </span>.acosh()
+            .into())
     }
 
-    <span class="doccomment">/// Get the arcsine of a number.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-math.asin</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/asin</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">asin</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">args</span>
-            .<span class="ident">get_or_undefined</span>(<span class="number">0</span>)
-            <span class="comment">// 1. Let n be ? ToNumber(x).</span>
-            .<span class="ident">to_number</span>(<span class="ident">context</span>)<span class="question-mark">?</span>
-            <span class="comment">// 2. If n is NaN, n is +0𝔽, or n is -0𝔽, return n.</span>
-            <span class="comment">// 3. If n &gt; 1𝔽 or n &lt; -1𝔽, return NaN.</span>
-            <span class="comment">// 4. Return an implementation-approximated value representing the result of the inverse sine of ℝ(n).</span>
-            .<span class="ident">asin</span>()
-            .<span class="ident">into</span>())
+    <span class="doccomment">/// Get the arcsine of a number.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-math.asin
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/asin
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>asin(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="prelude-val">Ok</span>(args
+            .get_or_undefined(<span class="number">0</span>)
+            <span class="comment">// 1. Let n be ? ToNumber(x).
+            </span>.to_number(context)<span class="question-mark">?
+            </span><span class="comment">// 2. If n is NaN, n is +0𝔽, or n is -0𝔽, return n.
+            // 3. If n &gt; 1𝔽 or n &lt; -1𝔽, return NaN.
+            // 4. Return an implementation-approximated value representing the result of the inverse sine of ℝ(n).
+            </span>.asin()
+            .into())
     }
 
-    <span class="doccomment">/// Get the hyperbolic arcsine of a number.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-math.asinh</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/asinh</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">asinh</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">args</span>
-            .<span class="ident">get_or_undefined</span>(<span class="number">0</span>)
-            <span class="comment">// 1. Let n be ? ToNumber(x).</span>
-            .<span class="ident">to_number</span>(<span class="ident">context</span>)<span class="question-mark">?</span>
-            <span class="comment">// 2. If n is NaN, n is +0𝔽, n is -0𝔽, n is +∞𝔽, or n is -∞𝔽, return n.</span>
-            <span class="comment">// 3. Return an implementation-approximated value representing the result of the inverse hyperbolic sine of ℝ(n).</span>
-            .<span class="ident">asinh</span>()
-            .<span class="ident">into</span>())
+    <span class="doccomment">/// Get the hyperbolic arcsine of a number.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-math.asinh
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/asinh
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>asinh(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="prelude-val">Ok</span>(args
+            .get_or_undefined(<span class="number">0</span>)
+            <span class="comment">// 1. Let n be ? ToNumber(x).
+            </span>.to_number(context)<span class="question-mark">?
+            </span><span class="comment">// 2. If n is NaN, n is +0𝔽, n is -0𝔽, n is +∞𝔽, or n is -∞𝔽, return n.
+            // 3. Return an implementation-approximated value representing the result of the inverse hyperbolic sine of ℝ(n).
+            </span>.asinh()
+            .into())
     }
 
-    <span class="doccomment">/// Get the arctangent of a number.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-math.atan</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/atan</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">atan</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">args</span>
-            .<span class="ident">get_or_undefined</span>(<span class="number">0</span>)
-            <span class="comment">// 1. Let n be ? ToNumber(x).</span>
-            .<span class="ident">to_number</span>(<span class="ident">context</span>)<span class="question-mark">?</span>
-            <span class="comment">// 2. If n is NaN, n is +0𝔽, or n is -0𝔽, return n.</span>
-            <span class="comment">// 3. If n is +∞𝔽, return an implementation-approximated value representing π / 2.</span>
-            <span class="comment">// 4. If n is -∞𝔽, return an implementation-approximated value representing -π / 2.</span>
-            <span class="comment">// 5. Return an implementation-approximated value representing the result of the inverse tangent of ℝ(n).</span>
-            .<span class="ident">atan</span>()
-            .<span class="ident">into</span>())
+    <span class="doccomment">/// Get the arctangent of a number.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-math.atan
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/atan
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>atan(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="prelude-val">Ok</span>(args
+            .get_or_undefined(<span class="number">0</span>)
+            <span class="comment">// 1. Let n be ? ToNumber(x).
+            </span>.to_number(context)<span class="question-mark">?
+            </span><span class="comment">// 2. If n is NaN, n is +0𝔽, or n is -0𝔽, return n.
+            // 3. If n is +∞𝔽, return an implementation-approximated value representing π / 2.
+            // 4. If n is -∞𝔽, return an implementation-approximated value representing -π / 2.
+            // 5. Return an implementation-approximated value representing the result of the inverse tangent of ℝ(n).
+            </span>.atan()
+            .into())
     }
 
-    <span class="doccomment">/// Get the hyperbolic arctangent of a number.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-math.atanh</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/atanh</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">atanh</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">args</span>
-            .<span class="ident">get_or_undefined</span>(<span class="number">0</span>)
-            <span class="comment">// 1. Let n be ? ToNumber(x).</span>
-            .<span class="ident">to_number</span>(<span class="ident">context</span>)<span class="question-mark">?</span>
-            <span class="comment">// 2. If n is NaN, n is +0𝔽, or n is -0𝔽, return n.</span>
-            <span class="comment">// 3. If n &gt; 1𝔽 or n &lt; -1𝔽, return NaN.</span>
-            <span class="comment">// 4. If n is 1𝔽, return +∞𝔽.</span>
-            <span class="comment">// 5. If n is -1𝔽, return -∞𝔽.</span>
-            <span class="comment">// 6. Return an implementation-approximated value representing the result of the inverse hyperbolic tangent of ℝ(n).</span>
-            .<span class="ident">atanh</span>()
-            .<span class="ident">into</span>())
+    <span class="doccomment">/// Get the hyperbolic arctangent of a number.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-math.atanh
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/atanh
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>atanh(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="prelude-val">Ok</span>(args
+            .get_or_undefined(<span class="number">0</span>)
+            <span class="comment">// 1. Let n be ? ToNumber(x).
+            </span>.to_number(context)<span class="question-mark">?
+            </span><span class="comment">// 2. If n is NaN, n is +0𝔽, or n is -0𝔽, return n.
+            // 3. If n &gt; 1𝔽 or n &lt; -1𝔽, return NaN.
+            // 4. If n is 1𝔽, return +∞𝔽.
+            // 5. If n is -1𝔽, return -∞𝔽.
+            // 6. Return an implementation-approximated value representing the result of the inverse hyperbolic tangent of ℝ(n).
+            </span>.atanh()
+            .into())
     }
 
-    <span class="doccomment">/// Get the four quadrant arctangent of the quotient y / x.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-math.atan2</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/atan2</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">atan2</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="comment">// 1. Let ny be ? ToNumber(y).</span>
-        <span class="kw">let</span> <span class="ident">y</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>).<span class="ident">to_number</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+    <span class="doccomment">/// Get the four quadrant arctangent of the quotient y / x.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-math.atan2
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/atan2
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>atan2(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="comment">// 1. Let ny be ? ToNumber(y).
+        </span><span class="kw">let </span>y = args.get_or_undefined(<span class="number">0</span>).to_number(context)<span class="question-mark">?</span>;
 
-        <span class="comment">// 2. Let nx be ? ToNumber(x).</span>
-        <span class="kw">let</span> <span class="ident">x</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">1</span>).<span class="ident">to_number</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="comment">// 2. Let nx be ? ToNumber(x).
+        </span><span class="kw">let </span>x = args.get_or_undefined(<span class="number">1</span>).to_number(context)<span class="question-mark">?</span>;
 
-        <span class="comment">// 4. If ny is +∞𝔽, then</span>
-        <span class="comment">// a. If nx is +∞𝔽, return an implementation-approximated value representing π / 4.</span>
-        <span class="comment">// b. If nx is -∞𝔽, return an implementation-approximated value representing 3π / 4.</span>
-        <span class="comment">// c. Return an implementation-approximated value representing π / 2.</span>
-        <span class="comment">// 5. If ny is -∞𝔽, then</span>
-        <span class="comment">// a. If nx is +∞𝔽, return an implementation-approximated value representing -π / 4.</span>
-        <span class="comment">// b. If nx is -∞𝔽, return an implementation-approximated value representing -3π / 4.</span>
-        <span class="comment">// c. Return an implementation-approximated value representing -π / 2.</span>
-        <span class="comment">// 6. If ny is +0𝔽, then</span>
-        <span class="comment">// a. If nx &gt; +0𝔽 or nx is +0𝔽, return +0𝔽.</span>
-        <span class="comment">// b. Return an implementation-approximated value representing π.</span>
-        <span class="comment">// 7. If ny is -0𝔽, then</span>
-        <span class="comment">// a. If nx &gt; +0𝔽 or nx is +0𝔽, return -0𝔽.</span>
-        <span class="comment">// b. Return an implementation-approximated value representing -π.</span>
-        <span class="comment">// 8. Assert: ny is finite and is neither +0𝔽 nor -0𝔽.</span>
-        <span class="comment">// 9. If ny &gt; +0𝔽, then</span>
-        <span class="comment">// a. If nx is +∞𝔽, return +0𝔽.</span>
-        <span class="comment">// b. If nx is -∞𝔽, return an implementation-approximated value representing π.</span>
-        <span class="comment">// c. If nx is +0𝔽 or nx is -0𝔽, return an implementation-approximated value representing π / 2.</span>
-        <span class="comment">// 10. If ny &lt; +0𝔽, then</span>
-        <span class="comment">// a. If nx is +∞𝔽, return -0𝔽.</span>
-        <span class="comment">// b. If nx is -∞𝔽, return an implementation-approximated value representing -π.</span>
-        <span class="comment">// c. If nx is +0𝔽 or nx is -0𝔽, return an implementation-approximated value representing -π / 2.</span>
-        <span class="comment">// 11. Assert: nx is finite and is neither +0𝔽 nor -0𝔽.</span>
-        <span class="comment">// 12. Return an implementation-approximated value representing the result of the inverse tangent of the quotient ℝ(ny) / ℝ(nx).</span>
-        <span class="prelude-val">Ok</span>(<span class="ident">y</span>.<span class="ident">atan2</span>(<span class="ident">x</span>).<span class="ident">into</span>())
+        <span class="comment">// 4. If ny is +∞𝔽, then
+        // a. If nx is +∞𝔽, return an implementation-approximated value representing π / 4.
+        // b. If nx is -∞𝔽, return an implementation-approximated value representing 3π / 4.
+        // c. Return an implementation-approximated value representing π / 2.
+        // 5. If ny is -∞𝔽, then
+        // a. If nx is +∞𝔽, return an implementation-approximated value representing -π / 4.
+        // b. If nx is -∞𝔽, return an implementation-approximated value representing -3π / 4.
+        // c. Return an implementation-approximated value representing -π / 2.
+        // 6. If ny is +0𝔽, then
+        // a. If nx &gt; +0𝔽 or nx is +0𝔽, return +0𝔽.
+        // b. Return an implementation-approximated value representing π.
+        // 7. If ny is -0𝔽, then
+        // a. If nx &gt; +0𝔽 or nx is +0𝔽, return -0𝔽.
+        // b. Return an implementation-approximated value representing -π.
+        // 8. Assert: ny is finite and is neither +0𝔽 nor -0𝔽.
+        // 9. If ny &gt; +0𝔽, then
+        // a. If nx is +∞𝔽, return +0𝔽.
+        // b. If nx is -∞𝔽, return an implementation-approximated value representing π.
+        // c. If nx is +0𝔽 or nx is -0𝔽, return an implementation-approximated value representing π / 2.
+        // 10. If ny &lt; +0𝔽, then
+        // a. If nx is +∞𝔽, return -0𝔽.
+        // b. If nx is -∞𝔽, return an implementation-approximated value representing -π.
+        // c. If nx is +0𝔽 or nx is -0𝔽, return an implementation-approximated value representing -π / 2.
+        // 11. Assert: nx is finite and is neither +0𝔽 nor -0𝔽.
+        // 12. Return an implementation-approximated value representing the result of the inverse tangent of the quotient ℝ(ny) / ℝ(nx).
+        </span><span class="prelude-val">Ok</span>(y.atan2(x).into())
     }
 
-    <span class="doccomment">/// Get the cubic root of a number.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-math.cbrt</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/cbrt</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">cbrt</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">args</span>
-            .<span class="ident">get_or_undefined</span>(<span class="number">0</span>)
-            <span class="comment">// 1. Let n be ? ToNumber(x).</span>
-            .<span class="ident">to_number</span>(<span class="ident">context</span>)<span class="question-mark">?</span>
-            <span class="comment">// 2. If n is NaN, n is +0𝔽, n is -0𝔽, n is +∞𝔽, or n is -∞𝔽, return n.</span>
-            <span class="comment">// 3. Return an implementation-approximated value representing the result of the cube root of ℝ(n).</span>
-            .<span class="ident">cbrt</span>()
-            .<span class="ident">into</span>())
+    <span class="doccomment">/// Get the cubic root of a number.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-math.cbrt
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/cbrt
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>cbrt(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="prelude-val">Ok</span>(args
+            .get_or_undefined(<span class="number">0</span>)
+            <span class="comment">// 1. Let n be ? ToNumber(x).
+            </span>.to_number(context)<span class="question-mark">?
+            </span><span class="comment">// 2. If n is NaN, n is +0𝔽, n is -0𝔽, n is +∞𝔽, or n is -∞𝔽, return n.
+            // 3. Return an implementation-approximated value representing the result of the cube root of ℝ(n).
+            </span>.cbrt()
+            .into())
     }
 
-    <span class="doccomment">/// Get lowest integer above a number.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-math.ceil</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/ceil</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">ceil</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">args</span>
-            .<span class="ident">get_or_undefined</span>(<span class="number">0</span>)
-            <span class="comment">// 1. Let n be ? ToNumber(x).</span>
-            .<span class="ident">to_number</span>(<span class="ident">context</span>)<span class="question-mark">?</span>
-            <span class="comment">// 2. If n is NaN, n is +0𝔽, n is -0𝔽, n is +∞𝔽, or n is -∞𝔽, return n.</span>
-            <span class="comment">// 3. If n &lt; +0𝔽 and n &gt; -1𝔽, return -0𝔽.</span>
-            <span class="comment">// 4. If n is an integral Number, return n.</span>
-            <span class="comment">// 5. Return the smallest (closest to -∞) integral Number value that is not less than n.</span>
-            .<span class="ident">ceil</span>()
-            .<span class="ident">into</span>())
+    <span class="doccomment">/// Get lowest integer above a number.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-math.ceil
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/ceil
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>ceil(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="prelude-val">Ok</span>(args
+            .get_or_undefined(<span class="number">0</span>)
+            <span class="comment">// 1. Let n be ? ToNumber(x).
+            </span>.to_number(context)<span class="question-mark">?
+            </span><span class="comment">// 2. If n is NaN, n is +0𝔽, n is -0𝔽, n is +∞𝔽, or n is -∞𝔽, return n.
+            // 3. If n &lt; +0𝔽 and n &gt; -1𝔽, return -0𝔽.
+            // 4. If n is an integral Number, return n.
+            // 5. Return the smallest (closest to -∞) integral Number value that is not less than n.
+            </span>.ceil()
+            .into())
     }
 
-    <span class="doccomment">/// Get the number of leading zeros in the 32 bit representation of a number</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-math.clz32</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/clz32</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">clz32</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">args</span>
-            .<span class="ident">get_or_undefined</span>(<span class="number">0</span>)
-            <span class="comment">// 1. Let n be ? ToUint32(x).</span>
-            .<span class="ident">to_u32</span>(<span class="ident">context</span>)<span class="question-mark">?</span>
-            <span class="comment">// 2. Let p be the number of leading zero bits in the unsigned 32-bit binary representation of n.</span>
-            <span class="comment">// 3. Return 𝔽(p).</span>
-            .<span class="ident">leading_zeros</span>()
-            .<span class="ident">into</span>())
+    <span class="doccomment">/// Get the number of leading zeros in the 32 bit representation of a number
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-math.clz32
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/clz32
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>clz32(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="prelude-val">Ok</span>(args
+            .get_or_undefined(<span class="number">0</span>)
+            <span class="comment">// 1. Let n be ? ToUint32(x).
+            </span>.to_u32(context)<span class="question-mark">?
+            </span><span class="comment">// 2. Let p be the number of leading zero bits in the unsigned 32-bit binary representation of n.
+            // 3. Return 𝔽(p).
+            </span>.leading_zeros()
+            .into())
     }
 
-    <span class="doccomment">/// Get the cosine of a number.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-math.cos</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/cos</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">cos</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">args</span>
-            .<span class="ident">get_or_undefined</span>(<span class="number">0</span>)
-            <span class="comment">// 1. Let n be ? ToNumber(x).</span>
-            .<span class="ident">to_number</span>(<span class="ident">context</span>)<span class="question-mark">?</span>
-            <span class="comment">// 2. If n is NaN, n is +∞𝔽, or n is -∞𝔽, return NaN.</span>
-            <span class="comment">// 3. If n is +0𝔽 or n is -0𝔽, return 1𝔽.</span>
-            <span class="comment">// 4. Return an implementation-approximated value representing the result of the cosine of ℝ(n).</span>
-            .<span class="ident">cos</span>()
-            .<span class="ident">into</span>())
+    <span class="doccomment">/// Get the cosine of a number.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-math.cos
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/cos
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>cos(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="prelude-val">Ok</span>(args
+            .get_or_undefined(<span class="number">0</span>)
+            <span class="comment">// 1. Let n be ? ToNumber(x).
+            </span>.to_number(context)<span class="question-mark">?
+            </span><span class="comment">// 2. If n is NaN, n is +∞𝔽, or n is -∞𝔽, return NaN.
+            // 3. If n is +0𝔽 or n is -0𝔽, return 1𝔽.
+            // 4. Return an implementation-approximated value representing the result of the cosine of ℝ(n).
+            </span>.cos()
+            .into())
     }
 
-    <span class="doccomment">/// Get the hyperbolic cosine of a number.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-math.cosh</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/cosh</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">cosh</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">args</span>
-            .<span class="ident">get_or_undefined</span>(<span class="number">0</span>)
-            <span class="comment">// 1. Let n be ? ToNumber(x).</span>
-            .<span class="ident">to_number</span>(<span class="ident">context</span>)<span class="question-mark">?</span>
-            <span class="comment">// 2. If n is NaN, return NaN.</span>
-            <span class="comment">// 3. If n is +∞𝔽 or n is -∞𝔽, return +∞𝔽.</span>
-            <span class="comment">// 4. If n is +0𝔽 or n is -0𝔽, return 1𝔽.</span>
-            <span class="comment">// 5. Return an implementation-approximated value representing the result of the hyperbolic cosine of ℝ(n).</span>
-            .<span class="ident">cosh</span>()
-            .<span class="ident">into</span>())
+    <span class="doccomment">/// Get the hyperbolic cosine of a number.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-math.cosh
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/cosh
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>cosh(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="prelude-val">Ok</span>(args
+            .get_or_undefined(<span class="number">0</span>)
+            <span class="comment">// 1. Let n be ? ToNumber(x).
+            </span>.to_number(context)<span class="question-mark">?
+            </span><span class="comment">// 2. If n is NaN, return NaN.
+            // 3. If n is +∞𝔽 or n is -∞𝔽, return +∞𝔽.
+            // 4. If n is +0𝔽 or n is -0𝔽, return 1𝔽.
+            // 5. Return an implementation-approximated value representing the result of the hyperbolic cosine of ℝ(n).
+            </span>.cosh()
+            .into())
     }
 
-    <span class="doccomment">/// Get the power to raise the natural logarithm to get the number.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-math.exp</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/exp</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">exp</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">args</span>
-            .<span class="ident">get_or_undefined</span>(<span class="number">0</span>)
-            <span class="comment">// 1. Let n be ? ToNumber(x).</span>
-            .<span class="ident">to_number</span>(<span class="ident">context</span>)<span class="question-mark">?</span>
-            <span class="comment">// 2. If n is NaN or n is +∞𝔽, return n.</span>
-            <span class="comment">// 3. If n is +0𝔽 or n is -0𝔽, return 1𝔽.</span>
-            <span class="comment">// 4. If n is -∞𝔽, return +0𝔽.</span>
-            <span class="comment">// 5. Return an implementation-approximated value representing the result of the exponential function of ℝ(n).</span>
-            .<span class="ident">exp</span>()
-            .<span class="ident">into</span>())
+    <span class="doccomment">/// Get the power to raise the natural logarithm to get the number.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-math.exp
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/exp
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>exp(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="prelude-val">Ok</span>(args
+            .get_or_undefined(<span class="number">0</span>)
+            <span class="comment">// 1. Let n be ? ToNumber(x).
+            </span>.to_number(context)<span class="question-mark">?
+            </span><span class="comment">// 2. If n is NaN or n is +∞𝔽, return n.
+            // 3. If n is +0𝔽 or n is -0𝔽, return 1𝔽.
+            // 4. If n is -∞𝔽, return +0𝔽.
+            // 5. Return an implementation-approximated value representing the result of the exponential function of ℝ(n).
+            </span>.exp()
+            .into())
     }
 
-    <span class="doccomment">/// The Math.expm1() function returns e^x - 1, where x is the argument, and e the base of</span>
-    <span class="doccomment">/// the natural logarithms. The result is computed in a way that is accurate even when the</span>
-    <span class="doccomment">/// value of x is close 0</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-math.expm1</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/expm1</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">expm1</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">args</span>
-            .<span class="ident">get_or_undefined</span>(<span class="number">0</span>)
-            <span class="comment">// 1. Let n be ? ToNumber(x).</span>
-            .<span class="ident">to_number</span>(<span class="ident">context</span>)<span class="question-mark">?</span>
-            <span class="comment">// 2. If n is NaN, n is +0𝔽, n is -0𝔽, or n is +∞𝔽, return n.</span>
-            <span class="comment">// 3. If n is -∞𝔽, return -1𝔽.</span>
-            <span class="comment">// 4. Return an implementation-approximated value representing the result of subtracting 1 from the exponential function of ℝ(n).</span>
-            .<span class="ident">exp_m1</span>()
-            .<span class="ident">into</span>())
+    <span class="doccomment">/// The Math.expm1() function returns e^x - 1, where x is the argument, and e the base of
+    /// the natural logarithms. The result is computed in a way that is accurate even when the
+    /// value of x is close 0
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-math.expm1
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/expm1
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>expm1(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="prelude-val">Ok</span>(args
+            .get_or_undefined(<span class="number">0</span>)
+            <span class="comment">// 1. Let n be ? ToNumber(x).
+            </span>.to_number(context)<span class="question-mark">?
+            </span><span class="comment">// 2. If n is NaN, n is +0𝔽, n is -0𝔽, or n is +∞𝔽, return n.
+            // 3. If n is -∞𝔽, return -1𝔽.
+            // 4. Return an implementation-approximated value representing the result of subtracting 1 from the exponential function of ℝ(n).
+            </span>.exp_m1()
+            .into())
     }
 
-    <span class="doccomment">/// Get the highest integer below a number.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-math.floor</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/floor</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">floor</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">args</span>
-            .<span class="ident">get_or_undefined</span>(<span class="number">0</span>)
-            <span class="comment">// 1. Let n be ? ToNumber(x).</span>
-            .<span class="ident">to_number</span>(<span class="ident">context</span>)<span class="question-mark">?</span>
-            <span class="comment">// 2. If n is NaN, n is +0𝔽, n is -0𝔽, n is +∞𝔽, or n is -∞𝔽, return n.</span>
-            <span class="comment">// 3. If n &lt; 1𝔽 and n &gt; +0𝔽, return +0𝔽.</span>
-            <span class="comment">// 4. If n is an integral Number, return n.</span>
-            <span class="comment">// 5. Return the greatest (closest to +∞) integral Number value that is not greater than n.</span>
-            .<span class="ident">floor</span>()
-            .<span class="ident">into</span>())
+    <span class="doccomment">/// Get the highest integer below a number.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-math.floor
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/floor
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>floor(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="prelude-val">Ok</span>(args
+            .get_or_undefined(<span class="number">0</span>)
+            <span class="comment">// 1. Let n be ? ToNumber(x).
+            </span>.to_number(context)<span class="question-mark">?
+            </span><span class="comment">// 2. If n is NaN, n is +0𝔽, n is -0𝔽, n is +∞𝔽, or n is -∞𝔽, return n.
+            // 3. If n &lt; 1𝔽 and n &gt; +0𝔽, return +0𝔽.
+            // 4. If n is an integral Number, return n.
+            // 5. Return the greatest (closest to +∞) integral Number value that is not greater than n.
+            </span>.floor()
+            .into())
     }
 
-    <span class="doccomment">/// Get the nearest 32-bit single precision float representation of a number.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-math.fround</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/fround</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">fround</span>(
-        <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
-        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="comment">// 1. Let n be ? ToNumber(x).</span>
-        <span class="kw">let</span> <span class="ident">x</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>).<span class="ident">to_number</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+    <span class="doccomment">/// Get the nearest 32-bit single precision float representation of a number.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-math.fround
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/fround
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>fround(
+        <span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue,
+        args: <span class="kw-2">&amp;</span>[JsValue],
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="comment">// 1. Let n be ? ToNumber(x).
+        </span><span class="kw">let </span>x = args.get_or_undefined(<span class="number">0</span>).to_number(context)<span class="question-mark">?</span>;
 
-        <span class="comment">// 2. If n is NaN, return NaN.</span>
-        <span class="comment">// 3. If n is one of +0𝔽, -0𝔽, +∞𝔽, or -∞𝔽, return n.</span>
-        <span class="comment">// 4. Let n32 be the result of converting n to a value in IEEE 754-2019 binary32 format using roundTiesToEven mode.</span>
-        <span class="comment">// 5. Let n64 be the result of converting n32 to a value in IEEE 754-2019 binary64 format.</span>
-        <span class="comment">// 6. Return the ECMAScript Number value corresponding to n64.</span>
-        <span class="prelude-val">Ok</span>(<span class="ident">f64::from</span>(<span class="ident">x</span> <span class="kw">as</span> <span class="ident">f32</span>).<span class="ident">into</span>())
+        <span class="comment">// 2. If n is NaN, return NaN.
+        // 3. If n is one of +0𝔽, -0𝔽, +∞𝔽, or -∞𝔽, return n.
+        // 4. Let n32 be the result of converting n to a value in IEEE 754-2019 binary32 format using roundTiesToEven mode.
+        // 5. Let n64 be the result of converting n32 to a value in IEEE 754-2019 binary64 format.
+        // 6. Return the ECMAScript Number value corresponding to n64.
+        </span><span class="prelude-val">Ok</span>(f64::from(x <span class="kw">as </span>f32).into())
     }
 
-    <span class="doccomment">/// Get an approximation of the square root of the sum of squares of all arguments.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-math.hypot</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/hypot</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">hypot</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="comment">// 1. Let coerced be a new empty List.</span>
-        <span class="comment">// 2. For each element arg of args, do</span>
-        <span class="comment">// a. Let n be ? ToNumber(arg).</span>
-        <span class="comment">// b. Append n to coerced.</span>
-        <span class="comment">// 3. For each element number of coerced, do</span>
-        <span class="comment">// 5. For each element number of coerced, do</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span> <span class="op">=</span> <span class="number">0f64</span>;
-        <span class="kw">for</span> <span class="ident">arg</span> <span class="kw">in</span> <span class="ident">args</span> {
-            <span class="kw">let</span> <span class="ident">num</span> <span class="op">=</span> <span class="ident">arg</span>.<span class="ident">to_number</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
-            <span class="comment">// a. If number is +∞𝔽 or number is -∞𝔽, return +∞𝔽.</span>
-            <span class="comment">// 4. Let onlyZero be true.</span>
-            <span class="comment">// a. If number is NaN, return NaN.</span>
-            <span class="comment">// b. If number is neither +0𝔽 nor -0𝔽, set onlyZero to false.</span>
-            <span class="comment">// 6. If onlyZero is true, return +0𝔽.</span>
-            <span class="comment">// 7. Return an implementation-approximated value representing the square root of the sum of squares of the mathematical values of the elements of coerced.</span>
-            <span class="ident">result</span> <span class="op">=</span> <span class="ident">result</span>.<span class="ident">hypot</span>(<span class="ident">num</span>);
+    <span class="doccomment">/// Get an approximation of the square root of the sum of squares of all arguments.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-math.hypot
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/hypot
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>hypot(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="comment">// 1. Let coerced be a new empty List.
+        // 2. For each element arg of args, do
+        // a. Let n be ? ToNumber(arg).
+        // b. Append n to coerced.
+        // 3. For each element number of coerced, do
+        // 5. For each element number of coerced, do
+        </span><span class="kw">let </span><span class="kw-2">mut </span>result = <span class="number">0f64</span>;
+        <span class="kw">for </span>arg <span class="kw">in </span>args {
+            <span class="kw">let </span>num = arg.to_number(context)<span class="question-mark">?</span>;
+            <span class="comment">// a. If number is +∞𝔽 or number is -∞𝔽, return +∞𝔽.
+            // 4. Let onlyZero be true.
+            // a. If number is NaN, return NaN.
+            // b. If number is neither +0𝔽 nor -0𝔽, set onlyZero to false.
+            // 6. If onlyZero is true, return +0𝔽.
+            // 7. Return an implementation-approximated value representing the square root of the sum of squares of the mathematical values of the elements of coerced.
+            </span>result = result.hypot(num);
         }
 
-        <span class="prelude-val">Ok</span>(<span class="ident">result</span>.<span class="ident">into</span>())
+        <span class="prelude-val">Ok</span>(result.into())
     }
 
-    <span class="doccomment">/// Get the result of the C-like 32-bit multiplication of the two parameters.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-math.imul</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/imul</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">imul</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="comment">// 1. Let a be ℝ(? ToUint32(x)).</span>
-        <span class="kw">let</span> <span class="ident">x</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>).<span class="ident">to_u32</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+    <span class="doccomment">/// Get the result of the C-like 32-bit multiplication of the two parameters.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-math.imul
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/imul
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>imul(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="comment">// 1. Let a be ℝ(? ToUint32(x)).
+        </span><span class="kw">let </span>x = args.get_or_undefined(<span class="number">0</span>).to_u32(context)<span class="question-mark">?</span>;
 
-        <span class="comment">// 2. Let b be ℝ(? ToUint32(y)).</span>
-        <span class="kw">let</span> <span class="ident">y</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">1</span>).<span class="ident">to_u32</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="comment">// 2. Let b be ℝ(? ToUint32(y)).
+        </span><span class="kw">let </span>y = args.get_or_undefined(<span class="number">1</span>).to_u32(context)<span class="question-mark">?</span>;
 
-        <span class="comment">// 3. Let product be (a × b) modulo 2^32.</span>
-        <span class="comment">// 4. If product ≥ 2^31, return 𝔽(product - 2^32); otherwise return 𝔽(product).</span>
-        <span class="prelude-val">Ok</span>((<span class="ident">x</span>.<span class="ident">wrapping_mul</span>(<span class="ident">y</span>) <span class="kw">as</span> <span class="ident">i32</span>).<span class="ident">into</span>())
+        <span class="comment">// 3. Let product be (a × b) modulo 2^32.
+        // 4. If product ≥ 2^31, return 𝔽(product - 2^32); otherwise return 𝔽(product).
+        </span><span class="prelude-val">Ok</span>((x.wrapping_mul(y) <span class="kw">as </span>i32).into())
     }
 
-    <span class="doccomment">/// Get the natural logarithm of a number.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-math.log</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/log</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">log</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">args</span>
-            .<span class="ident">get_or_undefined</span>(<span class="number">0</span>)
-            <span class="comment">// 1. Let n be ? ToNumber(x).</span>
-            .<span class="ident">to_number</span>(<span class="ident">context</span>)<span class="question-mark">?</span>
-            <span class="comment">// 2. If n is NaN or n is +∞𝔽, return n.</span>
-            <span class="comment">// 3. If n is 1𝔽, return +0𝔽.</span>
-            <span class="comment">// 4. If n is +0𝔽 or n is -0𝔽, return -∞𝔽.</span>
-            <span class="comment">// 5. If n &lt; +0𝔽, return NaN.</span>
-            <span class="comment">// 6. Return an implementation-approximated value representing the result of the natural logarithm of ℝ(n).</span>
-            .<span class="ident">ln</span>()
-            .<span class="ident">into</span>())
+    <span class="doccomment">/// Get the natural logarithm of a number.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-math.log
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/log
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>log(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="prelude-val">Ok</span>(args
+            .get_or_undefined(<span class="number">0</span>)
+            <span class="comment">// 1. Let n be ? ToNumber(x).
+            </span>.to_number(context)<span class="question-mark">?
+            </span><span class="comment">// 2. If n is NaN or n is +∞𝔽, return n.
+            // 3. If n is 1𝔽, return +0𝔽.
+            // 4. If n is +0𝔽 or n is -0𝔽, return -∞𝔽.
+            // 5. If n &lt; +0𝔽, return NaN.
+            // 6. Return an implementation-approximated value representing the result of the natural logarithm of ℝ(n).
+            </span>.ln()
+            .into())
     }
 
-    <span class="doccomment">/// Get approximation to the natural logarithm of 1 + x.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-math.log1p</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/log1p</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">log1p</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">args</span>
-            .<span class="ident">get_or_undefined</span>(<span class="number">0</span>)
-            <span class="comment">// 1. Let n be ? ToNumber(x).</span>
-            .<span class="ident">to_number</span>(<span class="ident">context</span>)<span class="question-mark">?</span>
-            <span class="comment">// 2. If n is NaN, n is +0𝔽, n is -0𝔽, or n is +∞𝔽, return n.</span>
-            <span class="comment">// 3. If n is -1𝔽, return -∞𝔽.</span>
-            <span class="comment">// 4. If n &lt; -1𝔽, return NaN.</span>
-            <span class="comment">// 5. Return an implementation-approximated value representing the result of the natural logarithm of 1 + ℝ(n).</span>
-            .<span class="ident">ln_1p</span>()
-            .<span class="ident">into</span>())
+    <span class="doccomment">/// Get approximation to the natural logarithm of 1 + x.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-math.log1p
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/log1p
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>log1p(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="prelude-val">Ok</span>(args
+            .get_or_undefined(<span class="number">0</span>)
+            <span class="comment">// 1. Let n be ? ToNumber(x).
+            </span>.to_number(context)<span class="question-mark">?
+            </span><span class="comment">// 2. If n is NaN, n is +0𝔽, n is -0𝔽, or n is +∞𝔽, return n.
+            // 3. If n is -1𝔽, return -∞𝔽.
+            // 4. If n &lt; -1𝔽, return NaN.
+            // 5. Return an implementation-approximated value representing the result of the natural logarithm of 1 + ℝ(n).
+            </span>.ln_1p()
+            .into())
     }
 
-    <span class="doccomment">/// Get the base 10 logarithm of the number.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-math.log10</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/log10</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">log10</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">args</span>
-            .<span class="ident">get_or_undefined</span>(<span class="number">0</span>)
-            <span class="comment">// 1. Let n be ? ToNumber(x).</span>
-            .<span class="ident">to_number</span>(<span class="ident">context</span>)<span class="question-mark">?</span>
-            <span class="comment">// 2. If n is NaN or n is +∞𝔽, return n.</span>
-            <span class="comment">// 3. If n is 1𝔽, return +0𝔽.</span>
-            <span class="comment">// 4. If n is +0𝔽 or n is -0𝔽, return -∞𝔽.</span>
-            <span class="comment">// 5. If n &lt; +0𝔽, return NaN.</span>
-            <span class="comment">// 6. Return an implementation-approximated value representing the result of the base 10 logarithm of ℝ(n).</span>
-            .<span class="ident">log10</span>()
-            .<span class="ident">into</span>())
+    <span class="doccomment">/// Get the base 10 logarithm of the number.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-math.log10
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/log10
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>log10(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="prelude-val">Ok</span>(args
+            .get_or_undefined(<span class="number">0</span>)
+            <span class="comment">// 1. Let n be ? ToNumber(x).
+            </span>.to_number(context)<span class="question-mark">?
+            </span><span class="comment">// 2. If n is NaN or n is +∞𝔽, return n.
+            // 3. If n is 1𝔽, return +0𝔽.
+            // 4. If n is +0𝔽 or n is -0𝔽, return -∞𝔽.
+            // 5. If n &lt; +0𝔽, return NaN.
+            // 6. Return an implementation-approximated value representing the result of the base 10 logarithm of ℝ(n).
+            </span>.log10()
+            .into())
     }
 
-    <span class="doccomment">/// Get the base 2 logarithm of the number.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-math.log2</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/log2</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">log2</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">args</span>
-            .<span class="ident">get_or_undefined</span>(<span class="number">0</span>)
-            <span class="comment">// 1. Let n be ? ToNumber(x).</span>
-            .<span class="ident">to_number</span>(<span class="ident">context</span>)<span class="question-mark">?</span>
-            <span class="comment">// 2. If n is NaN or n is +∞𝔽, return n.</span>
-            <span class="comment">// 3. If n is 1𝔽, return +0𝔽.</span>
-            <span class="comment">// 4. If n is +0𝔽 or n is -0𝔽, return -∞𝔽.</span>
-            <span class="comment">// 5. If n &lt; +0𝔽, return NaN.</span>
-            <span class="comment">// 6. Return an implementation-approximated value representing the result of the base 2 logarithm of ℝ(n).</span>
-            .<span class="ident">log2</span>()
-            .<span class="ident">into</span>())
+    <span class="doccomment">/// Get the base 2 logarithm of the number.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-math.log2
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/log2
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>log2(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="prelude-val">Ok</span>(args
+            .get_or_undefined(<span class="number">0</span>)
+            <span class="comment">// 1. Let n be ? ToNumber(x).
+            </span>.to_number(context)<span class="question-mark">?
+            </span><span class="comment">// 2. If n is NaN or n is +∞𝔽, return n.
+            // 3. If n is 1𝔽, return +0𝔽.
+            // 4. If n is +0𝔽 or n is -0𝔽, return -∞𝔽.
+            // 5. If n &lt; +0𝔽, return NaN.
+            // 6. Return an implementation-approximated value representing the result of the base 2 logarithm of ℝ(n).
+            </span>.log2()
+            .into())
     }
 
-    <span class="doccomment">/// Get the maximum of several numbers.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-math.max</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/max</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">max</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="comment">// 1. Let coerced be a new empty List.</span>
-        <span class="comment">// 2. For each element arg of args, do</span>
-        <span class="comment">// b. Append n to coerced.</span>
-        <span class="comment">// 3. Let highest be -∞𝔽.</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">highest</span> <span class="op">=</span> <span class="ident">f64::NEG_INFINITY</span>;
+    <span class="doccomment">/// Get the maximum of several numbers.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-math.max
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/max
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>max(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="comment">// 1. Let coerced be a new empty List.
+        // 2. For each element arg of args, do
+        // b. Append n to coerced.
+        // 3. Let highest be -∞𝔽.
+        </span><span class="kw">let </span><span class="kw-2">mut </span>highest = f64::NEG_INFINITY;
 
-        <span class="comment">// 4. For each element number of coerced, do</span>
-        <span class="kw">for</span> <span class="ident">arg</span> <span class="kw">in</span> <span class="ident">args</span> {
-            <span class="comment">// a. Let n be ? ToNumber(arg).</span>
-            <span class="kw">let</span> <span class="ident">num</span> <span class="op">=</span> <span class="ident">arg</span>.<span class="ident">to_number</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="comment">// 4. For each element number of coerced, do
+        </span><span class="kw">for </span>arg <span class="kw">in </span>args {
+            <span class="comment">// a. Let n be ? ToNumber(arg).
+            </span><span class="kw">let </span>num = arg.to_number(context)<span class="question-mark">?</span>;
 
-            <span class="ident">highest</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">highest</span>.<span class="ident">is_nan</span>() {
+            highest = <span class="kw">if </span>highest.is_nan() {
                 <span class="kw">continue</span>;
-            } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">num</span>.<span class="ident">is_nan</span>() {
-                <span class="comment">// a. If number is NaN, return NaN.</span>
-                <span class="ident">f64::NAN</span>
-            } <span class="kw">else</span> {
-                <span class="kw">match</span> (<span class="ident">highest</span>, <span class="ident">num</span>) {
-                    <span class="comment">// b. When x and y are +0𝔽 -0𝔽, return +0𝔽.</span>
-                    (<span class="ident">x</span>, <span class="ident">y</span>) <span class="kw">if</span> <span class="ident">x</span> <span class="op">==</span> <span class="number">0f64</span> <span class="op">&amp;&amp;</span> <span class="ident">y</span> <span class="op">==</span> <span class="number">0f64</span> <span class="op">&amp;&amp;</span> <span class="ident">x</span>.<span class="ident">signum</span>() <span class="op">!</span><span class="op">=</span> <span class="ident">y</span>.<span class="ident">signum</span>() =&gt; <span class="number">0f64</span>,
-                    <span class="comment">// c. Otherwise, return the maximum value.</span>
-                    (<span class="ident">x</span>, <span class="ident">y</span>) =&gt; <span class="ident">x</span>.<span class="ident">max</span>(<span class="ident">y</span>),
+            } <span class="kw">else if </span>num.is_nan() {
+                <span class="comment">// a. If number is NaN, return NaN.
+                </span>f64::NAN
+            } <span class="kw">else </span>{
+                <span class="kw">match </span>(highest, num) {
+                    <span class="comment">// b. When x and y are +0𝔽 -0𝔽, return +0𝔽.
+                    </span>(x, y) <span class="kw">if </span>x == <span class="number">0f64 </span>&amp;&amp; y == <span class="number">0f64 </span>&amp;&amp; x.signum() != y.signum() =&gt; <span class="number">0f64</span>,
+                    <span class="comment">// c. Otherwise, return the maximum value.
+                    </span>(x, y) =&gt; x.max(y),
                 }
             };
         }
-        <span class="comment">// 5. Return highest.</span>
-        <span class="prelude-val">Ok</span>(<span class="ident">highest</span>.<span class="ident">into</span>())
+        <span class="comment">// 5. Return highest.
+        </span><span class="prelude-val">Ok</span>(highest.into())
     }
 
-    <span class="doccomment">/// Get the minimum of several numbers.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-math.min</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/min</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">min</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="comment">// 1. Let coerced be a new empty List.</span>
-        <span class="comment">// 2. For each element arg of args, do</span>
-        <span class="comment">// b. Append n to coerced.</span>
-        <span class="comment">// 3. Let lowest be +∞𝔽.</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">lowest</span> <span class="op">=</span> <span class="ident">f64::INFINITY</span>;
+    <span class="doccomment">/// Get the minimum of several numbers.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-math.min
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/min
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>min(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="comment">// 1. Let coerced be a new empty List.
+        // 2. For each element arg of args, do
+        // b. Append n to coerced.
+        // 3. Let lowest be +∞𝔽.
+        </span><span class="kw">let </span><span class="kw-2">mut </span>lowest = f64::INFINITY;
 
-        <span class="comment">// 4. For each element number of coerced, do</span>
-        <span class="kw">for</span> <span class="ident">arg</span> <span class="kw">in</span> <span class="ident">args</span> {
-            <span class="comment">// a. Let n be ? ToNumber(arg).</span>
-            <span class="kw">let</span> <span class="ident">num</span> <span class="op">=</span> <span class="ident">arg</span>.<span class="ident">to_number</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="comment">// 4. For each element number of coerced, do
+        </span><span class="kw">for </span>arg <span class="kw">in </span>args {
+            <span class="comment">// a. Let n be ? ToNumber(arg).
+            </span><span class="kw">let </span>num = arg.to_number(context)<span class="question-mark">?</span>;
 
-            <span class="ident">lowest</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">lowest</span>.<span class="ident">is_nan</span>() {
+            lowest = <span class="kw">if </span>lowest.is_nan() {
                 <span class="kw">continue</span>;
-            } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">num</span>.<span class="ident">is_nan</span>() {
-                <span class="comment">// a. If number is NaN, return NaN.</span>
-                <span class="ident">f64::NAN</span>
-            } <span class="kw">else</span> {
-                <span class="kw">match</span> (<span class="ident">lowest</span>, <span class="ident">num</span>) {
-                    <span class="comment">// b. When x and y are +0𝔽 -0𝔽, return -0𝔽.</span>
-                    (<span class="ident">x</span>, <span class="ident">y</span>) <span class="kw">if</span> <span class="ident">x</span> <span class="op">==</span> <span class="number">0f64</span> <span class="op">&amp;&amp;</span> <span class="ident">y</span> <span class="op">==</span> <span class="number">0f64</span> <span class="op">&amp;&amp;</span> <span class="ident">x</span>.<span class="ident">signum</span>() <span class="op">!</span><span class="op">=</span> <span class="ident">y</span>.<span class="ident">signum</span>() =&gt; <span class="op">-</span><span class="number">0f64</span>,
-                    <span class="comment">// c. Otherwise, return the minimum value.</span>
-                    (<span class="ident">x</span>, <span class="ident">y</span>) =&gt; <span class="ident">x</span>.<span class="ident">min</span>(<span class="ident">y</span>),
+            } <span class="kw">else if </span>num.is_nan() {
+                <span class="comment">// a. If number is NaN, return NaN.
+                </span>f64::NAN
+            } <span class="kw">else </span>{
+                <span class="kw">match </span>(lowest, num) {
+                    <span class="comment">// b. When x and y are +0𝔽 -0𝔽, return -0𝔽.
+                    </span>(x, y) <span class="kw">if </span>x == <span class="number">0f64 </span>&amp;&amp; y == <span class="number">0f64 </span>&amp;&amp; x.signum() != y.signum() =&gt; -<span class="number">0f64</span>,
+                    <span class="comment">// c. Otherwise, return the minimum value.
+                    </span>(x, y) =&gt; x.min(y),
                 }
             };
         }
-        <span class="comment">// 5. Return lowest.</span>
-        <span class="prelude-val">Ok</span>(<span class="ident">lowest</span>.<span class="ident">into</span>())
+        <span class="comment">// 5. Return lowest.
+        </span><span class="prelude-val">Ok</span>(lowest.into())
     }
 
-    <span class="doccomment">/// Raise a number to a power.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-math.pow</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/pow</span>
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::float_cmp</span>)]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">pow</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="comment">// 1. Set base to ? ToNumber(base).</span>
-        <span class="kw">let</span> <span class="ident">x</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>).<span class="ident">to_number</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+    <span class="doccomment">/// Raise a number to a power.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-math.pow
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/pow
+    </span><span class="attribute">#[allow(clippy::float_cmp)]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>pow(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="comment">// 1. Set base to ? ToNumber(base).
+        </span><span class="kw">let </span>x = args.get_or_undefined(<span class="number">0</span>).to_number(context)<span class="question-mark">?</span>;
 
-        <span class="comment">// 2. Set exponent to ? ToNumber(exponent).</span>
-        <span class="kw">let</span> <span class="ident">y</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">1</span>).<span class="ident">to_number</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="comment">// 2. Set exponent to ? ToNumber(exponent).
+        </span><span class="kw">let </span>y = args.get_or_undefined(<span class="number">1</span>).to_number(context)<span class="question-mark">?</span>;
 
-        <span class="comment">// 3. If |x| = 1 and the exponent is infinite, return NaN.</span>
-        <span class="kw">if</span> <span class="ident">f64::abs</span>(<span class="ident">x</span>) <span class="op">==</span> <span class="number">1f64</span> <span class="op">&amp;&amp;</span> <span class="ident">y</span>.<span class="ident">is_infinite</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">f64::NAN</span>.<span class="ident">into</span>());
+        <span class="comment">// 3. If |x| = 1 and the exponent is infinite, return NaN.
+        </span><span class="kw">if </span>f64::abs(x) == <span class="number">1f64 </span>&amp;&amp; y.is_infinite() {
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(f64::NAN.into());
         }
 
-        <span class="comment">// 4. Return ! Number::exponentiate(base, exponent).</span>
-        <span class="prelude-val">Ok</span>(<span class="ident">x</span>.<span class="ident">powf</span>(<span class="ident">y</span>).<span class="ident">into</span>())
+        <span class="comment">// 4. Return ! Number::exponentiate(base, exponent).
+        </span><span class="prelude-val">Ok</span>(x.powf(y).into())
     }
 
-    <span class="doccomment">/// Generate a random floating-point number between `0` and `1`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-math.random</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/random</span>
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::unnecessary_wraps</span>)]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">random</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="kw">_</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="comment">// NOTE: Each Math.random function created for distinct realms must produce a distinct sequence of values from successive calls.</span>
-        <span class="prelude-val">Ok</span>(<span class="ident">rand::random</span>::<span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span>().<span class="ident">into</span>())
+    <span class="doccomment">/// Generate a random floating-point number between `0` and `1`.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-math.random
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/random
+    </span><span class="attribute">#[allow(clippy::unnecessary_wraps)]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>random(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="comment">// NOTE: Each Math.random function created for distinct realms must produce a distinct sequence of values from successive calls.
+        </span><span class="prelude-val">Ok</span>(rand::random::&lt;f64&gt;().into())
     }
 
-    <span class="doccomment">/// Round a number to the nearest integer.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-math.round</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/round</span>
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::float_cmp</span>)]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">round</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">num</span> <span class="op">=</span> <span class="ident">args</span>
-            .<span class="ident">get_or_undefined</span>(<span class="number">0</span>)
-            <span class="comment">//1. Let n be ? ToNumber(x).</span>
-            .<span class="ident">to_number</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+    <span class="doccomment">/// Round a number to the nearest integer.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-math.round
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/round
+    </span><span class="attribute">#[allow(clippy::float_cmp)]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>round(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="kw">let </span>num = args
+            .get_or_undefined(<span class="number">0</span>)
+            <span class="comment">//1. Let n be ? ToNumber(x).
+            </span>.to_number(context)<span class="question-mark">?</span>;
 
-        <span class="comment">//2. If n is NaN, +∞𝔽, -∞𝔽, or an integral Number, return n.</span>
-        <span class="comment">//3. If n &lt; 0.5𝔽 and n &gt; +0𝔽, return +0𝔽.</span>
-        <span class="comment">//4. If n &lt; +0𝔽 and n ≥ -0.5𝔽, return -0𝔽.</span>
-        <span class="comment">//5. Return the integral Number closest to n, preferring the Number closer to +∞ in the case of a tie.</span>
+        <span class="comment">//2. If n is NaN, +∞𝔽, -∞𝔽, or an integral Number, return n.
+        //3. If n &lt; 0.5𝔽 and n &gt; +0𝔽, return +0𝔽.
+        //4. If n &lt; +0𝔽 and n ≥ -0.5𝔽, return -0𝔽.
+        //5. Return the integral Number closest to n, preferring the Number closer to +∞ in the case of a tie.
 
-        <span class="kw">if</span> <span class="ident">num</span>.<span class="ident">fract</span>() <span class="op">==</span> <span class="op">-</span><span class="number">0.5</span> {
-            <span class="prelude-val">Ok</span>(<span class="ident">num</span>.<span class="ident">ceil</span>().<span class="ident">into</span>())
-        } <span class="kw">else</span> {
-            <span class="prelude-val">Ok</span>(<span class="ident">num</span>.<span class="ident">round</span>().<span class="ident">into</span>())
+        </span><span class="kw">if </span>num.fract() == -<span class="number">0.5 </span>{
+            <span class="prelude-val">Ok</span>(num.ceil().into())
+        } <span class="kw">else </span>{
+            <span class="prelude-val">Ok</span>(num.round().into())
         }
     }
 
-    <span class="doccomment">/// Get the sign of a number.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-math.sign</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/sign</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">sign</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="comment">// 1. Let n be ? ToNumber(x).</span>
-        <span class="kw">let</span> <span class="ident">n</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>).<span class="ident">to_number</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+    <span class="doccomment">/// Get the sign of a number.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-math.sign
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/sign
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>sign(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="comment">// 1. Let n be ? ToNumber(x).
+        </span><span class="kw">let </span>n = args.get_or_undefined(<span class="number">0</span>).to_number(context)<span class="question-mark">?</span>;
 
-        <span class="comment">// 2. If n is NaN, n is +0𝔽, or n is -0𝔽, return n.</span>
-        <span class="kw">if</span> <span class="ident">n</span> <span class="op">==</span> <span class="number">0f64</span> {
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">n</span>.<span class="ident">into</span>());
+        <span class="comment">// 2. If n is NaN, n is +0𝔽, or n is -0𝔽, return n.
+        </span><span class="kw">if </span>n == <span class="number">0f64 </span>{
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(n.into());
         }
-        <span class="comment">// 3. If n &lt; +0𝔽, return -1𝔽.</span>
-        <span class="comment">// 4. Return 1𝔽.</span>
-        <span class="prelude-val">Ok</span>(<span class="ident">n</span>.<span class="ident">signum</span>().<span class="ident">into</span>())
+        <span class="comment">// 3. If n &lt; +0𝔽, return -1𝔽.
+        // 4. Return 1𝔽.
+        </span><span class="prelude-val">Ok</span>(n.signum().into())
     }
 
-    <span class="doccomment">/// Get the sine of a number.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-math.sin</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/sin</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">sin</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">args</span>
-            .<span class="ident">get_or_undefined</span>(<span class="number">0</span>)
-            <span class="comment">// 1. Let n be ? ToNumber(x).</span>
-            .<span class="ident">to_number</span>(<span class="ident">context</span>)<span class="question-mark">?</span>
-            <span class="comment">// 2. If n is NaN, n is +0𝔽, or n is -0𝔽, return n.</span>
-            <span class="comment">// 3. If n is +∞𝔽 or n is -∞𝔽, return NaN.</span>
-            <span class="comment">// 4. Return an implementation-approximated value representing the result of the sine of ℝ(n).</span>
-            .<span class="ident">sin</span>()
-            .<span class="ident">into</span>())
+    <span class="doccomment">/// Get the sine of a number.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-math.sin
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/sin
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>sin(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="prelude-val">Ok</span>(args
+            .get_or_undefined(<span class="number">0</span>)
+            <span class="comment">// 1. Let n be ? ToNumber(x).
+            </span>.to_number(context)<span class="question-mark">?
+            </span><span class="comment">// 2. If n is NaN, n is +0𝔽, or n is -0𝔽, return n.
+            // 3. If n is +∞𝔽 or n is -∞𝔽, return NaN.
+            // 4. Return an implementation-approximated value representing the result of the sine of ℝ(n).
+            </span>.sin()
+            .into())
     }
 
-    <span class="doccomment">/// Get the hyperbolic sine of a number.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-math.sinh</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/sinh</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">sinh</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">args</span>
-            .<span class="ident">get_or_undefined</span>(<span class="number">0</span>)
-            <span class="comment">// 1. Let n be ? ToNumber(x).</span>
-            .<span class="ident">to_number</span>(<span class="ident">context</span>)<span class="question-mark">?</span>
-            <span class="comment">// 2. If n is NaN, n is +0𝔽, n is -0𝔽, n is +∞𝔽, or n is -∞𝔽, return n.</span>
-            <span class="comment">// 3. Return an implementation-approximated value representing the result of the hyperbolic sine of ℝ(n).</span>
-            .<span class="ident">sinh</span>()
-            .<span class="ident">into</span>())
+    <span class="doccomment">/// Get the hyperbolic sine of a number.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-math.sinh
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/sinh
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>sinh(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="prelude-val">Ok</span>(args
+            .get_or_undefined(<span class="number">0</span>)
+            <span class="comment">// 1. Let n be ? ToNumber(x).
+            </span>.to_number(context)<span class="question-mark">?
+            </span><span class="comment">// 2. If n is NaN, n is +0𝔽, n is -0𝔽, n is +∞𝔽, or n is -∞𝔽, return n.
+            // 3. Return an implementation-approximated value representing the result of the hyperbolic sine of ℝ(n).
+            </span>.sinh()
+            .into())
     }
 
-    <span class="doccomment">/// Get the square root of a number.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-math.sqrt</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/sqrt</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">sqrt</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">args</span>
-            .<span class="ident">get_or_undefined</span>(<span class="number">0</span>)
-            <span class="comment">// 1. Let n be ? ToNumber(x).</span>
-            .<span class="ident">to_number</span>(<span class="ident">context</span>)<span class="question-mark">?</span>
-            <span class="comment">// 2. If n is NaN, n is +0𝔽, n is -0𝔽, or n is +∞𝔽, return n.</span>
-            <span class="comment">// 3. If n &lt; +0𝔽, return NaN.</span>
-            <span class="comment">// 4. Return an implementation-approximated value representing the result of the square root of ℝ(n).</span>
-            .<span class="ident">sqrt</span>()
-            .<span class="ident">into</span>())
+    <span class="doccomment">/// Get the square root of a number.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-math.sqrt
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/sqrt
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>sqrt(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="prelude-val">Ok</span>(args
+            .get_or_undefined(<span class="number">0</span>)
+            <span class="comment">// 1. Let n be ? ToNumber(x).
+            </span>.to_number(context)<span class="question-mark">?
+            </span><span class="comment">// 2. If n is NaN, n is +0𝔽, n is -0𝔽, or n is +∞𝔽, return n.
+            // 3. If n &lt; +0𝔽, return NaN.
+            // 4. Return an implementation-approximated value representing the result of the square root of ℝ(n).
+            </span>.sqrt()
+            .into())
     }
 
-    <span class="doccomment">/// Get the tangent of a number.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-math.tan</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/tan</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">tan</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">args</span>
-            .<span class="ident">get_or_undefined</span>(<span class="number">0</span>)
-            <span class="comment">// 1. Let n be ? ToNumber(x).</span>
-            .<span class="ident">to_number</span>(<span class="ident">context</span>)<span class="question-mark">?</span>
-            <span class="comment">// 2. If n is NaN, n is +0𝔽, or n is -0𝔽, return n.</span>
-            <span class="comment">// 3. If n is +∞𝔽, or n is -∞𝔽, return NaN.</span>
-            <span class="comment">// 4. Return an implementation-approximated value representing the result of the tangent of ℝ(n).</span>
-            .<span class="ident">tan</span>()
-            .<span class="ident">into</span>())
+    <span class="doccomment">/// Get the tangent of a number.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-math.tan
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/tan
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>tan(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="prelude-val">Ok</span>(args
+            .get_or_undefined(<span class="number">0</span>)
+            <span class="comment">// 1. Let n be ? ToNumber(x).
+            </span>.to_number(context)<span class="question-mark">?
+            </span><span class="comment">// 2. If n is NaN, n is +0𝔽, or n is -0𝔽, return n.
+            // 3. If n is +∞𝔽, or n is -∞𝔽, return NaN.
+            // 4. Return an implementation-approximated value representing the result of the tangent of ℝ(n).
+            </span>.tan()
+            .into())
     }
 
-    <span class="doccomment">/// Get the hyperbolic tangent of a number.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-math.tanh</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/tanh</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">tanh</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">args</span>
-            .<span class="ident">get_or_undefined</span>(<span class="number">0</span>)
-            <span class="comment">// 1. Let n be ? ToNumber(x).</span>
-            .<span class="ident">to_number</span>(<span class="ident">context</span>)<span class="question-mark">?</span>
-            <span class="comment">// 2. If n is NaN, n is +0𝔽, or n is -0𝔽, return n.</span>
-            <span class="comment">// 3. If n is +∞𝔽, return 1𝔽.</span>
-            <span class="comment">// 4. If n is -∞𝔽, return -1𝔽.</span>
-            <span class="comment">// 5. Return an implementation-approximated value representing the result of the hyperbolic tangent of ℝ(n).</span>
-            .<span class="ident">tanh</span>()
-            .<span class="ident">into</span>())
+    <span class="doccomment">/// Get the hyperbolic tangent of a number.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-math.tanh
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/tanh
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>tanh(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="prelude-val">Ok</span>(args
+            .get_or_undefined(<span class="number">0</span>)
+            <span class="comment">// 1. Let n be ? ToNumber(x).
+            </span>.to_number(context)<span class="question-mark">?
+            </span><span class="comment">// 2. If n is NaN, n is +0𝔽, or n is -0𝔽, return n.
+            // 3. If n is +∞𝔽, return 1𝔽.
+            // 4. If n is -∞𝔽, return -1𝔽.
+            // 5. Return an implementation-approximated value representing the result of the hyperbolic tangent of ℝ(n).
+            </span>.tanh()
+            .into())
     }
 
-    <span class="doccomment">/// Get the integer part of a number.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-math.trunc</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/trunc</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">trunc</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">args</span>
-            .<span class="ident">get_or_undefined</span>(<span class="number">0</span>)
-            <span class="comment">// 1. Let n be ? ToNumber(x).</span>
-            .<span class="ident">to_number</span>(<span class="ident">context</span>)<span class="question-mark">?</span>
-            <span class="comment">// 2. If n is NaN, n is +0𝔽, n is -0𝔽, n is +∞𝔽, or n is -∞𝔽, return n.</span>
-            <span class="comment">// 3. If n &lt; 1𝔽 and n &gt; +0𝔽, return +0𝔽.</span>
-            <span class="comment">// 4. If n &lt; +0𝔽 and n &gt; -1𝔽, return -0𝔽.</span>
-            <span class="comment">// 5. Return the integral Number nearest n in the direction of +0𝔽.</span>
-            .<span class="ident">trunc</span>()
-            .<span class="ident">into</span>())
+    <span class="doccomment">/// Get the integer part of a number.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-math.trunc
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/trunc
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>trunc(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="prelude-val">Ok</span>(args
+            .get_or_undefined(<span class="number">0</span>)
+            <span class="comment">// 1. Let n be ? ToNumber(x).
+            </span>.to_number(context)<span class="question-mark">?
+            </span><span class="comment">// 2. If n is NaN, n is +0𝔽, n is -0𝔽, n is +∞𝔽, or n is -∞𝔽, return n.
+            // 3. If n &lt; 1𝔽 and n &gt; +0𝔽, return +0𝔽.
+            // 4. If n &lt; +0𝔽 and n &gt; -1𝔽, return -0𝔽.
+            // 5. Return the integral Number nearest n in the direction of +0𝔽.
+            </span>.trunc()
+            .into())
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0 (a55dd71d5 2022-09-19)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0 (897e37553 2022-11-02)" ></div></body></html>

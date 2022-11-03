@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_engine/src/syntax/parser/expression/primary/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../../../storage.js"></script><script defer src="../../../../../../source-script.js"></script><script defer src="../../../../../../source-files.js"></script><script defer src="../../../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../../../boa_engine/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../../../boa_engine/index.html"><div class="logo-container">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_engine/src/syntax/parser/expression/primary/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../../../normalize.css"><link rel="stylesheet" href="../../../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../../../dark.css" disabled><link rel="stylesheet" href="../../../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../../../storage.js"></script><script defer src="../../../../../../source-script.js"></script><script defer src="../../../../../../source-files.js"></script><script defer src="../../../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../../../boa_engine/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../../../boa_engine/index.html"><div class="logo-container">
                     <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../../../boa_engine/index.html">
                         <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -580,580 +580,582 @@
 <span id="578">578</span>
 <span id="579">579</span>
 <span id="580">580</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Primary expression parsing.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! More information:</span>
-<span class="doccomment">//!  - [MDN documentation][mdn]</span>
-<span class="doccomment">//!  - [ECMAScript specification][spec]</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators#Primary_expressions</span>
-<span class="doccomment">//! [spec]: https://tc39.es/ecma262/#prod-PrimaryExpression</span>
+<span id="581">581</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Primary expression parsing.
+//!
+//! More information:
+//!  - [MDN documentation][mdn]
+//!  - [ECMAScript specification][spec]
+//!
+//! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators#Primary_expressions
+//! [spec]: https://tc39.es/ecma262/#prod-PrimaryExpression
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span>;
+</span><span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>tests;
 
-<span class="kw">mod</span> <span class="ident">array_initializer</span>;
-<span class="kw">mod</span> <span class="ident">async_function_expression</span>;
-<span class="kw">mod</span> <span class="ident">async_generator_expression</span>;
-<span class="kw">mod</span> <span class="ident">class_expression</span>;
-<span class="kw">mod</span> <span class="ident">function_expression</span>;
-<span class="kw">mod</span> <span class="ident">generator_expression</span>;
-<span class="kw">mod</span> <span class="ident">template</span>;
+<span class="kw">mod </span>array_initializer;
+<span class="kw">mod </span>async_function_expression;
+<span class="kw">mod </span>async_generator_expression;
+<span class="kw">mod </span>class_expression;
+<span class="kw">mod </span>function_expression;
+<span class="kw">mod </span>generator_expression;
+<span class="kw">mod </span>template;
 
-<span class="kw">pub</span>(<span class="kw">in</span> <span class="ident"><span class="kw">crate</span>::syntax::parser</span>) <span class="kw">mod</span> <span class="ident">object_initializer</span>;
+<span class="kw">pub</span>(<span class="kw">in </span><span class="kw">crate</span>::syntax::parser) <span class="kw">mod </span>object_initializer;
 
-<span class="kw">use</span> <span class="self">self</span>::{
-    <span class="ident">array_initializer::ArrayLiteral</span>, <span class="ident">async_function_expression::AsyncFunctionExpression</span>,
-    <span class="ident">async_generator_expression::AsyncGeneratorExpression</span>, <span class="ident">class_expression::ClassExpression</span>,
-    <span class="ident">function_expression::FunctionExpression</span>, <span class="ident">generator_expression::GeneratorExpression</span>,
-    <span class="ident">object_initializer::ObjectLiteral</span>,
+<span class="kw">use </span><span class="self">self</span>::{
+    array_initializer::ArrayLiteral, async_function_expression::AsyncFunctionExpression,
+    async_generator_expression::AsyncGeneratorExpression, class_expression::ClassExpression,
+    function_expression::FunctionExpression, generator_expression::GeneratorExpression,
+    object_initializer::ObjectLiteral,
 };
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax</span>::{
-    <span class="ident">lexer</span>::{<span class="ident">token::Numeric</span>, <span class="ident">InputElement</span>, <span class="ident">Token</span>, <span class="ident">TokenKind</span>},
-    <span class="ident">parser</span>::{
-        <span class="ident">expression</span>::{
-            <span class="ident">identifiers::IdentifierReference</span>, <span class="ident">primary::template::TemplateLiteral</span>,
-            <span class="ident">BindingIdentifier</span>, <span class="ident">Expression</span>,
+<span class="kw">use </span><span class="kw">crate</span>::syntax::{
+    lexer::{token::Numeric, InputElement, Token, TokenKind},
+    parser::{
+        expression::{
+            identifiers::IdentifierReference, primary::template::TemplateLiteral,
+            BindingIdentifier, Expression,
         },
-        <span class="ident">statement</span>::{<span class="ident">ArrayBindingPattern</span>, <span class="ident">ObjectBindingPattern</span>},
-        <span class="ident">AllowAwait</span>, <span class="ident">AllowYield</span>, <span class="ident">Cursor</span>, <span class="ident">ParseError</span>, <span class="ident">ParseResult</span>, <span class="ident">TokenParser</span>,
+        statement::{ArrayBindingPattern, ObjectBindingPattern},
+        AllowAwait, AllowYield, Cursor, ParseError, ParseResult, TokenParser,
     },
 };
-<span class="kw">use</span> <span class="ident">boa_ast</span>::{
-    <span class="self">self</span> <span class="kw">as</span> <span class="ident">ast</span>,
-    <span class="ident">declaration::Variable</span>,
-    <span class="ident">expression</span>::{
-        <span class="ident">literal::Literal</span>,
-        <span class="ident">operator</span>::{<span class="ident">assign::AssignTarget</span>, <span class="ident">binary::BinaryOp</span>},
-        <span class="ident">Call</span>, <span class="ident">Identifier</span>, <span class="ident">New</span>,
+<span class="kw">use </span>boa_ast::{
+    <span class="self">self </span><span class="kw">as </span>ast,
+    declaration::Variable,
+    expression::{
+        literal::Literal,
+        operator::{assign::AssignTarget, binary::BinaryOp},
+        Call, Identifier, New,
     },
-    <span class="ident">function</span>::{<span class="ident">FormalParameter</span>, <span class="ident">FormalParameterList</span>},
-    <span class="ident">pattern</span>::{<span class="ident">ArrayPatternElement</span>, <span class="ident">ObjectPatternElement</span>, <span class="ident">Pattern</span>},
-    <span class="ident">Keyword</span>, <span class="ident">Punctuator</span>, <span class="ident">Span</span>,
+    function::{FormalParameter, FormalParameterList},
+    operations::{contains, ContainsSymbol},
+    pattern::{ArrayPatternElement, ObjectPatternElement, Pattern},
+    Keyword, Punctuator, Span,
 };
-<span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">Sym</span>};
-<span class="kw">use</span> <span class="ident">boa_profiler::Profiler</span>;
-<span class="kw">use</span> <span class="ident">std::io::Read</span>;
+<span class="kw">use </span>boa_interner::{Interner, Sym};
+<span class="kw">use </span>boa_profiler::Profiler;
+<span class="kw">use </span>std::io::Read;
 
-<span class="kw">pub</span>(<span class="kw">in</span> <span class="ident"><span class="kw">crate</span>::syntax::parser</span>) <span class="kw">use</span> <span class="ident">object_initializer::Initializer</span>;
+<span class="kw">pub</span>(<span class="kw">in </span><span class="kw">crate</span>::syntax::parser) <span class="kw">use </span>object_initializer::Initializer;
 
-<span class="doccomment">/// Parses a primary expression.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [MDN documentation][mdn]</span>
-<span class="doccomment">///  - [ECMAScript specification][spec]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_Operators#Primary_expressions</span>
-<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-PrimaryExpression</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct</span> <span class="ident">PrimaryExpression</span> {
-    <span class="ident">name</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Identifier</span><span class="op">&gt;</span>,
-    <span class="ident">allow_yield</span>: <span class="ident">AllowYield</span>,
-    <span class="ident">allow_await</span>: <span class="ident">AllowAwait</span>,
+<span class="doccomment">/// Parses a primary expression.
+///
+/// More information:
+///  - [MDN documentation][mdn]
+///  - [ECMAScript specification][spec]
+///
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_Operators#Primary_expressions
+/// [spec]: https://tc39.es/ecma262/#prod-PrimaryExpression
+</span><span class="attribute">#[derive(Debug, Clone, Copy)]
+</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>PrimaryExpression {
+    name: <span class="prelude-ty">Option</span>&lt;Identifier&gt;,
+    allow_yield: AllowYield,
+    allow_await: AllowAwait,
 }
 
-<span class="kw">impl</span> <span class="ident">PrimaryExpression</span> {
-    <span class="doccomment">/// Creates a new `PrimaryExpression` parser.</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">N</span>, <span class="ident">Y</span>, <span class="ident">A</span><span class="op">&gt;</span>(<span class="ident">name</span>: <span class="ident">N</span>, <span class="ident">allow_yield</span>: <span class="ident">Y</span>, <span class="ident">allow_await</span>: <span class="ident">A</span>) -&gt; <span class="self">Self</span>
-    <span class="kw">where</span>
-        <span class="ident">N</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Identifier</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-        <span class="ident">Y</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowYield</span><span class="op">&gt;</span>,
-        <span class="ident">A</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowAwait</span><span class="op">&gt;</span>,
+<span class="kw">impl </span>PrimaryExpression {
+    <span class="doccomment">/// Creates a new `PrimaryExpression` parser.
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new&lt;N, Y, A&gt;(name: N, allow_yield: Y, allow_await: A) -&gt; <span class="self">Self
+    </span><span class="kw">where
+        </span>N: Into&lt;<span class="prelude-ty">Option</span>&lt;Identifier&gt;&gt;,
+        Y: Into&lt;AllowYield&gt;,
+        A: Into&lt;AllowAwait&gt;,
     {
-        <span class="self">Self</span> {
-            <span class="ident">name</span>: <span class="ident">name</span>.<span class="ident">into</span>(),
-            <span class="ident">allow_yield</span>: <span class="ident">allow_yield</span>.<span class="ident">into</span>(),
-            <span class="ident">allow_await</span>: <span class="ident">allow_await</span>.<span class="ident">into</span>(),
+        <span class="self">Self </span>{
+            name: name.into(),
+            allow_yield: allow_yield.into(),
+            allow_await: allow_await.into(),
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="ident">TokenParser</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">PrimaryExpression</span>
-<span class="kw">where</span>
-    <span class="ident">R</span>: <span class="ident">Read</span>,
+<span class="kw">impl</span>&lt;R&gt; TokenParser&lt;R&gt; <span class="kw">for </span>PrimaryExpression
+<span class="kw">where
+    </span>R: Read,
 {
-    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">ast::Expression</span>;
+    <span class="kw">type </span>Output = ast::Expression;
 
-    <span class="kw">fn</span> <span class="ident">parse</span>(<span class="self">self</span>, <span class="ident">cursor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Interner</span>) -&gt; <span class="ident">ParseResult</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;PrimaryExpression&quot;</span>, <span class="string">&quot;Parsing&quot;</span>);
+    <span class="kw">fn </span>parse(<span class="self">self</span>, cursor: <span class="kw-2">&amp;mut </span>Cursor&lt;R&gt;, interner: <span class="kw-2">&amp;mut </span>Interner) -&gt; ParseResult&lt;<span class="self">Self</span>::Output&gt; {
+        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;PrimaryExpression&quot;</span>, <span class="string">&quot;Parsing&quot;</span>);
 
-        <span class="comment">// TODO: tok currently consumes the token instead of peeking, so the token</span>
-        <span class="comment">// isn&#39;t passed and consumed by parsers according to spec (EX: GeneratorExpression)</span>
-        <span class="kw">let</span> <span class="ident">tok</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">0</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>.<span class="ident">ok_or</span>(<span class="ident">ParseError::AbruptEnd</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">tok_position</span> <span class="op">=</span> <span class="ident">tok</span>.<span class="ident">span</span>().<span class="ident">start</span>();
+        <span class="comment">// TODO: tok currently consumes the token instead of peeking, so the token
+        // isn&#39;t passed and consumed by parsers according to spec (EX: GeneratorExpression)
+        </span><span class="kw">let </span>tok = cursor.peek(<span class="number">0</span>, interner)<span class="question-mark">?</span>.ok_or(ParseError::AbruptEnd)<span class="question-mark">?</span>;
+        <span class="kw">let </span>tok_position = tok.span().start();
 
-        <span class="kw">match</span> <span class="ident">tok</span>.<span class="ident">kind</span>() {
-            <span class="ident">TokenKind::Keyword</span>((<span class="ident">Keyword::This</span>, <span class="bool-val">true</span>)) =&gt; <span class="prelude-val">Err</span>(<span class="ident">ParseError::general</span>(
+        <span class="kw">match </span>tok.kind() {
+            TokenKind::Keyword((Keyword::This, <span class="bool-val">true</span>)) =&gt; <span class="prelude-val">Err</span>(ParseError::general(
                 <span class="string">&quot;Keyword must not contain escaped characters&quot;</span>,
-                <span class="ident">tok_position</span>,
+                tok_position,
             )),
-            <span class="ident">TokenKind::Keyword</span>((<span class="ident">Keyword::This</span>, <span class="bool-val">false</span>)) =&gt; {
-                <span class="ident">cursor</span>.<span class="ident">next</span>(<span class="ident">interner</span>).<span class="ident">expect</span>(<span class="string">&quot;token disappeared&quot;</span>);
-                <span class="prelude-val">Ok</span>(<span class="ident">ast::Expression::This</span>)
+            TokenKind::Keyword((Keyword::This, <span class="bool-val">false</span>)) =&gt; {
+                cursor.next(interner).expect(<span class="string">&quot;token disappeared&quot;</span>);
+                <span class="prelude-val">Ok</span>(ast::Expression::This)
             }
-            <span class="ident">TokenKind::Keyword</span>((<span class="ident">Keyword::Function</span>, <span class="kw">_</span>)) =&gt; {
-                <span class="ident">cursor</span>.<span class="ident">next</span>(<span class="ident">interner</span>).<span class="ident">expect</span>(<span class="string">&quot;token disappeared&quot;</span>);
-                <span class="kw">let</span> <span class="ident">next_token</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">0</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>.<span class="ident">ok_or</span>(<span class="ident">ParseError::AbruptEnd</span>)<span class="question-mark">?</span>;
-                <span class="kw">if</span> <span class="ident">next_token</span>.<span class="ident">kind</span>() <span class="op">==</span> <span class="kw-2">&amp;</span><span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::Mul</span>) {
-                    <span class="ident">GeneratorExpression::new</span>(<span class="self">self</span>.<span class="ident">name</span>)
-                        .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)
-                        .<span class="ident">map</span>(<span class="ident">Into::into</span>)
-                } <span class="kw">else</span> {
-                    <span class="ident">FunctionExpression::new</span>(<span class="self">self</span>.<span class="ident">name</span>)
-                        .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)
-                        .<span class="ident">map</span>(<span class="ident">Into::into</span>)
+            TokenKind::Keyword((Keyword::Function, <span class="kw">_</span>)) =&gt; {
+                cursor.next(interner).expect(<span class="string">&quot;token disappeared&quot;</span>);
+                <span class="kw">let </span>next_token = cursor.peek(<span class="number">0</span>, interner)<span class="question-mark">?</span>.ok_or(ParseError::AbruptEnd)<span class="question-mark">?</span>;
+                <span class="kw">if </span>next_token.kind() == <span class="kw-2">&amp;</span>TokenKind::Punctuator(Punctuator::Mul) {
+                    GeneratorExpression::new(<span class="self">self</span>.name)
+                        .parse(cursor, interner)
+                        .map(Into::into)
+                } <span class="kw">else </span>{
+                    FunctionExpression::new(<span class="self">self</span>.name)
+                        .parse(cursor, interner)
+                        .map(Into::into)
                 }
             }
-            <span class="ident">TokenKind::Keyword</span>((<span class="ident">Keyword::Class</span>, <span class="kw">_</span>)) =&gt; {
-                <span class="ident">cursor</span>.<span class="ident">next</span>(<span class="ident">interner</span>).<span class="ident">expect</span>(<span class="string">&quot;token disappeared&quot;</span>);
-                <span class="ident">ClassExpression::new</span>(<span class="self">self</span>.<span class="ident">name</span>, <span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
-                    .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)
-                    .<span class="ident">map</span>(<span class="ident">Into::into</span>)
+            TokenKind::Keyword((Keyword::Class, <span class="kw">_</span>)) =&gt; {
+                cursor.next(interner).expect(<span class="string">&quot;token disappeared&quot;</span>);
+                ClassExpression::new(<span class="self">self</span>.name, <span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await)
+                    .parse(cursor, interner)
+                    .map(Into::into)
             }
-            <span class="ident">TokenKind::Keyword</span>((<span class="ident">Keyword::Async</span>, <span class="ident">contain_escaped_char</span>)) =&gt; {
-                <span class="kw">let</span> <span class="ident">contain_escaped_char</span> <span class="op">=</span> <span class="kw-2">*</span><span class="ident">contain_escaped_char</span>;
-                <span class="kw">match</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">1</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>.<span class="ident">map</span>(<span class="ident">Token::kind</span>) {
-                    <span class="prelude-val">Some</span>(<span class="ident">TokenKind::Keyword</span>((<span class="ident">Keyword::Function</span>, <span class="kw">_</span>))) <span class="kw">if</span> <span class="ident">contain_escaped_char</span> =&gt; {
-                        <span class="prelude-val">Err</span>(<span class="ident">ParseError::general</span>(
+            TokenKind::Keyword((Keyword::Async, contain_escaped_char)) =&gt; {
+                <span class="kw">let </span>contain_escaped_char = <span class="kw-2">*</span>contain_escaped_char;
+                <span class="kw">match </span>cursor.peek(<span class="number">1</span>, interner)<span class="question-mark">?</span>.map(Token::kind) {
+                    <span class="prelude-val">Some</span>(TokenKind::Keyword((Keyword::Function, <span class="kw">_</span>))) <span class="kw">if </span>contain_escaped_char =&gt; {
+                        <span class="prelude-val">Err</span>(ParseError::general(
                             <span class="string">&quot;Keyword must not contain escaped characters&quot;</span>,
-                            <span class="ident">tok_position</span>,
+                            tok_position,
                         ))
                     }
-                    <span class="prelude-val">Some</span>(<span class="ident">TokenKind::Keyword</span>((<span class="ident">Keyword::Function</span>, <span class="kw">_</span>))) =&gt; {
-                        <span class="ident">cursor</span>.<span class="ident">next</span>(<span class="ident">interner</span>).<span class="ident">expect</span>(<span class="string">&quot;token disappeared&quot;</span>);
-                        <span class="kw">match</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">1</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>.<span class="ident">map</span>(<span class="ident">Token::kind</span>) {
-                            <span class="prelude-val">Some</span>(<span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::Mul</span>)) =&gt; {
-                                <span class="ident">AsyncGeneratorExpression::new</span>(<span class="self">self</span>.<span class="ident">name</span>)
-                                    .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)
-                                    .<span class="ident">map</span>(<span class="ident">Into::into</span>)
+                    <span class="prelude-val">Some</span>(TokenKind::Keyword((Keyword::Function, <span class="kw">_</span>))) =&gt; {
+                        cursor.next(interner).expect(<span class="string">&quot;token disappeared&quot;</span>);
+                        <span class="kw">match </span>cursor.peek(<span class="number">1</span>, interner)<span class="question-mark">?</span>.map(Token::kind) {
+                            <span class="prelude-val">Some</span>(TokenKind::Punctuator(Punctuator::Mul)) =&gt; {
+                                AsyncGeneratorExpression::new(<span class="self">self</span>.name)
+                                    .parse(cursor, interner)
+                                    .map(Into::into)
                             }
-                            <span class="kw">_</span> =&gt; <span class="ident">AsyncFunctionExpression::new</span>(<span class="self">self</span>.<span class="ident">name</span>, <span class="self">self</span>.<span class="ident">allow_yield</span>)
-                                .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)
-                                .<span class="ident">map</span>(<span class="ident">Into::into</span>),
+                            <span class="kw">_ </span>=&gt; AsyncFunctionExpression::new(<span class="self">self</span>.name, <span class="self">self</span>.allow_yield)
+                                .parse(cursor, interner)
+                                .map(Into::into),
                         }
                     }
-                    <span class="kw">_</span> =&gt; <span class="ident">IdentifierReference::new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
-                        .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)
-                        .<span class="ident">map</span>(<span class="ident">Into::into</span>),
+                    <span class="kw">_ </span>=&gt; IdentifierReference::new(<span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await)
+                        .parse(cursor, interner)
+                        .map(Into::into),
                 }
             }
-            <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::OpenParen</span>) =&gt; {
-                <span class="ident">cursor</span>.<span class="ident">next</span>(<span class="ident">interner</span>).<span class="ident">expect</span>(<span class="string">&quot;token disappeared&quot;</span>);
-                <span class="ident">cursor</span>.<span class="ident">set_goal</span>(<span class="ident">InputElement::RegExp</span>);
-                <span class="kw">let</span> <span class="ident">expr</span> <span class="op">=</span> <span class="ident">CoverParenthesizedExpressionAndArrowParameterList::new</span>(
-                    <span class="self">self</span>.<span class="ident">name</span>,
-                    <span class="self">self</span>.<span class="ident">allow_yield</span>,
-                    <span class="self">self</span>.<span class="ident">allow_await</span>,
+            TokenKind::Punctuator(Punctuator::OpenParen) =&gt; {
+                cursor.next(interner).expect(<span class="string">&quot;token disappeared&quot;</span>);
+                cursor.set_goal(InputElement::RegExp);
+                <span class="kw">let </span>expr = CoverParenthesizedExpressionAndArrowParameterList::new(
+                    <span class="self">self</span>.name,
+                    <span class="self">self</span>.allow_yield,
+                    <span class="self">self</span>.allow_await,
                 )
-                .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
-                <span class="prelude-val">Ok</span>(<span class="ident">expr</span>)
+                .parse(cursor, interner)<span class="question-mark">?</span>;
+                <span class="prelude-val">Ok</span>(expr)
             }
-            <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::OpenBracket</span>) =&gt; {
-                <span class="ident">cursor</span>.<span class="ident">next</span>(<span class="ident">interner</span>).<span class="ident">expect</span>(<span class="string">&quot;token disappeared&quot;</span>);
-                <span class="ident">cursor</span>.<span class="ident">set_goal</span>(<span class="ident">InputElement::RegExp</span>);
-                <span class="ident">ArrayLiteral::new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
-                    .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)
-                    .<span class="ident">map</span>(<span class="ident">Into::into</span>)
+            TokenKind::Punctuator(Punctuator::OpenBracket) =&gt; {
+                cursor.next(interner).expect(<span class="string">&quot;token disappeared&quot;</span>);
+                cursor.set_goal(InputElement::RegExp);
+                ArrayLiteral::new(<span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await)
+                    .parse(cursor, interner)
+                    .map(Into::into)
             }
-            <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::OpenBlock</span>) =&gt; {
-                <span class="ident">cursor</span>.<span class="ident">next</span>(<span class="ident">interner</span>).<span class="ident">expect</span>(<span class="string">&quot;token disappeared&quot;</span>);
-                <span class="ident">cursor</span>.<span class="ident">set_goal</span>(<span class="ident">InputElement::RegExp</span>);
-                <span class="ident">ObjectLiteral::new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
-                    .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)
-                    .<span class="ident">map</span>(<span class="ident">Into::into</span>)
+            TokenKind::Punctuator(Punctuator::OpenBlock) =&gt; {
+                cursor.next(interner).expect(<span class="string">&quot;token disappeared&quot;</span>);
+                cursor.set_goal(InputElement::RegExp);
+                ObjectLiteral::new(<span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await)
+                    .parse(cursor, interner)
+                    .map(Into::into)
             }
-            <span class="ident">TokenKind::BooleanLiteral</span>(<span class="ident">boolean</span>) =&gt; {
-                <span class="kw">let</span> <span class="ident">node</span> <span class="op">=</span> <span class="ident">Literal::from</span>(<span class="kw-2">*</span><span class="ident">boolean</span>).<span class="ident">into</span>();
-                <span class="ident">cursor</span>.<span class="ident">next</span>(<span class="ident">interner</span>).<span class="ident">expect</span>(<span class="string">&quot;token disappeared&quot;</span>);
-                <span class="prelude-val">Ok</span>(<span class="ident">node</span>)
+            TokenKind::BooleanLiteral(boolean) =&gt; {
+                <span class="kw">let </span>node = Literal::from(<span class="kw-2">*</span>boolean).into();
+                cursor.next(interner).expect(<span class="string">&quot;token disappeared&quot;</span>);
+                <span class="prelude-val">Ok</span>(node)
             }
-            <span class="ident">TokenKind::NullLiteral</span> =&gt; {
-                <span class="ident">cursor</span>.<span class="ident">next</span>(<span class="ident">interner</span>).<span class="ident">expect</span>(<span class="string">&quot;token disappeared&quot;</span>);
-                <span class="prelude-val">Ok</span>(<span class="ident">Literal::Null</span>.<span class="ident">into</span>())
+            TokenKind::NullLiteral =&gt; {
+                cursor.next(interner).expect(<span class="string">&quot;token disappeared&quot;</span>);
+                <span class="prelude-val">Ok</span>(Literal::Null.into())
             }
-            <span class="ident">TokenKind::Identifier</span>(<span class="kw">_</span>)
-            <span class="op">|</span> <span class="ident">TokenKind::Keyword</span>((
-                <span class="ident">Keyword::Let</span> <span class="op">|</span> <span class="ident">Keyword::Yield</span> <span class="op">|</span> <span class="ident">Keyword::Await</span> <span class="op">|</span> <span class="ident">Keyword::Of</span>,
+            TokenKind::Identifier(<span class="kw">_</span>)
+            | TokenKind::Keyword((
+                Keyword::Let | Keyword::Yield | Keyword::Await | Keyword::Of,
                 <span class="kw">_</span>,
-            )) =&gt; <span class="ident">IdentifierReference::new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
-                .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)
-                .<span class="ident">map</span>(<span class="ident">Into::into</span>),
-            <span class="ident">TokenKind::StringLiteral</span>(<span class="ident">lit</span>) =&gt; {
-                <span class="kw">let</span> <span class="ident">node</span> <span class="op">=</span> <span class="ident">Literal::from</span>(<span class="kw-2">*</span><span class="ident">lit</span>).<span class="ident">into</span>();
-                <span class="ident">cursor</span>.<span class="ident">next</span>(<span class="ident">interner</span>).<span class="ident">expect</span>(<span class="string">&quot;token disappeared&quot;</span>);
-                <span class="prelude-val">Ok</span>(<span class="ident">node</span>)
+            )) =&gt; IdentifierReference::new(<span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await)
+                .parse(cursor, interner)
+                .map(Into::into),
+            TokenKind::StringLiteral(lit) =&gt; {
+                <span class="kw">let </span>node = Literal::from(<span class="kw-2">*</span>lit).into();
+                cursor.next(interner).expect(<span class="string">&quot;token disappeared&quot;</span>);
+                <span class="prelude-val">Ok</span>(node)
             }
-            <span class="ident">TokenKind::TemplateNoSubstitution</span>(<span class="ident">template_string</span>) =&gt; {
-                <span class="kw">let</span> <span class="ident">node</span> <span class="op">=</span> <span class="ident">Literal::from</span>(
-                    <span class="ident">template_string</span>
-                        .<span class="ident">to_owned_cooked</span>(<span class="ident">interner</span>)
-                        .<span class="ident">map_err</span>(<span class="ident">ParseError::lex</span>)<span class="question-mark">?</span>,
+            TokenKind::TemplateNoSubstitution(template_string) =&gt; {
+                <span class="kw">let </span>node = Literal::from(
+                    template_string
+                        .to_owned_cooked(interner)
+                        .map_err(ParseError::lex)<span class="question-mark">?</span>,
                 )
-                .<span class="ident">into</span>();
-                <span class="ident">cursor</span>.<span class="ident">next</span>(<span class="ident">interner</span>).<span class="ident">expect</span>(<span class="string">&quot;token disappeared&quot;</span>);
-                <span class="prelude-val">Ok</span>(<span class="ident">node</span>)
+                .into();
+                cursor.next(interner).expect(<span class="string">&quot;token disappeared&quot;</span>);
+                <span class="prelude-val">Ok</span>(node)
             }
-            <span class="ident">TokenKind::NumericLiteral</span>(<span class="ident">Numeric::Integer</span>(<span class="ident">num</span>)) =&gt; {
-                <span class="kw">let</span> <span class="ident">node</span> <span class="op">=</span> <span class="ident">Literal::from</span>(<span class="kw-2">*</span><span class="ident">num</span>).<span class="ident">into</span>();
-                <span class="ident">cursor</span>.<span class="ident">next</span>(<span class="ident">interner</span>).<span class="ident">expect</span>(<span class="string">&quot;token disappeared&quot;</span>);
-                <span class="prelude-val">Ok</span>(<span class="ident">node</span>)
+            TokenKind::NumericLiteral(Numeric::Integer(num)) =&gt; {
+                <span class="kw">let </span>node = Literal::from(<span class="kw-2">*</span>num).into();
+                cursor.next(interner).expect(<span class="string">&quot;token disappeared&quot;</span>);
+                <span class="prelude-val">Ok</span>(node)
             }
-            <span class="ident">TokenKind::NumericLiteral</span>(<span class="ident">Numeric::Rational</span>(<span class="ident">num</span>)) =&gt; {
-                <span class="kw">let</span> <span class="ident">node</span> <span class="op">=</span> <span class="ident">Literal::from</span>(<span class="kw-2">*</span><span class="ident">num</span>).<span class="ident">into</span>();
-                <span class="ident">cursor</span>.<span class="ident">next</span>(<span class="ident">interner</span>).<span class="ident">expect</span>(<span class="string">&quot;token disappeared&quot;</span>);
-                <span class="prelude-val">Ok</span>(<span class="ident">node</span>)
+            TokenKind::NumericLiteral(Numeric::Rational(num)) =&gt; {
+                <span class="kw">let </span>node = Literal::from(<span class="kw-2">*</span>num).into();
+                cursor.next(interner).expect(<span class="string">&quot;token disappeared&quot;</span>);
+                <span class="prelude-val">Ok</span>(node)
             }
-            <span class="ident">TokenKind::NumericLiteral</span>(<span class="ident">Numeric::BigInt</span>(<span class="ident">num</span>)) =&gt; {
-                <span class="kw">let</span> <span class="ident">node</span> <span class="op">=</span> <span class="ident">Literal::from</span>(<span class="ident">num</span>.<span class="ident">clone</span>()).<span class="ident">into</span>();
-                <span class="ident">cursor</span>.<span class="ident">next</span>(<span class="ident">interner</span>).<span class="ident">expect</span>(<span class="string">&quot;token disappeared&quot;</span>);
-                <span class="prelude-val">Ok</span>(<span class="ident">node</span>)
+            TokenKind::NumericLiteral(Numeric::BigInt(num)) =&gt; {
+                <span class="kw">let </span>node = Literal::from(num.clone()).into();
+                cursor.next(interner).expect(<span class="string">&quot;token disappeared&quot;</span>);
+                <span class="prelude-val">Ok</span>(node)
             }
-            <span class="ident">TokenKind::RegularExpressionLiteral</span>(<span class="ident">body</span>, <span class="ident">flags</span>) =&gt; {
-                <span class="kw">let</span> <span class="ident">node</span> <span class="op">=</span> <span class="ident">ast::Expression::from</span>(<span class="ident">New::from</span>(<span class="ident">Call::new</span>(
-                    <span class="ident">Identifier::new</span>(<span class="ident">Sym::REGEXP</span>).<span class="ident">into</span>(),
-                    <span class="macro">vec!</span>[<span class="ident">Literal::from</span>(<span class="kw-2">*</span><span class="ident">body</span>).<span class="ident">into</span>(), <span class="ident">Literal::from</span>(<span class="kw-2">*</span><span class="ident">flags</span>).<span class="ident">into</span>()].<span class="ident">into</span>(),
+            TokenKind::RegularExpressionLiteral(body, flags) =&gt; {
+                <span class="kw">let </span>node = ast::Expression::from(New::from(Call::new(
+                    Identifier::new(Sym::REGEXP).into(),
+                    <span class="macro">vec!</span>[Literal::from(<span class="kw-2">*</span>body).into(), Literal::from(<span class="kw-2">*</span>flags).into()].into(),
                 )));
-                <span class="ident">cursor</span>.<span class="ident">next</span>(<span class="ident">interner</span>).<span class="ident">expect</span>(<span class="string">&quot;token disappeared&quot;</span>);
-                <span class="prelude-val">Ok</span>(<span class="ident">node</span>)
+                cursor.next(interner).expect(<span class="string">&quot;token disappeared&quot;</span>);
+                <span class="prelude-val">Ok</span>(node)
             }
-            <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::Div</span>) =&gt; {
-                <span class="kw">let</span> <span class="ident">position</span> <span class="op">=</span> <span class="ident">tok</span>.<span class="ident">span</span>().<span class="ident">start</span>();
-                <span class="ident">cursor</span>.<span class="ident">next</span>(<span class="ident">interner</span>).<span class="ident">expect</span>(<span class="string">&quot;token disappeared&quot;</span>);
-                <span class="kw">let</span> <span class="ident">tok</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">lex_regex</span>(<span class="ident">position</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
+            TokenKind::Punctuator(Punctuator::Div) =&gt; {
+                <span class="kw">let </span>position = tok.span().start();
+                cursor.next(interner).expect(<span class="string">&quot;token disappeared&quot;</span>);
+                <span class="kw">let </span>tok = cursor.lex_regex(position, interner)<span class="question-mark">?</span>;
 
-                <span class="kw">if</span> <span class="kw">let</span> <span class="ident">TokenKind::RegularExpressionLiteral</span>(<span class="ident">body</span>, <span class="ident">flags</span>) <span class="op">=</span> <span class="kw-2">*</span><span class="ident">tok</span>.<span class="ident">kind</span>() {
-                    <span class="prelude-val">Ok</span>(<span class="ident">ast::Expression::from</span>(<span class="ident">New::from</span>(<span class="ident">Call::new</span>(
-                        <span class="ident">Identifier::new</span>(<span class="ident">Sym::REGEXP</span>).<span class="ident">into</span>(),
-                        <span class="macro">vec!</span>[<span class="ident">Literal::from</span>(<span class="ident">body</span>).<span class="ident">into</span>(), <span class="ident">Literal::from</span>(<span class="ident">flags</span>).<span class="ident">into</span>()].<span class="ident">into</span>(),
+                <span class="kw">if let </span>TokenKind::RegularExpressionLiteral(body, flags) = <span class="kw-2">*</span>tok.kind() {
+                    <span class="prelude-val">Ok</span>(ast::Expression::from(New::from(Call::new(
+                        Identifier::new(Sym::REGEXP).into(),
+                        <span class="macro">vec!</span>[Literal::from(body).into(), Literal::from(flags).into()].into(),
                     ))))
-                } <span class="kw">else</span> {
-                    <span class="comment">// A regex was expected and nothing else.</span>
-                    <span class="prelude-val">Err</span>(<span class="ident">ParseError::unexpected</span>(
-                        <span class="ident">tok</span>.<span class="ident">to_string</span>(<span class="ident">interner</span>),
-                        <span class="ident">tok</span>.<span class="ident">span</span>(),
+                } <span class="kw">else </span>{
+                    <span class="comment">// A regex was expected and nothing else.
+                    </span><span class="prelude-val">Err</span>(ParseError::unexpected(
+                        tok.to_string(interner),
+                        tok.span(),
                         <span class="string">&quot;regular expression literal&quot;</span>,
                     ))
                 }
             }
-            <span class="ident">TokenKind::TemplateMiddle</span>(<span class="ident">template_string</span>) =&gt; {
-                <span class="kw">let</span> <span class="ident">parser</span> <span class="op">=</span> <span class="ident">TemplateLiteral::new</span>(
-                    <span class="self">self</span>.<span class="ident">allow_yield</span>,
-                    <span class="self">self</span>.<span class="ident">allow_await</span>,
-                    <span class="ident">tok</span>.<span class="ident">span</span>().<span class="ident">start</span>(),
-                    <span class="ident">template_string</span>
-                        .<span class="ident">to_owned_cooked</span>(<span class="ident">interner</span>)
-                        .<span class="ident">map_err</span>(<span class="ident">ParseError::lex</span>)<span class="question-mark">?</span>,
+            TokenKind::TemplateMiddle(template_string) =&gt; {
+                <span class="kw">let </span>parser = TemplateLiteral::new(
+                    <span class="self">self</span>.allow_yield,
+                    <span class="self">self</span>.allow_await,
+                    tok.span().start(),
+                    template_string
+                        .to_owned_cooked(interner)
+                        .map_err(ParseError::lex)<span class="question-mark">?</span>,
                 );
-                <span class="ident">cursor</span>.<span class="ident">next</span>(<span class="ident">interner</span>).<span class="ident">expect</span>(<span class="string">&quot;token disappeared&quot;</span>);
-                <span class="ident">parser</span>.<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>).<span class="ident">map</span>(<span class="ident">Into::into</span>)
+                cursor.next(interner).expect(<span class="string">&quot;token disappeared&quot;</span>);
+                parser.parse(cursor, interner).map(Into::into)
             }
-            <span class="kw">_</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">ParseError::unexpected</span>(
-                <span class="ident">tok</span>.<span class="ident">to_string</span>(<span class="ident">interner</span>),
-                <span class="ident">tok</span>.<span class="ident">span</span>(),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(ParseError::unexpected(
+                tok.to_string(interner),
+                tok.span(),
                 <span class="string">&quot;primary expression&quot;</span>,
             )),
         }
     }
 }
 
-<span class="doccomment">/// Parses a `CoverParenthesizedExpressionAndArrowParameterList` expression.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [ECMAScript specification][spec]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-CoverParenthesizedExpressionAndArrowParameterList</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct</span> <span class="ident">CoverParenthesizedExpressionAndArrowParameterList</span> {
-    <span class="ident">name</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Identifier</span><span class="op">&gt;</span>,
-    <span class="ident">allow_yield</span>: <span class="ident">AllowYield</span>,
-    <span class="ident">allow_await</span>: <span class="ident">AllowAwait</span>,
+<span class="doccomment">/// Parses a `CoverParenthesizedExpressionAndArrowParameterList` expression.
+///
+/// More information:
+///  - [ECMAScript specification][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#prod-CoverParenthesizedExpressionAndArrowParameterList
+</span><span class="attribute">#[derive(Debug, Clone, Copy)]
+</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>CoverParenthesizedExpressionAndArrowParameterList {
+    name: <span class="prelude-ty">Option</span>&lt;Identifier&gt;,
+    allow_yield: AllowYield,
+    allow_await: AllowAwait,
 }
 
-<span class="kw">impl</span> <span class="ident">CoverParenthesizedExpressionAndArrowParameterList</span> {
-    <span class="doccomment">/// Creates a new `CoverParenthesizedExpressionAndArrowParameterList` parser.</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">N</span>, <span class="ident">Y</span>, <span class="ident">A</span><span class="op">&gt;</span>(<span class="ident">name</span>: <span class="ident">N</span>, <span class="ident">allow_yield</span>: <span class="ident">Y</span>, <span class="ident">allow_await</span>: <span class="ident">A</span>) -&gt; <span class="self">Self</span>
-    <span class="kw">where</span>
-        <span class="ident">N</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Identifier</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-        <span class="ident">Y</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowYield</span><span class="op">&gt;</span>,
-        <span class="ident">A</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowAwait</span><span class="op">&gt;</span>,
+<span class="kw">impl </span>CoverParenthesizedExpressionAndArrowParameterList {
+    <span class="doccomment">/// Creates a new `CoverParenthesizedExpressionAndArrowParameterList` parser.
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new&lt;N, Y, A&gt;(name: N, allow_yield: Y, allow_await: A) -&gt; <span class="self">Self
+    </span><span class="kw">where
+        </span>N: Into&lt;<span class="prelude-ty">Option</span>&lt;Identifier&gt;&gt;,
+        Y: Into&lt;AllowYield&gt;,
+        A: Into&lt;AllowAwait&gt;,
     {
-        <span class="self">Self</span> {
-            <span class="ident">name</span>: <span class="ident">name</span>.<span class="ident">into</span>(),
-            <span class="ident">allow_yield</span>: <span class="ident">allow_yield</span>.<span class="ident">into</span>(),
-            <span class="ident">allow_await</span>: <span class="ident">allow_await</span>.<span class="ident">into</span>(),
+        <span class="self">Self </span>{
+            name: name.into(),
+            allow_yield: allow_yield.into(),
+            allow_await: allow_await.into(),
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="ident">TokenParser</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">CoverParenthesizedExpressionAndArrowParameterList</span>
-<span class="kw">where</span>
-    <span class="ident">R</span>: <span class="ident">Read</span>,
+<span class="kw">impl</span>&lt;R&gt; TokenParser&lt;R&gt; <span class="kw">for </span>CoverParenthesizedExpressionAndArrowParameterList
+<span class="kw">where
+    </span>R: Read,
 {
-    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">ast::Expression</span>;
+    <span class="kw">type </span>Output = ast::Expression;
 
-    <span class="kw">fn</span> <span class="ident">parse</span>(<span class="self">self</span>, <span class="ident">cursor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Interner</span>) -&gt; <span class="ident">ParseResult</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span><span class="op">&gt;</span> {
-        <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-        <span class="kw">enum</span> <span class="ident">InnerExpression</span> {
-            <span class="ident">Expression</span>(<span class="ident">ast::Expression</span>),
-            <span class="ident">SpreadObject</span>(<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">ObjectPatternElement</span><span class="op">&gt;</span>),
-            <span class="ident">SpreadArray</span>(<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">ArrayPatternElement</span><span class="op">&gt;</span>),
-            <span class="ident">SpreadBinding</span>(<span class="ident">Identifier</span>),
+    <span class="kw">fn </span>parse(<span class="self">self</span>, cursor: <span class="kw-2">&amp;mut </span>Cursor&lt;R&gt;, interner: <span class="kw-2">&amp;mut </span>Interner) -&gt; ParseResult&lt;<span class="self">Self</span>::Output&gt; {
+        <span class="attribute">#[derive(Debug)]
+        </span><span class="kw">enum </span>InnerExpression {
+            Expression(ast::Expression),
+            SpreadObject(Vec&lt;ObjectPatternElement&gt;),
+            SpreadArray(Vec&lt;ArrayPatternElement&gt;),
+            SpreadBinding(Identifier),
         }
 
-        <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(
+        <span class="kw">let </span>_timer = Profiler::global().start_event(
             <span class="string">&quot;CoverParenthesizedExpressionAndArrowParameterList&quot;</span>,
             <span class="string">&quot;Parsing&quot;</span>,
         );
 
-        <span class="kw">let</span> <span class="ident">start_span</span> <span class="op">=</span> <span class="ident">cursor</span>
-            .<span class="ident">peek</span>(<span class="number">0</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>
-            .<span class="ident">ok_or</span>(<span class="ident">ParseError::AbruptEnd</span>)<span class="question-mark">?</span>
-            .<span class="ident">span</span>();
+        <span class="kw">let </span>start_span = cursor
+            .peek(<span class="number">0</span>, interner)<span class="question-mark">?
+            </span>.ok_or(ParseError::AbruptEnd)<span class="question-mark">?
+            </span>.span();
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">expressions</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">tailing_comma</span> <span class="op">=</span> <span class="prelude-val">None</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>expressions = Vec::new();
+        <span class="kw">let </span><span class="kw-2">mut </span>tailing_comma = <span class="prelude-val">None</span>;
 
-        <span class="kw">let</span> <span class="ident">close_span</span> <span class="op">=</span> <span class="kw">loop</span> {
-            <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">0</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>.<span class="ident">ok_or</span>(<span class="ident">ParseError::AbruptEnd</span>)<span class="question-mark">?</span>;
-            <span class="kw">match</span> <span class="ident">next</span>.<span class="ident">kind</span>() {
-                <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::CloseParen</span>) =&gt; {
-                    <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="ident">next</span>.<span class="ident">span</span>();
-                    <span class="ident">cursor</span>.<span class="ident">next</span>(<span class="ident">interner</span>).<span class="ident">expect</span>(<span class="string">&quot;token disappeared&quot;</span>);
-                    <span class="kw">break</span> <span class="ident">span</span>;
+        <span class="kw">let </span>close_span = <span class="kw">loop </span>{
+            <span class="kw">let </span>next = cursor.peek(<span class="number">0</span>, interner)<span class="question-mark">?</span>.ok_or(ParseError::AbruptEnd)<span class="question-mark">?</span>;
+            <span class="kw">match </span>next.kind() {
+                TokenKind::Punctuator(Punctuator::CloseParen) =&gt; {
+                    <span class="kw">let </span>span = next.span();
+                    cursor.next(interner).expect(<span class="string">&quot;token disappeared&quot;</span>);
+                    <span class="kw">break </span>span;
                 }
-                <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::Comma</span>) =&gt; {
-                    <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="ident">next</span>.<span class="ident">span</span>();
-                    <span class="ident">cursor</span>.<span class="ident">next</span>(<span class="ident">interner</span>).<span class="ident">expect</span>(<span class="string">&quot;token disappeared&quot;</span>);
-                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">token</span>) <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">next_if</span>(<span class="ident">Punctuator::CloseParen</span>, <span class="ident">interner</span>)<span class="question-mark">?</span> {
-                        <span class="ident">tailing_comma</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">span</span>);
-                        <span class="kw">break</span> <span class="ident">token</span>.<span class="ident">span</span>();
+                TokenKind::Punctuator(Punctuator::Comma) =&gt; {
+                    <span class="kw">let </span>span = next.span();
+                    cursor.next(interner).expect(<span class="string">&quot;token disappeared&quot;</span>);
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(token) = cursor.next_if(Punctuator::CloseParen, interner)<span class="question-mark">? </span>{
+                        tailing_comma = <span class="prelude-val">Some</span>(span);
+                        <span class="kw">break </span>token.span();
                     }
                 }
-                <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::Spread</span>) =&gt; {
-                    <span class="ident">cursor</span>.<span class="ident">next</span>(<span class="ident">interner</span>).<span class="ident">expect</span>(<span class="string">&quot;token disappeared&quot;</span>);
-                    <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">0</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>.<span class="ident">ok_or</span>(<span class="ident">ParseError::AbruptEnd</span>)<span class="question-mark">?</span>;
-                    <span class="kw">match</span> <span class="ident">next</span>.<span class="ident">kind</span>() {
-                        <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::OpenBlock</span>) =&gt; {
-                            <span class="kw">let</span> <span class="ident">bindings</span> <span class="op">=</span>
-                                <span class="ident">ObjectBindingPattern::new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
-                                    .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
-                            <span class="ident">expressions</span>.<span class="ident">push</span>(<span class="ident">InnerExpression::SpreadObject</span>(<span class="ident">bindings</span>));
+                TokenKind::Punctuator(Punctuator::Spread) =&gt; {
+                    cursor.next(interner).expect(<span class="string">&quot;token disappeared&quot;</span>);
+                    <span class="kw">let </span>next = cursor.peek(<span class="number">0</span>, interner)<span class="question-mark">?</span>.ok_or(ParseError::AbruptEnd)<span class="question-mark">?</span>;
+                    <span class="kw">match </span>next.kind() {
+                        TokenKind::Punctuator(Punctuator::OpenBlock) =&gt; {
+                            <span class="kw">let </span>bindings =
+                                ObjectBindingPattern::new(<span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await)
+                                    .parse(cursor, interner)<span class="question-mark">?</span>;
+                            expressions.push(InnerExpression::SpreadObject(bindings));
                         }
-                        <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::OpenBracket</span>) =&gt; {
-                            <span class="kw">let</span> <span class="ident">bindings</span> <span class="op">=</span>
-                                <span class="ident">ArrayBindingPattern::new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
-                                    .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
-                            <span class="ident">expressions</span>.<span class="ident">push</span>(<span class="ident">InnerExpression::SpreadArray</span>(<span class="ident">bindings</span>));
+                        TokenKind::Punctuator(Punctuator::OpenBracket) =&gt; {
+                            <span class="kw">let </span>bindings =
+                                ArrayBindingPattern::new(<span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await)
+                                    .parse(cursor, interner)<span class="question-mark">?</span>;
+                            expressions.push(InnerExpression::SpreadArray(bindings));
                         }
-                        <span class="kw">_</span> =&gt; {
-                            <span class="kw">let</span> <span class="ident">binding</span> <span class="op">=</span>
-                                <span class="ident">BindingIdentifier::new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
-                                    .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
-                            <span class="ident">expressions</span>.<span class="ident">push</span>(<span class="ident">InnerExpression::SpreadBinding</span>(<span class="ident">binding</span>));
+                        <span class="kw">_ </span>=&gt; {
+                            <span class="kw">let </span>binding =
+                                BindingIdentifier::new(<span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await)
+                                    .parse(cursor, interner)<span class="question-mark">?</span>;
+                            expressions.push(InnerExpression::SpreadBinding(binding));
                         }
                     }
                 }
-                <span class="kw">_</span> =&gt; {
-                    <span class="kw">let</span> <span class="ident">expression</span> <span class="op">=</span>
-                        <span class="ident">Expression::new</span>(<span class="self">self</span>.<span class="ident">name</span>, <span class="bool-val">true</span>, <span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
-                            .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
-                    <span class="ident">expressions</span>.<span class="ident">push</span>(<span class="ident">InnerExpression::Expression</span>(<span class="ident">expression</span>));
+                <span class="kw">_ </span>=&gt; {
+                    <span class="kw">let </span>expression =
+                        Expression::new(<span class="self">self</span>.name, <span class="bool-val">true</span>, <span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await)
+                            .parse(cursor, interner)<span class="question-mark">?</span>;
+                    expressions.push(InnerExpression::Expression(expression));
                 }
             }
         };
 
-        <span class="kw">let</span> <span class="ident">is_arrow</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::Arrow</span>)) <span class="op">=</span>
-            <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">0</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>.<span class="ident">map</span>(<span class="ident">Token::kind</span>)
+        <span class="kw">let </span>is_arrow = <span class="kw">if let </span><span class="prelude-val">Some</span>(TokenKind::Punctuator(Punctuator::Arrow)) =
+            cursor.peek(<span class="number">0</span>, interner)<span class="question-mark">?</span>.map(Token::kind)
         {
-            <span class="op">!</span><span class="ident">cursor</span>
-                .<span class="ident">peek_is_line_terminator</span>(<span class="number">0</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>
-                .<span class="ident">ok_or</span>(<span class="ident">ParseError::AbruptEnd</span>)<span class="question-mark">?</span>
-        } <span class="kw">else</span> {
-            <span class="bool-val">false</span>
-        };
+            !cursor
+                .peek_is_line_terminator(<span class="number">0</span>, interner)<span class="question-mark">?
+                </span>.ok_or(ParseError::AbruptEnd)<span class="question-mark">?
+        </span>} <span class="kw">else </span>{
+            <span class="bool-val">false
+        </span>};
 
-        <span class="comment">// If the next token is not an arrow, we know that we must parse a parenthesized expression.</span>
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">is_arrow</span> {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">span</span>) <span class="op">=</span> <span class="ident">tailing_comma</span> {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::unexpected</span>(
-                    <span class="ident">Punctuator::Comma</span>,
-                    <span class="ident">span</span>,
+        <span class="comment">// If the next token is not an arrow, we know that we must parse a parenthesized expression.
+        </span><span class="kw">if </span>!is_arrow {
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(span) = tailing_comma {
+                <span class="kw">return </span><span class="prelude-val">Err</span>(ParseError::unexpected(
+                    Punctuator::Comma,
+                    span,
                     <span class="string">&quot;trailing comma in parenthesized expression&quot;</span>,
                 ));
             }
-            <span class="kw">if</span> <span class="ident">expressions</span>.<span class="ident">is_empty</span>() {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::unexpected</span>(
-                    <span class="ident">Punctuator::CloseParen</span>,
-                    <span class="ident">close_span</span>,
+            <span class="kw">if </span>expressions.is_empty() {
+                <span class="kw">return </span><span class="prelude-val">Err</span>(ParseError::unexpected(
+                    Punctuator::CloseParen,
+                    close_span,
                     <span class="string">&quot;empty parenthesized expression&quot;</span>,
                 ));
             }
-            <span class="kw">if</span> <span class="ident">expressions</span>.<span class="ident">len</span>() <span class="op">!</span><span class="op">=</span> <span class="number">1</span> {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::unexpected</span>(
-                    <span class="ident">Punctuator::CloseParen</span>,
-                    <span class="ident">close_span</span>,
+            <span class="kw">if </span>expressions.len() != <span class="number">1 </span>{
+                <span class="kw">return </span><span class="prelude-val">Err</span>(ParseError::unexpected(
+                    Punctuator::CloseParen,
+                    close_span,
                     <span class="string">&quot;multiple expressions in parenthesized expression&quot;</span>,
                 ));
             }
-            <span class="kw">if</span> <span class="kw">let</span> <span class="ident">InnerExpression::Expression</span>(<span class="ident">expression</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">expressions</span>[<span class="number">0</span>] {
-                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">expression</span>.<span class="ident">clone</span>());
+            <span class="kw">if let </span>InnerExpression::Expression(expression) = <span class="kw-2">&amp;</span>expressions[<span class="number">0</span>] {
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(expression.clone());
             }
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::unexpected</span>(
-                <span class="ident">Punctuator::CloseParen</span>,
-                <span class="ident">close_span</span>,
+            <span class="kw">return </span><span class="prelude-val">Err</span>(ParseError::unexpected(
+                Punctuator::CloseParen,
+                close_span,
                 <span class="string">&quot;parenthesized expression with spread expressions&quot;</span>,
             ));
         }
 
-        <span class="comment">// We know that we must parse an arrow function.</span>
-        <span class="comment">// We parse the expressions in to a parameter list.</span>
+        <span class="comment">// We know that we must parse an arrow function.
+        // We parse the expressions in to a parameter list.
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">parameters</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
+        </span><span class="kw">let </span><span class="kw-2">mut </span>parameters = Vec::new();
 
-        <span class="kw">for</span> <span class="ident">expression</span> <span class="kw">in</span> <span class="ident">expressions</span> {
-            <span class="kw">match</span> <span class="ident">expression</span> {
-                <span class="ident">InnerExpression::Expression</span>(<span class="ident">node</span>) =&gt; {
-                    <span class="ident">expression_to_formal_parameters</span>(
-                        <span class="kw-2">&amp;</span><span class="ident">node</span>,
-                        <span class="kw-2">&amp;mut</span> <span class="ident">parameters</span>,
-                        <span class="ident">cursor</span>.<span class="ident">strict_mode</span>(),
-                        <span class="ident">start_span</span>,
+        <span class="kw">for </span>expression <span class="kw">in </span>expressions {
+            <span class="kw">match </span>expression {
+                InnerExpression::Expression(node) =&gt; {
+                    expression_to_formal_parameters(
+                        <span class="kw-2">&amp;</span>node,
+                        <span class="kw-2">&amp;mut </span>parameters,
+                        cursor.strict_mode(),
+                        start_span,
                     )<span class="question-mark">?</span>;
                 }
-                <span class="ident">InnerExpression::SpreadObject</span>(<span class="ident">bindings</span>) =&gt; {
-                    <span class="kw">let</span> <span class="ident">declaration</span> <span class="op">=</span> <span class="ident">Variable::from_pattern</span>(<span class="ident">bindings</span>.<span class="ident">into</span>(), <span class="prelude-val">None</span>);
-                    <span class="kw">let</span> <span class="ident">parameter</span> <span class="op">=</span> <span class="ident">FormalParameter::new</span>(<span class="ident">declaration</span>, <span class="bool-val">true</span>);
-                    <span class="ident">parameters</span>.<span class="ident">push</span>(<span class="ident">parameter</span>);
+                InnerExpression::SpreadObject(bindings) =&gt; {
+                    <span class="kw">let </span>declaration = Variable::from_pattern(bindings.into(), <span class="prelude-val">None</span>);
+                    <span class="kw">let </span>parameter = FormalParameter::new(declaration, <span class="bool-val">true</span>);
+                    parameters.push(parameter);
                 }
-                <span class="ident">InnerExpression::SpreadArray</span>(<span class="ident">bindings</span>) =&gt; {
-                    <span class="kw">let</span> <span class="ident">declaration</span> <span class="op">=</span> <span class="ident">Variable::from_pattern</span>(<span class="ident">bindings</span>.<span class="ident">into</span>(), <span class="prelude-val">None</span>);
-                    <span class="kw">let</span> <span class="ident">parameter</span> <span class="op">=</span> <span class="ident">FormalParameter::new</span>(<span class="ident">declaration</span>, <span class="bool-val">true</span>);
-                    <span class="ident">parameters</span>.<span class="ident">push</span>(<span class="ident">parameter</span>);
+                InnerExpression::SpreadArray(bindings) =&gt; {
+                    <span class="kw">let </span>declaration = Variable::from_pattern(bindings.into(), <span class="prelude-val">None</span>);
+                    <span class="kw">let </span>parameter = FormalParameter::new(declaration, <span class="bool-val">true</span>);
+                    parameters.push(parameter);
                 }
-                <span class="ident">InnerExpression::SpreadBinding</span>(<span class="ident">ident</span>) =&gt; {
-                    <span class="kw">let</span> <span class="ident">declaration</span> <span class="op">=</span> <span class="ident">Variable::from_identifier</span>(<span class="ident">ident</span>, <span class="prelude-val">None</span>);
-                    <span class="kw">let</span> <span class="ident">parameter</span> <span class="op">=</span> <span class="ident">FormalParameter::new</span>(<span class="ident">declaration</span>, <span class="bool-val">true</span>);
-                    <span class="ident">parameters</span>.<span class="ident">push</span>(<span class="ident">parameter</span>);
+                InnerExpression::SpreadBinding(ident) =&gt; {
+                    <span class="kw">let </span>declaration = Variable::from_identifier(ident, <span class="prelude-val">None</span>);
+                    <span class="kw">let </span>parameter = FormalParameter::new(declaration, <span class="bool-val">true</span>);
+                    parameters.push(parameter);
                 }
             }
         }
 
-        <span class="kw">let</span> <span class="ident">parameters</span> <span class="op">=</span> <span class="ident">FormalParameterList::from</span>(<span class="ident">parameters</span>);
+        <span class="kw">let </span>parameters = FormalParameterList::from(parameters);
 
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">span</span>) <span class="op">=</span> <span class="ident">tailing_comma</span> {
-            <span class="kw">if</span> <span class="ident">parameters</span>.<span class="ident">has_rest_parameter</span>() {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::general</span>(
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(span) = tailing_comma {
+            <span class="kw">if </span>parameters.has_rest_parameter() {
+                <span class="kw">return </span><span class="prelude-val">Err</span>(ParseError::general(
                     <span class="string">&quot;rest parameter must be last formal parameter&quot;</span>,
-                    <span class="ident">span</span>.<span class="ident">start</span>(),
+                    span.start(),
                 ));
             }
         }
 
-        <span class="kw">if</span> <span class="ident">parameters</span>.<span class="ident">contains_yield_expression</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::general</span>(
+        <span class="kw">if </span>contains(<span class="kw-2">&amp;</span>parameters, ContainsSymbol::YieldExpression) {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(ParseError::general(
                 <span class="string">&quot;yield expression is not allowed in formal parameter list of arrow function&quot;</span>,
-                <span class="ident">start_span</span>.<span class="ident">start</span>(),
+                start_span.start(),
             ));
         }
 
-        <span class="prelude-val">Ok</span>(<span class="ident">ast::Expression::FormalParameterList</span>(<span class="ident">parameters</span>))
+        <span class="prelude-val">Ok</span>(ast::Expression::FormalParameterList(parameters))
     }
 }
 
-<span class="doccomment">/// Convert an expression to a formal parameter and append it to the given parameter list.</span>
-<span class="kw">fn</span> <span class="ident">expression_to_formal_parameters</span>(
-    <span class="ident">node</span>: <span class="kw-2">&amp;</span><span class="ident">ast::Expression</span>,
-    <span class="ident">parameters</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">FormalParameter</span><span class="op">&gt;</span>,
-    <span class="ident">strict</span>: <span class="ident">bool</span>,
-    <span class="ident">span</span>: <span class="ident">Span</span>,
-) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">ParseError</span><span class="op">&gt;</span> {
-    <span class="kw">match</span> <span class="ident">node</span> {
-        <span class="ident">ast::Expression::Identifier</span>(<span class="ident">identifier</span>) <span class="kw">if</span> <span class="ident">strict</span> <span class="op">&amp;&amp;</span> <span class="kw-2">*</span><span class="ident">identifier</span> <span class="op">==</span> <span class="ident">Sym::EVAL</span> =&gt; {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::general</span>(
+<span class="doccomment">/// Convert an expression to a formal parameter and append it to the given parameter list.
+</span><span class="kw">fn </span>expression_to_formal_parameters(
+    node: <span class="kw-2">&amp;</span>ast::Expression,
+    parameters: <span class="kw-2">&amp;mut </span>Vec&lt;FormalParameter&gt;,
+    strict: bool,
+    span: Span,
+) -&gt; <span class="prelude-ty">Result</span>&lt;(), ParseError&gt; {
+    <span class="kw">match </span>node {
+        ast::Expression::Identifier(identifier) <span class="kw">if </span>strict &amp;&amp; <span class="kw-2">*</span>identifier == Sym::EVAL =&gt; {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(ParseError::general(
                 <span class="string">&quot;parameter name &#39;eval&#39; not allowed in strict mode&quot;</span>,
-                <span class="ident">span</span>.<span class="ident">start</span>(),
+                span.start(),
             ));
         }
-        <span class="ident">ast::Expression::Identifier</span>(<span class="ident">identifier</span>) <span class="kw">if</span> <span class="ident">strict</span> <span class="op">&amp;&amp;</span> <span class="kw-2">*</span><span class="ident">identifier</span> <span class="op">==</span> <span class="ident">Sym::ARGUMENTS</span> =&gt; {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::general</span>(
+        ast::Expression::Identifier(identifier) <span class="kw">if </span>strict &amp;&amp; <span class="kw-2">*</span>identifier == Sym::ARGUMENTS =&gt; {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(ParseError::general(
                 <span class="string">&quot;parameter name &#39;arguments&#39; not allowed in strict mode&quot;</span>,
-                <span class="ident">span</span>.<span class="ident">start</span>(),
+                span.start(),
             ));
         }
-        <span class="ident">ast::Expression::Identifier</span>(<span class="ident">identifier</span>) =&gt; {
-            <span class="ident">parameters</span>.<span class="ident">push</span>(<span class="ident">FormalParameter::new</span>(
-                <span class="ident">Variable::from_identifier</span>(<span class="kw-2">*</span><span class="ident">identifier</span>, <span class="prelude-val">None</span>),
+        ast::Expression::Identifier(identifier) =&gt; {
+            parameters.push(FormalParameter::new(
+                Variable::from_identifier(<span class="kw-2">*</span>identifier, <span class="prelude-val">None</span>),
                 <span class="bool-val">false</span>,
             ));
         }
-        <span class="ident">ast::Expression::Binary</span>(<span class="ident">bin_op</span>) <span class="kw">if</span> <span class="ident">bin_op</span>.<span class="ident">op</span>() <span class="op">==</span> <span class="ident">BinaryOp::Comma</span> =&gt; {
-            <span class="ident">expression_to_formal_parameters</span>(<span class="ident">bin_op</span>.<span class="ident">lhs</span>(), <span class="ident">parameters</span>, <span class="ident">strict</span>, <span class="ident">span</span>)<span class="question-mark">?</span>;
-            <span class="ident">expression_to_formal_parameters</span>(<span class="ident">bin_op</span>.<span class="ident">rhs</span>(), <span class="ident">parameters</span>, <span class="ident">strict</span>, <span class="ident">span</span>)<span class="question-mark">?</span>;
+        ast::Expression::Binary(bin_op) <span class="kw">if </span>bin_op.op() == BinaryOp::Comma =&gt; {
+            expression_to_formal_parameters(bin_op.lhs(), parameters, strict, span)<span class="question-mark">?</span>;
+            expression_to_formal_parameters(bin_op.rhs(), parameters, strict, span)<span class="question-mark">?</span>;
         }
-        <span class="ident">ast::Expression::Assign</span>(<span class="ident">assign</span>) =&gt; <span class="kw">match</span> <span class="ident">assign</span>.<span class="ident">lhs</span>() {
-            <span class="ident">AssignTarget::Identifier</span>(<span class="ident">ident</span>) =&gt; {
-                <span class="ident">parameters</span>.<span class="ident">push</span>(<span class="ident">FormalParameter::new</span>(
-                    <span class="ident">Variable::from_identifier</span>(<span class="kw-2">*</span><span class="ident">ident</span>, <span class="prelude-val">Some</span>(<span class="ident">assign</span>.<span class="ident">rhs</span>().<span class="ident">clone</span>())),
+        ast::Expression::Assign(assign) =&gt; <span class="kw">match </span>assign.lhs() {
+            AssignTarget::Identifier(ident) =&gt; {
+                parameters.push(FormalParameter::new(
+                    Variable::from_identifier(<span class="kw-2">*</span>ident, <span class="prelude-val">Some</span>(assign.rhs().clone())),
                     <span class="bool-val">false</span>,
                 ));
             }
-            <span class="ident">AssignTarget::Pattern</span>(<span class="ident">pattern</span>) =&gt; <span class="kw">match</span> <span class="ident">pattern</span> {
-                <span class="ident">Pattern::Object</span>(<span class="ident">pattern</span>) =&gt; {
-                    <span class="ident">parameters</span>.<span class="ident">push</span>(<span class="ident">FormalParameter::new</span>(
-                        <span class="ident">Variable::from_pattern</span>(
-                            <span class="ident">pattern</span>.<span class="ident">bindings</span>().<span class="ident">to_vec</span>().<span class="ident">into</span>(),
-                            <span class="prelude-val">Some</span>(<span class="ident">assign</span>.<span class="ident">rhs</span>().<span class="ident">clone</span>()),
+            AssignTarget::Pattern(pattern) =&gt; <span class="kw">match </span>pattern {
+                Pattern::Object(pattern) =&gt; {
+                    parameters.push(FormalParameter::new(
+                        Variable::from_pattern(
+                            pattern.bindings().to_vec().into(),
+                            <span class="prelude-val">Some</span>(assign.rhs().clone()),
                         ),
                         <span class="bool-val">false</span>,
                     ));
                 }
-                <span class="ident">Pattern::Array</span>(<span class="ident">pattern</span>) =&gt; {
-                    <span class="ident">parameters</span>.<span class="ident">push</span>(<span class="ident">FormalParameter::new</span>(
-                        <span class="ident">Variable::from_pattern</span>(
-                            <span class="ident">pattern</span>.<span class="ident">bindings</span>().<span class="ident">to_vec</span>().<span class="ident">into</span>(),
-                            <span class="prelude-val">Some</span>(<span class="ident">assign</span>.<span class="ident">rhs</span>().<span class="ident">clone</span>()),
+                Pattern::Array(pattern) =&gt; {
+                    parameters.push(FormalParameter::new(
+                        Variable::from_pattern(
+                            pattern.bindings().to_vec().into(),
+                            <span class="prelude-val">Some</span>(assign.rhs().clone()),
                         ),
                         <span class="bool-val">false</span>,
                     ));
                 }
             },
-            <span class="ident">AssignTarget::Access</span>(<span class="kw">_</span>) =&gt; {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::general</span>(
+            AssignTarget::Access(<span class="kw">_</span>) =&gt; {
+                <span class="kw">return </span><span class="prelude-val">Err</span>(ParseError::general(
                     <span class="string">&quot;invalid initialization expression in formal parameter list&quot;</span>,
-                    <span class="ident">span</span>.<span class="ident">start</span>(),
+                    span.start(),
                 ));
             }
         },
-        <span class="ident">ast::Expression::ObjectLiteral</span>(<span class="ident">object</span>) =&gt; {
-            <span class="kw">let</span> <span class="ident">pattern</span> <span class="op">=</span> <span class="ident">object</span>.<span class="ident">to_pattern</span>(<span class="ident">strict</span>).<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-                <span class="ident">ParseError::general</span>(
+        ast::Expression::ObjectLiteral(object) =&gt; {
+            <span class="kw">let </span>pattern = object.to_pattern(strict).ok_or_else(|| {
+                ParseError::general(
                     <span class="string">&quot;invalid object binding pattern in formal parameter list&quot;</span>,
-                    <span class="ident">span</span>.<span class="ident">start</span>(),
+                    span.start(),
                 )
             })<span class="question-mark">?</span>;
 
-            <span class="ident">parameters</span>.<span class="ident">push</span>(<span class="ident">FormalParameter::new</span>(
-                <span class="ident">Variable::from_pattern</span>(<span class="ident">pattern</span>.<span class="ident">into</span>(), <span class="prelude-val">None</span>),
+            parameters.push(FormalParameter::new(
+                Variable::from_pattern(pattern.into(), <span class="prelude-val">None</span>),
                 <span class="bool-val">false</span>,
             ));
         }
-        <span class="ident">ast::Expression::ArrayLiteral</span>(<span class="ident">array</span>) =&gt; {
-            <span class="kw">let</span> <span class="ident">pattern</span> <span class="op">=</span> <span class="ident">array</span>.<span class="ident">to_pattern</span>(<span class="ident">strict</span>).<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-                <span class="ident">ParseError::general</span>(
+        ast::Expression::ArrayLiteral(array) =&gt; {
+            <span class="kw">let </span>pattern = array.to_pattern(strict).ok_or_else(|| {
+                ParseError::general(
                     <span class="string">&quot;invalid array binding pattern in formal parameter list&quot;</span>,
-                    <span class="ident">span</span>.<span class="ident">start</span>(),
+                    span.start(),
                 )
             })<span class="question-mark">?</span>;
 
-            <span class="ident">parameters</span>.<span class="ident">push</span>(<span class="ident">FormalParameter::new</span>(
-                <span class="ident">Variable::from_pattern</span>(<span class="ident">pattern</span>.<span class="ident">into</span>(), <span class="prelude-val">None</span>),
+            parameters.push(FormalParameter::new(
+                Variable::from_pattern(pattern.into(), <span class="prelude-val">None</span>),
                 <span class="bool-val">false</span>,
             ));
         }
-        <span class="kw">_</span> =&gt; {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::unexpected</span>(
-                <span class="string">&quot;)&quot;</span>.<span class="ident">to_string</span>(),
-                <span class="ident">span</span>,
+        <span class="kw">_ </span>=&gt; {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(ParseError::unexpected(
+                <span class="string">&quot;)&quot;</span>.to_string(),
+                span,
                 <span class="string">&quot;parenthesized expression with non-binding expression&quot;</span>,
             ));
         }
@@ -1161,4 +1163,4 @@
     <span class="prelude-val">Ok</span>(())
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0 (a55dd71d5 2022-09-19)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0 (897e37553 2022-11-02)" ></div></body></html>

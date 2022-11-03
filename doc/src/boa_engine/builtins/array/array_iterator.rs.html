@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_engine/src/builtins/array/array_iterator.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>array_iterator.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_engine/src/builtins/array/array_iterator.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>array_iterator.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container">
                     <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../boa_engine/index.html">
                         <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -149,154 +149,154 @@
 <span id="147">147</span>
 <span id="148">148</span>
 <span id="149">149</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">builtins</span>::{<span class="ident">function::make_builtin_fn</span>, <span class="ident">iterable::create_iter_result_object</span>, <span class="ident">Array</span>, <span class="ident">JsValue</span>},
-    <span class="ident">error::JsNativeError</span>,
-    <span class="ident">object</span>::{<span class="ident">JsObject</span>, <span class="ident">ObjectData</span>},
-    <span class="ident">property</span>::{<span class="ident">PropertyDescriptor</span>, <span class="ident">PropertyNameKind</span>},
-    <span class="ident">symbol::WellKnownSymbols</span>,
-    <span class="ident">Context</span>, <span class="ident">JsResult</span>,
+</pre><pre class="rust"><code><span class="kw">use crate</span>::{
+    builtins::{function::make_builtin_fn, iterable::create_iter_result_object, Array, JsValue},
+    error::JsNativeError,
+    object::{JsObject, ObjectData},
+    property::{PropertyDescriptor, PropertyNameKind},
+    symbol::WellKnownSymbols,
+    Context, JsResult,
 };
-<span class="kw">use</span> <span class="ident">boa_gc</span>::{<span class="ident">Finalize</span>, <span class="ident">Trace</span>};
-<span class="kw">use</span> <span class="ident">boa_profiler::Profiler</span>;
+<span class="kw">use </span>boa_gc::{Finalize, Trace};
+<span class="kw">use </span>boa_profiler::Profiler;
 
-<span class="doccomment">/// The Array Iterator object represents an iteration over an array. It implements the iterator protocol.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [ECMAScript reference][spec]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-array-iterator-objects</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Finalize</span>, <span class="ident">Trace</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ArrayIterator</span> {
-    <span class="ident">array</span>: <span class="ident">JsObject</span>,
-    <span class="ident">next_index</span>: <span class="ident">u64</span>,
-    <span class="attribute">#[<span class="ident">unsafe_ignore_trace</span>]</span>
-    <span class="ident">kind</span>: <span class="ident">PropertyNameKind</span>,
-    <span class="ident">done</span>: <span class="ident">bool</span>,
+<span class="doccomment">/// The Array Iterator object represents an iteration over an array. It implements the iterator protocol.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-array-iterator-objects
+</span><span class="attribute">#[derive(Debug, Clone, Finalize, Trace)]
+</span><span class="kw">pub struct </span>ArrayIterator {
+    array: JsObject,
+    next_index: u64,
+    <span class="attribute">#[unsafe_ignore_trace]
+    </span>kind: PropertyNameKind,
+    done: bool,
 }
 
-<span class="kw">impl</span> <span class="ident">ArrayIterator</span> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const</span> <span class="ident">NAME</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;ArrayIterator&quot;</span>;
+<span class="kw">impl </span>ArrayIterator {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;ArrayIterator&quot;</span>;
 
-    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">array</span>: <span class="ident">JsObject</span>, <span class="ident">kind</span>: <span class="ident">PropertyNameKind</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">array</span>,
-            <span class="ident">kind</span>,
-            <span class="ident">next_index</span>: <span class="number">0</span>,
-            <span class="ident">done</span>: <span class="bool-val">false</span>,
+    <span class="kw">fn </span>new(array: JsObject, kind: PropertyNameKind) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            array,
+            kind,
+            next_index: <span class="number">0</span>,
+            done: <span class="bool-val">false</span>,
         }
     }
 
-    <span class="doccomment">/// `CreateArrayIterator( array, kind )`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Creates a new iterator over the given array.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMA reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-createarrayiterator</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">create_array_iterator</span>(
-        <span class="ident">array</span>: <span class="ident">JsObject</span>,
-        <span class="ident">kind</span>: <span class="ident">PropertyNameKind</span>,
-        <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsValue</span> {
-        <span class="kw">let</span> <span class="ident">array_iterator</span> <span class="op">=</span> <span class="ident">JsObject::from_proto_and_data</span>(
-            <span class="ident">context</span>
-                .<span class="ident">intrinsics</span>()
-                .<span class="ident">objects</span>()
-                .<span class="ident">iterator_prototypes</span>()
-                .<span class="ident">array_iterator</span>(),
-            <span class="ident">ObjectData::array_iterator</span>(<span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">array</span>, <span class="ident">kind</span>)),
+    <span class="doccomment">/// `CreateArrayIterator( array, kind )`
+    ///
+    /// Creates a new iterator over the given array.
+    ///
+    /// More information:
+    ///  - [ECMA reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-createarrayiterator
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>create_array_iterator(
+        array: JsObject,
+        kind: PropertyNameKind,
+        context: <span class="kw-2">&amp;</span>Context,
+    ) -&gt; JsValue {
+        <span class="kw">let </span>array_iterator = JsObject::from_proto_and_data(
+            context
+                .intrinsics()
+                .objects()
+                .iterator_prototypes()
+                .array_iterator(),
+            ObjectData::array_iterator(<span class="self">Self</span>::new(array, kind)),
         );
-        <span class="ident">array_iterator</span>.<span class="ident">into</span>()
+        array_iterator.into()
     }
 
-    <span class="doccomment">/// %ArrayIteratorPrototype%.next( )</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Gets the next result in the array.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMA reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-%arrayiteratorprototype%.next</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">next</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">array_iterator</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">as_object</span>().<span class="ident">map</span>(<span class="ident">JsObject::borrow_mut</span>);
-        <span class="kw">let</span> <span class="ident">array_iterator</span> <span class="op">=</span> <span class="ident">array_iterator</span>
-            .<span class="ident">as_mut</span>()
-            .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">obj</span><span class="op">|</span> <span class="ident">obj</span>.<span class="ident">as_array_iterator_mut</span>())
-            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="string">&quot;`this` is not an ArrayIterator&quot;</span>))<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="ident">array_iterator</span>.<span class="ident">next_index</span>;
-        <span class="kw">if</span> <span class="ident">array_iterator</span>.<span class="ident">done</span> {
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">create_iter_result_object</span>(
-                <span class="ident">JsValue::undefined</span>(),
+    <span class="doccomment">/// %ArrayIteratorPrototype%.next( )
+    ///
+    /// Gets the next result in the array.
+    ///
+    /// More information:
+    ///  - [ECMA reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-%arrayiteratorprototype%.next
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>next(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>array_iterator = this.as_object().map(JsObject::borrow_mut);
+        <span class="kw">let </span>array_iterator = array_iterator
+            .as_mut()
+            .and_then(|obj| obj.as_array_iterator_mut())
+            .ok_or_else(|| JsNativeError::typ().with_message(<span class="string">&quot;`this` is not an ArrayIterator&quot;</span>))<span class="question-mark">?</span>;
+        <span class="kw">let </span>index = array_iterator.next_index;
+        <span class="kw">if </span>array_iterator.done {
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(create_iter_result_object(
+                JsValue::undefined(),
                 <span class="bool-val">true</span>,
-                <span class="ident">context</span>,
+                context,
             ));
         }
 
-        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">f</span>) <span class="op">=</span> <span class="ident">array_iterator</span>.<span class="ident">array</span>.<span class="ident">borrow</span>().<span class="ident">as_typed_array</span>() {
-            <span class="kw">if</span> <span class="ident">f</span>.<span class="ident">is_detached</span>() {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
-                    .<span class="ident">with_message</span>(
+        <span class="kw">let </span>len = <span class="kw">if let </span><span class="prelude-val">Some</span>(f) = array_iterator.array.borrow().as_typed_array() {
+            <span class="kw">if </span>f.is_detached() {
+                <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
+                    .with_message(
                         <span class="string">&quot;Cannot get value from typed array that has a detached array buffer&quot;</span>,
                     )
-                    .<span class="ident">into</span>());
+                    .into());
             }
 
-            <span class="ident">f</span>.<span class="ident">array_length</span>()
-        } <span class="kw">else</span> {
-            <span class="ident">array_iterator</span>.<span class="ident">array</span>.<span class="ident">length_of_array_like</span>(<span class="ident">context</span>)<span class="question-mark">?</span>
-        };
+            f.array_length()
+        } <span class="kw">else </span>{
+            array_iterator.array.length_of_array_like(context)<span class="question-mark">?
+        </span>};
 
-        <span class="kw">if</span> <span class="ident">index</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">len</span> {
-            <span class="ident">array_iterator</span>.<span class="ident">done</span> <span class="op">=</span> <span class="bool-val">true</span>;
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">create_iter_result_object</span>(
-                <span class="ident">JsValue::undefined</span>(),
+        <span class="kw">if </span>index &gt;= len {
+            array_iterator.done = <span class="bool-val">true</span>;
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(create_iter_result_object(
+                JsValue::undefined(),
                 <span class="bool-val">true</span>,
-                <span class="ident">context</span>,
+                context,
             ));
         }
-        <span class="ident">array_iterator</span>.<span class="ident">next_index</span> <span class="op">=</span> <span class="ident">index</span> <span class="op">+</span> <span class="number">1</span>;
-        <span class="kw">match</span> <span class="ident">array_iterator</span>.<span class="ident">kind</span> {
-            <span class="ident">PropertyNameKind::Key</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">create_iter_result_object</span>(<span class="ident">index</span>.<span class="ident">into</span>(), <span class="bool-val">false</span>, <span class="ident">context</span>)),
-            <span class="ident">PropertyNameKind::Value</span> =&gt; {
-                <span class="kw">let</span> <span class="ident">element_value</span> <span class="op">=</span> <span class="ident">array_iterator</span>.<span class="ident">array</span>.<span class="ident">get</span>(<span class="ident">index</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
-                <span class="prelude-val">Ok</span>(<span class="ident">create_iter_result_object</span>(<span class="ident">element_value</span>, <span class="bool-val">false</span>, <span class="ident">context</span>))
+        array_iterator.next_index = index + <span class="number">1</span>;
+        <span class="kw">match </span>array_iterator.kind {
+            PropertyNameKind::Key =&gt; <span class="prelude-val">Ok</span>(create_iter_result_object(index.into(), <span class="bool-val">false</span>, context)),
+            PropertyNameKind::Value =&gt; {
+                <span class="kw">let </span>element_value = array_iterator.array.get(index, context)<span class="question-mark">?</span>;
+                <span class="prelude-val">Ok</span>(create_iter_result_object(element_value, <span class="bool-val">false</span>, context))
             }
-            <span class="ident">PropertyNameKind::KeyAndValue</span> =&gt; {
-                <span class="kw">let</span> <span class="ident">element_value</span> <span class="op">=</span> <span class="ident">array_iterator</span>.<span class="ident">array</span>.<span class="ident">get</span>(<span class="ident">index</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
-                <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">Array::create_array_from_list</span>([<span class="ident">index</span>.<span class="ident">into</span>(), <span class="ident">element_value</span>], <span class="ident">context</span>);
-                <span class="prelude-val">Ok</span>(<span class="ident">create_iter_result_object</span>(<span class="ident">result</span>.<span class="ident">into</span>(), <span class="bool-val">false</span>, <span class="ident">context</span>))
+            PropertyNameKind::KeyAndValue =&gt; {
+                <span class="kw">let </span>element_value = array_iterator.array.get(index, context)<span class="question-mark">?</span>;
+                <span class="kw">let </span>result = Array::create_array_from_list([index.into(), element_value], context);
+                <span class="prelude-val">Ok</span>(create_iter_result_object(result.into(), <span class="bool-val">false</span>, context))
             }
         }
     }
 
-    <span class="doccomment">/// Create the `%ArrayIteratorPrototype%` object</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMA reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-%arrayiteratorprototype%-object</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">create_prototype</span>(
-        <span class="ident">iterator_prototype</span>: <span class="ident">JsObject</span>,
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsObject</span> {
-        <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="ident"><span class="self">Self</span>::NAME</span>, <span class="string">&quot;init&quot;</span>);
+    <span class="doccomment">/// Create the `%ArrayIteratorPrototype%` object
+    ///
+    /// More information:
+    ///  - [ECMA reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-%arrayiteratorprototype%-object
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>create_prototype(
+        iterator_prototype: JsObject,
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsObject {
+        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="self">Self</span>::NAME, <span class="string">&quot;init&quot;</span>);
 
-        <span class="comment">// Create prototype</span>
-        <span class="kw">let</span> <span class="ident">array_iterator</span> <span class="op">=</span>
-            <span class="ident">JsObject::from_proto_and_data</span>(<span class="ident">iterator_prototype</span>, <span class="ident">ObjectData::ordinary</span>());
-        <span class="ident">make_builtin_fn</span>(<span class="ident"><span class="self">Self</span>::next</span>, <span class="string">&quot;next&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">array_iterator</span>, <span class="number">0</span>, <span class="ident">context</span>);
+        <span class="comment">// Create prototype
+        </span><span class="kw">let </span>array_iterator =
+            JsObject::from_proto_and_data(iterator_prototype, ObjectData::ordinary());
+        make_builtin_fn(<span class="self">Self</span>::next, <span class="string">&quot;next&quot;</span>, <span class="kw-2">&amp;</span>array_iterator, <span class="number">0</span>, context);
 
-        <span class="kw">let</span> <span class="ident">to_string_tag</span> <span class="op">=</span> <span class="ident">WellKnownSymbols::to_string_tag</span>();
-        <span class="kw">let</span> <span class="ident">to_string_tag_property</span> <span class="op">=</span> <span class="ident">PropertyDescriptor::builder</span>()
-            .<span class="ident">value</span>(<span class="string">&quot;Array Iterator&quot;</span>)
-            .<span class="ident">writable</span>(<span class="bool-val">false</span>)
-            .<span class="ident">enumerable</span>(<span class="bool-val">false</span>)
-            .<span class="ident">configurable</span>(<span class="bool-val">true</span>);
-        <span class="ident">array_iterator</span>.<span class="ident">insert</span>(<span class="ident">to_string_tag</span>, <span class="ident">to_string_tag_property</span>);
-        <span class="ident">array_iterator</span>
+        <span class="kw">let </span>to_string_tag = WellKnownSymbols::to_string_tag();
+        <span class="kw">let </span>to_string_tag_property = PropertyDescriptor::builder()
+            .value(<span class="string">&quot;Array Iterator&quot;</span>)
+            .writable(<span class="bool-val">false</span>)
+            .enumerable(<span class="bool-val">false</span>)
+            .configurable(<span class="bool-val">true</span>);
+        array_iterator.insert(to_string_tag, to_string_tag_property);
+        array_iterator
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0 (a55dd71d5 2022-09-19)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0 (897e37553 2022-11-02)" ></div></body></html>

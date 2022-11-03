@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_ast/src/expression/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../boa_ast/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../boa_ast/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../boa_ast/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_ast/src/expression/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../boa_ast/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../boa_ast/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../boa_ast/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -281,458 +281,288 @@
 <span id="281">281</span>
 <span id="282">282</span>
 <span id="283">283</span>
-<span id="284">284</span>
-<span id="285">285</span>
-<span id="286">286</span>
-<span id="287">287</span>
-<span id="288">288</span>
-<span id="289">289</span>
-<span id="290">290</span>
-<span id="291">291</span>
-<span id="292">292</span>
-<span id="293">293</span>
-<span id="294">294</span>
-<span id="295">295</span>
-<span id="296">296</span>
-<span id="297">297</span>
-<span id="298">298</span>
-<span id="299">299</span>
-<span id="300">300</span>
-<span id="301">301</span>
-<span id="302">302</span>
-<span id="303">303</span>
-<span id="304">304</span>
-<span id="305">305</span>
-<span id="306">306</span>
-<span id="307">307</span>
-<span id="308">308</span>
-<span id="309">309</span>
-<span id="310">310</span>
-<span id="311">311</span>
-<span id="312">312</span>
-<span id="313">313</span>
-<span id="314">314</span>
-<span id="315">315</span>
-<span id="316">316</span>
-<span id="317">317</span>
-<span id="318">318</span>
-<span id="319">319</span>
-<span id="320">320</span>
-<span id="321">321</span>
-<span id="322">322</span>
-<span id="323">323</span>
-<span id="324">324</span>
-<span id="325">325</span>
-<span id="326">326</span>
-<span id="327">327</span>
-<span id="328">328</span>
-<span id="329">329</span>
-<span id="330">330</span>
-<span id="331">331</span>
-<span id="332">332</span>
-<span id="333">333</span>
-<span id="334">334</span>
-<span id="335">335</span>
-<span id="336">336</span>
-<span id="337">337</span>
-<span id="338">338</span>
-<span id="339">339</span>
-<span id="340">340</span>
-<span id="341">341</span>
-<span id="342">342</span>
-<span id="343">343</span>
-<span id="344">344</span>
-<span id="345">345</span>
-<span id="346">346</span>
-<span id="347">347</span>
-<span id="348">348</span>
-<span id="349">349</span>
-<span id="350">350</span>
-<span id="351">351</span>
-<span id="352">352</span>
-<span id="353">353</span>
-<span id="354">354</span>
-<span id="355">355</span>
-<span id="356">356</span>
-<span id="357">357</span>
-<span id="358">358</span>
-<span id="359">359</span>
-<span id="360">360</span>
-<span id="361">361</span>
-<span id="362">362</span>
-<span id="363">363</span>
-<span id="364">364</span>
-<span id="365">365</span>
-<span id="366">366</span>
-<span id="367">367</span>
-<span id="368">368</span>
-</pre><pre class="rust"><code><span class="doccomment">//! The [`Expression`] Parse Node, as defined by the [spec].</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! Javascript expressions include:</span>
-<span class="doccomment">//! - [Primary][primary] expressions (`this`, function expressions, literals).</span>
-<span class="doccomment">//! - [Left hand side][lhs] expressions (accessors, `new` operator, `super`).</span>
-<span class="doccomment">//! - [operator] expressions.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! [spec]: https://tc39.es/ecma262/#prod-Expression</span>
-<span class="doccomment">//! [primary]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators#primary_expressions</span>
-<span class="doccomment">//! [lhs]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators#left-hand-side_expressions</span>
+</pre><pre class="rust"><code><span class="doccomment">//! The [`Expression`] Parse Node, as defined by the [spec].
+//!
+//! Javascript expressions include:
+//! - [Primary][primary] expressions (`this`, function expressions, literals).
+//! - [Left hand side][lhs] expressions (accessors, `new` operator, `super`).
+//! - [operator] expressions.
+//!
+//! [spec]: https://tc39.es/ecma262/#prod-Expression
+//! [primary]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators#primary_expressions
+//! [lhs]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators#left-hand-side_expressions
 
-<span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">Sym</span>, <span class="ident">ToIndentedString</span>, <span class="ident">ToInternedString</span>};
-<span class="kw">use</span> <span class="ident">core::ops::ControlFlow</span>;
+</span><span class="kw">use </span>boa_interner::{Interner, ToIndentedString, ToInternedString};
+<span class="kw">use </span>core::ops::ControlFlow;
 
-<span class="kw">use</span> <span class="self">self</span>::{
-    <span class="ident">access::PropertyAccess</span>,
-    <span class="ident">literal</span>::{<span class="ident">ArrayLiteral</span>, <span class="ident">Literal</span>, <span class="ident">ObjectLiteral</span>, <span class="ident">TemplateLiteral</span>},
-    <span class="ident">operator</span>::{<span class="ident">Assign</span>, <span class="ident">Binary</span>, <span class="ident">Conditional</span>, <span class="ident">Unary</span>},
+<span class="kw">use </span><span class="self">self</span>::{
+    access::PropertyAccess,
+    literal::{ArrayLiteral, Literal, ObjectLiteral, TemplateLiteral},
+    operator::{Assign, Binary, Conditional, Unary},
 };
 
-<span class="kw">use</span> <span class="kw">super</span>::{
-    <span class="ident">function::FormalParameterList</span>,
-    <span class="ident">function</span>::{<span class="ident">ArrowFunction</span>, <span class="ident">AsyncFunction</span>, <span class="ident">AsyncGenerator</span>, <span class="ident">Class</span>, <span class="ident">Function</span>, <span class="ident">Generator</span>},
-    <span class="ident">ContainsSymbol</span>, <span class="ident">Statement</span>,
+<span class="kw">use super</span>::{
+    function::FormalParameterList,
+    function::{ArrowFunction, AsyncFunction, AsyncGenerator, Class, Function, Generator},
+    Statement,
 };
 
-<span class="kw">mod</span> <span class="ident">r#await</span>;
-<span class="kw">mod</span> <span class="ident">call</span>;
-<span class="kw">mod</span> <span class="ident">identifier</span>;
-<span class="kw">mod</span> <span class="ident">new</span>;
-<span class="kw">mod</span> <span class="ident">optional</span>;
-<span class="kw">mod</span> <span class="ident">spread</span>;
-<span class="kw">mod</span> <span class="ident">tagged_template</span>;
-<span class="kw">mod</span> <span class="ident">r#yield</span>;
+<span class="kw">mod </span>r#await;
+<span class="kw">mod </span>call;
+<span class="kw">mod </span>identifier;
+<span class="kw">mod </span>new;
+<span class="kw">mod </span>optional;
+<span class="kw">mod </span>spread;
+<span class="kw">mod </span>tagged_template;
+<span class="kw">mod </span>r#yield;
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::visitor</span>::{<span class="ident">VisitWith</span>, <span class="ident">Visitor</span>, <span class="ident">VisitorMut</span>};
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">call</span>::{<span class="ident">Call</span>, <span class="ident">SuperCall</span>};
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">identifier</span>::{<span class="ident">Identifier</span>, <span class="ident">RESERVED_IDENTIFIERS_STRICT</span>};
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">new::New</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">optional</span>::{<span class="ident">Optional</span>, <span class="ident">OptionalOperation</span>, <span class="ident">OptionalOperationKind</span>};
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">r#await</span><span class="ident">::Await</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">r#yield</span><span class="ident">::Yield</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">spread::Spread</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">tagged_template::TaggedTemplate</span>;
+<span class="kw">use </span><span class="kw">crate</span>::visitor::{VisitWith, Visitor, VisitorMut};
+<span class="kw">pub use </span>call::{Call, SuperCall};
+<span class="kw">pub use </span>identifier::{Identifier, RESERVED_IDENTIFIERS_STRICT};
+<span class="kw">pub use </span>new::New;
+<span class="kw">pub use </span>optional::{Optional, OptionalOperation, OptionalOperationKind};
+<span class="kw">pub use </span>r#await::Await;
+<span class="kw">pub use </span>r#yield::Yield;
+<span class="kw">pub use </span>spread::Spread;
+<span class="kw">pub use </span>tagged_template::TaggedTemplate;
 
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">access</span>;
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">literal</span>;
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">operator</span>;
+<span class="kw">pub mod </span>access;
+<span class="kw">pub mod </span>literal;
+<span class="kw">pub mod </span>operator;
 
-<span class="doccomment">/// The `Expression` Parse Node.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// See the [module level documentation][self] for more information.</span>
-<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>, <span class="ident">derive</span>(<span class="ident">serde::Serialize</span>, <span class="ident">serde::Deserialize</span>))]</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Expression</span> {
-    <span class="doccomment">/// The JavaScript `this` keyword refers to the object it belongs to.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// A property of an execution context (global, function or eval) that,</span>
-    <span class="doccomment">/// in non–strict mode, is always a reference to an object and in strict</span>
-    <span class="doccomment">/// mode can be any value.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-this-keyword</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/this</span>
-    <span class="ident">This</span>,
+<span class="doccomment">/// The `Expression` Parse Node.
+///
+/// See the [module level documentation][self] for more information.
+</span><span class="attribute">#[cfg_attr(feature = <span class="string">&quot;serde&quot;</span>, derive(serde::Serialize, serde::Deserialize))]
+#[derive(Debug, Clone, PartialEq)]
+</span><span class="kw">pub enum </span>Expression {
+    <span class="doccomment">/// The JavaScript `this` keyword refers to the object it belongs to.
+    ///
+    /// A property of an execution context (global, function or eval) that,
+    /// in non–strict mode, is always a reference to an object and in strict
+    /// mode can be any value.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-this-keyword
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/this
+    </span>This,
 
-    <span class="doccomment">/// See [`Identifier`].</span>
-    <span class="ident">Identifier</span>(<span class="ident">Identifier</span>),
+    <span class="doccomment">/// See [`Identifier`].
+    </span>Identifier(Identifier),
 
-    <span class="doccomment">/// See [`Literal`].</span>
-    <span class="ident">Literal</span>(<span class="ident">Literal</span>),
+    <span class="doccomment">/// See [`Literal`].
+    </span>Literal(Literal),
 
-    <span class="doccomment">/// See [`ArrayLiteral`].</span>
-    <span class="ident">ArrayLiteral</span>(<span class="ident">ArrayLiteral</span>),
+    <span class="doccomment">/// See [`ArrayLiteral`].
+    </span>ArrayLiteral(ArrayLiteral),
 
-    <span class="doccomment">/// See [`ObjectLiteral`].</span>
-    <span class="ident">ObjectLiteral</span>(<span class="ident">ObjectLiteral</span>),
+    <span class="doccomment">/// See [`ObjectLiteral`].
+    </span>ObjectLiteral(ObjectLiteral),
 
-    <span class="doccomment">/// See [`Spread`],</span>
-    <span class="ident">Spread</span>(<span class="ident">Spread</span>),
+    <span class="doccomment">/// See [`Spread`],
+    </span>Spread(Spread),
 
-    <span class="doccomment">/// See [`Function`].</span>
-    <span class="ident">Function</span>(<span class="ident">Function</span>),
+    <span class="doccomment">/// See [`Function`].
+    </span>Function(Function),
 
-    <span class="doccomment">/// See [`ArrowFunction`].</span>
-    <span class="ident">ArrowFunction</span>(<span class="ident">ArrowFunction</span>),
+    <span class="doccomment">/// See [`ArrowFunction`].
+    </span>ArrowFunction(ArrowFunction),
 
-    <span class="doccomment">/// See [`Generator`].</span>
-    <span class="ident">Generator</span>(<span class="ident">Generator</span>),
+    <span class="doccomment">/// See [`Generator`].
+    </span>Generator(Generator),
 
-    <span class="doccomment">/// See [`AsyncFunction`].</span>
-    <span class="ident">AsyncFunction</span>(<span class="ident">AsyncFunction</span>),
+    <span class="doccomment">/// See [`AsyncFunction`].
+    </span>AsyncFunction(AsyncFunction),
 
-    <span class="doccomment">/// See [`AsyncGenerator`].</span>
-    <span class="ident">AsyncGenerator</span>(<span class="ident">AsyncGenerator</span>),
+    <span class="doccomment">/// See [`AsyncGenerator`].
+    </span>AsyncGenerator(AsyncGenerator),
 
-    <span class="doccomment">/// See [`Class`].</span>
-    <span class="ident">Class</span>(<span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Class</span><span class="op">&gt;</span>),
+    <span class="doccomment">/// See [`Class`].
+    </span>Class(Box&lt;Class&gt;),
 
-    <span class="comment">// TODO: Extract regexp literal Expression</span>
-    <span class="comment">// RegExpLiteral,</span>
-    <span class="doccomment">/// See [`TemplateLiteral`].</span>
-    <span class="ident">TemplateLiteral</span>(<span class="ident">TemplateLiteral</span>),
+    <span class="comment">// TODO: Extract regexp literal Expression
+    // RegExpLiteral,
+    </span><span class="doccomment">/// See [`TemplateLiteral`].
+    </span>TemplateLiteral(TemplateLiteral),
 
-    <span class="doccomment">/// See [`PropertyAccess`].</span>
-    <span class="ident">PropertyAccess</span>(<span class="ident">PropertyAccess</span>),
+    <span class="doccomment">/// See [`PropertyAccess`].
+    </span>PropertyAccess(PropertyAccess),
 
-    <span class="doccomment">/// See [`New`].</span>
-    <span class="ident">New</span>(<span class="ident">New</span>),
+    <span class="doccomment">/// See [`New`].
+    </span>New(New),
 
-    <span class="doccomment">/// See [`Call`].</span>
-    <span class="ident">Call</span>(<span class="ident">Call</span>),
+    <span class="doccomment">/// See [`Call`].
+    </span>Call(Call),
 
-    <span class="doccomment">/// See [`SuperCall`].</span>
-    <span class="ident">SuperCall</span>(<span class="ident">SuperCall</span>),
+    <span class="doccomment">/// See [`SuperCall`].
+    </span>SuperCall(SuperCall),
 
-    <span class="doccomment">/// See [`Optional`].</span>
-    <span class="ident">Optional</span>(<span class="ident">Optional</span>),
+    <span class="doccomment">/// See [`Optional`].
+    </span>Optional(Optional),
 
-    <span class="comment">// TODO: Import calls</span>
-    <span class="doccomment">/// See [`TaggedTemplate`].</span>
-    <span class="ident">TaggedTemplate</span>(<span class="ident">TaggedTemplate</span>),
+    <span class="comment">// TODO: Import calls
+    </span><span class="doccomment">/// See [`TaggedTemplate`].
+    </span>TaggedTemplate(TaggedTemplate),
 
-    <span class="doccomment">/// The `new.target` pseudo-property expression.</span>
-    <span class="ident">NewTarget</span>,
+    <span class="doccomment">/// The `new.target` pseudo-property expression.
+    </span>NewTarget,
 
-    <span class="comment">// TODO: import.meta</span>
-    <span class="doccomment">/// See [`Assign`].</span>
-    <span class="ident">Assign</span>(<span class="ident">Assign</span>),
+    <span class="comment">// TODO: import.meta
+    </span><span class="doccomment">/// See [`Assign`].
+    </span>Assign(Assign),
 
-    <span class="doccomment">/// See [`Unary`].</span>
-    <span class="ident">Unary</span>(<span class="ident">Unary</span>),
+    <span class="doccomment">/// See [`Unary`].
+    </span>Unary(Unary),
 
-    <span class="doccomment">/// See [`Binary`].</span>
-    <span class="ident">Binary</span>(<span class="ident">Binary</span>),
+    <span class="doccomment">/// See [`Binary`].
+    </span>Binary(Binary),
 
-    <span class="doccomment">/// See [`Conditional`].</span>
-    <span class="ident">Conditional</span>(<span class="ident">Conditional</span>),
+    <span class="doccomment">/// See [`Conditional`].
+    </span>Conditional(Conditional),
 
-    <span class="doccomment">/// See [`Await`].</span>
-    <span class="ident">Await</span>(<span class="ident">Await</span>),
+    <span class="doccomment">/// See [`Await`].
+    </span>Await(Await),
 
-    <span class="doccomment">/// See [`Yield`].</span>
-    <span class="ident">Yield</span>(<span class="ident">Yield</span>),
+    <span class="doccomment">/// See [`Yield`].
+    </span>Yield(Yield),
 
-    <span class="doccomment">/// A FormalParameterList.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This is only used in the parser itself.</span>
-    <span class="doccomment">/// It is not a valid AST node.</span>
-    <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
-    <span class="ident">FormalParameterList</span>(<span class="ident">FormalParameterList</span>),
+    <span class="doccomment">/// A FormalParameterList.
+    ///
+    /// This is only used in the parser itself.
+    /// It is not a valid AST node.
+    </span><span class="attribute">#[doc(hidden)]
+    </span>FormalParameterList(FormalParameterList),
 }
 
-<span class="kw">impl</span> <span class="ident">Expression</span> {
-    <span class="doccomment">/// Implements the display formatting with indentation.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This will not prefix the value with any indentation. If you want to prefix this with proper</span>
-    <span class="doccomment">/// indents, use [`to_indented_string()`](Self::to_indented_string).</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">to_no_indent_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;</span><span class="ident">Interner</span>, <span class="ident">indentation</span>: <span class="ident">usize</span>) -&gt; <span class="ident">String</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident"><span class="self">Self</span>::This</span> =&gt; <span class="string">&quot;this&quot;</span>.<span class="ident">to_owned</span>(),
-            <span class="ident"><span class="self">Self</span>::Identifier</span>(<span class="ident">id</span>) =&gt; <span class="ident">id</span>.<span class="ident">to_interned_string</span>(<span class="ident">interner</span>),
-            <span class="ident"><span class="self">Self</span>::Literal</span>(<span class="ident">lit</span>) =&gt; <span class="ident">lit</span>.<span class="ident">to_interned_string</span>(<span class="ident">interner</span>),
-            <span class="ident"><span class="self">Self</span>::ArrayLiteral</span>(<span class="ident">arr</span>) =&gt; <span class="ident">arr</span>.<span class="ident">to_interned_string</span>(<span class="ident">interner</span>),
-            <span class="ident"><span class="self">Self</span>::ObjectLiteral</span>(<span class="ident">o</span>) =&gt; <span class="ident">o</span>.<span class="ident">to_indented_string</span>(<span class="ident">interner</span>, <span class="ident">indentation</span>),
-            <span class="ident"><span class="self">Self</span>::Spread</span>(<span class="ident">sp</span>) =&gt; <span class="ident">sp</span>.<span class="ident">to_interned_string</span>(<span class="ident">interner</span>),
-            <span class="ident"><span class="self">Self</span>::Function</span>(<span class="ident">f</span>) =&gt; <span class="ident">f</span>.<span class="ident">to_indented_string</span>(<span class="ident">interner</span>, <span class="ident">indentation</span>),
-            <span class="ident"><span class="self">Self</span>::ArrowFunction</span>(<span class="ident">arrf</span>) =&gt; <span class="ident">arrf</span>.<span class="ident">to_indented_string</span>(<span class="ident">interner</span>, <span class="ident">indentation</span>),
-            <span class="ident"><span class="self">Self</span>::Class</span>(<span class="ident">cl</span>) =&gt; <span class="ident">cl</span>.<span class="ident">to_indented_string</span>(<span class="ident">interner</span>, <span class="ident">indentation</span>),
-            <span class="ident"><span class="self">Self</span>::Generator</span>(<span class="ident">gen</span>) =&gt; <span class="ident">gen</span>.<span class="ident">to_indented_string</span>(<span class="ident">interner</span>, <span class="ident">indentation</span>),
-            <span class="ident"><span class="self">Self</span>::AsyncFunction</span>(<span class="ident">asf</span>) =&gt; <span class="ident">asf</span>.<span class="ident">to_indented_string</span>(<span class="ident">interner</span>, <span class="ident">indentation</span>),
-            <span class="ident"><span class="self">Self</span>::AsyncGenerator</span>(<span class="ident">asgen</span>) =&gt; <span class="ident">asgen</span>.<span class="ident">to_indented_string</span>(<span class="ident">interner</span>, <span class="ident">indentation</span>),
-            <span class="ident"><span class="self">Self</span>::TemplateLiteral</span>(<span class="ident">tem</span>) =&gt; <span class="ident">tem</span>.<span class="ident">to_interned_string</span>(<span class="ident">interner</span>),
-            <span class="ident"><span class="self">Self</span>::PropertyAccess</span>(<span class="ident">prop</span>) =&gt; <span class="ident">prop</span>.<span class="ident">to_interned_string</span>(<span class="ident">interner</span>),
-            <span class="ident"><span class="self">Self</span>::New</span>(<span class="ident">new</span>) =&gt; <span class="ident">new</span>.<span class="ident">to_interned_string</span>(<span class="ident">interner</span>),
-            <span class="ident"><span class="self">Self</span>::Call</span>(<span class="ident">call</span>) =&gt; <span class="ident">call</span>.<span class="ident">to_interned_string</span>(<span class="ident">interner</span>),
-            <span class="ident"><span class="self">Self</span>::SuperCall</span>(<span class="ident">supc</span>) =&gt; <span class="ident">supc</span>.<span class="ident">to_interned_string</span>(<span class="ident">interner</span>),
-            <span class="ident"><span class="self">Self</span>::Optional</span>(<span class="ident">opt</span>) =&gt; <span class="ident">opt</span>.<span class="ident">to_interned_string</span>(<span class="ident">interner</span>),
-            <span class="ident"><span class="self">Self</span>::NewTarget</span> =&gt; <span class="string">&quot;new.target&quot;</span>.<span class="ident">to_owned</span>(),
-            <span class="ident"><span class="self">Self</span>::TaggedTemplate</span>(<span class="ident">tag</span>) =&gt; <span class="ident">tag</span>.<span class="ident">to_interned_string</span>(<span class="ident">interner</span>),
-            <span class="ident"><span class="self">Self</span>::Assign</span>(<span class="ident">assign</span>) =&gt; <span class="ident">assign</span>.<span class="ident">to_interned_string</span>(<span class="ident">interner</span>),
-            <span class="ident"><span class="self">Self</span>::Unary</span>(<span class="ident">unary</span>) =&gt; <span class="ident">unary</span>.<span class="ident">to_interned_string</span>(<span class="ident">interner</span>),
-            <span class="ident"><span class="self">Self</span>::Binary</span>(<span class="ident">bin</span>) =&gt; <span class="ident">bin</span>.<span class="ident">to_interned_string</span>(<span class="ident">interner</span>),
-            <span class="ident"><span class="self">Self</span>::Conditional</span>(<span class="ident">cond</span>) =&gt; <span class="ident">cond</span>.<span class="ident">to_interned_string</span>(<span class="ident">interner</span>),
-            <span class="ident"><span class="self">Self</span>::Await</span>(<span class="ident">aw</span>) =&gt; <span class="ident">aw</span>.<span class="ident">to_interned_string</span>(<span class="ident">interner</span>),
-            <span class="ident"><span class="self">Self</span>::Yield</span>(<span class="ident">yi</span>) =&gt; <span class="ident">yi</span>.<span class="ident">to_interned_string</span>(<span class="ident">interner</span>),
-            <span class="ident"><span class="self">Self</span>::FormalParameterList</span>(<span class="kw">_</span>) =&gt; <span class="macro">unreachable!</span>(),
-        }
-    }
-
-    <span class="doccomment">/// Returns true if the expression contains a identifier reference named &#39;arguments&#39;.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript specification][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-static-semantics-containsarguments</span>
-    <span class="comment">// TODO: replace with a visitor</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">contains_arguments</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Expression::Identifier</span>(<span class="ident">ident</span>) =&gt; <span class="kw-2">*</span><span class="ident">ident</span> <span class="op">==</span> <span class="ident">Sym::ARGUMENTS</span>,
-            <span class="ident">Expression::Function</span>(<span class="kw">_</span>)
-            <span class="op">|</span> <span class="ident">Expression::Generator</span>(<span class="kw">_</span>)
-            <span class="op">|</span> <span class="ident">Expression::AsyncFunction</span>(<span class="kw">_</span>)
-            <span class="op">|</span> <span class="ident">Expression::AsyncGenerator</span>(<span class="kw">_</span>)
-            <span class="op">|</span> <span class="ident">Expression::Literal</span>(<span class="kw">_</span>)
-            <span class="op">|</span> <span class="ident">Expression::This</span>
-            <span class="op">|</span> <span class="ident">Expression::NewTarget</span> =&gt; <span class="bool-val">false</span>,
-            <span class="ident">Expression::ArrayLiteral</span>(<span class="ident">array</span>) =&gt; <span class="ident">array</span>.<span class="ident">contains_arguments</span>(),
-            <span class="ident">Expression::ObjectLiteral</span>(<span class="ident">object</span>) =&gt; <span class="ident">object</span>.<span class="ident">contains_arguments</span>(),
-            <span class="ident">Expression::Spread</span>(<span class="ident">spread</span>) =&gt; <span class="ident">spread</span>.<span class="ident">contains_arguments</span>(),
-            <span class="ident">Expression::ArrowFunction</span>(<span class="ident">arrow</span>) =&gt; <span class="ident">arrow</span>.<span class="ident">contains_arguments</span>(),
-            <span class="ident">Expression::Class</span>(<span class="ident">class</span>) =&gt; <span class="ident">class</span>.<span class="ident">contains_arguments</span>(),
-            <span class="ident">Expression::TemplateLiteral</span>(<span class="ident">template</span>) =&gt; <span class="ident">template</span>.<span class="ident">contains_arguments</span>(),
-            <span class="ident">Expression::PropertyAccess</span>(<span class="ident">access</span>) =&gt; <span class="ident">access</span>.<span class="ident">contains_arguments</span>(),
-            <span class="ident">Expression::New</span>(<span class="ident">new</span>) =&gt; <span class="ident">new</span>.<span class="ident">contains_arguments</span>(),
-            <span class="ident">Expression::Call</span>(<span class="ident">call</span>) =&gt; <span class="ident">call</span>.<span class="ident">contains_arguments</span>(),
-            <span class="ident">Expression::SuperCall</span>(<span class="ident">call</span>) =&gt; <span class="ident">call</span>.<span class="ident">contains_arguments</span>(),
-            <span class="ident">Expression::Optional</span>(<span class="ident">opt</span>) =&gt; <span class="ident">opt</span>.<span class="ident">contains_arguments</span>(),
-            <span class="ident">Expression::TaggedTemplate</span>(<span class="ident">tag</span>) =&gt; <span class="ident">tag</span>.<span class="ident">contains_arguments</span>(),
-            <span class="ident">Expression::Assign</span>(<span class="ident">assign</span>) =&gt; <span class="ident">assign</span>.<span class="ident">contains_arguments</span>(),
-            <span class="ident">Expression::Unary</span>(<span class="ident">unary</span>) =&gt; <span class="ident">unary</span>.<span class="ident">contains_arguments</span>(),
-            <span class="ident">Expression::Binary</span>(<span class="ident">binary</span>) =&gt; <span class="ident">binary</span>.<span class="ident">contains_arguments</span>(),
-            <span class="ident">Expression::Conditional</span>(<span class="ident">cond</span>) =&gt; <span class="ident">cond</span>.<span class="ident">contains_arguments</span>(),
-            <span class="ident">Expression::Await</span>(<span class="ident">r#await</span>) =&gt; <span class="ident">r#await</span>.<span class="ident">contains_arguments</span>(),
-            <span class="ident">Expression::Yield</span>(<span class="ident">r#yield</span>) =&gt; <span class="ident">r#yield</span>.<span class="ident">contains_arguments</span>(),
-            <span class="comment">// TODO: remove variant</span>
-            <span class="ident">Expression::FormalParameterList</span>(<span class="kw">_</span>) =&gt; <span class="macro">unreachable!</span>(),
-        }
-    }
-
-    <span class="doccomment">/// Returns `true` if the node contains the given token.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript specification][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-static-semantics-contains</span>
-    <span class="comment">// TODO: replace with a visitor</span>
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">symbol</span>: <span class="ident">ContainsSymbol</span>) -&gt; <span class="ident">bool</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Expression::This</span> =&gt; <span class="ident">symbol</span> <span class="op">==</span> <span class="ident">ContainsSymbol::This</span>,
-            <span class="ident">Expression::Identifier</span>(<span class="kw">_</span>)
-            <span class="op">|</span> <span class="ident">Expression::Literal</span>(<span class="kw">_</span>)
-            <span class="op">|</span> <span class="ident">Expression::Function</span>(<span class="kw">_</span>)
-            <span class="op">|</span> <span class="ident">Expression::Generator</span>(<span class="kw">_</span>)
-            <span class="op">|</span> <span class="ident">Expression::AsyncFunction</span>(<span class="kw">_</span>)
-            <span class="op">|</span> <span class="ident">Expression::AsyncGenerator</span>(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
-            <span class="ident">Expression::ArrayLiteral</span>(<span class="ident">array</span>) =&gt; <span class="ident">array</span>.<span class="ident">contains</span>(<span class="ident">symbol</span>),
-            <span class="ident">Expression::ObjectLiteral</span>(<span class="ident">obj</span>) =&gt; <span class="ident">obj</span>.<span class="ident">contains</span>(<span class="ident">symbol</span>),
-            <span class="ident">Expression::Spread</span>(<span class="ident">spread</span>) =&gt; <span class="ident">spread</span>.<span class="ident">contains</span>(<span class="ident">symbol</span>),
-            <span class="ident">Expression::ArrowFunction</span>(<span class="ident">arrow</span>) =&gt; <span class="ident">arrow</span>.<span class="ident">contains</span>(<span class="ident">symbol</span>),
-            <span class="ident">Expression::Class</span>(<span class="ident">class</span>) =&gt; <span class="ident">class</span>.<span class="ident">contains</span>(<span class="ident">symbol</span>),
-            <span class="ident">Expression::TemplateLiteral</span>(<span class="ident">temp</span>) =&gt; <span class="ident">temp</span>.<span class="ident">contains</span>(<span class="ident">symbol</span>),
-            <span class="ident">Expression::PropertyAccess</span>(<span class="ident">prop</span>) =&gt; <span class="ident">prop</span>.<span class="ident">contains</span>(<span class="ident">symbol</span>),
-            <span class="ident">Expression::New</span>(<span class="ident">new</span>) =&gt; <span class="ident">new</span>.<span class="ident">contains</span>(<span class="ident">symbol</span>),
-            <span class="ident">Expression::Call</span>(<span class="ident">call</span>) =&gt; <span class="ident">call</span>.<span class="ident">contains</span>(<span class="ident">symbol</span>),
-            <span class="ident">Expression::SuperCall</span>(<span class="kw">_</span>) <span class="kw">if</span> <span class="ident">symbol</span> <span class="op">==</span> <span class="ident">ContainsSymbol::SuperCall</span> =&gt; <span class="bool-val">true</span>,
-            <span class="ident">Expression::SuperCall</span>(<span class="ident">expr</span>) =&gt; <span class="ident">expr</span>.<span class="ident">contains</span>(<span class="ident">symbol</span>),
-            <span class="ident">Expression::Optional</span>(<span class="ident">opt</span>) =&gt; <span class="ident">opt</span>.<span class="ident">contains</span>(<span class="ident">symbol</span>),
-            <span class="ident">Expression::TaggedTemplate</span>(<span class="ident">temp</span>) =&gt; <span class="ident">temp</span>.<span class="ident">contains</span>(<span class="ident">symbol</span>),
-            <span class="ident">Expression::NewTarget</span> =&gt; <span class="ident">symbol</span> <span class="op">==</span> <span class="ident">ContainsSymbol::NewTarget</span>,
-            <span class="ident">Expression::Assign</span>(<span class="ident">assign</span>) =&gt; <span class="ident">assign</span>.<span class="ident">contains</span>(<span class="ident">symbol</span>),
-            <span class="ident">Expression::Unary</span>(<span class="ident">unary</span>) =&gt; <span class="ident">unary</span>.<span class="ident">contains</span>(<span class="ident">symbol</span>),
-            <span class="ident">Expression::Binary</span>(<span class="ident">binary</span>) =&gt; <span class="ident">binary</span>.<span class="ident">contains</span>(<span class="ident">symbol</span>),
-            <span class="ident">Expression::Conditional</span>(<span class="ident">cond</span>) =&gt; <span class="ident">cond</span>.<span class="ident">contains</span>(<span class="ident">symbol</span>),
-            <span class="ident">Expression::Await</span>(<span class="kw">_</span>) <span class="kw">if</span> <span class="ident">symbol</span> <span class="op">==</span> <span class="ident">ContainsSymbol::AwaitExpression</span> =&gt; <span class="bool-val">true</span>,
-            <span class="ident">Expression::Await</span>(<span class="ident">r#await</span>) =&gt; <span class="ident">r#await</span>.<span class="ident">contains</span>(<span class="ident">symbol</span>),
-            <span class="ident">Expression::Yield</span>(<span class="kw">_</span>) <span class="kw">if</span> <span class="ident">symbol</span> <span class="op">==</span> <span class="ident">ContainsSymbol::YieldExpression</span> =&gt; <span class="bool-val">true</span>,
-            <span class="ident">Expression::Yield</span>(<span class="ident">r#yield</span>) =&gt; <span class="ident">r#yield</span>.<span class="ident">contains</span>(<span class="ident">symbol</span>),
-            <span class="ident">Expression::FormalParameterList</span>(<span class="kw">_</span>) =&gt; <span class="macro">unreachable!</span>(),
+<span class="kw">impl </span>Expression {
+    <span class="doccomment">/// Implements the display formatting with indentation.
+    ///
+    /// This will not prefix the value with any indentation. If you want to prefix this with proper
+    /// indents, use [`to_indented_string()`](Self::to_indented_string).
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>to_no_indent_string(<span class="kw-2">&amp;</span><span class="self">self</span>, interner: <span class="kw-2">&amp;</span>Interner, indentation: usize) -&gt; String {
+        <span class="kw">match </span><span class="self">self </span>{
+            <span class="self">Self</span>::This =&gt; <span class="string">&quot;this&quot;</span>.to_owned(),
+            <span class="self">Self</span>::Identifier(id) =&gt; id.to_interned_string(interner),
+            <span class="self">Self</span>::Literal(lit) =&gt; lit.to_interned_string(interner),
+            <span class="self">Self</span>::ArrayLiteral(arr) =&gt; arr.to_interned_string(interner),
+            <span class="self">Self</span>::ObjectLiteral(o) =&gt; o.to_indented_string(interner, indentation),
+            <span class="self">Self</span>::Spread(sp) =&gt; sp.to_interned_string(interner),
+            <span class="self">Self</span>::Function(f) =&gt; f.to_indented_string(interner, indentation),
+            <span class="self">Self</span>::ArrowFunction(arrf) =&gt; arrf.to_indented_string(interner, indentation),
+            <span class="self">Self</span>::Class(cl) =&gt; cl.to_indented_string(interner, indentation),
+            <span class="self">Self</span>::Generator(gen) =&gt; gen.to_indented_string(interner, indentation),
+            <span class="self">Self</span>::AsyncFunction(asf) =&gt; asf.to_indented_string(interner, indentation),
+            <span class="self">Self</span>::AsyncGenerator(asgen) =&gt; asgen.to_indented_string(interner, indentation),
+            <span class="self">Self</span>::TemplateLiteral(tem) =&gt; tem.to_interned_string(interner),
+            <span class="self">Self</span>::PropertyAccess(prop) =&gt; prop.to_interned_string(interner),
+            <span class="self">Self</span>::New(new) =&gt; new.to_interned_string(interner),
+            <span class="self">Self</span>::Call(call) =&gt; call.to_interned_string(interner),
+            <span class="self">Self</span>::SuperCall(supc) =&gt; supc.to_interned_string(interner),
+            <span class="self">Self</span>::Optional(opt) =&gt; opt.to_interned_string(interner),
+            <span class="self">Self</span>::NewTarget =&gt; <span class="string">&quot;new.target&quot;</span>.to_owned(),
+            <span class="self">Self</span>::TaggedTemplate(tag) =&gt; tag.to_interned_string(interner),
+            <span class="self">Self</span>::Assign(assign) =&gt; assign.to_interned_string(interner),
+            <span class="self">Self</span>::Unary(unary) =&gt; unary.to_interned_string(interner),
+            <span class="self">Self</span>::Binary(bin) =&gt; bin.to_interned_string(interner),
+            <span class="self">Self</span>::Conditional(cond) =&gt; cond.to_interned_string(interner),
+            <span class="self">Self</span>::Await(aw) =&gt; aw.to_interned_string(interner),
+            <span class="self">Self</span>::Yield(yi) =&gt; yi.to_interned_string(interner),
+            <span class="self">Self</span>::FormalParameterList(<span class="kw">_</span>) =&gt; <span class="macro">unreachable!</span>(),
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Expression</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Statement</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">expr</span>: <span class="ident">Expression</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">Statement::Expression</span>(<span class="ident">expr</span>)
+<span class="kw">impl </span>From&lt;Expression&gt; <span class="kw">for </span>Statement {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(expr: Expression) -&gt; <span class="self">Self </span>{
+        Statement::Expression(expr)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">ToIndentedString</span> <span class="kw">for</span> <span class="ident">Expression</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">to_indented_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;</span><span class="ident">Interner</span>, <span class="ident">indentation</span>: <span class="ident">usize</span>) -&gt; <span class="ident">String</span> {
-        <span class="self">self</span>.<span class="ident">to_no_indent_string</span>(<span class="ident">interner</span>, <span class="ident">indentation</span>)
+<span class="kw">impl </span>ToIndentedString <span class="kw">for </span>Expression {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>to_indented_string(<span class="kw-2">&amp;</span><span class="self">self</span>, interner: <span class="kw-2">&amp;</span>Interner, indentation: usize) -&gt; String {
+        <span class="self">self</span>.to_no_indent_string(interner, indentation)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">VisitWith</span> <span class="kw">for</span> <span class="ident">Expression</span> {
-    <span class="kw">fn</span> <span class="ident">visit_with</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">V</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>, <span class="ident">visitor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">V</span>) -&gt; <span class="ident">ControlFlow</span><span class="op">&lt;</span><span class="ident">V::BreakTy</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">V</span>: <span class="ident">Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
+<span class="kw">impl </span>VisitWith <span class="kw">for </span>Expression {
+    <span class="kw">fn </span>visit_with&lt;<span class="lifetime">&#39;a</span>, V&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>, visitor: <span class="kw-2">&amp;mut </span>V) -&gt; ControlFlow&lt;V::BreakTy&gt;
+    <span class="kw">where
+        </span>V: Visitor&lt;<span class="lifetime">&#39;a</span>&gt;,
     {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Expression::Identifier</span>(<span class="ident">id</span>) =&gt; <span class="ident">visitor</span>.<span class="ident">visit_identifier</span>(<span class="ident">id</span>),
-            <span class="ident">Expression::Literal</span>(<span class="ident">lit</span>) =&gt; <span class="ident">visitor</span>.<span class="ident">visit_literal</span>(<span class="ident">lit</span>),
-            <span class="ident">Expression::ArrayLiteral</span>(<span class="ident">arlit</span>) =&gt; <span class="ident">visitor</span>.<span class="ident">visit_array_literal</span>(<span class="ident">arlit</span>),
-            <span class="ident">Expression::ObjectLiteral</span>(<span class="ident">olit</span>) =&gt; <span class="ident">visitor</span>.<span class="ident">visit_object_literal</span>(<span class="ident">olit</span>),
-            <span class="ident">Expression::Spread</span>(<span class="ident">sp</span>) =&gt; <span class="ident">visitor</span>.<span class="ident">visit_spread</span>(<span class="ident">sp</span>),
-            <span class="ident">Expression::Function</span>(<span class="ident">f</span>) =&gt; <span class="ident">visitor</span>.<span class="ident">visit_function</span>(<span class="ident">f</span>),
-            <span class="ident">Expression::ArrowFunction</span>(<span class="ident">af</span>) =&gt; <span class="ident">visitor</span>.<span class="ident">visit_arrow_function</span>(<span class="ident">af</span>),
-            <span class="ident">Expression::Generator</span>(<span class="ident">g</span>) =&gt; <span class="ident">visitor</span>.<span class="ident">visit_generator</span>(<span class="ident">g</span>),
-            <span class="ident">Expression::AsyncFunction</span>(<span class="ident">af</span>) =&gt; <span class="ident">visitor</span>.<span class="ident">visit_async_function</span>(<span class="ident">af</span>),
-            <span class="ident">Expression::AsyncGenerator</span>(<span class="ident">ag</span>) =&gt; <span class="ident">visitor</span>.<span class="ident">visit_async_generator</span>(<span class="ident">ag</span>),
-            <span class="ident">Expression::Class</span>(<span class="ident">c</span>) =&gt; <span class="ident">visitor</span>.<span class="ident">visit_class</span>(<span class="ident">c</span>),
-            <span class="ident">Expression::TemplateLiteral</span>(<span class="ident">tlit</span>) =&gt; <span class="ident">visitor</span>.<span class="ident">visit_template_literal</span>(<span class="ident">tlit</span>),
-            <span class="ident">Expression::PropertyAccess</span>(<span class="ident">pa</span>) =&gt; <span class="ident">visitor</span>.<span class="ident">visit_property_access</span>(<span class="ident">pa</span>),
-            <span class="ident">Expression::New</span>(<span class="ident">n</span>) =&gt; <span class="ident">visitor</span>.<span class="ident">visit_new</span>(<span class="ident">n</span>),
-            <span class="ident">Expression::Call</span>(<span class="ident">c</span>) =&gt; <span class="ident">visitor</span>.<span class="ident">visit_call</span>(<span class="ident">c</span>),
-            <span class="ident">Expression::SuperCall</span>(<span class="ident">sc</span>) =&gt; <span class="ident">visitor</span>.<span class="ident">visit_super_call</span>(<span class="ident">sc</span>),
-            <span class="ident">Expression::Optional</span>(<span class="ident">opt</span>) =&gt; <span class="ident">visitor</span>.<span class="ident">visit_optional</span>(<span class="ident">opt</span>),
-            <span class="ident">Expression::TaggedTemplate</span>(<span class="ident">tt</span>) =&gt; <span class="ident">visitor</span>.<span class="ident">visit_tagged_template</span>(<span class="ident">tt</span>),
-            <span class="ident">Expression::Assign</span>(<span class="ident">a</span>) =&gt; <span class="ident">visitor</span>.<span class="ident">visit_assign</span>(<span class="ident">a</span>),
-            <span class="ident">Expression::Unary</span>(<span class="ident">u</span>) =&gt; <span class="ident">visitor</span>.<span class="ident">visit_unary</span>(<span class="ident">u</span>),
-            <span class="ident">Expression::Binary</span>(<span class="ident">b</span>) =&gt; <span class="ident">visitor</span>.<span class="ident">visit_binary</span>(<span class="ident">b</span>),
-            <span class="ident">Expression::Conditional</span>(<span class="ident">c</span>) =&gt; <span class="ident">visitor</span>.<span class="ident">visit_conditional</span>(<span class="ident">c</span>),
-            <span class="ident">Expression::Await</span>(<span class="ident">a</span>) =&gt; <span class="ident">visitor</span>.<span class="ident">visit_await</span>(<span class="ident">a</span>),
-            <span class="ident">Expression::Yield</span>(<span class="ident">y</span>) =&gt; <span class="ident">visitor</span>.<span class="ident">visit_yield</span>(<span class="ident">y</span>),
-            <span class="ident">Expression::FormalParameterList</span>(<span class="ident">fpl</span>) =&gt; <span class="ident">visitor</span>.<span class="ident">visit_formal_parameter_list</span>(<span class="ident">fpl</span>),
-            <span class="ident">Expression::This</span> <span class="op">|</span> <span class="ident">Expression::NewTarget</span> =&gt; {
-                <span class="comment">// do nothing; can be handled as special case by visitor</span>
-                <span class="ident">ControlFlow::Continue</span>(())
+        <span class="kw">match </span><span class="self">self </span>{
+            Expression::Identifier(id) =&gt; visitor.visit_identifier(id),
+            Expression::Literal(lit) =&gt; visitor.visit_literal(lit),
+            Expression::ArrayLiteral(arlit) =&gt; visitor.visit_array_literal(arlit),
+            Expression::ObjectLiteral(olit) =&gt; visitor.visit_object_literal(olit),
+            Expression::Spread(sp) =&gt; visitor.visit_spread(sp),
+            Expression::Function(f) =&gt; visitor.visit_function(f),
+            Expression::ArrowFunction(af) =&gt; visitor.visit_arrow_function(af),
+            Expression::Generator(g) =&gt; visitor.visit_generator(g),
+            Expression::AsyncFunction(af) =&gt; visitor.visit_async_function(af),
+            Expression::AsyncGenerator(ag) =&gt; visitor.visit_async_generator(ag),
+            Expression::Class(c) =&gt; visitor.visit_class(c),
+            Expression::TemplateLiteral(tlit) =&gt; visitor.visit_template_literal(tlit),
+            Expression::PropertyAccess(pa) =&gt; visitor.visit_property_access(pa),
+            Expression::New(n) =&gt; visitor.visit_new(n),
+            Expression::Call(c) =&gt; visitor.visit_call(c),
+            Expression::SuperCall(sc) =&gt; visitor.visit_super_call(sc),
+            Expression::Optional(opt) =&gt; visitor.visit_optional(opt),
+            Expression::TaggedTemplate(tt) =&gt; visitor.visit_tagged_template(tt),
+            Expression::Assign(a) =&gt; visitor.visit_assign(a),
+            Expression::Unary(u) =&gt; visitor.visit_unary(u),
+            Expression::Binary(b) =&gt; visitor.visit_binary(b),
+            Expression::Conditional(c) =&gt; visitor.visit_conditional(c),
+            Expression::Await(a) =&gt; visitor.visit_await(a),
+            Expression::Yield(y) =&gt; visitor.visit_yield(y),
+            Expression::FormalParameterList(fpl) =&gt; visitor.visit_formal_parameter_list(fpl),
+            Expression::This | Expression::NewTarget =&gt; {
+                <span class="comment">// do nothing; can be handled as special case by visitor
+                </span>ControlFlow::Continue(())
             }
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">visit_with_mut</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">V</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">visitor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">V</span>) -&gt; <span class="ident">ControlFlow</span><span class="op">&lt;</span><span class="ident">V::BreakTy</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">V</span>: <span class="ident">VisitorMut</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
+    <span class="kw">fn </span>visit_with_mut&lt;<span class="lifetime">&#39;a</span>, V&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="self">self</span>, visitor: <span class="kw-2">&amp;mut </span>V) -&gt; ControlFlow&lt;V::BreakTy&gt;
+    <span class="kw">where
+        </span>V: VisitorMut&lt;<span class="lifetime">&#39;a</span>&gt;,
     {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Expression::Identifier</span>(<span class="ident">id</span>) =&gt; <span class="ident">visitor</span>.<span class="ident">visit_identifier_mut</span>(<span class="ident">id</span>),
-            <span class="ident">Expression::Literal</span>(<span class="ident">lit</span>) =&gt; <span class="ident">visitor</span>.<span class="ident">visit_literal_mut</span>(<span class="ident">lit</span>),
-            <span class="ident">Expression::ArrayLiteral</span>(<span class="ident">arlit</span>) =&gt; <span class="ident">visitor</span>.<span class="ident">visit_array_literal_mut</span>(<span class="ident">arlit</span>),
-            <span class="ident">Expression::ObjectLiteral</span>(<span class="ident">olit</span>) =&gt; <span class="ident">visitor</span>.<span class="ident">visit_object_literal_mut</span>(<span class="ident">olit</span>),
-            <span class="ident">Expression::Spread</span>(<span class="ident">sp</span>) =&gt; <span class="ident">visitor</span>.<span class="ident">visit_spread_mut</span>(<span class="ident">sp</span>),
-            <span class="ident">Expression::Function</span>(<span class="ident">f</span>) =&gt; <span class="ident">visitor</span>.<span class="ident">visit_function_mut</span>(<span class="ident">f</span>),
-            <span class="ident">Expression::ArrowFunction</span>(<span class="ident">af</span>) =&gt; <span class="ident">visitor</span>.<span class="ident">visit_arrow_function_mut</span>(<span class="ident">af</span>),
-            <span class="ident">Expression::Generator</span>(<span class="ident">g</span>) =&gt; <span class="ident">visitor</span>.<span class="ident">visit_generator_mut</span>(<span class="ident">g</span>),
-            <span class="ident">Expression::AsyncFunction</span>(<span class="ident">af</span>) =&gt; <span class="ident">visitor</span>.<span class="ident">visit_async_function_mut</span>(<span class="ident">af</span>),
-            <span class="ident">Expression::AsyncGenerator</span>(<span class="ident">ag</span>) =&gt; <span class="ident">visitor</span>.<span class="ident">visit_async_generator_mut</span>(<span class="ident">ag</span>),
-            <span class="ident">Expression::Class</span>(<span class="ident">c</span>) =&gt; <span class="ident">visitor</span>.<span class="ident">visit_class_mut</span>(<span class="ident">c</span>),
-            <span class="ident">Expression::TemplateLiteral</span>(<span class="ident">tlit</span>) =&gt; <span class="ident">visitor</span>.<span class="ident">visit_template_literal_mut</span>(<span class="ident">tlit</span>),
-            <span class="ident">Expression::PropertyAccess</span>(<span class="ident">pa</span>) =&gt; <span class="ident">visitor</span>.<span class="ident">visit_property_access_mut</span>(<span class="ident">pa</span>),
-            <span class="ident">Expression::New</span>(<span class="ident">n</span>) =&gt; <span class="ident">visitor</span>.<span class="ident">visit_new_mut</span>(<span class="ident">n</span>),
-            <span class="ident">Expression::Call</span>(<span class="ident">c</span>) =&gt; <span class="ident">visitor</span>.<span class="ident">visit_call_mut</span>(<span class="ident">c</span>),
-            <span class="ident">Expression::SuperCall</span>(<span class="ident">sc</span>) =&gt; <span class="ident">visitor</span>.<span class="ident">visit_super_call_mut</span>(<span class="ident">sc</span>),
-            <span class="ident">Expression::Optional</span>(<span class="ident">opt</span>) =&gt; <span class="ident">visitor</span>.<span class="ident">visit_optional_mut</span>(<span class="ident">opt</span>),
-            <span class="ident">Expression::TaggedTemplate</span>(<span class="ident">tt</span>) =&gt; <span class="ident">visitor</span>.<span class="ident">visit_tagged_template_mut</span>(<span class="ident">tt</span>),
-            <span class="ident">Expression::Assign</span>(<span class="ident">a</span>) =&gt; <span class="ident">visitor</span>.<span class="ident">visit_assign_mut</span>(<span class="ident">a</span>),
-            <span class="ident">Expression::Unary</span>(<span class="ident">u</span>) =&gt; <span class="ident">visitor</span>.<span class="ident">visit_unary_mut</span>(<span class="ident">u</span>),
-            <span class="ident">Expression::Binary</span>(<span class="ident">b</span>) =&gt; <span class="ident">visitor</span>.<span class="ident">visit_binary_mut</span>(<span class="ident">b</span>),
-            <span class="ident">Expression::Conditional</span>(<span class="ident">c</span>) =&gt; <span class="ident">visitor</span>.<span class="ident">visit_conditional_mut</span>(<span class="ident">c</span>),
-            <span class="ident">Expression::Await</span>(<span class="ident">a</span>) =&gt; <span class="ident">visitor</span>.<span class="ident">visit_await_mut</span>(<span class="ident">a</span>),
-            <span class="ident">Expression::Yield</span>(<span class="ident">y</span>) =&gt; <span class="ident">visitor</span>.<span class="ident">visit_yield_mut</span>(<span class="ident">y</span>),
-            <span class="ident">Expression::FormalParameterList</span>(<span class="ident">fpl</span>) =&gt; <span class="ident">visitor</span>.<span class="ident">visit_formal_parameter_list_mut</span>(<span class="ident">fpl</span>),
-            <span class="ident">Expression::This</span> <span class="op">|</span> <span class="ident">Expression::NewTarget</span> =&gt; {
-                <span class="comment">// do nothing; can be handled as special case by visitor</span>
-                <span class="ident">ControlFlow::Continue</span>(())
+        <span class="kw">match </span><span class="self">self </span>{
+            Expression::Identifier(id) =&gt; visitor.visit_identifier_mut(id),
+            Expression::Literal(lit) =&gt; visitor.visit_literal_mut(lit),
+            Expression::ArrayLiteral(arlit) =&gt; visitor.visit_array_literal_mut(arlit),
+            Expression::ObjectLiteral(olit) =&gt; visitor.visit_object_literal_mut(olit),
+            Expression::Spread(sp) =&gt; visitor.visit_spread_mut(sp),
+            Expression::Function(f) =&gt; visitor.visit_function_mut(f),
+            Expression::ArrowFunction(af) =&gt; visitor.visit_arrow_function_mut(af),
+            Expression::Generator(g) =&gt; visitor.visit_generator_mut(g),
+            Expression::AsyncFunction(af) =&gt; visitor.visit_async_function_mut(af),
+            Expression::AsyncGenerator(ag) =&gt; visitor.visit_async_generator_mut(ag),
+            Expression::Class(c) =&gt; visitor.visit_class_mut(c),
+            Expression::TemplateLiteral(tlit) =&gt; visitor.visit_template_literal_mut(tlit),
+            Expression::PropertyAccess(pa) =&gt; visitor.visit_property_access_mut(pa),
+            Expression::New(n) =&gt; visitor.visit_new_mut(n),
+            Expression::Call(c) =&gt; visitor.visit_call_mut(c),
+            Expression::SuperCall(sc) =&gt; visitor.visit_super_call_mut(sc),
+            Expression::Optional(opt) =&gt; visitor.visit_optional_mut(opt),
+            Expression::TaggedTemplate(tt) =&gt; visitor.visit_tagged_template_mut(tt),
+            Expression::Assign(a) =&gt; visitor.visit_assign_mut(a),
+            Expression::Unary(u) =&gt; visitor.visit_unary_mut(u),
+            Expression::Binary(b) =&gt; visitor.visit_binary_mut(b),
+            Expression::Conditional(c) =&gt; visitor.visit_conditional_mut(c),
+            Expression::Await(a) =&gt; visitor.visit_await_mut(a),
+            Expression::Yield(y) =&gt; visitor.visit_yield_mut(y),
+            Expression::FormalParameterList(fpl) =&gt; visitor.visit_formal_parameter_list_mut(fpl),
+            Expression::This | Expression::NewTarget =&gt; {
+                <span class="comment">// do nothing; can be handled as special case by visitor
+                </span>ControlFlow::Continue(())
             }
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="boa_ast" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0 (a55dd71d5 2022-09-19)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="boa_ast" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0 (897e37553 2022-11-02)" ></div></body></html>

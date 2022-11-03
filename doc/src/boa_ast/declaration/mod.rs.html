@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_ast/src/declaration/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../boa_ast/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../boa_ast/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../boa_ast/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_ast/src/declaration/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../boa_ast/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../boa_ast/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../boa_ast/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -163,244 +163,170 @@
 <span id="163">163</span>
 <span id="164">164</span>
 <span id="165">165</span>
-<span id="166">166</span>
-<span id="167">167</span>
-<span id="168">168</span>
-<span id="169">169</span>
-<span id="170">170</span>
-<span id="171">171</span>
-<span id="172">172</span>
-<span id="173">173</span>
-<span id="174">174</span>
-<span id="175">175</span>
-<span id="176">176</span>
-<span id="177">177</span>
-<span id="178">178</span>
-<span id="179">179</span>
-<span id="180">180</span>
-<span id="181">181</span>
-<span id="182">182</span>
-<span id="183">183</span>
-<span id="184">184</span>
-<span id="185">185</span>
-<span id="186">186</span>
-<span id="187">187</span>
-<span id="188">188</span>
-<span id="189">189</span>
-<span id="190">190</span>
-<span id="191">191</span>
-<span id="192">192</span>
-<span id="193">193</span>
-<span id="194">194</span>
-<span id="195">195</span>
-<span id="196">196</span>
-<span id="197">197</span>
-<span id="198">198</span>
-<span id="199">199</span>
-<span id="200">200</span>
-<span id="201">201</span>
-<span id="202">202</span>
-</pre><pre class="rust"><code><span class="doccomment">//! The [`Declaration`] Parse Node, as defined by the [spec].</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! Javascript declarations include:</span>
-<span class="doccomment">//! - [Lexical][lex] declarations (`let`, `const`).</span>
-<span class="doccomment">//! - [Function][fun] declarations (`function`, `async function`).</span>
-<span class="doccomment">//! - [Class][class] declarations.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! See [*Difference between statements and declarations*][diff] for an explanation on why `Declaration`s</span>
-<span class="doccomment">//! and `Statement`s are distinct nodes.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! [spec]: https://tc39.es/ecma262/#prod-Declaration</span>
-<span class="doccomment">//! [lex]: https://tc39.es/ecma262/#prod-LexicalDeclaration</span>
-<span class="doccomment">//! [fun]: https://tc39.es/ecma262/#prod-HoistableDeclaration</span>
-<span class="doccomment">//! [class]: https://tc39.es/ecma262/#prod-ClassDeclaration</span>
-<span class="doccomment">//! [diff]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements#difference_between_statements_and_declarations</span>
+</pre><pre class="rust"><code><span class="doccomment">//! The [`Declaration`] Parse Node, as defined by the [spec].
+//!
+//! Javascript declarations include:
+//! - [Lexical][lex] declarations (`let`, `const`).
+//! - [Function][fun] declarations (`function`, `async function`).
+//! - [Class][class] declarations.
+//!
+//! See [*Difference between statements and declarations*][diff] for an explanation on why `Declaration`s
+//! and `Statement`s are distinct nodes.
+//!
+//! [spec]: https://tc39.es/ecma262/#prod-Declaration
+//! [lex]: https://tc39.es/ecma262/#prod-LexicalDeclaration
+//! [fun]: https://tc39.es/ecma262/#prod-HoistableDeclaration
+//! [class]: https://tc39.es/ecma262/#prod-ClassDeclaration
+//! [diff]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements#difference_between_statements_and_declarations
 
-<span class="kw">use</span> <span class="kw">super</span>::{
-    <span class="ident">expression::Identifier</span>,
-    <span class="ident">function</span>::{<span class="ident">AsyncFunction</span>, <span class="ident">AsyncGenerator</span>, <span class="ident">Class</span>, <span class="ident">Function</span>, <span class="ident">Generator</span>},
-    <span class="ident">ContainsSymbol</span>,
+</span><span class="kw">use super</span>::{
+    expression::Identifier,
+    function::{AsyncFunction, AsyncGenerator, Class, Function, Generator},
 };
-<span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">ToIndentedString</span>, <span class="ident">ToInternedString</span>};
-<span class="kw">use</span> <span class="ident">core::ops::ControlFlow</span>;
+<span class="kw">use </span>boa_interner::{Interner, ToIndentedString, ToInternedString};
+<span class="kw">use </span>core::ops::ControlFlow;
 
-<span class="kw">mod</span> <span class="ident">variable</span>;
+<span class="kw">mod </span>variable;
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::visitor</span>::{<span class="ident">VisitWith</span>, <span class="ident">Visitor</span>, <span class="ident">VisitorMut</span>};
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">variable</span>::<span class="kw-2">*</span>;
+<span class="kw">use </span><span class="kw">crate</span>::visitor::{VisitWith, Visitor, VisitorMut};
+<span class="kw">pub use </span>variable::<span class="kw-2">*</span>;
 
-<span class="doccomment">/// The `Declaration` Parse Node.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// See the [module level documentation][self] for more information.</span>
-<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>, <span class="ident">derive</span>(<span class="ident">serde::Serialize</span>, <span class="ident">serde::Deserialize</span>))]</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Declaration</span> {
-    <span class="doccomment">/// See [`Function`]</span>
-    <span class="ident">Function</span>(<span class="ident">Function</span>),
+<span class="doccomment">/// The `Declaration` Parse Node.
+///
+/// See the [module level documentation][self] for more information.
+</span><span class="attribute">#[cfg_attr(feature = <span class="string">&quot;serde&quot;</span>, derive(serde::Serialize, serde::Deserialize))]
+#[derive(Clone, Debug, PartialEq)]
+</span><span class="kw">pub enum </span>Declaration {
+    <span class="doccomment">/// See [`Function`]
+    </span>Function(Function),
 
-    <span class="doccomment">/// See [`Generator`]</span>
-    <span class="ident">Generator</span>(<span class="ident">Generator</span>),
+    <span class="doccomment">/// See [`Generator`]
+    </span>Generator(Generator),
 
-    <span class="doccomment">/// See [`AsyncFunction`]</span>
-    <span class="ident">AsyncFunction</span>(<span class="ident">AsyncFunction</span>),
+    <span class="doccomment">/// See [`AsyncFunction`]
+    </span>AsyncFunction(AsyncFunction),
 
-    <span class="doccomment">/// See [`AsyncGenerator`]</span>
-    <span class="ident">AsyncGenerator</span>(<span class="ident">AsyncGenerator</span>),
+    <span class="doccomment">/// See [`AsyncGenerator`]
+    </span>AsyncGenerator(AsyncGenerator),
 
-    <span class="doccomment">/// See [`Class`]</span>
-    <span class="ident">Class</span>(<span class="ident">Class</span>),
+    <span class="doccomment">/// See [`Class`]
+    </span>Class(Class),
 
-    <span class="doccomment">/// See [`LexicalDeclaration`]</span>
-    <span class="ident">Lexical</span>(<span class="ident">LexicalDeclaration</span>),
+    <span class="doccomment">/// See [`LexicalDeclaration`]
+    </span>Lexical(LexicalDeclaration),
 }
 
-<span class="kw">impl</span> <span class="ident">Declaration</span> {
-    <span class="doccomment">/// Return the lexically declared names of a `Declaration`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The returned list may contain duplicates.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If a declared name originates from a function declaration it is flagged as `true` in the returned list.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript specification][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-static-semantics-lexicallydeclarednames</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">lexically_declared_names</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">Identifier</span>, <span class="ident">bool</span>)<span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Declaration::Function</span>(<span class="ident">f</span>) =&gt; {
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">name</span>) <span class="op">=</span> <span class="ident">f</span>.<span class="ident">name</span>() {
-                    <span class="macro">vec!</span>[(<span class="ident">name</span>, <span class="bool-val">true</span>)]
-                } <span class="kw">else</span> {
-                    <span class="ident">Vec::new</span>()
+<span class="kw">impl </span>Declaration {
+    <span class="doccomment">/// Return the lexically declared names of a `Declaration`.
+    ///
+    /// The returned list may contain duplicates.
+    ///
+    /// If a declared name originates from a function declaration it is flagged as `true` in the returned list.
+    ///
+    /// More information:
+    ///  - [ECMAScript specification][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-lexicallydeclarednames
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>lexically_declared_names(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;(Identifier, bool)&gt; {
+        <span class="kw">match </span><span class="self">self </span>{
+            Declaration::Function(f) =&gt; {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(name) = f.name() {
+                    <span class="macro">vec!</span>[(name, <span class="bool-val">true</span>)]
+                } <span class="kw">else </span>{
+                    Vec::new()
                 }
             }
-            <span class="ident">Declaration::Generator</span>(<span class="ident">g</span>) =&gt; {
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">name</span>) <span class="op">=</span> <span class="ident">g</span>.<span class="ident">name</span>() {
-                    <span class="macro">vec!</span>[(<span class="ident">name</span>, <span class="bool-val">false</span>)]
-                } <span class="kw">else</span> {
-                    <span class="ident">Vec::new</span>()
+            Declaration::Generator(g) =&gt; {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(name) = g.name() {
+                    <span class="macro">vec!</span>[(name, <span class="bool-val">false</span>)]
+                } <span class="kw">else </span>{
+                    Vec::new()
                 }
             }
-            <span class="ident">Declaration::AsyncFunction</span>(<span class="ident">af</span>) =&gt; {
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">name</span>) <span class="op">=</span> <span class="ident">af</span>.<span class="ident">name</span>() {
-                    <span class="macro">vec!</span>[(<span class="ident">name</span>, <span class="bool-val">false</span>)]
-                } <span class="kw">else</span> {
-                    <span class="ident">Vec::new</span>()
+            Declaration::AsyncFunction(af) =&gt; {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(name) = af.name() {
+                    <span class="macro">vec!</span>[(name, <span class="bool-val">false</span>)]
+                } <span class="kw">else </span>{
+                    Vec::new()
                 }
             }
-            <span class="ident">Declaration::AsyncGenerator</span>(<span class="ident">ag</span>) =&gt; {
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">name</span>) <span class="op">=</span> <span class="ident">ag</span>.<span class="ident">name</span>() {
-                    <span class="macro">vec!</span>[(<span class="ident">name</span>, <span class="bool-val">false</span>)]
-                } <span class="kw">else</span> {
-                    <span class="ident">Vec::new</span>()
+            Declaration::AsyncGenerator(ag) =&gt; {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(name) = ag.name() {
+                    <span class="macro">vec!</span>[(name, <span class="bool-val">false</span>)]
+                } <span class="kw">else </span>{
+                    Vec::new()
                 }
             }
-            <span class="ident">Declaration::Class</span>(<span class="ident">cl</span>) =&gt; {
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">name</span>) <span class="op">=</span> <span class="ident">cl</span>.<span class="ident">name</span>() {
-                    <span class="macro">vec!</span>[(<span class="ident">name</span>, <span class="bool-val">false</span>)]
-                } <span class="kw">else</span> {
-                    <span class="ident">Vec::new</span>()
+            Declaration::Class(cl) =&gt; {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(name) = cl.name() {
+                    <span class="macro">vec!</span>[(name, <span class="bool-val">false</span>)]
+                } <span class="kw">else </span>{
+                    Vec::new()
                 }
             }
-            <span class="ident">Declaration::Lexical</span>(<span class="ident">lexical</span>) =&gt; {
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">names</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-                <span class="kw">for</span> <span class="ident">decl</span> <span class="kw">in</span> <span class="ident">lexical</span>.<span class="ident">variable_list</span>().<span class="ident">as_ref</span>() {
-                    <span class="kw">match</span> <span class="ident">decl</span>.<span class="ident">binding</span>() {
-                        <span class="ident">Binding::Identifier</span>(<span class="ident">ident</span>) =&gt; {
-                            <span class="ident">names</span>.<span class="ident">push</span>((<span class="kw-2">*</span><span class="ident">ident</span>, <span class="bool-val">false</span>));
+            Declaration::Lexical(lexical) =&gt; {
+                <span class="kw">let </span><span class="kw-2">mut </span>names = Vec::new();
+                <span class="kw">for </span>decl <span class="kw">in </span>lexical.variable_list().as_ref() {
+                    <span class="kw">match </span>decl.binding() {
+                        Binding::Identifier(ident) =&gt; {
+                            names.push((<span class="kw-2">*</span>ident, <span class="bool-val">false</span>));
                         }
-                        <span class="ident">Binding::Pattern</span>(<span class="ident">pattern</span>) =&gt; {
-                            <span class="ident">names</span>.<span class="ident">extend</span>(<span class="ident">pattern</span>.<span class="ident">idents</span>().<span class="ident">into_iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">name</span><span class="op">|</span> (<span class="ident">name</span>, <span class="bool-val">false</span>)));
+                        Binding::Pattern(pattern) =&gt; {
+                            names.extend(pattern.idents().into_iter().map(|name| (name, <span class="bool-val">false</span>)));
                         }
                     }
                 }
-                <span class="ident">names</span>
-            }
-        }
-    }
-
-    <span class="doccomment">/// Returns true if the node contains a identifier reference named &#39;arguments&#39;.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript specification][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-static-semantics-containsarguments</span>
-    <span class="comment">// TODO: replace with a visitor</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">contains_arguments</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident"><span class="self">Self</span>::Function</span>(<span class="kw">_</span>)
-            <span class="op">|</span> <span class="ident"><span class="self">Self</span>::Generator</span>(<span class="kw">_</span>)
-            <span class="op">|</span> <span class="ident"><span class="self">Self</span>::AsyncGenerator</span>(<span class="kw">_</span>)
-            <span class="op">|</span> <span class="ident"><span class="self">Self</span>::AsyncFunction</span>(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
-            <span class="ident"><span class="self">Self</span>::Lexical</span>(<span class="ident">decl</span>) =&gt; <span class="ident">decl</span>.<span class="ident">contains_arguments</span>(),
-            <span class="ident"><span class="self">Self</span>::Class</span>(<span class="ident">class</span>) =&gt; <span class="ident">class</span>.<span class="ident">contains_arguments</span>(),
-        }
-    }
-
-    <span class="doccomment">/// Returns `true` if the node contains the given token.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript specification][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-static-semantics-contains</span>
-    <span class="comment">// TODO: replace with a visitor</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">symbol</span>: <span class="ident">ContainsSymbol</span>) -&gt; <span class="ident">bool</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident"><span class="self">Self</span>::Function</span>(<span class="kw">_</span>)
-            <span class="op">|</span> <span class="ident"><span class="self">Self</span>::Generator</span>(<span class="kw">_</span>)
-            <span class="op">|</span> <span class="ident"><span class="self">Self</span>::AsyncGenerator</span>(<span class="kw">_</span>)
-            <span class="op">|</span> <span class="ident"><span class="self">Self</span>::AsyncFunction</span>(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
-            <span class="ident"><span class="self">Self</span>::Class</span>(<span class="ident">class</span>) =&gt; <span class="ident">class</span>.<span class="ident">contains</span>(<span class="ident">symbol</span>),
-            <span class="ident"><span class="self">Self</span>::Lexical</span>(<span class="ident">decl</span>) =&gt; <span class="ident">decl</span>.<span class="ident">contains</span>(<span class="ident">symbol</span>),
-        }
-    }
-}
-
-<span class="kw">impl</span> <span class="ident">ToIndentedString</span> <span class="kw">for</span> <span class="ident">Declaration</span> {
-    <span class="kw">fn</span> <span class="ident">to_indented_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;</span><span class="ident">Interner</span>, <span class="ident">indentation</span>: <span class="ident">usize</span>) -&gt; <span class="ident">String</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Declaration::Function</span>(<span class="ident">f</span>) =&gt; <span class="ident">f</span>.<span class="ident">to_indented_string</span>(<span class="ident">interner</span>, <span class="ident">indentation</span>),
-            <span class="ident">Declaration::Generator</span>(<span class="ident">g</span>) =&gt; <span class="ident">g</span>.<span class="ident">to_indented_string</span>(<span class="ident">interner</span>, <span class="ident">indentation</span>),
-            <span class="ident">Declaration::AsyncFunction</span>(<span class="ident">af</span>) =&gt; <span class="ident">af</span>.<span class="ident">to_indented_string</span>(<span class="ident">interner</span>, <span class="ident">indentation</span>),
-            <span class="ident">Declaration::AsyncGenerator</span>(<span class="ident">ag</span>) =&gt; <span class="ident">ag</span>.<span class="ident">to_indented_string</span>(<span class="ident">interner</span>, <span class="ident">indentation</span>),
-            <span class="ident">Declaration::Class</span>(<span class="ident">c</span>) =&gt; <span class="ident">c</span>.<span class="ident">to_indented_string</span>(<span class="ident">interner</span>, <span class="ident">indentation</span>),
-            <span class="ident">Declaration::Lexical</span>(<span class="ident">l</span>) =&gt; {
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">l</span>.<span class="ident">to_interned_string</span>(<span class="ident">interner</span>);
-                <span class="ident">s</span>.<span class="ident">push</span>(<span class="string">&#39;;&#39;</span>);
-                <span class="ident">s</span>
+                names
             }
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">VisitWith</span> <span class="kw">for</span> <span class="ident">Declaration</span> {
-    <span class="kw">fn</span> <span class="ident">visit_with</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">V</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>, <span class="ident">visitor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">V</span>) -&gt; <span class="ident">ControlFlow</span><span class="op">&lt;</span><span class="ident">V::BreakTy</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">V</span>: <span class="ident">Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
+<span class="kw">impl </span>ToIndentedString <span class="kw">for </span>Declaration {
+    <span class="kw">fn </span>to_indented_string(<span class="kw-2">&amp;</span><span class="self">self</span>, interner: <span class="kw-2">&amp;</span>Interner, indentation: usize) -&gt; String {
+        <span class="kw">match </span><span class="self">self </span>{
+            Declaration::Function(f) =&gt; f.to_indented_string(interner, indentation),
+            Declaration::Generator(g) =&gt; g.to_indented_string(interner, indentation),
+            Declaration::AsyncFunction(af) =&gt; af.to_indented_string(interner, indentation),
+            Declaration::AsyncGenerator(ag) =&gt; ag.to_indented_string(interner, indentation),
+            Declaration::Class(c) =&gt; c.to_indented_string(interner, indentation),
+            Declaration::Lexical(l) =&gt; {
+                <span class="kw">let </span><span class="kw-2">mut </span>s = l.to_interned_string(interner);
+                s.push(<span class="string">&#39;;&#39;</span>);
+                s
+            }
+        }
+    }
+}
+
+<span class="kw">impl </span>VisitWith <span class="kw">for </span>Declaration {
+    <span class="kw">fn </span>visit_with&lt;<span class="lifetime">&#39;a</span>, V&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>, visitor: <span class="kw-2">&amp;mut </span>V) -&gt; ControlFlow&lt;V::BreakTy&gt;
+    <span class="kw">where
+        </span>V: Visitor&lt;<span class="lifetime">&#39;a</span>&gt;,
     {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Declaration::Function</span>(<span class="ident">f</span>) =&gt; <span class="ident">visitor</span>.<span class="ident">visit_function</span>(<span class="ident">f</span>),
-            <span class="ident">Declaration::Generator</span>(<span class="ident">g</span>) =&gt; <span class="ident">visitor</span>.<span class="ident">visit_generator</span>(<span class="ident">g</span>),
-            <span class="ident">Declaration::AsyncFunction</span>(<span class="ident">af</span>) =&gt; <span class="ident">visitor</span>.<span class="ident">visit_async_function</span>(<span class="ident">af</span>),
-            <span class="ident">Declaration::AsyncGenerator</span>(<span class="ident">ag</span>) =&gt; <span class="ident">visitor</span>.<span class="ident">visit_async_generator</span>(<span class="ident">ag</span>),
-            <span class="ident">Declaration::Class</span>(<span class="ident">c</span>) =&gt; <span class="ident">visitor</span>.<span class="ident">visit_class</span>(<span class="ident">c</span>),
-            <span class="ident">Declaration::Lexical</span>(<span class="ident">ld</span>) =&gt; <span class="ident">visitor</span>.<span class="ident">visit_lexical_declaration</span>(<span class="ident">ld</span>),
+        <span class="kw">match </span><span class="self">self </span>{
+            Declaration::Function(f) =&gt; visitor.visit_function(f),
+            Declaration::Generator(g) =&gt; visitor.visit_generator(g),
+            Declaration::AsyncFunction(af) =&gt; visitor.visit_async_function(af),
+            Declaration::AsyncGenerator(ag) =&gt; visitor.visit_async_generator(ag),
+            Declaration::Class(c) =&gt; visitor.visit_class(c),
+            Declaration::Lexical(ld) =&gt; visitor.visit_lexical_declaration(ld),
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">visit_with_mut</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">V</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">visitor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">V</span>) -&gt; <span class="ident">ControlFlow</span><span class="op">&lt;</span><span class="ident">V::BreakTy</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">V</span>: <span class="ident">VisitorMut</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
+    <span class="kw">fn </span>visit_with_mut&lt;<span class="lifetime">&#39;a</span>, V&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="self">self</span>, visitor: <span class="kw-2">&amp;mut </span>V) -&gt; ControlFlow&lt;V::BreakTy&gt;
+    <span class="kw">where
+        </span>V: VisitorMut&lt;<span class="lifetime">&#39;a</span>&gt;,
     {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Declaration::Function</span>(<span class="ident">f</span>) =&gt; <span class="ident">visitor</span>.<span class="ident">visit_function_mut</span>(<span class="ident">f</span>),
-            <span class="ident">Declaration::Generator</span>(<span class="ident">g</span>) =&gt; <span class="ident">visitor</span>.<span class="ident">visit_generator_mut</span>(<span class="ident">g</span>),
-            <span class="ident">Declaration::AsyncFunction</span>(<span class="ident">af</span>) =&gt; <span class="ident">visitor</span>.<span class="ident">visit_async_function_mut</span>(<span class="ident">af</span>),
-            <span class="ident">Declaration::AsyncGenerator</span>(<span class="ident">ag</span>) =&gt; <span class="ident">visitor</span>.<span class="ident">visit_async_generator_mut</span>(<span class="ident">ag</span>),
-            <span class="ident">Declaration::Class</span>(<span class="ident">c</span>) =&gt; <span class="ident">visitor</span>.<span class="ident">visit_class_mut</span>(<span class="ident">c</span>),
-            <span class="ident">Declaration::Lexical</span>(<span class="ident">ld</span>) =&gt; <span class="ident">visitor</span>.<span class="ident">visit_lexical_declaration_mut</span>(<span class="ident">ld</span>),
+        <span class="kw">match </span><span class="self">self </span>{
+            Declaration::Function(f) =&gt; visitor.visit_function_mut(f),
+            Declaration::Generator(g) =&gt; visitor.visit_generator_mut(g),
+            Declaration::AsyncFunction(af) =&gt; visitor.visit_async_function_mut(af),
+            Declaration::AsyncGenerator(ag) =&gt; visitor.visit_async_generator_mut(ag),
+            Declaration::Class(c) =&gt; visitor.visit_class_mut(c),
+            Declaration::Lexical(ld) =&gt; visitor.visit_lexical_declaration_mut(ld),
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="boa_ast" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0 (a55dd71d5 2022-09-19)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="boa_ast" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0 (897e37553 2022-11-02)" ></div></body></html>

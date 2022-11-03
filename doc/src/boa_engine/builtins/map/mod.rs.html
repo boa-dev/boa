@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_engine/src/builtins/map/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_engine/src/builtins/map/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container">
                     <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../boa_engine/index.html">
                         <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -584,589 +584,589 @@
 <span id="582">582</span>
 <span id="583">583</span>
 <span id="584">584</span>
-</pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `Map` object.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! The JavaScript `Map` class is a global object that is used in the construction of maps; which</span>
-<span class="doccomment">//! are high-level, key-value stores.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! More information:</span>
-<span class="doccomment">//!  - [ECMAScript reference][spec]</span>
-<span class="doccomment">//!  - [MDN documentation][mdn]</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! [spec]: https://tc39.es/ecma262/#sec-map-objects</span>
-<span class="doccomment">//! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map</span>
+</pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `Map` object.
+//!
+//! The JavaScript `Map` class is a global object that is used in the construction of maps; which
+//! are high-level, key-value stores.
+//!
+//! More information:
+//!  - [ECMAScript reference][spec]
+//!  - [MDN documentation][mdn]
+//!
+//! [spec]: https://tc39.es/ecma262/#sec-map-objects
+//! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map
 
-<span class="kw">use</span> <span class="self">self</span>::{<span class="ident">map_iterator::MapIterator</span>, <span class="ident">ordered_map::OrderedMap</span>};
-<span class="kw">use</span> <span class="ident"><span class="kw">super</span>::JsArgs</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">builtins::BuiltIn</span>,
-    <span class="ident">context::intrinsics::StandardConstructors</span>,
-    <span class="ident">error::JsNativeError</span>,
-    <span class="ident">object</span>::{
-        <span class="ident">internal_methods::get_prototype_from_constructor</span>, <span class="ident">ConstructorBuilder</span>, <span class="ident">FunctionBuilder</span>,
-        <span class="ident">JsObject</span>, <span class="ident">ObjectData</span>,
+</span><span class="kw">use </span><span class="self">self</span>::{map_iterator::MapIterator, ordered_map::OrderedMap};
+<span class="kw">use </span><span class="kw">super</span>::JsArgs;
+<span class="kw">use crate</span>::{
+    builtins::BuiltIn,
+    context::intrinsics::StandardConstructors,
+    error::JsNativeError,
+    object::{
+        internal_methods::get_prototype_from_constructor, ConstructorBuilder, FunctionBuilder,
+        JsObject, ObjectData,
     },
-    <span class="ident">property</span>::{<span class="ident">Attribute</span>, <span class="ident">PropertyNameKind</span>},
-    <span class="ident">symbol::WellKnownSymbols</span>,
-    <span class="ident">Context</span>, <span class="ident">JsResult</span>, <span class="ident">JsValue</span>,
+    property::{Attribute, PropertyNameKind},
+    symbol::WellKnownSymbols,
+    Context, JsResult, JsValue,
 };
-<span class="kw">use</span> <span class="ident">boa_profiler::Profiler</span>;
-<span class="kw">use</span> <span class="ident">num_traits::Zero</span>;
-<span class="kw">use</span> <span class="ident">tap</span>::{<span class="ident">Conv</span>, <span class="ident">Pipe</span>};
+<span class="kw">use </span>boa_profiler::Profiler;
+<span class="kw">use </span>num_traits::Zero;
+<span class="kw">use </span>tap::{Conv, Pipe};
 
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">map_iterator</span>;
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">ordered_map</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span>;
+<span class="kw">pub mod </span>map_iterator;
+<span class="kw">pub mod </span>ordered_map;
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>tests;
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">Map</span>(<span class="ident">OrderedMap</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span>);
+<span class="attribute">#[derive(Debug, Clone)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Map(OrderedMap&lt;JsValue&gt;);
 
-<span class="kw">impl</span> <span class="ident">BuiltIn</span> <span class="kw">for</span> <span class="ident">Map</span> {
-    <span class="kw">const</span> <span class="ident">NAME</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;Map&quot;</span>;
+<span class="kw">impl </span>BuiltIn <span class="kw">for </span>Map {
+    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;Map&quot;</span>;
 
-    <span class="kw">fn</span> <span class="ident">init</span>(<span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="ident"><span class="self">Self</span>::NAME</span>, <span class="string">&quot;init&quot;</span>);
+    <span class="kw">fn </span>init(context: <span class="kw-2">&amp;mut </span>Context) -&gt; <span class="prelude-ty">Option</span>&lt;JsValue&gt; {
+        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="self">Self</span>::NAME, <span class="string">&quot;init&quot;</span>);
 
-        <span class="kw">let</span> <span class="ident">get_species</span> <span class="op">=</span> <span class="ident">FunctionBuilder::native</span>(<span class="ident">context</span>, <span class="ident"><span class="self">Self</span>::get_species</span>)
-            .<span class="ident">name</span>(<span class="string">&quot;get [Symbol.species]&quot;</span>)
-            .<span class="ident">constructor</span>(<span class="bool-val">false</span>)
-            .<span class="ident">build</span>();
+        <span class="kw">let </span>get_species = FunctionBuilder::native(context, <span class="self">Self</span>::get_species)
+            .name(<span class="string">&quot;get [Symbol.species]&quot;</span>)
+            .constructor(<span class="bool-val">false</span>)
+            .build();
 
-        <span class="kw">let</span> <span class="ident">get_size</span> <span class="op">=</span> <span class="ident">FunctionBuilder::native</span>(<span class="ident">context</span>, <span class="ident"><span class="self">Self</span>::get_size</span>)
-            .<span class="ident">name</span>(<span class="string">&quot;get size&quot;</span>)
-            .<span class="ident">length</span>(<span class="number">0</span>)
-            .<span class="ident">constructor</span>(<span class="bool-val">false</span>)
-            .<span class="ident">build</span>();
+        <span class="kw">let </span>get_size = FunctionBuilder::native(context, <span class="self">Self</span>::get_size)
+            .name(<span class="string">&quot;get size&quot;</span>)
+            .length(<span class="number">0</span>)
+            .constructor(<span class="bool-val">false</span>)
+            .build();
 
-        <span class="kw">let</span> <span class="ident">entries_function</span> <span class="op">=</span> <span class="ident">FunctionBuilder::native</span>(<span class="ident">context</span>, <span class="ident"><span class="self">Self</span>::entries</span>)
-            .<span class="ident">name</span>(<span class="string">&quot;entries&quot;</span>)
-            .<span class="ident">length</span>(<span class="number">0</span>)
-            .<span class="ident">constructor</span>(<span class="bool-val">false</span>)
-            .<span class="ident">build</span>();
+        <span class="kw">let </span>entries_function = FunctionBuilder::native(context, <span class="self">Self</span>::entries)
+            .name(<span class="string">&quot;entries&quot;</span>)
+            .length(<span class="number">0</span>)
+            .constructor(<span class="bool-val">false</span>)
+            .build();
 
-        <span class="ident">ConstructorBuilder::with_standard_constructor</span>(
-            <span class="ident">context</span>,
-            <span class="ident"><span class="self">Self</span>::constructor</span>,
-            <span class="ident">context</span>.<span class="ident">intrinsics</span>().<span class="ident">constructors</span>().<span class="ident">map</span>().<span class="ident">clone</span>(),
+        ConstructorBuilder::with_standard_constructor(
+            context,
+            <span class="self">Self</span>::constructor,
+            context.intrinsics().constructors().map().clone(),
         )
-        .<span class="ident">name</span>(<span class="ident"><span class="self">Self</span>::NAME</span>)
-        .<span class="ident">length</span>(<span class="ident"><span class="self">Self</span>::LENGTH</span>)
-        .<span class="ident">static_accessor</span>(
-            <span class="ident">WellKnownSymbols::species</span>(),
-            <span class="prelude-val">Some</span>(<span class="ident">get_species</span>),
+        .name(<span class="self">Self</span>::NAME)
+        .length(<span class="self">Self</span>::LENGTH)
+        .static_accessor(
+            WellKnownSymbols::species(),
+            <span class="prelude-val">Some</span>(get_species),
             <span class="prelude-val">None</span>,
-            <span class="ident">Attribute::CONFIGURABLE</span>,
+            Attribute::CONFIGURABLE,
         )
-        .<span class="ident">property</span>(
+        .property(
             <span class="string">&quot;entries&quot;</span>,
-            <span class="ident">entries_function</span>.<span class="ident">clone</span>(),
-            <span class="ident">Attribute::WRITABLE</span> <span class="op">|</span> <span class="ident">Attribute::NON_ENUMERABLE</span> <span class="op">|</span> <span class="ident">Attribute::CONFIGURABLE</span>,
+            entries_function.clone(),
+            Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
         )
-        .<span class="ident">property</span>(
-            <span class="ident">WellKnownSymbols::iterator</span>(),
-            <span class="ident">entries_function</span>,
-            <span class="ident">Attribute::WRITABLE</span> <span class="op">|</span> <span class="ident">Attribute::NON_ENUMERABLE</span> <span class="op">|</span> <span class="ident">Attribute::CONFIGURABLE</span>,
+        .property(
+            WellKnownSymbols::iterator(),
+            entries_function,
+            Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
         )
-        .<span class="ident">property</span>(
-            <span class="ident">WellKnownSymbols::to_string_tag</span>(),
-            <span class="ident"><span class="self">Self</span>::NAME</span>,
-            <span class="ident">Attribute::READONLY</span> <span class="op">|</span> <span class="ident">Attribute::NON_ENUMERABLE</span> <span class="op">|</span> <span class="ident">Attribute::CONFIGURABLE</span>,
+        .property(
+            WellKnownSymbols::to_string_tag(),
+            <span class="self">Self</span>::NAME,
+            Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
         )
-        .<span class="ident">method</span>(<span class="ident"><span class="self">Self</span>::clear</span>, <span class="string">&quot;clear&quot;</span>, <span class="number">0</span>)
-        .<span class="ident">method</span>(<span class="ident"><span class="self">Self</span>::delete</span>, <span class="string">&quot;delete&quot;</span>, <span class="number">1</span>)
-        .<span class="ident">method</span>(<span class="ident"><span class="self">Self</span>::for_each</span>, <span class="string">&quot;forEach&quot;</span>, <span class="number">1</span>)
-        .<span class="ident">method</span>(<span class="ident"><span class="self">Self</span>::get</span>, <span class="string">&quot;get&quot;</span>, <span class="number">1</span>)
-        .<span class="ident">method</span>(<span class="ident"><span class="self">Self</span>::has</span>, <span class="string">&quot;has&quot;</span>, <span class="number">1</span>)
-        .<span class="ident">method</span>(<span class="ident"><span class="self">Self</span>::keys</span>, <span class="string">&quot;keys&quot;</span>, <span class="number">0</span>)
-        .<span class="ident">method</span>(<span class="ident"><span class="self">Self</span>::set</span>, <span class="string">&quot;set&quot;</span>, <span class="number">2</span>)
-        .<span class="ident">method</span>(<span class="ident"><span class="self">Self</span>::values</span>, <span class="string">&quot;values&quot;</span>, <span class="number">0</span>)
-        .<span class="ident">accessor</span>(<span class="string">&quot;size&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">get_size</span>), <span class="prelude-val">None</span>, <span class="ident">Attribute::CONFIGURABLE</span>)
-        .<span class="ident">build</span>()
-        .<span class="ident">conv</span>::<span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span>()
-        .<span class="ident">pipe</span>(<span class="prelude-val">Some</span>)
+        .method(<span class="self">Self</span>::clear, <span class="string">&quot;clear&quot;</span>, <span class="number">0</span>)
+        .method(<span class="self">Self</span>::delete, <span class="string">&quot;delete&quot;</span>, <span class="number">1</span>)
+        .method(<span class="self">Self</span>::for_each, <span class="string">&quot;forEach&quot;</span>, <span class="number">1</span>)
+        .method(<span class="self">Self</span>::get, <span class="string">&quot;get&quot;</span>, <span class="number">1</span>)
+        .method(<span class="self">Self</span>::has, <span class="string">&quot;has&quot;</span>, <span class="number">1</span>)
+        .method(<span class="self">Self</span>::keys, <span class="string">&quot;keys&quot;</span>, <span class="number">0</span>)
+        .method(<span class="self">Self</span>::set, <span class="string">&quot;set&quot;</span>, <span class="number">2</span>)
+        .method(<span class="self">Self</span>::values, <span class="string">&quot;values&quot;</span>, <span class="number">0</span>)
+        .accessor(<span class="string">&quot;size&quot;</span>, <span class="prelude-val">Some</span>(get_size), <span class="prelude-val">None</span>, Attribute::CONFIGURABLE)
+        .build()
+        .conv::&lt;JsValue&gt;()
+        .pipe(<span class="prelude-val">Some</span>)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Map</span> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const</span> <span class="ident">LENGTH</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">0</span>;
+<span class="kw">impl </span>Map {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>LENGTH: usize = <span class="number">0</span>;
 
-    <span class="doccomment">/// `Map ( [ iterable ] )`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Constructor for `Map` objects.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-map-iterable</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/Map</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">constructor</span>(
-        <span class="ident">new_target</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
-        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="comment">// 1. If NewTarget is undefined, throw a TypeError exception.</span>
-        <span class="kw">if</span> <span class="ident">new_target</span>.<span class="ident">is_undefined</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
-                .<span class="ident">with_message</span>(<span class="string">&quot;calling a builtin Map constructor without new is forbidden&quot;</span>)
-                .<span class="ident">into</span>());
+    <span class="doccomment">/// `Map ( [ iterable ] )`
+    ///
+    /// Constructor for `Map` objects.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-map-iterable
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/Map
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>constructor(
+        new_target: <span class="kw-2">&amp;</span>JsValue,
+        args: <span class="kw-2">&amp;</span>[JsValue],
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="comment">// 1. If NewTarget is undefined, throw a TypeError exception.
+        </span><span class="kw">if </span>new_target.is_undefined() {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
+                .with_message(<span class="string">&quot;calling a builtin Map constructor without new is forbidden&quot;</span>)
+                .into());
         }
 
-        <span class="comment">// 2. Let map be ? OrdinaryCreateFromConstructor(NewTarget, &quot;%Map.prototype%&quot;, « [[MapData]] »).</span>
-        <span class="comment">// 3. Set map.[[MapData]] to a new empty List.</span>
-        <span class="kw">let</span> <span class="ident">prototype</span> <span class="op">=</span>
-            <span class="ident">get_prototype_from_constructor</span>(<span class="ident">new_target</span>, <span class="ident">StandardConstructors::map</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">map</span> <span class="op">=</span> <span class="ident">JsObject::from_proto_and_data</span>(<span class="ident">prototype</span>, <span class="ident">ObjectData::map</span>(<span class="ident">OrderedMap::new</span>()));
+        <span class="comment">// 2. Let map be ? OrdinaryCreateFromConstructor(NewTarget, &quot;%Map.prototype%&quot;, « [[MapData]] »).
+        // 3. Set map.[[MapData]] to a new empty List.
+        </span><span class="kw">let </span>prototype =
+            get_prototype_from_constructor(new_target, StandardConstructors::map, context)<span class="question-mark">?</span>;
+        <span class="kw">let </span>map = JsObject::from_proto_and_data(prototype, ObjectData::map(OrderedMap::new()));
 
-        <span class="comment">// 4. If iterable is either undefined or null, return map.</span>
-        <span class="kw">let</span> <span class="ident">iterable</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>) {
-            <span class="ident">val</span> <span class="kw">if</span> <span class="op">!</span><span class="ident">val</span>.<span class="ident">is_null_or_undefined</span>() =&gt; <span class="ident">val</span>,
-            <span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">map</span>.<span class="ident">into</span>()),
+        <span class="comment">// 4. If iterable is either undefined or null, return map.
+        </span><span class="kw">let </span>iterable = <span class="kw">match </span>args.get_or_undefined(<span class="number">0</span>) {
+            val <span class="kw">if </span>!val.is_null_or_undefined() =&gt; val,
+            <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(map.into()),
         };
 
-        <span class="comment">// 5. Let adder be ? Get(map, &quot;set&quot;).</span>
-        <span class="kw">let</span> <span class="ident">adder</span> <span class="op">=</span> <span class="ident">map</span>.<span class="ident">get</span>(<span class="string">&quot;set&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="comment">// 5. Let adder be ? Get(map, &quot;set&quot;).
+        </span><span class="kw">let </span>adder = map.get(<span class="string">&quot;set&quot;</span>, context)<span class="question-mark">?</span>;
 
-        <span class="comment">// 6. Return ? AddEntriesFromIterable(map, iterable, adder).</span>
-        <span class="ident">add_entries_from_iterable</span>(<span class="kw-2">&amp;</span><span class="ident">map</span>, <span class="ident">iterable</span>, <span class="kw-2">&amp;</span><span class="ident">adder</span>, <span class="ident">context</span>)
+        <span class="comment">// 6. Return ? AddEntriesFromIterable(map, iterable, adder).
+        </span>add_entries_from_iterable(<span class="kw-2">&amp;</span>map, iterable, <span class="kw-2">&amp;</span>adder, context)
     }
 
-    <span class="doccomment">/// `get Map [ @@species ]`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The `Map [ @@species ]` accessor property returns the Map constructor.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-get-map-@@species</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/@@species</span>
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::unnecessary_wraps</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">get_species</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="kw">_</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="comment">// 1. Return the this value.</span>
-        <span class="prelude-val">Ok</span>(<span class="ident">this</span>.<span class="ident">clone</span>())
+    <span class="doccomment">/// `get Map [ @@species ]`
+    ///
+    /// The `Map [ @@species ]` accessor property returns the Map constructor.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-get-map-@@species
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/@@species
+    </span><span class="attribute">#[allow(clippy::unnecessary_wraps)]
+    </span><span class="kw">fn </span>get_species(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="comment">// 1. Return the this value.
+        </span><span class="prelude-val">Ok</span>(this.clone())
     }
 
-    <span class="doccomment">/// `Map.prototype.entries()`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Returns a new Iterator object that contains the [key, value] pairs for each element in the Map object in insertion order.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-map.prototype.entries</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/entries</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">entries</span>(
-        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
-        <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="comment">// 1. Let M be the this value.</span>
-        <span class="comment">// 2. Return ? CreateMapIterator(M, key+value).</span>
-        <span class="ident">MapIterator::create_map_iterator</span>(<span class="ident">this</span>, <span class="ident">PropertyNameKind::KeyAndValue</span>, <span class="ident">context</span>)
+    <span class="doccomment">/// `Map.prototype.entries()`
+    ///
+    /// Returns a new Iterator object that contains the [key, value] pairs for each element in the Map object in insertion order.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-map.prototype.entries
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/entries
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>entries(
+        this: <span class="kw-2">&amp;</span>JsValue,
+        <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue],
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="comment">// 1. Let M be the this value.
+        // 2. Return ? CreateMapIterator(M, key+value).
+        </span>MapIterator::create_map_iterator(this, PropertyNameKind::KeyAndValue, context)
     }
 
-    <span class="doccomment">/// `Map.prototype.keys()`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Returns a new Iterator object that contains the keys for each element in the Map object in insertion order.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-map.prototype.keys</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/keys</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">keys</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="comment">// 1. Let M be the this value.</span>
-        <span class="comment">// 2. Return ? CreateMapIterator(M, key).</span>
-        <span class="ident">MapIterator::create_map_iterator</span>(<span class="ident">this</span>, <span class="ident">PropertyNameKind::Key</span>, <span class="ident">context</span>)
+    <span class="doccomment">/// `Map.prototype.keys()`
+    ///
+    /// Returns a new Iterator object that contains the keys for each element in the Map object in insertion order.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-map.prototype.keys
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/keys
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>keys(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="comment">// 1. Let M be the this value.
+        // 2. Return ? CreateMapIterator(M, key).
+        </span>MapIterator::create_map_iterator(this, PropertyNameKind::Key, context)
     }
 
-    <span class="doccomment">/// `Map.prototype.set( key, value )`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Inserts a new entry in the Map object.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-map.prototype.set</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/set</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">set</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="kw">_</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>);
-        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">1</span>);
+    <span class="doccomment">/// `Map.prototype.set( key, value )`
+    ///
+    /// Inserts a new entry in the Map object.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-map.prototype.set
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/set
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set(this: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="kw">let </span>key = args.get_or_undefined(<span class="number">0</span>);
+        <span class="kw">let </span>value = args.get_or_undefined(<span class="number">1</span>);
 
-        <span class="comment">// 1. Let M be the this value.</span>
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">object</span>) <span class="op">=</span> <span class="ident">this</span>.<span class="ident">as_object</span>() {
-            <span class="comment">// 2. Perform ? RequireInternalSlot(M, [[MapData]]).</span>
-            <span class="comment">// 3. Let entries be the List that is M.[[MapData]].</span>
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">map</span>) <span class="op">=</span> <span class="ident">object</span>.<span class="ident">borrow_mut</span>().<span class="ident">as_map_mut</span>() {
-                <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">key</span> {
-                    <span class="ident">JsValue::Rational</span>(<span class="ident">r</span>) =&gt; {
-                        <span class="comment">// 5. If key is -0𝔽, set key to +0𝔽.</span>
-                        <span class="kw">if</span> <span class="ident">r</span>.<span class="ident">is_zero</span>() {
-                            <span class="ident">JsValue::Rational</span>(<span class="number">0f64</span>)
-                        } <span class="kw">else</span> {
-                            <span class="ident">key</span>.<span class="ident">clone</span>()
+        <span class="comment">// 1. Let M be the this value.
+        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(object) = this.as_object() {
+            <span class="comment">// 2. Perform ? RequireInternalSlot(M, [[MapData]]).
+            // 3. Let entries be the List that is M.[[MapData]].
+            </span><span class="kw">if let </span><span class="prelude-val">Some</span>(map) = object.borrow_mut().as_map_mut() {
+                <span class="kw">let </span>key = <span class="kw">match </span>key {
+                    JsValue::Rational(r) =&gt; {
+                        <span class="comment">// 5. If key is -0𝔽, set key to +0𝔽.
+                        </span><span class="kw">if </span>r.is_zero() {
+                            JsValue::Rational(<span class="number">0f64</span>)
+                        } <span class="kw">else </span>{
+                            key.clone()
                         }
                     }
-                    <span class="kw">_</span> =&gt; <span class="ident">key</span>.<span class="ident">clone</span>(),
+                    <span class="kw">_ </span>=&gt; key.clone(),
                 };
-                <span class="comment">// 4. For each Record { [[Key]], [[Value]] } p of entries, do</span>
-                <span class="comment">// a. If p.[[Key]] is not empty and SameValueZero(p.[[Key]], key) is true, then</span>
-                <span class="comment">// i. Set p.[[Value]] to value.</span>
-                <span class="comment">// 6. Let p be the Record { [[Key]]: key, [[Value]]: value }.</span>
-                <span class="comment">// 7. Append p as the last element of entries.</span>
-                <span class="ident">map</span>.<span class="ident">insert</span>(<span class="ident">key</span>, <span class="ident">value</span>.<span class="ident">clone</span>());
-                <span class="comment">// ii. Return M.</span>
-                <span class="comment">// 8. Return M.</span>
-                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">this</span>.<span class="ident">clone</span>());
+                <span class="comment">// 4. For each Record { [[Key]], [[Value]] } p of entries, do
+                // a. If p.[[Key]] is not empty and SameValueZero(p.[[Key]], key) is true, then
+                // i. Set p.[[Value]] to value.
+                // 6. Let p be the Record { [[Key]]: key, [[Value]]: value }.
+                // 7. Append p as the last element of entries.
+                </span>map.insert(key, value.clone());
+                <span class="comment">// ii. Return M.
+                // 8. Return M.
+                </span><span class="kw">return </span><span class="prelude-val">Ok</span>(this.clone());
             }
         }
-        <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
-            .<span class="ident">with_message</span>(<span class="string">&quot;&#39;this&#39; is not a Map&quot;</span>)
-            .<span class="ident">into</span>())
+        <span class="prelude-val">Err</span>(JsNativeError::typ()
+            .with_message(<span class="string">&quot;&#39;this&#39; is not a Map&quot;</span>)
+            .into())
     }
 
-    <span class="doccomment">/// `get Map.prototype.size`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Obtains the size of the map, filtering empty keys to ensure it updates</span>
-    <span class="doccomment">/// while iterating.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-get-map.prototype.size</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/size</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_size</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="kw">_</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="comment">// 1. Let M be the this value.</span>
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">object</span>) <span class="op">=</span> <span class="ident">this</span>.<span class="ident">as_object</span>() {
-            <span class="comment">// 2. Perform ? RequireInternalSlot(M, [[MapData]]).</span>
-            <span class="comment">// 3. Let entries be the List that is M.[[MapData]].</span>
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">map</span>) <span class="op">=</span> <span class="ident">object</span>.<span class="ident">borrow_mut</span>().<span class="ident">as_map_mut</span>() {
-                <span class="comment">// 4. Let count be 0.</span>
-                <span class="comment">// 5. For each Record { [[Key]], [[Value]] } p of entries, do</span>
-                <span class="comment">// a. If p.[[Key]] is not empty, set count to count + 1.</span>
-                <span class="comment">// 6. Return 𝔽(count).</span>
-                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">map</span>.<span class="ident">len</span>().<span class="ident">into</span>());
+    <span class="doccomment">/// `get Map.prototype.size`
+    ///
+    /// Obtains the size of the map, filtering empty keys to ensure it updates
+    /// while iterating.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-get-map.prototype.size
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/size
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_size(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="comment">// 1. Let M be the this value.
+        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(object) = this.as_object() {
+            <span class="comment">// 2. Perform ? RequireInternalSlot(M, [[MapData]]).
+            // 3. Let entries be the List that is M.[[MapData]].
+            </span><span class="kw">if let </span><span class="prelude-val">Some</span>(map) = object.borrow_mut().as_map_mut() {
+                <span class="comment">// 4. Let count be 0.
+                // 5. For each Record { [[Key]], [[Value]] } p of entries, do
+                // a. If p.[[Key]] is not empty, set count to count + 1.
+                // 6. Return 𝔽(count).
+                </span><span class="kw">return </span><span class="prelude-val">Ok</span>(map.len().into());
             }
         }
-        <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
-            .<span class="ident">with_message</span>(<span class="string">&quot;&#39;this&#39; is not a Map&quot;</span>)
-            .<span class="ident">into</span>())
+        <span class="prelude-val">Err</span>(JsNativeError::typ()
+            .with_message(<span class="string">&quot;&#39;this&#39; is not a Map&quot;</span>)
+            .into())
     }
 
-    <span class="doccomment">/// `Map.prototype.delete( key )`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Removes the element associated with the key, if it exists.</span>
-    <span class="doccomment">/// Returns true if there was an element, and false otherwise.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-map.prototype.delete</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/delete</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">delete</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="kw">_</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>);
+    <span class="doccomment">/// `Map.prototype.delete( key )`
+    ///
+    /// Removes the element associated with the key, if it exists.
+    /// Returns true if there was an element, and false otherwise.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-map.prototype.delete
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/delete
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>delete(this: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="kw">let </span>key = args.get_or_undefined(<span class="number">0</span>);
 
-        <span class="comment">// 1. Let M be the this value.</span>
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">object</span>) <span class="op">=</span> <span class="ident">this</span>.<span class="ident">as_object</span>() {
-            <span class="comment">// 2. Perform ? RequireInternalSlot(M, [[MapData]]).</span>
-            <span class="comment">// 3. Let entries be the List that is M.[[MapData]].</span>
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">map</span>) <span class="op">=</span> <span class="ident">object</span>.<span class="ident">borrow_mut</span>().<span class="ident">as_map_mut</span>() {
-                <span class="comment">// a. If p.[[Key]] is not empty and SameValueZero(p.[[Key]], key) is true, then</span>
-                <span class="comment">// i. Set p.[[Key]] to empty.</span>
-                <span class="comment">// ii. Set p.[[Value]] to empty.</span>
-                <span class="comment">// iii. Return true.</span>
-                <span class="comment">// 5. Return false.</span>
-                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">map</span>.<span class="ident">remove</span>(<span class="ident">key</span>).<span class="ident">is_some</span>().<span class="ident">into</span>());
+        <span class="comment">// 1. Let M be the this value.
+        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(object) = this.as_object() {
+            <span class="comment">// 2. Perform ? RequireInternalSlot(M, [[MapData]]).
+            // 3. Let entries be the List that is M.[[MapData]].
+            </span><span class="kw">if let </span><span class="prelude-val">Some</span>(map) = object.borrow_mut().as_map_mut() {
+                <span class="comment">// a. If p.[[Key]] is not empty and SameValueZero(p.[[Key]], key) is true, then
+                // i. Set p.[[Key]] to empty.
+                // ii. Set p.[[Value]] to empty.
+                // iii. Return true.
+                // 5. Return false.
+                </span><span class="kw">return </span><span class="prelude-val">Ok</span>(map.remove(key).is_some().into());
             }
         }
-        <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
-            .<span class="ident">with_message</span>(<span class="string">&quot;&#39;this&#39; is not a Map&quot;</span>)
-            .<span class="ident">into</span>())
+        <span class="prelude-val">Err</span>(JsNativeError::typ()
+            .with_message(<span class="string">&quot;&#39;this&#39; is not a Map&quot;</span>)
+            .into())
     }
 
-    <span class="doccomment">/// `Map.prototype.get( key )`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Returns the value associated with the key, or undefined if there is none.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-map.prototype.get</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/get</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="kw">_</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="kw">const</span> <span class="ident">JS_ZERO</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">JsValue::Rational</span>(<span class="number">0f64</span>);
+    <span class="doccomment">/// `Map.prototype.get( key )`
+    ///
+    /// Returns the value associated with the key, or undefined if there is none.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-map.prototype.get
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/get
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get(this: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="kw">const </span>JS_ZERO: <span class="kw-2">&amp;</span>JsValue = <span class="kw-2">&amp;</span>JsValue::Rational(<span class="number">0f64</span>);
 
-        <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>);
-        <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">key</span> {
-            <span class="ident">JsValue::Rational</span>(<span class="ident">r</span>) =&gt; {
-                <span class="kw">if</span> <span class="ident">r</span>.<span class="ident">is_zero</span>() {
-                    <span class="ident">JS_ZERO</span>
-                } <span class="kw">else</span> {
-                    <span class="ident">key</span>
+        <span class="kw">let </span>key = args.get_or_undefined(<span class="number">0</span>);
+        <span class="kw">let </span>key = <span class="kw">match </span>key {
+            JsValue::Rational(r) =&gt; {
+                <span class="kw">if </span>r.is_zero() {
+                    JS_ZERO
+                } <span class="kw">else </span>{
+                    key
                 }
             }
-            <span class="kw">_</span> =&gt; <span class="ident">key</span>,
+            <span class="kw">_ </span>=&gt; key,
         };
 
-        <span class="comment">// 1. Let M be the this value.</span>
-        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">JsValue::Object</span>(<span class="kw-2">ref</span> <span class="ident">object</span>) <span class="op">=</span> <span class="ident">this</span> {
-            <span class="comment">// 2. Perform ? RequireInternalSlot(M, [[MapData]]).</span>
-            <span class="comment">// 3. Let entries be the List that is M.[[MapData]].</span>
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">map</span>) <span class="op">=</span> <span class="ident">object</span>.<span class="ident">borrow</span>().<span class="ident">as_map_ref</span>() {
-                <span class="comment">// 4. For each Record { [[Key]], [[Value]] } p of entries, do</span>
-                <span class="comment">// a. If p.[[Key]] is not empty and SameValueZero(p.[[Key]], key) is true, return p.[[Value]].</span>
-                <span class="comment">// 5. Return undefined.</span>
-                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">map</span>.<span class="ident">get</span>(<span class="ident">key</span>).<span class="ident">cloned</span>().<span class="ident">unwrap_or_default</span>());
+        <span class="comment">// 1. Let M be the this value.
+        </span><span class="kw">if let </span>JsValue::Object(<span class="kw-2">ref </span>object) = this {
+            <span class="comment">// 2. Perform ? RequireInternalSlot(M, [[MapData]]).
+            // 3. Let entries be the List that is M.[[MapData]].
+            </span><span class="kw">if let </span><span class="prelude-val">Some</span>(map) = object.borrow().as_map_ref() {
+                <span class="comment">// 4. For each Record { [[Key]], [[Value]] } p of entries, do
+                // a. If p.[[Key]] is not empty and SameValueZero(p.[[Key]], key) is true, return p.[[Value]].
+                // 5. Return undefined.
+                </span><span class="kw">return </span><span class="prelude-val">Ok</span>(map.get(key).cloned().unwrap_or_default());
             }
         }
 
-        <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
-            .<span class="ident">with_message</span>(<span class="string">&quot;&#39;this&#39; is not a Map&quot;</span>)
-            .<span class="ident">into</span>())
+        <span class="prelude-val">Err</span>(JsNativeError::typ()
+            .with_message(<span class="string">&quot;&#39;this&#39; is not a Map&quot;</span>)
+            .into())
     }
 
-    <span class="doccomment">/// `Map.prototype.clear( )`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Removes all entries from the map.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-map.prototype.clear</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/clear</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">clear</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="kw">_</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="comment">// 1. Let M be the this value.</span>
-        <span class="comment">// 2. Perform ? RequireInternalSlot(M, [[MapData]]).</span>
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">object</span>) <span class="op">=</span> <span class="ident">this</span>.<span class="ident">as_object</span>() {
-            <span class="comment">// 3. Let entries be the List that is M.[[MapData]].</span>
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">map</span>) <span class="op">=</span> <span class="ident">object</span>.<span class="ident">borrow_mut</span>().<span class="ident">as_map_mut</span>() {
-                <span class="comment">// 4. For each Record { [[Key]], [[Value]] } p of entries, do</span>
-                <span class="comment">// a. Set p.[[Key]] to empty.</span>
-                <span class="comment">// b. Set p.[[Value]] to empty.</span>
-                <span class="ident">map</span>.<span class="ident">clear</span>();
+    <span class="doccomment">/// `Map.prototype.clear( )`
+    ///
+    /// Removes all entries from the map.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-map.prototype.clear
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/clear
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>clear(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="comment">// 1. Let M be the this value.
+        // 2. Perform ? RequireInternalSlot(M, [[MapData]]).
+        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(object) = this.as_object() {
+            <span class="comment">// 3. Let entries be the List that is M.[[MapData]].
+            </span><span class="kw">if let </span><span class="prelude-val">Some</span>(map) = object.borrow_mut().as_map_mut() {
+                <span class="comment">// 4. For each Record { [[Key]], [[Value]] } p of entries, do
+                // a. Set p.[[Key]] to empty.
+                // b. Set p.[[Value]] to empty.
+                </span>map.clear();
 
-                <span class="comment">// 5. Return undefined.</span>
-                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">JsValue::undefined</span>());
+                <span class="comment">// 5. Return undefined.
+                </span><span class="kw">return </span><span class="prelude-val">Ok</span>(JsValue::undefined());
             }
         }
-        <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
-            .<span class="ident">with_message</span>(<span class="string">&quot;&#39;this&#39; is not a Map&quot;</span>)
-            .<span class="ident">into</span>())
+        <span class="prelude-val">Err</span>(JsNativeError::typ()
+            .with_message(<span class="string">&quot;&#39;this&#39; is not a Map&quot;</span>)
+            .into())
     }
 
-    <span class="doccomment">/// `Map.prototype.has( key )`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Checks if the map contains an entry with the given key.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-map.prototype.has</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/has</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">has</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="kw">_</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="kw">const</span> <span class="ident">JS_ZERO</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">JsValue::Rational</span>(<span class="number">0f64</span>);
+    <span class="doccomment">/// `Map.prototype.has( key )`
+    ///
+    /// Checks if the map contains an entry with the given key.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-map.prototype.has
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/has
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>has(this: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="kw">const </span>JS_ZERO: <span class="kw-2">&amp;</span>JsValue = <span class="kw-2">&amp;</span>JsValue::Rational(<span class="number">0f64</span>);
 
-        <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>);
-        <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">key</span> {
-            <span class="ident">JsValue::Rational</span>(<span class="ident">r</span>) =&gt; {
-                <span class="kw">if</span> <span class="ident">r</span>.<span class="ident">is_zero</span>() {
-                    <span class="ident">JS_ZERO</span>
-                } <span class="kw">else</span> {
-                    <span class="ident">key</span>
+        <span class="kw">let </span>key = args.get_or_undefined(<span class="number">0</span>);
+        <span class="kw">let </span>key = <span class="kw">match </span>key {
+            JsValue::Rational(r) =&gt; {
+                <span class="kw">if </span>r.is_zero() {
+                    JS_ZERO
+                } <span class="kw">else </span>{
+                    key
                 }
             }
-            <span class="kw">_</span> =&gt; <span class="ident">key</span>,
+            <span class="kw">_ </span>=&gt; key,
         };
 
-        <span class="comment">// 1. Let M be the this value.</span>
-        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">JsValue::Object</span>(<span class="kw-2">ref</span> <span class="ident">object</span>) <span class="op">=</span> <span class="ident">this</span> {
-            <span class="comment">// 2. Perform ? RequireInternalSlot(M, [[MapData]]).</span>
-            <span class="comment">// 3. Let entries be the List that is M.[[MapData]].</span>
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">map</span>) <span class="op">=</span> <span class="ident">object</span>.<span class="ident">borrow</span>().<span class="ident">as_map_ref</span>() {
-                <span class="comment">// 4. For each Record { [[Key]], [[Value]] } p of entries, do</span>
-                <span class="comment">// a. If p.[[Key]] is not empty and SameValueZero(p.[[Key]], key) is true, return true.</span>
-                <span class="comment">// 5. Return false.</span>
-                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">map</span>.<span class="ident">contains_key</span>(<span class="ident">key</span>).<span class="ident">into</span>());
+        <span class="comment">// 1. Let M be the this value.
+        </span><span class="kw">if let </span>JsValue::Object(<span class="kw-2">ref </span>object) = this {
+            <span class="comment">// 2. Perform ? RequireInternalSlot(M, [[MapData]]).
+            // 3. Let entries be the List that is M.[[MapData]].
+            </span><span class="kw">if let </span><span class="prelude-val">Some</span>(map) = object.borrow().as_map_ref() {
+                <span class="comment">// 4. For each Record { [[Key]], [[Value]] } p of entries, do
+                // a. If p.[[Key]] is not empty and SameValueZero(p.[[Key]], key) is true, return true.
+                // 5. Return false.
+                </span><span class="kw">return </span><span class="prelude-val">Ok</span>(map.contains_key(key).into());
             }
         }
 
-        <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
-            .<span class="ident">with_message</span>(<span class="string">&quot;&#39;this&#39; is not a Map&quot;</span>)
-            .<span class="ident">into</span>())
+        <span class="prelude-val">Err</span>(JsNativeError::typ()
+            .with_message(<span class="string">&quot;&#39;this&#39; is not a Map&quot;</span>)
+            .into())
     }
 
-    <span class="doccomment">/// `Map.prototype.forEach( callbackFn [ , thisArg ] )`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Executes the provided callback function for each key-value pair in the map.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-map.prototype.foreach</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/forEach</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">for_each</span>(
-        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
-        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="comment">// 1. Let M be the this value.</span>
-        <span class="comment">// 2. Perform ? RequireInternalSlot(M, [[MapData]]).</span>
-        <span class="kw">let</span> <span class="ident">map</span> <span class="op">=</span> <span class="ident">this</span>
-            .<span class="ident">as_object</span>()
-            .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">obj</span><span class="op">|</span> <span class="ident">obj</span>.<span class="ident">is_map</span>())
-            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="string">&quot;`this` is not a Map&quot;</span>))<span class="question-mark">?</span>;
+    <span class="doccomment">/// `Map.prototype.forEach( callbackFn [ , thisArg ] )`
+    ///
+    /// Executes the provided callback function for each key-value pair in the map.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-map.prototype.foreach
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/forEach
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>for_each(
+        this: <span class="kw-2">&amp;</span>JsValue,
+        args: <span class="kw-2">&amp;</span>[JsValue],
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="comment">// 1. Let M be the this value.
+        // 2. Perform ? RequireInternalSlot(M, [[MapData]]).
+        </span><span class="kw">let </span>map = this
+            .as_object()
+            .filter(|obj| obj.is_map())
+            .ok_or_else(|| JsNativeError::typ().with_message(<span class="string">&quot;`this` is not a Map&quot;</span>))<span class="question-mark">?</span>;
 
-        <span class="comment">// 3. If IsCallable(callbackfn) is false, throw a TypeError exception.</span>
-        <span class="kw">let</span> <span class="ident">callback</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>);
-        <span class="kw">let</span> <span class="ident">callback</span> <span class="op">=</span> <span class="ident">callback</span>.<span class="ident">as_callable</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-            <span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="macro">format!</span>(<span class="string">&quot;{} is not a function&quot;</span>, <span class="ident">callback</span>.<span class="ident">display</span>()))
+        <span class="comment">// 3. If IsCallable(callbackfn) is false, throw a TypeError exception.
+        </span><span class="kw">let </span>callback = args.get_or_undefined(<span class="number">0</span>);
+        <span class="kw">let </span>callback = callback.as_callable().ok_or_else(|| {
+            JsNativeError::typ().with_message(<span class="macro">format!</span>(<span class="string">&quot;{} is not a function&quot;</span>, callback.display()))
         })<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="ident">this_arg</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">1</span>);
+        <span class="kw">let </span>this_arg = args.get_or_undefined(<span class="number">1</span>);
 
-        <span class="comment">// NOTE:</span>
-        <span class="comment">//</span>
-        <span class="comment">// forEach does not directly mutate the object on which it is called but</span>
-        <span class="comment">// the object may be mutated by the calls to callbackfn. Each entry of a</span>
-        <span class="comment">// map&#39;s [[MapData]] is only visited once. New keys added after the call</span>
-        <span class="comment">// to forEach begins are visited. A key will be revisited if it is deleted</span>
-        <span class="comment">// after it has been visited and then re-added before the forEach call completes.</span>
-        <span class="comment">// Keys that are deleted after the call to forEach begins and before being visited</span>
-        <span class="comment">// are not visited unless the key is added again before the forEach call completes.</span>
-        <span class="kw">let</span> <span class="ident">_lock</span> <span class="op">=</span> <span class="ident">map</span>
-            .<span class="ident">borrow_mut</span>()
-            .<span class="ident">as_map_mut</span>()
-            .<span class="ident">expect</span>(<span class="string">&quot;checked that `this` was a map&quot;</span>)
-            .<span class="ident">lock</span>(<span class="ident">map</span>.<span class="ident">clone</span>());
+        <span class="comment">// NOTE:
+        //
+        // forEach does not directly mutate the object on which it is called but
+        // the object may be mutated by the calls to callbackfn. Each entry of a
+        // map&#39;s [[MapData]] is only visited once. New keys added after the call
+        // to forEach begins are visited. A key will be revisited if it is deleted
+        // after it has been visited and then re-added before the forEach call completes.
+        // Keys that are deleted after the call to forEach begins and before being visited
+        // are not visited unless the key is added again before the forEach call completes.
+        </span><span class="kw">let </span>_lock = map
+            .borrow_mut()
+            .as_map_mut()
+            .expect(<span class="string">&quot;checked that `this` was a map&quot;</span>)
+            .lock(map.clone());
 
-        <span class="comment">// 4. Let entries be the List that is M.[[MapData]].</span>
-        <span class="comment">// 5. For each Record { [[Key]], [[Value]] } e of entries, do</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">index</span> <span class="op">=</span> <span class="number">0</span>;
-        <span class="kw">loop</span> {
-            <span class="kw">let</span> <span class="ident">arguments</span> <span class="op">=</span> {
-                <span class="kw">let</span> <span class="ident">map</span> <span class="op">=</span> <span class="ident">map</span>.<span class="ident">borrow</span>();
-                <span class="kw">let</span> <span class="ident">map</span> <span class="op">=</span> <span class="ident">map</span>.<span class="ident">as_map_ref</span>().<span class="ident">expect</span>(<span class="string">&quot;checked that `this` was a map&quot;</span>);
-                <span class="kw">if</span> <span class="ident">index</span> <span class="op">&lt;</span> <span class="ident">map</span>.<span class="ident">full_len</span>() {
-                    <span class="ident">map</span>.<span class="ident">get_index</span>(<span class="ident">index</span>)
-                        .<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">k</span>, <span class="ident">v</span>)<span class="op">|</span> [<span class="ident">v</span>.<span class="ident">clone</span>(), <span class="ident">k</span>.<span class="ident">clone</span>(), <span class="ident">this</span>.<span class="ident">clone</span>()])
-                } <span class="kw">else</span> {
-                    <span class="comment">// 6. Return undefined.</span>
-                    <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">JsValue::undefined</span>());
+        <span class="comment">// 4. Let entries be the List that is M.[[MapData]].
+        // 5. For each Record { [[Key]], [[Value]] } e of entries, do
+        </span><span class="kw">let </span><span class="kw-2">mut </span>index = <span class="number">0</span>;
+        <span class="kw">loop </span>{
+            <span class="kw">let </span>arguments = {
+                <span class="kw">let </span>map = map.borrow();
+                <span class="kw">let </span>map = map.as_map_ref().expect(<span class="string">&quot;checked that `this` was a map&quot;</span>);
+                <span class="kw">if </span>index &lt; map.full_len() {
+                    map.get_index(index)
+                        .map(|(k, v)| [v.clone(), k.clone(), this.clone()])
+                } <span class="kw">else </span>{
+                    <span class="comment">// 6. Return undefined.
+                    </span><span class="kw">return </span><span class="prelude-val">Ok</span>(JsValue::undefined());
                 }
             };
 
-            <span class="comment">// a. If e.[[Key]] is not empty, then</span>
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">arguments</span>) <span class="op">=</span> <span class="ident">arguments</span> {
-                <span class="comment">// i. Perform ? Call(callbackfn, thisArg, « e.[[Value]], e.[[Key]], M »).</span>
-                <span class="ident">callback</span>.<span class="ident">call</span>(<span class="ident">this_arg</span>, <span class="kw-2">&amp;</span><span class="ident">arguments</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+            <span class="comment">// a. If e.[[Key]] is not empty, then
+            </span><span class="kw">if let </span><span class="prelude-val">Some</span>(arguments) = arguments {
+                <span class="comment">// i. Perform ? Call(callbackfn, thisArg, « e.[[Value]], e.[[Key]], M »).
+                </span>callback.call(this_arg, <span class="kw-2">&amp;</span>arguments, context)<span class="question-mark">?</span>;
             }
 
-            <span class="ident">index</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+            index += <span class="number">1</span>;
         }
     }
 
-    <span class="doccomment">/// `Map.prototype.values()`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Returns a new Iterator object that contains the values for each element in the Map object in insertion order.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-map.prototype.values</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/values</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">values</span>(
-        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
-        <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="comment">// 1. Let M be the this value.</span>
-        <span class="comment">// 2. Return ? CreateMapIterator(M, value).</span>
-        <span class="ident">MapIterator::create_map_iterator</span>(<span class="ident">this</span>, <span class="ident">PropertyNameKind::Value</span>, <span class="ident">context</span>)
+    <span class="doccomment">/// `Map.prototype.values()`
+    ///
+    /// Returns a new Iterator object that contains the values for each element in the Map object in insertion order.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-map.prototype.values
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/values
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>values(
+        this: <span class="kw-2">&amp;</span>JsValue,
+        <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue],
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="comment">// 1. Let M be the this value.
+        // 2. Return ? CreateMapIterator(M, value).
+        </span>MapIterator::create_map_iterator(this, PropertyNameKind::Value, context)
     }
 }
 
-<span class="doccomment">/// `AddEntriesFromIterable`</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Allows adding entries to a map from any object that has a `@@Iterator` field.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [ECMAScript reference][spec]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-add-entries-from-iterable</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">add_entries_from_iterable</span>(
-    <span class="ident">target</span>: <span class="kw-2">&amp;</span><span class="ident">JsObject</span>,
-    <span class="ident">iterable</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
-    <span class="ident">adder</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
-    <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-    <span class="comment">// 1. If IsCallable(adder) is false, throw a TypeError exception.</span>
-    <span class="kw">let</span> <span class="ident">adder</span> <span class="op">=</span> <span class="ident">adder</span>.<span class="ident">as_callable</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-        <span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="string">&quot;property `set` of `NewTarget` is not callable&quot;</span>)
+<span class="doccomment">/// `AddEntriesFromIterable`
+///
+/// Allows adding entries to a map from any object that has a `@@Iterator` field.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-add-entries-from-iterable
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>add_entries_from_iterable(
+    target: <span class="kw-2">&amp;</span>JsObject,
+    iterable: <span class="kw-2">&amp;</span>JsValue,
+    adder: <span class="kw-2">&amp;</span>JsValue,
+    context: <span class="kw-2">&amp;mut </span>Context,
+) -&gt; JsResult&lt;JsValue&gt; {
+    <span class="comment">// 1. If IsCallable(adder) is false, throw a TypeError exception.
+    </span><span class="kw">let </span>adder = adder.as_callable().ok_or_else(|| {
+        JsNativeError::typ().with_message(<span class="string">&quot;property `set` of `NewTarget` is not callable&quot;</span>)
     })<span class="question-mark">?</span>;
 
-    <span class="comment">// 2. Let iteratorRecord be ? GetIterator(iterable).</span>
-    <span class="kw">let</span> <span class="ident">iterator_record</span> <span class="op">=</span> <span class="ident">iterable</span>.<span class="ident">get_iterator</span>(<span class="ident">context</span>, <span class="prelude-val">None</span>, <span class="prelude-val">None</span>)<span class="question-mark">?</span>;
+    <span class="comment">// 2. Let iteratorRecord be ? GetIterator(iterable).
+    </span><span class="kw">let </span>iterator_record = iterable.get_iterator(context, <span class="prelude-val">None</span>, <span class="prelude-val">None</span>)<span class="question-mark">?</span>;
 
-    <span class="comment">// 3. Repeat,</span>
-    <span class="kw">loop</span> {
-        <span class="comment">// a. Let next be ? IteratorStep(iteratorRecord).</span>
-        <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <span class="ident">iterator_record</span>.<span class="ident">step</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+    <span class="comment">// 3. Repeat,
+    </span><span class="kw">loop </span>{
+        <span class="comment">// a. Let next be ? IteratorStep(iteratorRecord).
+        </span><span class="kw">let </span>next = iterator_record.step(context)<span class="question-mark">?</span>;
 
-        <span class="comment">// b. If next is false, return target.</span>
-        <span class="comment">// c. Let nextItem be ? IteratorValue(next).</span>
-        <span class="kw">let</span> <span class="ident">next_item</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">next</span>) <span class="op">=</span> <span class="ident">next</span> {
-            <span class="ident">next</span>.<span class="ident">value</span>(<span class="ident">context</span>)<span class="question-mark">?</span>
-        } <span class="kw">else</span> {
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">target</span>.<span class="ident">clone</span>().<span class="ident">into</span>());
+        <span class="comment">// b. If next is false, return target.
+        // c. Let nextItem be ? IteratorValue(next).
+        </span><span class="kw">let </span>next_item = <span class="kw">if let </span><span class="prelude-val">Some</span>(next) = next {
+            next.value(context)<span class="question-mark">?
+        </span>} <span class="kw">else </span>{
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(target.clone().into());
         };
 
-        <span class="kw">let</span> <span class="ident">next_item</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">obj</span>) <span class="op">=</span> <span class="ident">next_item</span>.<span class="ident">as_object</span>() {
-            <span class="ident">obj</span>
-        <span class="comment">// d. If Type(nextItem) is not Object, then</span>
-        } <span class="kw">else</span> {
-            <span class="comment">// i. Let error be ThrowCompletion(a newly created TypeError object).</span>
-            <span class="kw">let</span> <span class="ident">err</span> <span class="op">=</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
-                .<span class="ident">with_message</span>(<span class="string">&quot;cannot get key and value from primitive item of `iterable`&quot;</span>)
-                .<span class="ident">into</span>());
+        <span class="kw">let </span>next_item = <span class="kw">if let </span><span class="prelude-val">Some</span>(obj) = next_item.as_object() {
+            obj
+        <span class="comment">// d. If Type(nextItem) is not Object, then
+        </span>} <span class="kw">else </span>{
+            <span class="comment">// i. Let error be ThrowCompletion(a newly created TypeError object).
+            </span><span class="kw">let </span>err = <span class="prelude-val">Err</span>(JsNativeError::typ()
+                .with_message(<span class="string">&quot;cannot get key and value from primitive item of `iterable`&quot;</span>)
+                .into());
 
-            <span class="comment">// ii. Return ? IteratorClose(iteratorRecord, error).</span>
-            <span class="kw">return</span> <span class="ident">iterator_record</span>.<span class="ident">close</span>(<span class="ident">err</span>, <span class="ident">context</span>);
+            <span class="comment">// ii. Return ? IteratorClose(iteratorRecord, error).
+            </span><span class="kw">return </span>iterator_record.close(err, context);
         };
 
-        <span class="comment">// e. Let k be Get(nextItem, &quot;0&quot;).</span>
-        <span class="comment">// f. IfAbruptCloseIterator(k, iteratorRecord).</span>
-        <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">next_item</span>.<span class="ident">get</span>(<span class="number">0</span>, <span class="ident">context</span>) {
-            <span class="prelude-val">Ok</span>(<span class="ident">val</span>) =&gt; <span class="ident">val</span>,
-            <span class="ident">err</span> =&gt; <span class="kw">return</span> <span class="ident">iterator_record</span>.<span class="ident">close</span>(<span class="ident">err</span>, <span class="ident">context</span>),
+        <span class="comment">// e. Let k be Get(nextItem, &quot;0&quot;).
+        // f. IfAbruptCloseIterator(k, iteratorRecord).
+        </span><span class="kw">let </span>key = <span class="kw">match </span>next_item.get(<span class="number">0</span>, context) {
+            <span class="prelude-val">Ok</span>(val) =&gt; val,
+            err =&gt; <span class="kw">return </span>iterator_record.close(err, context),
         };
 
-        <span class="comment">// g. Let v be Get(nextItem, &quot;1&quot;).</span>
-        <span class="comment">// h. IfAbruptCloseIterator(v, iteratorRecord).</span>
-        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">next_item</span>.<span class="ident">get</span>(<span class="number">1</span>, <span class="ident">context</span>) {
-            <span class="prelude-val">Ok</span>(<span class="ident">val</span>) =&gt; <span class="ident">val</span>,
-            <span class="ident">err</span> =&gt; <span class="kw">return</span> <span class="ident">iterator_record</span>.<span class="ident">close</span>(<span class="ident">err</span>, <span class="ident">context</span>),
+        <span class="comment">// g. Let v be Get(nextItem, &quot;1&quot;).
+        // h. IfAbruptCloseIterator(v, iteratorRecord).
+        </span><span class="kw">let </span>value = <span class="kw">match </span>next_item.get(<span class="number">1</span>, context) {
+            <span class="prelude-val">Ok</span>(val) =&gt; val,
+            err =&gt; <span class="kw">return </span>iterator_record.close(err, context),
         };
 
-        <span class="comment">// i. Let status be Call(adder, target, « k, v »).</span>
-        <span class="kw">let</span> <span class="ident">status</span> <span class="op">=</span> <span class="ident">adder</span>.<span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="ident">target</span>.<span class="ident">clone</span>().<span class="ident">into</span>(), <span class="kw-2">&amp;</span>[<span class="ident">key</span>, <span class="ident">value</span>], <span class="ident">context</span>);
+        <span class="comment">// i. Let status be Call(adder, target, « k, v »).
+        </span><span class="kw">let </span>status = adder.call(<span class="kw-2">&amp;</span>target.clone().into(), <span class="kw-2">&amp;</span>[key, value], context);
 
-        <span class="comment">// j. IfAbruptCloseIterator(status, iteratorRecord).</span>
-        <span class="kw">if</span> <span class="ident">status</span>.<span class="ident">is_err</span>() {
-            <span class="kw">return</span> <span class="ident">iterator_record</span>.<span class="ident">close</span>(<span class="ident">status</span>, <span class="ident">context</span>);
+        <span class="comment">// j. IfAbruptCloseIterator(status, iteratorRecord).
+        </span><span class="kw">if </span>status.is_err() {
+            <span class="kw">return </span>iterator_record.close(status, context);
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0 (a55dd71d5 2022-09-19)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0 (897e37553 2022-11-02)" ></div></body></html>

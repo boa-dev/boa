@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_engine/src/builtins/typed_array/integer_indexed_object.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>integer_indexed_object.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_engine/src/builtins/typed_array/integer_indexed_object.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>integer_indexed_object.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container">
                     <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../boa_engine/index.html">
                         <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -147,152 +147,152 @@
 <span id="145">145</span>
 <span id="146">146</span>
 <span id="147">147</span>
-</pre><pre class="rust"><code><span class="doccomment">//! This module implements the `Integer-Indexed` exotic object.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! An `Integer-Indexed` exotic object is an exotic object that performs</span>
-<span class="doccomment">//! special handling of integer index property keys.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! More information:</span>
-<span class="doccomment">//!  - [ECMAScript reference][spec]</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! [spec]: https://tc39.es/ecma262/#sec-integer-indexed-exotic-objects</span>
+</pre><pre class="rust"><code><span class="doccomment">//! This module implements the `Integer-Indexed` exotic object.
+//!
+//! An `Integer-Indexed` exotic object is an exotic object that performs
+//! special handling of integer index property keys.
+//!
+//! More information:
+//!  - [ECMAScript reference][spec]
+//!
+//! [spec]: https://tc39.es/ecma262/#sec-integer-indexed-exotic-objects
 
-<span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">builtins::typed_array::TypedArrayKind</span>,
-    <span class="ident">object</span>::{<span class="ident">JsObject</span>, <span class="ident">ObjectData</span>},
-    <span class="ident">Context</span>,
+</span><span class="kw">use crate</span>::{
+    builtins::typed_array::TypedArrayKind,
+    object::{JsObject, ObjectData},
+    Context,
 };
-<span class="kw">use</span> <span class="ident">boa_gc</span>::{<span class="ident">Finalize</span>, <span class="ident">Trace</span>};
+<span class="kw">use </span>boa_gc::{Finalize, Trace};
 
-<span class="doccomment">/// Type of the array content.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum</span> <span class="ident">ContentType</span> {
-    <span class="ident">Number</span>,
-    <span class="ident">BigInt</span>,
+<span class="doccomment">/// Type of the array content.
+</span><span class="attribute">#[derive(Debug, Clone, Copy, PartialEq)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum </span>ContentType {
+    Number,
+    BigInt,
 }
 
-<span class="doccomment">/// &lt;https://tc39.es/ecma262/#integer-indexed-exotic-object&gt;</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Trace</span>, <span class="ident">Finalize</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">IntegerIndexed</span> {
-    <span class="ident">viewed_array_buffer</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JsObject</span><span class="op">&gt;</span>,
-    <span class="attribute">#[<span class="ident">unsafe_ignore_trace</span>]</span>
-    <span class="ident">typed_array_name</span>: <span class="ident">TypedArrayKind</span>,
-    <span class="ident">byte_offset</span>: <span class="ident">u64</span>,
-    <span class="ident">byte_length</span>: <span class="ident">u64</span>,
-    <span class="ident">array_length</span>: <span class="ident">u64</span>,
+<span class="doccomment">/// &lt;https://tc39.es/ecma262/#integer-indexed-exotic-object&gt;
+</span><span class="attribute">#[derive(Debug, Clone, Trace, Finalize)]
+</span><span class="kw">pub struct </span>IntegerIndexed {
+    viewed_array_buffer: <span class="prelude-ty">Option</span>&lt;JsObject&gt;,
+    <span class="attribute">#[unsafe_ignore_trace]
+    </span>typed_array_name: TypedArrayKind,
+    byte_offset: u64,
+    byte_length: u64,
+    array_length: u64,
 }
 
-<span class="kw">impl</span> <span class="ident">IntegerIndexed</span> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>(
-        <span class="ident">viewed_array_buffer</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JsObject</span><span class="op">&gt;</span>,
-        <span class="ident">typed_array_name</span>: <span class="ident">TypedArrayKind</span>,
-        <span class="ident">byte_offset</span>: <span class="ident">u64</span>,
-        <span class="ident">byte_length</span>: <span class="ident">u64</span>,
-        <span class="ident">array_length</span>: <span class="ident">u64</span>,
-    ) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">viewed_array_buffer</span>,
-            <span class="ident">typed_array_name</span>,
-            <span class="ident">byte_offset</span>,
-            <span class="ident">byte_length</span>,
-            <span class="ident">array_length</span>,
+<span class="kw">impl </span>IntegerIndexed {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(
+        viewed_array_buffer: <span class="prelude-ty">Option</span>&lt;JsObject&gt;,
+        typed_array_name: TypedArrayKind,
+        byte_offset: u64,
+        byte_length: u64,
+        array_length: u64,
+    ) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            viewed_array_buffer,
+            typed_array_name,
+            byte_offset,
+            byte_length,
+            array_length,
         }
     }
 
-    <span class="doccomment">/// `IntegerIndexedObjectCreate ( prototype )`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Create a new `JsObject` from a prototype and a `IntegerIndexedObject`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-integerindexedobjectcreate</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">create</span>(<span class="ident">prototype</span>: <span class="ident">JsObject</span>, <span class="ident">data</span>: <span class="self">Self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="ident">Context</span>) -&gt; <span class="ident">JsObject</span> {
-        <span class="comment">// 1. Let internalSlotsList be « [[Prototype]], [[Extensible]], [[ViewedArrayBuffer]],</span>
-        <span class="comment">//    [[TypedArrayName]], [[ContentType]], [[ByteLength]], [[ByteOffset]],</span>
-        <span class="comment">//    [[ArrayLength]] ».</span>
-        <span class="comment">// 2. Let A be ! MakeBasicObject(internalSlotsList).</span>
-        <span class="kw">let</span> <span class="ident">a</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">construct_object</span>();
+    <span class="doccomment">/// `IntegerIndexedObjectCreate ( prototype )`
+    ///
+    /// Create a new `JsObject` from a prototype and a `IntegerIndexedObject`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-integerindexedobjectcreate
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>create(prototype: JsObject, data: <span class="self">Self</span>, context: <span class="kw-2">&amp;</span>Context) -&gt; JsObject {
+        <span class="comment">// 1. Let internalSlotsList be « [[Prototype]], [[Extensible]], [[ViewedArrayBuffer]],
+        //    [[TypedArrayName]], [[ContentType]], [[ByteLength]], [[ByteOffset]],
+        //    [[ArrayLength]] ».
+        // 2. Let A be ! MakeBasicObject(internalSlotsList).
+        </span><span class="kw">let </span>a = context.construct_object();
 
-        <span class="comment">// 3. Set A.[[GetOwnProperty]] as specified in 10.4.5.1.</span>
-        <span class="comment">// 4. Set A.[[HasProperty]] as specified in 10.4.5.2.</span>
-        <span class="comment">// 5. Set A.[[DefineOwnProperty]] as specified in 10.4.5.3.</span>
-        <span class="comment">// 6. Set A.[[Get]] as specified in 10.4.5.4.</span>
-        <span class="comment">// 7. Set A.[[Set]] as specified in 10.4.5.5.</span>
-        <span class="comment">// 8. Set A.[[Delete]] as specified in 10.4.5.6.</span>
-        <span class="comment">// 9. Set A.[[OwnPropertyKeys]] as specified in 10.4.5.7.</span>
-        <span class="ident">a</span>.<span class="ident">borrow_mut</span>().<span class="ident">data</span> <span class="op">=</span> <span class="ident">ObjectData::integer_indexed</span>(<span class="ident">data</span>);
+        <span class="comment">// 3. Set A.[[GetOwnProperty]] as specified in 10.4.5.1.
+        // 4. Set A.[[HasProperty]] as specified in 10.4.5.2.
+        // 5. Set A.[[DefineOwnProperty]] as specified in 10.4.5.3.
+        // 6. Set A.[[Get]] as specified in 10.4.5.4.
+        // 7. Set A.[[Set]] as specified in 10.4.5.5.
+        // 8. Set A.[[Delete]] as specified in 10.4.5.6.
+        // 9. Set A.[[OwnPropertyKeys]] as specified in 10.4.5.7.
+        </span>a.borrow_mut().data = ObjectData::integer_indexed(data);
 
-        <span class="comment">// 10. Set A.[[Prototype]] to prototype.</span>
-        <span class="ident">a</span>.<span class="ident">set_prototype</span>(<span class="ident">prototype</span>.<span class="ident">into</span>());
+        <span class="comment">// 10. Set A.[[Prototype]] to prototype.
+        </span>a.set_prototype(prototype.into());
 
-        <span class="comment">// 11. Return A.</span>
-        <span class="ident">a</span>
+        <span class="comment">// 11. Return A.
+        </span>a
     }
 
-    <span class="doccomment">/// Abstract operation `IsDetachedBuffer ( arrayBuffer )`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Check if `[[ArrayBufferData]]` is null.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-isdetachedbuffer</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">is_detached</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">obj</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">viewed_array_buffer</span> {
-            <span class="ident">obj</span>.<span class="ident">borrow</span>()
-                .<span class="ident">as_array_buffer</span>()
-                .<span class="ident">expect</span>(<span class="string">&quot;Typed array must have internal array buffer object&quot;</span>)
-                .<span class="ident">is_detached_buffer</span>()
-        } <span class="kw">else</span> {
-            <span class="bool-val">false</span>
-        }
+    <span class="doccomment">/// Abstract operation `IsDetachedBuffer ( arrayBuffer )`.
+    ///
+    /// Check if `[[ArrayBufferData]]` is null.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-isdetachedbuffer
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_detached(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(obj) = <span class="kw-2">&amp;</span><span class="self">self</span>.viewed_array_buffer {
+            obj.borrow()
+                .as_array_buffer()
+                .expect(<span class="string">&quot;Typed array must have internal array buffer object&quot;</span>)
+                .is_detached_buffer()
+        } <span class="kw">else </span>{
+            <span class="bool-val">false
+        </span>}
     }
 
-    <span class="doccomment">/// Get the integer indexed object&#39;s byte offset.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">byte_offset</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">u64</span> {
-        <span class="self">self</span>.<span class="ident">byte_offset</span>
+    <span class="doccomment">/// Get the integer indexed object&#39;s byte offset.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>byte_offset(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64 {
+        <span class="self">self</span>.byte_offset
     }
 
-    <span class="doccomment">/// Set the integer indexed object&#39;s byte offset.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">set_byte_offset</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">byte_offset</span>: <span class="ident">u64</span>) {
-        <span class="self">self</span>.<span class="ident">byte_offset</span> <span class="op">=</span> <span class="ident">byte_offset</span>;
+    <span class="doccomment">/// Set the integer indexed object&#39;s byte offset.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_byte_offset(<span class="kw-2">&amp;mut </span><span class="self">self</span>, byte_offset: u64) {
+        <span class="self">self</span>.byte_offset = byte_offset;
     }
 
-    <span class="doccomment">/// Get the integer indexed object&#39;s typed array name.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">typed_array_name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">TypedArrayKind</span> {
-        <span class="self">self</span>.<span class="ident">typed_array_name</span>
+    <span class="doccomment">/// Get the integer indexed object&#39;s typed array name.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>typed_array_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; TypedArrayKind {
+        <span class="self">self</span>.typed_array_name
     }
 
-    <span class="doccomment">/// Get a reference to the integer indexed object&#39;s viewed array buffer.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">viewed_array_buffer</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">JsObject</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">viewed_array_buffer</span>.<span class="ident">as_ref</span>()
+    <span class="doccomment">/// Get a reference to the integer indexed object&#39;s viewed array buffer.
+    </span><span class="kw">pub fn </span>viewed_array_buffer(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>JsObject&gt; {
+        <span class="self">self</span>.viewed_array_buffer.as_ref()
     }
 
-    <span class="doccomment">///(crate) Set the integer indexed object&#39;s viewed array buffer.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_viewed_array_buffer</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">viewed_array_buffer</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JsObject</span><span class="op">&gt;</span>) {
-        <span class="self">self</span>.<span class="ident">viewed_array_buffer</span> <span class="op">=</span> <span class="ident">viewed_array_buffer</span>;
+    <span class="doccomment">///(crate) Set the integer indexed object&#39;s viewed array buffer.
+    </span><span class="kw">pub fn </span>set_viewed_array_buffer(<span class="kw-2">&amp;mut </span><span class="self">self</span>, viewed_array_buffer: <span class="prelude-ty">Option</span>&lt;JsObject&gt;) {
+        <span class="self">self</span>.viewed_array_buffer = viewed_array_buffer;
     }
 
-    <span class="doccomment">/// Get the integer indexed object&#39;s byte length.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">byte_length</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">u64</span> {
-        <span class="self">self</span>.<span class="ident">byte_length</span>
+    <span class="doccomment">/// Get the integer indexed object&#39;s byte length.
+    </span><span class="kw">pub fn </span>byte_length(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64 {
+        <span class="self">self</span>.byte_length
     }
 
-    <span class="doccomment">/// Set the integer indexed object&#39;s byte length.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">set_byte_length</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">byte_length</span>: <span class="ident">u64</span>) {
-        <span class="self">self</span>.<span class="ident">byte_length</span> <span class="op">=</span> <span class="ident">byte_length</span>;
+    <span class="doccomment">/// Set the integer indexed object&#39;s byte length.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_byte_length(<span class="kw-2">&amp;mut </span><span class="self">self</span>, byte_length: u64) {
+        <span class="self">self</span>.byte_length = byte_length;
     }
 
-    <span class="doccomment">/// Get the integer indexed object&#39;s array length.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">array_length</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">u64</span> {
-        <span class="self">self</span>.<span class="ident">array_length</span>
+    <span class="doccomment">/// Get the integer indexed object&#39;s array length.
+    </span><span class="kw">pub fn </span>array_length(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64 {
+        <span class="self">self</span>.array_length
     }
 
-    <span class="doccomment">/// Set the integer indexed object&#39;s array length.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">set_array_length</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">array_length</span>: <span class="ident">u64</span>) {
-        <span class="self">self</span>.<span class="ident">array_length</span> <span class="op">=</span> <span class="ident">array_length</span>;
+    <span class="doccomment">/// Set the integer indexed object&#39;s array length.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_array_length(<span class="kw-2">&amp;mut </span><span class="self">self</span>, array_length: u64) {
+        <span class="self">self</span>.array_length = array_length;
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0 (a55dd71d5 2022-09-19)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0 (897e37553 2022-11-02)" ></div></body></html>

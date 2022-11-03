@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_tester/src/main.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>main.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../boa_tester/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../boa_tester/index.html"><div class="logo-container">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_tester/src/main.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>main.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../boa_tester/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../boa_tester/index.html"><div class="logo-container">
                     <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../boa_tester/index.html">
                         <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -554,559 +554,559 @@
 <span id="552">552</span>
 <span id="553">553</span>
 <span id="554">554</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Test262 test runner</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! This crate will run the full ECMAScript test suite (Test262) and report compliance of the</span>
-<span class="doccomment">//! `boa` context.</span>
-<span class="attribute">#![<span class="ident">doc</span>(
-    <span class="ident">html_logo_url</span> <span class="op">=</span> <span class="string">&quot;https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg&quot;</span>,
-    <span class="ident">html_favicon_url</span> <span class="op">=</span> <span class="string">&quot;https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg&quot;</span>
-)]</span>
-<span class="attribute">#![<span class="ident">cfg_attr</span>(<span class="ident">not</span>(<span class="ident">test</span>), <span class="ident">deny</span>(<span class="ident">clippy::unwrap_used</span>))]</span>
-<span class="attribute">#![<span class="ident">warn</span>(
-    <span class="ident">clippy::perf</span>,
-    <span class="ident">clippy::single_match_else</span>,
-    <span class="ident">clippy::dbg_macro</span>,
-    <span class="ident">clippy::doc_markdown</span>,
-    <span class="ident">clippy::wildcard_imports</span>,
-    <span class="ident">clippy::struct_excessive_bools</span>,
-    <span class="ident">clippy::doc_markdown</span>,
-    <span class="ident">clippy::semicolon_if_nothing_returned</span>,
-    <span class="ident">clippy::pedantic</span>
-)]</span>
-<span class="attribute">#![<span class="ident">deny</span>(
-    <span class="ident">clippy::all</span>,
-    <span class="ident">clippy::cast_lossless</span>,
-    <span class="ident">clippy::redundant_closure_for_method_calls</span>,
-    <span class="ident">clippy::unnested_or_patterns</span>,
-    <span class="ident">clippy::trivially_copy_pass_by_ref</span>,
-    <span class="ident">clippy::needless_pass_by_value</span>,
-    <span class="ident">clippy::match_wildcard_for_single_variants</span>,
-    <span class="ident">clippy::map_unwrap_or</span>,
-    <span class="ident">unused_qualifications</span>,
-    <span class="ident">unused_import_braces</span>,
-    <span class="ident">unused_lifetimes</span>,
-    <span class="ident">unreachable_pub</span>,
-    <span class="ident">trivial_numeric_casts</span>,
-    <span class="comment">// rustdoc,</span>
-    <span class="ident">missing_debug_implementations</span>,
-    <span class="ident">missing_copy_implementations</span>,
-    <span class="ident">deprecated_in_future</span>,
-    <span class="ident">meta_variable_misuse</span>,
-    <span class="ident">non_ascii_idents</span>,
-    <span class="ident">rust_2018_compatibility</span>,
-    <span class="ident">rust_2018_idioms</span>,
-    <span class="ident">future_incompatible</span>,
-    <span class="ident">nonstandard_style</span>,
-)]</span>
-<span class="attribute">#![<span class="ident">allow</span>(
-    <span class="ident">clippy::use_self</span>, <span class="comment">// TODO: deny once false positives are fixed</span>
-    <span class="ident">clippy::module_name_repetitions</span>,
-    <span class="ident">clippy::cast_possible_truncation</span>,
-    <span class="ident">clippy::cast_sign_loss</span>,
-    <span class="ident">clippy::cast_precision_loss</span>,
-    <span class="ident">clippy::cast_possible_wrap</span>,
-    <span class="ident">clippy::cast_ptr_alignment</span>,
-    <span class="ident">clippy::missing_panics_doc</span>,
-    <span class="ident">clippy::too_many_lines</span>,
-    <span class="ident">clippy::unreadable_literal</span>,
-    <span class="ident">clippy::missing_inline_in_public_items</span>,
-    <span class="ident">clippy::cognitive_complexity</span>,
-    <span class="ident">clippy::must_use_candidate</span>,
-    <span class="ident">clippy::missing_errors_doc</span>,
-    <span class="ident">clippy::as_conversions</span>,
-    <span class="ident">clippy::let_unit_value</span>,
-    <span class="ident">rustdoc::missing_doc_code_examples</span>
-)]</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Test262 test runner
+//!
+//! This crate will run the full ECMAScript test suite (Test262) and report compliance of the
+//! `boa` context.
+</span><span class="attribute">#![doc(
+    html_logo_url = <span class="string">&quot;https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg&quot;</span>,
+    html_favicon_url = <span class="string">&quot;https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg&quot;
+</span>)]
+#![cfg_attr(not(test), deny(clippy::unwrap_used))]
+#![warn(
+    clippy::perf,
+    clippy::single_match_else,
+    clippy::dbg_macro,
+    clippy::doc_markdown,
+    clippy::wildcard_imports,
+    clippy::struct_excessive_bools,
+    clippy::doc_markdown,
+    clippy::semicolon_if_nothing_returned,
+    clippy::pedantic
+)]
+#![deny(
+    clippy::all,
+    clippy::cast_lossless,
+    clippy::redundant_closure_for_method_calls,
+    clippy::unnested_or_patterns,
+    clippy::trivially_copy_pass_by_ref,
+    clippy::needless_pass_by_value,
+    clippy::match_wildcard_for_single_variants,
+    clippy::map_unwrap_or,
+    unused_qualifications,
+    unused_import_braces,
+    unused_lifetimes,
+    unreachable_pub,
+    trivial_numeric_casts,
+    <span class="comment">// rustdoc,
+    </span>missing_debug_implementations,
+    missing_copy_implementations,
+    deprecated_in_future,
+    meta_variable_misuse,
+    non_ascii_idents,
+    rust_2018_compatibility,
+    rust_2018_idioms,
+    future_incompatible,
+    nonstandard_style,
+)]
+#![allow(
+    clippy::use_self, <span class="comment">// TODO: deny once false positives are fixed
+    </span>clippy::module_name_repetitions,
+    clippy::cast_possible_truncation,
+    clippy::cast_sign_loss,
+    clippy::cast_precision_loss,
+    clippy::cast_possible_wrap,
+    clippy::cast_ptr_alignment,
+    clippy::missing_panics_doc,
+    clippy::too_many_lines,
+    clippy::unreadable_literal,
+    clippy::missing_inline_in_public_items,
+    clippy::cognitive_complexity,
+    clippy::must_use_candidate,
+    clippy::missing_errors_doc,
+    clippy::as_conversions,
+    clippy::let_unit_value,
+    rustdoc::missing_doc_code_examples
+)]
 
-<span class="kw">mod</span> <span class="ident">exec</span>;
-<span class="kw">mod</span> <span class="ident">read</span>;
-<span class="kw">mod</span> <span class="ident">results</span>;
+</span><span class="kw">mod </span>exec;
+<span class="kw">mod </span>read;
+<span class="kw">mod </span>results;
 
-<span class="kw">use</span> <span class="self">self</span>::{
-    <span class="ident">read</span>::{<span class="ident">read_harness</span>, <span class="ident">read_suite</span>, <span class="ident">read_test</span>, <span class="ident">MetaData</span>, <span class="ident">Negative</span>, <span class="ident">TestFlag</span>},
-    <span class="ident">results</span>::{<span class="ident">compare_results</span>, <span class="ident">write_json</span>},
+<span class="kw">use </span><span class="self">self</span>::{
+    read::{read_harness, read_suite, read_test, MetaData, Negative, TestFlag},
+    results::{compare_results, write_json},
 };
-<span class="kw">use</span> <span class="ident">anyhow</span>::{<span class="ident">bail</span>, <span class="ident">Context</span>};
-<span class="kw">use</span> <span class="ident">bitflags::bitflags</span>;
-<span class="kw">use</span> <span class="ident">clap</span>::{<span class="ident">ArgAction</span>, <span class="ident">Parser</span>, <span class="ident">ValueHint</span>};
-<span class="kw">use</span> <span class="ident">colored::Colorize</span>;
-<span class="kw">use</span> <span class="ident">fxhash</span>::{<span class="ident">FxHashMap</span>, <span class="ident">FxHashSet</span>};
-<span class="kw">use</span> <span class="ident">once_cell::sync::Lazy</span>;
-<span class="kw">use</span> <span class="ident">read::ErrorType</span>;
-<span class="kw">use</span> <span class="ident">serde</span>::{<span class="ident">Deserialize</span>, <span class="ident">Serialize</span>};
-<span class="kw">use</span> <span class="ident">std</span>::{
-    <span class="ident">fs</span>,
-    <span class="ident">path</span>::{<span class="ident">Path</span>, <span class="ident">PathBuf</span>},
+<span class="kw">use </span>anyhow::{bail, Context};
+<span class="kw">use </span>bitflags::bitflags;
+<span class="kw">use </span>clap::{ArgAction, Parser, ValueHint};
+<span class="kw">use </span>colored::Colorize;
+<span class="kw">use </span>fxhash::{FxHashMap, FxHashSet};
+<span class="kw">use </span>once_cell::sync::Lazy;
+<span class="kw">use </span>read::ErrorType;
+<span class="kw">use </span>serde::{Deserialize, Serialize};
+<span class="kw">use </span>std::{
+    fs,
+    path::{Path, PathBuf},
 };
 
-<span class="doccomment">/// Structure to allow defining ignored tests, features and files that should</span>
-<span class="doccomment">/// be ignored even when reading.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">struct</span> <span class="ident">Ignored</span> {
-    <span class="ident">tests</span>: <span class="ident">FxHashSet</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="ident">features</span>: <span class="ident">FxHashSet</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="ident">files</span>: <span class="ident">FxHashSet</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="ident">flags</span>: <span class="ident">TestFlags</span>,
+<span class="doccomment">/// Structure to allow defining ignored tests, features and files that should
+/// be ignored even when reading.
+</span><span class="attribute">#[derive(Debug)]
+</span><span class="kw">struct </span>Ignored {
+    tests: FxHashSet&lt;Box&lt;str&gt;&gt;,
+    features: FxHashSet&lt;Box&lt;str&gt;&gt;,
+    files: FxHashSet&lt;Box&lt;str&gt;&gt;,
+    flags: TestFlags,
 }
 
-<span class="kw">impl</span> <span class="ident">Ignored</span> {
-    <span class="doccomment">/// Checks if the ignore list contains the given test name in the list of</span>
-    <span class="doccomment">/// tests to ignore.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">contains_test</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">test</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">tests</span>.<span class="ident">contains</span>(<span class="ident">test</span>)
+<span class="kw">impl </span>Ignored {
+    <span class="doccomment">/// Checks if the ignore list contains the given test name in the list of
+    /// tests to ignore.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>contains_test(<span class="kw-2">&amp;</span><span class="self">self</span>, test: <span class="kw-2">&amp;</span>str) -&gt; bool {
+        <span class="self">self</span>.tests.contains(test)
     }
 
-    <span class="doccomment">/// Checks if the ignore list contains the given feature name in the list</span>
-    <span class="doccomment">/// of features to ignore.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">contains_any_feature</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">features</span>: <span class="kw-2">&amp;</span>[<span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>]) -&gt; <span class="ident">bool</span> {
-        <span class="ident">features</span>
-            .<span class="ident">iter</span>()
-            .<span class="ident">any</span>(<span class="op">|</span><span class="ident">feature</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">features</span>.<span class="ident">contains</span>(<span class="ident">feature</span>))
+    <span class="doccomment">/// Checks if the ignore list contains the given feature name in the list
+    /// of features to ignore.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>contains_any_feature(<span class="kw-2">&amp;</span><span class="self">self</span>, features: <span class="kw-2">&amp;</span>[Box&lt;str&gt;]) -&gt; bool {
+        features
+            .iter()
+            .any(|feature| <span class="self">self</span>.features.contains(feature))
     }
 
-    <span class="doccomment">/// Checks if the ignore list contains the given file name in the list to</span>
-    <span class="doccomment">/// ignore from reading.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">contains_file</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">file</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">files</span>.<span class="ident">contains</span>(<span class="ident">file</span>)
+    <span class="doccomment">/// Checks if the ignore list contains the given file name in the list to
+    /// ignore from reading.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>contains_file(<span class="kw-2">&amp;</span><span class="self">self</span>, file: <span class="kw-2">&amp;</span>str) -&gt; bool {
+        <span class="self">self</span>.files.contains(file)
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">contains_any_flag</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">flags</span>: <span class="ident">TestFlags</span>) -&gt; <span class="ident">bool</span> {
-        <span class="ident">flags</span>.<span class="ident">intersects</span>(<span class="self">self</span>.<span class="ident">flags</span>)
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>contains_any_flag(<span class="kw-2">&amp;</span><span class="self">self</span>, flags: TestFlags) -&gt; bool {
+        flags.intersects(<span class="self">self</span>.flags)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">Ignored</span> {
-    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">tests</span>: <span class="ident">FxHashSet::default</span>(),
-            <span class="ident">features</span>: <span class="ident">FxHashSet::default</span>(),
-            <span class="ident">files</span>: <span class="ident">FxHashSet::default</span>(),
-            <span class="ident">flags</span>: <span class="ident">TestFlags::empty</span>(),
+<span class="kw">impl </span>Default <span class="kw">for </span>Ignored {
+    <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            tests: FxHashSet::default(),
+            features: FxHashSet::default(),
+            files: FxHashSet::default(),
+            flags: TestFlags::empty(),
         }
     }
 }
 
-<span class="doccomment">/// List of ignored tests.</span>
-<span class="kw">static</span> <span class="ident">IGNORED</span>: <span class="ident">Lazy</span><span class="op">&lt;</span><span class="ident">Ignored</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Lazy::new</span>(<span class="op">|</span><span class="op">|</span> {
-    <span class="kw">let</span> <span class="ident">path</span> <span class="op">=</span> <span class="ident">Path::new</span>(<span class="string">&quot;test_ignore.txt&quot;</span>);
-    <span class="kw">if</span> <span class="ident">path</span>.<span class="ident">exists</span>() {
-        <span class="kw">let</span> <span class="ident">filtered</span> <span class="op">=</span> <span class="ident">fs::read_to_string</span>(<span class="ident">path</span>).<span class="ident">expect</span>(<span class="string">&quot;could not read test filters&quot;</span>);
-        <span class="ident">filtered</span>
-            .<span class="ident">lines</span>()
-            .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">line</span><span class="op">|</span> <span class="op">!</span><span class="ident">line</span>.<span class="ident">is_empty</span>() <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">line</span>.<span class="ident">starts_with</span>(<span class="string">&quot;//&quot;</span>))
-            .<span class="ident">fold</span>(<span class="ident">Ignored::default</span>(), <span class="op">|</span><span class="kw-2">mut</span> <span class="ident">ign</span>, <span class="ident">line</span><span class="op">|</span> {
-                <span class="comment">// let mut line = line.to_owned();</span>
-                <span class="kw">if</span> <span class="ident">line</span>.<span class="ident">starts_with</span>(<span class="string">&quot;file:&quot;</span>) {
-                    <span class="kw">let</span> <span class="ident">file</span> <span class="op">=</span> <span class="ident">line</span>
-                        .<span class="ident">strip_prefix</span>(<span class="string">&quot;file:&quot;</span>)
-                        .<span class="ident">expect</span>(<span class="string">&quot;prefix disappeared&quot;</span>)
-                        .<span class="ident">trim</span>()
-                        .<span class="ident">to_owned</span>()
-                        .<span class="ident">into_boxed_str</span>();
-                    <span class="kw">let</span> <span class="ident">test</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">file</span>.<span class="ident">ends_with</span>(<span class="string">&quot;.js&quot;</span>) {
-                        <span class="ident">file</span>.<span class="ident">strip_suffix</span>(<span class="string">&quot;.js&quot;</span>)
-                            .<span class="ident">expect</span>(<span class="string">&quot;suffix disappeared&quot;</span>)
-                            .<span class="ident">to_owned</span>()
-                            .<span class="ident">into_boxed_str</span>()
-                    } <span class="kw">else</span> {
-                        <span class="ident">file</span>.<span class="ident">clone</span>()
+<span class="doccomment">/// List of ignored tests.
+</span><span class="kw">static </span>IGNORED: Lazy&lt;Ignored&gt; = Lazy::new(|| {
+    <span class="kw">let </span>path = Path::new(<span class="string">&quot;test_ignore.txt&quot;</span>);
+    <span class="kw">if </span>path.exists() {
+        <span class="kw">let </span>filtered = fs::read_to_string(path).expect(<span class="string">&quot;could not read test filters&quot;</span>);
+        filtered
+            .lines()
+            .filter(|line| !line.is_empty() &amp;&amp; !line.starts_with(<span class="string">&quot;//&quot;</span>))
+            .fold(Ignored::default(), |<span class="kw-2">mut </span>ign, line| {
+                <span class="comment">// let mut line = line.to_owned();
+                </span><span class="kw">if </span>line.starts_with(<span class="string">&quot;file:&quot;</span>) {
+                    <span class="kw">let </span>file = line
+                        .strip_prefix(<span class="string">&quot;file:&quot;</span>)
+                        .expect(<span class="string">&quot;prefix disappeared&quot;</span>)
+                        .trim()
+                        .to_owned()
+                        .into_boxed_str();
+                    <span class="kw">let </span>test = <span class="kw">if </span>file.ends_with(<span class="string">&quot;.js&quot;</span>) {
+                        file.strip_suffix(<span class="string">&quot;.js&quot;</span>)
+                            .expect(<span class="string">&quot;suffix disappeared&quot;</span>)
+                            .to_owned()
+                            .into_boxed_str()
+                    } <span class="kw">else </span>{
+                        file.clone()
                     };
-                    <span class="ident">ign</span>.<span class="ident">files</span>.<span class="ident">insert</span>(<span class="ident">file</span>);
-                    <span class="ident">ign</span>.<span class="ident">tests</span>.<span class="ident">insert</span>(<span class="ident">test</span>);
-                } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">line</span>.<span class="ident">starts_with</span>(<span class="string">&quot;feature:&quot;</span>) {
-                    <span class="ident">ign</span>.<span class="ident">features</span>.<span class="ident">insert</span>(
-                        <span class="ident">line</span>.<span class="ident">strip_prefix</span>(<span class="string">&quot;feature:&quot;</span>)
-                            .<span class="ident">expect</span>(<span class="string">&quot;prefix disappeared&quot;</span>)
-                            .<span class="ident">trim</span>()
-                            .<span class="ident">to_owned</span>()
-                            .<span class="ident">into_boxed_str</span>(),
+                    ign.files.insert(file);
+                    ign.tests.insert(test);
+                } <span class="kw">else if </span>line.starts_with(<span class="string">&quot;feature:&quot;</span>) {
+                    ign.features.insert(
+                        line.strip_prefix(<span class="string">&quot;feature:&quot;</span>)
+                            .expect(<span class="string">&quot;prefix disappeared&quot;</span>)
+                            .trim()
+                            .to_owned()
+                            .into_boxed_str(),
                     );
-                } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">line</span>.<span class="ident">starts_with</span>(<span class="string">&quot;flag:&quot;</span>) {
-                    <span class="kw">let</span> <span class="ident">flag</span> <span class="op">=</span> <span class="ident">line</span>
-                        .<span class="ident">strip_prefix</span>(<span class="string">&quot;flag:&quot;</span>)
-                        .<span class="ident">expect</span>(<span class="string">&quot;prefix disappeared&quot;</span>)
-                        .<span class="ident">trim</span>()
-                        .<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">TestFlag</span><span class="op">&gt;</span>()
-                        .<span class="ident">expect</span>(<span class="string">&quot;invalid flag found&quot;</span>);
-                    <span class="ident">ign</span>.<span class="ident">flags</span>.<span class="ident">insert</span>(<span class="ident">flag</span>.<span class="ident">into</span>());
-                } <span class="kw">else</span> {
-                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">test</span> <span class="op">=</span> <span class="ident">line</span>.<span class="ident">trim</span>();
-                    <span class="kw">if</span> <span class="ident">test</span>
-                        .<span class="ident">rsplit</span>(<span class="string">&#39;.&#39;</span>)
-                        .<span class="ident">next</span>()
-                        .<span class="ident">map</span>(<span class="op">|</span><span class="ident">ext</span><span class="op">|</span> <span class="ident">ext</span>.<span class="ident">eq_ignore_ascii_case</span>(<span class="string">&quot;js&quot;</span>))
-                        <span class="op">==</span> <span class="prelude-val">Some</span>(<span class="bool-val">true</span>)
+                } <span class="kw">else if </span>line.starts_with(<span class="string">&quot;flag:&quot;</span>) {
+                    <span class="kw">let </span>flag = line
+                        .strip_prefix(<span class="string">&quot;flag:&quot;</span>)
+                        .expect(<span class="string">&quot;prefix disappeared&quot;</span>)
+                        .trim()
+                        .parse::&lt;TestFlag&gt;()
+                        .expect(<span class="string">&quot;invalid flag found&quot;</span>);
+                    ign.flags.insert(flag.into());
+                } <span class="kw">else </span>{
+                    <span class="kw">let </span><span class="kw-2">mut </span>test = line.trim();
+                    <span class="kw">if </span>test
+                        .rsplit(<span class="string">&#39;.&#39;</span>)
+                        .next()
+                        .map(|ext| ext.eq_ignore_ascii_case(<span class="string">&quot;js&quot;</span>))
+                        == <span class="prelude-val">Some</span>(<span class="bool-val">true</span>)
                     {
-                        <span class="ident">test</span> <span class="op">=</span> <span class="ident">test</span>.<span class="ident">strip_suffix</span>(<span class="string">&quot;.js&quot;</span>).<span class="ident">expect</span>(<span class="string">&quot;suffix disappeared&quot;</span>);
+                        test = test.strip_suffix(<span class="string">&quot;.js&quot;</span>).expect(<span class="string">&quot;suffix disappeared&quot;</span>);
                     }
-                    <span class="ident">ign</span>.<span class="ident">tests</span>.<span class="ident">insert</span>(<span class="ident">test</span>.<span class="ident">to_owned</span>().<span class="ident">into_boxed_str</span>());
+                    ign.tests.insert(test.to_owned().into_boxed_str());
                 }
-                <span class="ident">ign</span>
+                ign
             })
-    } <span class="kw">else</span> {
-        <span class="ident">Ignored::default</span>()
+    } <span class="kw">else </span>{
+        Ignored::default()
     }
 });
 
-<span class="doccomment">/// Boa test262 tester</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Parser</span>)]</span>
-<span class="attribute">#[<span class="ident">command</span>(<span class="ident">author</span>, <span class="ident">version</span>, <span class="ident">about</span>, <span class="ident">name</span> <span class="op">=</span> <span class="string">&quot;Boa test262 tester&quot;</span>)]</span>
-<span class="kw">enum</span> <span class="ident">Cli</span> {
-    <span class="doccomment">/// Run the test suite.</span>
-    <span class="ident">Run</span> {
-        <span class="doccomment">/// Whether to show verbose output.</span>
-        <span class="attribute">#[<span class="ident">arg</span>(<span class="ident">short</span>, <span class="ident">long</span>, <span class="ident">action</span> <span class="op">=</span> <span class="ident">ArgAction::Count</span>)]</span>
-        <span class="ident">verbose</span>: <span class="ident">u8</span>,
+<span class="doccomment">/// Boa test262 tester
+</span><span class="attribute">#[derive(Debug, Parser)]
+#[command(author, version, about, name = <span class="string">&quot;Boa test262 tester&quot;</span>)]
+</span><span class="kw">enum </span>Cli {
+    <span class="doccomment">/// Run the test suite.
+    </span>Run {
+        <span class="doccomment">/// Whether to show verbose output.
+        </span><span class="attribute">#[arg(short, long, action = ArgAction::Count)]
+        </span>verbose: u8,
 
-        <span class="doccomment">/// Path to the Test262 suite.</span>
-        <span class="attribute">#[<span class="ident">arg</span>(<span class="ident">long</span>, <span class="ident">default_value</span> <span class="op">=</span> <span class="string">&quot;./test262&quot;</span>, <span class="ident">value_hint</span> <span class="op">=</span> <span class="ident">ValueHint::DirPath</span>)]</span>
-        <span class="ident">test262_path</span>: <span class="ident">PathBuf</span>,
+        <span class="doccomment">/// Path to the Test262 suite.
+        </span><span class="attribute">#[arg(long, default_value = <span class="string">&quot;./test262&quot;</span>, value_hint = ValueHint::DirPath)]
+        </span>test262_path: PathBuf,
 
-        <span class="doccomment">/// Which specific test or test suite to run. Should be a path relative to the Test262 directory: e.g. &quot;test/language/types/number&quot;</span>
-        <span class="attribute">#[<span class="ident">arg</span>(<span class="ident">short</span>, <span class="ident">long</span>, <span class="ident">default_value</span> <span class="op">=</span> <span class="string">&quot;test&quot;</span>, <span class="ident">value_hint</span> <span class="op">=</span> <span class="ident">ValueHint::AnyPath</span>)]</span>
-        <span class="ident">suite</span>: <span class="ident">PathBuf</span>,
+        <span class="doccomment">/// Which specific test or test suite to run. Should be a path relative to the Test262 directory: e.g. &quot;test/language/types/number&quot;
+        </span><span class="attribute">#[arg(short, long, default_value = <span class="string">&quot;test&quot;</span>, value_hint = ValueHint::AnyPath)]
+        </span>suite: PathBuf,
 
-        <span class="doccomment">/// Optional output folder for the full results information.</span>
-        <span class="attribute">#[<span class="ident">arg</span>(<span class="ident">short</span>, <span class="ident">long</span>, <span class="ident">value_hint</span> <span class="op">=</span> <span class="ident">ValueHint::DirPath</span>)]</span>
-        <span class="ident">output</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PathBuf</span><span class="op">&gt;</span>,
+        <span class="doccomment">/// Optional output folder for the full results information.
+        </span><span class="attribute">#[arg(short, long, value_hint = ValueHint::DirPath)]
+        </span>output: <span class="prelude-ty">Option</span>&lt;PathBuf&gt;,
 
-        <span class="doccomment">/// Execute tests serially</span>
-        <span class="attribute">#[<span class="ident">arg</span>(<span class="ident">short</span>, <span class="ident">long</span>)]</span>
-        <span class="ident">disable_parallelism</span>: <span class="ident">bool</span>,
+        <span class="doccomment">/// Execute tests serially
+        </span><span class="attribute">#[arg(short, long)]
+        </span>disable_parallelism: bool,
     },
-    <span class="doccomment">/// Compare two test suite results.</span>
-    <span class="ident">Compare</span> {
-        <span class="doccomment">/// Base results of the suite.</span>
-        <span class="attribute">#[<span class="ident">arg</span>(<span class="ident">value_hint</span> <span class="op">=</span> <span class="ident">ValueHint::FilePath</span>)]</span>
-        <span class="ident">base</span>: <span class="ident">PathBuf</span>,
+    <span class="doccomment">/// Compare two test suite results.
+    </span>Compare {
+        <span class="doccomment">/// Base results of the suite.
+        </span><span class="attribute">#[arg(value_hint = ValueHint::FilePath)]
+        </span>base: PathBuf,
 
-        <span class="doccomment">/// New results to compare.</span>
-        <span class="attribute">#[<span class="ident">arg</span>(<span class="ident">value_hint</span> <span class="op">=</span> <span class="ident">ValueHint::FilePath</span>)]</span>
-        <span class="ident">new</span>: <span class="ident">PathBuf</span>,
+        <span class="doccomment">/// New results to compare.
+        </span><span class="attribute">#[arg(value_hint = ValueHint::FilePath)]
+        </span>new: PathBuf,
 
-        <span class="doccomment">/// Whether to use markdown output</span>
-        <span class="attribute">#[<span class="ident">arg</span>(<span class="ident">short</span>, <span class="ident">long</span>)]</span>
-        <span class="ident">markdown</span>: <span class="ident">bool</span>,
+        <span class="doccomment">/// Whether to use markdown output
+        </span><span class="attribute">#[arg(short, long)]
+        </span>markdown: bool,
     },
 }
 
-<span class="doccomment">/// Program entry point.</span>
-<span class="kw">fn</span> <span class="ident">main</span>() {
-    <span class="kw">match</span> <span class="ident">Cli::parse</span>() {
-        <span class="ident">Cli::Run</span> {
-            <span class="ident">verbose</span>,
-            <span class="ident">test262_path</span>,
-            <span class="ident">suite</span>,
-            <span class="ident">output</span>,
-            <span class="ident">disable_parallelism</span>,
+<span class="doccomment">/// Program entry point.
+</span><span class="kw">fn </span>main() {
+    <span class="kw">match </span>Cli::parse() {
+        Cli::Run {
+            verbose,
+            test262_path,
+            suite,
+            output,
+            disable_parallelism,
         } =&gt; {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span> <span class="ident">run_test_suite</span>(
-                <span class="ident">verbose</span>,
-                <span class="op">!</span><span class="ident">disable_parallelism</span>,
-                <span class="ident">test262_path</span>.<span class="ident">as_path</span>(),
-                <span class="ident">suite</span>.<span class="ident">as_path</span>(),
-                <span class="ident">output</span>.<span class="ident">as_deref</span>(),
+            <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = run_test_suite(
+                verbose,
+                !disable_parallelism,
+                test262_path.as_path(),
+                suite.as_path(),
+                output.as_deref(),
             ) {
                 <span class="macro">eprintln!</span>(<span class="string">&quot;Error: {e}&quot;</span>);
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">src</span> <span class="op">=</span> <span class="ident">e</span>.<span class="ident">source</span>();
-                <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">e</span>) <span class="op">=</span> <span class="ident">src</span> {
+                <span class="kw">let </span><span class="kw-2">mut </span>src = e.source();
+                <span class="kw">while let </span><span class="prelude-val">Some</span>(e) = src {
                     <span class="macro">eprintln!</span>(<span class="string">&quot;    caused by: {e}&quot;</span>);
-                    <span class="ident">src</span> <span class="op">=</span> <span class="ident">e</span>.<span class="ident">source</span>();
+                    src = e.source();
                 }
-                <span class="ident">std::process::exit</span>(<span class="number">1</span>);
+                std::process::exit(<span class="number">1</span>);
             }
         }
-        <span class="ident">Cli::Compare</span> {
-            <span class="ident">base</span>,
-            <span class="ident">new</span>,
-            <span class="ident">markdown</span>,
-        } =&gt; <span class="ident">compare_results</span>(<span class="ident">base</span>.<span class="ident">as_path</span>(), <span class="ident">new</span>.<span class="ident">as_path</span>(), <span class="ident">markdown</span>),
+        Cli::Compare {
+            base,
+            new,
+            markdown,
+        } =&gt; compare_results(base.as_path(), new.as_path(), markdown),
     }
 }
 
-<span class="doccomment">/// Runs the full test suite.</span>
-<span class="kw">fn</span> <span class="ident">run_test_suite</span>(
-    <span class="ident">verbose</span>: <span class="ident">u8</span>,
-    <span class="ident">parallel</span>: <span class="ident">bool</span>,
-    <span class="ident">test262_path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>,
-    <span class="ident">suite</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>,
-    <span class="ident">output</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Path</span><span class="op">&gt;</span>,
-) -&gt; <span class="ident">anyhow::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">path</span>) <span class="op">=</span> <span class="ident">output</span> {
-        <span class="kw">if</span> <span class="ident">path</span>.<span class="ident">exists</span>() {
-            <span class="kw">if</span> <span class="op">!</span><span class="ident">path</span>.<span class="ident">is_dir</span>() {
+<span class="doccomment">/// Runs the full test suite.
+</span><span class="kw">fn </span>run_test_suite(
+    verbose: u8,
+    parallel: bool,
+    test262_path: <span class="kw-2">&amp;</span>Path,
+    suite: <span class="kw-2">&amp;</span>Path,
+    output: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Path&gt;,
+) -&gt; anyhow::Result&lt;()&gt; {
+    <span class="kw">if let </span><span class="prelude-val">Some</span>(path) = output {
+        <span class="kw">if </span>path.exists() {
+            <span class="kw">if </span>!path.is_dir() {
                 <span class="macro">bail!</span>(<span class="string">&quot;the output path must be a directory.&quot;</span>);
             }
-        } <span class="kw">else</span> {
-            <span class="ident">fs::create_dir_all</span>(<span class="ident">path</span>).<span class="ident">context</span>(<span class="string">&quot;could not create the output directory&quot;</span>)<span class="question-mark">?</span>;
+        } <span class="kw">else </span>{
+            fs::create_dir_all(path).context(<span class="string">&quot;could not create the output directory&quot;</span>)<span class="question-mark">?</span>;
         }
     }
 
-    <span class="kw">if</span> <span class="ident">verbose</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
+    <span class="kw">if </span>verbose != <span class="number">0 </span>{
         <span class="macro">println!</span>(<span class="string">&quot;Loading the test suite...&quot;</span>);
     }
-    <span class="kw">let</span> <span class="ident">harness</span> <span class="op">=</span> <span class="ident">read_harness</span>(<span class="ident">test262_path</span>).<span class="ident">context</span>(<span class="string">&quot;could not read harness&quot;</span>)<span class="question-mark">?</span>;
+    <span class="kw">let </span>harness = read_harness(test262_path).context(<span class="string">&quot;could not read harness&quot;</span>)<span class="question-mark">?</span>;
 
-    <span class="kw">if</span> <span class="ident">suite</span>.<span class="ident">to_string_lossy</span>().<span class="ident">ends_with</span>(<span class="string">&quot;.js&quot;</span>) {
-        <span class="kw">let</span> <span class="ident">test</span> <span class="op">=</span> <span class="ident">read_test</span>(<span class="kw-2">&amp;</span><span class="ident">test262_path</span>.<span class="ident">join</span>(<span class="ident">suite</span>)).<span class="ident">with_context</span>(<span class="op">|</span><span class="op">|</span> {
-            <span class="kw">let</span> <span class="ident">suite</span> <span class="op">=</span> <span class="ident">suite</span>.<span class="ident">display</span>();
+    <span class="kw">if </span>suite.to_string_lossy().ends_with(<span class="string">&quot;.js&quot;</span>) {
+        <span class="kw">let </span>test = read_test(<span class="kw-2">&amp;</span>test262_path.join(suite)).with_context(|| {
+            <span class="kw">let </span>suite = suite.display();
             <span class="macro">format!</span>(<span class="string">&quot;could not read the test {suite}&quot;</span>)
         })<span class="question-mark">?</span>;
 
-        <span class="kw">if</span> <span class="ident">verbose</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
+        <span class="kw">if </span>verbose != <span class="number">0 </span>{
             <span class="macro">println!</span>(<span class="string">&quot;Test loaded, starting...&quot;</span>);
         }
-        <span class="ident">test</span>.<span class="ident">run</span>(<span class="kw-2">&amp;</span><span class="ident">harness</span>, <span class="ident">verbose</span>);
+        test.run(<span class="kw-2">&amp;</span>harness, verbose);
 
         <span class="macro">println!</span>();
-    } <span class="kw">else</span> {
-        <span class="kw">let</span> <span class="ident">suite</span> <span class="op">=</span> <span class="ident">read_suite</span>(<span class="kw-2">&amp;</span><span class="ident">test262_path</span>.<span class="ident">join</span>(<span class="ident">suite</span>)).<span class="ident">with_context</span>(<span class="op">|</span><span class="op">|</span> {
-            <span class="kw">let</span> <span class="ident">suite</span> <span class="op">=</span> <span class="ident">suite</span>.<span class="ident">display</span>();
+    } <span class="kw">else </span>{
+        <span class="kw">let </span>suite = read_suite(<span class="kw-2">&amp;</span>test262_path.join(suite)).with_context(|| {
+            <span class="kw">let </span>suite = suite.display();
             <span class="macro">format!</span>(<span class="string">&quot;could not read the suite {suite}&quot;</span>)
         })<span class="question-mark">?</span>;
 
-        <span class="kw">if</span> <span class="ident">verbose</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
+        <span class="kw">if </span>verbose != <span class="number">0 </span>{
             <span class="macro">println!</span>(<span class="string">&quot;Test suite loaded, starting tests...&quot;</span>);
         }
-        <span class="kw">let</span> <span class="ident">results</span> <span class="op">=</span> <span class="ident">suite</span>.<span class="ident">run</span>(<span class="kw-2">&amp;</span><span class="ident">harness</span>, <span class="ident">verbose</span>, <span class="ident">parallel</span>);
+        <span class="kw">let </span>results = suite.run(<span class="kw-2">&amp;</span>harness, verbose, parallel);
 
         <span class="macro">println!</span>();
         <span class="macro">println!</span>(<span class="string">&quot;Results:&quot;</span>);
-        <span class="macro">println!</span>(<span class="string">&quot;Total tests: {}&quot;</span>, <span class="ident">results</span>.<span class="ident">total</span>);
-        <span class="macro">println!</span>(<span class="string">&quot;Passed tests: {}&quot;</span>, <span class="ident">results</span>.<span class="ident">passed</span>.<span class="ident">to_string</span>().<span class="ident">green</span>());
-        <span class="macro">println!</span>(<span class="string">&quot;Ignored tests: {}&quot;</span>, <span class="ident">results</span>.<span class="ident">ignored</span>.<span class="ident">to_string</span>().<span class="ident">yellow</span>());
+        <span class="macro">println!</span>(<span class="string">&quot;Total tests: {}&quot;</span>, results.total);
+        <span class="macro">println!</span>(<span class="string">&quot;Passed tests: {}&quot;</span>, results.passed.to_string().green());
+        <span class="macro">println!</span>(<span class="string">&quot;Ignored tests: {}&quot;</span>, results.ignored.to_string().yellow());
         <span class="macro">println!</span>(
             <span class="string">&quot;Failed tests: {} (panics: {})&quot;</span>,
-            (<span class="ident">results</span>.<span class="ident">total</span> <span class="op">-</span> <span class="ident">results</span>.<span class="ident">passed</span> <span class="op">-</span> <span class="ident">results</span>.<span class="ident">ignored</span>)
-                .<span class="ident">to_string</span>()
-                .<span class="ident">red</span>(),
-            <span class="ident">results</span>.<span class="ident">panic</span>.<span class="ident">to_string</span>().<span class="ident">red</span>()
+            (results.total - results.passed - results.ignored)
+                .to_string()
+                .red(),
+            results.panic.to_string().red()
         );
         <span class="macro">println!</span>(
             <span class="string">&quot;Conformance: {:.2}%&quot;</span>,
-            (<span class="ident">results</span>.<span class="ident">passed</span> <span class="kw">as</span> <span class="ident">f64</span> <span class="op">/</span> <span class="ident">results</span>.<span class="ident">total</span> <span class="kw">as</span> <span class="ident">f64</span>) <span class="op">*</span> <span class="number">100.0</span>
-        );
+            (results.passed <span class="kw">as </span>f64 / results.total <span class="kw">as </span>f64) * <span class="number">100.0
+        </span>);
 
-        <span class="ident">write_json</span>(<span class="ident">results</span>, <span class="ident">output</span>, <span class="ident">verbose</span>)
-            .<span class="ident">context</span>(<span class="string">&quot;could not write the results to the output JSON file&quot;</span>)<span class="question-mark">?</span>;
+        write_json(results, output, verbose)
+            .context(<span class="string">&quot;could not write the results to the output JSON file&quot;</span>)<span class="question-mark">?</span>;
     }
 
     <span class="prelude-val">Ok</span>(())
 }
 
-<span class="doccomment">/// All the harness include files.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
-<span class="kw">struct</span> <span class="ident">Harness</span> {
-    <span class="ident">assert</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>,
-    <span class="ident">sta</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>,
-    <span class="ident">doneprint_handle</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>,
-    <span class="ident">includes</span>: <span class="ident">FxHashMap</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>, <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+<span class="doccomment">/// All the harness include files.
+</span><span class="attribute">#[derive(Debug, Clone)]
+</span><span class="kw">struct </span>Harness {
+    assert: Box&lt;str&gt;,
+    sta: Box&lt;str&gt;,
+    doneprint_handle: Box&lt;str&gt;,
+    includes: FxHashMap&lt;Box&lt;str&gt;, Box&lt;str&gt;&gt;,
 }
 
-<span class="doccomment">/// Represents a test suite.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
-<span class="kw">struct</span> <span class="ident">TestSuite</span> {
-    <span class="ident">name</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>,
-    <span class="ident">suites</span>: <span class="ident">Box</span><span class="op">&lt;</span>[<span class="ident">TestSuite</span>]<span class="op">&gt;</span>,
-    <span class="ident">tests</span>: <span class="ident">Box</span><span class="op">&lt;</span>[<span class="ident">Test</span>]<span class="op">&gt;</span>,
+<span class="doccomment">/// Represents a test suite.
+</span><span class="attribute">#[derive(Debug, Clone)]
+</span><span class="kw">struct </span>TestSuite {
+    name: Box&lt;str&gt;,
+    suites: Box&lt;[TestSuite]&gt;,
+    tests: Box&lt;[Test]&gt;,
 }
 
-<span class="doccomment">/// Outcome of a test suite.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Serialize</span>, <span class="ident">Deserialize</span>)]</span>
-<span class="kw">struct</span> <span class="ident">SuiteResult</span> {
-    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename</span> <span class="op">=</span> <span class="string">&quot;n&quot;</span>)]</span>
-    <span class="ident">name</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>,
-    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename</span> <span class="op">=</span> <span class="string">&quot;c&quot;</span>)]</span>
-    <span class="ident">total</span>: <span class="ident">usize</span>,
-    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename</span> <span class="op">=</span> <span class="string">&quot;o&quot;</span>)]</span>
-    <span class="ident">passed</span>: <span class="ident">usize</span>,
-    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename</span> <span class="op">=</span> <span class="string">&quot;i&quot;</span>)]</span>
-    <span class="ident">ignored</span>: <span class="ident">usize</span>,
-    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename</span> <span class="op">=</span> <span class="string">&quot;p&quot;</span>)]</span>
-    <span class="ident">panic</span>: <span class="ident">usize</span>,
-    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">skip_serializing_if</span> <span class="op">=</span> <span class="string">&quot;Vec::is_empty&quot;</span>, <span class="ident">default</span>)]</span>
-    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename</span> <span class="op">=</span> <span class="string">&quot;s&quot;</span>)]</span>
-    <span class="ident">suites</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">SuiteResult</span><span class="op">&gt;</span>,
-    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename</span> <span class="op">=</span> <span class="string">&quot;t&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">skip_serializing_if</span> <span class="op">=</span> <span class="string">&quot;Vec::is_empty&quot;</span>, <span class="ident">default</span>)]</span>
-    <span class="ident">tests</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">TestResult</span><span class="op">&gt;</span>,
-    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename</span> <span class="op">=</span> <span class="string">&quot;f&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">skip_serializing_if</span> <span class="op">=</span> <span class="string">&quot;Vec::is_empty&quot;</span>, <span class="ident">default</span>)]</span>
-    <span class="ident">features</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
+<span class="doccomment">/// Outcome of a test suite.
+</span><span class="attribute">#[derive(Debug, Clone, Serialize, Deserialize)]
+</span><span class="kw">struct </span>SuiteResult {
+    <span class="attribute">#[serde(rename = <span class="string">&quot;n&quot;</span>)]
+    </span>name: Box&lt;str&gt;,
+    <span class="attribute">#[serde(rename = <span class="string">&quot;c&quot;</span>)]
+    </span>total: usize,
+    <span class="attribute">#[serde(rename = <span class="string">&quot;o&quot;</span>)]
+    </span>passed: usize,
+    <span class="attribute">#[serde(rename = <span class="string">&quot;i&quot;</span>)]
+    </span>ignored: usize,
+    <span class="attribute">#[serde(rename = <span class="string">&quot;p&quot;</span>)]
+    </span>panic: usize,
+    <span class="attribute">#[serde(skip_serializing_if = <span class="string">&quot;Vec::is_empty&quot;</span>, default)]
+    #[serde(rename = <span class="string">&quot;s&quot;</span>)]
+    </span>suites: Vec&lt;SuiteResult&gt;,
+    <span class="attribute">#[serde(rename = <span class="string">&quot;t&quot;</span>)]
+    #[serde(skip_serializing_if = <span class="string">&quot;Vec::is_empty&quot;</span>, default)]
+    </span>tests: Vec&lt;TestResult&gt;,
+    <span class="attribute">#[serde(rename = <span class="string">&quot;f&quot;</span>)]
+    #[serde(skip_serializing_if = <span class="string">&quot;Vec::is_empty&quot;</span>, default)]
+    </span>features: Vec&lt;String&gt;,
 }
 
-<span class="doccomment">/// Outcome of a test.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Serialize</span>, <span class="ident">Deserialize</span>)]</span>
-<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">dead_code</span>)]</span>
-<span class="kw">struct</span> <span class="ident">TestResult</span> {
-    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename</span> <span class="op">=</span> <span class="string">&quot;n&quot;</span>)]</span>
-    <span class="ident">name</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>,
-    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename</span> <span class="op">=</span> <span class="string">&quot;s&quot;</span>, <span class="ident">default</span>)]</span>
-    <span class="ident">strict</span>: <span class="ident">bool</span>,
-    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">skip</span>)]</span>
-    <span class="ident">result_text</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>,
-    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename</span> <span class="op">=</span> <span class="string">&quot;r&quot;</span>)]</span>
-    <span class="ident">result</span>: <span class="ident">TestOutcomeResult</span>,
+<span class="doccomment">/// Outcome of a test.
+</span><span class="attribute">#[derive(Debug, Clone, Serialize, Deserialize)]
+#[allow(dead_code)]
+</span><span class="kw">struct </span>TestResult {
+    <span class="attribute">#[serde(rename = <span class="string">&quot;n&quot;</span>)]
+    </span>name: Box&lt;str&gt;,
+    <span class="attribute">#[serde(rename = <span class="string">&quot;s&quot;</span>, default)]
+    </span>strict: bool,
+    <span class="attribute">#[serde(skip)]
+    </span>result_text: Box&lt;str&gt;,
+    <span class="attribute">#[serde(rename = <span class="string">&quot;r&quot;</span>)]
+    </span>result: TestOutcomeResult,
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Serialize</span>, <span class="ident">Deserialize</span>)]</span>
-<span class="kw">enum</span> <span class="ident">TestOutcomeResult</span> {
-    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename</span> <span class="op">=</span> <span class="string">&quot;O&quot;</span>)]</span>
-    <span class="ident">Passed</span>,
-    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename</span> <span class="op">=</span> <span class="string">&quot;I&quot;</span>)]</span>
-    <span class="ident">Ignored</span>,
-    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename</span> <span class="op">=</span> <span class="string">&quot;F&quot;</span>)]</span>
-    <span class="ident">Failed</span>,
-    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename</span> <span class="op">=</span> <span class="string">&quot;P&quot;</span>)]</span>
-    <span class="ident">Panic</span>,
+<span class="attribute">#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+</span><span class="kw">enum </span>TestOutcomeResult {
+    <span class="attribute">#[serde(rename = <span class="string">&quot;O&quot;</span>)]
+    </span>Passed,
+    <span class="attribute">#[serde(rename = <span class="string">&quot;I&quot;</span>)]
+    </span>Ignored,
+    <span class="attribute">#[serde(rename = <span class="string">&quot;F&quot;</span>)]
+    </span>Failed,
+    <span class="attribute">#[serde(rename = <span class="string">&quot;P&quot;</span>)]
+    </span>Panic,
 }
 
-<span class="doccomment">/// Represents a test.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Default</span>)]</span>
-<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">dead_code</span>)]</span>
-<span class="kw">struct</span> <span class="ident">Test</span> {
-    <span class="ident">name</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>,
-    <span class="ident">description</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>,
-    <span class="ident">esid</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="ident">flags</span>: <span class="ident">TestFlags</span>,
-    <span class="ident">information</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>,
-    <span class="ident">features</span>: <span class="ident">Box</span><span class="op">&lt;</span>[<span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>]<span class="op">&gt;</span>,
-    <span class="ident">expected_outcome</span>: <span class="ident">Outcome</span>,
-    <span class="ident">includes</span>: <span class="ident">Box</span><span class="op">&lt;</span>[<span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>]<span class="op">&gt;</span>,
-    <span class="ident">locale</span>: <span class="ident">Locale</span>,
-    <span class="ident">content</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>,
+<span class="doccomment">/// Represents a test.
+</span><span class="attribute">#[derive(Debug, Clone, Default)]
+#[allow(dead_code)]
+</span><span class="kw">struct </span>Test {
+    name: Box&lt;str&gt;,
+    description: Box&lt;str&gt;,
+    esid: <span class="prelude-ty">Option</span>&lt;Box&lt;str&gt;&gt;,
+    flags: TestFlags,
+    information: Box&lt;str&gt;,
+    features: Box&lt;[Box&lt;str&gt;]&gt;,
+    expected_outcome: Outcome,
+    includes: Box&lt;[Box&lt;str&gt;]&gt;,
+    locale: Locale,
+    content: Box&lt;str&gt;,
 }
 
-<span class="kw">impl</span> <span class="ident">Test</span> {
-    <span class="doccomment">/// Creates a new test.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">N</span>, <span class="ident">C</span><span class="op">&gt;</span>(<span class="ident">name</span>: <span class="ident">N</span>, <span class="ident">content</span>: <span class="ident">C</span>, <span class="ident">metadata</span>: <span class="ident">MetaData</span>) -&gt; <span class="self">Self</span>
-    <span class="kw">where</span>
-        <span class="ident">N</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-        <span class="ident">C</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+<span class="kw">impl </span>Test {
+    <span class="doccomment">/// Creates a new test.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">fn </span>new&lt;N, C&gt;(name: N, content: C, metadata: MetaData) -&gt; <span class="self">Self
+    </span><span class="kw">where
+        </span>N: Into&lt;Box&lt;str&gt;&gt;,
+        C: Into&lt;Box&lt;str&gt;&gt;,
     {
-        <span class="self">Self</span> {
-            <span class="ident">name</span>: <span class="ident">name</span>.<span class="ident">into</span>(),
-            <span class="ident">description</span>: <span class="ident">metadata</span>.<span class="ident">description</span>,
-            <span class="ident">esid</span>: <span class="ident">metadata</span>.<span class="ident">esid</span>,
-            <span class="ident">flags</span>: <span class="ident">metadata</span>.<span class="ident">flags</span>.<span class="ident">into</span>(),
-            <span class="ident">information</span>: <span class="ident">metadata</span>.<span class="ident">info</span>,
-            <span class="ident">features</span>: <span class="ident">metadata</span>.<span class="ident">features</span>,
-            <span class="ident">expected_outcome</span>: <span class="ident">Outcome::from</span>(<span class="ident">metadata</span>.<span class="ident">negative</span>),
-            <span class="ident">includes</span>: <span class="ident">metadata</span>.<span class="ident">includes</span>,
-            <span class="ident">locale</span>: <span class="ident">metadata</span>.<span class="ident">locale</span>,
-            <span class="ident">content</span>: <span class="ident">content</span>.<span class="ident">into</span>(),
+        <span class="self">Self </span>{
+            name: name.into(),
+            description: metadata.description,
+            esid: metadata.esid,
+            flags: metadata.flags.into(),
+            information: metadata.info,
+            features: metadata.features,
+            expected_outcome: Outcome::from(metadata.negative),
+            includes: metadata.includes,
+            locale: metadata.locale,
+            content: content.into(),
         }
     }
 
-    <span class="doccomment">/// Sets the name of the test.</span>
-    <span class="kw">fn</span> <span class="ident">set_name</span><span class="op">&lt;</span><span class="ident">N</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">name</span>: <span class="ident">N</span>)
-    <span class="kw">where</span>
-        <span class="ident">N</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// Sets the name of the test.
+    </span><span class="kw">fn </span>set_name&lt;N&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, name: N)
+    <span class="kw">where
+        </span>N: Into&lt;Box&lt;str&gt;&gt;,
     {
-        <span class="self">self</span>.<span class="ident">name</span> <span class="op">=</span> <span class="ident">name</span>.<span class="ident">into</span>();
+        <span class="self">self</span>.name = name.into();
     }
 }
 
-<span class="doccomment">/// An outcome for a test.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
-<span class="kw">enum</span> <span class="ident">Outcome</span> {
-    <span class="ident">Positive</span>,
-    <span class="ident">Negative</span> { <span class="ident">phase</span>: <span class="ident">Phase</span>, <span class="ident">error_type</span>: <span class="ident">ErrorType</span> },
+<span class="doccomment">/// An outcome for a test.
+</span><span class="attribute">#[derive(Debug, Clone)]
+</span><span class="kw">enum </span>Outcome {
+    Positive,
+    Negative { phase: Phase, error_type: ErrorType },
 }
 
-<span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">Outcome</span> {
-    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::Positive</span>
+<span class="kw">impl </span>Default <span class="kw">for </span>Outcome {
+    <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::Positive
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Negative</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Outcome</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">neg</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Negative</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">neg</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">neg</span><span class="op">|</span> <span class="ident"><span class="self">Self</span>::Negative</span> {
-            <span class="ident">phase</span>: <span class="ident">neg</span>.<span class="ident">phase</span>,
-            <span class="ident">error_type</span>: <span class="ident">neg</span>.<span class="ident">error_type</span>,
+<span class="kw">impl </span>From&lt;<span class="prelude-ty">Option</span>&lt;Negative&gt;&gt; <span class="kw">for </span>Outcome {
+    <span class="kw">fn </span>from(neg: <span class="prelude-ty">Option</span>&lt;Negative&gt;) -&gt; <span class="self">Self </span>{
+        neg.map(|neg| <span class="self">Self</span>::Negative {
+            phase: neg.phase,
+            error_type: neg.error_type,
         })
-        .<span class="ident">unwrap_or_default</span>()
+        .unwrap_or_default()
     }
 }
 
-<span class="macro">bitflags!</span> {
-    <span class="kw">struct</span> <span class="ident">TestFlags</span>: <span class="ident">u16</span> {
-        <span class="kw">const</span> <span class="ident">STRICT</span> <span class="op">=</span> <span class="number">0b000000001</span>;
-        <span class="kw">const</span> <span class="ident">NO_STRICT</span> <span class="op">=</span> <span class="number">0b000000010</span>;
-        <span class="kw">const</span> <span class="ident">MODULE</span> <span class="op">=</span> <span class="number">0b000000100</span>;
-        <span class="kw">const</span> <span class="ident">RAW</span> <span class="op">=</span> <span class="number">0b000001000</span>;
-        <span class="kw">const</span> <span class="ident">ASYNC</span> <span class="op">=</span> <span class="number">0b000010000</span>;
-        <span class="kw">const</span> <span class="ident">GENERATED</span> <span class="op">=</span> <span class="number">0b000100000</span>;
-        <span class="kw">const</span> <span class="ident">CAN_BLOCK_IS_FALSE</span> <span class="op">=</span> <span class="number">0b001000000</span>;
-        <span class="kw">const</span> <span class="ident">CAN_BLOCK_IS_TRUE</span> <span class="op">=</span> <span class="number">0b010000000</span>;
-        <span class="kw">const</span> <span class="ident">NON_DETERMINISTIC</span> <span class="op">=</span> <span class="number">0b100000000</span>;
+<span class="macro">bitflags! </span>{
+    <span class="kw">struct </span>TestFlags: u16 {
+        <span class="kw">const </span>STRICT = <span class="number">0b000000001</span>;
+        <span class="kw">const </span>NO_STRICT = <span class="number">0b000000010</span>;
+        <span class="kw">const </span>MODULE = <span class="number">0b000000100</span>;
+        <span class="kw">const </span>RAW = <span class="number">0b000001000</span>;
+        <span class="kw">const </span>ASYNC = <span class="number">0b000010000</span>;
+        <span class="kw">const </span>GENERATED = <span class="number">0b000100000</span>;
+        <span class="kw">const </span>CAN_BLOCK_IS_FALSE = <span class="number">0b001000000</span>;
+        <span class="kw">const </span>CAN_BLOCK_IS_TRUE = <span class="number">0b010000000</span>;
+        <span class="kw">const </span>NON_DETERMINISTIC = <span class="number">0b100000000</span>;
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">TestFlags</span> {
-    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::STRICT</span> <span class="op">|</span> <span class="ident"><span class="self">Self</span>::NO_STRICT</span>
+<span class="kw">impl </span>Default <span class="kw">for </span>TestFlags {
+    <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::STRICT | <span class="self">Self</span>::NO_STRICT
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">TestFlag</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">TestFlags</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">flag</span>: <span class="ident">TestFlag</span>) -&gt; <span class="self">Self</span> {
-        <span class="kw">match</span> <span class="ident">flag</span> {
-            <span class="ident">TestFlag::OnlyStrict</span> =&gt; <span class="ident"><span class="self">Self</span>::STRICT</span>,
-            <span class="ident">TestFlag::NoStrict</span> =&gt; <span class="ident"><span class="self">Self</span>::NO_STRICT</span>,
-            <span class="ident">TestFlag::Module</span> =&gt; <span class="ident"><span class="self">Self</span>::MODULE</span>,
-            <span class="ident">TestFlag::Raw</span> =&gt; <span class="ident"><span class="self">Self</span>::RAW</span>,
-            <span class="ident">TestFlag::Async</span> =&gt; <span class="ident"><span class="self">Self</span>::ASYNC</span>,
-            <span class="ident">TestFlag::Generated</span> =&gt; <span class="ident"><span class="self">Self</span>::GENERATED</span>,
-            <span class="ident">TestFlag::CanBlockIsFalse</span> =&gt; <span class="ident"><span class="self">Self</span>::CAN_BLOCK_IS_FALSE</span>,
-            <span class="ident">TestFlag::CanBlockIsTrue</span> =&gt; <span class="ident"><span class="self">Self</span>::CAN_BLOCK_IS_TRUE</span>,
-            <span class="ident">TestFlag::NonDeterministic</span> =&gt; <span class="ident"><span class="self">Self</span>::NON_DETERMINISTIC</span>,
+<span class="kw">impl </span>From&lt;TestFlag&gt; <span class="kw">for </span>TestFlags {
+    <span class="kw">fn </span>from(flag: TestFlag) -&gt; <span class="self">Self </span>{
+        <span class="kw">match </span>flag {
+            TestFlag::OnlyStrict =&gt; <span class="self">Self</span>::STRICT,
+            TestFlag::NoStrict =&gt; <span class="self">Self</span>::NO_STRICT,
+            TestFlag::Module =&gt; <span class="self">Self</span>::MODULE,
+            TestFlag::Raw =&gt; <span class="self">Self</span>::RAW,
+            TestFlag::Async =&gt; <span class="self">Self</span>::ASYNC,
+            TestFlag::Generated =&gt; <span class="self">Self</span>::GENERATED,
+            TestFlag::CanBlockIsFalse =&gt; <span class="self">Self</span>::CAN_BLOCK_IS_FALSE,
+            TestFlag::CanBlockIsTrue =&gt; <span class="self">Self</span>::CAN_BLOCK_IS_TRUE,
+            TestFlag::NonDeterministic =&gt; <span class="self">Self</span>::NON_DETERMINISTIC,
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">TestFlags</span>
-<span class="kw">where</span>
-    <span class="ident">T</span>: <span class="ident">AsRef</span><span class="op">&lt;</span>[<span class="ident">TestFlag</span>]<span class="op">&gt;</span>,
+<span class="kw">impl</span>&lt;T&gt; From&lt;T&gt; <span class="kw">for </span>TestFlags
+<span class="kw">where
+    </span>T: AsRef&lt;[TestFlag]&gt;,
 {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">flags</span>: <span class="ident">T</span>) -&gt; <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="ident">flags</span> <span class="op">=</span> <span class="ident">flags</span>.<span class="ident">as_ref</span>();
-        <span class="kw">if</span> <span class="ident">flags</span>.<span class="ident">is_empty</span>() {
-            <span class="ident"><span class="self">Self</span>::default</span>()
-        } <span class="kw">else</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::empty</span>();
-            <span class="kw">for</span> <span class="ident">flag</span> <span class="kw">in</span> <span class="ident">flags</span> {
-                <span class="ident">result</span> <span class="op">|</span><span class="op">=</span> <span class="ident"><span class="self">Self</span>::from</span>(<span class="kw-2">*</span><span class="ident">flag</span>);
+    <span class="kw">fn </span>from(flags: T) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>flags = flags.as_ref();
+        <span class="kw">if </span>flags.is_empty() {
+            <span class="self">Self</span>::default()
+        } <span class="kw">else </span>{
+            <span class="kw">let </span><span class="kw-2">mut </span>result = <span class="self">Self</span>::empty();
+            <span class="kw">for </span>flag <span class="kw">in </span>flags {
+                result |= <span class="self">Self</span>::from(<span class="kw-2">*</span>flag);
             }
 
-            <span class="kw">if</span> <span class="op">!</span><span class="ident">result</span>.<span class="ident">intersects</span>(<span class="ident"><span class="self">Self</span>::default</span>()) {
-                <span class="ident">result</span> <span class="op">|</span><span class="op">=</span> <span class="ident"><span class="self">Self</span>::default</span>();
+            <span class="kw">if </span>!result.intersects(<span class="self">Self</span>::default()) {
+                result |= <span class="self">Self</span>::default();
             }
 
-            <span class="ident">result</span>
+            result
         }
     }
 }
 
-<span class="doccomment">/// Phase for an error.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Deserialize</span>)]</span>
-<span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename_all</span> <span class="op">=</span> <span class="string">&quot;lowercase&quot;</span>)]</span>
-<span class="kw">enum</span> <span class="ident">Phase</span> {
-    <span class="ident">Parse</span>,
-    <span class="ident">Early</span>,
-    <span class="ident">Resolution</span>,
-    <span class="ident">Runtime</span>,
+<span class="doccomment">/// Phase for an error.
+</span><span class="attribute">#[derive(Debug, Clone, Copy, Deserialize)]
+#[serde(rename_all = <span class="string">&quot;lowercase&quot;</span>)]
+</span><span class="kw">enum </span>Phase {
+    Parse,
+    Early,
+    Resolution,
+    Runtime,
 }
 
-<span class="doccomment">/// Locale information structure.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Default</span>, <span class="ident">Clone</span>, <span class="ident">Deserialize</span>)]</span>
-<span class="attribute">#[<span class="ident">serde</span>(<span class="ident">transparent</span>)]</span>
-<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">dead_code</span>)]</span>
-<span class="kw">struct</span> <span class="ident">Locale</span> {
-    <span class="ident">locale</span>: <span class="ident">Box</span><span class="op">&lt;</span>[<span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>]<span class="op">&gt;</span>,
+<span class="doccomment">/// Locale information structure.
+</span><span class="attribute">#[derive(Debug, Default, Clone, Deserialize)]
+#[serde(transparent)]
+#[allow(dead_code)]
+</span><span class="kw">struct </span>Locale {
+    locale: Box&lt;[Box&lt;str&gt;]&gt;,
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="boa_tester" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0 (a55dd71d5 2022-09-19)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="boa_tester" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0 (897e37553 2022-11-02)" ></div></body></html>

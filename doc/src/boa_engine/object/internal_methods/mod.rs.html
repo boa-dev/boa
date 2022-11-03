@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_engine/src/object/internal_methods/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_engine/src/object/internal_methods/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container">
                     <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../boa_engine/index.html">
                         <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -967,972 +967,972 @@
 <span id="965">965</span>
 <span id="966">966</span>
 <span id="967">967</span>
-</pre><pre class="rust"><code><span class="doccomment">//! This module defines the object internal methods.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! More information:</span>
-<span class="doccomment">//!  - [ECMAScript reference][spec]</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots</span>
+</pre><pre class="rust"><code><span class="doccomment">//! This module defines the object internal methods.
+//!
+//! More information:
+//!  - [ECMAScript reference][spec]
+//!
+//! [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots
 
-<span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">JsPrototype</span>, <span class="ident">PROTOTYPE</span>};
-<span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">context::intrinsics</span>::{<span class="ident">StandardConstructor</span>, <span class="ident">StandardConstructors</span>},
-    <span class="ident">object::JsObject</span>,
-    <span class="ident">property</span>::{<span class="ident">DescriptorKind</span>, <span class="ident">PropertyDescriptor</span>, <span class="ident">PropertyKey</span>},
-    <span class="ident">value::JsValue</span>,
-    <span class="ident">Context</span>, <span class="ident">JsResult</span>,
+</span><span class="kw">use super</span>::{JsPrototype, PROTOTYPE};
+<span class="kw">use crate</span>::{
+    context::intrinsics::{StandardConstructor, StandardConstructors},
+    object::JsObject,
+    property::{DescriptorKind, PropertyDescriptor, PropertyKey},
+    value::JsValue,
+    Context, JsResult,
 };
-<span class="kw">use</span> <span class="ident">boa_profiler::Profiler</span>;
+<span class="kw">use </span>boa_profiler::Profiler;
 
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">mod</span> <span class="ident">arguments</span>;
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">mod</span> <span class="ident">array</span>;
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">mod</span> <span class="ident">bound_function</span>;
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">mod</span> <span class="ident">function</span>;
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod</span> <span class="ident">global</span>;
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">mod</span> <span class="ident">integer_indexed</span>;
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">mod</span> <span class="ident">proxy</span>;
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">mod</span> <span class="ident">string</span>;
+<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">mod </span>arguments;
+<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">mod </span>array;
+<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">mod </span>bound_function;
+<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">mod </span>function;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>global;
+<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">mod </span>integer_indexed;
+<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">mod </span>proxy;
+<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">mod </span>string;
 
-<span class="kw">impl</span> <span class="ident">JsObject</span> {
-    <span class="doccomment">/// Internal method `[[GetPrototypeOf]]`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Return either the prototype of this object or null.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-getprototypeof</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="attribute">#[<span class="ident">track_caller</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">__get_prototype_of__</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsPrototype</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;Object::__get_prototype_of__&quot;</span>, <span class="string">&quot;object&quot;</span>);
-        <span class="kw">let</span> <span class="ident">func</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">borrow</span>().<span class="ident">data</span>.<span class="ident">internal_methods</span>.<span class="ident">__get_prototype_of__</span>;
-        <span class="ident">func</span>(<span class="self">self</span>, <span class="ident">context</span>)
+<span class="kw">impl </span>JsObject {
+    <span class="doccomment">/// Internal method `[[GetPrototypeOf]]`
+    ///
+    /// Return either the prototype of this object or null.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-getprototypeof
+    </span><span class="attribute">#[inline]
+    #[track_caller]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>__get_prototype_of__(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsPrototype&gt; {
+        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Object::__get_prototype_of__&quot;</span>, <span class="string">&quot;object&quot;</span>);
+        <span class="kw">let </span>func = <span class="self">self</span>.borrow().data.internal_methods.__get_prototype_of__;
+        func(<span class="self">self</span>, context)
     }
 
-    <span class="doccomment">/// Internal method `[[SetPrototypeOf]]`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Set the property of a specified object to another object or `null`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-setprototypeof-v</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">__set_prototype_of__</span>(
+    <span class="doccomment">/// Internal method `[[SetPrototypeOf]]`
+    ///
+    /// Set the property of a specified object to another object or `null`.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-setprototypeof-v
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>__set_prototype_of__(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">val</span>: <span class="ident">JsPrototype</span>,
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;Object::__set_prototype_of__&quot;</span>, <span class="string">&quot;object&quot;</span>);
-        <span class="kw">let</span> <span class="ident">func</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">borrow</span>().<span class="ident">data</span>.<span class="ident">internal_methods</span>.<span class="ident">__set_prototype_of__</span>;
-        <span class="ident">func</span>(<span class="self">self</span>, <span class="ident">val</span>, <span class="ident">context</span>)
+        val: JsPrototype,
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;bool&gt; {
+        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Object::__set_prototype_of__&quot;</span>, <span class="string">&quot;object&quot;</span>);
+        <span class="kw">let </span>func = <span class="self">self</span>.borrow().data.internal_methods.__set_prototype_of__;
+        func(<span class="self">self</span>, val, context)
     }
 
-    <span class="doccomment">/// Internal method `[[IsExtensible]]`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Check if the object is extensible.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-isextensible</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">__is_extensible__</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;Object::__is_extensible__&quot;</span>, <span class="string">&quot;object&quot;</span>);
-        <span class="kw">let</span> <span class="ident">func</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">borrow</span>().<span class="ident">data</span>.<span class="ident">internal_methods</span>.<span class="ident">__is_extensible__</span>;
-        <span class="ident">func</span>(<span class="self">self</span>, <span class="ident">context</span>)
+    <span class="doccomment">/// Internal method `[[IsExtensible]]`
+    ///
+    /// Check if the object is extensible.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-isextensible
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>__is_extensible__(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;bool&gt; {
+        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Object::__is_extensible__&quot;</span>, <span class="string">&quot;object&quot;</span>);
+        <span class="kw">let </span>func = <span class="self">self</span>.borrow().data.internal_methods.__is_extensible__;
+        func(<span class="self">self</span>, context)
     }
 
-    <span class="doccomment">/// Internal method `[[PreventExtensions]]`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Disable extensibility for this object.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-preventextensions</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">__prevent_extensions__</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;Object::__prevent_extensions__&quot;</span>, <span class="string">&quot;object&quot;</span>);
-        <span class="kw">let</span> <span class="ident">func</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">borrow</span>().<span class="ident">data</span>.<span class="ident">internal_methods</span>.<span class="ident">__prevent_extensions__</span>;
-        <span class="ident">func</span>(<span class="self">self</span>, <span class="ident">context</span>)
+    <span class="doccomment">/// Internal method `[[PreventExtensions]]`
+    ///
+    /// Disable extensibility for this object.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-preventextensions
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>__prevent_extensions__(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;bool&gt; {
+        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Object::__prevent_extensions__&quot;</span>, <span class="string">&quot;object&quot;</span>);
+        <span class="kw">let </span>func = <span class="self">self</span>.borrow().data.internal_methods.__prevent_extensions__;
+        func(<span class="self">self</span>, context)
     }
 
-    <span class="doccomment">/// Internal method `[[GetOwnProperty]]`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Get the specified property of this object.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-getownproperty-p</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">__get_own_property__</span>(
+    <span class="doccomment">/// Internal method `[[GetOwnProperty]]`
+    ///
+    /// Get the specified property of this object.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-getownproperty-p
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>__get_own_property__(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">key</span>: <span class="kw-2">&amp;</span><span class="ident">PropertyKey</span>,
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PropertyDescriptor</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;Object::__get_own_property__&quot;</span>, <span class="string">&quot;object&quot;</span>);
-        <span class="kw">let</span> <span class="ident">func</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">borrow</span>().<span class="ident">data</span>.<span class="ident">internal_methods</span>.<span class="ident">__get_own_property__</span>;
-        <span class="ident">func</span>(<span class="self">self</span>, <span class="ident">key</span>, <span class="ident">context</span>)
+        key: <span class="kw-2">&amp;</span>PropertyKey,
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;<span class="prelude-ty">Option</span>&lt;PropertyDescriptor&gt;&gt; {
+        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Object::__get_own_property__&quot;</span>, <span class="string">&quot;object&quot;</span>);
+        <span class="kw">let </span>func = <span class="self">self</span>.borrow().data.internal_methods.__get_own_property__;
+        func(<span class="self">self</span>, key, context)
     }
 
-    <span class="doccomment">/// Internal method `[[DefineOwnProperty]]`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Define a new property of this object.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-defineownproperty-p-desc</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">__define_own_property__</span>(
+    <span class="doccomment">/// Internal method `[[DefineOwnProperty]]`
+    ///
+    /// Define a new property of this object.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-defineownproperty-p-desc
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>__define_own_property__(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">key</span>: <span class="ident">PropertyKey</span>,
-        <span class="ident">desc</span>: <span class="ident">PropertyDescriptor</span>,
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;Object::__define_own_property__&quot;</span>, <span class="string">&quot;object&quot;</span>);
-        <span class="kw">let</span> <span class="ident">func</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">borrow</span>().<span class="ident">data</span>.<span class="ident">internal_methods</span>.<span class="ident">__define_own_property__</span>;
-        <span class="ident">func</span>(<span class="self">self</span>, <span class="ident">key</span>, <span class="ident">desc</span>, <span class="ident">context</span>)
+        key: PropertyKey,
+        desc: PropertyDescriptor,
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;bool&gt; {
+        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Object::__define_own_property__&quot;</span>, <span class="string">&quot;object&quot;</span>);
+        <span class="kw">let </span>func = <span class="self">self</span>.borrow().data.internal_methods.__define_own_property__;
+        func(<span class="self">self</span>, key, desc, context)
     }
 
-    <span class="doccomment">/// Internal method `[[hasProperty]]`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Check if the object or its prototype has the required property.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-hasproperty-p</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">__has_property__</span>(
+    <span class="doccomment">/// Internal method `[[hasProperty]]`.
+    ///
+    /// Check if the object or its prototype has the required property.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-hasproperty-p
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>__has_property__(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">key</span>: <span class="kw-2">&amp;</span><span class="ident">PropertyKey</span>,
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;Object::__has_property__&quot;</span>, <span class="string">&quot;object&quot;</span>);
-        <span class="kw">let</span> <span class="ident">func</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">borrow</span>().<span class="ident">data</span>.<span class="ident">internal_methods</span>.<span class="ident">__has_property__</span>;
-        <span class="ident">func</span>(<span class="self">self</span>, <span class="ident">key</span>, <span class="ident">context</span>)
+        key: <span class="kw-2">&amp;</span>PropertyKey,
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;bool&gt; {
+        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Object::__has_property__&quot;</span>, <span class="string">&quot;object&quot;</span>);
+        <span class="kw">let </span>func = <span class="self">self</span>.borrow().data.internal_methods.__has_property__;
+        func(<span class="self">self</span>, key, context)
     }
 
-    <span class="doccomment">/// Internal method `[[Get]]`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Get the specified property of this object or its prototype.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-get-p-receiver</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">__get__</span>(
+    <span class="doccomment">/// Internal method `[[Get]]`
+    ///
+    /// Get the specified property of this object or its prototype.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-get-p-receiver
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>__get__(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">key</span>: <span class="kw-2">&amp;</span><span class="ident">PropertyKey</span>,
-        <span class="ident">receiver</span>: <span class="ident">JsValue</span>,
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;Object::__get__&quot;</span>, <span class="string">&quot;object&quot;</span>);
-        <span class="kw">let</span> <span class="ident">func</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">borrow</span>().<span class="ident">data</span>.<span class="ident">internal_methods</span>.<span class="ident">__get__</span>;
-        <span class="ident">func</span>(<span class="self">self</span>, <span class="ident">key</span>, <span class="ident">receiver</span>, <span class="ident">context</span>)
+        key: <span class="kw-2">&amp;</span>PropertyKey,
+        receiver: JsValue,
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Object::__get__&quot;</span>, <span class="string">&quot;object&quot;</span>);
+        <span class="kw">let </span>func = <span class="self">self</span>.borrow().data.internal_methods.__get__;
+        func(<span class="self">self</span>, key, receiver, context)
     }
 
-    <span class="doccomment">/// Internal method `[[Set]]`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Set the specified property of this object or its prototype to the provided value.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-set-p-v-receiver</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">__set__</span>(
+    <span class="doccomment">/// Internal method `[[Set]]`
+    ///
+    /// Set the specified property of this object or its prototype to the provided value.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-set-p-v-receiver
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>__set__(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">key</span>: <span class="ident">PropertyKey</span>,
-        <span class="ident">value</span>: <span class="ident">JsValue</span>,
-        <span class="ident">receiver</span>: <span class="ident">JsValue</span>,
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;Object::__set__&quot;</span>, <span class="string">&quot;object&quot;</span>);
-        <span class="kw">let</span> <span class="ident">func</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">borrow</span>().<span class="ident">data</span>.<span class="ident">internal_methods</span>.<span class="ident">__set__</span>;
-        <span class="ident">func</span>(<span class="self">self</span>, <span class="ident">key</span>, <span class="ident">value</span>, <span class="ident">receiver</span>, <span class="ident">context</span>)
+        key: PropertyKey,
+        value: JsValue,
+        receiver: JsValue,
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;bool&gt; {
+        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Object::__set__&quot;</span>, <span class="string">&quot;object&quot;</span>);
+        <span class="kw">let </span>func = <span class="self">self</span>.borrow().data.internal_methods.__set__;
+        func(<span class="self">self</span>, key, value, receiver, context)
     }
 
-    <span class="doccomment">/// Internal method `[[Delete]]`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Delete the specified own property of this object.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-delete-p</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">__delete__</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">key</span>: <span class="kw-2">&amp;</span><span class="ident">PropertyKey</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;Object::__delete__&quot;</span>, <span class="string">&quot;object&quot;</span>);
-        <span class="kw">let</span> <span class="ident">func</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">borrow</span>().<span class="ident">data</span>.<span class="ident">internal_methods</span>.<span class="ident">__delete__</span>;
-        <span class="ident">func</span>(<span class="self">self</span>, <span class="ident">key</span>, <span class="ident">context</span>)
+    <span class="doccomment">/// Internal method `[[Delete]]`
+    ///
+    /// Delete the specified own property of this object.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-delete-p
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>__delete__(<span class="kw-2">&amp;</span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>PropertyKey, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;bool&gt; {
+        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Object::__delete__&quot;</span>, <span class="string">&quot;object&quot;</span>);
+        <span class="kw">let </span>func = <span class="self">self</span>.borrow().data.internal_methods.__delete__;
+        func(<span class="self">self</span>, key, context)
     }
 
-    <span class="doccomment">/// Internal method `[[OwnPropertyKeys]]`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Get all the keys of the properties of this object.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-ownpropertykeys</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="attribute">#[<span class="ident">track_caller</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">__own_property_keys__</span>(
+    <span class="doccomment">/// Internal method `[[OwnPropertyKeys]]`
+    ///
+    /// Get all the keys of the properties of this object.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-ownpropertykeys
+    </span><span class="attribute">#[inline]
+    #[track_caller]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>__own_property_keys__(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">PropertyKey</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;Object::__own_property_keys__&quot;</span>, <span class="string">&quot;object&quot;</span>);
-        <span class="kw">let</span> <span class="ident">func</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">borrow</span>().<span class="ident">data</span>.<span class="ident">internal_methods</span>.<span class="ident">__own_property_keys__</span>;
-        <span class="ident">func</span>(<span class="self">self</span>, <span class="ident">context</span>)
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;Vec&lt;PropertyKey&gt;&gt; {
+        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Object::__own_property_keys__&quot;</span>, <span class="string">&quot;object&quot;</span>);
+        <span class="kw">let </span>func = <span class="self">self</span>.borrow().data.internal_methods.__own_property_keys__;
+        func(<span class="self">self</span>, context)
     }
 
-    <span class="doccomment">/// Internal method `[[Call]]`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Call this object if it has a `[[Call]]` internal method.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-ecmascript-function-objects-call-thisargument-argumentslist</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="attribute">#[<span class="ident">track_caller</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">__call__</span>(
+    <span class="doccomment">/// Internal method `[[Call]]`
+    ///
+    /// Call this object if it has a `[[Call]]` internal method.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-ecmascript-function-objects-call-thisargument-argumentslist
+    </span><span class="attribute">#[inline]
+    #[track_caller]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>__call__(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
-        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;Object::__call__&quot;</span>, <span class="string">&quot;object&quot;</span>);
-        <span class="kw">let</span> <span class="ident">func</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">borrow</span>().<span class="ident">data</span>.<span class="ident">internal_methods</span>.<span class="ident">__call__</span>;
-        <span class="ident">func</span>.<span class="ident">expect</span>(<span class="string">&quot;called `[[Call]]` for object without a `[[Call]]` internal method&quot;</span>)(
-            <span class="self">self</span>, <span class="ident">this</span>, <span class="ident">args</span>, <span class="ident">context</span>,
+        this: <span class="kw-2">&amp;</span>JsValue,
+        args: <span class="kw-2">&amp;</span>[JsValue],
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Object::__call__&quot;</span>, <span class="string">&quot;object&quot;</span>);
+        <span class="kw">let </span>func = <span class="self">self</span>.borrow().data.internal_methods.__call__;
+        func.expect(<span class="string">&quot;called `[[Call]]` for object without a `[[Call]]` internal method&quot;</span>)(
+            <span class="self">self</span>, this, args, context,
         )
     }
 
-    <span class="doccomment">/// Internal method `[[Construct]]`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Construct a new instance of this object if this object has a `[[Construct]]` internal method.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-ecmascript-function-objects-construct-argumentslist-newtarget</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="attribute">#[<span class="ident">track_caller</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">__construct__</span>(
+    <span class="doccomment">/// Internal method `[[Construct]]`
+    ///
+    /// Construct a new instance of this object if this object has a `[[Construct]]` internal method.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-ecmascript-function-objects-construct-argumentslist-newtarget
+    </span><span class="attribute">#[inline]
+    #[track_caller]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>__construct__(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
-        <span class="ident">new_target</span>: <span class="kw-2">&amp;</span><span class="ident">JsObject</span>,
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsObject</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;Object::__construct__&quot;</span>, <span class="string">&quot;object&quot;</span>);
-        <span class="kw">let</span> <span class="ident">func</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">borrow</span>().<span class="ident">data</span>.<span class="ident">internal_methods</span>.<span class="ident">__construct__</span>;
-        <span class="ident">func</span>.<span class="ident">expect</span>(<span class="string">&quot;called `[[Construct]]` for object without a `[[Construct]]` internal method&quot;</span>)(
-            <span class="self">self</span>, <span class="ident">args</span>, <span class="ident">new_target</span>, <span class="ident">context</span>,
+        args: <span class="kw-2">&amp;</span>[JsValue],
+        new_target: <span class="kw-2">&amp;</span>JsObject,
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;JsObject&gt; {
+        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Object::__construct__&quot;</span>, <span class="string">&quot;object&quot;</span>);
+        <span class="kw">let </span>func = <span class="self">self</span>.borrow().data.internal_methods.__construct__;
+        func.expect(<span class="string">&quot;called `[[Construct]]` for object without a `[[Construct]]` internal method&quot;</span>)(
+            <span class="self">self</span>, args, new_target, context,
         )
     }
 }
 
-<span class="doccomment">/// Definitions of the internal object methods for ordinary objects.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// If you want to implement an exotic object, create a new `static InternalObjectMethods`</span>
-<span class="doccomment">/// overriding the desired internal methods with the definitions of the spec</span>
-<span class="doccomment">/// and set all other methods to the default ordinary values, if necessary.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// E.g. `string::STRING_EXOTIC_INTERNAL_METHODS`</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Then, reference this static in the creation phase of an `ObjectData`.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// E.g. `ObjectData::string`</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">ORDINARY_INTERNAL_METHODS</span>: <span class="ident">InternalObjectMethods</span> <span class="op">=</span> <span class="ident">InternalObjectMethods</span> {
-    <span class="ident">__get_prototype_of__</span>: <span class="ident">ordinary_get_prototype_of</span>,
-    <span class="ident">__set_prototype_of__</span>: <span class="ident">ordinary_set_prototype_of</span>,
-    <span class="ident">__is_extensible__</span>: <span class="ident">ordinary_is_extensible</span>,
-    <span class="ident">__prevent_extensions__</span>: <span class="ident">ordinary_prevent_extensions</span>,
-    <span class="ident">__get_own_property__</span>: <span class="ident">ordinary_get_own_property</span>,
-    <span class="ident">__define_own_property__</span>: <span class="ident">ordinary_define_own_property</span>,
-    <span class="ident">__has_property__</span>: <span class="ident">ordinary_has_property</span>,
-    <span class="ident">__get__</span>: <span class="ident">ordinary_get</span>,
-    <span class="ident">__set__</span>: <span class="ident">ordinary_set</span>,
-    <span class="ident">__delete__</span>: <span class="ident">ordinary_delete</span>,
-    <span class="ident">__own_property_keys__</span>: <span class="ident">ordinary_own_property_keys</span>,
-    <span class="ident">__call__</span>: <span class="prelude-val">None</span>,
-    <span class="ident">__construct__</span>: <span class="prelude-val">None</span>,
+<span class="doccomment">/// Definitions of the internal object methods for ordinary objects.
+///
+/// If you want to implement an exotic object, create a new `static InternalObjectMethods`
+/// overriding the desired internal methods with the definitions of the spec
+/// and set all other methods to the default ordinary values, if necessary.
+///
+/// E.g. `string::STRING_EXOTIC_INTERNAL_METHODS`
+///
+/// Then, reference this static in the creation phase of an `ObjectData`.
+///
+/// E.g. `ObjectData::string`
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>ORDINARY_INTERNAL_METHODS: InternalObjectMethods = InternalObjectMethods {
+    __get_prototype_of__: ordinary_get_prototype_of,
+    __set_prototype_of__: ordinary_set_prototype_of,
+    __is_extensible__: ordinary_is_extensible,
+    __prevent_extensions__: ordinary_prevent_extensions,
+    __get_own_property__: ordinary_get_own_property,
+    __define_own_property__: ordinary_define_own_property,
+    __has_property__: ordinary_has_property,
+    __get__: ordinary_get,
+    __set__: ordinary_set,
+    __delete__: ordinary_delete,
+    __own_property_keys__: ordinary_own_property_keys,
+    __call__: <span class="prelude-val">None</span>,
+    __construct__: <span class="prelude-val">None</span>,
 };
 
-<span class="doccomment">/// The internal representation of the internal methods of a `JsObject`.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This struct allows us to dynamically dispatch exotic objects with their</span>
-<span class="doccomment">/// exclusive definitions of the internal methods, without having to</span>
-<span class="doccomment">/// resort to `dyn Object`.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// For a guide on how to implement exotic internal methods, see `ORDINARY_INTERNAL_METHODS`.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
-<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::type_complexity</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">InternalObjectMethods</span> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">__get_prototype_of__</span>: <span class="kw">fn</span>(<span class="kw-2">&amp;</span><span class="ident">JsObject</span>, <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsPrototype</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">__set_prototype_of__</span>: <span class="kw">fn</span>(<span class="kw-2">&amp;</span><span class="ident">JsObject</span>, <span class="ident">JsPrototype</span>, <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">__is_extensible__</span>: <span class="kw">fn</span>(<span class="kw-2">&amp;</span><span class="ident">JsObject</span>, <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">__prevent_extensions__</span>: <span class="kw">fn</span>(<span class="kw-2">&amp;</span><span class="ident">JsObject</span>, <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">__get_own_property__</span>:
-        <span class="kw">fn</span>(<span class="kw-2">&amp;</span><span class="ident">JsObject</span>, <span class="kw-2">&amp;</span><span class="ident">PropertyKey</span>, <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PropertyDescriptor</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">__define_own_property__</span>:
-        <span class="kw">fn</span>(<span class="kw-2">&amp;</span><span class="ident">JsObject</span>, <span class="ident">PropertyKey</span>, <span class="ident">PropertyDescriptor</span>, <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">__has_property__</span>: <span class="kw">fn</span>(<span class="kw-2">&amp;</span><span class="ident">JsObject</span>, <span class="kw-2">&amp;</span><span class="ident">PropertyKey</span>, <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">__get__</span>: <span class="kw">fn</span>(<span class="kw-2">&amp;</span><span class="ident">JsObject</span>, <span class="kw-2">&amp;</span><span class="ident">PropertyKey</span>, <span class="ident">JsValue</span>, <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">__set__</span>:
-        <span class="kw">fn</span>(<span class="kw-2">&amp;</span><span class="ident">JsObject</span>, <span class="ident">PropertyKey</span>, <span class="ident">JsValue</span>, <span class="ident">JsValue</span>, <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">__delete__</span>: <span class="kw">fn</span>(<span class="kw-2">&amp;</span><span class="ident">JsObject</span>, <span class="kw-2">&amp;</span><span class="ident">PropertyKey</span>, <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">__own_property_keys__</span>: <span class="kw">fn</span>(<span class="kw-2">&amp;</span><span class="ident">JsObject</span>, <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">PropertyKey</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">__call__</span>:
-        <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw">fn</span>(<span class="kw-2">&amp;</span><span class="ident">JsObject</span>, <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">__construct__</span>:
-        <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw">fn</span>(<span class="kw-2">&amp;</span><span class="ident">JsObject</span>, <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="kw-2">&amp;</span><span class="ident">JsObject</span>, <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsObject</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+<span class="doccomment">/// The internal representation of the internal methods of a `JsObject`.
+///
+/// This struct allows us to dynamically dispatch exotic objects with their
+/// exclusive definitions of the internal methods, without having to
+/// resort to `dyn Object`.
+///
+/// For a guide on how to implement exotic internal methods, see `ORDINARY_INTERNAL_METHODS`.
+</span><span class="attribute">#[derive(Clone, Copy)]
+#[allow(clippy::type_complexity)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>InternalObjectMethods {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) __get_prototype_of__: <span class="kw">fn</span>(<span class="kw-2">&amp;</span>JsObject, <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsPrototype&gt;,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) __set_prototype_of__: <span class="kw">fn</span>(<span class="kw-2">&amp;</span>JsObject, JsPrototype, <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;bool&gt;,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) __is_extensible__: <span class="kw">fn</span>(<span class="kw-2">&amp;</span>JsObject, <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;bool&gt;,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) __prevent_extensions__: <span class="kw">fn</span>(<span class="kw-2">&amp;</span>JsObject, <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;bool&gt;,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) __get_own_property__:
+        <span class="kw">fn</span>(<span class="kw-2">&amp;</span>JsObject, <span class="kw-2">&amp;</span>PropertyKey, <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="prelude-ty">Option</span>&lt;PropertyDescriptor&gt;&gt;,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) __define_own_property__:
+        <span class="kw">fn</span>(<span class="kw-2">&amp;</span>JsObject, PropertyKey, PropertyDescriptor, <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;bool&gt;,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) __has_property__: <span class="kw">fn</span>(<span class="kw-2">&amp;</span>JsObject, <span class="kw-2">&amp;</span>PropertyKey, <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;bool&gt;,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) __get__: <span class="kw">fn</span>(<span class="kw-2">&amp;</span>JsObject, <span class="kw-2">&amp;</span>PropertyKey, JsValue, <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt;,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) __set__:
+        <span class="kw">fn</span>(<span class="kw-2">&amp;</span>JsObject, PropertyKey, JsValue, JsValue, <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;bool&gt;,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) __delete__: <span class="kw">fn</span>(<span class="kw-2">&amp;</span>JsObject, <span class="kw-2">&amp;</span>PropertyKey, <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;bool&gt;,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) __own_property_keys__: <span class="kw">fn</span>(<span class="kw-2">&amp;</span>JsObject, <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;Vec&lt;PropertyKey&gt;&gt;,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) __call__:
+        <span class="prelude-ty">Option</span>&lt;<span class="kw">fn</span>(<span class="kw-2">&amp;</span>JsObject, <span class="kw-2">&amp;</span>JsValue, <span class="kw-2">&amp;</span>[JsValue], <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt;&gt;,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) __construct__:
+        <span class="prelude-ty">Option</span>&lt;<span class="kw">fn</span>(<span class="kw-2">&amp;</span>JsObject, <span class="kw-2">&amp;</span>[JsValue], <span class="kw-2">&amp;</span>JsObject, <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsObject&gt;&gt;,
 }
 
-<span class="doccomment">/// Abstract operation `OrdinaryGetPrototypeOf`.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [ECMAScript reference][spec]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-ordinarygetprototypeof</span>
-<span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::unnecessary_wraps</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">ordinary_get_prototype_of</span>(
-    <span class="ident">obj</span>: <span class="kw-2">&amp;</span><span class="ident">JsObject</span>,
-    <span class="ident">_context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsPrototype</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;Object::ordinary_get_prototype_of&quot;</span>, <span class="string">&quot;object&quot;</span>);
+<span class="doccomment">/// Abstract operation `OrdinaryGetPrototypeOf`.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-ordinarygetprototypeof
+</span><span class="attribute">#[inline]
+#[allow(clippy::unnecessary_wraps)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>ordinary_get_prototype_of(
+    obj: <span class="kw-2">&amp;</span>JsObject,
+    _context: <span class="kw-2">&amp;mut </span>Context,
+) -&gt; JsResult&lt;JsPrototype&gt; {
+    <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Object::ordinary_get_prototype_of&quot;</span>, <span class="string">&quot;object&quot;</span>);
 
-    <span class="comment">// 1. Return O.[[Prototype]].</span>
-    <span class="prelude-val">Ok</span>(<span class="ident">obj</span>.<span class="ident">prototype</span>().<span class="ident">as_ref</span>().<span class="ident">cloned</span>())
+    <span class="comment">// 1. Return O.[[Prototype]].
+    </span><span class="prelude-val">Ok</span>(obj.prototype().as_ref().cloned())
 }
 
-<span class="doccomment">/// Abstract operation `OrdinarySetPrototypeOf`.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [ECMAScript reference][spec]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-ordinarysetprototypeof</span>
-<span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::unnecessary_wraps</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">ordinary_set_prototype_of</span>(
-    <span class="ident">obj</span>: <span class="kw-2">&amp;</span><span class="ident">JsObject</span>,
-    <span class="ident">val</span>: <span class="ident">JsPrototype</span>,
-    <span class="kw">_</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
-    <span class="comment">// 1. Assert: Either Type(V) is Object or Type(V) is Null.</span>
-    {
-        <span class="comment">// 2. Let current be O.[[Prototype]].</span>
-        <span class="kw">let</span> <span class="ident">current</span> <span class="op">=</span> <span class="ident">obj</span>.<span class="ident">prototype</span>();
+<span class="doccomment">/// Abstract operation `OrdinarySetPrototypeOf`.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-ordinarysetprototypeof
+</span><span class="attribute">#[inline]
+#[allow(clippy::unnecessary_wraps)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>ordinary_set_prototype_of(
+    obj: <span class="kw-2">&amp;</span>JsObject,
+    val: JsPrototype,
+    <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context,
+) -&gt; JsResult&lt;bool&gt; {
+    <span class="comment">// 1. Assert: Either Type(V) is Object or Type(V) is Null.
+    </span>{
+        <span class="comment">// 2. Let current be O.[[Prototype]].
+        </span><span class="kw">let </span>current = obj.prototype();
 
-        <span class="comment">// 3. If SameValue(V, current) is true, return true.</span>
-        <span class="kw">if</span> <span class="ident">val</span> <span class="op">==</span> <span class="kw-2">*</span><span class="ident">current</span> {
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="bool-val">true</span>);
+        <span class="comment">// 3. If SameValue(V, current) is true, return true.
+        </span><span class="kw">if </span>val == <span class="kw-2">*</span>current {
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="bool-val">true</span>);
         }
     }
 
-    <span class="comment">// 4. Let extensible be O.[[Extensible]].</span>
-    <span class="comment">// 5. If extensible is false, return false.</span>
-    <span class="kw">if</span> <span class="op">!</span><span class="ident">obj</span>.<span class="ident">extensible</span>() {
-        <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="bool-val">false</span>);
+    <span class="comment">// 4. Let extensible be O.[[Extensible]].
+    // 5. If extensible is false, return false.
+    </span><span class="kw">if </span>!obj.extensible() {
+        <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="bool-val">false</span>);
     }
 
-    <span class="comment">// 6. Let p be V.</span>
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">p</span> <span class="op">=</span> <span class="ident">val</span>.<span class="ident">clone</span>();
+    <span class="comment">// 6. Let p be V.
+    </span><span class="kw">let </span><span class="kw-2">mut </span>p = val.clone();
 
-    <span class="comment">// 7. Let done be false.</span>
-    <span class="comment">// 8. Repeat, while done is false,</span>
-    <span class="comment">// a. If p is null, set done to true.</span>
-    <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">proto</span>) <span class="op">=</span> <span class="ident">p</span> {
-        <span class="comment">// b. Else if SameValue(p, O) is true, return false.</span>
-        <span class="kw">if</span> <span class="kw-2">&amp;</span><span class="ident">proto</span> <span class="op">==</span> <span class="ident">obj</span> {
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="bool-val">false</span>);
+    <span class="comment">// 7. Let done be false.
+    // 8. Repeat, while done is false,
+    // a. If p is null, set done to true.
+    </span><span class="kw">while let </span><span class="prelude-val">Some</span>(proto) = p {
+        <span class="comment">// b. Else if SameValue(p, O) is true, return false.
+        </span><span class="kw">if </span><span class="kw-2">&amp;</span>proto == obj {
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="bool-val">false</span>);
         }
-        <span class="comment">// c. Else,</span>
-        <span class="comment">// i. If p.[[GetPrototypeOf]] is not the ordinary object internal method defined</span>
-        <span class="comment">// in 10.1.1, set done to true.</span>
-        <span class="kw">else</span> <span class="kw">if</span> <span class="ident">proto</span>.<span class="ident">borrow</span>().<span class="ident">data</span>.<span class="ident">internal_methods</span>.<span class="ident">__get_prototype_of__</span> <span class="kw">as</span> <span class="ident">usize</span>
-            <span class="op">!</span><span class="op">=</span> <span class="ident">ordinary_get_prototype_of</span> <span class="kw">as</span> <span class="ident">usize</span>
+        <span class="comment">// c. Else,
+        // i. If p.[[GetPrototypeOf]] is not the ordinary object internal method defined
+        // in 10.1.1, set done to true.
+        </span><span class="kw">else if </span>proto.borrow().data.internal_methods.__get_prototype_of__ <span class="kw">as </span>usize
+            != ordinary_get_prototype_of <span class="kw">as </span>usize
         {
             <span class="kw">break</span>;
         }
-        <span class="comment">// ii. Else, set p to p.[[Prototype]].</span>
-        <span class="ident">p</span> <span class="op">=</span> <span class="ident">proto</span>.<span class="ident">prototype</span>().<span class="ident">clone</span>();
+        <span class="comment">// ii. Else, set p to p.[[Prototype]].
+        </span>p = proto.prototype().clone();
     }
 
-    <span class="comment">// 9. Set O.[[Prototype]] to V.</span>
-    <span class="ident">obj</span>.<span class="ident">set_prototype</span>(<span class="ident">val</span>);
+    <span class="comment">// 9. Set O.[[Prototype]] to V.
+    </span>obj.set_prototype(val);
 
-    <span class="comment">// 10. Return true.</span>
-    <span class="prelude-val">Ok</span>(<span class="bool-val">true</span>)
+    <span class="comment">// 10. Return true.
+    </span><span class="prelude-val">Ok</span>(<span class="bool-val">true</span>)
 }
 
-<span class="doccomment">/// Abstract operation `OrdinaryIsExtensible`.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [ECMAScript reference][spec]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-ordinaryisextensible</span>
-<span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::unnecessary_wraps</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">ordinary_is_extensible</span>(<span class="ident">obj</span>: <span class="kw-2">&amp;</span><span class="ident">JsObject</span>, <span class="ident">_context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
-    <span class="comment">// 1. Return O.[[Extensible]].</span>
-    <span class="prelude-val">Ok</span>(<span class="ident">obj</span>.<span class="ident">borrow</span>().<span class="ident">extensible</span>)
+<span class="doccomment">/// Abstract operation `OrdinaryIsExtensible`.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-ordinaryisextensible
+</span><span class="attribute">#[inline]
+#[allow(clippy::unnecessary_wraps)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>ordinary_is_extensible(obj: <span class="kw-2">&amp;</span>JsObject, _context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;bool&gt; {
+    <span class="comment">// 1. Return O.[[Extensible]].
+    </span><span class="prelude-val">Ok</span>(obj.borrow().extensible)
 }
 
-<span class="doccomment">/// Abstract operation `OrdinaryPreventExtensions`.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [ECMAScript reference][spec]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-ordinarypreventextensions</span>
-<span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::unnecessary_wraps</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">ordinary_prevent_extensions</span>(
-    <span class="ident">obj</span>: <span class="kw-2">&amp;</span><span class="ident">JsObject</span>,
-    <span class="ident">_context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
-    <span class="comment">// 1. Set O.[[Extensible]] to false.</span>
-    <span class="ident">obj</span>.<span class="ident">borrow_mut</span>().<span class="ident">extensible</span> <span class="op">=</span> <span class="bool-val">false</span>;
+<span class="doccomment">/// Abstract operation `OrdinaryPreventExtensions`.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-ordinarypreventextensions
+</span><span class="attribute">#[inline]
+#[allow(clippy::unnecessary_wraps)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>ordinary_prevent_extensions(
+    obj: <span class="kw-2">&amp;</span>JsObject,
+    _context: <span class="kw-2">&amp;mut </span>Context,
+) -&gt; JsResult&lt;bool&gt; {
+    <span class="comment">// 1. Set O.[[Extensible]] to false.
+    </span>obj.borrow_mut().extensible = <span class="bool-val">false</span>;
 
-    <span class="comment">// 2. Return true.</span>
-    <span class="prelude-val">Ok</span>(<span class="bool-val">true</span>)
+    <span class="comment">// 2. Return true.
+    </span><span class="prelude-val">Ok</span>(<span class="bool-val">true</span>)
 }
 
-<span class="doccomment">/// Abstract operation `OrdinaryGetOwnProperty`.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [ECMAScript reference][spec]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-ordinarygetownproperty</span>
-<span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::unnecessary_wraps</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">ordinary_get_own_property</span>(
-    <span class="ident">obj</span>: <span class="kw-2">&amp;</span><span class="ident">JsObject</span>,
-    <span class="ident">key</span>: <span class="kw-2">&amp;</span><span class="ident">PropertyKey</span>,
-    <span class="ident">_context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PropertyDescriptor</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;Object::ordinary_get_own_property&quot;</span>, <span class="string">&quot;object&quot;</span>);
-    <span class="comment">// 1. Assert: IsPropertyKey(P) is true.</span>
-    <span class="comment">// 2. If O does not have an own property with key P, return undefined.</span>
-    <span class="comment">// 3. Let D be a newly created Property Descriptor with no fields.</span>
-    <span class="comment">// 4. Let X be O&#39;s own property whose key is P.</span>
-    <span class="comment">// 5. If X is a data property, then</span>
-    <span class="comment">//      a. Set D.[[Value]] to the value of X&#39;s [[Value]] attribute.</span>
-    <span class="comment">//      b. Set D.[[Writable]] to the value of X&#39;s [[Writable]] attribute.</span>
-    <span class="comment">// 6. Else,</span>
-    <span class="comment">//      a. Assert: X is an accessor property.</span>
-    <span class="comment">//      b. Set D.[[Get]] to the value of X&#39;s [[Get]] attribute.</span>
-    <span class="comment">//      c. Set D.[[Set]] to the value of X&#39;s [[Set]] attribute.</span>
-    <span class="comment">// 7. Set D.[[Enumerable]] to the value of X&#39;s [[Enumerable]] attribute.</span>
-    <span class="comment">// 8. Set D.[[Configurable]] to the value of X&#39;s [[Configurable]] attribute.</span>
-    <span class="comment">// 9. Return D.</span>
-    <span class="prelude-val">Ok</span>(<span class="ident">obj</span>.<span class="ident">borrow</span>().<span class="ident">properties</span>.<span class="ident">get</span>(<span class="ident">key</span>))
+<span class="doccomment">/// Abstract operation `OrdinaryGetOwnProperty`.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-ordinarygetownproperty
+</span><span class="attribute">#[inline]
+#[allow(clippy::unnecessary_wraps)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>ordinary_get_own_property(
+    obj: <span class="kw-2">&amp;</span>JsObject,
+    key: <span class="kw-2">&amp;</span>PropertyKey,
+    _context: <span class="kw-2">&amp;mut </span>Context,
+) -&gt; JsResult&lt;<span class="prelude-ty">Option</span>&lt;PropertyDescriptor&gt;&gt; {
+    <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Object::ordinary_get_own_property&quot;</span>, <span class="string">&quot;object&quot;</span>);
+    <span class="comment">// 1. Assert: IsPropertyKey(P) is true.
+    // 2. If O does not have an own property with key P, return undefined.
+    // 3. Let D be a newly created Property Descriptor with no fields.
+    // 4. Let X be O&#39;s own property whose key is P.
+    // 5. If X is a data property, then
+    //      a. Set D.[[Value]] to the value of X&#39;s [[Value]] attribute.
+    //      b. Set D.[[Writable]] to the value of X&#39;s [[Writable]] attribute.
+    // 6. Else,
+    //      a. Assert: X is an accessor property.
+    //      b. Set D.[[Get]] to the value of X&#39;s [[Get]] attribute.
+    //      c. Set D.[[Set]] to the value of X&#39;s [[Set]] attribute.
+    // 7. Set D.[[Enumerable]] to the value of X&#39;s [[Enumerable]] attribute.
+    // 8. Set D.[[Configurable]] to the value of X&#39;s [[Configurable]] attribute.
+    // 9. Return D.
+    </span><span class="prelude-val">Ok</span>(obj.borrow().properties.get(key))
 }
 
-<span class="doccomment">/// Abstract operation `OrdinaryDefineOwnProperty`.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [ECMAScript reference][spec]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-ordinarydefineownproperty</span>
-<span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">ordinary_define_own_property</span>(
-    <span class="ident">obj</span>: <span class="kw-2">&amp;</span><span class="ident">JsObject</span>,
-    <span class="ident">key</span>: <span class="ident">PropertyKey</span>,
-    <span class="ident">desc</span>: <span class="ident">PropertyDescriptor</span>,
-    <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;Object::ordinary_define_own_property&quot;</span>, <span class="string">&quot;object&quot;</span>);
-    <span class="comment">// 1. Let current be ? O.[[GetOwnProperty]](P).</span>
-    <span class="kw">let</span> <span class="ident">current</span> <span class="op">=</span> <span class="ident">obj</span>.<span class="ident">__get_own_property__</span>(<span class="kw-2">&amp;</span><span class="ident">key</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+<span class="doccomment">/// Abstract operation `OrdinaryDefineOwnProperty`.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-ordinarydefineownproperty
+</span><span class="attribute">#[inline]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>ordinary_define_own_property(
+    obj: <span class="kw-2">&amp;</span>JsObject,
+    key: PropertyKey,
+    desc: PropertyDescriptor,
+    context: <span class="kw-2">&amp;mut </span>Context,
+) -&gt; JsResult&lt;bool&gt; {
+    <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Object::ordinary_define_own_property&quot;</span>, <span class="string">&quot;object&quot;</span>);
+    <span class="comment">// 1. Let current be ? O.[[GetOwnProperty]](P).
+    </span><span class="kw">let </span>current = obj.__get_own_property__(<span class="kw-2">&amp;</span>key, context)<span class="question-mark">?</span>;
 
-    <span class="comment">// 2. Let extensible be ? IsExtensible(O).</span>
-    <span class="kw">let</span> <span class="ident">extensible</span> <span class="op">=</span> <span class="ident">obj</span>.<span class="ident">__is_extensible__</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+    <span class="comment">// 2. Let extensible be ? IsExtensible(O).
+    </span><span class="kw">let </span>extensible = obj.__is_extensible__(context)<span class="question-mark">?</span>;
 
-    <span class="comment">// 3. Return ValidateAndApplyPropertyDescriptor(O, P, extensible, Desc, current).</span>
-    <span class="prelude-val">Ok</span>(<span class="ident">validate_and_apply_property_descriptor</span>(
-        <span class="prelude-val">Some</span>((<span class="ident">obj</span>, <span class="ident">key</span>)),
-        <span class="ident">extensible</span>,
-        <span class="ident">desc</span>,
-        <span class="ident">current</span>,
+    <span class="comment">// 3. Return ValidateAndApplyPropertyDescriptor(O, P, extensible, Desc, current).
+    </span><span class="prelude-val">Ok</span>(validate_and_apply_property_descriptor(
+        <span class="prelude-val">Some</span>((obj, key)),
+        extensible,
+        desc,
+        current,
     ))
 }
 
-<span class="doccomment">/// Abstract operation `OrdinaryHasProperty`.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [ECMAScript reference][spec]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-ordinaryhasproperty</span>
-<span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">ordinary_has_property</span>(
-    <span class="ident">obj</span>: <span class="kw-2">&amp;</span><span class="ident">JsObject</span>,
-    <span class="ident">key</span>: <span class="kw-2">&amp;</span><span class="ident">PropertyKey</span>,
-    <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;Object::ordinary_has_property&quot;</span>, <span class="string">&quot;object&quot;</span>);
-    <span class="comment">// 1. Assert: IsPropertyKey(P) is true.</span>
-    <span class="comment">// 2. Let hasOwn be ? O.[[GetOwnProperty]](P).</span>
-    <span class="comment">// 3. If hasOwn is not undefined, return true.</span>
-    <span class="kw">if</span> <span class="ident">obj</span>.<span class="ident">__get_own_property__</span>(<span class="ident">key</span>, <span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">is_some</span>() {
+<span class="doccomment">/// Abstract operation `OrdinaryHasProperty`.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-ordinaryhasproperty
+</span><span class="attribute">#[inline]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>ordinary_has_property(
+    obj: <span class="kw-2">&amp;</span>JsObject,
+    key: <span class="kw-2">&amp;</span>PropertyKey,
+    context: <span class="kw-2">&amp;mut </span>Context,
+) -&gt; JsResult&lt;bool&gt; {
+    <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Object::ordinary_has_property&quot;</span>, <span class="string">&quot;object&quot;</span>);
+    <span class="comment">// 1. Assert: IsPropertyKey(P) is true.
+    // 2. Let hasOwn be ? O.[[GetOwnProperty]](P).
+    // 3. If hasOwn is not undefined, return true.
+    </span><span class="kw">if </span>obj.__get_own_property__(key, context)<span class="question-mark">?</span>.is_some() {
         <span class="prelude-val">Ok</span>(<span class="bool-val">true</span>)
-    } <span class="kw">else</span> {
-        <span class="comment">// 4. Let parent be ? O.[[GetPrototypeOf]]().</span>
-        <span class="kw">let</span> <span class="ident">parent</span> <span class="op">=</span> <span class="ident">obj</span>.<span class="ident">__get_prototype_of__</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+    } <span class="kw">else </span>{
+        <span class="comment">// 4. Let parent be ? O.[[GetPrototypeOf]]().
+        </span><span class="kw">let </span>parent = obj.__get_prototype_of__(context)<span class="question-mark">?</span>;
 
-        <span class="ident">parent</span>
-            <span class="comment">// 5. If parent is not null, then</span>
-            <span class="comment">// a. Return ? parent.[[HasProperty]](P).</span>
-            <span class="comment">// 6. Return false.</span>
-            .<span class="ident">map_or</span>(<span class="prelude-val">Ok</span>(<span class="bool-val">false</span>), <span class="op">|</span><span class="ident">obj</span><span class="op">|</span> <span class="ident">obj</span>.<span class="ident">__has_property__</span>(<span class="ident">key</span>, <span class="ident">context</span>))
+        parent
+            <span class="comment">// 5. If parent is not null, then
+            // a. Return ? parent.[[HasProperty]](P).
+            // 6. Return false.
+            </span>.map_or(<span class="prelude-val">Ok</span>(<span class="bool-val">false</span>), |obj| obj.__has_property__(key, context))
     }
 }
 
-<span class="doccomment">/// Abstract operation `OrdinaryGet`.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [ECMAScript reference][spec]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-ordinaryget</span>
-<span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">ordinary_get</span>(
-    <span class="ident">obj</span>: <span class="kw-2">&amp;</span><span class="ident">JsObject</span>,
-    <span class="ident">key</span>: <span class="kw-2">&amp;</span><span class="ident">PropertyKey</span>,
-    <span class="ident">receiver</span>: <span class="ident">JsValue</span>,
-    <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;Object::ordinary_get&quot;</span>, <span class="string">&quot;object&quot;</span>);
-    <span class="comment">// 1. Assert: IsPropertyKey(P) is true.</span>
-    <span class="comment">// 2. Let desc be ? O.[[GetOwnProperty]](P).</span>
-    <span class="kw">match</span> <span class="ident">obj</span>.<span class="ident">__get_own_property__</span>(<span class="ident">key</span>, <span class="ident">context</span>)<span class="question-mark">?</span> {
-        <span class="comment">// If desc is undefined, then</span>
-        <span class="prelude-val">None</span> =&gt; {
-            <span class="comment">// a. Let parent be ? O.[[GetPrototypeOf]]().</span>
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">parent</span>) <span class="op">=</span> <span class="ident">obj</span>.<span class="ident">__get_prototype_of__</span>(<span class="ident">context</span>)<span class="question-mark">?</span> {
-                <span class="comment">// c. Return ? parent.[[Get]](P, Receiver).</span>
-                <span class="ident">parent</span>.<span class="ident">__get__</span>(<span class="ident">key</span>, <span class="ident">receiver</span>, <span class="ident">context</span>)
+<span class="doccomment">/// Abstract operation `OrdinaryGet`.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-ordinaryget
+</span><span class="attribute">#[inline]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>ordinary_get(
+    obj: <span class="kw-2">&amp;</span>JsObject,
+    key: <span class="kw-2">&amp;</span>PropertyKey,
+    receiver: JsValue,
+    context: <span class="kw-2">&amp;mut </span>Context,
+) -&gt; JsResult&lt;JsValue&gt; {
+    <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Object::ordinary_get&quot;</span>, <span class="string">&quot;object&quot;</span>);
+    <span class="comment">// 1. Assert: IsPropertyKey(P) is true.
+    // 2. Let desc be ? O.[[GetOwnProperty]](P).
+    </span><span class="kw">match </span>obj.__get_own_property__(key, context)<span class="question-mark">? </span>{
+        <span class="comment">// If desc is undefined, then
+        </span><span class="prelude-val">None </span>=&gt; {
+            <span class="comment">// a. Let parent be ? O.[[GetPrototypeOf]]().
+            </span><span class="kw">if let </span><span class="prelude-val">Some</span>(parent) = obj.__get_prototype_of__(context)<span class="question-mark">? </span>{
+                <span class="comment">// c. Return ? parent.[[Get]](P, Receiver).
+                </span>parent.__get__(key, receiver, context)
             }
-            <span class="comment">// b. If parent is null, return undefined.</span>
-            <span class="kw">else</span> {
-                <span class="prelude-val">Ok</span>(<span class="ident">JsValue::undefined</span>())
+            <span class="comment">// b. If parent is null, return undefined.
+            </span><span class="kw">else </span>{
+                <span class="prelude-val">Ok</span>(JsValue::undefined())
             }
         }
-        <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">desc</span>) =&gt; <span class="kw">match</span> <span class="ident">desc</span>.<span class="ident">kind</span>() {
-            <span class="comment">// 4. If IsDataDescriptor(desc) is true, return desc.[[Value]].</span>
-            <span class="ident">DescriptorKind::Data</span> {
-                <span class="ident">value</span>: <span class="prelude-val">Some</span>(<span class="ident">value</span>), ..
-            } =&gt; <span class="prelude-val">Ok</span>(<span class="ident">value</span>.<span class="ident">clone</span>()),
-            <span class="comment">// 5. Assert: IsAccessorDescriptor(desc) is true.</span>
-            <span class="comment">// 6. Let getter be desc.[[Get]].</span>
-            <span class="ident">DescriptorKind::Accessor</span> { <span class="ident">get</span>: <span class="prelude-val">Some</span>(<span class="ident">get</span>), .. } <span class="kw">if</span> <span class="op">!</span><span class="ident">get</span>.<span class="ident">is_undefined</span>() =&gt; {
-                <span class="comment">// 8. Return ? Call(getter, Receiver).</span>
-                <span class="ident">context</span>.<span class="ident">call</span>(<span class="ident">get</span>, <span class="kw-2">&amp;</span><span class="ident">receiver</span>, <span class="kw-2">&amp;</span>[])
+        <span class="prelude-val">Some</span>(<span class="kw-2">ref </span>desc) =&gt; <span class="kw">match </span>desc.kind() {
+            <span class="comment">// 4. If IsDataDescriptor(desc) is true, return desc.[[Value]].
+            </span>DescriptorKind::Data {
+                value: <span class="prelude-val">Some</span>(value), ..
+            } =&gt; <span class="prelude-val">Ok</span>(value.clone()),
+            <span class="comment">// 5. Assert: IsAccessorDescriptor(desc) is true.
+            // 6. Let getter be desc.[[Get]].
+            </span>DescriptorKind::Accessor { get: <span class="prelude-val">Some</span>(get), .. } <span class="kw">if </span>!get.is_undefined() =&gt; {
+                <span class="comment">// 8. Return ? Call(getter, Receiver).
+                </span>context.call(get, <span class="kw-2">&amp;</span>receiver, <span class="kw-2">&amp;</span>[])
             }
-            <span class="comment">// 7. If getter is undefined, return undefined.</span>
-            <span class="kw">_</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">JsValue::undefined</span>()),
+            <span class="comment">// 7. If getter is undefined, return undefined.
+            </span><span class="kw">_ </span>=&gt; <span class="prelude-val">Ok</span>(JsValue::undefined()),
         },
     }
 }
 
-<span class="doccomment">/// Abstract operation `OrdinarySet`.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [ECMAScript reference][spec]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-ordinaryset</span>
-<span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">ordinary_set</span>(
-    <span class="ident">obj</span>: <span class="kw-2">&amp;</span><span class="ident">JsObject</span>,
-    <span class="ident">key</span>: <span class="ident">PropertyKey</span>,
-    <span class="ident">value</span>: <span class="ident">JsValue</span>,
-    <span class="ident">receiver</span>: <span class="ident">JsValue</span>,
-    <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;Object::ordinary_set&quot;</span>, <span class="string">&quot;object&quot;</span>);
+<span class="doccomment">/// Abstract operation `OrdinarySet`.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-ordinaryset
+</span><span class="attribute">#[inline]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>ordinary_set(
+    obj: <span class="kw-2">&amp;</span>JsObject,
+    key: PropertyKey,
+    value: JsValue,
+    receiver: JsValue,
+    context: <span class="kw-2">&amp;mut </span>Context,
+) -&gt; JsResult&lt;bool&gt; {
+    <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Object::ordinary_set&quot;</span>, <span class="string">&quot;object&quot;</span>);
 
-    <span class="comment">// 1. Assert: IsPropertyKey(P) is true.</span>
-    <span class="comment">// 2. Let ownDesc be ? O.[[GetOwnProperty]](P).</span>
-    <span class="comment">// 3. Return OrdinarySetWithOwnDescriptor(O, P, V, Receiver, ownDesc).</span>
+    <span class="comment">// 1. Assert: IsPropertyKey(P) is true.
+    // 2. Let ownDesc be ? O.[[GetOwnProperty]](P).
+    // 3. Return OrdinarySetWithOwnDescriptor(O, P, V, Receiver, ownDesc).
 
-    <span class="comment">// OrdinarySetWithOwnDescriptor ( O, P, V, Receiver, ownDesc )</span>
-    <span class="comment">// https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-ordinarysetwithowndescriptor</span>
+    // OrdinarySetWithOwnDescriptor ( O, P, V, Receiver, ownDesc )
+    // https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-ordinarysetwithowndescriptor
 
-    <span class="comment">// 1. Assert: IsPropertyKey(P) is true.</span>
-    <span class="kw">let</span> <span class="ident">own_desc</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">desc</span>) <span class="op">=</span> <span class="ident">obj</span>.<span class="ident">__get_own_property__</span>(<span class="kw-2">&amp;</span><span class="ident">key</span>, <span class="ident">context</span>)<span class="question-mark">?</span> {
-        <span class="ident">desc</span>
+    // 1. Assert: IsPropertyKey(P) is true.
+    </span><span class="kw">let </span>own_desc = <span class="kw">if let </span><span class="prelude-val">Some</span>(desc) = obj.__get_own_property__(<span class="kw-2">&amp;</span>key, context)<span class="question-mark">? </span>{
+        desc
     }
-    <span class="comment">// 2. If ownDesc is undefined, then</span>
-    <span class="comment">// a. Let parent be ? O.[[GetPrototypeOf]]().</span>
-    <span class="comment">// b. If parent is not null, then</span>
-    <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">parent</span>) <span class="op">=</span> <span class="ident">obj</span>.<span class="ident">__get_prototype_of__</span>(<span class="ident">context</span>)<span class="question-mark">?</span> {
-        <span class="comment">// i. Return ? parent.[[Set]](P, V, Receiver).</span>
-        <span class="kw">return</span> <span class="ident">parent</span>.<span class="ident">__set__</span>(<span class="ident">key</span>, <span class="ident">value</span>, <span class="ident">receiver</span>, <span class="ident">context</span>);
+    <span class="comment">// 2. If ownDesc is undefined, then
+    // a. Let parent be ? O.[[GetPrototypeOf]]().
+    // b. If parent is not null, then
+    </span><span class="kw">else if let </span><span class="prelude-val">Some</span>(parent) = obj.__get_prototype_of__(context)<span class="question-mark">? </span>{
+        <span class="comment">// i. Return ? parent.[[Set]](P, V, Receiver).
+        </span><span class="kw">return </span>parent.__set__(key, value, receiver, context);
     }
-    <span class="comment">// c. Else,</span>
-    <span class="kw">else</span> {
-        <span class="comment">// i. Set ownDesc to the PropertyDescriptor { [[Value]]: undefined, [[Writable]]: true,</span>
-        <span class="comment">// [[Enumerable]]: true, [[Configurable]]: true }.</span>
-        <span class="ident">PropertyDescriptor::builder</span>()
-            .<span class="ident">value</span>(<span class="ident">JsValue::undefined</span>())
-            .<span class="ident">writable</span>(<span class="bool-val">true</span>)
-            .<span class="ident">enumerable</span>(<span class="bool-val">true</span>)
-            .<span class="ident">configurable</span>(<span class="bool-val">true</span>)
-            .<span class="ident">build</span>()
+    <span class="comment">// c. Else,
+    </span><span class="kw">else </span>{
+        <span class="comment">// i. Set ownDesc to the PropertyDescriptor { [[Value]]: undefined, [[Writable]]: true,
+        // [[Enumerable]]: true, [[Configurable]]: true }.
+        </span>PropertyDescriptor::builder()
+            .value(JsValue::undefined())
+            .writable(<span class="bool-val">true</span>)
+            .enumerable(<span class="bool-val">true</span>)
+            .configurable(<span class="bool-val">true</span>)
+            .build()
     };
 
-    <span class="comment">// 3. If IsDataDescriptor(ownDesc) is true, then</span>
-    <span class="kw">if</span> <span class="ident">own_desc</span>.<span class="ident">is_data_descriptor</span>() {
-        <span class="comment">// a. If ownDesc.[[Writable]] is false, return false.</span>
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">own_desc</span>.<span class="ident">expect_writable</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="bool-val">false</span>);
+    <span class="comment">// 3. If IsDataDescriptor(ownDesc) is true, then
+    </span><span class="kw">if </span>own_desc.is_data_descriptor() {
+        <span class="comment">// a. If ownDesc.[[Writable]] is false, return false.
+        </span><span class="kw">if </span>!own_desc.expect_writable() {
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="bool-val">false</span>);
         }
 
-        <span class="kw">let</span> <span class="ident">receiver</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">receiver</span>.<span class="ident">as_object</span>() {
-            <span class="prelude-val">Some</span>(<span class="ident">obj</span>) =&gt; <span class="ident">obj</span>,
-            <span class="comment">// b. If Type(Receiver) is not Object, return false.</span>
-            <span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="bool-val">false</span>),
+        <span class="kw">let </span>receiver = <span class="kw">match </span>receiver.as_object() {
+            <span class="prelude-val">Some</span>(obj) =&gt; obj,
+            <span class="comment">// b. If Type(Receiver) is not Object, return false.
+            </span><span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="bool-val">false</span>),
         };
 
-        <span class="comment">// c. Let existingDescriptor be ? Receiver.[[GetOwnProperty]](P).</span>
-        <span class="comment">// d. If existingDescriptor is not undefined, then</span>
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">existing_desc</span>) <span class="op">=</span> <span class="ident">receiver</span>.<span class="ident">__get_own_property__</span>(<span class="kw-2">&amp;</span><span class="ident">key</span>, <span class="ident">context</span>)<span class="question-mark">?</span> {
-            <span class="comment">// i. If IsAccessorDescriptor(existingDescriptor) is true, return false.</span>
-            <span class="kw">if</span> <span class="ident">existing_desc</span>.<span class="ident">is_accessor_descriptor</span>() {
-                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="bool-val">false</span>);
+        <span class="comment">// c. Let existingDescriptor be ? Receiver.[[GetOwnProperty]](P).
+        // d. If existingDescriptor is not undefined, then
+        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>existing_desc) = receiver.__get_own_property__(<span class="kw-2">&amp;</span>key, context)<span class="question-mark">? </span>{
+            <span class="comment">// i. If IsAccessorDescriptor(existingDescriptor) is true, return false.
+            </span><span class="kw">if </span>existing_desc.is_accessor_descriptor() {
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="bool-val">false</span>);
             }
 
-            <span class="comment">// ii. If existingDescriptor.[[Writable]] is false, return false.</span>
-            <span class="kw">if</span> <span class="op">!</span><span class="ident">existing_desc</span>.<span class="ident">expect_writable</span>() {
-                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="bool-val">false</span>);
+            <span class="comment">// ii. If existingDescriptor.[[Writable]] is false, return false.
+            </span><span class="kw">if </span>!existing_desc.expect_writable() {
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="bool-val">false</span>);
             }
 
-            <span class="comment">// iii. Let valueDesc be the PropertyDescriptor { [[Value]]: V }.</span>
-            <span class="comment">// iv. Return ? Receiver.[[DefineOwnProperty]](P, valueDesc).</span>
-            <span class="kw">return</span> <span class="ident">receiver</span>.<span class="ident">__define_own_property__</span>(
-                <span class="ident">key</span>,
-                <span class="ident">PropertyDescriptor::builder</span>().<span class="ident">value</span>(<span class="ident">value</span>).<span class="ident">build</span>(),
-                <span class="ident">context</span>,
+            <span class="comment">// iii. Let valueDesc be the PropertyDescriptor { [[Value]]: V }.
+            // iv. Return ? Receiver.[[DefineOwnProperty]](P, valueDesc).
+            </span><span class="kw">return </span>receiver.__define_own_property__(
+                key,
+                PropertyDescriptor::builder().value(value).build(),
+                context,
             );
         }
-        <span class="comment">// e. Else</span>
-        <span class="comment">// i. Assert: Receiver does not currently have a property P.</span>
-        <span class="comment">// ii. Return ? CreateDataProperty(Receiver, P, V).</span>
-        <span class="kw">return</span> <span class="ident">receiver</span>.<span class="ident">create_data_property</span>(<span class="ident">key</span>, <span class="ident">value</span>, <span class="ident">context</span>);
+        <span class="comment">// e. Else
+        // i. Assert: Receiver does not currently have a property P.
+        // ii. Return ? CreateDataProperty(Receiver, P, V).
+        </span><span class="kw">return </span>receiver.create_data_property(key, value, context);
     }
 
-    <span class="comment">// 4. Assert: IsAccessorDescriptor(ownDesc) is true.</span>
-    <span class="macro">debug_assert!</span>(<span class="ident">own_desc</span>.<span class="ident">is_accessor_descriptor</span>());
+    <span class="comment">// 4. Assert: IsAccessorDescriptor(ownDesc) is true.
+    </span><span class="macro">debug_assert!</span>(own_desc.is_accessor_descriptor());
 
-    <span class="comment">// 5. Let setter be ownDesc.[[Set]].</span>
-    <span class="kw">match</span> <span class="ident">own_desc</span>.<span class="ident">set</span>() {
-        <span class="prelude-val">Some</span>(<span class="ident">set</span>) <span class="kw">if</span> <span class="op">!</span><span class="ident">set</span>.<span class="ident">is_undefined</span>() =&gt; {
-            <span class="comment">// 7. Perform ? Call(setter, Receiver, « V »).</span>
-            <span class="ident">context</span>.<span class="ident">call</span>(<span class="ident">set</span>, <span class="kw-2">&amp;</span><span class="ident">receiver</span>, <span class="kw-2">&amp;</span>[<span class="ident">value</span>])<span class="question-mark">?</span>;
+    <span class="comment">// 5. Let setter be ownDesc.[[Set]].
+    </span><span class="kw">match </span>own_desc.set() {
+        <span class="prelude-val">Some</span>(set) <span class="kw">if </span>!set.is_undefined() =&gt; {
+            <span class="comment">// 7. Perform ? Call(setter, Receiver, « V »).
+            </span>context.call(set, <span class="kw-2">&amp;</span>receiver, <span class="kw-2">&amp;</span>[value])<span class="question-mark">?</span>;
 
-            <span class="comment">// 8. Return true.</span>
-            <span class="prelude-val">Ok</span>(<span class="bool-val">true</span>)
+            <span class="comment">// 8. Return true.
+            </span><span class="prelude-val">Ok</span>(<span class="bool-val">true</span>)
         }
-        <span class="comment">// 6. If setter is undefined, return false.</span>
-        <span class="kw">_</span> =&gt; <span class="prelude-val">Ok</span>(<span class="bool-val">false</span>),
+        <span class="comment">// 6. If setter is undefined, return false.
+        </span><span class="kw">_ </span>=&gt; <span class="prelude-val">Ok</span>(<span class="bool-val">false</span>),
     }
 }
 
-<span class="doccomment">/// Abstract operation `OrdinaryDelete`.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [ECMAScript reference][spec]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-ordinarydelete</span>
-<span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">ordinary_delete</span>(
-    <span class="ident">obj</span>: <span class="kw-2">&amp;</span><span class="ident">JsObject</span>,
-    <span class="ident">key</span>: <span class="kw-2">&amp;</span><span class="ident">PropertyKey</span>,
-    <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;Object::ordinary_delete&quot;</span>, <span class="string">&quot;object&quot;</span>);
-    <span class="comment">// 1. Assert: IsPropertyKey(P) is true.</span>
-    <span class="prelude-val">Ok</span>(
-        <span class="comment">// 2. Let desc be ? O.[[GetOwnProperty]](P).</span>
-        <span class="kw">match</span> <span class="ident">obj</span>.<span class="ident">__get_own_property__</span>(<span class="ident">key</span>, <span class="ident">context</span>)<span class="question-mark">?</span> {
-            <span class="comment">// 4. If desc.[[Configurable]] is true, then</span>
-            <span class="prelude-val">Some</span>(<span class="ident">desc</span>) <span class="kw">if</span> <span class="ident">desc</span>.<span class="ident">expect_configurable</span>() =&gt; {
-                <span class="comment">// a. Remove the own property with name P from O.</span>
-                <span class="ident">obj</span>.<span class="ident">borrow_mut</span>().<span class="ident">remove</span>(<span class="ident">key</span>);
-                <span class="comment">// b. Return true.</span>
-                <span class="bool-val">true</span>
-            }
-            <span class="comment">// 5. Return false.</span>
-            <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
-            <span class="comment">// 3. If desc is undefined, return true.</span>
-            <span class="prelude-val">None</span> =&gt; <span class="bool-val">true</span>,
+<span class="doccomment">/// Abstract operation `OrdinaryDelete`.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-ordinarydelete
+</span><span class="attribute">#[inline]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>ordinary_delete(
+    obj: <span class="kw-2">&amp;</span>JsObject,
+    key: <span class="kw-2">&amp;</span>PropertyKey,
+    context: <span class="kw-2">&amp;mut </span>Context,
+) -&gt; JsResult&lt;bool&gt; {
+    <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Object::ordinary_delete&quot;</span>, <span class="string">&quot;object&quot;</span>);
+    <span class="comment">// 1. Assert: IsPropertyKey(P) is true.
+    </span><span class="prelude-val">Ok</span>(
+        <span class="comment">// 2. Let desc be ? O.[[GetOwnProperty]](P).
+        </span><span class="kw">match </span>obj.__get_own_property__(key, context)<span class="question-mark">? </span>{
+            <span class="comment">// 4. If desc.[[Configurable]] is true, then
+            </span><span class="prelude-val">Some</span>(desc) <span class="kw">if </span>desc.expect_configurable() =&gt; {
+                <span class="comment">// a. Remove the own property with name P from O.
+                </span>obj.borrow_mut().remove(key);
+                <span class="comment">// b. Return true.
+                </span><span class="bool-val">true
+            </span>}
+            <span class="comment">// 5. Return false.
+            </span><span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
+            <span class="comment">// 3. If desc is undefined, return true.
+            </span><span class="prelude-val">None </span>=&gt; <span class="bool-val">true</span>,
         },
     )
 }
 
-<span class="doccomment">/// Abstract operation `OrdinaryOwnPropertyKeys`.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [ECMAScript reference][spec]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-ordinaryownpropertykeys</span>
-<span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::unnecessary_wraps</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">ordinary_own_property_keys</span>(
-    <span class="ident">obj</span>: <span class="kw-2">&amp;</span><span class="ident">JsObject</span>,
-    <span class="ident">_context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">PropertyKey</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;Object::ordinary_own_property_keys&quot;</span>, <span class="string">&quot;object&quot;</span>);
-    <span class="comment">// 1. Let keys be a new empty List.</span>
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">keys</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
+<span class="doccomment">/// Abstract operation `OrdinaryOwnPropertyKeys`.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-ordinaryownpropertykeys
+</span><span class="attribute">#[inline]
+#[allow(clippy::unnecessary_wraps)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>ordinary_own_property_keys(
+    obj: <span class="kw-2">&amp;</span>JsObject,
+    _context: <span class="kw-2">&amp;mut </span>Context,
+) -&gt; JsResult&lt;Vec&lt;PropertyKey&gt;&gt; {
+    <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Object::ordinary_own_property_keys&quot;</span>, <span class="string">&quot;object&quot;</span>);
+    <span class="comment">// 1. Let keys be a new empty List.
+    </span><span class="kw">let </span><span class="kw-2">mut </span>keys = Vec::new();
 
-    <span class="kw">let</span> <span class="ident">ordered_indexes</span> <span class="op">=</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">indexes</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">obj</span>.<span class="ident">borrow</span>().<span class="ident">properties</span>.<span class="ident">index_property_keys</span>().<span class="ident">collect</span>();
-        <span class="ident">indexes</span>.<span class="ident">sort_unstable</span>();
-        <span class="ident">indexes</span>
+    <span class="kw">let </span>ordered_indexes = {
+        <span class="kw">let </span><span class="kw-2">mut </span>indexes: Vec&lt;<span class="kw">_</span>&gt; = obj.borrow().properties.index_property_keys().collect();
+        indexes.sort_unstable();
+        indexes
     };
 
-    <span class="comment">// 2. For each own property key P of O such that P is an array index, in ascending numeric index order, do</span>
-    <span class="comment">// a. Add P as the last element of keys.</span>
-    <span class="ident">keys</span>.<span class="ident">extend</span>(<span class="ident">ordered_indexes</span>.<span class="ident">into_iter</span>().<span class="ident">map</span>(<span class="ident">Into::into</span>));
+    <span class="comment">// 2. For each own property key P of O such that P is an array index, in ascending numeric index order, do
+    // a. Add P as the last element of keys.
+    </span>keys.extend(ordered_indexes.into_iter().map(Into::into));
 
-    <span class="comment">// 3. For each own property key P of O such that Type(P) is String and P is not an array index, in ascending chronological order of property creation, do</span>
-    <span class="comment">// a. Add P as the last element of keys.</span>
-    <span class="ident">keys</span>.<span class="ident">extend</span>(
-        <span class="ident">obj</span>.<span class="ident">borrow</span>()
-            .<span class="ident">properties</span>
-            .<span class="ident">string_property_keys</span>()
-            .<span class="ident">cloned</span>()
-            .<span class="ident">map</span>(<span class="ident">Into::into</span>),
+    <span class="comment">// 3. For each own property key P of O such that Type(P) is String and P is not an array index, in ascending chronological order of property creation, do
+    // a. Add P as the last element of keys.
+    </span>keys.extend(
+        obj.borrow()
+            .properties
+            .string_property_keys()
+            .cloned()
+            .map(Into::into),
     );
 
-    <span class="comment">// 4. For each own property key P of O such that Type(P) is Symbol, in ascending chronological order of property creation, do</span>
-    <span class="comment">// a. Add P as the last element of keys.</span>
-    <span class="ident">keys</span>.<span class="ident">extend</span>(
-        <span class="ident">obj</span>.<span class="ident">borrow</span>()
-            .<span class="ident">properties</span>
-            .<span class="ident">symbol_property_keys</span>()
-            .<span class="ident">cloned</span>()
-            .<span class="ident">map</span>(<span class="ident">Into::into</span>),
+    <span class="comment">// 4. For each own property key P of O such that Type(P) is Symbol, in ascending chronological order of property creation, do
+    // a. Add P as the last element of keys.
+    </span>keys.extend(
+        obj.borrow()
+            .properties
+            .symbol_property_keys()
+            .cloned()
+            .map(Into::into),
     );
 
-    <span class="comment">// 5. Return keys.</span>
-    <span class="prelude-val">Ok</span>(<span class="ident">keys</span>)
+    <span class="comment">// 5. Return keys.
+    </span><span class="prelude-val">Ok</span>(keys)
 }
 
-<span class="doccomment">/// Abstract operation `IsCompatiblePropertyDescriptor`</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [ECMAScript reference][spec]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-iscompatiblepropertydescriptor</span>
-<span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">is_compatible_property_descriptor</span>(
-    <span class="ident">extensible</span>: <span class="ident">bool</span>,
-    <span class="ident">desc</span>: <span class="ident">PropertyDescriptor</span>,
-    <span class="ident">current</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PropertyDescriptor</span><span class="op">&gt;</span>,
-) -&gt; <span class="ident">bool</span> {
-    <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span>
-        <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;Object::is_compatible_property_descriptor&quot;</span>, <span class="string">&quot;object&quot;</span>);
+<span class="doccomment">/// Abstract operation `IsCompatiblePropertyDescriptor`
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-iscompatiblepropertydescriptor
+</span><span class="attribute">#[inline]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_compatible_property_descriptor(
+    extensible: bool,
+    desc: PropertyDescriptor,
+    current: <span class="prelude-ty">Option</span>&lt;PropertyDescriptor&gt;,
+) -&gt; bool {
+    <span class="kw">let </span>_timer =
+        Profiler::global().start_event(<span class="string">&quot;Object::is_compatible_property_descriptor&quot;</span>, <span class="string">&quot;object&quot;</span>);
 
-    <span class="comment">// 1. Return ValidateAndApplyPropertyDescriptor(undefined, undefined, Extensible, Desc, Current).</span>
-    <span class="ident">validate_and_apply_property_descriptor</span>(<span class="prelude-val">None</span>, <span class="ident">extensible</span>, <span class="ident">desc</span>, <span class="ident">current</span>)
+    <span class="comment">// 1. Return ValidateAndApplyPropertyDescriptor(undefined, undefined, Extensible, Desc, Current).
+    </span>validate_and_apply_property_descriptor(<span class="prelude-val">None</span>, extensible, desc, current)
 }
 
-<span class="doccomment">/// Abstract operation `ValidateAndApplyPropertyDescriptor`</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [ECMAScript reference][spec]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-validateandapplypropertydescriptor</span>
-<span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">validate_and_apply_property_descriptor</span>(
-    <span class="ident">obj_and_key</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="kw-2">&amp;</span><span class="ident">JsObject</span>, <span class="ident">PropertyKey</span>)<span class="op">&gt;</span>,
-    <span class="ident">extensible</span>: <span class="ident">bool</span>,
-    <span class="ident">desc</span>: <span class="ident">PropertyDescriptor</span>,
-    <span class="ident">current</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PropertyDescriptor</span><span class="op">&gt;</span>,
-) -&gt; <span class="ident">bool</span> {
-    <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span>
-        <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;Object::validate_and_apply_property_descriptor&quot;</span>, <span class="string">&quot;object&quot;</span>);
-    <span class="comment">// 1. Assert: If O is not undefined, then IsPropertyKey(P) is true.</span>
+<span class="doccomment">/// Abstract operation `ValidateAndApplyPropertyDescriptor`
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-validateandapplypropertydescriptor
+</span><span class="attribute">#[inline]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>validate_and_apply_property_descriptor(
+    obj_and_key: <span class="prelude-ty">Option</span>&lt;(<span class="kw-2">&amp;</span>JsObject, PropertyKey)&gt;,
+    extensible: bool,
+    desc: PropertyDescriptor,
+    current: <span class="prelude-ty">Option</span>&lt;PropertyDescriptor&gt;,
+) -&gt; bool {
+    <span class="kw">let </span>_timer =
+        Profiler::global().start_event(<span class="string">&quot;Object::validate_and_apply_property_descriptor&quot;</span>, <span class="string">&quot;object&quot;</span>);
+    <span class="comment">// 1. Assert: If O is not undefined, then IsPropertyKey(P) is true.
 
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">current</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">own</span>) <span class="op">=</span> <span class="ident">current</span> {
-        <span class="ident">own</span>
+    </span><span class="kw">let </span><span class="kw-2">mut </span>current = <span class="kw">if let </span><span class="prelude-val">Some</span>(own) = current {
+        own
     }
-    <span class="comment">// 2. If current is undefined, then</span>
-    <span class="kw">else</span> {
-        <span class="comment">// a. If extensible is false, return false.</span>
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">extensible</span> {
-            <span class="kw">return</span> <span class="bool-val">false</span>;
+    <span class="comment">// 2. If current is undefined, then
+    </span><span class="kw">else </span>{
+        <span class="comment">// a. If extensible is false, return false.
+        </span><span class="kw">if </span>!extensible {
+            <span class="kw">return </span><span class="bool-val">false</span>;
         }
 
-        <span class="comment">// b. Assert: extensible is true.</span>
+        <span class="comment">// b. Assert: extensible is true.
 
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">obj</span>, <span class="ident">key</span>)) <span class="op">=</span> <span class="ident">obj_and_key</span> {
-            <span class="ident">obj</span>.<span class="ident">borrow_mut</span>().<span class="ident">properties</span>.<span class="ident">insert</span>(
-                <span class="kw-2">&amp;</span><span class="ident">key</span>,
-                <span class="comment">// c. If IsGenericDescriptor(Desc) is true or IsDataDescriptor(Desc) is true, then</span>
-                <span class="kw">if</span> <span class="ident">desc</span>.<span class="ident">is_generic_descriptor</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">desc</span>.<span class="ident">is_data_descriptor</span>() {
-                    <span class="comment">// i. If O is not undefined, create an own data property named P of</span>
-                    <span class="comment">// object O whose [[Value]], [[Writable]], [[Enumerable]], and</span>
-                    <span class="comment">// [[Configurable]] attribute values are described by Desc.</span>
-                    <span class="comment">// If the value of an attribute field of Desc is absent, the attribute</span>
-                    <span class="comment">// of the newly created property is set to its default value.</span>
-                    <span class="ident">desc</span>.<span class="ident">into_data_defaulted</span>()
+        </span><span class="kw">if let </span><span class="prelude-val">Some</span>((obj, key)) = obj_and_key {
+            obj.borrow_mut().properties.insert(
+                <span class="kw-2">&amp;</span>key,
+                <span class="comment">// c. If IsGenericDescriptor(Desc) is true or IsDataDescriptor(Desc) is true, then
+                </span><span class="kw">if </span>desc.is_generic_descriptor() || desc.is_data_descriptor() {
+                    <span class="comment">// i. If O is not undefined, create an own data property named P of
+                    // object O whose [[Value]], [[Writable]], [[Enumerable]], and
+                    // [[Configurable]] attribute values are described by Desc.
+                    // If the value of an attribute field of Desc is absent, the attribute
+                    // of the newly created property is set to its default value.
+                    </span>desc.into_data_defaulted()
                 }
-                <span class="comment">// d. Else,</span>
-                <span class="kw">else</span> {
-                    <span class="comment">// i. Assert: ! IsAccessorDescriptor(Desc) is true.</span>
+                <span class="comment">// d. Else,
+                </span><span class="kw">else </span>{
+                    <span class="comment">// i. Assert: ! IsAccessorDescriptor(Desc) is true.
 
-                    <span class="comment">// ii. If O is not undefined, create an own accessor property named P</span>
-                    <span class="comment">// of object O whose [[Get]], [[Set]], [[Enumerable]], and [[Configurable]]</span>
-                    <span class="comment">// attribute values are described by Desc. If the value of an attribute field</span>
-                    <span class="comment">// of Desc is absent, the attribute of the newly created property is set to</span>
-                    <span class="comment">// its default value.</span>
-                    <span class="ident">desc</span>.<span class="ident">into_accessor_defaulted</span>()
+                    // ii. If O is not undefined, create an own accessor property named P
+                    // of object O whose [[Get]], [[Set]], [[Enumerable]], and [[Configurable]]
+                    // attribute values are described by Desc. If the value of an attribute field
+                    // of Desc is absent, the attribute of the newly created property is set to
+                    // its default value.
+                    </span>desc.into_accessor_defaulted()
                 },
             );
         }
 
-        <span class="comment">// e. Return true.</span>
-        <span class="kw">return</span> <span class="bool-val">true</span>;
+        <span class="comment">// e. Return true.
+        </span><span class="kw">return </span><span class="bool-val">true</span>;
     };
 
-    <span class="comment">// 3. If every field in Desc is absent, return true.</span>
-    <span class="kw">if</span> <span class="ident">desc</span>.<span class="ident">is_empty</span>() {
-        <span class="kw">return</span> <span class="bool-val">true</span>;
+    <span class="comment">// 3. If every field in Desc is absent, return true.
+    </span><span class="kw">if </span>desc.is_empty() {
+        <span class="kw">return </span><span class="bool-val">true</span>;
     }
 
-    <span class="comment">// 4. If current.[[Configurable]] is false, then</span>
-    <span class="kw">if</span> <span class="op">!</span><span class="ident">current</span>.<span class="ident">expect_configurable</span>() {
-        <span class="comment">// a. If Desc.[[Configurable]] is present and its value is true, return false.</span>
-        <span class="kw">if</span> <span class="macro">matches!</span>(<span class="ident">desc</span>.<span class="ident">configurable</span>(), <span class="prelude-val">Some</span>(<span class="bool-val">true</span>)) {
-            <span class="kw">return</span> <span class="bool-val">false</span>;
+    <span class="comment">// 4. If current.[[Configurable]] is false, then
+    </span><span class="kw">if </span>!current.expect_configurable() {
+        <span class="comment">// a. If Desc.[[Configurable]] is present and its value is true, return false.
+        </span><span class="kw">if </span><span class="macro">matches!</span>(desc.configurable(), <span class="prelude-val">Some</span>(<span class="bool-val">true</span>)) {
+            <span class="kw">return </span><span class="bool-val">false</span>;
         }
 
-        <span class="comment">// b. If Desc.[[Enumerable]] is present and ! SameValue(Desc.[[Enumerable]], current.[[Enumerable]])</span>
-        <span class="comment">// is false, return false.</span>
-        <span class="kw">if</span> <span class="macro">matches!</span>(<span class="ident">desc</span>.<span class="ident">enumerable</span>(), <span class="prelude-val">Some</span>(<span class="ident">desc_enum</span>) <span class="kw">if</span> <span class="ident">desc_enum</span> <span class="op">!</span><span class="op">=</span> <span class="ident">current</span>.<span class="ident">expect_enumerable</span>())
+        <span class="comment">// b. If Desc.[[Enumerable]] is present and ! SameValue(Desc.[[Enumerable]], current.[[Enumerable]])
+        // is false, return false.
+        </span><span class="kw">if </span><span class="macro">matches!</span>(desc.enumerable(), <span class="prelude-val">Some</span>(desc_enum) <span class="kw">if </span>desc_enum != current.expect_enumerable())
         {
-            <span class="kw">return</span> <span class="bool-val">false</span>;
+            <span class="kw">return </span><span class="bool-val">false</span>;
         }
     }
 
-    <span class="comment">// 5. If ! IsGenericDescriptor(Desc) is true, then</span>
-    <span class="kw">if</span> <span class="ident">desc</span>.<span class="ident">is_generic_descriptor</span>() {
-        <span class="comment">// a. NOTE: No further validation is required.</span>
-    }
-    <span class="comment">// 6. Else if ! SameValue(! IsDataDescriptor(current), ! IsDataDescriptor(Desc)) is false, then</span>
-    <span class="kw">else</span> <span class="kw">if</span> <span class="ident">current</span>.<span class="ident">is_data_descriptor</span>() <span class="op">!</span><span class="op">=</span> <span class="ident">desc</span>.<span class="ident">is_data_descriptor</span>() {
-        <span class="comment">// a. If current.[[Configurable]] is false, return false.</span>
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">current</span>.<span class="ident">expect_configurable</span>() {
-            <span class="kw">return</span> <span class="bool-val">false</span>;
+    <span class="comment">// 5. If ! IsGenericDescriptor(Desc) is true, then
+    </span><span class="kw">if </span>desc.is_generic_descriptor() {
+        <span class="comment">// a. NOTE: No further validation is required.
+    </span>}
+    <span class="comment">// 6. Else if ! SameValue(! IsDataDescriptor(current), ! IsDataDescriptor(Desc)) is false, then
+    </span><span class="kw">else if </span>current.is_data_descriptor() != desc.is_data_descriptor() {
+        <span class="comment">// a. If current.[[Configurable]] is false, return false.
+        </span><span class="kw">if </span>!current.expect_configurable() {
+            <span class="kw">return </span><span class="bool-val">false</span>;
         }
 
-        <span class="kw">if</span> <span class="ident">obj_and_key</span>.<span class="ident">is_some</span>() {
-            <span class="comment">// b. If IsDataDescriptor(current) is true, then</span>
-            <span class="kw">if</span> <span class="ident">current</span>.<span class="ident">is_data_descriptor</span>() {
-                <span class="comment">// i. If O is not undefined, convert the property named P of object O from a data</span>
-                <span class="comment">// property to an accessor property. Preserve the existing values of the converted</span>
-                <span class="comment">// property&#39;s [[Configurable]] and [[Enumerable]] attributes and set the rest of</span>
-                <span class="comment">// the property&#39;s attributes to their default values.</span>
-                <span class="ident">current</span> <span class="op">=</span> <span class="ident">current</span>.<span class="ident">into_accessor_defaulted</span>();
+        <span class="kw">if </span>obj_and_key.is_some() {
+            <span class="comment">// b. If IsDataDescriptor(current) is true, then
+            </span><span class="kw">if </span>current.is_data_descriptor() {
+                <span class="comment">// i. If O is not undefined, convert the property named P of object O from a data
+                // property to an accessor property. Preserve the existing values of the converted
+                // property&#39;s [[Configurable]] and [[Enumerable]] attributes and set the rest of
+                // the property&#39;s attributes to their default values.
+                </span>current = current.into_accessor_defaulted();
             }
-            <span class="comment">// c. Else,</span>
-            <span class="kw">else</span> {
-                <span class="comment">// i. If O is not undefined, convert the property named P of object O from an</span>
-                <span class="comment">// accessor property to a data property. Preserve the existing values of the</span>
-                <span class="comment">// converted property&#39;s [[Configurable]] and [[Enumerable]] attributes and set</span>
-                <span class="comment">// the rest of the property&#39;s attributes to their default values.</span>
-                <span class="ident">current</span> <span class="op">=</span> <span class="ident">current</span>.<span class="ident">into_data_defaulted</span>();
+            <span class="comment">// c. Else,
+            </span><span class="kw">else </span>{
+                <span class="comment">// i. If O is not undefined, convert the property named P of object O from an
+                // accessor property to a data property. Preserve the existing values of the
+                // converted property&#39;s [[Configurable]] and [[Enumerable]] attributes and set
+                // the rest of the property&#39;s attributes to their default values.
+                </span>current = current.into_data_defaulted();
             }
         }
     }
-    <span class="comment">// 7. Else if IsDataDescriptor(current) and IsDataDescriptor(Desc) are both true, then</span>
-    <span class="kw">else</span> <span class="kw">if</span> <span class="ident">current</span>.<span class="ident">is_data_descriptor</span>() <span class="op">&amp;&amp;</span> <span class="ident">desc</span>.<span class="ident">is_data_descriptor</span>() {
-        <span class="comment">// a. If current.[[Configurable]] is false and current.[[Writable]] is false, then</span>
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">current</span>.<span class="ident">expect_configurable</span>() <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">current</span>.<span class="ident">expect_writable</span>() {
-            <span class="comment">// i. If Desc.[[Writable]] is present and Desc.[[Writable]] is true, return false.</span>
-            <span class="kw">if</span> <span class="macro">matches!</span>(<span class="ident">desc</span>.<span class="ident">writable</span>(), <span class="prelude-val">Some</span>(<span class="bool-val">true</span>)) {
-                <span class="kw">return</span> <span class="bool-val">false</span>;
+    <span class="comment">// 7. Else if IsDataDescriptor(current) and IsDataDescriptor(Desc) are both true, then
+    </span><span class="kw">else if </span>current.is_data_descriptor() &amp;&amp; desc.is_data_descriptor() {
+        <span class="comment">// a. If current.[[Configurable]] is false and current.[[Writable]] is false, then
+        </span><span class="kw">if </span>!current.expect_configurable() &amp;&amp; !current.expect_writable() {
+            <span class="comment">// i. If Desc.[[Writable]] is present and Desc.[[Writable]] is true, return false.
+            </span><span class="kw">if </span><span class="macro">matches!</span>(desc.writable(), <span class="prelude-val">Some</span>(<span class="bool-val">true</span>)) {
+                <span class="kw">return </span><span class="bool-val">false</span>;
             }
-            <span class="comment">// ii. If Desc.[[Value]] is present and SameValue(Desc.[[Value]], current.[[Value]]) is false, return false.</span>
-            <span class="kw">if</span> <span class="macro">matches!</span>(<span class="ident">desc</span>.<span class="ident">value</span>(), <span class="prelude-val">Some</span>(<span class="ident">value</span>) <span class="kw">if</span> <span class="op">!</span><span class="ident">JsValue::same_value</span>(<span class="ident">value</span>, <span class="ident">current</span>.<span class="ident">expect_value</span>()))
+            <span class="comment">// ii. If Desc.[[Value]] is present and SameValue(Desc.[[Value]], current.[[Value]]) is false, return false.
+            </span><span class="kw">if </span><span class="macro">matches!</span>(desc.value(), <span class="prelude-val">Some</span>(value) <span class="kw">if </span>!JsValue::same_value(value, current.expect_value()))
             {
-                <span class="kw">return</span> <span class="bool-val">false</span>;
+                <span class="kw">return </span><span class="bool-val">false</span>;
             }
-            <span class="comment">// iii. Return true.</span>
-            <span class="kw">return</span> <span class="bool-val">true</span>;
+            <span class="comment">// iii. Return true.
+            </span><span class="kw">return </span><span class="bool-val">true</span>;
         }
     }
-    <span class="comment">// 8. Else,</span>
-    <span class="comment">// a. Assert: ! IsAccessorDescriptor(current) and ! IsAccessorDescriptor(Desc) are both true.</span>
-    <span class="comment">// b. If current.[[Configurable]] is false, then</span>
-    <span class="kw">else</span> <span class="kw">if</span> <span class="op">!</span><span class="ident">current</span>.<span class="ident">expect_configurable</span>() {
-        <span class="comment">// i. If Desc.[[Set]] is present and SameValue(Desc.[[Set]], current.[[Set]]) is false, return false.</span>
-        <span class="kw">if</span> <span class="macro">matches!</span>(<span class="ident">desc</span>.<span class="ident">set</span>(), <span class="prelude-val">Some</span>(<span class="ident">set</span>) <span class="kw">if</span> <span class="op">!</span><span class="ident">JsValue::same_value</span>(<span class="ident">set</span>, <span class="ident">current</span>.<span class="ident">expect_set</span>())) {
-            <span class="kw">return</span> <span class="bool-val">false</span>;
+    <span class="comment">// 8. Else,
+    // a. Assert: ! IsAccessorDescriptor(current) and ! IsAccessorDescriptor(Desc) are both true.
+    // b. If current.[[Configurable]] is false, then
+    </span><span class="kw">else if </span>!current.expect_configurable() {
+        <span class="comment">// i. If Desc.[[Set]] is present and SameValue(Desc.[[Set]], current.[[Set]]) is false, return false.
+        </span><span class="kw">if </span><span class="macro">matches!</span>(desc.set(), <span class="prelude-val">Some</span>(set) <span class="kw">if </span>!JsValue::same_value(set, current.expect_set())) {
+            <span class="kw">return </span><span class="bool-val">false</span>;
         }
 
-        <span class="comment">// ii. If Desc.[[Get]] is present and SameValue(Desc.[[Get]], current.[[Get]]) is false, return false.</span>
-        <span class="kw">if</span> <span class="macro">matches!</span>(<span class="ident">desc</span>.<span class="ident">get</span>(), <span class="prelude-val">Some</span>(<span class="ident">get</span>) <span class="kw">if</span> <span class="op">!</span><span class="ident">JsValue::same_value</span>(<span class="ident">get</span>, <span class="ident">current</span>.<span class="ident">expect_get</span>())) {
-            <span class="kw">return</span> <span class="bool-val">false</span>;
+        <span class="comment">// ii. If Desc.[[Get]] is present and SameValue(Desc.[[Get]], current.[[Get]]) is false, return false.
+        </span><span class="kw">if </span><span class="macro">matches!</span>(desc.get(), <span class="prelude-val">Some</span>(get) <span class="kw">if </span>!JsValue::same_value(get, current.expect_get())) {
+            <span class="kw">return </span><span class="bool-val">false</span>;
         }
-        <span class="comment">// iii. Return true.</span>
-        <span class="kw">return</span> <span class="bool-val">true</span>;
+        <span class="comment">// iii. Return true.
+        </span><span class="kw">return </span><span class="bool-val">true</span>;
     }
 
-    <span class="comment">// 9. If O is not undefined, then</span>
-    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">obj</span>, <span class="ident">key</span>)) <span class="op">=</span> <span class="ident">obj_and_key</span> {
-        <span class="comment">// a. For each field of Desc that is present, set the corresponding attribute of the</span>
-        <span class="comment">// property named P of object O to the value of the field.</span>
-        <span class="ident">current</span>.<span class="ident">fill_with</span>(<span class="kw-2">&amp;</span><span class="ident">desc</span>);
-        <span class="ident">obj</span>.<span class="ident">borrow_mut</span>().<span class="ident">properties</span>.<span class="ident">insert</span>(<span class="kw-2">&amp;</span><span class="ident">key</span>, <span class="ident">current</span>);
+    <span class="comment">// 9. If O is not undefined, then
+    </span><span class="kw">if let </span><span class="prelude-val">Some</span>((obj, key)) = obj_and_key {
+        <span class="comment">// a. For each field of Desc that is present, set the corresponding attribute of the
+        // property named P of object O to the value of the field.
+        </span>current.fill_with(<span class="kw-2">&amp;</span>desc);
+        obj.borrow_mut().properties.insert(<span class="kw-2">&amp;</span>key, current);
     }
 
-    <span class="comment">// 10. Return true.</span>
-    <span class="bool-val">true</span>
-}
+    <span class="comment">// 10. Return true.
+    </span><span class="bool-val">true
+</span>}
 
-<span class="doccomment">/// Abstract operation `GetPrototypeFromConstructor`</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [ECMAScript reference][spec]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-getprototypefromconstructor</span>
-<span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="attribute">#[<span class="ident">track_caller</span>]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_prototype_from_constructor</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(
-    <span class="ident">constructor</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
-    <span class="ident">default</span>: <span class="ident">F</span>,
-    <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsObject</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="kw-2">&amp;</span><span class="ident">StandardConstructors</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">StandardConstructor</span>,
+<span class="doccomment">/// Abstract operation `GetPrototypeFromConstructor`
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-getprototypefromconstructor
+</span><span class="attribute">#[inline]
+#[track_caller]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_prototype_from_constructor&lt;F&gt;(
+    constructor: <span class="kw-2">&amp;</span>JsValue,
+    default: F,
+    context: <span class="kw-2">&amp;mut </span>Context,
+) -&gt; JsResult&lt;JsObject&gt;
+<span class="kw">where
+    </span>F: FnOnce(<span class="kw-2">&amp;</span>StandardConstructors) -&gt; <span class="kw-2">&amp;</span>StandardConstructor,
 {
-    <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;Object::get_prototype_from_constructor&quot;</span>, <span class="string">&quot;object&quot;</span>);
-    <span class="comment">// 1. Assert: intrinsicDefaultProto is this specification&#39;s name of an intrinsic</span>
-    <span class="comment">// object.</span>
-    <span class="comment">// The corresponding object must be an intrinsic that is intended to be used</span>
-    <span class="comment">// as the [[Prototype]] value of an object.</span>
-    <span class="comment">// 2. Let proto be ? Get(constructor, &quot;prototype&quot;).</span>
-    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">object</span>) <span class="op">=</span> <span class="ident">constructor</span>.<span class="ident">as_object</span>() {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">proto</span>) <span class="op">=</span> <span class="ident">object</span>.<span class="ident">get</span>(<span class="ident">PROTOTYPE</span>, <span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">as_object</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">proto</span>.<span class="ident">clone</span>());
+    <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Object::get_prototype_from_constructor&quot;</span>, <span class="string">&quot;object&quot;</span>);
+    <span class="comment">// 1. Assert: intrinsicDefaultProto is this specification&#39;s name of an intrinsic
+    // object.
+    // The corresponding object must be an intrinsic that is intended to be used
+    // as the [[Prototype]] value of an object.
+    // 2. Let proto be ? Get(constructor, &quot;prototype&quot;).
+    </span><span class="kw">if let </span><span class="prelude-val">Some</span>(object) = constructor.as_object() {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(proto) = object.get(PROTOTYPE, context)<span class="question-mark">?</span>.as_object() {
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(proto.clone());
         }
     }
-    <span class="comment">// 3. If Type(proto) is not Object, then</span>
-    <span class="comment">// TODO: handle realms</span>
-    <span class="comment">// a. Let realm be ? GetFunctionRealm(constructor).</span>
-    <span class="comment">// b. Set proto to realm&#39;s intrinsic object named intrinsicDefaultProto.</span>
-    <span class="prelude-val">Ok</span>(<span class="ident">default</span>(<span class="ident">context</span>.<span class="ident">intrinsics</span>().<span class="ident">constructors</span>()).<span class="ident">prototype</span>())
+    <span class="comment">// 3. If Type(proto) is not Object, then
+    // TODO: handle realms
+    // a. Let realm be ? GetFunctionRealm(constructor).
+    // b. Set proto to realm&#39;s intrinsic object named intrinsicDefaultProto.
+    </span><span class="prelude-val">Ok</span>(default(context.intrinsics().constructors()).prototype())
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0 (a55dd71d5 2022-09-19)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0 (897e37553 2022-11-02)" ></div></body></html>

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_engine/src/syntax/parser/function/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../../storage.js"></script><script defer src="../../../../../source-script.js"></script><script defer src="../../../../../source-files.js"></script><script defer src="../../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../../boa_engine/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../../boa_engine/index.html"><div class="logo-container">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_engine/src/syntax/parser/function/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../../normalize.css"><link rel="stylesheet" href="../../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../../dark.css" disabled><link rel="stylesheet" href="../../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../../storage.js"></script><script defer src="../../../../../source-script.js"></script><script defer src="../../../../../source-files.js"></script><script defer src="../../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../../boa_engine/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../../boa_engine/index.html"><div class="logo-container">
                     <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../../boa_engine/index.html">
                         <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -505,510 +505,510 @@
 <span id="503">503</span>
 <span id="504">504</span>
 <span id="505">505</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Function definition parsing.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! More information:</span>
-<span class="doccomment">//!  - [MDN documentation][mdn]</span>
-<span class="doccomment">//!  - [ECMAScript specification][spec]</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/function</span>
-<span class="doccomment">//! [spec]: https://tc39.es/ecma262/#sec-function-definitions</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Function definition parsing.
+//!
+//! More information:
+//!  - [MDN documentation][mdn]
+//!  - [ECMAScript specification][spec]
+//!
+//! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/function
+//! [spec]: https://tc39.es/ecma262/#sec-function-definitions
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span>;
+</span><span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>tests;
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax</span>::{
-    <span class="ident">lexer</span>::{<span class="ident">Error</span> <span class="kw">as</span> <span class="ident">LexError</span>, <span class="ident">InputElement</span>, <span class="ident">TokenKind</span>},
-    <span class="ident">parser</span>::{
-        <span class="ident">expression</span>::{<span class="ident">BindingIdentifier</span>, <span class="ident">Initializer</span>},
-        <span class="ident">statement</span>::{<span class="ident">ArrayBindingPattern</span>, <span class="ident">ObjectBindingPattern</span>, <span class="ident">StatementList</span>},
-        <span class="ident">AllowAwait</span>, <span class="ident">AllowYield</span>, <span class="ident">Cursor</span>, <span class="ident">ParseError</span>, <span class="ident">TokenParser</span>,
+<span class="kw">use </span><span class="kw">crate</span>::syntax::{
+    lexer::{Error <span class="kw">as </span>LexError, InputElement, TokenKind},
+    parser::{
+        expression::{BindingIdentifier, Initializer},
+        statement::{ArrayBindingPattern, ObjectBindingPattern, StatementList},
+        AllowAwait, AllowYield, Cursor, ParseError, TokenParser,
     },
 };
-<span class="kw">use</span> <span class="ident">boa_ast</span>::{
-    <span class="self">self</span> <span class="kw">as</span> <span class="ident">ast</span>,
-    <span class="ident">declaration::Variable</span>,
-    <span class="ident">function</span>::{<span class="ident">FormalParameterList</span>, <span class="ident">FormalParameterListFlags</span>},
-    <span class="ident">Punctuator</span>,
+<span class="kw">use </span>boa_ast::{
+    <span class="self">self </span><span class="kw">as </span>ast,
+    declaration::Variable,
+    function::{FormalParameterList, FormalParameterListFlags},
+    Punctuator,
 };
-<span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">Sym</span>};
-<span class="kw">use</span> <span class="ident">boa_macros::utf16</span>;
-<span class="kw">use</span> <span class="ident">boa_profiler::Profiler</span>;
-<span class="kw">use</span> <span class="ident">std::io::Read</span>;
+<span class="kw">use </span>boa_interner::{Interner, Sym};
+<span class="kw">use </span>boa_macros::utf16;
+<span class="kw">use </span>boa_profiler::Profiler;
+<span class="kw">use </span>std::io::Read;
 
-<span class="kw">use</span> <span class="ident"><span class="kw">super</span>::ParseResult</span>;
+<span class="kw">use </span><span class="kw">super</span>::ParseResult;
 
-<span class="doccomment">/// Formal parameters parsing.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [MDN documentation][mdn]</span>
-<span class="doccomment">///  - [ECMAScript specification][spec]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Glossary/Parameter</span>
-<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-FormalParameters</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">in</span> <span class="ident"><span class="kw">crate</span>::syntax::parser</span>) <span class="kw">struct</span> <span class="ident">FormalParameters</span> {
-    <span class="ident">allow_yield</span>: <span class="ident">AllowYield</span>,
-    <span class="ident">allow_await</span>: <span class="ident">AllowAwait</span>,
+<span class="doccomment">/// Formal parameters parsing.
+///
+/// More information:
+///  - [MDN documentation][mdn]
+///  - [ECMAScript specification][spec]
+///
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Glossary/Parameter
+/// [spec]: https://tc39.es/ecma262/#prod-FormalParameters
+</span><span class="attribute">#[derive(Debug, Clone, Copy)]
+</span><span class="kw">pub</span>(<span class="kw">in </span><span class="kw">crate</span>::syntax::parser) <span class="kw">struct </span>FormalParameters {
+    allow_yield: AllowYield,
+    allow_await: AllowAwait,
 }
 
-<span class="kw">impl</span> <span class="ident">FormalParameters</span> {
-    <span class="doccomment">/// Creates a new `FormalParameters` parser.</span>
-    <span class="kw">pub</span>(<span class="kw">in</span> <span class="ident"><span class="kw">crate</span>::syntax::parser</span>) <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">Y</span>, <span class="ident">A</span><span class="op">&gt;</span>(<span class="ident">allow_yield</span>: <span class="ident">Y</span>, <span class="ident">allow_await</span>: <span class="ident">A</span>) -&gt; <span class="self">Self</span>
-    <span class="kw">where</span>
-        <span class="ident">Y</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowYield</span><span class="op">&gt;</span>,
-        <span class="ident">A</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowAwait</span><span class="op">&gt;</span>,
+<span class="kw">impl </span>FormalParameters {
+    <span class="doccomment">/// Creates a new `FormalParameters` parser.
+    </span><span class="kw">pub</span>(<span class="kw">in </span><span class="kw">crate</span>::syntax::parser) <span class="kw">fn </span>new&lt;Y, A&gt;(allow_yield: Y, allow_await: A) -&gt; <span class="self">Self
+    </span><span class="kw">where
+        </span>Y: Into&lt;AllowYield&gt;,
+        A: Into&lt;AllowAwait&gt;,
     {
-        <span class="self">Self</span> {
-            <span class="ident">allow_yield</span>: <span class="ident">allow_yield</span>.<span class="ident">into</span>(),
-            <span class="ident">allow_await</span>: <span class="ident">allow_await</span>.<span class="ident">into</span>(),
+        <span class="self">Self </span>{
+            allow_yield: allow_yield.into(),
+            allow_await: allow_await.into(),
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="ident">TokenParser</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">FormalParameters</span>
-<span class="kw">where</span>
-    <span class="ident">R</span>: <span class="ident">Read</span>,
+<span class="kw">impl</span>&lt;R&gt; TokenParser&lt;R&gt; <span class="kw">for </span>FormalParameters
+<span class="kw">where
+    </span>R: Read,
 {
-    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">FormalParameterList</span>;
+    <span class="kw">type </span>Output = FormalParameterList;
 
-    <span class="kw">fn</span> <span class="ident">parse</span>(<span class="self">self</span>, <span class="ident">cursor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Interner</span>) -&gt; <span class="ident">ParseResult</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;FormalParameters&quot;</span>, <span class="string">&quot;Parsing&quot;</span>);
-        <span class="ident">cursor</span>.<span class="ident">set_goal</span>(<span class="ident">InputElement::RegExp</span>);
+    <span class="kw">fn </span>parse(<span class="self">self</span>, cursor: <span class="kw-2">&amp;mut </span>Cursor&lt;R&gt;, interner: <span class="kw-2">&amp;mut </span>Interner) -&gt; ParseResult&lt;<span class="self">Self</span>::Output&gt; {
+        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;FormalParameters&quot;</span>, <span class="string">&quot;Parsing&quot;</span>);
+        cursor.set_goal(InputElement::RegExp);
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">params</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
+        <span class="kw">let </span><span class="kw-2">mut </span>params = Vec::new();
 
-        <span class="kw">let</span> <span class="ident">next_token</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">0</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>.<span class="ident">ok_or</span>(<span class="ident">ParseError::AbruptEnd</span>)<span class="question-mark">?</span>;
-        <span class="kw">if</span> <span class="ident">next_token</span>.<span class="ident">kind</span>() <span class="op">==</span> <span class="kw-2">&amp;</span><span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::CloseParen</span>) {
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">FormalParameterList::default</span>());
+        <span class="kw">let </span>next_token = cursor.peek(<span class="number">0</span>, interner)<span class="question-mark">?</span>.ok_or(ParseError::AbruptEnd)<span class="question-mark">?</span>;
+        <span class="kw">if </span>next_token.kind() == <span class="kw-2">&amp;</span>TokenKind::Punctuator(Punctuator::CloseParen) {
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(FormalParameterList::default());
         }
-        <span class="kw">let</span> <span class="ident">start_position</span> <span class="op">=</span> <span class="ident">next_token</span>.<span class="ident">span</span>().<span class="ident">start</span>();
+        <span class="kw">let </span>start_position = next_token.span().start();
 
-        <span class="kw">loop</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rest_param</span> <span class="op">=</span> <span class="bool-val">false</span>;
+        <span class="kw">loop </span>{
+            <span class="kw">let </span><span class="kw-2">mut </span>rest_param = <span class="bool-val">false</span>;
 
-            <span class="kw">let</span> <span class="ident">next_param</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">0</span>, <span class="ident">interner</span>)<span class="question-mark">?</span> {
-                <span class="prelude-val">Some</span>(<span class="ident">tok</span>) <span class="kw">if</span> <span class="ident">tok</span>.<span class="ident">kind</span>() <span class="op">==</span> <span class="kw-2">&amp;</span><span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::Spread</span>) =&gt; {
-                    <span class="ident">rest_param</span> <span class="op">=</span> <span class="bool-val">true</span>;
-                    <span class="ident">FunctionRestParameter::new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
-                        .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>
-                }
-                <span class="kw">_</span> =&gt; <span class="ident">FormalParameter::new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
-                    .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>,
+            <span class="kw">let </span>next_param = <span class="kw">match </span>cursor.peek(<span class="number">0</span>, interner)<span class="question-mark">? </span>{
+                <span class="prelude-val">Some</span>(tok) <span class="kw">if </span>tok.kind() == <span class="kw-2">&amp;</span>TokenKind::Punctuator(Punctuator::Spread) =&gt; {
+                    rest_param = <span class="bool-val">true</span>;
+                    FunctionRestParameter::new(<span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await)
+                        .parse(cursor, interner)<span class="question-mark">?
+                </span>}
+                <span class="kw">_ </span>=&gt; FormalParameter::new(<span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await)
+                    .parse(cursor, interner)<span class="question-mark">?</span>,
             };
 
-            <span class="kw">if</span> <span class="ident">next_param</span>.<span class="ident">is_rest_param</span>() <span class="op">&amp;&amp;</span> <span class="ident">next_param</span>.<span class="ident">init</span>().<span class="ident">is_some</span>() {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::lex</span>(<span class="ident">LexError::Syntax</span>(
-                    <span class="string">&quot;Rest parameter may not have a default initializer&quot;</span>.<span class="ident">into</span>(),
-                    <span class="ident">start_position</span>,
+            <span class="kw">if </span>next_param.is_rest_param() &amp;&amp; next_param.init().is_some() {
+                <span class="kw">return </span><span class="prelude-val">Err</span>(ParseError::lex(LexError::Syntax(
+                    <span class="string">&quot;Rest parameter may not have a default initializer&quot;</span>.into(),
+                    start_position,
                 )));
             }
 
-            <span class="ident">params</span>.<span class="ident">push</span>(<span class="ident">next_param</span>);
+            params.push(next_param);
 
-            <span class="kw">if</span> <span class="ident">cursor</span>
-                .<span class="ident">peek</span>(<span class="number">0</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>
-                .<span class="ident">ok_or</span>(<span class="ident">ParseError::AbruptEnd</span>)<span class="question-mark">?</span>
-                .<span class="ident">kind</span>()
-                <span class="op">==</span> <span class="kw-2">&amp;</span><span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::CloseParen</span>)
+            <span class="kw">if </span>cursor
+                .peek(<span class="number">0</span>, interner)<span class="question-mark">?
+                </span>.ok_or(ParseError::AbruptEnd)<span class="question-mark">?
+                </span>.kind()
+                == <span class="kw-2">&amp;</span>TokenKind::Punctuator(Punctuator::CloseParen)
             {
                 <span class="kw">break</span>;
             }
 
-            <span class="kw">if</span> <span class="ident">rest_param</span> {
-                <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">next</span>(<span class="ident">interner</span>)<span class="question-mark">?</span>.<span class="ident">expect</span>(<span class="string">&quot;peeked token disappeared&quot;</span>);
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::unexpected</span>(
-                    <span class="ident">next</span>.<span class="ident">to_string</span>(<span class="ident">interner</span>),
-                    <span class="ident">next</span>.<span class="ident">span</span>(),
+            <span class="kw">if </span>rest_param {
+                <span class="kw">let </span>next = cursor.next(interner)<span class="question-mark">?</span>.expect(<span class="string">&quot;peeked token disappeared&quot;</span>);
+                <span class="kw">return </span><span class="prelude-val">Err</span>(ParseError::unexpected(
+                    next.to_string(interner),
+                    next.span(),
                     <span class="string">&quot;rest parameter must be the last formal parameter&quot;</span>,
                 ));
             }
 
-            <span class="ident">cursor</span>.<span class="ident">expect</span>(<span class="ident">Punctuator::Comma</span>, <span class="string">&quot;parameter list&quot;</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
-            <span class="kw">if</span> <span class="ident">cursor</span>
-                .<span class="ident">peek</span>(<span class="number">0</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>
-                .<span class="ident">ok_or</span>(<span class="ident">ParseError::AbruptEnd</span>)<span class="question-mark">?</span>
-                .<span class="ident">kind</span>()
-                <span class="op">==</span> <span class="kw-2">&amp;</span><span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::CloseParen</span>)
+            cursor.expect(Punctuator::Comma, <span class="string">&quot;parameter list&quot;</span>, interner)<span class="question-mark">?</span>;
+            <span class="kw">if </span>cursor
+                .peek(<span class="number">0</span>, interner)<span class="question-mark">?
+                </span>.ok_or(ParseError::AbruptEnd)<span class="question-mark">?
+                </span>.kind()
+                == <span class="kw-2">&amp;</span>TokenKind::Punctuator(Punctuator::CloseParen)
             {
                 <span class="kw">break</span>;
             }
         }
 
-        <span class="kw">let</span> <span class="ident">params</span> <span class="op">=</span> <span class="ident">FormalParameterList::from_parameters</span>(<span class="ident">params</span>);
+        <span class="kw">let </span>params = FormalParameterList::from_parameters(params);
 
-        <span class="comment">// Early Error: It is a Syntax Error if IsSimpleParameterList of FormalParameterList is false</span>
-        <span class="comment">// and BoundNames of FormalParameterList contains any duplicate elements.</span>
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">params</span>.<span class="ident">flags</span>().<span class="ident">contains</span>(<span class="ident">FormalParameterListFlags::IS_SIMPLE</span>)
-            <span class="op">&amp;&amp;</span> <span class="ident">params</span>
-                .<span class="ident">flags</span>()
-                .<span class="ident">contains</span>(<span class="ident">FormalParameterListFlags::HAS_DUPLICATES</span>)
+        <span class="comment">// Early Error: It is a Syntax Error if IsSimpleParameterList of FormalParameterList is false
+        // and BoundNames of FormalParameterList contains any duplicate elements.
+        </span><span class="kw">if </span>!params.flags().contains(FormalParameterListFlags::IS_SIMPLE)
+            &amp;&amp; params
+                .flags()
+                .contains(FormalParameterListFlags::HAS_DUPLICATES)
         {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::lex</span>(<span class="ident">LexError::Syntax</span>(
-                <span class="string">&quot;Duplicate parameter name not allowed in this context&quot;</span>.<span class="ident">into</span>(),
-                <span class="ident">start_position</span>,
+            <span class="kw">return </span><span class="prelude-val">Err</span>(ParseError::lex(LexError::Syntax(
+                <span class="string">&quot;Duplicate parameter name not allowed in this context&quot;</span>.into(),
+                start_position,
             )));
         }
-        <span class="prelude-val">Ok</span>(<span class="ident">params</span>)
+        <span class="prelude-val">Ok</span>(params)
     }
 }
 
-<span class="doccomment">/// `UniqueFormalParameters` parsing.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [ECMAScript specification][spec]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-UniqueFormalParameters</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">in</span> <span class="ident"><span class="kw">crate</span>::syntax::parser</span>) <span class="kw">struct</span> <span class="ident">UniqueFormalParameters</span> {
-    <span class="ident">allow_yield</span>: <span class="ident">AllowYield</span>,
-    <span class="ident">allow_await</span>: <span class="ident">AllowAwait</span>,
+<span class="doccomment">/// `UniqueFormalParameters` parsing.
+///
+/// More information:
+///  - [ECMAScript specification][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#prod-UniqueFormalParameters
+</span><span class="attribute">#[derive(Debug, Clone, Copy)]
+</span><span class="kw">pub</span>(<span class="kw">in </span><span class="kw">crate</span>::syntax::parser) <span class="kw">struct </span>UniqueFormalParameters {
+    allow_yield: AllowYield,
+    allow_await: AllowAwait,
 }
 
-<span class="kw">impl</span> <span class="ident">UniqueFormalParameters</span> {
-    <span class="doccomment">/// Creates a new `UniqueFormalParameters` parser.</span>
-    <span class="kw">pub</span>(<span class="kw">in</span> <span class="ident"><span class="kw">crate</span>::syntax::parser</span>) <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">Y</span>, <span class="ident">A</span><span class="op">&gt;</span>(<span class="ident">allow_yield</span>: <span class="ident">Y</span>, <span class="ident">allow_await</span>: <span class="ident">A</span>) -&gt; <span class="self">Self</span>
-    <span class="kw">where</span>
-        <span class="ident">Y</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowYield</span><span class="op">&gt;</span>,
-        <span class="ident">A</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowAwait</span><span class="op">&gt;</span>,
+<span class="kw">impl </span>UniqueFormalParameters {
+    <span class="doccomment">/// Creates a new `UniqueFormalParameters` parser.
+    </span><span class="kw">pub</span>(<span class="kw">in </span><span class="kw">crate</span>::syntax::parser) <span class="kw">fn </span>new&lt;Y, A&gt;(allow_yield: Y, allow_await: A) -&gt; <span class="self">Self
+    </span><span class="kw">where
+        </span>Y: Into&lt;AllowYield&gt;,
+        A: Into&lt;AllowAwait&gt;,
     {
-        <span class="self">Self</span> {
-            <span class="ident">allow_yield</span>: <span class="ident">allow_yield</span>.<span class="ident">into</span>(),
-            <span class="ident">allow_await</span>: <span class="ident">allow_await</span>.<span class="ident">into</span>(),
+        <span class="self">Self </span>{
+            allow_yield: allow_yield.into(),
+            allow_await: allow_await.into(),
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="ident">TokenParser</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">UniqueFormalParameters</span>
-<span class="kw">where</span>
-    <span class="ident">R</span>: <span class="ident">Read</span>,
+<span class="kw">impl</span>&lt;R&gt; TokenParser&lt;R&gt; <span class="kw">for </span>UniqueFormalParameters
+<span class="kw">where
+    </span>R: Read,
 {
-    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">FormalParameterList</span>;
+    <span class="kw">type </span>Output = FormalParameterList;
 
-    <span class="kw">fn</span> <span class="ident">parse</span>(<span class="self">self</span>, <span class="ident">cursor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Interner</span>) -&gt; <span class="ident">ParseResult</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">params_start_position</span> <span class="op">=</span> <span class="ident">cursor</span>
-            .<span class="ident">expect</span>(
-                <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::OpenParen</span>),
+    <span class="kw">fn </span>parse(<span class="self">self</span>, cursor: <span class="kw-2">&amp;mut </span>Cursor&lt;R&gt;, interner: <span class="kw-2">&amp;mut </span>Interner) -&gt; ParseResult&lt;<span class="self">Self</span>::Output&gt; {
+        <span class="kw">let </span>params_start_position = cursor
+            .expect(
+                TokenKind::Punctuator(Punctuator::OpenParen),
                 <span class="string">&quot;unique formal parameters&quot;</span>,
-                <span class="ident">interner</span>,
-            )<span class="question-mark">?</span>
-            .<span class="ident">span</span>()
-            .<span class="ident">end</span>();
-        <span class="kw">let</span> <span class="ident">params</span> <span class="op">=</span>
-            <span class="ident">FormalParameters::new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>).<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
-        <span class="ident">cursor</span>.<span class="ident">expect</span>(
-            <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::CloseParen</span>),
+                interner,
+            )<span class="question-mark">?
+            </span>.span()
+            .end();
+        <span class="kw">let </span>params =
+            FormalParameters::new(<span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await).parse(cursor, interner)<span class="question-mark">?</span>;
+        cursor.expect(
+            TokenKind::Punctuator(Punctuator::CloseParen),
             <span class="string">&quot;unique formal parameters&quot;</span>,
-            <span class="ident">interner</span>,
+            interner,
         )<span class="question-mark">?</span>;
 
-        <span class="comment">// Early Error: UniqueFormalParameters : FormalParameters</span>
-        <span class="kw">if</span> <span class="ident">params</span>.<span class="ident">has_duplicates</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::lex</span>(<span class="ident">LexError::Syntax</span>(
-                <span class="string">&quot;duplicate parameter name not allowed in unique formal parameters&quot;</span>.<span class="ident">into</span>(),
-                <span class="ident">params_start_position</span>,
+        <span class="comment">// Early Error: UniqueFormalParameters : FormalParameters
+        </span><span class="kw">if </span>params.has_duplicates() {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(ParseError::lex(LexError::Syntax(
+                <span class="string">&quot;duplicate parameter name not allowed in unique formal parameters&quot;</span>.into(),
+                params_start_position,
             )));
         }
-        <span class="prelude-val">Ok</span>(<span class="ident">params</span>)
+        <span class="prelude-val">Ok</span>(params)
     }
 }
 
-<span class="doccomment">/// Rest parameter parsing.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [MDN documentation][mdn]</span>
-<span class="doccomment">///  - [ECMAScript specification][spec]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/rest_parameters</span>
-<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-FunctionRestParameter</span>
-<span class="kw">type</span> <span class="ident">FunctionRestParameter</span> <span class="op">=</span> <span class="ident">BindingRestElement</span>;
+<span class="doccomment">/// Rest parameter parsing.
+///
+/// More information:
+///  - [MDN documentation][mdn]
+///  - [ECMAScript specification][spec]
+///
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/rest_parameters
+/// [spec]: https://tc39.es/ecma262/#prod-FunctionRestParameter
+</span><span class="kw">type </span>FunctionRestParameter = BindingRestElement;
 
-<span class="doccomment">/// Rest parameter parsing.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [MDN documentation][mdn]</span>
-<span class="doccomment">///  - [ECMAScript specification][spec]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/rest_parameters</span>
-<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-BindingRestElement</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
-<span class="kw">struct</span> <span class="ident">BindingRestElement</span> {
-    <span class="ident">allow_yield</span>: <span class="ident">AllowYield</span>,
-    <span class="ident">allow_await</span>: <span class="ident">AllowAwait</span>,
+<span class="doccomment">/// Rest parameter parsing.
+///
+/// More information:
+///  - [MDN documentation][mdn]
+///  - [ECMAScript specification][spec]
+///
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/rest_parameters
+/// [spec]: https://tc39.es/ecma262/#prod-BindingRestElement
+</span><span class="attribute">#[derive(Debug, Clone, Copy)]
+</span><span class="kw">struct </span>BindingRestElement {
+    allow_yield: AllowYield,
+    allow_await: AllowAwait,
 }
 
-<span class="kw">impl</span> <span class="ident">BindingRestElement</span> {
-    <span class="doccomment">/// Creates a new `BindingRestElement` parser.</span>
-    <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">Y</span>, <span class="ident">A</span><span class="op">&gt;</span>(<span class="ident">allow_yield</span>: <span class="ident">Y</span>, <span class="ident">allow_await</span>: <span class="ident">A</span>) -&gt; <span class="self">Self</span>
-    <span class="kw">where</span>
-        <span class="ident">Y</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowYield</span><span class="op">&gt;</span>,
-        <span class="ident">A</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowAwait</span><span class="op">&gt;</span>,
+<span class="kw">impl </span>BindingRestElement {
+    <span class="doccomment">/// Creates a new `BindingRestElement` parser.
+    </span><span class="kw">fn </span>new&lt;Y, A&gt;(allow_yield: Y, allow_await: A) -&gt; <span class="self">Self
+    </span><span class="kw">where
+        </span>Y: Into&lt;AllowYield&gt;,
+        A: Into&lt;AllowAwait&gt;,
     {
-        <span class="self">Self</span> {
-            <span class="ident">allow_yield</span>: <span class="ident">allow_yield</span>.<span class="ident">into</span>(),
-            <span class="ident">allow_await</span>: <span class="ident">allow_await</span>.<span class="ident">into</span>(),
+        <span class="self">Self </span>{
+            allow_yield: allow_yield.into(),
+            allow_await: allow_await.into(),
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="ident">TokenParser</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">BindingRestElement</span>
-<span class="kw">where</span>
-    <span class="ident">R</span>: <span class="ident">Read</span>,
+<span class="kw">impl</span>&lt;R&gt; TokenParser&lt;R&gt; <span class="kw">for </span>BindingRestElement
+<span class="kw">where
+    </span>R: Read,
 {
-    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">ast::function::FormalParameter</span>;
+    <span class="kw">type </span>Output = ast::function::FormalParameter;
 
-    <span class="kw">fn</span> <span class="ident">parse</span>(<span class="self">self</span>, <span class="ident">cursor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Interner</span>) -&gt; <span class="ident">ParseResult</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;BindingRestElement&quot;</span>, <span class="string">&quot;Parsing&quot;</span>);
-        <span class="ident">cursor</span>.<span class="ident">expect</span>(<span class="ident">Punctuator::Spread</span>, <span class="string">&quot;rest parameter&quot;</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
+    <span class="kw">fn </span>parse(<span class="self">self</span>, cursor: <span class="kw-2">&amp;mut </span>Cursor&lt;R&gt;, interner: <span class="kw-2">&amp;mut </span>Interner) -&gt; ParseResult&lt;<span class="self">Self</span>::Output&gt; {
+        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;BindingRestElement&quot;</span>, <span class="string">&quot;Parsing&quot;</span>);
+        cursor.expect(Punctuator::Spread, <span class="string">&quot;rest parameter&quot;</span>, interner)<span class="question-mark">?</span>;
 
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">t</span>) <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">0</span>, <span class="ident">interner</span>)<span class="question-mark">?</span> {
-            <span class="kw">let</span> <span class="ident">declaration</span> <span class="op">=</span> <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">t</span>.<span class="ident">kind</span>() {
-                <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::OpenBlock</span>) =&gt; {
-                    <span class="kw">let</span> <span class="ident">param</span> <span class="op">=</span> <span class="ident">ObjectBindingPattern::new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
-                        .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(t) = cursor.peek(<span class="number">0</span>, interner)<span class="question-mark">? </span>{
+            <span class="kw">let </span>declaration = <span class="kw">match </span><span class="kw-2">*</span>t.kind() {
+                TokenKind::Punctuator(Punctuator::OpenBlock) =&gt; {
+                    <span class="kw">let </span>param = ObjectBindingPattern::new(<span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await)
+                        .parse(cursor, interner)<span class="question-mark">?</span>;
 
-                    <span class="kw">let</span> <span class="ident">init</span> <span class="op">=</span> <span class="ident">cursor</span>
-                        .<span class="ident">peek</span>(<span class="number">0</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>
-                        .<span class="ident">cloned</span>()
-                        .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">t</span><span class="op">|</span> {
-                            <span class="comment">// Check that this is an initializer before attempting parse.</span>
-                            <span class="kw-2">*</span><span class="ident">t</span>.<span class="ident">kind</span>() <span class="op">==</span> <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::Assign</span>)
+                    <span class="kw">let </span>init = cursor
+                        .peek(<span class="number">0</span>, interner)<span class="question-mark">?
+                        </span>.cloned()
+                        .filter(|t| {
+                            <span class="comment">// Check that this is an initializer before attempting parse.
+                            </span><span class="kw-2">*</span>t.kind() == TokenKind::Punctuator(Punctuator::Assign)
                         })
-                        .<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> {
-                            <span class="ident">Initializer::new</span>(<span class="prelude-val">None</span>, <span class="bool-val">true</span>, <span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
-                                .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)
+                        .map(|<span class="kw">_</span>| {
+                            Initializer::new(<span class="prelude-val">None</span>, <span class="bool-val">true</span>, <span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await)
+                                .parse(cursor, interner)
                         })
-                        .<span class="ident">transpose</span>()<span class="question-mark">?</span>;
-                    <span class="ident">Variable::from_pattern</span>(<span class="ident">param</span>.<span class="ident">into</span>(), <span class="ident">init</span>)
+                        .transpose()<span class="question-mark">?</span>;
+                    Variable::from_pattern(param.into(), init)
                 }
 
-                <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::OpenBracket</span>) =&gt; <span class="ident">Variable::from_pattern</span>(
-                    <span class="ident">ArrayBindingPattern::new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
-                        .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>
-                        .<span class="ident">into</span>(),
+                TokenKind::Punctuator(Punctuator::OpenBracket) =&gt; Variable::from_pattern(
+                    ArrayBindingPattern::new(<span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await)
+                        .parse(cursor, interner)<span class="question-mark">?
+                        </span>.into(),
                     <span class="prelude-val">None</span>,
                 ),
 
-                <span class="kw">_</span> =&gt; {
-                    <span class="kw">let</span> <span class="ident">params</span> <span class="op">=</span> <span class="ident">BindingIdentifier::new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
-                        .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
-                    <span class="kw">let</span> <span class="ident">init</span> <span class="op">=</span> <span class="ident">cursor</span>
-                        .<span class="ident">peek</span>(<span class="number">0</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>
-                        .<span class="ident">cloned</span>()
-                        .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">t</span><span class="op">|</span> {
-                            <span class="comment">// Check that this is an initializer before attempting parse.</span>
-                            <span class="kw-2">*</span><span class="ident">t</span>.<span class="ident">kind</span>() <span class="op">==</span> <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::Assign</span>)
+                <span class="kw">_ </span>=&gt; {
+                    <span class="kw">let </span>params = BindingIdentifier::new(<span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await)
+                        .parse(cursor, interner)<span class="question-mark">?</span>;
+                    <span class="kw">let </span>init = cursor
+                        .peek(<span class="number">0</span>, interner)<span class="question-mark">?
+                        </span>.cloned()
+                        .filter(|t| {
+                            <span class="comment">// Check that this is an initializer before attempting parse.
+                            </span><span class="kw-2">*</span>t.kind() == TokenKind::Punctuator(Punctuator::Assign)
                         })
-                        .<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> {
-                            <span class="ident">Initializer::new</span>(<span class="prelude-val">None</span>, <span class="bool-val">true</span>, <span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
-                                .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)
+                        .map(|<span class="kw">_</span>| {
+                            Initializer::new(<span class="prelude-val">None</span>, <span class="bool-val">true</span>, <span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await)
+                                .parse(cursor, interner)
                         })
-                        .<span class="ident">transpose</span>()<span class="question-mark">?</span>;
+                        .transpose()<span class="question-mark">?</span>;
 
-                    <span class="ident">Variable::from_identifier</span>(<span class="ident">params</span>, <span class="ident">init</span>)
+                    Variable::from_identifier(params, init)
                 }
             };
-            <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::Output::new</span>(<span class="ident">declaration</span>, <span class="bool-val">true</span>))
-        } <span class="kw">else</span> {
-            <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::Output::new</span>(
-                <span class="ident">Variable::from_identifier</span>(<span class="ident">Sym::EMPTY_STRING</span>.<span class="ident">into</span>(), <span class="prelude-val">None</span>),
+            <span class="prelude-val">Ok</span>(<span class="self">Self</span>::Output::new(declaration, <span class="bool-val">true</span>))
+        } <span class="kw">else </span>{
+            <span class="prelude-val">Ok</span>(<span class="self">Self</span>::Output::new(
+                Variable::from_identifier(Sym::EMPTY_STRING.into(), <span class="prelude-val">None</span>),
                 <span class="bool-val">true</span>,
             ))
         }
     }
 }
 
-<span class="doccomment">/// Formal parameter parsing.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [MDN documentation][mdn]</span>
-<span class="doccomment">///  - [ECMAScript specification][spec]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Glossary/Parameter</span>
-<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-FormalParameter</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">in</span> <span class="ident"><span class="kw">crate</span>::syntax::parser</span>) <span class="kw">struct</span> <span class="ident">FormalParameter</span> {
-    <span class="ident">allow_yield</span>: <span class="ident">AllowYield</span>,
-    <span class="ident">allow_await</span>: <span class="ident">AllowAwait</span>,
+<span class="doccomment">/// Formal parameter parsing.
+///
+/// More information:
+///  - [MDN documentation][mdn]
+///  - [ECMAScript specification][spec]
+///
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Glossary/Parameter
+/// [spec]: https://tc39.es/ecma262/#prod-FormalParameter
+</span><span class="attribute">#[derive(Debug, Clone, Copy)]
+</span><span class="kw">pub</span>(<span class="kw">in </span><span class="kw">crate</span>::syntax::parser) <span class="kw">struct </span>FormalParameter {
+    allow_yield: AllowYield,
+    allow_await: AllowAwait,
 }
 
-<span class="kw">impl</span> <span class="ident">FormalParameter</span> {
-    <span class="doccomment">/// Creates a new `FormalParameter` parser.</span>
-    <span class="kw">pub</span>(<span class="kw">in</span> <span class="ident"><span class="kw">crate</span>::syntax::parser</span>) <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">Y</span>, <span class="ident">A</span><span class="op">&gt;</span>(<span class="ident">allow_yield</span>: <span class="ident">Y</span>, <span class="ident">allow_await</span>: <span class="ident">A</span>) -&gt; <span class="self">Self</span>
-    <span class="kw">where</span>
-        <span class="ident">Y</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowYield</span><span class="op">&gt;</span>,
-        <span class="ident">A</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowAwait</span><span class="op">&gt;</span>,
+<span class="kw">impl </span>FormalParameter {
+    <span class="doccomment">/// Creates a new `FormalParameter` parser.
+    </span><span class="kw">pub</span>(<span class="kw">in </span><span class="kw">crate</span>::syntax::parser) <span class="kw">fn </span>new&lt;Y, A&gt;(allow_yield: Y, allow_await: A) -&gt; <span class="self">Self
+    </span><span class="kw">where
+        </span>Y: Into&lt;AllowYield&gt;,
+        A: Into&lt;AllowAwait&gt;,
     {
-        <span class="self">Self</span> {
-            <span class="ident">allow_yield</span>: <span class="ident">allow_yield</span>.<span class="ident">into</span>(),
-            <span class="ident">allow_await</span>: <span class="ident">allow_await</span>.<span class="ident">into</span>(),
+        <span class="self">Self </span>{
+            allow_yield: allow_yield.into(),
+            allow_await: allow_await.into(),
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="ident">TokenParser</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">FormalParameter</span>
-<span class="kw">where</span>
-    <span class="ident">R</span>: <span class="ident">Read</span>,
+<span class="kw">impl</span>&lt;R&gt; TokenParser&lt;R&gt; <span class="kw">for </span>FormalParameter
+<span class="kw">where
+    </span>R: Read,
 {
-    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">ast::function::FormalParameter</span>;
+    <span class="kw">type </span>Output = ast::function::FormalParameter;
 
-    <span class="kw">fn</span> <span class="ident">parse</span>(<span class="self">self</span>, <span class="ident">cursor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Interner</span>) -&gt; <span class="ident">ParseResult</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;FormalParameter&quot;</span>, <span class="string">&quot;Parsing&quot;</span>);
+    <span class="kw">fn </span>parse(<span class="self">self</span>, cursor: <span class="kw-2">&amp;mut </span>Cursor&lt;R&gt;, interner: <span class="kw-2">&amp;mut </span>Interner) -&gt; ParseResult&lt;<span class="self">Self</span>::Output&gt; {
+        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;FormalParameter&quot;</span>, <span class="string">&quot;Parsing&quot;</span>);
 
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">t</span>) <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">0</span>, <span class="ident">interner</span>)<span class="question-mark">?</span> {
-            <span class="kw">let</span> <span class="ident">declaration</span> <span class="op">=</span> <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">t</span>.<span class="ident">kind</span>() {
-                <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::OpenBlock</span>) =&gt; {
-                    <span class="kw">let</span> <span class="ident">bindings</span> <span class="op">=</span> <span class="ident">ObjectBindingPattern::new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
-                        .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
-                    <span class="kw">let</span> <span class="ident">init</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">cursor</span>
-                        .<span class="ident">peek</span>(<span class="number">0</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>
-                        .<span class="ident">ok_or</span>(<span class="ident">ParseError::AbruptEnd</span>)<span class="question-mark">?</span>
-                        .<span class="ident">kind</span>()
-                        <span class="op">==</span> <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::Assign</span>)
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(t) = cursor.peek(<span class="number">0</span>, interner)<span class="question-mark">? </span>{
+            <span class="kw">let </span>declaration = <span class="kw">match </span><span class="kw-2">*</span>t.kind() {
+                TokenKind::Punctuator(Punctuator::OpenBlock) =&gt; {
+                    <span class="kw">let </span>bindings = ObjectBindingPattern::new(<span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await)
+                        .parse(cursor, interner)<span class="question-mark">?</span>;
+                    <span class="kw">let </span>init = <span class="kw">if </span><span class="kw-2">*</span>cursor
+                        .peek(<span class="number">0</span>, interner)<span class="question-mark">?
+                        </span>.ok_or(ParseError::AbruptEnd)<span class="question-mark">?
+                        </span>.kind()
+                        == TokenKind::Punctuator(Punctuator::Assign)
                     {
                         <span class="prelude-val">Some</span>(
-                            <span class="ident">Initializer::new</span>(<span class="prelude-val">None</span>, <span class="bool-val">true</span>, <span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
-                                .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>,
+                            Initializer::new(<span class="prelude-val">None</span>, <span class="bool-val">true</span>, <span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await)
+                                .parse(cursor, interner)<span class="question-mark">?</span>,
                         )
-                    } <span class="kw">else</span> {
-                        <span class="prelude-val">None</span>
-                    };
+                    } <span class="kw">else </span>{
+                        <span class="prelude-val">None
+                    </span>};
 
-                    <span class="ident">Variable::from_pattern</span>(<span class="ident">bindings</span>.<span class="ident">into</span>(), <span class="ident">init</span>)
+                    Variable::from_pattern(bindings.into(), init)
                 }
-                <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::OpenBracket</span>) =&gt; {
-                    <span class="kw">let</span> <span class="ident">bindings</span> <span class="op">=</span> <span class="ident">ArrayBindingPattern::new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
-                        .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
-                    <span class="kw">let</span> <span class="ident">init</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">cursor</span>
-                        .<span class="ident">peek</span>(<span class="number">0</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>
-                        .<span class="ident">ok_or</span>(<span class="ident">ParseError::AbruptEnd</span>)<span class="question-mark">?</span>
-                        .<span class="ident">kind</span>()
-                        <span class="op">==</span> <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::Assign</span>)
+                TokenKind::Punctuator(Punctuator::OpenBracket) =&gt; {
+                    <span class="kw">let </span>bindings = ArrayBindingPattern::new(<span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await)
+                        .parse(cursor, interner)<span class="question-mark">?</span>;
+                    <span class="kw">let </span>init = <span class="kw">if </span><span class="kw-2">*</span>cursor
+                        .peek(<span class="number">0</span>, interner)<span class="question-mark">?
+                        </span>.ok_or(ParseError::AbruptEnd)<span class="question-mark">?
+                        </span>.kind()
+                        == TokenKind::Punctuator(Punctuator::Assign)
                     {
                         <span class="prelude-val">Some</span>(
-                            <span class="ident">Initializer::new</span>(<span class="prelude-val">None</span>, <span class="bool-val">true</span>, <span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
-                                .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>,
+                            Initializer::new(<span class="prelude-val">None</span>, <span class="bool-val">true</span>, <span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await)
+                                .parse(cursor, interner)<span class="question-mark">?</span>,
                         )
-                    } <span class="kw">else</span> {
-                        <span class="prelude-val">None</span>
-                    };
+                    } <span class="kw">else </span>{
+                        <span class="prelude-val">None
+                    </span>};
 
-                    <span class="ident">Variable::from_pattern</span>(<span class="ident">bindings</span>.<span class="ident">into</span>(), <span class="ident">init</span>)
+                    Variable::from_pattern(bindings.into(), init)
                 }
-                <span class="kw">_</span> =&gt; {
-                    <span class="kw">let</span> <span class="ident">ident</span> <span class="op">=</span> <span class="ident">BindingIdentifier::new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
-                        .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
-                    <span class="kw">let</span> <span class="ident">init</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">cursor</span>
-                        .<span class="ident">peek</span>(<span class="number">0</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>
-                        .<span class="ident">ok_or</span>(<span class="ident">ParseError::AbruptEnd</span>)<span class="question-mark">?</span>
-                        .<span class="ident">kind</span>()
-                        <span class="op">==</span> <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::Assign</span>)
+                <span class="kw">_ </span>=&gt; {
+                    <span class="kw">let </span>ident = BindingIdentifier::new(<span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await)
+                        .parse(cursor, interner)<span class="question-mark">?</span>;
+                    <span class="kw">let </span>init = <span class="kw">if </span><span class="kw-2">*</span>cursor
+                        .peek(<span class="number">0</span>, interner)<span class="question-mark">?
+                        </span>.ok_or(ParseError::AbruptEnd)<span class="question-mark">?
+                        </span>.kind()
+                        == TokenKind::Punctuator(Punctuator::Assign)
                     {
                         <span class="prelude-val">Some</span>(
-                            <span class="ident">Initializer::new</span>(<span class="prelude-val">None</span>, <span class="bool-val">true</span>, <span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
-                                .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>,
+                            Initializer::new(<span class="prelude-val">None</span>, <span class="bool-val">true</span>, <span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await)
+                                .parse(cursor, interner)<span class="question-mark">?</span>,
                         )
-                    } <span class="kw">else</span> {
-                        <span class="prelude-val">None</span>
-                    };
+                    } <span class="kw">else </span>{
+                        <span class="prelude-val">None
+                    </span>};
 
-                    <span class="ident">Variable::from_identifier</span>(<span class="ident">ident</span>, <span class="ident">init</span>)
+                    Variable::from_identifier(ident, init)
                 }
             };
-            <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::Output::new</span>(<span class="ident">declaration</span>, <span class="bool-val">false</span>))
-        } <span class="kw">else</span> {
-            <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::Output::new</span>(
-                <span class="ident">Variable::from_identifier</span>(<span class="ident">Sym::EMPTY_STRING</span>.<span class="ident">into</span>(), <span class="prelude-val">None</span>),
+            <span class="prelude-val">Ok</span>(<span class="self">Self</span>::Output::new(declaration, <span class="bool-val">false</span>))
+        } <span class="kw">else </span>{
+            <span class="prelude-val">Ok</span>(<span class="self">Self</span>::Output::new(
+                Variable::from_identifier(Sym::EMPTY_STRING.into(), <span class="prelude-val">None</span>),
                 <span class="bool-val">false</span>,
             ))
         }
     }
 }
 
-<span class="doccomment">/// A `FunctionBody` is equivalent to a `FunctionStatementList`.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [ECMAScript specification][spec]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-FunctionBody</span>
-<span class="kw">pub</span>(<span class="kw">in</span> <span class="ident"><span class="kw">crate</span>::syntax::parser</span>) <span class="kw">type</span> <span class="ident">FunctionBody</span> <span class="op">=</span> <span class="ident">FunctionStatementList</span>;
+<span class="doccomment">/// A `FunctionBody` is equivalent to a `FunctionStatementList`.
+///
+/// More information:
+///  - [ECMAScript specification][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#prod-FunctionBody
+</span><span class="kw">pub</span>(<span class="kw">in </span><span class="kw">crate</span>::syntax::parser) <span class="kw">type </span>FunctionBody = FunctionStatementList;
 
-<span class="doccomment">/// The possible `TokenKind` which indicate the end of a function statement.</span>
-<span class="kw">pub</span>(<span class="kw">in</span> <span class="ident"><span class="kw">crate</span>::syntax::parser</span>) <span class="kw">const</span> <span class="ident">FUNCTION_BREAK_TOKENS</span>: [<span class="ident">TokenKind</span>; <span class="number">1</span>] <span class="op">=</span>
-    [<span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::CloseBlock</span>)];
+<span class="doccomment">/// The possible `TokenKind` which indicate the end of a function statement.
+</span><span class="kw">pub</span>(<span class="kw">in </span><span class="kw">crate</span>::syntax::parser) <span class="kw">const </span>FUNCTION_BREAK_TOKENS: [TokenKind; <span class="number">1</span>] =
+    [TokenKind::Punctuator(Punctuator::CloseBlock)];
 
-<span class="doccomment">/// A function statement list</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [ECMAScript specification][spec]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-FunctionStatementList</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">in</span> <span class="ident"><span class="kw">crate</span>::syntax::parser</span>) <span class="kw">struct</span> <span class="ident">FunctionStatementList</span> {
-    <span class="ident">allow_yield</span>: <span class="ident">AllowYield</span>,
-    <span class="ident">allow_await</span>: <span class="ident">AllowAwait</span>,
+<span class="doccomment">/// A function statement list
+///
+/// More information:
+///  - [ECMAScript specification][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#prod-FunctionStatementList
+</span><span class="attribute">#[derive(Debug, Clone, Copy)]
+</span><span class="kw">pub</span>(<span class="kw">in </span><span class="kw">crate</span>::syntax::parser) <span class="kw">struct </span>FunctionStatementList {
+    allow_yield: AllowYield,
+    allow_await: AllowAwait,
 }
 
-<span class="kw">impl</span> <span class="ident">FunctionStatementList</span> {
-    <span class="doccomment">/// Creates a new `FunctionStatementList` parser.</span>
-    <span class="kw">pub</span>(<span class="kw">in</span> <span class="ident"><span class="kw">crate</span>::syntax::parser</span>) <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">Y</span>, <span class="ident">A</span><span class="op">&gt;</span>(<span class="ident">allow_yield</span>: <span class="ident">Y</span>, <span class="ident">allow_await</span>: <span class="ident">A</span>) -&gt; <span class="self">Self</span>
-    <span class="kw">where</span>
-        <span class="ident">Y</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowYield</span><span class="op">&gt;</span>,
-        <span class="ident">A</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowAwait</span><span class="op">&gt;</span>,
+<span class="kw">impl </span>FunctionStatementList {
+    <span class="doccomment">/// Creates a new `FunctionStatementList` parser.
+    </span><span class="kw">pub</span>(<span class="kw">in </span><span class="kw">crate</span>::syntax::parser) <span class="kw">fn </span>new&lt;Y, A&gt;(allow_yield: Y, allow_await: A) -&gt; <span class="self">Self
+    </span><span class="kw">where
+        </span>Y: Into&lt;AllowYield&gt;,
+        A: Into&lt;AllowAwait&gt;,
     {
-        <span class="self">Self</span> {
-            <span class="ident">allow_yield</span>: <span class="ident">allow_yield</span>.<span class="ident">into</span>(),
-            <span class="ident">allow_await</span>: <span class="ident">allow_await</span>.<span class="ident">into</span>(),
+        <span class="self">Self </span>{
+            allow_yield: allow_yield.into(),
+            allow_await: allow_await.into(),
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="ident">TokenParser</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">FunctionStatementList</span>
-<span class="kw">where</span>
-    <span class="ident">R</span>: <span class="ident">Read</span>,
+<span class="kw">impl</span>&lt;R&gt; TokenParser&lt;R&gt; <span class="kw">for </span>FunctionStatementList
+<span class="kw">where
+    </span>R: Read,
 {
-    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">ast::StatementList</span>;
+    <span class="kw">type </span>Output = ast::StatementList;
 
-    <span class="kw">fn</span> <span class="ident">parse</span>(<span class="self">self</span>, <span class="ident">cursor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Interner</span>) -&gt; <span class="ident">ParseResult</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;FunctionStatementList&quot;</span>, <span class="string">&quot;Parsing&quot;</span>);
+    <span class="kw">fn </span>parse(<span class="self">self</span>, cursor: <span class="kw-2">&amp;mut </span>Cursor&lt;R&gt;, interner: <span class="kw-2">&amp;mut </span>Interner) -&gt; ParseResult&lt;<span class="self">Self</span>::Output&gt; {
+        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;FunctionStatementList&quot;</span>, <span class="string">&quot;Parsing&quot;</span>);
 
-        <span class="kw">let</span> <span class="ident">global_strict_mode</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">strict_mode</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">strict</span> <span class="op">=</span> <span class="bool-val">false</span>;
+        <span class="kw">let </span>global_strict_mode = cursor.strict_mode();
+        <span class="kw">let </span><span class="kw-2">mut </span>strict = <span class="bool-val">false</span>;
 
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">tk</span>) <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">0</span>, <span class="ident">interner</span>)<span class="question-mark">?</span> {
-            <span class="kw">match</span> <span class="ident">tk</span>.<span class="ident">kind</span>() {
-                <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::CloseBlock</span>) =&gt; {
-                    <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Vec::new</span>().<span class="ident">into</span>());
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(tk) = cursor.peek(<span class="number">0</span>, interner)<span class="question-mark">? </span>{
+            <span class="kw">match </span>tk.kind() {
+                TokenKind::Punctuator(Punctuator::CloseBlock) =&gt; {
+                    <span class="kw">return </span><span class="prelude-val">Ok</span>(Vec::new().into());
                 }
-                <span class="ident">TokenKind::StringLiteral</span>(<span class="ident">string</span>)
-                    <span class="kw">if</span> <span class="ident">interner</span>.<span class="ident">resolve_expect</span>(<span class="kw-2">*</span><span class="ident">string</span>).<span class="ident">join</span>(
-                        <span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="ident">s</span> <span class="op">==</span> <span class="string">&quot;use strict&quot;</span>,
-                        <span class="op">|</span><span class="ident">g</span><span class="op">|</span> <span class="ident">g</span> <span class="op">==</span> <span class="macro">utf16!</span>(<span class="string">&quot;use strict&quot;</span>),
+                TokenKind::StringLiteral(string)
+                    <span class="kw">if </span>interner.resolve_expect(<span class="kw-2">*</span>string).join(
+                        |s| s == <span class="string">&quot;use strict&quot;</span>,
+                        |g| g == <span class="macro">utf16!</span>(<span class="string">&quot;use strict&quot;</span>),
                         <span class="bool-val">true</span>,
                     ) =&gt;
                 {
-                    <span class="ident">cursor</span>.<span class="ident">set_strict_mode</span>(<span class="bool-val">true</span>);
-                    <span class="ident">strict</span> <span class="op">=</span> <span class="bool-val">true</span>;
+                    cursor.set_strict_mode(<span class="bool-val">true</span>);
+                    strict = <span class="bool-val">true</span>;
                 }
-                <span class="kw">_</span> =&gt; {}
+                <span class="kw">_ </span>=&gt; {}
             }
         }
 
-        <span class="kw">let</span> <span class="ident">statement_list</span> <span class="op">=</span> <span class="ident">StatementList::new</span>(
-            <span class="self">self</span>.<span class="ident">allow_yield</span>,
-            <span class="self">self</span>.<span class="ident">allow_await</span>,
+        <span class="kw">let </span>statement_list = StatementList::new(
+            <span class="self">self</span>.allow_yield,
+            <span class="self">self</span>.allow_await,
             <span class="bool-val">true</span>,
-            <span class="kw-2">&amp;</span><span class="ident">FUNCTION_BREAK_TOKENS</span>,
+            <span class="kw-2">&amp;</span>FUNCTION_BREAK_TOKENS,
         )
-        .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>);
+        .parse(cursor, interner);
 
-        <span class="comment">// Reset strict mode back to the global scope.</span>
-        <span class="ident">cursor</span>.<span class="ident">set_strict_mode</span>(<span class="ident">global_strict_mode</span>);
+        <span class="comment">// Reset strict mode back to the global scope.
+        </span>cursor.set_strict_mode(global_strict_mode);
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">statement_list</span> <span class="op">=</span> <span class="ident">statement_list</span><span class="question-mark">?</span>;
-        <span class="ident">statement_list</span>.<span class="ident">set_strict</span>(<span class="ident">strict</span>);
-        <span class="prelude-val">Ok</span>(<span class="ident">statement_list</span>)
+        <span class="kw">let </span><span class="kw-2">mut </span>statement_list = statement_list<span class="question-mark">?</span>;
+        statement_list.set_strict(strict);
+        <span class="prelude-val">Ok</span>(statement_list)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0 (a55dd71d5 2022-09-19)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0 (897e37553 2022-11-02)" ></div></body></html>

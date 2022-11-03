@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_ast/src/expression/operator/binary/op.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>op.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../../storage.js"></script><script defer src="../../../../../source-script.js"></script><script defer src="../../../../../source-files.js"></script><script defer src="../../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../../boa_ast/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../../boa_ast/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../../boa_ast/index.html"><img class="rust-logo" src="../../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_ast/src/expression/operator/binary/op.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>op.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../../normalize.css"><link rel="stylesheet" href="../../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../../dark.css" disabled><link rel="stylesheet" href="../../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../../storage.js"></script><script defer src="../../../../../source-script.js"></script><script defer src="../../../../../source-files.js"></script><script defer src="../../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../../boa_ast/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../../boa_ast/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../../boa_ast/index.html"><img class="rust-logo" src="../../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -571,578 +571,578 @@
 <span id="571">571</span>
 <span id="572">572</span>
 <span id="573">573</span>
-</pre><pre class="rust"><code><span class="doccomment">//! This module implements various structure for logic handling.</span>
+</pre><pre class="rust"><code><span class="doccomment">//! This module implements various structure for logic handling.
 
-<span class="kw">use</span> <span class="ident">std::fmt</span>::{<span class="ident">Display</span>, <span class="ident">Formatter</span>, <span class="prelude-ty">Result</span>};
+</span><span class="kw">use </span>std::fmt::{Display, Formatter, <span class="prelude-ty">Result</span>};
 
-<span class="doccomment">/// This represents a binary operation between two values.</span>
-<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>, <span class="ident">derive</span>(<span class="ident">serde::Serialize</span>, <span class="ident">serde::Deserialize</span>))]</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">BinaryOp</span> {
-    <span class="doccomment">/// Numeric operation.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// see: [`NumOp`](enum.NumOp.html)</span>
-    <span class="ident">Arithmetic</span>(<span class="ident">ArithmeticOp</span>),
+<span class="doccomment">/// This represents a binary operation between two values.
+</span><span class="attribute">#[cfg_attr(feature = <span class="string">&quot;serde&quot;</span>, derive(serde::Serialize, serde::Deserialize))]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+</span><span class="kw">pub enum </span>BinaryOp {
+    <span class="doccomment">/// Numeric operation.
+    ///
+    /// see: [`NumOp`](enum.NumOp.html)
+    </span>Arithmetic(ArithmeticOp),
 
-    <span class="doccomment">/// Bitwise operation.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// see: [`BitOp`](enum.BitOp.html).</span>
-    <span class="ident">Bitwise</span>(<span class="ident">BitwiseOp</span>),
+    <span class="doccomment">/// Bitwise operation.
+    ///
+    /// see: [`BitOp`](enum.BitOp.html).
+    </span>Bitwise(BitwiseOp),
 
-    <span class="doccomment">/// Comparative operation.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// see: [`CompOp`](enum.CompOp.html).</span>
-    <span class="ident">Relational</span>(<span class="ident">RelationalOp</span>),
+    <span class="doccomment">/// Comparative operation.
+    ///
+    /// see: [`CompOp`](enum.CompOp.html).
+    </span>Relational(RelationalOp),
 
-    <span class="doccomment">/// Logical operation.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// see: [`LogOp`](enum.LogOp.html).</span>
-    <span class="ident">Logical</span>(<span class="ident">LogicalOp</span>),
+    <span class="doccomment">/// Logical operation.
+    ///
+    /// see: [`LogOp`](enum.LogOp.html).
+    </span>Logical(LogicalOp),
 
-    <span class="doccomment">/// Comma operation.</span>
-    <span class="ident">Comma</span>,
+    <span class="doccomment">/// Comma operation.
+    </span>Comma,
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">ArithmeticOp</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">BinaryOp</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">op</span>: <span class="ident">ArithmeticOp</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::Arithmetic</span>(<span class="ident">op</span>)
+<span class="kw">impl </span>From&lt;ArithmeticOp&gt; <span class="kw">for </span>BinaryOp {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(op: ArithmeticOp) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::Arithmetic(op)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">BitwiseOp</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">BinaryOp</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">op</span>: <span class="ident">BitwiseOp</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::Bitwise</span>(<span class="ident">op</span>)
+<span class="kw">impl </span>From&lt;BitwiseOp&gt; <span class="kw">for </span>BinaryOp {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(op: BitwiseOp) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::Bitwise(op)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">RelationalOp</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">BinaryOp</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">op</span>: <span class="ident">RelationalOp</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::Relational</span>(<span class="ident">op</span>)
+<span class="kw">impl </span>From&lt;RelationalOp&gt; <span class="kw">for </span>BinaryOp {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(op: RelationalOp) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::Relational(op)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">LogicalOp</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">BinaryOp</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">op</span>: <span class="ident">LogicalOp</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::Logical</span>(<span class="ident">op</span>)
+<span class="kw">impl </span>From&lt;LogicalOp&gt; <span class="kw">for </span>BinaryOp {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(op: LogicalOp) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::Logical(op)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">BinaryOp</span> {
-    <span class="doccomment">/// Retrieves the operation as a static string.</span>
-    <span class="kw">fn</span> <span class="ident">as_str</span>(<span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident"><span class="self">Self</span>::Arithmetic</span>(<span class="kw-2">ref</span> <span class="ident">op</span>) =&gt; <span class="ident">op</span>.<span class="ident">as_str</span>(),
-            <span class="ident"><span class="self">Self</span>::Bitwise</span>(<span class="kw-2">ref</span> <span class="ident">op</span>) =&gt; <span class="ident">op</span>.<span class="ident">as_str</span>(),
-            <span class="ident"><span class="self">Self</span>::Relational</span>(<span class="kw-2">ref</span> <span class="ident">op</span>) =&gt; <span class="ident">op</span>.<span class="ident">as_str</span>(),
-            <span class="ident"><span class="self">Self</span>::Logical</span>(<span class="kw-2">ref</span> <span class="ident">op</span>) =&gt; <span class="ident">op</span>.<span class="ident">as_str</span>(),
-            <span class="ident"><span class="self">Self</span>::Comma</span> =&gt; <span class="string">&quot;,&quot;</span>,
+<span class="kw">impl </span>BinaryOp {
+    <span class="doccomment">/// Retrieves the operation as a static string.
+    </span><span class="kw">fn </span>as_str(<span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str {
+        <span class="kw">match </span><span class="self">self </span>{
+            <span class="self">Self</span>::Arithmetic(<span class="kw-2">ref </span>op) =&gt; op.as_str(),
+            <span class="self">Self</span>::Bitwise(<span class="kw-2">ref </span>op) =&gt; op.as_str(),
+            <span class="self">Self</span>::Relational(<span class="kw-2">ref </span>op) =&gt; op.as_str(),
+            <span class="self">Self</span>::Logical(<span class="kw-2">ref </span>op) =&gt; op.as_str(),
+            <span class="self">Self</span>::Comma =&gt; <span class="string">&quot;,&quot;</span>,
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Display</span> <span class="kw">for</span> <span class="ident">BinaryOp</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span> {
-        <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.<span class="ident">as_str</span>())
+<span class="kw">impl </span>Display <span class="kw">for </span>BinaryOp {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="prelude-ty">Result </span>{
+        <span class="macro">write!</span>(f, <span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.as_str())
     }
 }
 
-<span class="doccomment">/// Arithmetic operators take numerical values (either literals or variables)</span>
-<span class="doccomment">/// as their operands and return a single numerical value.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [MDN documentation][mdn]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_Operators#Arithmetic</span>
-<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>, <span class="ident">derive</span>(<span class="ident">serde::Serialize</span>, <span class="ident">serde::Deserialize</span>))]</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">ArithmeticOp</span> {
-    <span class="doccomment">/// The addition operator produces the sum of numeric operands or string concatenation.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Syntax: `x + y`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec].</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-addition-operator-plus</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Arithmetic_Operators#Addition</span>
-    <span class="ident">Add</span>,
+<span class="doccomment">/// Arithmetic operators take numerical values (either literals or variables)
+/// as their operands and return a single numerical value.
+///
+/// More information:
+///  - [MDN documentation][mdn]
+///
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_Operators#Arithmetic
+</span><span class="attribute">#[cfg_attr(feature = <span class="string">&quot;serde&quot;</span>, derive(serde::Serialize, serde::Deserialize))]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+</span><span class="kw">pub enum </span>ArithmeticOp {
+    <span class="doccomment">/// The addition operator produces the sum of numeric operands or string concatenation.
+    ///
+    /// Syntax: `x + y`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec].
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-addition-operator-plus
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Arithmetic_Operators#Addition
+    </span>Add,
 
-    <span class="doccomment">/// The subtraction operator subtracts the two operands, producing their difference.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Syntax: `x - y`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec].</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-subtraction-operator-minus</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Arithmetic_Operators#Subtraction</span>
-    <span class="ident">Sub</span>,
+    <span class="doccomment">/// The subtraction operator subtracts the two operands, producing their difference.
+    ///
+    /// Syntax: `x - y`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec].
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-subtraction-operator-minus
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Arithmetic_Operators#Subtraction
+    </span>Sub,
 
-    <span class="doccomment">/// The division operator produces the quotient of its operands where the left operand</span>
-    <span class="doccomment">/// is the dividend and the right operand is the divisor.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Syntax: `x / y`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-MultiplicativeOperator</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Arithmetic_Operators#Division</span>
-    <span class="ident">Div</span>,
+    <span class="doccomment">/// The division operator produces the quotient of its operands where the left operand
+    /// is the dividend and the right operand is the divisor.
+    ///
+    /// Syntax: `x / y`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#prod-MultiplicativeOperator
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Arithmetic_Operators#Division
+    </span>Div,
 
-    <span class="doccomment">/// The multiplication operator produces the product of the operands.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Syntax: `x * y`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-MultiplicativeExpression</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Arithmetic_Operators#Multiplication</span>
-    <span class="ident">Mul</span>,
+    <span class="doccomment">/// The multiplication operator produces the product of the operands.
+    ///
+    /// Syntax: `x * y`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#prod-MultiplicativeExpression
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Arithmetic_Operators#Multiplication
+    </span>Mul,
 
-    <span class="doccomment">/// The exponentiation operator returns the result of raising the first operand to</span>
-    <span class="doccomment">/// the power of the second operand.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Syntax: `x ** y`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The exponentiation operator is right-associative. a ** b ** c is equal to a ** (b ** c).</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-exp-operator</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Arithmetic_Operators#Exponentiation</span>
-    <span class="ident">Exp</span>,
+    <span class="doccomment">/// The exponentiation operator returns the result of raising the first operand to
+    /// the power of the second operand.
+    ///
+    /// Syntax: `x ** y`
+    ///
+    /// The exponentiation operator is right-associative. a ** b ** c is equal to a ** (b ** c).
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-exp-operator
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Arithmetic_Operators#Exponentiation
+    </span>Exp,
 
-    <span class="doccomment">/// The remainder operator returns the remainder left over when one operand is divided by a second operand.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Syntax: `x % y`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The remainder operator always takes the sign of the dividend.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-MultiplicativeOperator</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Arithmetic_Operators#Remainder</span>
-    <span class="ident">Mod</span>,
+    <span class="doccomment">/// The remainder operator returns the remainder left over when one operand is divided by a second operand.
+    ///
+    /// Syntax: `x % y`
+    ///
+    /// The remainder operator always takes the sign of the dividend.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#prod-MultiplicativeOperator
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Arithmetic_Operators#Remainder
+    </span>Mod,
 }
 
-<span class="kw">impl</span> <span class="ident">ArithmeticOp</span> {
-    <span class="doccomment">/// Retrieves the operation as a static string.</span>
-    <span class="kw">fn</span> <span class="ident">as_str</span>(<span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident"><span class="self">Self</span>::Add</span> =&gt; <span class="string">&quot;+&quot;</span>,
-            <span class="ident"><span class="self">Self</span>::Sub</span> =&gt; <span class="string">&quot;-&quot;</span>,
-            <span class="ident"><span class="self">Self</span>::Div</span> =&gt; <span class="string">&quot;/&quot;</span>,
-            <span class="ident"><span class="self">Self</span>::Mul</span> =&gt; <span class="string">&quot;*&quot;</span>,
-            <span class="ident"><span class="self">Self</span>::Exp</span> =&gt; <span class="string">&quot;**&quot;</span>,
-            <span class="ident"><span class="self">Self</span>::Mod</span> =&gt; <span class="string">&quot;%&quot;</span>,
+<span class="kw">impl </span>ArithmeticOp {
+    <span class="doccomment">/// Retrieves the operation as a static string.
+    </span><span class="kw">fn </span>as_str(<span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str {
+        <span class="kw">match </span><span class="self">self </span>{
+            <span class="self">Self</span>::Add =&gt; <span class="string">&quot;+&quot;</span>,
+            <span class="self">Self</span>::Sub =&gt; <span class="string">&quot;-&quot;</span>,
+            <span class="self">Self</span>::Div =&gt; <span class="string">&quot;/&quot;</span>,
+            <span class="self">Self</span>::Mul =&gt; <span class="string">&quot;*&quot;</span>,
+            <span class="self">Self</span>::Exp =&gt; <span class="string">&quot;**&quot;</span>,
+            <span class="self">Self</span>::Mod =&gt; <span class="string">&quot;%&quot;</span>,
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Display</span> <span class="kw">for</span> <span class="ident">ArithmeticOp</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span> {
-        <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.<span class="ident">as_str</span>())
+<span class="kw">impl </span>Display <span class="kw">for </span>ArithmeticOp {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="prelude-ty">Result </span>{
+        <span class="macro">write!</span>(f, <span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.as_str())
     }
 }
 
-<span class="doccomment">/// A bitwise operator is an operator used to perform bitwise operations</span>
-<span class="doccomment">/// on bit patterns or binary numerals that involve the manipulation of individual bits.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [MDN documentation][mdn]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_Operators#Bitwise</span>
-<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>, <span class="ident">derive</span>(<span class="ident">serde::Serialize</span>, <span class="ident">serde::Deserialize</span>))]</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">BitwiseOp</span> {
-    <span class="doccomment">/// Performs the AND operation on each pair of bits. a AND b yields 1 only if both a and b are 1.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Syntax: `x &amp; y`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-BitwiseANDExpression</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Bitwise_Operators#Bitwise_AND</span>
-    <span class="ident">And</span>,
+<span class="doccomment">/// A bitwise operator is an operator used to perform bitwise operations
+/// on bit patterns or binary numerals that involve the manipulation of individual bits.
+///
+/// More information:
+///  - [MDN documentation][mdn]
+///
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_Operators#Bitwise
+</span><span class="attribute">#[cfg_attr(feature = <span class="string">&quot;serde&quot;</span>, derive(serde::Serialize, serde::Deserialize))]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+</span><span class="kw">pub enum </span>BitwiseOp {
+    <span class="doccomment">/// Performs the AND operation on each pair of bits. a AND b yields 1 only if both a and b are 1.
+    ///
+    /// Syntax: `x &amp; y`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#prod-BitwiseANDExpression
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Bitwise_Operators#Bitwise_AND
+    </span>And,
 
-    <span class="doccomment">/// Performs the OR operation on each pair of bits. a OR b yields 1 if either a or b is 1.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Syntax: `x | y`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-BitwiseORExpression</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Bitwise_Operators#Bitwise_OR</span>
-    <span class="ident">Or</span>,
+    <span class="doccomment">/// Performs the OR operation on each pair of bits. a OR b yields 1 if either a or b is 1.
+    ///
+    /// Syntax: `x | y`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#prod-BitwiseORExpression
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Bitwise_Operators#Bitwise_OR
+    </span>Or,
 
-    <span class="doccomment">/// Performs the XOR operation on each pair of bits. a XOR b yields 1 if a and b are different.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Syntax: `x ^ y`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-BitwiseXORExpression</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Bitwise_Operators#Bitwise_XOR</span>
-    <span class="ident">Xor</span>,
+    <span class="doccomment">/// Performs the XOR operation on each pair of bits. a XOR b yields 1 if a and b are different.
+    ///
+    /// Syntax: `x ^ y`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#prod-BitwiseXORExpression
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Bitwise_Operators#Bitwise_XOR
+    </span>Xor,
 
-    <span class="doccomment">/// This operator shifts the first operand the specified number of bits to the left.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Syntax: `x &lt;&lt; y`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Excess bits shifted off to the left are discarded. Zero bits are shifted in from the right.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-left-shift-operator</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Bitwise_Operators#Left_shift</span>
-    <span class="ident">Shl</span>,
+    <span class="doccomment">/// This operator shifts the first operand the specified number of bits to the left.
+    ///
+    /// Syntax: `x &lt;&lt; y`
+    ///
+    /// Excess bits shifted off to the left are discarded. Zero bits are shifted in from the right.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-left-shift-operator
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Bitwise_Operators#Left_shift
+    </span>Shl,
 
-    <span class="doccomment">/// This operator shifts the first operand the specified number of bits to the right.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Syntax: `x &gt;&gt; y`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Excess bits shifted off to the right are discarded. Copies of the leftmost bit</span>
-    <span class="doccomment">/// are shifted in from the left. Since the new leftmost bit has the same value as</span>
-    <span class="doccomment">/// the previous leftmost bit, the sign bit (the leftmost bit) does not change.</span>
-    <span class="doccomment">/// Hence the name &quot;sign-propagating&quot;.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-signed-right-shift-operator</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Bitwise_Operators#Right_shift</span>
-    <span class="ident">Shr</span>,
+    <span class="doccomment">/// This operator shifts the first operand the specified number of bits to the right.
+    ///
+    /// Syntax: `x &gt;&gt; y`
+    ///
+    /// Excess bits shifted off to the right are discarded. Copies of the leftmost bit
+    /// are shifted in from the left. Since the new leftmost bit has the same value as
+    /// the previous leftmost bit, the sign bit (the leftmost bit) does not change.
+    /// Hence the name &quot;sign-propagating&quot;.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-signed-right-shift-operator
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Bitwise_Operators#Right_shift
+    </span>Shr,
 
-    <span class="doccomment">/// This operator shifts the first operand the specified number of bits to the right.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Syntax: `x &gt;&gt;&gt; y`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Excess bits shifted off to the right are discarded. Zero bits are shifted in</span>
-    <span class="doccomment">/// from the left. The sign bit becomes 0, so the result is always non-negative.</span>
-    <span class="doccomment">/// Unlike the other bitwise operators, zero-fill right shift returns an unsigned 32-bit integer.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-unsigned-right-shift-operator</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Bitwise_Operators#Unsigned_right_shift</span>
-    <span class="ident">UShr</span>,
+    <span class="doccomment">/// This operator shifts the first operand the specified number of bits to the right.
+    ///
+    /// Syntax: `x &gt;&gt;&gt; y`
+    ///
+    /// Excess bits shifted off to the right are discarded. Zero bits are shifted in
+    /// from the left. The sign bit becomes 0, so the result is always non-negative.
+    /// Unlike the other bitwise operators, zero-fill right shift returns an unsigned 32-bit integer.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-unsigned-right-shift-operator
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Bitwise_Operators#Unsigned_right_shift
+    </span>UShr,
 }
 
-<span class="kw">impl</span> <span class="ident">BitwiseOp</span> {
-    <span class="doccomment">/// Retrieves the operation as a static string.</span>
-    <span class="kw">fn</span> <span class="ident">as_str</span>(<span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident"><span class="self">Self</span>::And</span> =&gt; <span class="string">&quot;&amp;&quot;</span>,
-            <span class="ident"><span class="self">Self</span>::Or</span> =&gt; <span class="string">&quot;|&quot;</span>,
-            <span class="ident"><span class="self">Self</span>::Xor</span> =&gt; <span class="string">&quot;^&quot;</span>,
-            <span class="ident"><span class="self">Self</span>::Shl</span> =&gt; <span class="string">&quot;&lt;&lt;&quot;</span>,
-            <span class="ident"><span class="self">Self</span>::Shr</span> =&gt; <span class="string">&quot;&gt;&gt;&quot;</span>,
-            <span class="ident"><span class="self">Self</span>::UShr</span> =&gt; <span class="string">&quot;&gt;&gt;&gt;&quot;</span>,
+<span class="kw">impl </span>BitwiseOp {
+    <span class="doccomment">/// Retrieves the operation as a static string.
+    </span><span class="kw">fn </span>as_str(<span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str {
+        <span class="kw">match </span><span class="self">self </span>{
+            <span class="self">Self</span>::And =&gt; <span class="string">&quot;&amp;&quot;</span>,
+            <span class="self">Self</span>::Or =&gt; <span class="string">&quot;|&quot;</span>,
+            <span class="self">Self</span>::Xor =&gt; <span class="string">&quot;^&quot;</span>,
+            <span class="self">Self</span>::Shl =&gt; <span class="string">&quot;&lt;&lt;&quot;</span>,
+            <span class="self">Self</span>::Shr =&gt; <span class="string">&quot;&gt;&gt;&quot;</span>,
+            <span class="self">Self</span>::UShr =&gt; <span class="string">&quot;&gt;&gt;&gt;&quot;</span>,
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Display</span> <span class="kw">for</span> <span class="ident">BitwiseOp</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span> {
-        <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.<span class="ident">as_str</span>())
+<span class="kw">impl </span>Display <span class="kw">for </span>BitwiseOp {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="prelude-ty">Result </span>{
+        <span class="macro">write!</span>(f, <span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.as_str())
     }
 }
 
-<span class="doccomment">/// A relational operator compares its operands and returns a logical value based on whether the relation is true.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The operands can be numerical, string, logical, or object values. Strings are compared based on standard</span>
-<span class="doccomment">/// lexicographical ordering, using Unicode values. In most cases, if the two operands are not of the same type,</span>
-<span class="doccomment">/// JavaScript attempts to convert them to an appropriate type for the comparison. This behavior generally results in</span>
-<span class="doccomment">/// comparing the operands numerically. The sole exceptions to type conversion within comparisons involve the `===` and `!==`</span>
-<span class="doccomment">/// operators, which perform strict equality and inequality comparisons. These operators do not attempt to convert the operands</span>
-<span class="doccomment">/// to compatible types before checking equality.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [ECMAScript reference][spec]</span>
-<span class="doccomment">///  - [MDN documentation][mdn]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [spec]: tc39.es/ecma262/#sec-testing-and-comparison-operations</span>
-<span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_Operators#Comparison</span>
-<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>, <span class="ident">derive</span>(<span class="ident">serde::Serialize</span>, <span class="ident">serde::Deserialize</span>))]</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">RelationalOp</span> {
-    <span class="doccomment">/// The equality operator converts the operands if they are not of the same type, then applies</span>
-    <span class="doccomment">/// strict comparison.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Syntax: `y == y`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If both operands are objects, then JavaScript compares internal references which are equal</span>
-    <span class="doccomment">/// when operands refer to the same object in memory.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-abstract-equality-comparison</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Comparison_Operators#Equality</span>
-    <span class="ident">Equal</span>,
+<span class="doccomment">/// A relational operator compares its operands and returns a logical value based on whether the relation is true.
+///
+/// The operands can be numerical, string, logical, or object values. Strings are compared based on standard
+/// lexicographical ordering, using Unicode values. In most cases, if the two operands are not of the same type,
+/// JavaScript attempts to convert them to an appropriate type for the comparison. This behavior generally results in
+/// comparing the operands numerically. The sole exceptions to type conversion within comparisons involve the `===` and `!==`
+/// operators, which perform strict equality and inequality comparisons. These operators do not attempt to convert the operands
+/// to compatible types before checking equality.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///  - [MDN documentation][mdn]
+///
+/// [spec]: tc39.es/ecma262/#sec-testing-and-comparison-operations
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_Operators#Comparison
+</span><span class="attribute">#[cfg_attr(feature = <span class="string">&quot;serde&quot;</span>, derive(serde::Serialize, serde::Deserialize))]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+</span><span class="kw">pub enum </span>RelationalOp {
+    <span class="doccomment">/// The equality operator converts the operands if they are not of the same type, then applies
+    /// strict comparison.
+    ///
+    /// Syntax: `y == y`
+    ///
+    /// If both operands are objects, then JavaScript compares internal references which are equal
+    /// when operands refer to the same object in memory.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-abstract-equality-comparison
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Comparison_Operators#Equality
+    </span>Equal,
 
-    <span class="doccomment">/// The inequality operator returns `true` if the operands are not equal.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Syntax: `x != y`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If the two operands are not of the same type, JavaScript attempts to convert the operands</span>
-    <span class="doccomment">/// to an appropriate type for the comparison. If both operands are objects, then JavaScript</span>
-    <span class="doccomment">/// compares internal references which are not equal when operands refer to different objects</span>
-    <span class="doccomment">/// in memory.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-EqualityExpression</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Comparison_Operators#Inequality</span>
-    <span class="ident">NotEqual</span>,
+    <span class="doccomment">/// The inequality operator returns `true` if the operands are not equal.
+    ///
+    /// Syntax: `x != y`
+    ///
+    /// If the two operands are not of the same type, JavaScript attempts to convert the operands
+    /// to an appropriate type for the comparison. If both operands are objects, then JavaScript
+    /// compares internal references which are not equal when operands refer to different objects
+    /// in memory.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#prod-EqualityExpression
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Comparison_Operators#Inequality
+    </span>NotEqual,
 
-    <span class="doccomment">/// The identity operator returns `true` if the operands are strictly equal **with no type</span>
-    <span class="doccomment">/// conversion**.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Syntax: `x === y`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Returns `true` if the operands are equal and of the same type.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-strict-equality-comparison</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Comparison_Operators#Identity</span>
-    <span class="ident">StrictEqual</span>,
+    <span class="doccomment">/// The identity operator returns `true` if the operands are strictly equal **with no type
+    /// conversion**.
+    ///
+    /// Syntax: `x === y`
+    ///
+    /// Returns `true` if the operands are equal and of the same type.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-strict-equality-comparison
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Comparison_Operators#Identity
+    </span>StrictEqual,
 
-    <span class="doccomment">/// The non-identity operator returns `true` if the operands **are not equal and/or not of the</span>
-    <span class="doccomment">/// same type**.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Syntax: `x !== y`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Returns `true` if the operands are of the same type but not equal, or are of different type.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-EqualityExpression</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Comparison_Operators#Nonidentity&gt;</span>
-    <span class="ident">StrictNotEqual</span>,
+    <span class="doccomment">/// The non-identity operator returns `true` if the operands **are not equal and/or not of the
+    /// same type**.
+    ///
+    /// Syntax: `x !== y`
+    ///
+    /// Returns `true` if the operands are of the same type but not equal, or are of different type.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#prod-EqualityExpression
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Comparison_Operators#Nonidentity&gt;
+    </span>StrictNotEqual,
 
-    <span class="doccomment">/// The greater than operator returns `true` if the left operand is greater than the right</span>
-    <span class="doccomment">/// operand.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Syntax: `x &gt; y`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Returns `true` if the left operand is greater than the right operand.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-RelationalExpression</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Comparison_Operators#Greater_than_operator</span>
-    <span class="ident">GreaterThan</span>,
+    <span class="doccomment">/// The greater than operator returns `true` if the left operand is greater than the right
+    /// operand.
+    ///
+    /// Syntax: `x &gt; y`
+    ///
+    /// Returns `true` if the left operand is greater than the right operand.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#prod-RelationalExpression
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Comparison_Operators#Greater_than_operator
+    </span>GreaterThan,
 
-    <span class="doccomment">/// The greater than or equal operator returns `true` if the left operand is greater than or</span>
-    <span class="doccomment">/// equal to the right operand.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Syntax: `x &gt;= y`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Returns `true` if the left operand is greater than the right operand.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-RelationalExpression</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Comparison_Operators#Greater_than_operator</span>
-    <span class="ident">GreaterThanOrEqual</span>,
+    <span class="doccomment">/// The greater than or equal operator returns `true` if the left operand is greater than or
+    /// equal to the right operand.
+    ///
+    /// Syntax: `x &gt;= y`
+    ///
+    /// Returns `true` if the left operand is greater than the right operand.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#prod-RelationalExpression
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Comparison_Operators#Greater_than_operator
+    </span>GreaterThanOrEqual,
 
-    <span class="doccomment">/// The less than operator returns `true` if the left operand is less than the right operand.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Syntax: `x &lt; y`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Returns `true` if the left operand is less than the right operand.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-RelationalExpression</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Comparison_Operators#Less_than_operator</span>
-    <span class="ident">LessThan</span>,
+    <span class="doccomment">/// The less than operator returns `true` if the left operand is less than the right operand.
+    ///
+    /// Syntax: `x &lt; y`
+    ///
+    /// Returns `true` if the left operand is less than the right operand.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#prod-RelationalExpression
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Comparison_Operators#Less_than_operator
+    </span>LessThan,
 
-    <span class="doccomment">/// The less than or equal operator returns `true` if the left operand is less than or equal to</span>
-    <span class="doccomment">/// the right operand.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Syntax: `x &lt;= y`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Returns `true` if the left operand is less than or equal to the right operand.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-RelationalExpression</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Comparison_Operators#Less_than_or_equal_operator</span>
-    <span class="ident">LessThanOrEqual</span>,
+    <span class="doccomment">/// The less than or equal operator returns `true` if the left operand is less than or equal to
+    /// the right operand.
+    ///
+    /// Syntax: `x &lt;= y`
+    ///
+    /// Returns `true` if the left operand is less than or equal to the right operand.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#prod-RelationalExpression
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Comparison_Operators#Less_than_or_equal_operator
+    </span>LessThanOrEqual,
 
-    <span class="doccomment">/// The `in` operator returns `true` if the specified property is in the specified object or</span>
-    <span class="doccomment">/// its prototype chain.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Syntax: `prop in object`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Returns `true` the specified property is in the specified object or its prototype chain.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-RelationalExpression</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/in</span>
-    <span class="ident">In</span>,
+    <span class="doccomment">/// The `in` operator returns `true` if the specified property is in the specified object or
+    /// its prototype chain.
+    ///
+    /// Syntax: `prop in object`
+    ///
+    /// Returns `true` the specified property is in the specified object or its prototype chain.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#prod-RelationalExpression
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/in
+    </span>In,
 
-    <span class="doccomment">/// The `instanceof` operator returns `true` if the specified object is an instance of the</span>
-    <span class="doccomment">/// right hand side object.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Syntax: `obj instanceof Object`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Returns `true` the `prototype` property of the right hand side constructor appears anywhere</span>
-    <span class="doccomment">/// in the prototype chain of the object.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-RelationalExpression</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/instanceof</span>
-    <span class="ident">InstanceOf</span>,
+    <span class="doccomment">/// The `instanceof` operator returns `true` if the specified object is an instance of the
+    /// right hand side object.
+    ///
+    /// Syntax: `obj instanceof Object`
+    ///
+    /// Returns `true` the `prototype` property of the right hand side constructor appears anywhere
+    /// in the prototype chain of the object.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#prod-RelationalExpression
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/instanceof
+    </span>InstanceOf,
 }
 
-<span class="kw">impl</span> <span class="ident">RelationalOp</span> {
-    <span class="doccomment">/// Retrieves the operation as a static string.</span>
-    <span class="kw">fn</span> <span class="ident">as_str</span>(<span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident"><span class="self">Self</span>::Equal</span> =&gt; <span class="string">&quot;==&quot;</span>,
-            <span class="ident"><span class="self">Self</span>::NotEqual</span> =&gt; <span class="string">&quot;!=&quot;</span>,
-            <span class="ident"><span class="self">Self</span>::StrictEqual</span> =&gt; <span class="string">&quot;===&quot;</span>,
-            <span class="ident"><span class="self">Self</span>::StrictNotEqual</span> =&gt; <span class="string">&quot;!==&quot;</span>,
-            <span class="ident"><span class="self">Self</span>::GreaterThan</span> =&gt; <span class="string">&quot;&gt;&quot;</span>,
-            <span class="ident"><span class="self">Self</span>::GreaterThanOrEqual</span> =&gt; <span class="string">&quot;&gt;=&quot;</span>,
-            <span class="ident"><span class="self">Self</span>::LessThan</span> =&gt; <span class="string">&quot;&lt;&quot;</span>,
-            <span class="ident"><span class="self">Self</span>::LessThanOrEqual</span> =&gt; <span class="string">&quot;&lt;=&quot;</span>,
-            <span class="ident"><span class="self">Self</span>::In</span> =&gt; <span class="string">&quot;in&quot;</span>,
-            <span class="ident"><span class="self">Self</span>::InstanceOf</span> =&gt; <span class="string">&quot;instanceof&quot;</span>,
+<span class="kw">impl </span>RelationalOp {
+    <span class="doccomment">/// Retrieves the operation as a static string.
+    </span><span class="kw">fn </span>as_str(<span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str {
+        <span class="kw">match </span><span class="self">self </span>{
+            <span class="self">Self</span>::Equal =&gt; <span class="string">&quot;==&quot;</span>,
+            <span class="self">Self</span>::NotEqual =&gt; <span class="string">&quot;!=&quot;</span>,
+            <span class="self">Self</span>::StrictEqual =&gt; <span class="string">&quot;===&quot;</span>,
+            <span class="self">Self</span>::StrictNotEqual =&gt; <span class="string">&quot;!==&quot;</span>,
+            <span class="self">Self</span>::GreaterThan =&gt; <span class="string">&quot;&gt;&quot;</span>,
+            <span class="self">Self</span>::GreaterThanOrEqual =&gt; <span class="string">&quot;&gt;=&quot;</span>,
+            <span class="self">Self</span>::LessThan =&gt; <span class="string">&quot;&lt;&quot;</span>,
+            <span class="self">Self</span>::LessThanOrEqual =&gt; <span class="string">&quot;&lt;=&quot;</span>,
+            <span class="self">Self</span>::In =&gt; <span class="string">&quot;in&quot;</span>,
+            <span class="self">Self</span>::InstanceOf =&gt; <span class="string">&quot;instanceof&quot;</span>,
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Display</span> <span class="kw">for</span> <span class="ident">RelationalOp</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span> {
-        <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.<span class="ident">as_str</span>())
+<span class="kw">impl </span>Display <span class="kw">for </span>RelationalOp {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="prelude-ty">Result </span>{
+        <span class="macro">write!</span>(f, <span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.as_str())
     }
 }
 
-<span class="doccomment">/// Logical operators are typically used with Boolean (logical) values; when they are, they return a Boolean value.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// However, the `&amp;&amp;` and `||` operators actually return the value of one of the specified operands,</span>
-<span class="doccomment">/// so if these operators are used with non-Boolean values, they may return a non-Boolean value.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [ECMAScript reference][spec]</span>
-<span class="doccomment">///  - [MDN documentation][mdn]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-binary-logical-operators</span>
-<span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_Operators#Logical</span>
-<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>, <span class="ident">derive</span>(<span class="ident">serde::Serialize</span>, <span class="ident">serde::Deserialize</span>))]</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">LogicalOp</span> {
-    <span class="doccomment">/// The logical AND operator returns the value of the first operand if it can be coerced into `false`;</span>
-    <span class="doccomment">/// otherwise, it returns the second operand.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Syntax: `x &amp;&amp; y`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-LogicalANDExpression</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Logical_Operators#Logical_AND</span>
-    <span class="ident">And</span>,
+<span class="doccomment">/// Logical operators are typically used with Boolean (logical) values; when they are, they return a Boolean value.
+///
+/// However, the `&amp;&amp;` and `||` operators actually return the value of one of the specified operands,
+/// so if these operators are used with non-Boolean values, they may return a non-Boolean value.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///  - [MDN documentation][mdn]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-binary-logical-operators
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_Operators#Logical
+</span><span class="attribute">#[cfg_attr(feature = <span class="string">&quot;serde&quot;</span>, derive(serde::Serialize, serde::Deserialize))]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+</span><span class="kw">pub enum </span>LogicalOp {
+    <span class="doccomment">/// The logical AND operator returns the value of the first operand if it can be coerced into `false`;
+    /// otherwise, it returns the second operand.
+    ///
+    /// Syntax: `x &amp;&amp; y`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#prod-LogicalANDExpression
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Logical_Operators#Logical_AND
+    </span>And,
 
-    <span class="doccomment">/// The logical OR operator returns the value the first operand if it can be coerced into `true`;</span>
-    <span class="doccomment">/// otherwise, it returns the second operand.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Syntax: `x || y`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-LogicalORExpression</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Logical_Operators#Logical_OR</span>
-    <span class="ident">Or</span>,
+    <span class="doccomment">/// The logical OR operator returns the value the first operand if it can be coerced into `true`;
+    /// otherwise, it returns the second operand.
+    ///
+    /// Syntax: `x || y`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#prod-LogicalORExpression
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Logical_Operators#Logical_OR
+    </span>Or,
 
-    <span class="doccomment">/// The nullish coalescing operator is a logical operator that returns the second operand</span>
-    <span class="doccomment">/// when its first operand is null or undefined, and otherwise returns its first operand.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Syntax: `x ?? y`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-CoalesceExpression</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Nullish_coalescing_operator</span>
-    <span class="ident">Coalesce</span>,
+    <span class="doccomment">/// The nullish coalescing operator is a logical operator that returns the second operand
+    /// when its first operand is null or undefined, and otherwise returns its first operand.
+    ///
+    /// Syntax: `x ?? y`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#prod-CoalesceExpression
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Nullish_coalescing_operator
+    </span>Coalesce,
 }
 
-<span class="kw">impl</span> <span class="ident">LogicalOp</span> {
-    <span class="doccomment">/// Retrieves the operation as a static string.</span>
-    <span class="kw">fn</span> <span class="ident">as_str</span>(<span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident"><span class="self">Self</span>::And</span> =&gt; <span class="string">&quot;&amp;&amp;&quot;</span>,
-            <span class="ident"><span class="self">Self</span>::Or</span> =&gt; <span class="string">&quot;||&quot;</span>,
-            <span class="ident"><span class="self">Self</span>::Coalesce</span> =&gt; <span class="string">&quot;??&quot;</span>,
+<span class="kw">impl </span>LogicalOp {
+    <span class="doccomment">/// Retrieves the operation as a static string.
+    </span><span class="kw">fn </span>as_str(<span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str {
+        <span class="kw">match </span><span class="self">self </span>{
+            <span class="self">Self</span>::And =&gt; <span class="string">&quot;&amp;&amp;&quot;</span>,
+            <span class="self">Self</span>::Or =&gt; <span class="string">&quot;||&quot;</span>,
+            <span class="self">Self</span>::Coalesce =&gt; <span class="string">&quot;??&quot;</span>,
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Display</span> <span class="kw">for</span> <span class="ident">LogicalOp</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span> {
-        <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.<span class="ident">as_str</span>())
+<span class="kw">impl </span>Display <span class="kw">for </span>LogicalOp {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="prelude-ty">Result </span>{
+        <span class="macro">write!</span>(f, <span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.as_str())
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="boa_ast" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0 (a55dd71d5 2022-09-19)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="boa_ast" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0 (897e37553 2022-11-02)" ></div></body></html>

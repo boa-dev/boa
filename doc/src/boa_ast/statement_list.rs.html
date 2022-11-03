@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_ast/src/statement_list.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>statement_list.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../boa_ast/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../boa_ast/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../boa_ast/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_ast/src/statement_list.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>statement_list.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../boa_ast/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../boa_ast/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../boa_ast/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -282,393 +282,289 @@
 <span id="282">282</span>
 <span id="283">283</span>
 <span id="284">284</span>
-<span id="285">285</span>
-<span id="286">286</span>
-<span id="287">287</span>
-<span id="288">288</span>
-<span id="289">289</span>
-<span id="290">290</span>
-<span id="291">291</span>
-<span id="292">292</span>
-<span id="293">293</span>
-<span id="294">294</span>
-<span id="295">295</span>
-<span id="296">296</span>
-<span id="297">297</span>
-<span id="298">298</span>
-<span id="299">299</span>
-<span id="300">300</span>
-<span id="301">301</span>
-<span id="302">302</span>
-<span id="303">303</span>
-<span id="304">304</span>
-<span id="305">305</span>
-<span id="306">306</span>
-<span id="307">307</span>
-<span id="308">308</span>
-<span id="309">309</span>
-<span id="310">310</span>
-<span id="311">311</span>
-<span id="312">312</span>
-<span id="313">313</span>
-<span id="314">314</span>
-<span id="315">315</span>
-<span id="316">316</span>
-<span id="317">317</span>
-<span id="318">318</span>
-<span id="319">319</span>
-<span id="320">320</span>
-<span id="321">321</span>
-<span id="322">322</span>
-<span id="323">323</span>
-<span id="324">324</span>
-<span id="325">325</span>
-<span id="326">326</span>
-<span id="327">327</span>
-<span id="328">328</span>
-<span id="329">329</span>
-<span id="330">330</span>
-<span id="331">331</span>
-<span id="332">332</span>
-<span id="333">333</span>
-<span id="334">334</span>
-<span id="335">335</span>
-<span id="336">336</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Statement list node.</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Statement list node.
 
-<span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">declaration::Binding</span>, <span class="ident">Declaration</span>};
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::try_break</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::visitor</span>::{<span class="ident">VisitWith</span>, <span class="ident">Visitor</span>, <span class="ident">VisitorMut</span>};
-<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">expression::Identifier</span>, <span class="ident">statement::Statement</span>, <span class="ident">ContainsSymbol</span>};
-<span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">ToIndentedString</span>};
-<span class="kw">use</span> <span class="ident">core::ops::ControlFlow</span>;
-<span class="kw">use</span> <span class="ident">rustc_hash::FxHashSet</span>;
-<span class="kw">use</span> <span class="ident">std::cmp::Ordering</span>;
+</span><span class="kw">use super</span>::{declaration::Binding, Declaration};
+<span class="kw">use crate</span>::{
+    expression::Identifier,
+    statement::Statement,
+    try_break,
+    visitor::{VisitWith, Visitor, VisitorMut},
+};
+<span class="kw">use </span>boa_interner::{Interner, ToIndentedString};
+<span class="kw">use </span>core::ops::ControlFlow;
+<span class="kw">use </span>rustc_hash::FxHashSet;
+<span class="kw">use </span>std::cmp::Ordering;
 
-<span class="doccomment">/// An item inside a [`StatementList`] Parse Node, as defined by the [spec].</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Items in a `StatementList` can be either [`Declaration`]s (functions, classes, let/const declarations)</span>
-<span class="doccomment">/// or [`Statement`]s (if, while, var statement).</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-StatementListItem</span>
-<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>, <span class="ident">derive</span>(<span class="ident">serde::Serialize</span>, <span class="ident">serde::Deserialize</span>))]</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">StatementListItem</span> {
-    <span class="doccomment">/// See [`Statement`].</span>
-    <span class="ident">Statement</span>(<span class="ident">Statement</span>),
-    <span class="doccomment">/// See [`Declaration`].</span>
-    <span class="ident">Declaration</span>(<span class="ident">Declaration</span>),
+<span class="doccomment">/// An item inside a [`StatementList`] Parse Node, as defined by the [spec].
+///
+/// Items in a `StatementList` can be either [`Declaration`]s (functions, classes, let/const declarations)
+/// or [`Statement`]s (if, while, var statement).
+///
+/// [spec]: https://tc39.es/ecma262/#prod-StatementListItem
+</span><span class="attribute">#[cfg_attr(feature = <span class="string">&quot;serde&quot;</span>, derive(serde::Serialize, serde::Deserialize))]
+#[derive(Clone, Debug, PartialEq)]
+</span><span class="kw">pub enum </span>StatementListItem {
+    <span class="doccomment">/// See [`Statement`].
+    </span>Statement(Statement),
+    <span class="doccomment">/// See [`Declaration`].
+    </span>Declaration(Declaration),
 }
 
-<span class="kw">impl</span> <span class="ident">StatementListItem</span> {
-    <span class="doccomment">/// Returns a node ordering based on the hoistability of each statement.</span>
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">hoistable_order</span>(<span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>, <span class="ident">b</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">Ordering</span> {
-        <span class="kw">match</span> (<span class="ident">a</span>, <span class="ident">b</span>) {
+<span class="kw">impl </span>StatementListItem {
+    <span class="doccomment">/// Returns a node ordering based on the hoistability of each statement.
+    </span><span class="attribute">#[must_use]
+    </span><span class="kw">pub fn </span>hoistable_order(a: <span class="kw-2">&amp;</span><span class="self">Self</span>, b: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; Ordering {
+        <span class="kw">match </span>(a, b) {
             (
-                <span class="ident"><span class="self">Self</span>::Declaration</span>(<span class="ident">Declaration::Function</span>(<span class="kw">_</span>)),
-                <span class="ident"><span class="self">Self</span>::Declaration</span>(<span class="ident">Declaration::Function</span>(<span class="kw">_</span>)),
-            ) =&gt; <span class="ident">Ordering::Equal</span>,
-            (<span class="kw">_</span>, <span class="ident"><span class="self">Self</span>::Declaration</span>(<span class="ident">Declaration::Function</span>(<span class="kw">_</span>))) =&gt; <span class="ident">Ordering::Greater</span>,
-            (<span class="ident"><span class="self">Self</span>::Declaration</span>(<span class="ident">Declaration::Function</span>(<span class="kw">_</span>)), <span class="kw">_</span>) =&gt; <span class="ident">Ordering::Less</span>,
+                <span class="self">Self</span>::Declaration(Declaration::Function(<span class="kw">_</span>)),
+                <span class="self">Self</span>::Declaration(Declaration::Function(<span class="kw">_</span>)),
+            ) =&gt; Ordering::Equal,
+            (<span class="kw">_</span>, <span class="self">Self</span>::Declaration(Declaration::Function(<span class="kw">_</span>))) =&gt; Ordering::Greater,
+            (<span class="self">Self</span>::Declaration(Declaration::Function(<span class="kw">_</span>)), <span class="kw">_</span>) =&gt; Ordering::Less,
 
-            (<span class="kw">_</span>, <span class="kw">_</span>) =&gt; <span class="ident">Ordering::Equal</span>,
+            (<span class="kw">_</span>, <span class="kw">_</span>) =&gt; Ordering::Equal,
         }
     }
 
-    <span class="doccomment">/// Gets the var declared names of this `StatementListItem`.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">var_declared_names</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">vars</span>: <span class="kw-2">&amp;mut</span> <span class="ident">FxHashSet</span><span class="op">&lt;</span><span class="ident">Identifier</span><span class="op">&gt;</span>) {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">StatementListItem::Statement</span>(<span class="ident">stmt</span>) =&gt; <span class="ident">stmt</span>.<span class="ident">var_declared_names</span>(<span class="ident">vars</span>),
-            <span class="ident">StatementListItem::Declaration</span>(<span class="kw">_</span>) =&gt; {}
-        }
-    }
-
-    <span class="doccomment">/// Returns true if the node contains a identifier reference named &#39;arguments&#39;.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript specification][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-static-semantics-containsarguments</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">contains_arguments</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">StatementListItem::Statement</span>(<span class="ident">stmt</span>) =&gt; <span class="ident">stmt</span>.<span class="ident">contains_arguments</span>(),
-            <span class="ident">StatementListItem::Declaration</span>(<span class="ident">decl</span>) =&gt; <span class="ident">decl</span>.<span class="ident">contains_arguments</span>(),
-        }
-    }
-
-    <span class="doccomment">/// Returns `true` if the node contains the given token.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript specification][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-static-semantics-contains</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">symbol</span>: <span class="ident">ContainsSymbol</span>) -&gt; <span class="ident">bool</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">StatementListItem::Statement</span>(<span class="ident">stmt</span>) =&gt; <span class="ident">stmt</span>.<span class="ident">contains</span>(<span class="ident">symbol</span>),
-            <span class="ident">StatementListItem::Declaration</span>(<span class="ident">decl</span>) =&gt; <span class="ident">decl</span>.<span class="ident">contains</span>(<span class="ident">symbol</span>),
+    <span class="doccomment">/// Gets the var declared names of this `StatementListItem`.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>var_declared_names(<span class="kw-2">&amp;</span><span class="self">self</span>, vars: <span class="kw-2">&amp;mut </span>FxHashSet&lt;Identifier&gt;) {
+        <span class="kw">match </span><span class="self">self </span>{
+            StatementListItem::Statement(stmt) =&gt; stmt.var_declared_names(vars),
+            StatementListItem::Declaration(<span class="kw">_</span>) =&gt; {}
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">ToIndentedString</span> <span class="kw">for</span> <span class="ident">StatementListItem</span> {
-    <span class="doccomment">/// Creates a string of the value of the node with the given indentation. For example, an</span>
-    <span class="doccomment">/// indent level of 2 would produce this:</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```js</span>
-    <span class="doccomment">///         function hello() {</span>
-    <span class="doccomment">///             console.log(&quot;hello&quot;);</span>
-    <span class="doccomment">///         }</span>
-    <span class="doccomment">///         hello();</span>
-    <span class="doccomment">///         a = 2;</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">to_indented_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;</span><span class="ident">Interner</span>, <span class="ident">indentation</span>: <span class="ident">usize</span>) -&gt; <span class="ident">String</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <span class="string">&quot;    &quot;</span>.<span class="ident">repeat</span>(<span class="ident">indentation</span>);
+<span class="kw">impl </span>ToIndentedString <span class="kw">for </span>StatementListItem {
+    <span class="doccomment">/// Creates a string of the value of the node with the given indentation. For example, an
+    /// indent level of 2 would produce this:
+    ///
+    /// ```js
+    ///         function hello() {
+    ///             console.log(&quot;hello&quot;);
+    ///         }
+    ///         hello();
+    ///         a = 2;
+    /// ```
+    </span><span class="kw">fn </span>to_indented_string(<span class="kw-2">&amp;</span><span class="self">self</span>, interner: <span class="kw-2">&amp;</span>Interner, indentation: usize) -&gt; String {
+        <span class="kw">let </span><span class="kw-2">mut </span>buf = <span class="string">&quot;    &quot;</span>.repeat(indentation);
 
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">StatementListItem::Statement</span>(<span class="ident">stmt</span>) =&gt; {
-                <span class="ident">buf</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="ident">stmt</span>.<span class="ident">to_no_indent_string</span>(<span class="ident">interner</span>, <span class="ident">indentation</span>));
+        <span class="kw">match </span><span class="self">self </span>{
+            StatementListItem::Statement(stmt) =&gt; {
+                buf.push_str(<span class="kw-2">&amp;</span>stmt.to_no_indent_string(interner, indentation));
             }
-            <span class="ident">StatementListItem::Declaration</span>(<span class="ident">decl</span>) =&gt; {
-                <span class="ident">buf</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="ident">decl</span>.<span class="ident">to_indented_string</span>(<span class="ident">interner</span>, <span class="ident">indentation</span>));
+            StatementListItem::Declaration(decl) =&gt; {
+                buf.push_str(<span class="kw-2">&amp;</span>decl.to_indented_string(interner, indentation));
             }
         }
 
-        <span class="ident">buf</span>
+        buf
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Statement</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">StatementListItem</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">stmt</span>: <span class="ident">Statement</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">StatementListItem::Statement</span>(<span class="ident">stmt</span>)
+<span class="kw">impl </span>From&lt;Statement&gt; <span class="kw">for </span>StatementListItem {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(stmt: Statement) -&gt; <span class="self">Self </span>{
+        StatementListItem::Statement(stmt)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Declaration</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">StatementListItem</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">decl</span>: <span class="ident">Declaration</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">StatementListItem::Declaration</span>(<span class="ident">decl</span>)
+<span class="kw">impl </span>From&lt;Declaration&gt; <span class="kw">for </span>StatementListItem {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(decl: Declaration) -&gt; <span class="self">Self </span>{
+        StatementListItem::Declaration(decl)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">VisitWith</span> <span class="kw">for</span> <span class="ident">StatementListItem</span> {
-    <span class="kw">fn</span> <span class="ident">visit_with</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">V</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>, <span class="ident">visitor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">V</span>) -&gt; <span class="ident">ControlFlow</span><span class="op">&lt;</span><span class="ident">V::BreakTy</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">V</span>: <span class="ident">Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
+<span class="kw">impl </span>VisitWith <span class="kw">for </span>StatementListItem {
+    <span class="kw">fn </span>visit_with&lt;<span class="lifetime">&#39;a</span>, V&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>, visitor: <span class="kw-2">&amp;mut </span>V) -&gt; ControlFlow&lt;V::BreakTy&gt;
+    <span class="kw">where
+        </span>V: Visitor&lt;<span class="lifetime">&#39;a</span>&gt;,
     {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">StatementListItem::Statement</span>(<span class="ident">statement</span>) =&gt; <span class="ident">visitor</span>.<span class="ident">visit_statement</span>(<span class="ident">statement</span>),
-            <span class="ident">StatementListItem::Declaration</span>(<span class="ident">declaration</span>) =&gt; <span class="ident">visitor</span>.<span class="ident">visit_declaration</span>(<span class="ident">declaration</span>),
+        <span class="kw">match </span><span class="self">self </span>{
+            StatementListItem::Statement(statement) =&gt; visitor.visit_statement(statement),
+            StatementListItem::Declaration(declaration) =&gt; visitor.visit_declaration(declaration),
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">visit_with_mut</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">V</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">visitor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">V</span>) -&gt; <span class="ident">ControlFlow</span><span class="op">&lt;</span><span class="ident">V::BreakTy</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">V</span>: <span class="ident">VisitorMut</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
+    <span class="kw">fn </span>visit_with_mut&lt;<span class="lifetime">&#39;a</span>, V&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="self">self</span>, visitor: <span class="kw-2">&amp;mut </span>V) -&gt; ControlFlow&lt;V::BreakTy&gt;
+    <span class="kw">where
+        </span>V: VisitorMut&lt;<span class="lifetime">&#39;a</span>&gt;,
     {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">StatementListItem::Statement</span>(<span class="ident">statement</span>) =&gt; <span class="ident">visitor</span>.<span class="ident">visit_statement_mut</span>(<span class="ident">statement</span>),
-            <span class="ident">StatementListItem::Declaration</span>(<span class="ident">declaration</span>) =&gt; {
-                <span class="ident">visitor</span>.<span class="ident">visit_declaration_mut</span>(<span class="ident">declaration</span>)
+        <span class="kw">match </span><span class="self">self </span>{
+            StatementListItem::Statement(statement) =&gt; visitor.visit_statement_mut(statement),
+            StatementListItem::Declaration(declaration) =&gt; {
+                visitor.visit_declaration_mut(declaration)
             }
         }
     }
 }
 
-<span class="doccomment">/// List of statements.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [ECMAScript reference][spec]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-StatementList</span>
-<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>, <span class="ident">derive</span>(<span class="ident">serde::Serialize</span>, <span class="ident">serde::Deserialize</span>))]</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Default</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">StatementList</span> {
-    <span class="ident">statements</span>: <span class="ident">Box</span><span class="op">&lt;</span>[<span class="ident">StatementListItem</span>]<span class="op">&gt;</span>,
-    <span class="ident">strict</span>: <span class="ident">bool</span>,
+<span class="doccomment">/// List of statements.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#prod-StatementList
+</span><span class="attribute">#[cfg_attr(feature = <span class="string">&quot;serde&quot;</span>, derive(serde::Serialize, serde::Deserialize))]
+#[derive(Clone, Debug, Default, PartialEq)]
+</span><span class="kw">pub struct </span>StatementList {
+    statements: Box&lt;[StatementListItem]&gt;,
+    strict: bool,
 }
 
-<span class="kw">impl</span> <span class="ident">StatementList</span> {
-    <span class="doccomment">/// Gets the list of statements.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">statements</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<span class="ident">StatementListItem</span>] {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">statements</span>
+<span class="kw">impl </span>StatementList {
+    <span class="doccomment">/// Gets the list of statements.
+    </span><span class="attribute">#[inline]
+    #[must_use]
+    </span><span class="kw">pub fn </span>statements(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[StatementListItem] {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.statements
     }
 
-    <span class="doccomment">/// Get the strict mode.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">strict</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">strict</span>
+    <span class="doccomment">/// Get the strict mode.
+    </span><span class="attribute">#[inline]
+    #[must_use]
+    </span><span class="kw">pub fn </span>strict(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.strict
     }
 
-    <span class="doccomment">/// Set the strict mode.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_strict</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">strict</span>: <span class="ident">bool</span>) {
-        <span class="self">self</span>.<span class="ident">strict</span> <span class="op">=</span> <span class="ident">strict</span>;
+    <span class="doccomment">/// Set the strict mode.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>set_strict(<span class="kw-2">&amp;mut </span><span class="self">self</span>, strict: bool) {
+        <span class="self">self</span>.strict = strict;
     }
 
-    <span class="doccomment">/// Returns the var declared names of a `StatementList`.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">var_declared_names</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">vars</span>: <span class="kw-2">&amp;mut</span> <span class="ident">FxHashSet</span><span class="op">&lt;</span><span class="ident">Identifier</span><span class="op">&gt;</span>) {
-        <span class="kw">for</span> <span class="ident">stmt</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="self">self</span>.<span class="ident">statements</span> {
-            <span class="ident">stmt</span>.<span class="ident">var_declared_names</span>(<span class="ident">vars</span>);
+    <span class="doccomment">/// Returns the var declared names of a `StatementList`.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>var_declared_names(<span class="kw-2">&amp;</span><span class="self">self</span>, vars: <span class="kw-2">&amp;mut </span>FxHashSet&lt;Identifier&gt;) {
+        <span class="kw">for </span>stmt <span class="kw">in </span><span class="kw-2">&amp;*</span><span class="self">self</span>.statements {
+            stmt.var_declared_names(vars);
         }
     }
 
-    <span class="doccomment">/// Returns the lexically declared names of a `StatementList`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The returned list may contain duplicates.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If a declared name originates from a function declaration it is flagged as `true` in the returned list.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript specification][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-static-semantics-lexicallydeclarednames</span>
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">lexically_declared_names</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">Identifier</span>, <span class="ident">bool</span>)<span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">names</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
+    <span class="doccomment">/// Returns the lexically declared names of a `StatementList`.
+    ///
+    /// The returned list may contain duplicates.
+    ///
+    /// If a declared name originates from a function declaration it is flagged as `true` in the returned list.
+    ///
+    /// More information:
+    ///  - [ECMAScript specification][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-lexicallydeclarednames
+    </span><span class="attribute">#[must_use]
+    </span><span class="kw">pub fn </span>lexically_declared_names(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;(Identifier, bool)&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>names = Vec::new();
 
-        <span class="kw">for</span> <span class="ident">node</span> <span class="kw">in</span> <span class="self">self</span>.<span class="ident">statements</span>() {
-            <span class="kw">match</span> <span class="ident">node</span> {
-                <span class="ident">StatementListItem::Statement</span>(<span class="kw">_</span>) =&gt; {}
-                <span class="ident">StatementListItem::Declaration</span>(<span class="ident">decl</span>) =&gt; {
-                    <span class="ident">names</span>.<span class="ident">extend</span>(<span class="ident">decl</span>.<span class="ident">lexically_declared_names</span>());
+        <span class="kw">for </span>node <span class="kw">in </span><span class="self">self</span>.statements() {
+            <span class="kw">match </span>node {
+                StatementListItem::Statement(<span class="kw">_</span>) =&gt; {}
+                StatementListItem::Declaration(decl) =&gt; {
+                    names.extend(decl.lexically_declared_names());
                 }
             }
         }
 
-        <span class="ident">names</span>
+        names
     }
 
-    <span class="doccomment">/// Return the top level lexically declared names of a `StatementList`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The returned list may contain duplicates.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript specification][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-static-semantics-toplevellexicallydeclarednames</span>
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">lexically_declared_names_top_level</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Identifier</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">names</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
+    <span class="doccomment">/// Return the top level lexically declared names of a `StatementList`.
+    ///
+    /// The returned list may contain duplicates.
+    ///
+    /// More information:
+    ///  - [ECMAScript specification][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-toplevellexicallydeclarednames
+    </span><span class="attribute">#[must_use]
+    </span><span class="kw">pub fn </span>lexically_declared_names_top_level(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;Identifier&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>names = Vec::new();
 
-        <span class="kw">for</span> <span class="ident">node</span> <span class="kw">in</span> <span class="self">self</span>.<span class="ident">statements</span>() {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="ident">StatementListItem::Declaration</span>(<span class="ident">decl</span>) <span class="op">=</span> <span class="ident">node</span> {
-                <span class="kw">match</span> <span class="ident">decl</span> {
-                    <span class="ident">Declaration::Class</span>(<span class="ident">decl</span>) =&gt; {
-                        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">name</span>) <span class="op">=</span> <span class="ident">decl</span>.<span class="ident">name</span>() {
-                            <span class="ident">names</span>.<span class="ident">push</span>(<span class="ident">name</span>);
+        <span class="kw">for </span>node <span class="kw">in </span><span class="self">self</span>.statements() {
+            <span class="kw">if let </span>StatementListItem::Declaration(decl) = node {
+                <span class="kw">match </span>decl {
+                    Declaration::Class(decl) =&gt; {
+                        <span class="kw">if let </span><span class="prelude-val">Some</span>(name) = decl.name() {
+                            names.push(name);
                         }
                     }
-                    <span class="ident">Declaration::Lexical</span>(<span class="ident">list</span>) =&gt; {
-                        <span class="kw">for</span> <span class="ident">variable</span> <span class="kw">in</span> <span class="ident">list</span>.<span class="ident">variable_list</span>().<span class="ident">as_ref</span>() {
-                            <span class="kw">match</span> <span class="ident">variable</span>.<span class="ident">binding</span>() {
-                                <span class="ident">Binding::Identifier</span>(<span class="ident">ident</span>) =&gt; {
-                                    <span class="ident">names</span>.<span class="ident">push</span>(<span class="kw-2">*</span><span class="ident">ident</span>);
+                    Declaration::Lexical(list) =&gt; {
+                        <span class="kw">for </span>variable <span class="kw">in </span>list.variable_list().as_ref() {
+                            <span class="kw">match </span>variable.binding() {
+                                Binding::Identifier(ident) =&gt; {
+                                    names.push(<span class="kw-2">*</span>ident);
                                 }
-                                <span class="ident">Binding::Pattern</span>(<span class="ident">pattern</span>) =&gt; {
-                                    <span class="ident">names</span>.<span class="ident">extend</span>(<span class="ident">pattern</span>.<span class="ident">idents</span>());
+                                Binding::Pattern(pattern) =&gt; {
+                                    names.extend(pattern.idents());
                                 }
                             }
                         }
                     }
-                    <span class="kw">_</span> =&gt; {}
+                    <span class="kw">_ </span>=&gt; {}
                 }
             }
         }
 
-        <span class="ident">names</span>
-    }
-
-    <span class="doccomment">/// Returns true if the node contains a identifier reference named &#39;arguments&#39;.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript specification][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-static-semantics-containsarguments</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">contains_arguments</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">statements</span>
-            .<span class="ident">iter</span>()
-            .<span class="ident">any</span>(<span class="ident">StatementListItem::contains_arguments</span>)
-    }
-
-    <span class="doccomment">/// Returns `true` if the node contains the given token.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript specification][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-static-semantics-contains</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">symbol</span>: <span class="ident">ContainsSymbol</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">statements</span>.<span class="ident">iter</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">stmt</span><span class="op">|</span> <span class="ident">stmt</span>.<span class="ident">contains</span>(<span class="ident">symbol</span>))
+        names
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span>[<span class="ident">StatementListItem</span>]<span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">StatementList</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">stm</span>: <span class="ident">Box</span><span class="op">&lt;</span>[<span class="ident">StatementListItem</span>]<span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">statements</span>: <span class="ident">stm</span>,
-            <span class="ident">strict</span>: <span class="bool-val">false</span>,
+<span class="kw">impl </span>From&lt;Box&lt;[StatementListItem]&gt;&gt; <span class="kw">for </span>StatementList {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(stm: Box&lt;[StatementListItem]&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            statements: stm,
+            strict: <span class="bool-val">false</span>,
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">StatementListItem</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">StatementList</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">stm</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">StatementListItem</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">statements</span>: <span class="ident">stm</span>.<span class="ident">into</span>(),
-            <span class="ident">strict</span>: <span class="bool-val">false</span>,
+<span class="kw">impl </span>From&lt;Vec&lt;StatementListItem&gt;&gt; <span class="kw">for </span>StatementList {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(stm: Vec&lt;StatementListItem&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            statements: stm.into(),
+            strict: <span class="bool-val">false</span>,
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">ToIndentedString</span> <span class="kw">for</span> <span class="ident">StatementList</span> {
-    <span class="kw">fn</span> <span class="ident">to_indented_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;</span><span class="ident">Interner</span>, <span class="ident">indentation</span>: <span class="ident">usize</span>) -&gt; <span class="ident">String</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <span class="ident">String::new</span>();
-        <span class="comment">// Print statements</span>
-        <span class="kw">for</span> <span class="ident">item</span> <span class="kw">in</span> <span class="self">self</span>.<span class="ident">statements</span>.<span class="ident">iter</span>() {
-            <span class="comment">// We rely on the node to add the correct indent.</span>
-            <span class="ident">buf</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="ident">item</span>.<span class="ident">to_indented_string</span>(<span class="ident">interner</span>, <span class="ident">indentation</span>));
+<span class="kw">impl </span>ToIndentedString <span class="kw">for </span>StatementList {
+    <span class="kw">fn </span>to_indented_string(<span class="kw-2">&amp;</span><span class="self">self</span>, interner: <span class="kw-2">&amp;</span>Interner, indentation: usize) -&gt; String {
+        <span class="kw">let </span><span class="kw-2">mut </span>buf = String::new();
+        <span class="comment">// Print statements
+        </span><span class="kw">for </span>item <span class="kw">in </span><span class="self">self</span>.statements.iter() {
+            <span class="comment">// We rely on the node to add the correct indent.
+            </span>buf.push_str(<span class="kw-2">&amp;</span>item.to_indented_string(interner, indentation));
 
-            <span class="ident">buf</span>.<span class="ident">push</span>(<span class="string">&#39;\n&#39;</span>);
+            buf.push(<span class="string">&#39;\n&#39;</span>);
         }
-        <span class="ident">buf</span>
+        buf
     }
 }
 
-<span class="kw">impl</span> <span class="ident">VisitWith</span> <span class="kw">for</span> <span class="ident">StatementList</span> {
-    <span class="kw">fn</span> <span class="ident">visit_with</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">V</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>, <span class="ident">visitor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">V</span>) -&gt; <span class="ident">ControlFlow</span><span class="op">&lt;</span><span class="ident">V::BreakTy</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">V</span>: <span class="ident">Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
+<span class="kw">impl </span>VisitWith <span class="kw">for </span>StatementList {
+    <span class="kw">fn </span>visit_with&lt;<span class="lifetime">&#39;a</span>, V&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>, visitor: <span class="kw-2">&amp;mut </span>V) -&gt; ControlFlow&lt;V::BreakTy&gt;
+    <span class="kw">where
+        </span>V: Visitor&lt;<span class="lifetime">&#39;a</span>&gt;,
     {
-        <span class="kw">for</span> <span class="ident">statement</span> <span class="kw">in</span> <span class="self">self</span>.<span class="ident">statements</span>.<span class="ident">iter</span>() {
-            <span class="macro">try_break!</span>(<span class="ident">visitor</span>.<span class="ident">visit_statement_list_item</span>(<span class="ident">statement</span>));
+        <span class="kw">for </span>statement <span class="kw">in </span><span class="self">self</span>.statements.iter() {
+            <span class="macro">try_break!</span>(visitor.visit_statement_list_item(statement));
         }
-        <span class="ident">ControlFlow::Continue</span>(())
+        ControlFlow::Continue(())
     }
 
-    <span class="kw">fn</span> <span class="ident">visit_with_mut</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">V</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">visitor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">V</span>) -&gt; <span class="ident">ControlFlow</span><span class="op">&lt;</span><span class="ident">V::BreakTy</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">V</span>: <span class="ident">VisitorMut</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
+    <span class="kw">fn </span>visit_with_mut&lt;<span class="lifetime">&#39;a</span>, V&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="self">self</span>, visitor: <span class="kw-2">&amp;mut </span>V) -&gt; ControlFlow&lt;V::BreakTy&gt;
+    <span class="kw">where
+        </span>V: VisitorMut&lt;<span class="lifetime">&#39;a</span>&gt;,
     {
-        <span class="kw">for</span> <span class="ident">statement</span> <span class="kw">in</span> <span class="self">self</span>.<span class="ident">statements</span>.<span class="ident">iter_mut</span>() {
-            <span class="macro">try_break!</span>(<span class="ident">visitor</span>.<span class="ident">visit_statement_list_item_mut</span>(<span class="ident">statement</span>));
+        <span class="kw">for </span>statement <span class="kw">in </span><span class="self">self</span>.statements.iter_mut() {
+            <span class="macro">try_break!</span>(visitor.visit_statement_list_item_mut(statement));
         }
-        <span class="ident">ControlFlow::Continue</span>(())
+        ControlFlow::Continue(())
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="boa_ast" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0 (a55dd71d5 2022-09-19)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="boa_ast" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0 (897e37553 2022-11-02)" ></div></body></html>

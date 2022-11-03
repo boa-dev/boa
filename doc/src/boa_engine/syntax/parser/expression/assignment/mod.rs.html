@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_engine/src/syntax/parser/expression/assignment/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../../../storage.js"></script><script defer src="../../../../../../source-script.js"></script><script defer src="../../../../../../source-files.js"></script><script defer src="../../../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../../../boa_engine/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../../../boa_engine/index.html"><div class="logo-container">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_engine/src/syntax/parser/expression/assignment/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../../../normalize.css"><link rel="stylesheet" href="../../../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../../../dark.css" disabled><link rel="stylesheet" href="../../../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../../../storage.js"></script><script defer src="../../../../../../source-script.js"></script><script defer src="../../../../../../source-files.js"></script><script defer src="../../../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../../../boa_engine/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../../../boa_engine/index.html"><div class="logo-container">
                     <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../../../boa_engine/index.html">
                         <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -267,272 +267,272 @@
 <span id="265">265</span>
 <span id="266">266</span>
 <span id="267">267</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Assignment operator parsing.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! More information:</span>
-<span class="doccomment">//!  - [MDN documentation][mdn]</span>
-<span class="doccomment">//!  - [ECMAScript specification][spec]</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Assignment_Operators#Assignment</span>
-<span class="doccomment">//! [spec]: https://tc39.es/ecma262/#sec-assignment-operators</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Assignment operator parsing.
+//!
+//! More information:
+//!  - [MDN documentation][mdn]
+//!  - [ECMAScript specification][spec]
+//!
+//! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Assignment_Operators#Assignment
+//! [spec]: https://tc39.es/ecma262/#sec-assignment-operators
 
-<span class="kw">mod</span> <span class="ident">arrow_function</span>;
-<span class="kw">mod</span> <span class="ident">conditional</span>;
-<span class="kw">mod</span> <span class="ident">exponentiation</span>;
-<span class="kw">mod</span> <span class="ident">r#yield</span>;
+</span><span class="kw">mod </span>arrow_function;
+<span class="kw">mod </span>conditional;
+<span class="kw">mod </span>exponentiation;
+<span class="kw">mod </span>r#yield;
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax</span>::{
-    <span class="ident">lexer</span>::{<span class="ident">Error</span> <span class="kw">as</span> <span class="ident">LexError</span>, <span class="ident">InputElement</span>, <span class="ident">TokenKind</span>},
-    <span class="ident">parser</span>::{
-        <span class="ident">expression::assignment</span>::{
-            <span class="ident">arrow_function</span>::{<span class="ident">ArrowFunction</span>, <span class="ident">ConciseBody</span>},
-            <span class="ident">conditional::ConditionalExpression</span>,
-            <span class="ident">r#yield</span><span class="ident">::YieldExpression</span>,
+<span class="kw">use </span><span class="kw">crate</span>::syntax::{
+    lexer::{Error <span class="kw">as </span>LexError, InputElement, TokenKind},
+    parser::{
+        expression::assignment::{
+            arrow_function::{ArrowFunction, ConciseBody},
+            conditional::ConditionalExpression,
+            r#yield::YieldExpression,
         },
-        <span class="ident">name_in_lexically_declared_names</span>, <span class="ident">AllowAwait</span>, <span class="ident">AllowIn</span>, <span class="ident">AllowYield</span>, <span class="ident">Cursor</span>, <span class="ident">ParseError</span>,
-        <span class="ident">ParseResult</span>, <span class="ident">TokenParser</span>,
+        name_in_lexically_declared_names, AllowAwait, AllowIn, AllowYield, Cursor, ParseError,
+        ParseResult, TokenParser,
     },
 };
-<span class="kw">use</span> <span class="ident">boa_ast</span>::{
-    <span class="self">self</span> <span class="kw">as</span> <span class="ident">ast</span>,
-    <span class="ident">expression</span>::{
-        <span class="ident">operator::assign</span>::{<span class="ident">Assign</span>, <span class="ident">AssignOp</span>, <span class="ident">AssignTarget</span>},
-        <span class="ident">Identifier</span>,
+<span class="kw">use </span>boa_ast::{
+    <span class="self">self </span><span class="kw">as </span>ast,
+    expression::{
+        operator::assign::{Assign, AssignOp, AssignTarget},
+        Identifier,
     },
-    <span class="ident">Expression</span>, <span class="ident">Keyword</span>, <span class="ident">Punctuator</span>,
+    Expression, Keyword, Punctuator,
 };
-<span class="kw">use</span> <span class="ident">boa_interner::Interner</span>;
-<span class="kw">use</span> <span class="ident">boa_profiler::Profiler</span>;
-<span class="kw">use</span> <span class="ident">std::io::Read</span>;
+<span class="kw">use </span>boa_interner::Interner;
+<span class="kw">use </span>boa_profiler::Profiler;
+<span class="kw">use </span>std::io::Read;
 
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">use</span> <span class="ident">exponentiation::ExponentiationExpression</span>;
+<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">use </span>exponentiation::ExponentiationExpression;
 
-<span class="kw">use</span> <span class="ident"><span class="kw">super</span>::check_strict_arguments_or_eval</span>;
+<span class="kw">use </span><span class="kw">super</span>::check_strict_arguments_or_eval;
 
-<span class="doccomment">/// Assignment expression parsing.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This can be one of the following:</span>
-<span class="doccomment">///</span>
-<span class="doccomment">///  - [`ConditionalExpression`](../conditional_operator/struct.ConditionalExpression.html)</span>
-<span class="doccomment">///  - `YieldExpression`</span>
-<span class="doccomment">///  - [`ArrowFunction`](../../function/arrow_function/struct.ArrowFunction.html)</span>
-<span class="doccomment">///  - `AsyncArrowFunction`</span>
-<span class="doccomment">///  - [`LeftHandSideExpression`][lhs] `=` `AssignmentExpression`</span>
-<span class="doccomment">///  - [`LeftHandSideExpression`][lhs] `AssignmentOperator` `AssignmentExpression`</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [MDN documentation][mdn]</span>
-<span class="doccomment">///  - [ECMAScript specification][spec]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Assignment_Operators#Assignment</span>
-<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-AssignmentExpression</span>
-<span class="doccomment">/// [lhs]: ../lhs_expression/struct.LeftHandSideExpression.html</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">in</span> <span class="ident"><span class="kw">crate</span>::syntax::parser</span>) <span class="kw">struct</span> <span class="ident">AssignmentExpression</span> {
-    <span class="ident">name</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Identifier</span><span class="op">&gt;</span>,
-    <span class="ident">allow_in</span>: <span class="ident">AllowIn</span>,
-    <span class="ident">allow_yield</span>: <span class="ident">AllowYield</span>,
-    <span class="ident">allow_await</span>: <span class="ident">AllowAwait</span>,
+<span class="doccomment">/// Assignment expression parsing.
+///
+/// This can be one of the following:
+///
+///  - [`ConditionalExpression`](../conditional_operator/struct.ConditionalExpression.html)
+///  - `YieldExpression`
+///  - [`ArrowFunction`](../../function/arrow_function/struct.ArrowFunction.html)
+///  - `AsyncArrowFunction`
+///  - [`LeftHandSideExpression`][lhs] `=` `AssignmentExpression`
+///  - [`LeftHandSideExpression`][lhs] `AssignmentOperator` `AssignmentExpression`
+///
+/// More information:
+///  - [MDN documentation][mdn]
+///  - [ECMAScript specification][spec]
+///
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Assignment_Operators#Assignment
+/// [spec]: https://tc39.es/ecma262/#prod-AssignmentExpression
+/// [lhs]: ../lhs_expression/struct.LeftHandSideExpression.html
+</span><span class="attribute">#[derive(Debug, Clone, Copy)]
+</span><span class="kw">pub</span>(<span class="kw">in </span><span class="kw">crate</span>::syntax::parser) <span class="kw">struct </span>AssignmentExpression {
+    name: <span class="prelude-ty">Option</span>&lt;Identifier&gt;,
+    allow_in: AllowIn,
+    allow_yield: AllowYield,
+    allow_await: AllowAwait,
 }
 
-<span class="kw">impl</span> <span class="ident">AssignmentExpression</span> {
-    <span class="doccomment">/// Creates a new `AssignmentExpression` parser.</span>
-    <span class="kw">pub</span>(<span class="kw">in</span> <span class="ident"><span class="kw">crate</span>::syntax::parser</span>) <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">N</span>, <span class="ident">I</span>, <span class="ident">Y</span>, <span class="ident">A</span><span class="op">&gt;</span>(
-        <span class="ident">name</span>: <span class="ident">N</span>,
-        <span class="ident">allow_in</span>: <span class="ident">I</span>,
-        <span class="ident">allow_yield</span>: <span class="ident">Y</span>,
-        <span class="ident">allow_await</span>: <span class="ident">A</span>,
-    ) -&gt; <span class="self">Self</span>
-    <span class="kw">where</span>
-        <span class="ident">N</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Identifier</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-        <span class="ident">I</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowIn</span><span class="op">&gt;</span>,
-        <span class="ident">Y</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowYield</span><span class="op">&gt;</span>,
-        <span class="ident">A</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowAwait</span><span class="op">&gt;</span>,
+<span class="kw">impl </span>AssignmentExpression {
+    <span class="doccomment">/// Creates a new `AssignmentExpression` parser.
+    </span><span class="kw">pub</span>(<span class="kw">in </span><span class="kw">crate</span>::syntax::parser) <span class="kw">fn </span>new&lt;N, I, Y, A&gt;(
+        name: N,
+        allow_in: I,
+        allow_yield: Y,
+        allow_await: A,
+    ) -&gt; <span class="self">Self
+    </span><span class="kw">where
+        </span>N: Into&lt;<span class="prelude-ty">Option</span>&lt;Identifier&gt;&gt;,
+        I: Into&lt;AllowIn&gt;,
+        Y: Into&lt;AllowYield&gt;,
+        A: Into&lt;AllowAwait&gt;,
     {
-        <span class="self">Self</span> {
-            <span class="ident">name</span>: <span class="ident">name</span>.<span class="ident">into</span>(),
-            <span class="ident">allow_in</span>: <span class="ident">allow_in</span>.<span class="ident">into</span>(),
-            <span class="ident">allow_yield</span>: <span class="ident">allow_yield</span>.<span class="ident">into</span>(),
-            <span class="ident">allow_await</span>: <span class="ident">allow_await</span>.<span class="ident">into</span>(),
+        <span class="self">Self </span>{
+            name: name.into(),
+            allow_in: allow_in.into(),
+            allow_yield: allow_yield.into(),
+            allow_await: allow_await.into(),
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="ident">TokenParser</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">AssignmentExpression</span>
-<span class="kw">where</span>
-    <span class="ident">R</span>: <span class="ident">Read</span>,
+<span class="kw">impl</span>&lt;R&gt; TokenParser&lt;R&gt; <span class="kw">for </span>AssignmentExpression
+<span class="kw">where
+    </span>R: Read,
 {
-    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">Expression</span>;
+    <span class="kw">type </span>Output = Expression;
 
-    <span class="kw">fn</span> <span class="ident">parse</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">cursor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Interner</span>) -&gt; <span class="ident">ParseResult</span><span class="op">&lt;</span><span class="ident">Expression</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;AssignmentExpression&quot;</span>, <span class="string">&quot;Parsing&quot;</span>);
-        <span class="ident">cursor</span>.<span class="ident">set_goal</span>(<span class="ident">InputElement::RegExp</span>);
+    <span class="kw">fn </span>parse(<span class="kw-2">mut </span><span class="self">self</span>, cursor: <span class="kw-2">&amp;mut </span>Cursor&lt;R&gt;, interner: <span class="kw-2">&amp;mut </span>Interner) -&gt; ParseResult&lt;Expression&gt; {
+        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;AssignmentExpression&quot;</span>, <span class="string">&quot;Parsing&quot;</span>);
+        cursor.set_goal(InputElement::RegExp);
 
-        <span class="kw">match</span> <span class="ident">cursor</span>
-            .<span class="ident">peek</span>(<span class="number">0</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>
-            .<span class="ident">ok_or</span>(<span class="ident">ParseError::AbruptEnd</span>)<span class="question-mark">?</span>
-            .<span class="ident">kind</span>()
+        <span class="kw">match </span>cursor
+            .peek(<span class="number">0</span>, interner)<span class="question-mark">?
+            </span>.ok_or(ParseError::AbruptEnd)<span class="question-mark">?
+            </span>.kind()
         {
-            <span class="comment">// [+Yield]YieldExpression[?In, ?Await]</span>
-            <span class="ident">TokenKind::Keyword</span>((<span class="ident">Keyword::Yield</span>, <span class="kw">_</span>)) <span class="kw">if</span> <span class="self">self</span>.<span class="ident">allow_yield</span>.<span class="number">0</span> =&gt; {
-                <span class="kw">return</span> <span class="ident">YieldExpression::new</span>(<span class="self">self</span>.<span class="ident">allow_in</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
-                    .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)
+            <span class="comment">// [+Yield]YieldExpression[?In, ?Await]
+            </span>TokenKind::Keyword((Keyword::Yield, <span class="kw">_</span>)) <span class="kw">if </span><span class="self">self</span>.allow_yield.<span class="number">0 </span>=&gt; {
+                <span class="kw">return </span>YieldExpression::new(<span class="self">self</span>.allow_in, <span class="self">self</span>.allow_await)
+                    .parse(cursor, interner)
             }
-            <span class="comment">// ArrowFunction[?In, ?Yield, ?Await] -&gt; ArrowParameters[?Yield, ?Await] -&gt; BindingIdentifier[?Yield, ?Await]</span>
-            <span class="ident">TokenKind::Identifier</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">TokenKind::Keyword</span>((<span class="ident">Keyword::Yield</span> <span class="op">|</span> <span class="ident">Keyword::Await</span>, <span class="kw">_</span>)) =&gt; {
-                <span class="ident">cursor</span>.<span class="ident">set_goal</span>(<span class="ident">InputElement::Div</span>);
+            <span class="comment">// ArrowFunction[?In, ?Yield, ?Await] -&gt; ArrowParameters[?Yield, ?Await] -&gt; BindingIdentifier[?Yield, ?Await]
+            </span>TokenKind::Identifier(<span class="kw">_</span>) | TokenKind::Keyword((Keyword::Yield | Keyword::Await, <span class="kw">_</span>)) =&gt; {
+                cursor.set_goal(InputElement::Div);
 
-                <span class="comment">// Because we already peeked the identifier token, there may be a line terminator before the identifier token.</span>
-                <span class="comment">// In that case we have to skip an additional token on the next peek.</span>
-                <span class="kw">let</span> <span class="ident">skip_n</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">cursor</span>
-                    .<span class="ident">peek_is_line_terminator</span>(<span class="number">0</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>
-                    .<span class="ident">ok_or</span>(<span class="ident">ParseError::AbruptEnd</span>)<span class="question-mark">?</span>
+                <span class="comment">// Because we already peeked the identifier token, there may be a line terminator before the identifier token.
+                // In that case we have to skip an additional token on the next peek.
+                </span><span class="kw">let </span>skip_n = <span class="kw">if </span>cursor
+                    .peek_is_line_terminator(<span class="number">0</span>, interner)<span class="question-mark">?
+                    </span>.ok_or(ParseError::AbruptEnd)<span class="question-mark">?
+                </span>{
+                    <span class="number">2
+                </span>} <span class="kw">else </span>{
+                    <span class="number">1
+                </span>};
+                <span class="kw">if let </span><span class="prelude-val">Ok</span>(tok) =
+                    cursor.peek_expect_no_lineterminator(skip_n, <span class="string">&quot;assignment expression&quot;</span>, interner)
                 {
-                    <span class="number">2</span>
-                } <span class="kw">else</span> {
-                    <span class="number">1</span>
-                };
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">tok</span>) <span class="op">=</span>
-                    <span class="ident">cursor</span>.<span class="ident">peek_expect_no_lineterminator</span>(<span class="ident">skip_n</span>, <span class="string">&quot;assignment expression&quot;</span>, <span class="ident">interner</span>)
-                {
-                    <span class="kw">if</span> <span class="ident">tok</span>.<span class="ident">kind</span>() <span class="op">==</span> <span class="kw-2">&amp;</span><span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::Arrow</span>) {
-                        <span class="kw">return</span> <span class="ident">ArrowFunction::new</span>(
-                            <span class="self">self</span>.<span class="ident">name</span>,
-                            <span class="self">self</span>.<span class="ident">allow_in</span>,
-                            <span class="self">self</span>.<span class="ident">allow_yield</span>,
-                            <span class="self">self</span>.<span class="ident">allow_await</span>,
+                    <span class="kw">if </span>tok.kind() == <span class="kw-2">&amp;</span>TokenKind::Punctuator(Punctuator::Arrow) {
+                        <span class="kw">return </span>ArrowFunction::new(
+                            <span class="self">self</span>.name,
+                            <span class="self">self</span>.allow_in,
+                            <span class="self">self</span>.allow_yield,
+                            <span class="self">self</span>.allow_await,
                         )
-                        .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)
-                        .<span class="ident">map</span>(<span class="ident">Expression::ArrowFunction</span>);
+                        .parse(cursor, interner)
+                        .map(Expression::ArrowFunction);
                     }
                 }
             }
-            <span class="kw">_</span> =&gt; {}
+            <span class="kw">_ </span>=&gt; {}
         }
 
-        <span class="ident">cursor</span>.<span class="ident">set_goal</span>(<span class="ident">InputElement::Div</span>);
+        cursor.set_goal(InputElement::Div);
 
-        <span class="kw">let</span> <span class="ident">position</span> <span class="op">=</span> <span class="ident">cursor</span>
-            .<span class="ident">peek</span>(<span class="number">0</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>
-            .<span class="ident">ok_or</span>(<span class="ident">ParseError::AbruptEnd</span>)<span class="question-mark">?</span>
-            .<span class="ident">span</span>()
-            .<span class="ident">start</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">lhs</span> <span class="op">=</span> <span class="ident">ConditionalExpression::new</span>(
-            <span class="self">self</span>.<span class="ident">name</span>,
-            <span class="self">self</span>.<span class="ident">allow_in</span>,
-            <span class="self">self</span>.<span class="ident">allow_yield</span>,
-            <span class="self">self</span>.<span class="ident">allow_await</span>,
+        <span class="kw">let </span>position = cursor
+            .peek(<span class="number">0</span>, interner)<span class="question-mark">?
+            </span>.ok_or(ParseError::AbruptEnd)<span class="question-mark">?
+            </span>.span()
+            .start();
+        <span class="kw">let </span><span class="kw-2">mut </span>lhs = ConditionalExpression::new(
+            <span class="self">self</span>.name,
+            <span class="self">self</span>.allow_in,
+            <span class="self">self</span>.allow_yield,
+            <span class="self">self</span>.allow_await,
         )
-        .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
+        .parse(cursor, interner)<span class="question-mark">?</span>;
 
-        <span class="comment">// If the left hand side is a parameter list, we must parse an arrow function.</span>
-        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Expression::FormalParameterList</span>(<span class="ident">parameters</span>) <span class="op">=</span> <span class="ident">lhs</span> {
-            <span class="ident">cursor</span>.<span class="ident">peek_expect_no_lineterminator</span>(<span class="number">0</span>, <span class="string">&quot;arrow function&quot;</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
+        <span class="comment">// If the left hand side is a parameter list, we must parse an arrow function.
+        </span><span class="kw">if let </span>Expression::FormalParameterList(parameters) = lhs {
+            cursor.peek_expect_no_lineterminator(<span class="number">0</span>, <span class="string">&quot;arrow function&quot;</span>, interner)<span class="question-mark">?</span>;
 
-            <span class="ident">cursor</span>.<span class="ident">expect</span>(
-                <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::Arrow</span>),
+            cursor.expect(
+                TokenKind::Punctuator(Punctuator::Arrow),
                 <span class="string">&quot;arrow function&quot;</span>,
-                <span class="ident">interner</span>,
+                interner,
             )<span class="question-mark">?</span>;
-            <span class="kw">let</span> <span class="ident">arrow</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">arrow</span>();
-            <span class="ident">cursor</span>.<span class="ident">set_arrow</span>(<span class="bool-val">true</span>);
-            <span class="kw">let</span> <span class="ident">body</span> <span class="op">=</span> <span class="ident">ConciseBody::new</span>(<span class="self">self</span>.<span class="ident">allow_in</span>).<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
-            <span class="ident">cursor</span>.<span class="ident">set_arrow</span>(<span class="ident">arrow</span>);
+            <span class="kw">let </span>arrow = cursor.arrow();
+            cursor.set_arrow(<span class="bool-val">true</span>);
+            <span class="kw">let </span>body = ConciseBody::new(<span class="self">self</span>.allow_in).parse(cursor, interner)<span class="question-mark">?</span>;
+            cursor.set_arrow(arrow);
 
-            <span class="comment">// Early Error: ArrowFormalParameters are UniqueFormalParameters.</span>
-            <span class="kw">if</span> <span class="ident">parameters</span>.<span class="ident">has_duplicates</span>() {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::lex</span>(<span class="ident">LexError::Syntax</span>(
-                    <span class="string">&quot;Duplicate parameter name not allowed in this context&quot;</span>.<span class="ident">into</span>(),
-                    <span class="ident">position</span>,
+            <span class="comment">// Early Error: ArrowFormalParameters are UniqueFormalParameters.
+            </span><span class="kw">if </span>parameters.has_duplicates() {
+                <span class="kw">return </span><span class="prelude-val">Err</span>(ParseError::lex(LexError::Syntax(
+                    <span class="string">&quot;Duplicate parameter name not allowed in this context&quot;</span>.into(),
+                    position,
                 )));
             }
 
-            <span class="comment">// Early Error: It is a Syntax Error if ConciseBodyContainsUseStrict of ConciseBody is true</span>
-            <span class="comment">// and IsSimpleParameterList of ArrowParameters is false.</span>
-            <span class="kw">if</span> <span class="ident">body</span>.<span class="ident">strict</span>() <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">parameters</span>.<span class="ident">is_simple</span>() {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::lex</span>(<span class="ident">LexError::Syntax</span>(
-                    <span class="string">&quot;Illegal &#39;use strict&#39; directive in function with non-simple parameter list&quot;</span>
-                        .<span class="ident">into</span>(),
-                    <span class="ident">position</span>,
+            <span class="comment">// Early Error: It is a Syntax Error if ConciseBodyContainsUseStrict of ConciseBody is true
+            // and IsSimpleParameterList of ArrowParameters is false.
+            </span><span class="kw">if </span>body.strict() &amp;&amp; !parameters.is_simple() {
+                <span class="kw">return </span><span class="prelude-val">Err</span>(ParseError::lex(LexError::Syntax(
+                    <span class="string">&quot;Illegal &#39;use strict&#39; directive in function with non-simple parameter list&quot;
+                        </span>.into(),
+                    position,
                 )));
             }
 
-            <span class="comment">// It is a Syntax Error if any element of the BoundNames of ArrowParameters</span>
-            <span class="comment">// also occurs in the LexicallyDeclaredNames of ConciseBody.</span>
-            <span class="comment">// https://tc39.es/ecma262/#sec-arrow-function-definitions-static-semantics-early-errors</span>
-            <span class="ident">name_in_lexically_declared_names</span>(
-                <span class="kw-2">&amp;</span><span class="ident">parameters</span>,
-                <span class="kw-2">&amp;</span><span class="ident">body</span>.<span class="ident">lexically_declared_names_top_level</span>(),
-                <span class="ident">position</span>,
+            <span class="comment">// It is a Syntax Error if any element of the BoundNames of ArrowParameters
+            // also occurs in the LexicallyDeclaredNames of ConciseBody.
+            // https://tc39.es/ecma262/#sec-arrow-function-definitions-static-semantics-early-errors
+            </span>name_in_lexically_declared_names(
+                <span class="kw-2">&amp;</span>parameters,
+                <span class="kw-2">&amp;</span>body.lexically_declared_names_top_level(),
+                position,
             )<span class="question-mark">?</span>;
 
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">ast::function::ArrowFunction::new</span>(<span class="self">self</span>.<span class="ident">name</span>, <span class="ident">parameters</span>, <span class="ident">body</span>).<span class="ident">into</span>());
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(ast::function::ArrowFunction::new(<span class="self">self</span>.name, parameters, body).into());
         }
 
-        <span class="comment">// Review if we are trying to assign to an invalid left hand side expression.</span>
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">tok</span>) <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">0</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>.<span class="ident">cloned</span>() {
-            <span class="kw">match</span> <span class="ident">tok</span>.<span class="ident">kind</span>() {
-                <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::Assign</span>) =&gt; {
-                    <span class="kw">if</span> <span class="ident">cursor</span>.<span class="ident">strict_mode</span>() {
-                        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Expression::Identifier</span>(<span class="ident">ident</span>) <span class="op">=</span> <span class="ident">lhs</span> {
-                            <span class="ident">check_strict_arguments_or_eval</span>(<span class="ident">ident</span>, <span class="ident">position</span>)<span class="question-mark">?</span>;
+        <span class="comment">// Review if we are trying to assign to an invalid left hand side expression.
+        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(tok) = cursor.peek(<span class="number">0</span>, interner)<span class="question-mark">?</span>.cloned() {
+            <span class="kw">match </span>tok.kind() {
+                TokenKind::Punctuator(Punctuator::Assign) =&gt; {
+                    <span class="kw">if </span>cursor.strict_mode() {
+                        <span class="kw">if let </span>Expression::Identifier(ident) = lhs {
+                            check_strict_arguments_or_eval(ident, position)<span class="question-mark">?</span>;
                         }
                     }
 
-                    <span class="ident">cursor</span>.<span class="ident">next</span>(<span class="ident">interner</span>)<span class="question-mark">?</span>.<span class="ident">expect</span>(<span class="string">&quot;= token vanished&quot;</span>);
-                    <span class="ident">cursor</span>.<span class="ident">set_goal</span>(<span class="ident">InputElement::RegExp</span>);
+                    cursor.next(interner)<span class="question-mark">?</span>.expect(<span class="string">&quot;= token vanished&quot;</span>);
+                    cursor.set_goal(InputElement::RegExp);
 
-                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">target</span>) <span class="op">=</span>
-                        <span class="ident">AssignTarget::from_expression</span>(<span class="kw-2">&amp;</span><span class="ident">lhs</span>, <span class="ident">cursor</span>.<span class="ident">strict_mode</span>(), <span class="bool-val">true</span>)
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(target) =
+                        AssignTarget::from_expression(<span class="kw-2">&amp;</span>lhs, cursor.strict_mode(), <span class="bool-val">true</span>)
                     {
-                        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">AssignTarget::Identifier</span>(<span class="ident">ident</span>) <span class="op">=</span> <span class="ident">target</span> {
-                            <span class="self">self</span>.<span class="ident">name</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">ident</span>);
+                        <span class="kw">if let </span>AssignTarget::Identifier(ident) = target {
+                            <span class="self">self</span>.name = <span class="prelude-val">Some</span>(ident);
                         }
-                        <span class="kw">let</span> <span class="ident">expr</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
-                        <span class="ident">lhs</span> <span class="op">=</span> <span class="ident">Assign::new</span>(<span class="ident">AssignOp::Assign</span>, <span class="ident">target</span>, <span class="ident">expr</span>).<span class="ident">into</span>();
-                    } <span class="kw">else</span> {
-                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::lex</span>(<span class="ident">LexError::Syntax</span>(
-                            <span class="string">&quot;Invalid left-hand side in assignment&quot;</span>.<span class="ident">into</span>(),
-                            <span class="ident">tok</span>.<span class="ident">span</span>().<span class="ident">start</span>(),
+                        <span class="kw">let </span>expr = <span class="self">self</span>.parse(cursor, interner)<span class="question-mark">?</span>;
+                        lhs = Assign::new(AssignOp::Assign, target, expr).into();
+                    } <span class="kw">else </span>{
+                        <span class="kw">return </span><span class="prelude-val">Err</span>(ParseError::lex(LexError::Syntax(
+                            <span class="string">&quot;Invalid left-hand side in assignment&quot;</span>.into(),
+                            tok.span().start(),
                         )));
                     }
                 }
-                <span class="ident">TokenKind::Punctuator</span>(<span class="ident">p</span>) <span class="kw">if</span> <span class="ident">p</span>.<span class="ident">as_assign_op</span>().<span class="ident">is_some</span>() =&gt; {
-                    <span class="kw">if</span> <span class="ident">cursor</span>.<span class="ident">strict_mode</span>() {
-                        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Expression::Identifier</span>(<span class="ident">ident</span>) <span class="op">=</span> <span class="ident">lhs</span> {
-                            <span class="ident">check_strict_arguments_or_eval</span>(<span class="ident">ident</span>, <span class="ident">position</span>)<span class="question-mark">?</span>;
+                TokenKind::Punctuator(p) <span class="kw">if </span>p.as_assign_op().is_some() =&gt; {
+                    <span class="kw">if </span>cursor.strict_mode() {
+                        <span class="kw">if let </span>Expression::Identifier(ident) = lhs {
+                            check_strict_arguments_or_eval(ident, position)<span class="question-mark">?</span>;
                         }
                     }
 
-                    <span class="ident">cursor</span>.<span class="ident">next</span>(<span class="ident">interner</span>)<span class="question-mark">?</span>.<span class="ident">expect</span>(<span class="string">&quot;token vanished&quot;</span>);
-                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">target</span>) <span class="op">=</span>
-                        <span class="ident">AssignTarget::from_expression</span>(<span class="kw-2">&amp;</span><span class="ident">lhs</span>, <span class="ident">cursor</span>.<span class="ident">strict_mode</span>(), <span class="bool-val">false</span>)
+                    cursor.next(interner)<span class="question-mark">?</span>.expect(<span class="string">&quot;token vanished&quot;</span>);
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(target) =
+                        AssignTarget::from_expression(<span class="kw-2">&amp;</span>lhs, cursor.strict_mode(), <span class="bool-val">false</span>)
                     {
-                        <span class="kw">let</span> <span class="ident">assignop</span> <span class="op">=</span> <span class="ident">p</span>.<span class="ident">as_assign_op</span>().<span class="ident">expect</span>(<span class="string">&quot;assignop disappeared&quot;</span>);
-                        <span class="kw">if</span> <span class="ident">assignop</span> <span class="op">==</span> <span class="ident">AssignOp::BoolAnd</span>
-                            <span class="op">|</span><span class="op">|</span> <span class="ident">assignop</span> <span class="op">==</span> <span class="ident">AssignOp::BoolOr</span>
-                            <span class="op">|</span><span class="op">|</span> <span class="ident">assignop</span> <span class="op">==</span> <span class="ident">AssignOp::Coalesce</span>
+                        <span class="kw">let </span>assignop = p.as_assign_op().expect(<span class="string">&quot;assignop disappeared&quot;</span>);
+                        <span class="kw">if </span>assignop == AssignOp::BoolAnd
+                            || assignop == AssignOp::BoolOr
+                            || assignop == AssignOp::Coalesce
                         {
-                            <span class="kw">if</span> <span class="kw">let</span> <span class="ident">AssignTarget::Identifier</span>(<span class="ident">ident</span>) <span class="op">=</span> <span class="ident">target</span> {
-                                <span class="self">self</span>.<span class="ident">name</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">ident</span>);
+                            <span class="kw">if let </span>AssignTarget::Identifier(ident) = target {
+                                <span class="self">self</span>.name = <span class="prelude-val">Some</span>(ident);
                             }
                         }
 
-                        <span class="kw">let</span> <span class="ident">rhs</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
-                        <span class="ident">lhs</span> <span class="op">=</span> <span class="ident">Assign::new</span>(<span class="ident">assignop</span>, <span class="ident">target</span>, <span class="ident">rhs</span>).<span class="ident">into</span>();
-                    } <span class="kw">else</span> {
-                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::lex</span>(<span class="ident">LexError::Syntax</span>(
-                            <span class="string">&quot;Invalid left-hand side in assignment&quot;</span>.<span class="ident">into</span>(),
-                            <span class="ident">tok</span>.<span class="ident">span</span>().<span class="ident">start</span>(),
+                        <span class="kw">let </span>rhs = <span class="self">self</span>.parse(cursor, interner)<span class="question-mark">?</span>;
+                        lhs = Assign::new(assignop, target, rhs).into();
+                    } <span class="kw">else </span>{
+                        <span class="kw">return </span><span class="prelude-val">Err</span>(ParseError::lex(LexError::Syntax(
+                            <span class="string">&quot;Invalid left-hand side in assignment&quot;</span>.into(),
+                            tok.span().start(),
                         )));
                     }
                 }
-                <span class="kw">_</span> =&gt; {}
+                <span class="kw">_ </span>=&gt; {}
             }
         }
 
-        <span class="prelude-val">Ok</span>(<span class="ident">lhs</span>)
+        <span class="prelude-val">Ok</span>(lhs)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0 (a55dd71d5 2022-09-19)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0 (897e37553 2022-11-02)" ></div></body></html>

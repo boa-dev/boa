@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_engine/src/error.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>error.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../boa_engine/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../boa_engine/index.html"><div class="logo-container">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_engine/src/error.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>error.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../boa_engine/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../boa_engine/index.html"><div class="logo-container">
                     <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../boa_engine/index.html">
                         <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -767,772 +767,772 @@
 <span id="765">765</span>
 <span id="766">766</span>
 <span id="767">767</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Error-related types and conversions.</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Error-related types and conversions.
 
-<span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">builtins</span>::{<span class="ident">error::ErrorKind</span>, <span class="ident">Array</span>},
-    <span class="ident">object::JsObject</span>,
-    <span class="ident">object::ObjectData</span>,
-    <span class="ident">property::PropertyDescriptor</span>,
-    <span class="ident">syntax::parser</span>,
-    <span class="ident">Context</span>, <span class="ident">JsString</span>, <span class="ident">JsValue</span>,
+</span><span class="kw">use crate</span>::{
+    builtins::{error::ErrorKind, Array},
+    object::JsObject,
+    object::ObjectData,
+    property::PropertyDescriptor,
+    syntax::parser,
+    Context, JsString, JsValue,
 };
-<span class="kw">use</span> <span class="ident">boa_gc</span>::{<span class="ident">Finalize</span>, <span class="ident">Trace</span>};
-<span class="kw">use</span> <span class="ident">thiserror::Error</span>;
+<span class="kw">use </span>boa_gc::{Finalize, Trace};
+<span class="kw">use </span>thiserror::Error;
 
-<span class="doccomment">/// The error type returned by all operations related</span>
-<span class="doccomment">/// to the execution of Javascript code.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This is essentially an enum that can store either [`JsNativeError`]s (for ideal</span>
-<span class="doccomment">/// native errors)  or opaque [`JsValue`]s, since Javascript allows throwing any valid</span>
-<span class="doccomment">/// `JsValue`.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The implementation doesn&#39;t provide a [`From`] conversion</span>
-<span class="doccomment">/// for `JsValue`. This is with the intent of encouraging the usage of proper</span>
-<span class="doccomment">/// `JsNativeError`s instead of plain `JsValue`s. However, if you</span>
-<span class="doccomment">/// do need a proper opaque error, you can construct one using the</span>
-<span class="doccomment">/// [`JsError::from_opaque`] method.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Examples</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```rust</span>
-<span class="doccomment">/// # use boa_engine::{JsError, JsNativeError, JsNativeErrorKind, JsValue};</span>
-<span class="doccomment">/// let cause = JsError::from_opaque(&quot;error!&quot;.into());</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// assert!(cause.as_opaque().is_some());</span>
-<span class="doccomment">/// assert_eq!(cause.as_opaque().unwrap(), &amp;JsValue::from(&quot;error!&quot;));</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// let native_error: JsError = JsNativeError::typ()</span>
-<span class="doccomment">///     .with_message(&quot;invalid type!&quot;)</span>
-<span class="doccomment">///     .with_cause(cause)</span>
-<span class="doccomment">///     .into();</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// assert!(native_error.as_native().is_some());</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// let kind = &amp;native_error.as_native().unwrap().kind;</span>
-<span class="doccomment">/// assert!(matches!(kind, JsNativeErrorKind::Type));</span>
-<span class="doccomment">/// ```</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Trace</span>, <span class="ident">Finalize</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">JsError</span> {
-    <span class="ident">inner</span>: <span class="ident">Repr</span>,
+<span class="doccomment">/// The error type returned by all operations related
+/// to the execution of Javascript code.
+///
+/// This is essentially an enum that can store either [`JsNativeError`]s (for ideal
+/// native errors)  or opaque [`JsValue`]s, since Javascript allows throwing any valid
+/// `JsValue`.
+///
+/// The implementation doesn&#39;t provide a [`From`] conversion
+/// for `JsValue`. This is with the intent of encouraging the usage of proper
+/// `JsNativeError`s instead of plain `JsValue`s. However, if you
+/// do need a proper opaque error, you can construct one using the
+/// [`JsError::from_opaque`] method.
+///
+/// # Examples
+///
+/// ```rust
+/// # use boa_engine::{JsError, JsNativeError, JsNativeErrorKind, JsValue};
+/// let cause = JsError::from_opaque(&quot;error!&quot;.into());
+///
+/// assert!(cause.as_opaque().is_some());
+/// assert_eq!(cause.as_opaque().unwrap(), &amp;JsValue::from(&quot;error!&quot;));
+///
+/// let native_error: JsError = JsNativeError::typ()
+///     .with_message(&quot;invalid type!&quot;)
+///     .with_cause(cause)
+///     .into();
+///
+/// assert!(native_error.as_native().is_some());
+///
+/// let kind = &amp;native_error.as_native().unwrap().kind;
+/// assert!(matches!(kind, JsNativeErrorKind::Type));
+/// ```
+</span><span class="attribute">#[derive(Debug, Clone, Trace, Finalize)]
+</span><span class="kw">pub struct </span>JsError {
+    inner: Repr,
 }
 
-<span class="doccomment">/// Internal representation of a [`JsError`].</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// `JsError` is represented by an opaque enum because it restricts</span>
-<span class="doccomment">/// matching against `JsError` without calling `try_native` first.</span>
-<span class="doccomment">/// This allows us to provide a safe API for `Error` objects that extracts</span>
-<span class="doccomment">/// their info as a native `Rust` type ([`JsNativeError`]).</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This should never be used outside of this module. If that&#39;s not the case,</span>
-<span class="doccomment">/// you should add methods to either `JsError` or `JsNativeError` to</span>
-<span class="doccomment">/// represent that special use case.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Trace</span>, <span class="ident">Finalize</span>)]</span>
-<span class="kw">enum</span> <span class="ident">Repr</span> {
-    <span class="ident">Native</span>(<span class="ident">JsNativeError</span>),
-    <span class="ident">Opaque</span>(<span class="ident">JsValue</span>),
+<span class="doccomment">/// Internal representation of a [`JsError`].
+///
+/// `JsError` is represented by an opaque enum because it restricts
+/// matching against `JsError` without calling `try_native` first.
+/// This allows us to provide a safe API for `Error` objects that extracts
+/// their info as a native `Rust` type ([`JsNativeError`]).
+///
+/// This should never be used outside of this module. If that&#39;s not the case,
+/// you should add methods to either `JsError` or `JsNativeError` to
+/// represent that special use case.
+</span><span class="attribute">#[derive(Debug, Clone, Trace, Finalize)]
+</span><span class="kw">enum </span>Repr {
+    Native(JsNativeError),
+    Opaque(JsValue),
 }
 
-<span class="doccomment">/// The error type returned by the [`JsError::try_native`] method.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Error</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">TryNativeError</span> {
-    <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;invalid type of property `{0}`&quot;</span>)]</span>
-    <span class="ident">InvalidPropertyType</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>),
-    <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;property `message` cannot contain unpaired surrogates&quot;</span>)]</span>
-    <span class="ident">InvalidMessageEncoding</span>,
-    <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;could not access property `{property}`&quot;</span>)]</span>
-    <span class="ident">InaccessibleProperty</span> {
-        <span class="ident">property</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>,
-        <span class="ident">source</span>: <span class="ident">JsError</span>,
+<span class="doccomment">/// The error type returned by the [`JsError::try_native`] method.
+</span><span class="attribute">#[derive(Debug, Clone, Error)]
+</span><span class="kw">pub enum </span>TryNativeError {
+    <span class="attribute">#[error(<span class="string">&quot;invalid type of property `{0}`&quot;</span>)]
+    </span>InvalidPropertyType(<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str),
+    <span class="attribute">#[error(<span class="string">&quot;property `message` cannot contain unpaired surrogates&quot;</span>)]
+    </span>InvalidMessageEncoding,
+    <span class="attribute">#[error(<span class="string">&quot;could not access property `{property}`&quot;</span>)]
+    </span>InaccessibleProperty {
+        property: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        source: JsError,
     },
-    <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;could not get element `{index}` of property `errors`&quot;</span>)]</span>
-    <span class="ident">InvalidErrorsIndex</span> { <span class="ident">index</span>: <span class="ident">u64</span>, <span class="ident">source</span>: <span class="ident">JsError</span> },
-    <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;opaque error of type `{:?}` is not an Error object&quot;</span>, .<span class="number">0</span>.<span class="ident">get_type</span>())]</span>
-    <span class="ident">NotAnErrorObject</span>(<span class="ident">JsValue</span>),
+    <span class="attribute">#[error(<span class="string">&quot;could not get element `{index}` of property `errors`&quot;</span>)]
+    </span>InvalidErrorsIndex { index: u64, source: JsError },
+    <span class="attribute">#[error(<span class="string">&quot;opaque error of type `{:?}` is not an Error object&quot;</span>, .<span class="number">0</span>.get_type())]
+    </span>NotAnErrorObject(JsValue),
 }
 
-<span class="kw">impl</span> <span class="ident">std::error::Error</span> <span class="kw">for</span> <span class="ident">JsError</span> {
-    <span class="kw">fn</span> <span class="ident">source</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>(<span class="kw">dyn</span> <span class="ident">std::error::Error</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>)<span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">inner</span> {
-            <span class="ident">Repr::Native</span>(<span class="ident">err</span>) =&gt; <span class="ident">err</span>.<span class="ident">source</span>(),
-            <span class="ident">Repr::Opaque</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
+<span class="kw">impl </span>std::error::Error <span class="kw">for </span>JsError {
+    <span class="kw">fn </span>source(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>(<span class="kw">dyn </span>std::error::Error + <span class="lifetime">&#39;static</span>)&gt; {
+        <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.inner {
+            Repr::Native(err) =&gt; err.source(),
+            Repr::Opaque(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">JsError</span> {
-    <span class="doccomment">/// Creates a new `JsError` from a native error `err`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```rust</span>
-    <span class="doccomment">/// # use boa_engine::{JsError, JsNativeError};</span>
-    <span class="doccomment">/// let error = JsError::from_native(JsNativeError::syntax());</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// assert!(error.as_native().is_some());</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_native</span>(<span class="ident">err</span>: <span class="ident">JsNativeError</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">inner</span>: <span class="ident">Repr::Native</span>(<span class="ident">err</span>),
+<span class="kw">impl </span>JsError {
+    <span class="doccomment">/// Creates a new `JsError` from a native error `err`.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// # use boa_engine::{JsError, JsNativeError};
+    /// let error = JsError::from_native(JsNativeError::syntax());
+    ///
+    /// assert!(error.as_native().is_some());
+    /// ```
+    </span><span class="kw">pub fn </span>from_native(err: JsNativeError) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            inner: Repr::Native(err),
         }
     }
 
-    <span class="doccomment">/// Creates a new `JsError` from an opaque error `value`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```rust</span>
-    <span class="doccomment">/// # use boa_engine::JsError;</span>
-    <span class="doccomment">/// let error = JsError::from_opaque(5.0f64.into());</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// assert!(error.as_opaque().is_some());</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_opaque</span>(<span class="ident">value</span>: <span class="ident">JsValue</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">inner</span>: <span class="ident">Repr::Opaque</span>(<span class="ident">value</span>),
+    <span class="doccomment">/// Creates a new `JsError` from an opaque error `value`.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// # use boa_engine::JsError;
+    /// let error = JsError::from_opaque(5.0f64.into());
+    ///
+    /// assert!(error.as_opaque().is_some());
+    /// ```
+    </span><span class="kw">pub fn </span>from_opaque(value: JsValue) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            inner: Repr::Opaque(value),
         }
     }
 
-    <span class="doccomment">/// Converts the error to an opaque `JsValue` error</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Unwraps the inner `JsValue` if the error is already an opaque error.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```rust</span>
-    <span class="doccomment">/// # use boa_engine::{Context, JsError, JsNativeError};</span>
-    <span class="doccomment">/// let context = &amp;mut Context::default();</span>
-    <span class="doccomment">/// let error: JsError = JsNativeError::eval().with_message(&quot;invalid script&quot;).into();</span>
-    <span class="doccomment">/// let error_val = error.to_opaque(context);</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// assert!(error_val.as_object().unwrap().borrow().is_error());</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_opaque</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsValue</span> {
-        <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">inner</span> {
-            <span class="ident">Repr::Native</span>(<span class="ident">e</span>) =&gt; <span class="ident">e</span>.<span class="ident">to_opaque</span>(<span class="ident">context</span>).<span class="ident">into</span>(),
-            <span class="ident">Repr::Opaque</span>(<span class="ident">v</span>) =&gt; <span class="ident">v</span>.<span class="ident">clone</span>(),
+    <span class="doccomment">/// Converts the error to an opaque `JsValue` error
+    ///
+    /// Unwraps the inner `JsValue` if the error is already an opaque error.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// # use boa_engine::{Context, JsError, JsNativeError};
+    /// let context = &amp;mut Context::default();
+    /// let error: JsError = JsNativeError::eval().with_message(&quot;invalid script&quot;).into();
+    /// let error_val = error.to_opaque(context);
+    ///
+    /// assert!(error_val.as_object().unwrap().borrow().is_error());
+    /// ```
+    </span><span class="kw">pub fn </span>to_opaque(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsValue {
+        <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.inner {
+            Repr::Native(e) =&gt; e.to_opaque(context).into(),
+            Repr::Opaque(v) =&gt; v.clone(),
         }
     }
 
-    <span class="doccomment">/// Unwraps the inner error if this contains a native error.</span>
-    <span class="doccomment">/// Otherwise, inspects the opaque error and tries to extract the</span>
-    <span class="doccomment">/// necessary information to construct a native error similar to the provided</span>
-    <span class="doccomment">/// opaque error. If the conversion fails, returns a [`TryNativeError`]</span>
-    <span class="doccomment">/// with the cause of the failure.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Note 1</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This method won&#39;t try to make any conversions between JS types.</span>
-    <span class="doccomment">/// In other words, for this conversion to succeed:</span>
-    <span class="doccomment">/// - `message` **MUST** be a `JsString` value.</span>
-    <span class="doccomment">/// - `errors` (in the case of `AggregateError`s) **MUST** be an `Array` object.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Note 2</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This operation should be considered a lossy conversion, since it</span>
-    <span class="doccomment">/// won&#39;t store any additional properties of the opaque</span>
-    <span class="doccomment">/// error, other than `message`, `cause` and `errors` (in the case of</span>
-    <span class="doccomment">/// `AggregateError`s). If you cannot affort a lossy conversion, clone</span>
-    <span class="doccomment">/// the object before calling [`from_opaque`][JsError::from_opaque]</span>
-    <span class="doccomment">/// to preserve its original properties.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```rust</span>
-    <span class="doccomment">/// # use boa_engine::{Context, JsError, JsNativeError, JsNativeErrorKind};</span>
-    <span class="doccomment">/// let context = &amp;mut Context::default();</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// // create a new, opaque Error object</span>
-    <span class="doccomment">/// let error: JsError = JsNativeError::typ().with_message(&quot;type error!&quot;).into();</span>
-    <span class="doccomment">/// let error_val = error.to_opaque(context);</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// // then, try to recover the original</span>
-    <span class="doccomment">/// let error = JsError::from_opaque(error_val).try_native(context).unwrap();</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// assert!(matches!(error.kind, JsNativeErrorKind::Type));</span>
-    <span class="doccomment">/// assert_eq!(error.message(), &quot;type error!&quot;);</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_native</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">JsNativeError</span>, <span class="ident">TryNativeError</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">inner</span> {
-            <span class="ident">Repr::Native</span>(<span class="ident">e</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">e</span>.<span class="ident">clone</span>()),
-            <span class="ident">Repr::Opaque</span>(<span class="ident">val</span>) =&gt; {
-                <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">val</span>
-                    .<span class="ident">as_object</span>()
-                    .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">TryNativeError::NotAnErrorObject</span>(<span class="ident">val</span>.<span class="ident">clone</span>()))<span class="question-mark">?</span>;
-                <span class="kw">let</span> <span class="ident">error</span> <span class="op">=</span> <span class="ident">obj</span>
-                    .<span class="ident">borrow</span>()
-                    .<span class="ident">as_error</span>()
-                    .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">TryNativeError::NotAnErrorObject</span>(<span class="ident">val</span>.<span class="ident">clone</span>()))<span class="question-mark">?</span>;
+    <span class="doccomment">/// Unwraps the inner error if this contains a native error.
+    /// Otherwise, inspects the opaque error and tries to extract the
+    /// necessary information to construct a native error similar to the provided
+    /// opaque error. If the conversion fails, returns a [`TryNativeError`]
+    /// with the cause of the failure.
+    ///
+    /// # Note 1
+    ///
+    /// This method won&#39;t try to make any conversions between JS types.
+    /// In other words, for this conversion to succeed:
+    /// - `message` **MUST** be a `JsString` value.
+    /// - `errors` (in the case of `AggregateError`s) **MUST** be an `Array` object.
+    ///
+    /// # Note 2
+    ///
+    /// This operation should be considered a lossy conversion, since it
+    /// won&#39;t store any additional properties of the opaque
+    /// error, other than `message`, `cause` and `errors` (in the case of
+    /// `AggregateError`s). If you cannot affort a lossy conversion, clone
+    /// the object before calling [`from_opaque`][JsError::from_opaque]
+    /// to preserve its original properties.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// # use boa_engine::{Context, JsError, JsNativeError, JsNativeErrorKind};
+    /// let context = &amp;mut Context::default();
+    ///
+    /// // create a new, opaque Error object
+    /// let error: JsError = JsNativeError::typ().with_message(&quot;type error!&quot;).into();
+    /// let error_val = error.to_opaque(context);
+    ///
+    /// // then, try to recover the original
+    /// let error = JsError::from_opaque(error_val).try_native(context).unwrap();
+    ///
+    /// assert!(matches!(error.kind, JsNativeErrorKind::Type));
+    /// assert_eq!(error.message(), &quot;type error!&quot;);
+    /// ```
+    </span><span class="kw">pub fn </span>try_native(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; <span class="prelude-ty">Result</span>&lt;JsNativeError, TryNativeError&gt; {
+        <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.inner {
+            Repr::Native(e) =&gt; <span class="prelude-val">Ok</span>(e.clone()),
+            Repr::Opaque(val) =&gt; {
+                <span class="kw">let </span>obj = val
+                    .as_object()
+                    .ok_or_else(|| TryNativeError::NotAnErrorObject(val.clone()))<span class="question-mark">?</span>;
+                <span class="kw">let </span>error = obj
+                    .borrow()
+                    .as_error()
+                    .ok_or_else(|| TryNativeError::NotAnErrorObject(val.clone()))<span class="question-mark">?</span>;
 
-                <span class="kw">let</span> <span class="ident">try_get_property</span> <span class="op">=</span> <span class="op">|</span><span class="ident">key</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">|</span> {
-                    <span class="ident">obj</span>.<span class="ident">has_property</span>(<span class="ident">key</span>, <span class="ident">context</span>)
-                        .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">TryNativeError::InaccessibleProperty</span> {
-                            <span class="ident">property</span>: <span class="ident">key</span>,
-                            <span class="ident">source</span>: <span class="ident">e</span>,
-                        })<span class="question-mark">?</span>
-                        .<span class="ident">then</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">obj</span>.<span class="ident">get</span>(<span class="ident">key</span>, <span class="ident">context</span>))
-                        .<span class="ident">transpose</span>()
-                        .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">TryNativeError::InaccessibleProperty</span> {
-                            <span class="ident">property</span>: <span class="ident">key</span>,
-                            <span class="ident">source</span>: <span class="ident">e</span>,
+                <span class="kw">let </span>try_get_property = |key, context: <span class="kw-2">&amp;mut </span>Context| {
+                    obj.has_property(key, context)
+                        .map_err(|e| TryNativeError::InaccessibleProperty {
+                            property: key,
+                            source: e,
+                        })<span class="question-mark">?
+                        </span>.then(|| obj.get(key, context))
+                        .transpose()
+                        .map_err(|e| TryNativeError::InaccessibleProperty {
+                            property: key,
+                            source: e,
                         })
                 };
 
-                <span class="kw">let</span> <span class="ident">message</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">msg</span>) <span class="op">=</span> <span class="ident">try_get_property</span>(<span class="string">&quot;message&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span> {
-                    <span class="ident">msg</span>.<span class="ident">as_string</span>()
-                        .<span class="ident">map</span>(<span class="ident">JsString::to_std_string</span>)
-                        .<span class="ident">transpose</span>()
-                        .<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">TryNativeError::InvalidMessageEncoding</span>)<span class="question-mark">?</span>
-                        .<span class="ident">ok_or</span>(<span class="ident">TryNativeError::InvalidPropertyType</span>(<span class="string">&quot;message&quot;</span>))<span class="question-mark">?</span>
-                        .<span class="ident">into</span>()
-                } <span class="kw">else</span> {
-                    <span class="ident">Box::default</span>()
+                <span class="kw">let </span>message = <span class="kw">if let </span><span class="prelude-val">Some</span>(msg) = try_get_property(<span class="string">&quot;message&quot;</span>, context)<span class="question-mark">? </span>{
+                    msg.as_string()
+                        .map(JsString::to_std_string)
+                        .transpose()
+                        .map_err(|<span class="kw">_</span>| TryNativeError::InvalidMessageEncoding)<span class="question-mark">?
+                        </span>.ok_or(TryNativeError::InvalidPropertyType(<span class="string">&quot;message&quot;</span>))<span class="question-mark">?
+                        </span>.into()
+                } <span class="kw">else </span>{
+                    Box::default()
                 };
 
-                <span class="kw">let</span> <span class="ident">cause</span> <span class="op">=</span> <span class="ident">try_get_property</span>(<span class="string">&quot;cause&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+                <span class="kw">let </span>cause = try_get_property(<span class="string">&quot;cause&quot;</span>, context)<span class="question-mark">?</span>;
 
-                <span class="kw">let</span> <span class="ident">kind</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">error</span> {
-                    <span class="ident">ErrorKind::Error</span> =&gt; <span class="ident">JsNativeErrorKind::Error</span>,
-                    <span class="ident">ErrorKind::Eval</span> =&gt; <span class="ident">JsNativeErrorKind::Eval</span>,
-                    <span class="ident">ErrorKind::Type</span> =&gt; <span class="ident">JsNativeErrorKind::Type</span>,
-                    <span class="ident">ErrorKind::Range</span> =&gt; <span class="ident">JsNativeErrorKind::Range</span>,
-                    <span class="ident">ErrorKind::Reference</span> =&gt; <span class="ident">JsNativeErrorKind::Reference</span>,
-                    <span class="ident">ErrorKind::Syntax</span> =&gt; <span class="ident">JsNativeErrorKind::Syntax</span>,
-                    <span class="ident">ErrorKind::Uri</span> =&gt; <span class="ident">JsNativeErrorKind::Uri</span>,
-                    <span class="ident">ErrorKind::Aggregate</span> =&gt; {
-                        <span class="kw">let</span> <span class="ident">errors</span> <span class="op">=</span> <span class="ident">obj</span>.<span class="ident">get</span>(<span class="string">&quot;errors&quot;</span>, <span class="ident">context</span>).<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
-                            <span class="ident">TryNativeError::InaccessibleProperty</span> {
-                                <span class="ident">property</span>: <span class="string">&quot;errors&quot;</span>,
-                                <span class="ident">source</span>: <span class="ident">e</span>,
+                <span class="kw">let </span>kind = <span class="kw">match </span>error {
+                    ErrorKind::Error =&gt; JsNativeErrorKind::Error,
+                    ErrorKind::Eval =&gt; JsNativeErrorKind::Eval,
+                    ErrorKind::Type =&gt; JsNativeErrorKind::Type,
+                    ErrorKind::Range =&gt; JsNativeErrorKind::Range,
+                    ErrorKind::Reference =&gt; JsNativeErrorKind::Reference,
+                    ErrorKind::Syntax =&gt; JsNativeErrorKind::Syntax,
+                    ErrorKind::Uri =&gt; JsNativeErrorKind::Uri,
+                    ErrorKind::Aggregate =&gt; {
+                        <span class="kw">let </span>errors = obj.get(<span class="string">&quot;errors&quot;</span>, context).map_err(|e| {
+                            TryNativeError::InaccessibleProperty {
+                                property: <span class="string">&quot;errors&quot;</span>,
+                                source: e,
                             }
                         })<span class="question-mark">?</span>;
-                        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">error_list</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-                        <span class="kw">match</span> <span class="ident">errors</span>.<span class="ident">as_object</span>() {
-                            <span class="prelude-val">Some</span>(<span class="ident">errors</span>) <span class="kw">if</span> <span class="ident">errors</span>.<span class="ident">is_array</span>() =&gt; {
-                                <span class="kw">let</span> <span class="ident">length</span> <span class="op">=</span> <span class="ident">errors</span>.<span class="ident">length_of_array_like</span>(<span class="ident">context</span>).<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
-                                    <span class="ident">TryNativeError::InaccessibleProperty</span> {
-                                        <span class="ident">property</span>: <span class="string">&quot;errors.length&quot;</span>,
-                                        <span class="ident">source</span>: <span class="ident">e</span>,
+                        <span class="kw">let </span><span class="kw-2">mut </span>error_list = Vec::new();
+                        <span class="kw">match </span>errors.as_object() {
+                            <span class="prelude-val">Some</span>(errors) <span class="kw">if </span>errors.is_array() =&gt; {
+                                <span class="kw">let </span>length = errors.length_of_array_like(context).map_err(|e| {
+                                    TryNativeError::InaccessibleProperty {
+                                        property: <span class="string">&quot;errors.length&quot;</span>,
+                                        source: e,
                                     }
                                 })<span class="question-mark">?</span>;
-                                <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">length</span> {
-                                    <span class="ident">error_list</span>.<span class="ident">push</span>(<span class="ident">JsError::from_opaque</span>(
-                                        <span class="ident">errors</span>.<span class="ident">get</span>(<span class="ident">i</span>, <span class="ident">context</span>).<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
-                                            <span class="ident">TryNativeError::InvalidErrorsIndex</span> {
-                                                <span class="ident">index</span>: <span class="ident">i</span>,
-                                                <span class="ident">source</span>: <span class="ident">e</span>,
+                                <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..length {
+                                    error_list.push(JsError::from_opaque(
+                                        errors.get(i, context).map_err(|e| {
+                                            TryNativeError::InvalidErrorsIndex {
+                                                index: i,
+                                                source: e,
                                             }
                                         })<span class="question-mark">?</span>,
                                     ));
                                 }
                             }
-                            <span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">TryNativeError::InvalidPropertyType</span>(<span class="string">&quot;errors&quot;</span>)),
+                            <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(TryNativeError::InvalidPropertyType(<span class="string">&quot;errors&quot;</span>)),
                         }
 
-                        <span class="ident">JsNativeErrorKind::Aggregate</span>(<span class="ident">error_list</span>)
+                        JsNativeErrorKind::Aggregate(error_list)
                     }
                 };
 
-                <span class="prelude-val">Ok</span>(<span class="ident">JsNativeError</span> {
-                    <span class="ident">kind</span>,
-                    <span class="ident">message</span>,
-                    <span class="ident">cause</span>: <span class="ident">cause</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="ident">Box::new</span>(<span class="ident">JsError::from_opaque</span>(<span class="ident">v</span>))),
+                <span class="prelude-val">Ok</span>(JsNativeError {
+                    kind,
+                    message,
+                    cause: cause.map(|v| Box::new(JsError::from_opaque(v))),
                 })
             }
         }
     }
 
-    <span class="doccomment">/// Gets the inner [`JsValue`] if the error is an opaque error,</span>
-    <span class="doccomment">/// or `None` otherwise.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```rust</span>
-    <span class="doccomment">/// # use boa_engine::{JsError, JsNativeError};</span>
-    <span class="doccomment">/// let error: JsError = JsNativeError::reference()</span>
-    <span class="doccomment">///     .with_message(&quot;variable not found!&quot;)</span>
-    <span class="doccomment">///     .into();</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// assert!(error.as_opaque().is_none());</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let error = JsError::from_opaque(256u32.into());</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// assert!(error.as_opaque().is_some());</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_opaque</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">inner</span> {
-            <span class="ident">Repr::Native</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
-            <span class="ident">Repr::Opaque</span>(<span class="kw-2">ref</span> <span class="ident">v</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">v</span>),
+    <span class="doccomment">/// Gets the inner [`JsValue`] if the error is an opaque error,
+    /// or `None` otherwise.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// # use boa_engine::{JsError, JsNativeError};
+    /// let error: JsError = JsNativeError::reference()
+    ///     .with_message(&quot;variable not found!&quot;)
+    ///     .into();
+    ///
+    /// assert!(error.as_opaque().is_none());
+    ///
+    /// let error = JsError::from_opaque(256u32.into());
+    ///
+    /// assert!(error.as_opaque().is_some());
+    /// ```
+    </span><span class="kw">pub fn </span>as_opaque(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>JsValue&gt; {
+        <span class="kw">match </span><span class="self">self</span>.inner {
+            Repr::Native(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
+            Repr::Opaque(<span class="kw-2">ref </span>v) =&gt; <span class="prelude-val">Some</span>(v),
         }
     }
 
-    <span class="doccomment">/// Gets the inner [`JsNativeError`] if the error is a native</span>
-    <span class="doccomment">/// error, or `None` otherwise.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```rust</span>
-    <span class="doccomment">/// # use boa_engine::{JsError, JsNativeError, JsValue};</span>
-    <span class="doccomment">/// let error: JsError = JsNativeError::error().with_message(&quot;Unknown error&quot;).into();</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// assert!(error.as_native().is_some());</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let error = JsError::from_opaque(JsValue::undefined().into());</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// assert!(error.as_native().is_none());</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_native</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">JsNativeError</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">inner</span> {
-            <span class="ident">Repr::Native</span>(<span class="kw-2">ref</span> <span class="ident">e</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">e</span>),
-            <span class="ident">Repr::Opaque</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
-        }
-    }
-}
-
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">parser::ParseError</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">JsError</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">err</span>: <span class="ident">parser::ParseError</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::from</span>(<span class="ident">JsNativeError::from</span>(<span class="ident">err</span>))
-    }
-}
-
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">JsNativeError</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">JsError</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">error</span>: <span class="ident">JsNativeError</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">inner</span>: <span class="ident">Repr::Native</span>(<span class="ident">error</span>),
+    <span class="doccomment">/// Gets the inner [`JsNativeError`] if the error is a native
+    /// error, or `None` otherwise.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// # use boa_engine::{JsError, JsNativeError, JsValue};
+    /// let error: JsError = JsNativeError::error().with_message(&quot;Unknown error&quot;).into();
+    ///
+    /// assert!(error.as_native().is_some());
+    ///
+    /// let error = JsError::from_opaque(JsValue::undefined().into());
+    ///
+    /// assert!(error.as_native().is_none());
+    /// ```
+    </span><span class="kw">pub fn </span>as_native(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>JsNativeError&gt; {
+        <span class="kw">match </span><span class="self">self</span>.inner {
+            Repr::Native(<span class="kw-2">ref </span>e) =&gt; <span class="prelude-val">Some</span>(e),
+            Repr::Opaque(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">std::fmt::Display</span> <span class="kw">for</span> <span class="ident">JsError</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">std::fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">std::fmt::Result</span> {
-        <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">inner</span> {
-            <span class="ident">Repr::Native</span>(<span class="ident">e</span>) =&gt; <span class="ident">e</span>.<span class="ident">fmt</span>(<span class="ident">f</span>),
-            <span class="ident">Repr::Opaque</span>(<span class="ident">v</span>) =&gt; <span class="ident">v</span>.<span class="ident">display</span>().<span class="ident">fmt</span>(<span class="ident">f</span>),
+<span class="kw">impl </span>From&lt;parser::ParseError&gt; <span class="kw">for </span>JsError {
+    <span class="kw">fn </span>from(err: parser::ParseError) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::from(JsNativeError::from(err))
+    }
+}
+
+<span class="kw">impl </span>From&lt;JsNativeError&gt; <span class="kw">for </span>JsError {
+    <span class="kw">fn </span>from(error: JsNativeError) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            inner: Repr::Native(error),
         }
     }
 }
 
-<span class="doccomment">/// Native representation of an ideal `Error` object from Javascript.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This representation is more space efficient than its [`JsObject`] equivalent,</span>
-<span class="doccomment">/// since it doesn&#39;t need to create a whole new `JsObject` to be instantiated.</span>
-<span class="doccomment">/// Prefer using this over [`JsError`] when you don&#39;t need to throw</span>
-<span class="doccomment">/// plain [`JsValue`]s as errors, or when you need to inspect the error type</span>
-<span class="doccomment">/// of a `JsError`.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Examples</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```rust</span>
-<span class="doccomment">/// # use boa_engine::{JsNativeError, JsNativeErrorKind};</span>
-<span class="doccomment">/// let native_error = JsNativeError::uri().with_message(&quot;cannot decode uri&quot;);</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// match native_error.kind {</span>
-<span class="doccomment">///     JsNativeErrorKind::Uri =&gt; { /* handle URI error*/ }</span>
-<span class="doccomment">///     _ =&gt; unreachable!(),</span>
-<span class="doccomment">/// }</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// assert_eq!(native_error.message(), &quot;cannot decode uri&quot;);</span>
-<span class="doccomment">/// ```</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Trace</span>, <span class="ident">Finalize</span>, <span class="ident">Error</span>)]</span>
-<span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;{kind}: {message}&quot;</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">JsNativeError</span> {
-    <span class="doccomment">/// The kind of native error (e.g. `TypeError`, `SyntaxError`, etc.)</span>
-    <span class="kw">pub</span> <span class="ident">kind</span>: <span class="ident">JsNativeErrorKind</span>,
-    <span class="ident">message</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>,
-    <span class="attribute">#[<span class="ident">source</span>]</span>
-    <span class="ident">cause</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">JsError</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+<span class="kw">impl </span>std::fmt::Display <span class="kw">for </span>JsError {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
+        <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.inner {
+            Repr::Native(e) =&gt; e.fmt(f),
+            Repr::Opaque(v) =&gt; v.display().fmt(f),
+        }
+    }
 }
 
-<span class="kw">impl</span> <span class="ident">JsNativeError</span> {
-    <span class="doccomment">/// Creates a new `JsNativeError` from its `kind`, `message` and (optionally) its `cause`.</span>
-    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">kind</span>: <span class="ident">JsNativeErrorKind</span>, <span class="ident">message</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>, <span class="ident">cause</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">JsError</span><span class="op">&gt;</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">kind</span>,
-            <span class="ident">message</span>,
-            <span class="ident">cause</span>,
+<span class="doccomment">/// Native representation of an ideal `Error` object from Javascript.
+///
+/// This representation is more space efficient than its [`JsObject`] equivalent,
+/// since it doesn&#39;t need to create a whole new `JsObject` to be instantiated.
+/// Prefer using this over [`JsError`] when you don&#39;t need to throw
+/// plain [`JsValue`]s as errors, or when you need to inspect the error type
+/// of a `JsError`.
+///
+/// # Examples
+///
+/// ```rust
+/// # use boa_engine::{JsNativeError, JsNativeErrorKind};
+/// let native_error = JsNativeError::uri().with_message(&quot;cannot decode uri&quot;);
+///
+/// match native_error.kind {
+///     JsNativeErrorKind::Uri =&gt; { /* handle URI error*/ }
+///     _ =&gt; unreachable!(),
+/// }
+///
+/// assert_eq!(native_error.message(), &quot;cannot decode uri&quot;);
+/// ```
+</span><span class="attribute">#[derive(Debug, Clone, Trace, Finalize, Error)]
+#[error(<span class="string">&quot;{kind}: {message}&quot;</span>)]
+</span><span class="kw">pub struct </span>JsNativeError {
+    <span class="doccomment">/// The kind of native error (e.g. `TypeError`, `SyntaxError`, etc.)
+    </span><span class="kw">pub </span>kind: JsNativeErrorKind,
+    message: Box&lt;str&gt;,
+    <span class="attribute">#[source]
+    </span>cause: <span class="prelude-ty">Option</span>&lt;Box&lt;JsError&gt;&gt;,
+}
+
+<span class="kw">impl </span>JsNativeError {
+    <span class="doccomment">/// Creates a new `JsNativeError` from its `kind`, `message` and (optionally) its `cause`.
+    </span><span class="kw">fn </span>new(kind: JsNativeErrorKind, message: Box&lt;str&gt;, cause: <span class="prelude-ty">Option</span>&lt;Box&lt;JsError&gt;&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            kind,
+            message,
+            cause,
         }
     }
 
-    <span class="doccomment">/// Creates a new `JsNativeError` of kind `AggregateError` from a list of [`JsError`]s, with</span>
-    <span class="doccomment">/// empty `message` and undefined `cause`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```rust</span>
-    <span class="doccomment">/// # use boa_engine::{JsNativeError, JsNativeErrorKind};</span>
-    <span class="doccomment">/// let inner_errors = vec![</span>
-    <span class="doccomment">///     JsNativeError::typ().into(),</span>
-    <span class="doccomment">///     JsNativeError::syntax().into()</span>
-    <span class="doccomment">/// ];</span>
-    <span class="doccomment">/// let error = JsNativeError::aggregate(inner_errors);</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// assert!(matches!(</span>
-    <span class="doccomment">///     error.kind,</span>
-    <span class="doccomment">///     JsNativeErrorKind::Aggregate(ref errors) if errors.len() == 2</span>
-    <span class="doccomment">/// ));</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">aggregate</span>(<span class="ident">errors</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">JsError</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">JsNativeErrorKind::Aggregate</span>(<span class="ident">errors</span>), <span class="ident">Box::default</span>(), <span class="prelude-val">None</span>)
+    <span class="doccomment">/// Creates a new `JsNativeError` of kind `AggregateError` from a list of [`JsError`]s, with
+    /// empty `message` and undefined `cause`.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// # use boa_engine::{JsNativeError, JsNativeErrorKind};
+    /// let inner_errors = vec![
+    ///     JsNativeError::typ().into(),
+    ///     JsNativeError::syntax().into()
+    /// ];
+    /// let error = JsNativeError::aggregate(inner_errors);
+    ///
+    /// assert!(matches!(
+    ///     error.kind,
+    ///     JsNativeErrorKind::Aggregate(ref errors) if errors.len() == 2
+    /// ));
+    /// ```
+    </span><span class="kw">pub fn </span>aggregate(errors: Vec&lt;JsError&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::new(JsNativeErrorKind::Aggregate(errors), Box::default(), <span class="prelude-val">None</span>)
     }
 
-    <span class="doccomment">/// Creates a new `JsNativeError` of kind `Error`, with empty `message` and undefined `cause`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```rust</span>
-    <span class="doccomment">/// # use boa_engine::{JsNativeError, JsNativeErrorKind};</span>
-    <span class="doccomment">/// let error = JsNativeError::error();</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// assert!(matches!(error.kind, JsNativeErrorKind::Error));</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">error</span>() -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">JsNativeErrorKind::Error</span>, <span class="ident">Box::default</span>(), <span class="prelude-val">None</span>)
+    <span class="doccomment">/// Creates a new `JsNativeError` of kind `Error`, with empty `message` and undefined `cause`.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// # use boa_engine::{JsNativeError, JsNativeErrorKind};
+    /// let error = JsNativeError::error();
+    ///
+    /// assert!(matches!(error.kind, JsNativeErrorKind::Error));
+    /// ```
+    </span><span class="kw">pub fn </span>error() -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::new(JsNativeErrorKind::Error, Box::default(), <span class="prelude-val">None</span>)
     }
 
-    <span class="doccomment">/// Creates a new `JsNativeError` of kind `EvalError`, with empty `message` and undefined `cause`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```rust</span>
-    <span class="doccomment">/// # use boa_engine::{JsNativeError, JsNativeErrorKind};</span>
-    <span class="doccomment">/// let error = JsNativeError::eval();</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// assert!(matches!(error.kind, JsNativeErrorKind::Eval));</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">eval</span>() -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">JsNativeErrorKind::Eval</span>, <span class="ident">Box::default</span>(), <span class="prelude-val">None</span>)
+    <span class="doccomment">/// Creates a new `JsNativeError` of kind `EvalError`, with empty `message` and undefined `cause`.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// # use boa_engine::{JsNativeError, JsNativeErrorKind};
+    /// let error = JsNativeError::eval();
+    ///
+    /// assert!(matches!(error.kind, JsNativeErrorKind::Eval));
+    /// ```
+    </span><span class="kw">pub fn </span>eval() -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::new(JsNativeErrorKind::Eval, Box::default(), <span class="prelude-val">None</span>)
     }
 
-    <span class="doccomment">/// Creates a new `JsNativeError` of kind `RangeError`, with empty `message` and undefined `cause`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```rust</span>
-    <span class="doccomment">/// # use boa_engine::{JsNativeError, JsNativeErrorKind};</span>
-    <span class="doccomment">/// let error = JsNativeError::range();</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// assert!(matches!(error.kind, JsNativeErrorKind::Range));</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">range</span>() -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">JsNativeErrorKind::Range</span>, <span class="ident">Box::default</span>(), <span class="prelude-val">None</span>)
+    <span class="doccomment">/// Creates a new `JsNativeError` of kind `RangeError`, with empty `message` and undefined `cause`.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// # use boa_engine::{JsNativeError, JsNativeErrorKind};
+    /// let error = JsNativeError::range();
+    ///
+    /// assert!(matches!(error.kind, JsNativeErrorKind::Range));
+    /// ```
+    </span><span class="kw">pub fn </span>range() -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::new(JsNativeErrorKind::Range, Box::default(), <span class="prelude-val">None</span>)
     }
 
-    <span class="doccomment">/// Creates a new `JsNativeError` of kind `ReferenceError`, with empty `message` and undefined `cause`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```rust</span>
-    <span class="doccomment">/// # use boa_engine::{JsNativeError, JsNativeErrorKind};</span>
-    <span class="doccomment">/// let error = JsNativeError::reference();</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// assert!(matches!(error.kind, JsNativeErrorKind::Reference));</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">reference</span>() -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">JsNativeErrorKind::Reference</span>, <span class="ident">Box::default</span>(), <span class="prelude-val">None</span>)
+    <span class="doccomment">/// Creates a new `JsNativeError` of kind `ReferenceError`, with empty `message` and undefined `cause`.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// # use boa_engine::{JsNativeError, JsNativeErrorKind};
+    /// let error = JsNativeError::reference();
+    ///
+    /// assert!(matches!(error.kind, JsNativeErrorKind::Reference));
+    /// ```
+    </span><span class="kw">pub fn </span>reference() -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::new(JsNativeErrorKind::Reference, Box::default(), <span class="prelude-val">None</span>)
     }
 
-    <span class="doccomment">/// Creates a new `JsNativeError` of kind `SyntaxError`, with empty `message` and undefined `cause`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```rust</span>
-    <span class="doccomment">/// # use boa_engine::{JsNativeError, JsNativeErrorKind};</span>
-    <span class="doccomment">/// let error = JsNativeError::syntax();</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// assert!(matches!(error.kind, JsNativeErrorKind::Syntax));</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">syntax</span>() -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">JsNativeErrorKind::Syntax</span>, <span class="ident">Box::default</span>(), <span class="prelude-val">None</span>)
+    <span class="doccomment">/// Creates a new `JsNativeError` of kind `SyntaxError`, with empty `message` and undefined `cause`.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// # use boa_engine::{JsNativeError, JsNativeErrorKind};
+    /// let error = JsNativeError::syntax();
+    ///
+    /// assert!(matches!(error.kind, JsNativeErrorKind::Syntax));
+    /// ```
+    </span><span class="kw">pub fn </span>syntax() -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::new(JsNativeErrorKind::Syntax, Box::default(), <span class="prelude-val">None</span>)
     }
 
-    <span class="doccomment">/// Creates a new `JsNativeError` of kind `TypeError`, with empty `message` and undefined `cause`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```rust</span>
-    <span class="doccomment">/// # use boa_engine::{JsNativeError, JsNativeErrorKind};</span>
-    <span class="doccomment">/// let error = JsNativeError::typ();</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// assert!(matches!(error.kind, JsNativeErrorKind::Type));</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">typ</span>() -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">JsNativeErrorKind::Type</span>, <span class="ident">Box::default</span>(), <span class="prelude-val">None</span>)
+    <span class="doccomment">/// Creates a new `JsNativeError` of kind `TypeError`, with empty `message` and undefined `cause`.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// # use boa_engine::{JsNativeError, JsNativeErrorKind};
+    /// let error = JsNativeError::typ();
+    ///
+    /// assert!(matches!(error.kind, JsNativeErrorKind::Type));
+    /// ```
+    </span><span class="kw">pub fn </span>typ() -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::new(JsNativeErrorKind::Type, Box::default(), <span class="prelude-val">None</span>)
     }
 
-    <span class="doccomment">/// Creates a new `JsNativeError` of kind `UriError`, with empty `message` and undefined `cause`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```rust</span>
-    <span class="doccomment">/// # use boa_engine::{JsNativeError, JsNativeErrorKind};</span>
-    <span class="doccomment">/// let error = JsNativeError::uri();</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// assert!(matches!(error.kind, JsNativeErrorKind::Uri));</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">uri</span>() -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">JsNativeErrorKind::Uri</span>, <span class="ident">Box::default</span>(), <span class="prelude-val">None</span>)
+    <span class="doccomment">/// Creates a new `JsNativeError` of kind `UriError`, with empty `message` and undefined `cause`.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// # use boa_engine::{JsNativeError, JsNativeErrorKind};
+    /// let error = JsNativeError::uri();
+    ///
+    /// assert!(matches!(error.kind, JsNativeErrorKind::Uri));
+    /// ```
+    </span><span class="kw">pub fn </span>uri() -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::new(JsNativeErrorKind::Uri, Box::default(), <span class="prelude-val">None</span>)
     }
 
-    <span class="doccomment">/// Sets the message of this error.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```rust</span>
-    <span class="doccomment">/// # use boa_engine::JsNativeError;</span>
-    <span class="doccomment">/// let error = JsNativeError::range().with_message(&quot;number too large&quot;);</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// assert_eq!(error.message(), &quot;number too large&quot;);</span>
-    <span class="doccomment">/// ```</span>
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_message</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">message</span>: <span class="ident">S</span>) -&gt; <span class="self">Self</span>
-    <span class="kw">where</span>
-        <span class="ident">S</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// Sets the message of this error.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// # use boa_engine::JsNativeError;
+    /// let error = JsNativeError::range().with_message(&quot;number too large&quot;);
+    ///
+    /// assert_eq!(error.message(), &quot;number too large&quot;);
+    /// ```
+    </span><span class="attribute">#[must_use]
+    </span><span class="kw">pub fn </span>with_message&lt;S&gt;(<span class="kw-2">mut </span><span class="self">self</span>, message: S) -&gt; <span class="self">Self
+    </span><span class="kw">where
+        </span>S: Into&lt;Box&lt;str&gt;&gt;,
     {
-        <span class="self">self</span>.<span class="ident">message</span> <span class="op">=</span> <span class="ident">message</span>.<span class="ident">into</span>();
-        <span class="self">self</span>
-    }
+        <span class="self">self</span>.message = message.into();
+        <span class="self">self
+    </span>}
 
-    <span class="doccomment">/// Sets the cause of this error.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```rust</span>
-    <span class="doccomment">/// # use boa_engine::JsNativeError;</span>
-    <span class="doccomment">/// let cause = JsNativeError::syntax();</span>
-    <span class="doccomment">/// let error = JsNativeError::error().with_cause(cause);</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// assert!(error.cause().unwrap().as_native().is_some());</span>
-    <span class="doccomment">/// ```</span>
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_cause</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">cause</span>: <span class="ident">V</span>) -&gt; <span class="self">Self</span>
-    <span class="kw">where</span>
-        <span class="ident">V</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">JsError</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// Sets the cause of this error.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// # use boa_engine::JsNativeError;
+    /// let cause = JsNativeError::syntax();
+    /// let error = JsNativeError::error().with_cause(cause);
+    ///
+    /// assert!(error.cause().unwrap().as_native().is_some());
+    /// ```
+    </span><span class="attribute">#[must_use]
+    </span><span class="kw">pub fn </span>with_cause&lt;V&gt;(<span class="kw-2">mut </span><span class="self">self</span>, cause: V) -&gt; <span class="self">Self
+    </span><span class="kw">where
+        </span>V: Into&lt;JsError&gt;,
     {
-        <span class="self">self</span>.<span class="ident">cause</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">Box::new</span>(<span class="ident">cause</span>.<span class="ident">into</span>()));
-        <span class="self">self</span>
+        <span class="self">self</span>.cause = <span class="prelude-val">Some</span>(Box::new(cause.into()));
+        <span class="self">self
+    </span>}
+
+    <span class="doccomment">/// Gets the `message` of this error.
+    ///
+    /// This is equivalent to the [`NativeError.prototype.message`][spec]
+    /// property.
+    ///
+    /// [spec]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error/message
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// # use boa_engine::JsNativeError;
+    /// let error = JsNativeError::range().with_message(&quot;number too large&quot;);
+    ///
+    /// assert_eq!(error.message(), &quot;number too large&quot;);
+    /// ```
+    </span><span class="kw">pub fn </span>message(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.message
     }
 
-    <span class="doccomment">/// Gets the `message` of this error.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This is equivalent to the [`NativeError.prototype.message`][spec]</span>
-    <span class="doccomment">/// property.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error/message</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```rust</span>
-    <span class="doccomment">/// # use boa_engine::JsNativeError;</span>
-    <span class="doccomment">/// let error = JsNativeError::range().with_message(&quot;number too large&quot;);</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// assert_eq!(error.message(), &quot;number too large&quot;);</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">message</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">str</span> {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">message</span>
+    <span class="doccomment">/// Gets the `cause` of this error.
+    ///
+    /// This is equivalent to the [`NativeError.prototype.cause`][spec]
+    /// property.
+    ///
+    /// [spec]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error/cause
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// # use boa_engine::JsNativeError;
+    /// let cause = JsNativeError::syntax();
+    /// let error = JsNativeError::error().with_cause(cause);
+    ///
+    /// assert!(error.cause().unwrap().as_native().is_some());
+    /// ```
+    </span><span class="kw">pub fn </span>cause(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>JsError&gt; {
+        <span class="self">self</span>.cause.as_deref()
     }
 
-    <span class="doccomment">/// Gets the `cause` of this error.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This is equivalent to the [`NativeError.prototype.cause`][spec]</span>
-    <span class="doccomment">/// property.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error/cause</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```rust</span>
-    <span class="doccomment">/// # use boa_engine::JsNativeError;</span>
-    <span class="doccomment">/// let cause = JsNativeError::syntax();</span>
-    <span class="doccomment">/// let error = JsNativeError::error().with_cause(cause);</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// assert!(error.cause().unwrap().as_native().is_some());</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cause</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">JsError</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">cause</span>.<span class="ident">as_deref</span>()
-    }
-
-    <span class="doccomment">/// Converts this native error to its opaque representation as a [`JsObject`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```rust</span>
-    <span class="doccomment">/// # use boa_engine::{Context, JsError, JsNativeError};</span>
-    <span class="doccomment">/// let context = &amp;mut Context::default();</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let error = JsNativeError::error().with_message(&quot;error!&quot;);</span>
-    <span class="doccomment">/// let error_obj = error.to_opaque(context);</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// assert!(error_obj.borrow().is_error());</span>
-    <span class="doccomment">/// assert_eq!(error_obj.get(&quot;message&quot;, context).unwrap(), &quot;error!&quot;.into())</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_opaque</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsObject</span> {
-        <span class="kw">let</span> <span class="self">Self</span> {
-            <span class="ident">kind</span>,
-            <span class="ident">message</span>,
-            <span class="ident">cause</span>,
-        } <span class="op">=</span> <span class="self">self</span>;
-        <span class="kw">let</span> <span class="ident">constructors</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">intrinsics</span>().<span class="ident">constructors</span>();
-        <span class="kw">let</span> (<span class="ident">prototype</span>, <span class="ident">tag</span>) <span class="op">=</span> <span class="kw">match</span> <span class="ident">kind</span> {
-            <span class="ident">JsNativeErrorKind::Aggregate</span>(<span class="kw">_</span>) =&gt; (
-                <span class="ident">constructors</span>.<span class="ident">aggregate_error</span>().<span class="ident">prototype</span>(),
-                <span class="ident">ErrorKind::Aggregate</span>,
+    <span class="doccomment">/// Converts this native error to its opaque representation as a [`JsObject`].
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// # use boa_engine::{Context, JsError, JsNativeError};
+    /// let context = &amp;mut Context::default();
+    ///
+    /// let error = JsNativeError::error().with_message(&quot;error!&quot;);
+    /// let error_obj = error.to_opaque(context);
+    ///
+    /// assert!(error_obj.borrow().is_error());
+    /// assert_eq!(error_obj.get(&quot;message&quot;, context).unwrap(), &quot;error!&quot;.into())
+    /// ```
+    </span><span class="kw">pub fn </span>to_opaque(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsObject {
+        <span class="kw">let </span><span class="self">Self </span>{
+            kind,
+            message,
+            cause,
+        } = <span class="self">self</span>;
+        <span class="kw">let </span>constructors = context.intrinsics().constructors();
+        <span class="kw">let </span>(prototype, tag) = <span class="kw">match </span>kind {
+            JsNativeErrorKind::Aggregate(<span class="kw">_</span>) =&gt; (
+                constructors.aggregate_error().prototype(),
+                ErrorKind::Aggregate,
             ),
-            <span class="ident">JsNativeErrorKind::Error</span> =&gt; (<span class="ident">constructors</span>.<span class="ident">error</span>().<span class="ident">prototype</span>(), <span class="ident">ErrorKind::Error</span>),
-            <span class="ident">JsNativeErrorKind::Eval</span> =&gt; (<span class="ident">constructors</span>.<span class="ident">eval_error</span>().<span class="ident">prototype</span>(), <span class="ident">ErrorKind::Eval</span>),
-            <span class="ident">JsNativeErrorKind::Range</span> =&gt; (<span class="ident">constructors</span>.<span class="ident">range_error</span>().<span class="ident">prototype</span>(), <span class="ident">ErrorKind::Range</span>),
-            <span class="ident">JsNativeErrorKind::Reference</span> =&gt; (
-                <span class="ident">constructors</span>.<span class="ident">reference_error</span>().<span class="ident">prototype</span>(),
-                <span class="ident">ErrorKind::Reference</span>,
+            JsNativeErrorKind::Error =&gt; (constructors.error().prototype(), ErrorKind::Error),
+            JsNativeErrorKind::Eval =&gt; (constructors.eval_error().prototype(), ErrorKind::Eval),
+            JsNativeErrorKind::Range =&gt; (constructors.range_error().prototype(), ErrorKind::Range),
+            JsNativeErrorKind::Reference =&gt; (
+                constructors.reference_error().prototype(),
+                ErrorKind::Reference,
             ),
-            <span class="ident">JsNativeErrorKind::Syntax</span> =&gt; {
-                (<span class="ident">constructors</span>.<span class="ident">syntax_error</span>().<span class="ident">prototype</span>(), <span class="ident">ErrorKind::Syntax</span>)
+            JsNativeErrorKind::Syntax =&gt; {
+                (constructors.syntax_error().prototype(), ErrorKind::Syntax)
             }
-            <span class="ident">JsNativeErrorKind::Type</span> =&gt; (<span class="ident">constructors</span>.<span class="ident">type_error</span>().<span class="ident">prototype</span>(), <span class="ident">ErrorKind::Type</span>),
-            <span class="ident">JsNativeErrorKind::Uri</span> =&gt; (<span class="ident">constructors</span>.<span class="ident">uri_error</span>().<span class="ident">prototype</span>(), <span class="ident">ErrorKind::Uri</span>),
+            JsNativeErrorKind::Type =&gt; (constructors.type_error().prototype(), ErrorKind::Type),
+            JsNativeErrorKind::Uri =&gt; (constructors.uri_error().prototype(), ErrorKind::Uri),
         };
 
-        <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">JsObject::from_proto_and_data</span>(<span class="ident">prototype</span>, <span class="ident">ObjectData::error</span>(<span class="ident">tag</span>));
+        <span class="kw">let </span>o = JsObject::from_proto_and_data(prototype, ObjectData::error(tag));
 
-        <span class="ident">o</span>.<span class="ident">create_non_enumerable_data_property_or_throw</span>(<span class="string">&quot;message&quot;</span>, <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="kw-2">*</span><span class="ident">message</span>, <span class="ident">context</span>);
+        o.create_non_enumerable_data_property_or_throw(<span class="string">&quot;message&quot;</span>, <span class="kw-2">&amp;**</span>message, context);
 
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">cause</span>) <span class="op">=</span> <span class="ident">cause</span> {
-            <span class="ident">o</span>.<span class="ident">create_non_enumerable_data_property_or_throw</span>(
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(cause) = cause {
+            o.create_non_enumerable_data_property_or_throw(
                 <span class="string">&quot;cause&quot;</span>,
-                <span class="ident">cause</span>.<span class="ident">to_opaque</span>(<span class="ident">context</span>),
-                <span class="ident">context</span>,
+                cause.to_opaque(context),
+                context,
             );
         }
 
-        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">JsNativeErrorKind::Aggregate</span>(<span class="ident">errors</span>) <span class="op">=</span> <span class="ident">kind</span> {
-            <span class="kw">let</span> <span class="ident">errors</span> <span class="op">=</span> <span class="ident">errors</span>
-                .<span class="ident">iter</span>()
-                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">e</span>.<span class="ident">to_opaque</span>(<span class="ident">context</span>))
-                .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>();
-            <span class="kw">let</span> <span class="ident">errors</span> <span class="op">=</span> <span class="ident">Array::create_array_from_list</span>(<span class="ident">errors</span>, <span class="ident">context</span>);
-            <span class="ident">o</span>.<span class="ident">define_property_or_throw</span>(
+        <span class="kw">if let </span>JsNativeErrorKind::Aggregate(errors) = kind {
+            <span class="kw">let </span>errors = errors
+                .iter()
+                .map(|e| e.to_opaque(context))
+                .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
+            <span class="kw">let </span>errors = Array::create_array_from_list(errors, context);
+            o.define_property_or_throw(
                 <span class="string">&quot;errors&quot;</span>,
-                <span class="ident">PropertyDescriptor::builder</span>()
-                    .<span class="ident">configurable</span>(<span class="bool-val">true</span>)
-                    .<span class="ident">enumerable</span>(<span class="bool-val">false</span>)
-                    .<span class="ident">writable</span>(<span class="bool-val">true</span>)
-                    .<span class="ident">value</span>(<span class="ident">errors</span>),
-                <span class="ident">context</span>,
+                PropertyDescriptor::builder()
+                    .configurable(<span class="bool-val">true</span>)
+                    .enumerable(<span class="bool-val">false</span>)
+                    .writable(<span class="bool-val">true</span>)
+                    .value(errors),
+                context,
             )
-            .<span class="ident">expect</span>(<span class="string">&quot;The spec guarantees this succeeds for a newly created object &quot;</span>);
+            .expect(<span class="string">&quot;The spec guarantees this succeeds for a newly created object &quot;</span>);
         }
-        <span class="ident">o</span>
+        o
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">parser::ParseError</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">JsNativeError</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">err</span>: <span class="ident">parser::ParseError</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::syntax</span>().<span class="ident">with_message</span>(<span class="ident">err</span>.<span class="ident">to_string</span>())
+<span class="kw">impl </span>From&lt;parser::ParseError&gt; <span class="kw">for </span>JsNativeError {
+    <span class="kw">fn </span>from(err: parser::ParseError) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::syntax().with_message(err.to_string())
     }
 }
 
-<span class="doccomment">/// The list of possible error types a [`JsNativeError`] can be.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">/// - [ECMAScript reference][spec]</span>
-<span class="doccomment">/// - [MDN documentation][mdn]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-error-objects</span>
-<span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Trace</span>, <span class="ident">Finalize</span>)]</span>
-<span class="attribute">#[<span class="ident">non_exhaustive</span>]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">JsNativeErrorKind</span> {
-    <span class="doccomment">/// A collection of errors wrapped in a single error.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">/// - [ECMAScript reference][spec]</span>
-    <span class="doccomment">/// - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-aggregate-error-objects</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/AggregateError</span>
-    <span class="ident">Aggregate</span>(<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">JsError</span><span class="op">&gt;</span>),
-    <span class="doccomment">/// A generic error. Commonly used as the base for custom exceptions.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">/// - [ECMAScript reference][spec]</span>
-    <span class="doccomment">/// - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-error-constructor</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error</span>
-    <span class="ident">Error</span>,
-    <span class="doccomment">/// An error related to the global function [`eval()`][eval].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">/// - [ECMAScript reference][spec]</span>
-    <span class="doccomment">/// - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-native-error-types-used-in-this-standard-evalerror</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/EvalError</span>
-    <span class="doccomment">/// [eval]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/eval</span>
-    <span class="ident">Eval</span>,
-    <span class="doccomment">/// An error thrown when a value is outside its valid range.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">/// - [ECMAScript reference][spec]</span>
-    <span class="doccomment">/// - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-native-error-types-used-in-this-standard-rangeerror</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RangeError</span>
-    <span class="ident">Range</span>,
-    <span class="doccomment">/// An error representing an invalid de-reference of a variable.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">/// - [ECMAScript reference][spec]</span>
-    <span class="doccomment">/// - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-native-error-types-used-in-this-standard-referenceerror</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ReferenceError</span>
-    <span class="ident">Reference</span>,
-    <span class="doccomment">/// An error representing an invalid syntax in the Javascript language.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">/// - [ECMAScript reference][spec]</span>
-    <span class="doccomment">/// - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-native-error-types-used-in-this-standard-syntaxerror</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/SyntaxError</span>
-    <span class="ident">Syntax</span>,
-    <span class="doccomment">/// An error thrown when a variable or argument is not of a valid type.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">/// - [ECMAScript reference][spec]</span>
-    <span class="doccomment">/// - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-native-error-types-used-in-this-standard-typeerror</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypeError</span>
-    <span class="ident">Type</span>,
-    <span class="doccomment">/// An error thrown when the [`encodeURI()`][e_uri] and [`decodeURI()`][d_uri] functions receive</span>
-    <span class="doccomment">/// invalid parameters.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">/// - [ECMAScript reference][spec]</span>
-    <span class="doccomment">/// - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-native-error-types-used-in-this-standard-urierror</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/URIError</span>
-    <span class="doccomment">/// [e_uri]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/encodeURI</span>
-    <span class="doccomment">/// [d_uri]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/decodeURI</span>
-    <span class="ident">Uri</span>,
+<span class="doccomment">/// The list of possible error types a [`JsNativeError`] can be.
+///
+/// More information:
+/// - [ECMAScript reference][spec]
+/// - [MDN documentation][mdn]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-error-objects
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error
+</span><span class="attribute">#[derive(Debug, Clone, Trace, Finalize)]
+#[non_exhaustive]
+</span><span class="kw">pub enum </span>JsNativeErrorKind {
+    <span class="doccomment">/// A collection of errors wrapped in a single error.
+    ///
+    /// More information:
+    /// - [ECMAScript reference][spec]
+    /// - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-aggregate-error-objects
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/AggregateError
+    </span>Aggregate(Vec&lt;JsError&gt;),
+    <span class="doccomment">/// A generic error. Commonly used as the base for custom exceptions.
+    ///
+    /// More information:
+    /// - [ECMAScript reference][spec]
+    /// - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-error-constructor
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error
+    </span>Error,
+    <span class="doccomment">/// An error related to the global function [`eval()`][eval].
+    ///
+    /// More information:
+    /// - [ECMAScript reference][spec]
+    /// - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-native-error-types-used-in-this-standard-evalerror
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/EvalError
+    /// [eval]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/eval
+    </span>Eval,
+    <span class="doccomment">/// An error thrown when a value is outside its valid range.
+    ///
+    /// More information:
+    /// - [ECMAScript reference][spec]
+    /// - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-native-error-types-used-in-this-standard-rangeerror
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RangeError
+    </span>Range,
+    <span class="doccomment">/// An error representing an invalid de-reference of a variable.
+    ///
+    /// More information:
+    /// - [ECMAScript reference][spec]
+    /// - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-native-error-types-used-in-this-standard-referenceerror
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ReferenceError
+    </span>Reference,
+    <span class="doccomment">/// An error representing an invalid syntax in the Javascript language.
+    ///
+    /// More information:
+    /// - [ECMAScript reference][spec]
+    /// - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-native-error-types-used-in-this-standard-syntaxerror
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/SyntaxError
+    </span>Syntax,
+    <span class="doccomment">/// An error thrown when a variable or argument is not of a valid type.
+    ///
+    /// More information:
+    /// - [ECMAScript reference][spec]
+    /// - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-native-error-types-used-in-this-standard-typeerror
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypeError
+    </span>Type,
+    <span class="doccomment">/// An error thrown when the [`encodeURI()`][e_uri] and [`decodeURI()`][d_uri] functions receive
+    /// invalid parameters.
+    ///
+    /// More information:
+    /// - [ECMAScript reference][spec]
+    /// - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-native-error-types-used-in-this-standard-urierror
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/URIError
+    /// [e_uri]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/encodeURI
+    /// [d_uri]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/decodeURI
+    </span>Uri,
 }
 
-<span class="kw">impl</span> <span class="ident">std::fmt::Display</span> <span class="kw">for</span> <span class="ident">JsNativeErrorKind</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">std::fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">std::fmt::Result</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">JsNativeErrorKind::Aggregate</span>(<span class="kw">_</span>) =&gt; <span class="string">&quot;AggregateError&quot;</span>,
-            <span class="ident">JsNativeErrorKind::Error</span> =&gt; <span class="string">&quot;Error&quot;</span>,
-            <span class="ident">JsNativeErrorKind::Eval</span> =&gt; <span class="string">&quot;EvalError&quot;</span>,
-            <span class="ident">JsNativeErrorKind::Range</span> =&gt; <span class="string">&quot;RangeError&quot;</span>,
-            <span class="ident">JsNativeErrorKind::Reference</span> =&gt; <span class="string">&quot;ReferenceError&quot;</span>,
-            <span class="ident">JsNativeErrorKind::Syntax</span> =&gt; <span class="string">&quot;SyntaxError&quot;</span>,
-            <span class="ident">JsNativeErrorKind::Type</span> =&gt; <span class="string">&quot;TypeError&quot;</span>,
-            <span class="ident">JsNativeErrorKind::Uri</span> =&gt; <span class="string">&quot;UriError&quot;</span>,
+<span class="kw">impl </span>std::fmt::Display <span class="kw">for </span>JsNativeErrorKind {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
+        <span class="kw">match </span><span class="self">self </span>{
+            JsNativeErrorKind::Aggregate(<span class="kw">_</span>) =&gt; <span class="string">&quot;AggregateError&quot;</span>,
+            JsNativeErrorKind::Error =&gt; <span class="string">&quot;Error&quot;</span>,
+            JsNativeErrorKind::Eval =&gt; <span class="string">&quot;EvalError&quot;</span>,
+            JsNativeErrorKind::Range =&gt; <span class="string">&quot;RangeError&quot;</span>,
+            JsNativeErrorKind::Reference =&gt; <span class="string">&quot;ReferenceError&quot;</span>,
+            JsNativeErrorKind::Syntax =&gt; <span class="string">&quot;SyntaxError&quot;</span>,
+            JsNativeErrorKind::Type =&gt; <span class="string">&quot;TypeError&quot;</span>,
+            JsNativeErrorKind::Uri =&gt; <span class="string">&quot;UriError&quot;</span>,
         }
-        .<span class="ident">fmt</span>(<span class="ident">f</span>)
+        .fmt(f)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0 (a55dd71d5 2022-09-19)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0 (897e37553 2022-11-02)" ></div></body></html>

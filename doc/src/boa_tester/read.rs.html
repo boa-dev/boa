@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_tester/src/read.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>read.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../boa_tester/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../boa_tester/index.html"><div class="logo-container">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_tester/src/read.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>read.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../boa_tester/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../boa_tester/index.html"><div class="logo-container">
                     <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../boa_tester/index.html">
                         <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -237,242 +237,242 @@
 <span id="235">235</span>
 <span id="236">236</span>
 <span id="237">237</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Module to read the list of test suites from disk.</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Module to read the list of test suites from disk.
 
-<span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">Harness</span>, <span class="ident">Locale</span>, <span class="ident">Phase</span>, <span class="ident">Test</span>, <span class="ident">TestSuite</span>, <span class="ident">IGNORED</span>};
-<span class="kw">use</span> <span class="ident">anyhow::Context</span>;
-<span class="kw">use</span> <span class="ident">fxhash::FxHashMap</span>;
-<span class="kw">use</span> <span class="ident">serde::Deserialize</span>;
-<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">fs</span>, <span class="ident">io</span>, <span class="ident">path::Path</span>, <span class="ident">str::FromStr</span>};
+</span><span class="kw">use super</span>::{Harness, Locale, Phase, Test, TestSuite, IGNORED};
+<span class="kw">use </span>anyhow::Context;
+<span class="kw">use </span>fxhash::FxHashMap;
+<span class="kw">use </span>serde::Deserialize;
+<span class="kw">use </span>std::{fs, io, path::Path, str::FromStr};
 
-<span class="doccomment">/// Representation of the YAML metadata in Test262 tests.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Deserialize</span>)]</span>
-<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">dead_code</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct</span> <span class="ident">MetaData</span> {
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">description</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">esid</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">es5id</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">es6id</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>)]</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">info</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>,
-    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>)]</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">features</span>: <span class="ident">Box</span><span class="op">&lt;</span>[<span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>]<span class="op">&gt;</span>,
-    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>)]</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">includes</span>: <span class="ident">Box</span><span class="op">&lt;</span>[<span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>]<span class="op">&gt;</span>,
-    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>)]</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">flags</span>: <span class="ident">Box</span><span class="op">&lt;</span>[<span class="ident">TestFlag</span>]<span class="op">&gt;</span>,
-    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>)]</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">negative</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Negative</span><span class="op">&gt;</span>,
-    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>)]</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">locale</span>: <span class="ident">Locale</span>,
+<span class="doccomment">/// Representation of the YAML metadata in Test262 tests.
+</span><span class="attribute">#[derive(Debug, Clone, Deserialize)]
+#[allow(dead_code)]
+</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>MetaData {
+    <span class="kw">pub</span>(<span class="kw">super</span>) description: Box&lt;str&gt;,
+    <span class="kw">pub</span>(<span class="kw">super</span>) esid: <span class="prelude-ty">Option</span>&lt;Box&lt;str&gt;&gt;,
+    <span class="kw">pub</span>(<span class="kw">super</span>) es5id: <span class="prelude-ty">Option</span>&lt;Box&lt;str&gt;&gt;,
+    <span class="kw">pub</span>(<span class="kw">super</span>) es6id: <span class="prelude-ty">Option</span>&lt;Box&lt;str&gt;&gt;,
+    <span class="attribute">#[serde(default)]
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) info: Box&lt;str&gt;,
+    <span class="attribute">#[serde(default)]
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) features: Box&lt;[Box&lt;str&gt;]&gt;,
+    <span class="attribute">#[serde(default)]
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) includes: Box&lt;[Box&lt;str&gt;]&gt;,
+    <span class="attribute">#[serde(default)]
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) flags: Box&lt;[TestFlag]&gt;,
+    <span class="attribute">#[serde(default)]
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) negative: <span class="prelude-ty">Option</span>&lt;Negative&gt;,
+    <span class="attribute">#[serde(default)]
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) locale: Locale,
 }
 
-<span class="doccomment">/// Negative test information structure.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Deserialize</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct</span> <span class="ident">Negative</span> {
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">phase</span>: <span class="ident">Phase</span>,
-    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename</span> <span class="op">=</span> <span class="string">&quot;type&quot;</span>)]</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">error_type</span>: <span class="ident">ErrorType</span>,
+<span class="doccomment">/// Negative test information structure.
+</span><span class="attribute">#[derive(Debug, Clone, Deserialize)]
+</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>Negative {
+    <span class="kw">pub</span>(<span class="kw">super</span>) phase: Phase,
+    <span class="attribute">#[serde(rename = <span class="string">&quot;type&quot;</span>)]
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) error_type: ErrorType,
 }
 
-<span class="doccomment">/// All possible error types</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">Deserialize</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
-<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::enum_variant_names</span>)]</span> <span class="comment">// Better than appending `rename` to all variants</span>
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">enum</span> <span class="ident">ErrorType</span> {
-    <span class="ident">Test262Error</span>,
-    <span class="ident">SyntaxError</span>,
-    <span class="ident">ReferenceError</span>,
-    <span class="ident">RangeError</span>,
-    <span class="ident">TypeError</span>,
+<span class="doccomment">/// All possible error types
+</span><span class="attribute">#[derive(Debug, Copy, Clone, Deserialize, PartialEq, Eq)]
+#[allow(clippy::enum_variant_names)] </span><span class="comment">// Better than appending `rename` to all variants
+</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">enum </span>ErrorType {
+    Test262Error,
+    SyntaxError,
+    ReferenceError,
+    RangeError,
+    TypeError,
 }
 
-<span class="kw">impl</span> <span class="ident">ErrorType</span> {
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">as_str</span>(<span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">ErrorType::Test262Error</span> =&gt; <span class="string">&quot;Test262Error&quot;</span>,
-            <span class="ident">ErrorType::SyntaxError</span> =&gt; <span class="string">&quot;SyntaxError&quot;</span>,
-            <span class="ident">ErrorType::ReferenceError</span> =&gt; <span class="string">&quot;ReferenceError&quot;</span>,
-            <span class="ident">ErrorType::RangeError</span> =&gt; <span class="string">&quot;RangeError&quot;</span>,
-            <span class="ident">ErrorType::TypeError</span> =&gt; <span class="string">&quot;TypeError&quot;</span>,
+<span class="kw">impl </span>ErrorType {
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>as_str(<span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str {
+        <span class="kw">match </span><span class="self">self </span>{
+            ErrorType::Test262Error =&gt; <span class="string">&quot;Test262Error&quot;</span>,
+            ErrorType::SyntaxError =&gt; <span class="string">&quot;SyntaxError&quot;</span>,
+            ErrorType::ReferenceError =&gt; <span class="string">&quot;ReferenceError&quot;</span>,
+            ErrorType::RangeError =&gt; <span class="string">&quot;RangeError&quot;</span>,
+            ErrorType::TypeError =&gt; <span class="string">&quot;TypeError&quot;</span>,
         }
     }
 }
 
-<span class="doccomment">/// Individual test flag.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Deserialize</span>)]</span>
-<span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename_all</span> <span class="op">=</span> <span class="string">&quot;camelCase&quot;</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">enum</span> <span class="ident">TestFlag</span> {
-    <span class="ident">OnlyStrict</span>,
-    <span class="ident">NoStrict</span>,
-    <span class="ident">Module</span>,
-    <span class="ident">Raw</span>,
-    <span class="ident">Async</span>,
-    <span class="ident">Generated</span>,
-    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename</span> <span class="op">=</span> <span class="string">&quot;CanBlockIsFalse&quot;</span>)]</span>
-    <span class="ident">CanBlockIsFalse</span>,
-    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename</span> <span class="op">=</span> <span class="string">&quot;CanBlockIsTrue&quot;</span>)]</span>
-    <span class="ident">CanBlockIsTrue</span>,
-    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename</span> <span class="op">=</span> <span class="string">&quot;non-deterministic&quot;</span>)]</span>
-    <span class="ident">NonDeterministic</span>,
+<span class="doccomment">/// Individual test flag.
+</span><span class="attribute">#[derive(Debug, Clone, Copy, Deserialize)]
+#[serde(rename_all = <span class="string">&quot;camelCase&quot;</span>)]
+</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">enum </span>TestFlag {
+    OnlyStrict,
+    NoStrict,
+    Module,
+    Raw,
+    Async,
+    Generated,
+    <span class="attribute">#[serde(rename = <span class="string">&quot;CanBlockIsFalse&quot;</span>)]
+    </span>CanBlockIsFalse,
+    <span class="attribute">#[serde(rename = <span class="string">&quot;CanBlockIsTrue&quot;</span>)]
+    </span>CanBlockIsTrue,
+    <span class="attribute">#[serde(rename = <span class="string">&quot;non-deterministic&quot;</span>)]
+    </span>NonDeterministic,
 }
 
-<span class="kw">impl</span> <span class="ident">FromStr</span> <span class="kw">for</span> <span class="ident">TestFlag</span> {
-    <span class="kw">type</span> <span class="prelude-val">Err</span> <span class="op">=</span> <span class="ident">String</span>; <span class="comment">// TODO: improve error type.</span>
+<span class="kw">impl </span>FromStr <span class="kw">for </span>TestFlag {
+    <span class="kw">type </span><span class="prelude-val">Err </span>= String; <span class="comment">// TODO: improve error type.
 
-    <span class="kw">fn</span> <span class="ident">from_str</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident"><span class="self">Self</span>::Err</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="ident">s</span> {
-            <span class="string">&quot;onlyStrict&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::OnlyStrict</span>),
-            <span class="string">&quot;noStrict&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::NoStrict</span>),
-            <span class="string">&quot;module&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::Module</span>),
-            <span class="string">&quot;raw&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::Raw</span>),
-            <span class="string">&quot;async&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::Async</span>),
-            <span class="string">&quot;generated&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::Generated</span>),
-            <span class="string">&quot;CanBlockIsFalse&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::CanBlockIsFalse</span>),
-            <span class="string">&quot;CanBlockIsTrue&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::CanBlockIsTrue</span>),
-            <span class="string">&quot;non-deterministic&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::NonDeterministic</span>),
-            <span class="kw">_</span> =&gt; <span class="prelude-val">Err</span>(<span class="macro">format!</span>(<span class="string">&quot;unknown test flag: {s}&quot;</span>)),
+    </span><span class="kw">fn </span>from_str(s: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <span class="self">Self</span>::Err&gt; {
+        <span class="kw">match </span>s {
+            <span class="string">&quot;onlyStrict&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::OnlyStrict),
+            <span class="string">&quot;noStrict&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::NoStrict),
+            <span class="string">&quot;module&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::Module),
+            <span class="string">&quot;raw&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::Raw),
+            <span class="string">&quot;async&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::Async),
+            <span class="string">&quot;generated&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::Generated),
+            <span class="string">&quot;CanBlockIsFalse&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::CanBlockIsFalse),
+            <span class="string">&quot;CanBlockIsTrue&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::CanBlockIsTrue),
+            <span class="string">&quot;non-deterministic&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::NonDeterministic),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(<span class="macro">format!</span>(<span class="string">&quot;unknown test flag: {s}&quot;</span>)),
         }
     }
 }
 
-<span class="doccomment">/// Reads the Test262 defined bindings.</span>
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">read_harness</span>(<span class="ident">test262_path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) -&gt; <span class="ident">anyhow::Result</span><span class="op">&lt;</span><span class="ident">Harness</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">includes</span> <span class="op">=</span> <span class="ident">FxHashMap::default</span>();
+<span class="doccomment">/// Reads the Test262 defined bindings.
+</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>read_harness(test262_path: <span class="kw-2">&amp;</span>Path) -&gt; anyhow::Result&lt;Harness&gt; {
+    <span class="kw">let </span><span class="kw-2">mut </span>includes = FxHashMap::default();
 
-    <span class="kw">for</span> <span class="ident">entry</span> <span class="kw">in</span>
-        <span class="ident">fs::read_dir</span>(<span class="ident">test262_path</span>.<span class="ident">join</span>(<span class="string">&quot;harness&quot;</span>)).<span class="ident">context</span>(<span class="string">&quot;error reading the harness directory&quot;</span>)<span class="question-mark">?</span>
-    {
-        <span class="kw">let</span> <span class="ident">entry</span> <span class="op">=</span> <span class="ident">entry</span><span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">file_name</span> <span class="op">=</span> <span class="ident">entry</span>.<span class="ident">file_name</span>();
-        <span class="kw">let</span> <span class="ident">file_name</span> <span class="op">=</span> <span class="ident">file_name</span>.<span class="ident">to_string_lossy</span>();
+    <span class="kw">for </span>entry <span class="kw">in
+        </span>fs::read_dir(test262_path.join(<span class="string">&quot;harness&quot;</span>)).context(<span class="string">&quot;error reading the harness directory&quot;</span>)<span class="question-mark">?
+    </span>{
+        <span class="kw">let </span>entry = entry<span class="question-mark">?</span>;
+        <span class="kw">let </span>file_name = entry.file_name();
+        <span class="kw">let </span>file_name = file_name.to_string_lossy();
 
-        <span class="kw">if</span> <span class="ident">file_name</span> <span class="op">==</span> <span class="string">&quot;assert.js&quot;</span> <span class="op">|</span><span class="op">|</span> <span class="ident">file_name</span> <span class="op">==</span> <span class="string">&quot;sta.js&quot;</span> <span class="op">|</span><span class="op">|</span> <span class="ident">file_name</span> <span class="op">==</span> <span class="string">&quot;doneprintHandle.js&quot;</span> {
+        <span class="kw">if </span>file_name == <span class="string">&quot;assert.js&quot; </span>|| file_name == <span class="string">&quot;sta.js&quot; </span>|| file_name == <span class="string">&quot;doneprintHandle.js&quot; </span>{
             <span class="kw">continue</span>;
         }
 
-        <span class="kw">let</span> <span class="ident">content</span> <span class="op">=</span> <span class="ident">fs::read_to_string</span>(<span class="ident">entry</span>.<span class="ident">path</span>())
-            .<span class="ident">with_context</span>(<span class="op">|</span><span class="op">|</span> <span class="macro">format!</span>(<span class="string">&quot;error reading the harnes/{file_name}&quot;</span>))<span class="question-mark">?</span>;
+        <span class="kw">let </span>content = fs::read_to_string(entry.path())
+            .with_context(|| <span class="macro">format!</span>(<span class="string">&quot;error reading the harnes/{file_name}&quot;</span>))<span class="question-mark">?</span>;
 
-        <span class="ident">includes</span>.<span class="ident">insert</span>(
-            <span class="ident">file_name</span>.<span class="ident">into_owned</span>().<span class="ident">into_boxed_str</span>(),
-            <span class="ident">content</span>.<span class="ident">into_boxed_str</span>(),
+        includes.insert(
+            file_name.into_owned().into_boxed_str(),
+            content.into_boxed_str(),
         );
     }
-    <span class="kw">let</span> <span class="ident">assert</span> <span class="op">=</span> <span class="ident">fs::read_to_string</span>(<span class="ident">test262_path</span>.<span class="ident">join</span>(<span class="string">&quot;harness/assert.js&quot;</span>))
-        .<span class="ident">context</span>(<span class="string">&quot;error reading harnes/assert.js&quot;</span>)<span class="question-mark">?</span>
-        .<span class="ident">into_boxed_str</span>();
-    <span class="kw">let</span> <span class="ident">sta</span> <span class="op">=</span> <span class="ident">fs::read_to_string</span>(<span class="ident">test262_path</span>.<span class="ident">join</span>(<span class="string">&quot;harness/sta.js&quot;</span>))
-        .<span class="ident">context</span>(<span class="string">&quot;error reading harnes/sta.js&quot;</span>)<span class="question-mark">?</span>
-        .<span class="ident">into_boxed_str</span>();
-    <span class="kw">let</span> <span class="ident">doneprint_handle</span> <span class="op">=</span> <span class="ident">fs::read_to_string</span>(<span class="ident">test262_path</span>.<span class="ident">join</span>(<span class="string">&quot;harness/doneprintHandle.js&quot;</span>))
-        .<span class="ident">context</span>(<span class="string">&quot;error reading harnes/doneprintHandle.js&quot;</span>)<span class="question-mark">?</span>
-        .<span class="ident">into_boxed_str</span>();
+    <span class="kw">let </span>assert = fs::read_to_string(test262_path.join(<span class="string">&quot;harness/assert.js&quot;</span>))
+        .context(<span class="string">&quot;error reading harnes/assert.js&quot;</span>)<span class="question-mark">?
+        </span>.into_boxed_str();
+    <span class="kw">let </span>sta = fs::read_to_string(test262_path.join(<span class="string">&quot;harness/sta.js&quot;</span>))
+        .context(<span class="string">&quot;error reading harnes/sta.js&quot;</span>)<span class="question-mark">?
+        </span>.into_boxed_str();
+    <span class="kw">let </span>doneprint_handle = fs::read_to_string(test262_path.join(<span class="string">&quot;harness/doneprintHandle.js&quot;</span>))
+        .context(<span class="string">&quot;error reading harnes/doneprintHandle.js&quot;</span>)<span class="question-mark">?
+        </span>.into_boxed_str();
 
-    <span class="prelude-val">Ok</span>(<span class="ident">Harness</span> {
-        <span class="ident">assert</span>,
-        <span class="ident">sta</span>,
-        <span class="ident">doneprint_handle</span>,
-        <span class="ident">includes</span>,
+    <span class="prelude-val">Ok</span>(Harness {
+        assert,
+        sta,
+        doneprint_handle,
+        includes,
     })
 }
 
-<span class="doccomment">/// Reads a test suite in the given path.</span>
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">read_suite</span>(<span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) -&gt; <span class="ident">anyhow::Result</span><span class="op">&lt;</span><span class="ident">TestSuite</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="ident">path</span>
-        .<span class="ident">file_name</span>()
-        .<span class="ident">with_context</span>(<span class="op">|</span><span class="op">|</span> <span class="macro">format!</span>(<span class="string">&quot;test suite with no name found: {}&quot;</span>, <span class="ident">path</span>.<span class="ident">display</span>()))<span class="question-mark">?</span>
-        .<span class="ident">to_str</span>()
-        .<span class="ident">with_context</span>(<span class="op">|</span><span class="op">|</span> <span class="macro">format!</span>(<span class="string">&quot;non-UTF-8 suite name found: {}&quot;</span>, <span class="ident">path</span>.<span class="ident">display</span>()))<span class="question-mark">?</span>;
+<span class="doccomment">/// Reads a test suite in the given path.
+</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>read_suite(path: <span class="kw-2">&amp;</span>Path) -&gt; anyhow::Result&lt;TestSuite&gt; {
+    <span class="kw">let </span>name = path
+        .file_name()
+        .with_context(|| <span class="macro">format!</span>(<span class="string">&quot;test suite with no name found: {}&quot;</span>, path.display()))<span class="question-mark">?
+        </span>.to_str()
+        .with_context(|| <span class="macro">format!</span>(<span class="string">&quot;non-UTF-8 suite name found: {}&quot;</span>, path.display()))<span class="question-mark">?</span>;
 
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">suites</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">tests</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
+    <span class="kw">let </span><span class="kw-2">mut </span>suites = Vec::new();
+    <span class="kw">let </span><span class="kw-2">mut </span>tests = Vec::new();
 
-    <span class="comment">// TODO: iterate in parallel</span>
-    <span class="kw">for</span> <span class="ident">entry</span> <span class="kw">in</span> <span class="ident">path</span>.<span class="ident">read_dir</span>().<span class="ident">context</span>(<span class="string">&quot;retrieving entry&quot;</span>)<span class="question-mark">?</span> {
-        <span class="kw">let</span> <span class="ident">entry</span> <span class="op">=</span> <span class="ident">entry</span><span class="question-mark">?</span>;
+    <span class="comment">// TODO: iterate in parallel
+    </span><span class="kw">for </span>entry <span class="kw">in </span>path.read_dir().context(<span class="string">&quot;retrieving entry&quot;</span>)<span class="question-mark">? </span>{
+        <span class="kw">let </span>entry = entry<span class="question-mark">?</span>;
 
-        <span class="kw">if</span> <span class="ident">entry</span>.<span class="ident">file_type</span>().<span class="ident">context</span>(<span class="string">&quot;retrieving file type&quot;</span>)<span class="question-mark">?</span>.<span class="ident">is_dir</span>() {
-            <span class="ident">suites</span>.<span class="ident">push</span>(<span class="ident">read_suite</span>(<span class="ident">entry</span>.<span class="ident">path</span>().<span class="ident">as_path</span>()).<span class="ident">with_context</span>(<span class="op">|</span><span class="op">|</span> {
-                <span class="kw">let</span> <span class="ident">path</span> <span class="op">=</span> <span class="ident">entry</span>.<span class="ident">path</span>();
-                <span class="kw">let</span> <span class="ident">suite</span> <span class="op">=</span> <span class="ident">path</span>.<span class="ident">display</span>();
+        <span class="kw">if </span>entry.file_type().context(<span class="string">&quot;retrieving file type&quot;</span>)<span class="question-mark">?</span>.is_dir() {
+            suites.push(read_suite(entry.path().as_path()).with_context(|| {
+                <span class="kw">let </span>path = entry.path();
+                <span class="kw">let </span>suite = path.display();
                 <span class="macro">format!</span>(<span class="string">&quot;error reading sub-suite {suite}&quot;</span>)
             })<span class="question-mark">?</span>);
-        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">entry</span>.<span class="ident">file_name</span>().<span class="ident">to_string_lossy</span>().<span class="ident">contains</span>(<span class="string">&quot;_FIXTURE&quot;</span>) {
+        } <span class="kw">else if </span>entry.file_name().to_string_lossy().contains(<span class="string">&quot;_FIXTURE&quot;</span>) {
             <span class="kw">continue</span>;
-        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">IGNORED</span>.<span class="ident">contains_file</span>(<span class="kw-2">&amp;</span><span class="ident">entry</span>.<span class="ident">file_name</span>().<span class="ident">to_string_lossy</span>()) {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">test</span> <span class="op">=</span> <span class="ident">Test::default</span>();
-            <span class="ident">test</span>.<span class="ident">set_name</span>(<span class="ident">entry</span>.<span class="ident">file_name</span>().<span class="ident">to_string_lossy</span>());
-            <span class="ident">tests</span>.<span class="ident">push</span>(<span class="ident">test</span>);
-        } <span class="kw">else</span> {
-            <span class="ident">tests</span>.<span class="ident">push</span>(<span class="ident">read_test</span>(<span class="ident">entry</span>.<span class="ident">path</span>().<span class="ident">as_path</span>()).<span class="ident">with_context</span>(<span class="op">|</span><span class="op">|</span> {
-                <span class="kw">let</span> <span class="ident">path</span> <span class="op">=</span> <span class="ident">entry</span>.<span class="ident">path</span>();
-                <span class="kw">let</span> <span class="ident">suite</span> <span class="op">=</span> <span class="ident">path</span>.<span class="ident">display</span>();
+        } <span class="kw">else if </span>IGNORED.contains_file(<span class="kw-2">&amp;</span>entry.file_name().to_string_lossy()) {
+            <span class="kw">let </span><span class="kw-2">mut </span>test = Test::default();
+            test.set_name(entry.file_name().to_string_lossy());
+            tests.push(test);
+        } <span class="kw">else </span>{
+            tests.push(read_test(entry.path().as_path()).with_context(|| {
+                <span class="kw">let </span>path = entry.path();
+                <span class="kw">let </span>suite = path.display();
                 <span class="macro">format!</span>(<span class="string">&quot;error reading test {suite}&quot;</span>)
             })<span class="question-mark">?</span>);
         }
     }
 
-    <span class="prelude-val">Ok</span>(<span class="ident">TestSuite</span> {
-        <span class="ident">name</span>: <span class="ident">name</span>.<span class="ident">into</span>(),
-        <span class="ident">suites</span>: <span class="ident">suites</span>.<span class="ident">into_boxed_slice</span>(),
-        <span class="ident">tests</span>: <span class="ident">tests</span>.<span class="ident">into_boxed_slice</span>(),
+    <span class="prelude-val">Ok</span>(TestSuite {
+        name: name.into(),
+        suites: suites.into_boxed_slice(),
+        tests: tests.into_boxed_slice(),
     })
 }
 
-<span class="doccomment">/// Reads information about a given test case.</span>
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">read_test</span>(<span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">Test</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="ident">path</span>
-        .<span class="ident">file_stem</span>()
-        .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-            <span class="ident">io::Error::new</span>(
-                <span class="ident">io::ErrorKind::InvalidInput</span>,
-                <span class="macro">format!</span>(<span class="string">&quot;test with no file name found: {}&quot;</span>, <span class="ident">path</span>.<span class="ident">display</span>()),
+<span class="doccomment">/// Reads information about a given test case.
+</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>read_test(path: <span class="kw-2">&amp;</span>Path) -&gt; io::Result&lt;Test&gt; {
+    <span class="kw">let </span>name = path
+        .file_stem()
+        .ok_or_else(|| {
+            io::Error::new(
+                io::ErrorKind::InvalidInput,
+                <span class="macro">format!</span>(<span class="string">&quot;test with no file name found: {}&quot;</span>, path.display()),
             )
-        })<span class="question-mark">?</span>
-        .<span class="ident">to_str</span>()
-        .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-            <span class="ident">io::Error::new</span>(
-                <span class="ident">io::ErrorKind::InvalidInput</span>,
-                <span class="macro">format!</span>(<span class="string">&quot;non-UTF-8 file name found: {}&quot;</span>, <span class="ident">path</span>.<span class="ident">display</span>()),
+        })<span class="question-mark">?
+        </span>.to_str()
+        .ok_or_else(|| {
+            io::Error::new(
+                io::ErrorKind::InvalidInput,
+                <span class="macro">format!</span>(<span class="string">&quot;non-UTF-8 file name found: {}&quot;</span>, path.display()),
             )
         })<span class="question-mark">?</span>;
 
-    <span class="kw">let</span> <span class="ident">content</span> <span class="op">=</span> <span class="ident">fs::read_to_string</span>(<span class="ident">path</span>)<span class="question-mark">?</span>;
-    <span class="kw">let</span> <span class="ident">metadata</span> <span class="op">=</span> <span class="ident">read_metadata</span>(<span class="kw-2">&amp;</span><span class="ident">content</span>, <span class="ident">path</span>)<span class="question-mark">?</span>;
+    <span class="kw">let </span>content = fs::read_to_string(path)<span class="question-mark">?</span>;
+    <span class="kw">let </span>metadata = read_metadata(<span class="kw-2">&amp;</span>content, path)<span class="question-mark">?</span>;
 
-    <span class="prelude-val">Ok</span>(<span class="ident">Test::new</span>(<span class="ident">name</span>, <span class="ident">content</span>, <span class="ident">metadata</span>))
+    <span class="prelude-val">Ok</span>(Test::new(name, content, metadata))
 }
 
-<span class="doccomment">/// Reads the metadata from the input test code.</span>
-<span class="kw">fn</span> <span class="ident">read_metadata</span>(<span class="ident">code</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">test</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">MetaData</span><span class="op">&gt;</span> {
-    <span class="kw">use</span> <span class="ident">once_cell::sync::Lazy</span>;
-    <span class="kw">use</span> <span class="ident">regex::Regex</span>;
+<span class="doccomment">/// Reads the metadata from the input test code.
+</span><span class="kw">fn </span>read_metadata(code: <span class="kw-2">&amp;</span>str, test: <span class="kw-2">&amp;</span>Path) -&gt; io::Result&lt;MetaData&gt; {
+    <span class="kw">use </span>once_cell::sync::Lazy;
+    <span class="kw">use </span>regex::Regex;
 
-    <span class="doccomment">/// Regular expression to retrieve the metadata of a test.</span>
-    <span class="kw">static</span> <span class="ident">META_REGEX</span>: <span class="ident">Lazy</span><span class="op">&lt;</span><span class="ident">Regex</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Lazy::new</span>(<span class="op">|</span><span class="op">|</span> {
-        <span class="ident">Regex::new</span>(<span class="string">r#&quot;/\*\-{3}((?:.|\n)*)\-{3}\*/&quot;#</span>)
-            .<span class="ident">expect</span>(<span class="string">&quot;could not compile metadata regular expression&quot;</span>)
+    <span class="doccomment">/// Regular expression to retrieve the metadata of a test.
+    </span><span class="kw">static </span>META_REGEX: Lazy&lt;Regex&gt; = Lazy::new(|| {
+        Regex::new(<span class="string">r#&quot;/\*\-{3}((?:.|\n)*)\-{3}\*/&quot;#</span>)
+            .expect(<span class="string">&quot;could not compile metadata regular expression&quot;</span>)
     });
 
-    <span class="kw">let</span> <span class="ident">yaml</span> <span class="op">=</span> <span class="ident">META_REGEX</span>
-        .<span class="ident">captures</span>(<span class="ident">code</span>)
-        .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-            <span class="ident">io::Error::new</span>(
-                <span class="ident">io::ErrorKind::InvalidData</span>,
-                <span class="macro">format!</span>(<span class="string">&quot;no metadata found for test {}&quot;</span>, <span class="ident">test</span>.<span class="ident">display</span>()),
+    <span class="kw">let </span>yaml = META_REGEX
+        .captures(code)
+        .ok_or_else(|| {
+            io::Error::new(
+                io::ErrorKind::InvalidData,
+                <span class="macro">format!</span>(<span class="string">&quot;no metadata found for test {}&quot;</span>, test.display()),
             )
-        })<span class="question-mark">?</span>
-        .<span class="ident">get</span>(<span class="number">1</span>)
-        .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-            <span class="ident">io::Error::new</span>(
-                <span class="ident">io::ErrorKind::InvalidData</span>,
-                <span class="macro">format!</span>(<span class="string">&quot;no metadata found for test {}&quot;</span>, <span class="ident">test</span>.<span class="ident">display</span>()),
+        })<span class="question-mark">?
+        </span>.get(<span class="number">1</span>)
+        .ok_or_else(|| {
+            io::Error::new(
+                io::ErrorKind::InvalidData,
+                <span class="macro">format!</span>(<span class="string">&quot;no metadata found for test {}&quot;</span>, test.display()),
             )
-        })<span class="question-mark">?</span>
-        .<span class="ident">as_str</span>()
-        .<span class="ident">replace</span>(<span class="string">&#39;\r&#39;</span>, <span class="string">&quot;\n&quot;</span>);
+        })<span class="question-mark">?
+        </span>.as_str()
+        .replace(<span class="string">&#39;\r&#39;</span>, <span class="string">&quot;\n&quot;</span>);
 
-    <span class="ident">serde_yaml::from_str</span>(<span class="kw-2">&amp;</span><span class="ident">yaml</span>).<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">io::Error::new</span>(<span class="ident">io::ErrorKind::InvalidData</span>, <span class="ident">e</span>))
+    serde_yaml::from_str(<span class="kw-2">&amp;</span>yaml).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="boa_tester" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0 (a55dd71d5 2022-09-19)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="boa_tester" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0 (897e37553 2022-11-02)" ></div></body></html>

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_engine/src/builtins/reflect/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_engine/src/builtins/reflect/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container">
                     <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../boa_engine/index.html">
                         <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -410,415 +410,415 @@
 <span id="408">408</span>
 <span id="409">409</span>
 <span id="410">410</span>
-</pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `Reflect` object.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! The `Reflect` global object is a built-in object that provides methods for interceptable</span>
-<span class="doccomment">//! JavaScript operations.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! More information:</span>
-<span class="doccomment">//!  - [ECMAScript reference][spec]</span>
-<span class="doccomment">//!  - [MDN documentation][mdn]</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! [spec]: https://tc39.es/ecma262/#sec-reflect-object</span>
-<span class="doccomment">//! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect</span>
+</pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `Reflect` object.
+//!
+//! The `Reflect` global object is a built-in object that provides methods for interceptable
+//! JavaScript operations.
+//!
+//! More information:
+//!  - [ECMAScript reference][spec]
+//!  - [MDN documentation][mdn]
+//!
+//! [spec]: https://tc39.es/ecma262/#sec-reflect-object
+//! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect
 
-<span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">Array</span>, <span class="ident">JsArgs</span>};
-<span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">builtins</span>::{<span class="self">self</span>, <span class="ident">BuiltIn</span>},
-    <span class="ident">error::JsNativeError</span>,
-    <span class="ident">object::ObjectInitializer</span>,
-    <span class="ident">property::Attribute</span>,
-    <span class="ident">symbol::WellKnownSymbols</span>,
-    <span class="ident">Context</span>, <span class="ident">JsResult</span>, <span class="ident">JsValue</span>,
+</span><span class="kw">use super</span>::{Array, JsArgs};
+<span class="kw">use crate</span>::{
+    builtins::{<span class="self">self</span>, BuiltIn},
+    error::JsNativeError,
+    object::ObjectInitializer,
+    property::Attribute,
+    symbol::WellKnownSymbols,
+    Context, JsResult, JsValue,
 };
-<span class="kw">use</span> <span class="ident">boa_profiler::Profiler</span>;
-<span class="kw">use</span> <span class="ident">tap</span>::{<span class="ident">Conv</span>, <span class="ident">Pipe</span>};
+<span class="kw">use </span>boa_profiler::Profiler;
+<span class="kw">use </span>tap::{Conv, Pipe};
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span>;
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>tests;
 
-<span class="doccomment">/// Javascript `Reflect` object.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Ord</span>, <span class="ident">Hash</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">Reflect</span>;
+<span class="doccomment">/// Javascript `Reflect` object.
+</span><span class="attribute">#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Reflect;
 
-<span class="kw">impl</span> <span class="ident">BuiltIn</span> <span class="kw">for</span> <span class="ident">Reflect</span> {
-    <span class="kw">const</span> <span class="ident">NAME</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;Reflect&quot;</span>;
+<span class="kw">impl </span>BuiltIn <span class="kw">for </span>Reflect {
+    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;Reflect&quot;</span>;
 
-    <span class="kw">fn</span> <span class="ident">init</span>(<span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="ident"><span class="self">Self</span>::NAME</span>, <span class="string">&quot;init&quot;</span>);
+    <span class="kw">fn </span>init(context: <span class="kw-2">&amp;mut </span>Context) -&gt; <span class="prelude-ty">Option</span>&lt;JsValue&gt; {
+        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="self">Self</span>::NAME, <span class="string">&quot;init&quot;</span>);
 
-        <span class="kw">let</span> <span class="ident">to_string_tag</span> <span class="op">=</span> <span class="ident">WellKnownSymbols::to_string_tag</span>();
+        <span class="kw">let </span>to_string_tag = WellKnownSymbols::to_string_tag();
 
-        <span class="ident">ObjectInitializer::new</span>(<span class="ident">context</span>)
-            .<span class="ident">function</span>(<span class="ident"><span class="self">Self</span>::apply</span>, <span class="string">&quot;apply&quot;</span>, <span class="number">3</span>)
-            .<span class="ident">function</span>(<span class="ident"><span class="self">Self</span>::construct</span>, <span class="string">&quot;construct&quot;</span>, <span class="number">2</span>)
-            .<span class="ident">function</span>(<span class="ident"><span class="self">Self</span>::define_property</span>, <span class="string">&quot;defineProperty&quot;</span>, <span class="number">3</span>)
-            .<span class="ident">function</span>(<span class="ident"><span class="self">Self</span>::delete_property</span>, <span class="string">&quot;deleteProperty&quot;</span>, <span class="number">2</span>)
-            .<span class="ident">function</span>(<span class="ident"><span class="self">Self</span>::get</span>, <span class="string">&quot;get&quot;</span>, <span class="number">2</span>)
-            .<span class="ident">function</span>(
-                <span class="ident"><span class="self">Self</span>::get_own_property_descriptor</span>,
+        ObjectInitializer::new(context)
+            .function(<span class="self">Self</span>::apply, <span class="string">&quot;apply&quot;</span>, <span class="number">3</span>)
+            .function(<span class="self">Self</span>::construct, <span class="string">&quot;construct&quot;</span>, <span class="number">2</span>)
+            .function(<span class="self">Self</span>::define_property, <span class="string">&quot;defineProperty&quot;</span>, <span class="number">3</span>)
+            .function(<span class="self">Self</span>::delete_property, <span class="string">&quot;deleteProperty&quot;</span>, <span class="number">2</span>)
+            .function(<span class="self">Self</span>::get, <span class="string">&quot;get&quot;</span>, <span class="number">2</span>)
+            .function(
+                <span class="self">Self</span>::get_own_property_descriptor,
                 <span class="string">&quot;getOwnPropertyDescriptor&quot;</span>,
                 <span class="number">2</span>,
             )
-            .<span class="ident">function</span>(<span class="ident"><span class="self">Self</span>::get_prototype_of</span>, <span class="string">&quot;getPrototypeOf&quot;</span>, <span class="number">1</span>)
-            .<span class="ident">function</span>(<span class="ident"><span class="self">Self</span>::has</span>, <span class="string">&quot;has&quot;</span>, <span class="number">2</span>)
-            .<span class="ident">function</span>(<span class="ident"><span class="self">Self</span>::is_extensible</span>, <span class="string">&quot;isExtensible&quot;</span>, <span class="number">1</span>)
-            .<span class="ident">function</span>(<span class="ident"><span class="self">Self</span>::own_keys</span>, <span class="string">&quot;ownKeys&quot;</span>, <span class="number">1</span>)
-            .<span class="ident">function</span>(<span class="ident"><span class="self">Self</span>::prevent_extensions</span>, <span class="string">&quot;preventExtensions&quot;</span>, <span class="number">1</span>)
-            .<span class="ident">function</span>(<span class="ident"><span class="self">Self</span>::set</span>, <span class="string">&quot;set&quot;</span>, <span class="number">3</span>)
-            .<span class="ident">function</span>(<span class="ident"><span class="self">Self</span>::set_prototype_of</span>, <span class="string">&quot;setPrototypeOf&quot;</span>, <span class="number">2</span>)
-            .<span class="ident">property</span>(
-                <span class="ident">to_string_tag</span>,
-                <span class="ident"><span class="self">Self</span>::NAME</span>,
-                <span class="ident">Attribute::READONLY</span> <span class="op">|</span> <span class="ident">Attribute::NON_ENUMERABLE</span> <span class="op">|</span> <span class="ident">Attribute::CONFIGURABLE</span>,
+            .function(<span class="self">Self</span>::get_prototype_of, <span class="string">&quot;getPrototypeOf&quot;</span>, <span class="number">1</span>)
+            .function(<span class="self">Self</span>::has, <span class="string">&quot;has&quot;</span>, <span class="number">2</span>)
+            .function(<span class="self">Self</span>::is_extensible, <span class="string">&quot;isExtensible&quot;</span>, <span class="number">1</span>)
+            .function(<span class="self">Self</span>::own_keys, <span class="string">&quot;ownKeys&quot;</span>, <span class="number">1</span>)
+            .function(<span class="self">Self</span>::prevent_extensions, <span class="string">&quot;preventExtensions&quot;</span>, <span class="number">1</span>)
+            .function(<span class="self">Self</span>::set, <span class="string">&quot;set&quot;</span>, <span class="number">3</span>)
+            .function(<span class="self">Self</span>::set_prototype_of, <span class="string">&quot;setPrototypeOf&quot;</span>, <span class="number">2</span>)
+            .property(
+                to_string_tag,
+                <span class="self">Self</span>::NAME,
+                Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
-            .<span class="ident">build</span>()
-            .<span class="ident">conv</span>::<span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span>()
-            .<span class="ident">pipe</span>(<span class="prelude-val">Some</span>)
+            .build()
+            .conv::&lt;JsValue&gt;()
+            .pipe(<span class="prelude-val">Some</span>)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Reflect</span> {
-    <span class="doccomment">/// Calls a target function with arguments.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-reflect.apply</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect/apply</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">apply</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">target</span> <span class="op">=</span> <span class="ident">args</span>
-            .<span class="ident">get</span>(<span class="number">0</span>)
-            .<span class="ident">and_then</span>(<span class="ident">JsValue::as_object</span>)
-            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="string">&quot;target must be a function&quot;</span>))<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">this_arg</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">1</span>);
-        <span class="kw">let</span> <span class="ident">args_list</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">2</span>);
+<span class="kw">impl </span>Reflect {
+    <span class="doccomment">/// Calls a target function with arguments.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-reflect.apply
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect/apply
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>apply(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="kw">let </span>target = args
+            .get(<span class="number">0</span>)
+            .and_then(JsValue::as_object)
+            .ok_or_else(|| JsNativeError::typ().with_message(<span class="string">&quot;target must be a function&quot;</span>))<span class="question-mark">?</span>;
+        <span class="kw">let </span>this_arg = args.get_or_undefined(<span class="number">1</span>);
+        <span class="kw">let </span>args_list = args.get_or_undefined(<span class="number">2</span>);
 
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">target</span>.<span class="ident">is_callable</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
-                .<span class="ident">with_message</span>(<span class="string">&quot;target must be a function&quot;</span>)
-                .<span class="ident">into</span>());
+        <span class="kw">if </span>!target.is_callable() {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
+                .with_message(<span class="string">&quot;target must be a function&quot;</span>)
+                .into());
         }
-        <span class="kw">let</span> <span class="ident">args</span> <span class="op">=</span> <span class="ident">args_list</span>.<span class="ident">create_list_from_array_like</span>(<span class="kw-2">&amp;</span>[], <span class="ident">context</span>)<span class="question-mark">?</span>;
-        <span class="ident">target</span>.<span class="ident">call</span>(<span class="ident">this_arg</span>, <span class="kw-2">&amp;</span><span class="ident">args</span>, <span class="ident">context</span>)
+        <span class="kw">let </span>args = args_list.create_list_from_array_like(<span class="kw-2">&amp;</span>[], context)<span class="question-mark">?</span>;
+        target.call(this_arg, <span class="kw-2">&amp;</span>args, context)
     }
 
-    <span class="doccomment">/// Calls a target function as a constructor with arguments.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-reflect.construct</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect/construct</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">construct</span>(
-        <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
-        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="comment">// 1. If IsConstructor(target) is false, throw a TypeError exception.</span>
-        <span class="kw">let</span> <span class="ident">target</span> <span class="op">=</span> <span class="ident">args</span>
-            .<span class="ident">get_or_undefined</span>(<span class="number">0</span>)
-            .<span class="ident">as_constructor</span>()
-            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="string">&quot;target must be a constructor&quot;</span>))<span class="question-mark">?</span>;
+    <span class="doccomment">/// Calls a target function as a constructor with arguments.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-reflect.construct
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect/construct
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>construct(
+        <span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue,
+        args: <span class="kw-2">&amp;</span>[JsValue],
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="comment">// 1. If IsConstructor(target) is false, throw a TypeError exception.
+        </span><span class="kw">let </span>target = args
+            .get_or_undefined(<span class="number">0</span>)
+            .as_constructor()
+            .ok_or_else(|| JsNativeError::typ().with_message(<span class="string">&quot;target must be a constructor&quot;</span>))<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="ident">new_target</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">new_target</span>) <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">2</span>) {
-            <span class="comment">// 3. Else if IsConstructor(newTarget) is false, throw a TypeError exception.</span>
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">new_target</span>) <span class="op">=</span> <span class="ident">new_target</span>.<span class="ident">as_constructor</span>() {
-                <span class="ident">new_target</span>
-            } <span class="kw">else</span> {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
-                    .<span class="ident">with_message</span>(<span class="string">&quot;newTarget must be a constructor&quot;</span>)
-                    .<span class="ident">into</span>());
+        <span class="kw">let </span>new_target = <span class="kw">if let </span><span class="prelude-val">Some</span>(new_target) = args.get(<span class="number">2</span>) {
+            <span class="comment">// 3. Else if IsConstructor(newTarget) is false, throw a TypeError exception.
+            </span><span class="kw">if let </span><span class="prelude-val">Some</span>(new_target) = new_target.as_constructor() {
+                new_target
+            } <span class="kw">else </span>{
+                <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
+                    .with_message(<span class="string">&quot;newTarget must be a constructor&quot;</span>)
+                    .into());
             }
-        } <span class="kw">else</span> {
-            <span class="comment">// 2. If newTarget is not present, set newTarget to target.</span>
-            <span class="ident">target</span>
+        } <span class="kw">else </span>{
+            <span class="comment">// 2. If newTarget is not present, set newTarget to target.
+            </span>target
         };
 
-        <span class="comment">// 4. Let args be ? CreateListFromArrayLike(argumentsList).</span>
-        <span class="kw">let</span> <span class="ident">args</span> <span class="op">=</span> <span class="ident">args</span>
-            .<span class="ident">get_or_undefined</span>(<span class="number">1</span>)
-            .<span class="ident">create_list_from_array_like</span>(<span class="kw-2">&amp;</span>[], <span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="comment">// 4. Let args be ? CreateListFromArrayLike(argumentsList).
+        </span><span class="kw">let </span>args = args
+            .get_or_undefined(<span class="number">1</span>)
+            .create_list_from_array_like(<span class="kw-2">&amp;</span>[], context)<span class="question-mark">?</span>;
 
-        <span class="comment">// 5. Return ? Construct(target, args, newTarget).</span>
-        <span class="ident">target</span>
-            .<span class="ident">construct</span>(<span class="kw-2">&amp;</span><span class="ident">args</span>, <span class="prelude-val">Some</span>(<span class="ident">new_target</span>), <span class="ident">context</span>)
-            .<span class="ident">map</span>(<span class="ident">JsValue::from</span>)
+        <span class="comment">// 5. Return ? Construct(target, args, newTarget).
+        </span>target
+            .construct(<span class="kw-2">&amp;</span>args, <span class="prelude-val">Some</span>(new_target), context)
+            .map(JsValue::from)
     }
 
-    <span class="doccomment">/// Defines a property on an object.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-reflect.defineProperty</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect/defineProperty</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">define_property</span>(
-        <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
-        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">target</span> <span class="op">=</span> <span class="ident">args</span>
-            .<span class="ident">get</span>(<span class="number">0</span>)
-            .<span class="ident">and_then</span>(<span class="ident">JsValue::as_object</span>)
-            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="string">&quot;target must be an object&quot;</span>))<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">1</span>).<span class="ident">to_property_key</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">prop_desc</span>: <span class="ident">JsValue</span> <span class="op">=</span> <span class="ident">args</span>
-            .<span class="ident">get</span>(<span class="number">2</span>)
-            .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="ident">v</span>.<span class="ident">as_object</span>().<span class="ident">cloned</span>())
-            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-                <span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="string">&quot;property descriptor must be an object&quot;</span>)
-            })<span class="question-mark">?</span>
-            .<span class="ident">into</span>();
+    <span class="doccomment">/// Defines a property on an object.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-reflect.defineProperty
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect/defineProperty
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>define_property(
+        <span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue,
+        args: <span class="kw-2">&amp;</span>[JsValue],
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="kw">let </span>target = args
+            .get(<span class="number">0</span>)
+            .and_then(JsValue::as_object)
+            .ok_or_else(|| JsNativeError::typ().with_message(<span class="string">&quot;target must be an object&quot;</span>))<span class="question-mark">?</span>;
+        <span class="kw">let </span>key = args.get_or_undefined(<span class="number">1</span>).to_property_key(context)<span class="question-mark">?</span>;
+        <span class="kw">let </span>prop_desc: JsValue = args
+            .get(<span class="number">2</span>)
+            .and_then(|v| v.as_object().cloned())
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message(<span class="string">&quot;property descriptor must be an object&quot;</span>)
+            })<span class="question-mark">?
+            </span>.into();
 
-        <span class="ident">target</span>
-            .<span class="ident">__define_own_property__</span>(<span class="ident">key</span>, <span class="ident">prop_desc</span>.<span class="ident">to_property_descriptor</span>(<span class="ident">context</span>)<span class="question-mark">?</span>, <span class="ident">context</span>)
-            .<span class="ident">map</span>(<span class="ident">Into::into</span>)
+        target
+            .__define_own_property__(key, prop_desc.to_property_descriptor(context)<span class="question-mark">?</span>, context)
+            .map(Into::into)
     }
 
-    <span class="doccomment">/// Defines a property on an object.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-reflect.deleteproperty</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect/deleteProperty</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">delete_property</span>(
-        <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
-        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">target</span> <span class="op">=</span> <span class="ident">args</span>
-            .<span class="ident">get</span>(<span class="number">0</span>)
-            .<span class="ident">and_then</span>(<span class="ident">JsValue::as_object</span>)
-            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="string">&quot;target must be an object&quot;</span>))<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">1</span>).<span class="ident">to_property_key</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+    <span class="doccomment">/// Defines a property on an object.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-reflect.deleteproperty
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect/deleteProperty
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>delete_property(
+        <span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue,
+        args: <span class="kw-2">&amp;</span>[JsValue],
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="kw">let </span>target = args
+            .get(<span class="number">0</span>)
+            .and_then(JsValue::as_object)
+            .ok_or_else(|| JsNativeError::typ().with_message(<span class="string">&quot;target must be an object&quot;</span>))<span class="question-mark">?</span>;
+        <span class="kw">let </span>key = args.get_or_undefined(<span class="number">1</span>).to_property_key(context)<span class="question-mark">?</span>;
 
-        <span class="prelude-val">Ok</span>(<span class="ident">target</span>.<span class="ident">__delete__</span>(<span class="kw-2">&amp;</span><span class="ident">key</span>, <span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">into</span>())
+        <span class="prelude-val">Ok</span>(target.__delete__(<span class="kw-2">&amp;</span>key, context)<span class="question-mark">?</span>.into())
     }
 
-    <span class="doccomment">/// Gets a property of an object.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-reflect.get</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect/get</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="comment">// 1. If Type(target) is not Object, throw a TypeError exception.</span>
-        <span class="kw">let</span> <span class="ident">target</span> <span class="op">=</span> <span class="ident">args</span>
-            .<span class="ident">get</span>(<span class="number">0</span>)
-            .<span class="ident">and_then</span>(<span class="ident">JsValue::as_object</span>)
-            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="string">&quot;target must be an object&quot;</span>))<span class="question-mark">?</span>;
-        <span class="comment">// 2. Let key be ? ToPropertyKey(propertyKey).</span>
-        <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">1</span>).<span class="ident">to_property_key</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
-        <span class="comment">// 3. If receiver is not present, then</span>
-        <span class="kw">let</span> <span class="ident">receiver</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">receiver</span>) <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">2</span>).<span class="ident">cloned</span>() {
-            <span class="ident">receiver</span>
-        } <span class="kw">else</span> {
-            <span class="comment">// 3.a. Set receiver to target.</span>
-            <span class="ident">target</span>.<span class="ident">clone</span>().<span class="ident">into</span>()
+    <span class="doccomment">/// Gets a property of an object.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-reflect.get
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect/get
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="comment">// 1. If Type(target) is not Object, throw a TypeError exception.
+        </span><span class="kw">let </span>target = args
+            .get(<span class="number">0</span>)
+            .and_then(JsValue::as_object)
+            .ok_or_else(|| JsNativeError::typ().with_message(<span class="string">&quot;target must be an object&quot;</span>))<span class="question-mark">?</span>;
+        <span class="comment">// 2. Let key be ? ToPropertyKey(propertyKey).
+        </span><span class="kw">let </span>key = args.get_or_undefined(<span class="number">1</span>).to_property_key(context)<span class="question-mark">?</span>;
+        <span class="comment">// 3. If receiver is not present, then
+        </span><span class="kw">let </span>receiver = <span class="kw">if let </span><span class="prelude-val">Some</span>(receiver) = args.get(<span class="number">2</span>).cloned() {
+            receiver
+        } <span class="kw">else </span>{
+            <span class="comment">// 3.a. Set receiver to target.
+            </span>target.clone().into()
         };
-        <span class="comment">// 4. Return ? target.[[Get]](key, receiver).</span>
-        <span class="ident">target</span>.<span class="ident">__get__</span>(<span class="kw-2">&amp;</span><span class="ident">key</span>, <span class="ident">receiver</span>, <span class="ident">context</span>)
+        <span class="comment">// 4. Return ? target.[[Get]](key, receiver).
+        </span>target.__get__(<span class="kw-2">&amp;</span>key, receiver, context)
     }
 
-    <span class="doccomment">/// Gets a property of an object.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-reflect.getownpropertydescriptor</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect/getOwnPropertyDescriptor</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_own_property_descriptor</span>(
-        <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
-        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>).<span class="ident">is_object</span>() {
-            <span class="comment">// This function is the same as Object.prototype.getOwnPropertyDescriptor, that why</span>
-            <span class="comment">// it is invoked here.</span>
-            <span class="ident">builtins::object::Object::get_own_property_descriptor</span>(
-                <span class="kw-2">&amp;</span><span class="ident">JsValue::undefined</span>(),
-                <span class="ident">args</span>,
-                <span class="ident">context</span>,
+    <span class="doccomment">/// Gets a property of an object.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-reflect.getownpropertydescriptor
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect/getOwnPropertyDescriptor
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_own_property_descriptor(
+        <span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue,
+        args: <span class="kw-2">&amp;</span>[JsValue],
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="kw">if </span>args.get_or_undefined(<span class="number">0</span>).is_object() {
+            <span class="comment">// This function is the same as Object.prototype.getOwnPropertyDescriptor, that why
+            // it is invoked here.
+            </span>builtins::object::Object::get_own_property_descriptor(
+                <span class="kw-2">&amp;</span>JsValue::undefined(),
+                args,
+                context,
             )
-        } <span class="kw">else</span> {
-            <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
-                .<span class="ident">with_message</span>(<span class="string">&quot;target must be an object&quot;</span>)
-                .<span class="ident">into</span>())
+        } <span class="kw">else </span>{
+            <span class="prelude-val">Err</span>(JsNativeError::typ()
+                .with_message(<span class="string">&quot;target must be an object&quot;</span>)
+                .into())
         }
     }
 
-    <span class="doccomment">/// Gets the prototype of an object.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-reflect.getprototypeof</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect/getPrototypeOf</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_prototype_of</span>(
-        <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
-        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">target</span> <span class="op">=</span> <span class="ident">args</span>
-            .<span class="ident">get</span>(<span class="number">0</span>)
-            .<span class="ident">and_then</span>(<span class="ident">JsValue::as_object</span>)
-            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="string">&quot;target must be an object&quot;</span>))<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<span class="ident">target</span>
-            .<span class="ident">__get_prototype_of__</span>(<span class="ident">context</span>)<span class="question-mark">?</span>
-            .<span class="ident">map_or</span>(<span class="ident">JsValue::Null</span>, <span class="ident">JsValue::new</span>))
+    <span class="doccomment">/// Gets the prototype of an object.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-reflect.getprototypeof
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect/getPrototypeOf
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_prototype_of(
+        <span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue,
+        args: <span class="kw-2">&amp;</span>[JsValue],
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="kw">let </span>target = args
+            .get(<span class="number">0</span>)
+            .and_then(JsValue::as_object)
+            .ok_or_else(|| JsNativeError::typ().with_message(<span class="string">&quot;target must be an object&quot;</span>))<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(target
+            .__get_prototype_of__(context)<span class="question-mark">?
+            </span>.map_or(JsValue::Null, JsValue::new))
     }
 
-    <span class="doccomment">/// Returns `true` if the object has the property, `false` otherwise.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-reflect.has</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect/has</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">has</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">target</span> <span class="op">=</span> <span class="ident">args</span>
-            .<span class="ident">get</span>(<span class="number">0</span>)
-            .<span class="ident">and_then</span>(<span class="ident">JsValue::as_object</span>)
-            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="string">&quot;target must be an object&quot;</span>))<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="ident">args</span>
-            .<span class="ident">get</span>(<span class="number">1</span>)
-            .<span class="ident">unwrap_or</span>(<span class="kw-2">&amp;</span><span class="ident">JsValue::undefined</span>())
-            .<span class="ident">to_property_key</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<span class="ident">target</span>.<span class="ident">__has_property__</span>(<span class="kw-2">&amp;</span><span class="ident">key</span>, <span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">into</span>())
+    <span class="doccomment">/// Returns `true` if the object has the property, `false` otherwise.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-reflect.has
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect/has
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>has(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="kw">let </span>target = args
+            .get(<span class="number">0</span>)
+            .and_then(JsValue::as_object)
+            .ok_or_else(|| JsNativeError::typ().with_message(<span class="string">&quot;target must be an object&quot;</span>))<span class="question-mark">?</span>;
+        <span class="kw">let </span>key = args
+            .get(<span class="number">1</span>)
+            .unwrap_or(<span class="kw-2">&amp;</span>JsValue::undefined())
+            .to_property_key(context)<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(target.__has_property__(<span class="kw-2">&amp;</span>key, context)<span class="question-mark">?</span>.into())
     }
 
-    <span class="doccomment">/// Returns `true` if the object is extensible, `false` otherwise.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-reflect.isextensible</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect/isExtensible</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">is_extensible</span>(
-        <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
-        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">target</span> <span class="op">=</span> <span class="ident">args</span>
-            .<span class="ident">get</span>(<span class="number">0</span>)
-            .<span class="ident">and_then</span>(<span class="ident">JsValue::as_object</span>)
-            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="string">&quot;target must be an object&quot;</span>))<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<span class="ident">target</span>.<span class="ident">__is_extensible__</span>(<span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">into</span>())
+    <span class="doccomment">/// Returns `true` if the object is extensible, `false` otherwise.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-reflect.isextensible
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect/isExtensible
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_extensible(
+        <span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue,
+        args: <span class="kw-2">&amp;</span>[JsValue],
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="kw">let </span>target = args
+            .get(<span class="number">0</span>)
+            .and_then(JsValue::as_object)
+            .ok_or_else(|| JsNativeError::typ().with_message(<span class="string">&quot;target must be an object&quot;</span>))<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(target.__is_extensible__(context)<span class="question-mark">?</span>.into())
     }
 
-    <span class="doccomment">/// Returns an array of object own property keys.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-reflect.ownkeys</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect/ownKeys</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">own_keys</span>(
-        <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
-        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">target</span> <span class="op">=</span> <span class="ident">args</span>
-            .<span class="ident">get</span>(<span class="number">0</span>)
-            .<span class="ident">and_then</span>(<span class="ident">JsValue::as_object</span>)
-            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="string">&quot;target must be an object&quot;</span>))<span class="question-mark">?</span>;
+    <span class="doccomment">/// Returns an array of object own property keys.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-reflect.ownkeys
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect/ownKeys
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>own_keys(
+        <span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue,
+        args: <span class="kw-2">&amp;</span>[JsValue],
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="kw">let </span>target = args
+            .get(<span class="number">0</span>)
+            .and_then(JsValue::as_object)
+            .ok_or_else(|| JsNativeError::typ().with_message(<span class="string">&quot;target must be an object&quot;</span>))<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="ident">keys</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">target</span>
-            .<span class="ident">__own_property_keys__</span>(<span class="ident">context</span>)<span class="question-mark">?</span>
-            .<span class="ident">into_iter</span>()
-            .<span class="ident">map</span>(<span class="ident">Into::into</span>)
-            .<span class="ident">collect</span>();
+        <span class="kw">let </span>keys: Vec&lt;JsValue&gt; = target
+            .__own_property_keys__(context)<span class="question-mark">?
+            </span>.into_iter()
+            .map(Into::into)
+            .collect();
 
-        <span class="prelude-val">Ok</span>(<span class="ident">Array::create_array_from_list</span>(<span class="ident">keys</span>, <span class="ident">context</span>).<span class="ident">into</span>())
+        <span class="prelude-val">Ok</span>(Array::create_array_from_list(keys, context).into())
     }
 
-    <span class="doccomment">/// Prevents new properties from ever being added to an object.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-reflect.preventextensions</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect/preventExtensions</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">prevent_extensions</span>(
-        <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
-        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">target</span> <span class="op">=</span> <span class="ident">args</span>
-            .<span class="ident">get</span>(<span class="number">0</span>)
-            .<span class="ident">and_then</span>(<span class="ident">JsValue::as_object</span>)
-            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="string">&quot;target must be an object&quot;</span>))<span class="question-mark">?</span>;
+    <span class="doccomment">/// Prevents new properties from ever being added to an object.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-reflect.preventextensions
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect/preventExtensions
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>prevent_extensions(
+        <span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue,
+        args: <span class="kw-2">&amp;</span>[JsValue],
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="kw">let </span>target = args
+            .get(<span class="number">0</span>)
+            .and_then(JsValue::as_object)
+            .ok_or_else(|| JsNativeError::typ().with_message(<span class="string">&quot;target must be an object&quot;</span>))<span class="question-mark">?</span>;
 
-        <span class="prelude-val">Ok</span>(<span class="ident">target</span>.<span class="ident">__prevent_extensions__</span>(<span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">into</span>())
+        <span class="prelude-val">Ok</span>(target.__prevent_extensions__(context)<span class="question-mark">?</span>.into())
     }
 
-    <span class="doccomment">/// Sets a property of an object.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-reflect.set</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect/set</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">set</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">target</span> <span class="op">=</span> <span class="ident">args</span>
-            .<span class="ident">get</span>(<span class="number">0</span>)
-            .<span class="ident">and_then</span>(<span class="ident">JsValue::as_object</span>)
-            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="string">&quot;target must be an object&quot;</span>))<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">1</span>).<span class="ident">to_property_key</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">2</span>);
-        <span class="kw">let</span> <span class="ident">receiver</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">receiver</span>) <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">3</span>).<span class="ident">cloned</span>() {
-            <span class="ident">receiver</span>
-        } <span class="kw">else</span> {
-            <span class="ident">target</span>.<span class="ident">clone</span>().<span class="ident">into</span>()
+    <span class="doccomment">/// Sets a property of an object.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-reflect.set
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect/set
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="kw">let </span>target = args
+            .get(<span class="number">0</span>)
+            .and_then(JsValue::as_object)
+            .ok_or_else(|| JsNativeError::typ().with_message(<span class="string">&quot;target must be an object&quot;</span>))<span class="question-mark">?</span>;
+        <span class="kw">let </span>key = args.get_or_undefined(<span class="number">1</span>).to_property_key(context)<span class="question-mark">?</span>;
+        <span class="kw">let </span>value = args.get_or_undefined(<span class="number">2</span>);
+        <span class="kw">let </span>receiver = <span class="kw">if let </span><span class="prelude-val">Some</span>(receiver) = args.get(<span class="number">3</span>).cloned() {
+            receiver
+        } <span class="kw">else </span>{
+            target.clone().into()
         };
-        <span class="prelude-val">Ok</span>(<span class="ident">target</span>
-            .<span class="ident">__set__</span>(<span class="ident">key</span>, <span class="ident">value</span>.<span class="ident">clone</span>(), <span class="ident">receiver</span>, <span class="ident">context</span>)<span class="question-mark">?</span>
-            .<span class="ident">into</span>())
+        <span class="prelude-val">Ok</span>(target
+            .__set__(key, value.clone(), receiver, context)<span class="question-mark">?
+            </span>.into())
     }
 
-    <span class="doccomment">/// Sets the prototype of an object.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-reflect.setprototypeof</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect/setPrototypeOf</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">set_prototype_of</span>(
-        <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
-        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">target</span> <span class="op">=</span> <span class="ident">args</span>
-            .<span class="ident">get</span>(<span class="number">0</span>)
-            .<span class="ident">and_then</span>(<span class="ident">JsValue::as_object</span>)
-            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="string">&quot;target must be an object&quot;</span>))<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">proto</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">1</span>) {
-            <span class="ident">JsValue::Object</span>(<span class="ident">obj</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">obj</span>.<span class="ident">clone</span>()),
-            <span class="ident">JsValue::Null</span> =&gt; <span class="prelude-val">None</span>,
-            <span class="kw">_</span> =&gt; {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
-                    .<span class="ident">with_message</span>(<span class="string">&quot;proto must be an object or null&quot;</span>)
-                    .<span class="ident">into</span>())
+    <span class="doccomment">/// Sets the prototype of an object.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-reflect.setprototypeof
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect/setPrototypeOf
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_prototype_of(
+        <span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue,
+        args: <span class="kw-2">&amp;</span>[JsValue],
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="kw">let </span>target = args
+            .get(<span class="number">0</span>)
+            .and_then(JsValue::as_object)
+            .ok_or_else(|| JsNativeError::typ().with_message(<span class="string">&quot;target must be an object&quot;</span>))<span class="question-mark">?</span>;
+        <span class="kw">let </span>proto = <span class="kw">match </span>args.get_or_undefined(<span class="number">1</span>) {
+            JsValue::Object(obj) =&gt; <span class="prelude-val">Some</span>(obj.clone()),
+            JsValue::Null =&gt; <span class="prelude-val">None</span>,
+            <span class="kw">_ </span>=&gt; {
+                <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
+                    .with_message(<span class="string">&quot;proto must be an object or null&quot;</span>)
+                    .into())
             }
         };
-        <span class="prelude-val">Ok</span>(<span class="ident">target</span>.<span class="ident">__set_prototype_of__</span>(<span class="ident">proto</span>, <span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">into</span>())
+        <span class="prelude-val">Ok</span>(target.__set_prototype_of__(proto, context)<span class="question-mark">?</span>.into())
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0 (a55dd71d5 2022-09-19)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0 (897e37553 2022-11-02)" ></div></body></html>

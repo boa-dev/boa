@@ -1,3 +1,3 @@
-(function() {var implementors = {};
-implementors["boa_engine"] = [{"text":"impl <a class=\"trait\" href=\"https://doc.rust-lang.org/1.64.0/core/borrow/trait.Borrow.html\" title=\"trait core::borrow::Borrow\">Borrow</a>&lt;[<a class=\"primitive\" href=\"https://doc.rust-lang.org/1.64.0/std/primitive.u16.html\">u16</a>]&gt; for <a class=\"struct\" href=\"boa_engine/struct.JsString.html\" title=\"struct boa_engine::JsString\">JsString</a>","synthetic":false,"types":["boa_engine::string::JsString"]}];
-if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()
+(function() {var implementors = {
+"boa_engine":[["impl <a class=\"trait\" href=\"https://doc.rust-lang.org/1.65.0/core/borrow/trait.Borrow.html\" title=\"trait core::borrow::Borrow\">Borrow</a>&lt;[<a class=\"primitive\" href=\"https://doc.rust-lang.org/1.65.0/std/primitive.u16.html\">u16</a>]&gt; for <a class=\"struct\" href=\"boa_engine/struct.JsString.html\" title=\"struct boa_engine::JsString\">JsString</a>"]]
+};if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

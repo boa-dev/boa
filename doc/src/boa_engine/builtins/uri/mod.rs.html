@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_engine/src/builtins/uri/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_engine/src/builtins/uri/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container">
                     <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../boa_engine/index.html">
                         <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -498,609 +498,503 @@
 <span id="496">496</span>
 <span id="497">497</span>
 <span id="498">498</span>
-<span id="499">499</span>
-<span id="500">500</span>
-<span id="501">501</span>
-<span id="502">502</span>
-<span id="503">503</span>
-<span id="504">504</span>
-<span id="505">505</span>
-<span id="506">506</span>
-<span id="507">507</span>
-<span id="508">508</span>
-<span id="509">509</span>
-<span id="510">510</span>
-<span id="511">511</span>
-<span id="512">512</span>
-<span id="513">513</span>
-<span id="514">514</span>
-<span id="515">515</span>
-<span id="516">516</span>
-<span id="517">517</span>
-<span id="518">518</span>
-<span id="519">519</span>
-<span id="520">520</span>
-<span id="521">521</span>
-<span id="522">522</span>
-<span id="523">523</span>
-<span id="524">524</span>
-<span id="525">525</span>
-<span id="526">526</span>
-<span id="527">527</span>
-<span id="528">528</span>
-<span id="529">529</span>
-<span id="530">530</span>
-<span id="531">531</span>
-<span id="532">532</span>
-<span id="533">533</span>
-<span id="534">534</span>
-<span id="535">535</span>
-<span id="536">536</span>
-<span id="537">537</span>
-<span id="538">538</span>
-<span id="539">539</span>
-<span id="540">540</span>
-<span id="541">541</span>
-<span id="542">542</span>
-<span id="543">543</span>
-<span id="544">544</span>
-<span id="545">545</span>
-<span id="546">546</span>
-<span id="547">547</span>
-<span id="548">548</span>
-<span id="549">549</span>
-<span id="550">550</span>
-<span id="551">551</span>
-</pre><pre class="rust"><code><span class="doccomment">//! URI Handling Functions</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! Uniform Resource Identifiers, or URIs, are Strings that identify resources (e.g. web pages or</span>
-<span class="doccomment">//! files) and transport protocols by which to access them (e.g. HTTP or FTP) on the Internet. The</span>
-<span class="doccomment">//! ECMAScript language itself does not provide any support for using URIs except for functions</span>
-<span class="doccomment">//! that encode and decode URIs as described in 19.2.6.2, 19.2.6.3, 19.2.6.4 and 19.2.6.5</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! More information:</span>
-<span class="doccomment">//!  - [ECMAScript reference][spec]</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! [spec]: https://tc39.es/ecma262/#sec-uri-handling-functions</span>
+</pre><pre class="rust"><code><span class="doccomment">//! URI Handling Functions
+//!
+//! Uniform Resource Identifiers, or URIs, are Strings that identify resources (e.g. web pages or
+//! files) and transport protocols by which to access them (e.g. HTTP or FTP) on the Internet. The
+//! ECMAScript language itself does not provide any support for using URIs except for functions
+//! that encode and decode URIs as described in 19.2.6.2, 19.2.6.3, 19.2.6.4 and 19.2.6.5
+//!
+//! More information:
+//!  - [ECMAScript reference][spec]
+//!
+//! [spec]: https://tc39.es/ecma262/#sec-uri-handling-functions
 
-<span class="kw">mod</span> <span class="ident">consts</span>;
+</span><span class="kw">mod </span>consts;
 
-<span class="kw">use</span> <span class="ident"><span class="self">self</span>::consts</span>::{
-    <span class="ident">is_uri_reserved_or_number_sign</span>, <span class="ident">is_uri_reserved_or_uri_unescaped_or_number_sign</span>,
-    <span class="ident">is_uri_unescaped</span>,
+<span class="kw">use </span><span class="self">self</span>::consts::{
+    is_uri_reserved_or_number_sign, is_uri_reserved_or_uri_unescaped_or_number_sign,
+    is_uri_unescaped,
 };
 
-<span class="kw">use</span> <span class="ident"><span class="kw">super</span>::BuiltIn</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">builtins::JsArgs</span>, <span class="ident">js_string</span>, <span class="ident">object::FunctionBuilder</span>, <span class="ident">property::Attribute</span>, <span class="ident">string::CodePoint</span>,
-    <span class="ident">Context</span>, <span class="ident">JsNativeError</span>, <span class="ident">JsResult</span>, <span class="ident">JsString</span>, <span class="ident">JsValue</span>,
+<span class="kw">use </span><span class="kw">super</span>::BuiltIn;
+<span class="kw">use crate</span>::{
+    builtins::JsArgs, js_string, object::FunctionBuilder, property::Attribute, string::CodePoint,
+    Context, JsNativeError, JsResult, JsString, JsValue,
 };
 
-<span class="doccomment">/// URI Handling Functions</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">Uri</span>;
+<span class="doccomment">/// URI Handling Functions
+</span><span class="attribute">#[derive(Debug, Clone, Copy)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Uri;
 
-<span class="kw">impl</span> <span class="ident">BuiltIn</span> <span class="kw">for</span> <span class="ident">Uri</span> {
-    <span class="kw">const</span> <span class="ident">NAME</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;Uri&quot;</span>;
+<span class="kw">impl </span>BuiltIn <span class="kw">for </span>Uri {
+    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;Uri&quot;</span>;
 
-    <span class="kw">fn</span> <span class="ident">init</span>(<span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">decode_uri</span> <span class="op">=</span> <span class="ident">FunctionBuilder::native</span>(<span class="ident">context</span>, <span class="ident"><span class="self">Self</span>::decode_uri</span>)
-            .<span class="ident">name</span>(<span class="string">&quot;decodeURI&quot;</span>)
-            .<span class="ident">length</span>(<span class="number">1</span>)
-            .<span class="ident">constructor</span>(<span class="bool-val">false</span>)
-            .<span class="ident">build</span>();
+    <span class="kw">fn </span>init(context: <span class="kw-2">&amp;mut </span>Context) -&gt; <span class="prelude-ty">Option</span>&lt;JsValue&gt; {
+        <span class="kw">let </span>decode_uri = FunctionBuilder::native(context, <span class="self">Self</span>::decode_uri)
+            .name(<span class="string">&quot;decodeURI&quot;</span>)
+            .length(<span class="number">1</span>)
+            .constructor(<span class="bool-val">false</span>)
+            .build();
 
-        <span class="ident">context</span>.<span class="ident">register_global_property</span>(
+        context.register_global_property(
             <span class="string">&quot;decodeURI&quot;</span>,
-            <span class="ident">decode_uri</span>,
-            <span class="ident">Attribute::WRITABLE</span> <span class="op">|</span> <span class="ident">Attribute::NON_ENUMERABLE</span> <span class="op">|</span> <span class="ident">Attribute::CONFIGURABLE</span>,
+            decode_uri,
+            Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
         );
 
-        <span class="kw">let</span> <span class="ident">decode_uri_component</span> <span class="op">=</span> <span class="ident">FunctionBuilder::native</span>(<span class="ident">context</span>, <span class="ident"><span class="self">Self</span>::decode_uri_component</span>)
-            .<span class="ident">name</span>(<span class="string">&quot;decodeURIComponent&quot;</span>)
-            .<span class="ident">length</span>(<span class="number">1</span>)
-            .<span class="ident">constructor</span>(<span class="bool-val">false</span>)
-            .<span class="ident">build</span>();
+        <span class="kw">let </span>decode_uri_component = FunctionBuilder::native(context, <span class="self">Self</span>::decode_uri_component)
+            .name(<span class="string">&quot;decodeURIComponent&quot;</span>)
+            .length(<span class="number">1</span>)
+            .constructor(<span class="bool-val">false</span>)
+            .build();
 
-        <span class="ident">context</span>.<span class="ident">register_global_property</span>(
+        context.register_global_property(
             <span class="string">&quot;decodeURIComponent&quot;</span>,
-            <span class="ident">decode_uri_component</span>,
-            <span class="ident">Attribute::WRITABLE</span> <span class="op">|</span> <span class="ident">Attribute::NON_ENUMERABLE</span> <span class="op">|</span> <span class="ident">Attribute::CONFIGURABLE</span>,
+            decode_uri_component,
+            Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
         );
 
-        <span class="kw">let</span> <span class="ident">encode_uri</span> <span class="op">=</span> <span class="ident">FunctionBuilder::native</span>(<span class="ident">context</span>, <span class="ident"><span class="self">Self</span>::encode_uri</span>)
-            .<span class="ident">name</span>(<span class="string">&quot;encodeURI&quot;</span>)
-            .<span class="ident">length</span>(<span class="number">1</span>)
-            .<span class="ident">constructor</span>(<span class="bool-val">false</span>)
-            .<span class="ident">build</span>();
+        <span class="kw">let </span>encode_uri = FunctionBuilder::native(context, <span class="self">Self</span>::encode_uri)
+            .name(<span class="string">&quot;encodeURI&quot;</span>)
+            .length(<span class="number">1</span>)
+            .constructor(<span class="bool-val">false</span>)
+            .build();
 
-        <span class="ident">context</span>.<span class="ident">register_global_property</span>(
+        context.register_global_property(
             <span class="string">&quot;encodeURI&quot;</span>,
-            <span class="ident">encode_uri</span>,
-            <span class="ident">Attribute::WRITABLE</span> <span class="op">|</span> <span class="ident">Attribute::NON_ENUMERABLE</span> <span class="op">|</span> <span class="ident">Attribute::CONFIGURABLE</span>,
+            encode_uri,
+            Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
         );
 
-        <span class="kw">let</span> <span class="ident">encode_uri_component</span> <span class="op">=</span> <span class="ident">FunctionBuilder::native</span>(<span class="ident">context</span>, <span class="ident"><span class="self">Self</span>::encode_uri_component</span>)
-            .<span class="ident">name</span>(<span class="string">&quot;encodeURIComponent&quot;</span>)
-            .<span class="ident">length</span>(<span class="number">1</span>)
-            .<span class="ident">constructor</span>(<span class="bool-val">false</span>)
-            .<span class="ident">build</span>();
+        <span class="kw">let </span>encode_uri_component = FunctionBuilder::native(context, <span class="self">Self</span>::encode_uri_component)
+            .name(<span class="string">&quot;encodeURIComponent&quot;</span>)
+            .length(<span class="number">1</span>)
+            .constructor(<span class="bool-val">false</span>)
+            .build();
 
-        <span class="ident">context</span>.<span class="ident">register_global_property</span>(
+        context.register_global_property(
             <span class="string">&quot;encodeURIComponent&quot;</span>,
-            <span class="ident">encode_uri_component</span>,
-            <span class="ident">Attribute::WRITABLE</span> <span class="op">|</span> <span class="ident">Attribute::NON_ENUMERABLE</span> <span class="op">|</span> <span class="ident">Attribute::CONFIGURABLE</span>,
+            encode_uri_component,
+            Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
         );
 
-        <span class="prelude-val">None</span>
-    }
+        <span class="prelude-val">None
+    </span>}
 }
 
-<span class="kw">impl</span> <span class="ident">Uri</span> {
-    <span class="doccomment">/// Builtin JavaScript `decodeURI ( encodedURI )` function.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function computes a new version of a URI in which each escape sequence and UTF-8</span>
-    <span class="doccomment">/// encoding of the sort that might be introduced by the `encodeURI` function is replaced with</span>
-    <span class="doccomment">/// the UTF-16 encoding of the code points that it represents. Escape sequences that could not</span>
-    <span class="doccomment">/// have been introduced by `encodeURI` are not replaced.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-decodeuri-encodeduri</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/decodeURI</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">decode_uri</span>(
-        <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
-        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">encoded_uri</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>);
+<span class="kw">impl </span>Uri {
+    <span class="doccomment">/// Builtin JavaScript `decodeURI ( encodedURI )` function.
+    ///
+    /// This function computes a new version of a URI in which each escape sequence and UTF-8
+    /// encoding of the sort that might be introduced by the `encodeURI` function is replaced with
+    /// the UTF-16 encoding of the code points that it represents. Escape sequences that could not
+    /// have been introduced by `encodeURI` are not replaced.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-decodeuri-encodeduri
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/decodeURI
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>decode_uri(
+        <span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue,
+        args: <span class="kw-2">&amp;</span>[JsValue],
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="kw">let </span>encoded_uri = args.get_or_undefined(<span class="number">0</span>);
 
-        <span class="comment">// 1. Let uriString be ? ToString(encodedURI).</span>
-        <span class="kw">let</span> <span class="ident">uri_string</span> <span class="op">=</span> <span class="ident">encoded_uri</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="comment">// 1. Let uriString be ? ToString(encodedURI).
+        </span><span class="kw">let </span>uri_string = encoded_uri.to_string(context)<span class="question-mark">?</span>;
 
-        <span class="comment">// 2. Let reservedURISet be a String containing one instance of each code unit valid in uriReserved plus &quot;#&quot;.</span>
-        <span class="kw">let</span> <span class="ident">reserved_uri_set</span> <span class="op">=</span> <span class="ident">is_uri_reserved_or_number_sign</span>;
+        <span class="comment">// 2. Let reservedURISet be a String containing one instance of each code unit valid in uriReserved plus &quot;#&quot;.
+        </span><span class="kw">let </span>reserved_uri_set = is_uri_reserved_or_number_sign;
 
-        <span class="comment">// 3. Return ? Decode(uriString, reservedURISet).</span>
-        <span class="prelude-val">Ok</span>(<span class="ident">JsValue::from</span>(<span class="ident">decode</span>(<span class="kw-2">&amp;</span><span class="ident">uri_string</span>, <span class="ident">reserved_uri_set</span>)<span class="question-mark">?</span>))
+        <span class="comment">// 3. Return ? Decode(uriString, reservedURISet).
+        </span><span class="prelude-val">Ok</span>(JsValue::from(decode(<span class="kw-2">&amp;</span>uri_string, reserved_uri_set)<span class="question-mark">?</span>))
     }
 
-    <span class="doccomment">/// Builtin JavaScript `decodeURIComponent ( encodedURIComponent )` function.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function computes a new version of a URI in which each escape sequence and UTF-8</span>
-    <span class="doccomment">/// encoding of the sort that might be introduced by the `encodeURIComponent` function is</span>
-    <span class="doccomment">/// replaced with the UTF-16 encoding of the code points that it represents.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-decodeuricomponent-encodeduricomponent</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/decodeURIComponent</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">decode_uri_component</span>(
-        <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
-        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">encoded_uri_component</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>);
+    <span class="doccomment">/// Builtin JavaScript `decodeURIComponent ( encodedURIComponent )` function.
+    ///
+    /// This function computes a new version of a URI in which each escape sequence and UTF-8
+    /// encoding of the sort that might be introduced by the `encodeURIComponent` function is
+    /// replaced with the UTF-16 encoding of the code points that it represents.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-decodeuricomponent-encodeduricomponent
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/decodeURIComponent
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>decode_uri_component(
+        <span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue,
+        args: <span class="kw-2">&amp;</span>[JsValue],
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="kw">let </span>encoded_uri_component = args.get_or_undefined(<span class="number">0</span>);
 
-        <span class="comment">// 1. Let componentString be ? ToString(encodedURIComponent).</span>
-        <span class="kw">let</span> <span class="ident">component_string</span> <span class="op">=</span> <span class="ident">encoded_uri_component</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="comment">// 1. Let componentString be ? ToString(encodedURIComponent).
+        </span><span class="kw">let </span>component_string = encoded_uri_component.to_string(context)<span class="question-mark">?</span>;
 
-        <span class="comment">// 2. Let reservedURIComponentSet be the empty String.</span>
-        <span class="kw">let</span> <span class="ident">reserved_uri_component_set</span> <span class="op">=</span> <span class="op">|</span><span class="kw">_</span>: <span class="ident">u16</span><span class="op">|</span> <span class="bool-val">false</span>;
+        <span class="comment">// 2. Let reservedURIComponentSet be the empty String.
+        </span><span class="kw">let </span>reserved_uri_component_set = |<span class="kw">_</span>: u16| <span class="bool-val">false</span>;
 
-        <span class="comment">// 3. Return ? Decode(componentString, reservedURIComponentSet).</span>
-        <span class="prelude-val">Ok</span>(<span class="ident">JsValue::from</span>(<span class="ident">decode</span>(
-            <span class="kw-2">&amp;</span><span class="ident">component_string</span>,
-            <span class="ident">reserved_uri_component_set</span>,
+        <span class="comment">// 3. Return ? Decode(componentString, reservedURIComponentSet).
+        </span><span class="prelude-val">Ok</span>(JsValue::from(decode(
+            <span class="kw-2">&amp;</span>component_string,
+            reserved_uri_component_set,
         )<span class="question-mark">?</span>))
     }
 
-    <span class="doccomment">/// Builtin JavaScript `encodeURI ( uri )` function.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function computes a new version of a UTF-16 encoded (6.1.4) URI in which each instance</span>
-    <span class="doccomment">/// of certain code points is replaced by one, two, three, or four escape sequences</span>
-    <span class="doccomment">/// representing the UTF-8 encoding of the code points.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-encodeuri-uri</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/encodeURI</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">encode_uri</span>(
-        <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
-        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">uri</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>);
+    <span class="doccomment">/// Builtin JavaScript `encodeURI ( uri )` function.
+    ///
+    /// This function computes a new version of a UTF-16 encoded (6.1.4) URI in which each instance
+    /// of certain code points is replaced by one, two, three, or four escape sequences
+    /// representing the UTF-8 encoding of the code points.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-encodeuri-uri
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/encodeURI
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>encode_uri(
+        <span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue,
+        args: <span class="kw-2">&amp;</span>[JsValue],
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="kw">let </span>uri = args.get_or_undefined(<span class="number">0</span>);
 
-        <span class="comment">// 1. Let uriString be ? ToString(uri).</span>
-        <span class="kw">let</span> <span class="ident">uri_string</span> <span class="op">=</span> <span class="ident">uri</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="comment">// 1. Let uriString be ? ToString(uri).
+        </span><span class="kw">let </span>uri_string = uri.to_string(context)<span class="question-mark">?</span>;
 
-        <span class="comment">// 2. Let unescapedURISet be a String containing one instance of each code unit valid in uriReserved and uriUnescaped plus &quot;#&quot;.</span>
-        <span class="kw">let</span> <span class="ident">unescaped_uri_set</span> <span class="op">=</span> <span class="ident">is_uri_reserved_or_uri_unescaped_or_number_sign</span>;
+        <span class="comment">// 2. Let unescapedURISet be a String containing one instance of each code unit valid in uriReserved and uriUnescaped plus &quot;#&quot;.
+        </span><span class="kw">let </span>unescaped_uri_set = is_uri_reserved_or_uri_unescaped_or_number_sign;
 
-        <span class="comment">// 3. Return ? Encode(uriString, unescapedURISet).</span>
-        <span class="prelude-val">Ok</span>(<span class="ident">JsValue::from</span>(<span class="ident">encode</span>(<span class="kw-2">&amp;</span><span class="ident">uri_string</span>, <span class="ident">unescaped_uri_set</span>)<span class="question-mark">?</span>))
+        <span class="comment">// 3. Return ? Encode(uriString, unescapedURISet).
+        </span><span class="prelude-val">Ok</span>(JsValue::from(encode(<span class="kw-2">&amp;</span>uri_string, unescaped_uri_set)<span class="question-mark">?</span>))
     }
 
-    <span class="doccomment">/// Builtin JavaScript `encodeURIComponent ( uriComponent )` function.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function computes a new version of a UTF-16 encoded (6.1.4) URI in which each instance</span>
-    <span class="doccomment">/// of certain code points is replaced by one, two, three, or four escape sequences</span>
-    <span class="doccomment">/// representing the UTF-8 encoding of the code point.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-encodeuricomponent-uricomponent</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/encodeURIComponent</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">encode_uri_component</span>(
-        <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
-        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">uri_component</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>);
+    <span class="doccomment">/// Builtin JavaScript `encodeURIComponent ( uriComponent )` function.
+    ///
+    /// This function computes a new version of a UTF-16 encoded (6.1.4) URI in which each instance
+    /// of certain code points is replaced by one, two, three, or four escape sequences
+    /// representing the UTF-8 encoding of the code point.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-encodeuricomponent-uricomponent
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/encodeURIComponent
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>encode_uri_component(
+        <span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue,
+        args: <span class="kw-2">&amp;</span>[JsValue],
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="kw">let </span>uri_component = args.get_or_undefined(<span class="number">0</span>);
 
-        <span class="comment">// 1. Let componentString be ? ToString(uriComponent).</span>
-        <span class="kw">let</span> <span class="ident">component_string</span> <span class="op">=</span> <span class="ident">uri_component</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="comment">// 1. Let componentString be ? ToString(uriComponent).
+        </span><span class="kw">let </span>component_string = uri_component.to_string(context)<span class="question-mark">?</span>;
 
-        <span class="comment">// 2. Let unescapedURIComponentSet be a String containing one instance of each code unit valid in uriUnescaped.</span>
-        <span class="kw">let</span> <span class="ident">unescaped_uri_component_set</span> <span class="op">=</span> <span class="ident">is_uri_unescaped</span>;
+        <span class="comment">// 2. Let unescapedURIComponentSet be a String containing one instance of each code unit valid in uriUnescaped.
+        </span><span class="kw">let </span>unescaped_uri_component_set = is_uri_unescaped;
 
-        <span class="comment">// 3. Return ? Encode(componentString, unescapedURIComponentSet).</span>
-        <span class="prelude-val">Ok</span>(<span class="ident">JsValue::from</span>(<span class="ident">encode</span>(
-            <span class="kw-2">&amp;</span><span class="ident">component_string</span>,
-            <span class="ident">unescaped_uri_component_set</span>,
+        <span class="comment">// 3. Return ? Encode(componentString, unescapedURIComponentSet).
+        </span><span class="prelude-val">Ok</span>(JsValue::from(encode(
+            <span class="kw-2">&amp;</span>component_string,
+            unescaped_uri_component_set,
         )<span class="question-mark">?</span>))
     }
 }
 
-<span class="doccomment">/// The `Encode ( string, unescapedSet )` abstract operation</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The abstract operation Encode takes arguments `string` (a String) and `unescapedSet` (a String)</span>
-<span class="doccomment">/// and returns either a normal completion containing a String or a throw completion. It performs</span>
-<span class="doccomment">/// URI encoding and escaping.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [ECMAScript reference][spec]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-encode</span>
-<span class="kw">fn</span> <span class="ident">encode</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="ident">string</span>: <span class="kw-2">&amp;</span><span class="ident">JsString</span>, <span class="ident">unescaped_set</span>: <span class="ident">F</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsString</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="ident">u16</span>) -&gt; <span class="ident">bool</span>,
+<span class="doccomment">/// The `Encode ( string, unescapedSet )` abstract operation
+///
+/// The abstract operation Encode takes arguments `string` (a String) and `unescapedSet` (a String)
+/// and returns either a normal completion containing a String or a throw completion. It performs
+/// URI encoding and escaping.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-encode
+</span><span class="kw">fn </span>encode&lt;F&gt;(string: <span class="kw-2">&amp;</span>JsString, unescaped_set: F) -&gt; JsResult&lt;JsString&gt;
+<span class="kw">where
+    </span>F: Fn(u16) -&gt; bool,
 {
-    <span class="comment">// 1. Let strLen be the length of string.</span>
-    <span class="kw">let</span> <span class="ident">str_len</span> <span class="op">=</span> <span class="ident">string</span>.<span class="ident">len</span>();
+    <span class="comment">// 1. Let strLen be the length of string.
+    </span><span class="kw">let </span>str_len = string.len();
 
-    <span class="comment">// 2. Let R be the empty String.</span>
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">r</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
+    <span class="comment">// 2. Let R be the empty String.
+    </span><span class="kw">let </span><span class="kw-2">mut </span>r = Vec::new();
 
-    <span class="comment">// 3. Let k be 0.</span>
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">k</span> <span class="op">=</span> <span class="number">0</span>;
-    <span class="comment">// 4. Repeat,</span>
-    <span class="kw">loop</span> {
-        <span class="comment">// a. If k = strLen, return R.</span>
-        <span class="kw">if</span> <span class="ident">k</span> <span class="op">==</span> <span class="ident">str_len</span> {
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="macro">js_string!</span>(<span class="ident">r</span>));
+    <span class="comment">// 3. Let k be 0.
+    </span><span class="kw">let </span><span class="kw-2">mut </span>k = <span class="number">0</span>;
+    <span class="comment">// 4. Repeat,
+    </span><span class="kw">loop </span>{
+        <span class="comment">// a. If k = strLen, return R.
+        </span><span class="kw">if </span>k == str_len {
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="macro">js_string!</span>(r));
         }
 
-        <span class="comment">// b. Let C be the code unit at index k within string.</span>
-        <span class="kw">let</span> <span class="ident">c</span> <span class="op">=</span> <span class="ident">string</span>[<span class="ident">k</span>];
+        <span class="comment">// b. Let C be the code unit at index k within string.
+        </span><span class="kw">let </span>c = string[k];
 
-        <span class="comment">// c. If C is in unescapedSet, then</span>
-        <span class="kw">if</span> <span class="ident">unescaped_set</span>(<span class="ident">c</span>) {
-            <span class="comment">// i. Set k to k + 1.</span>
-            <span class="ident">k</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+        <span class="comment">// c. If C is in unescapedSet, then
+        </span><span class="kw">if </span>unescaped_set(c) {
+            <span class="comment">// i. Set k to k + 1.
+            </span>k += <span class="number">1</span>;
 
-            <span class="comment">// ii. Set R to the string-concatenation of R and C.</span>
-            <span class="ident">r</span>.<span class="ident">push</span>(<span class="ident">c</span>);
-        } <span class="kw">else</span> {
-            <span class="comment">// d. Else,</span>
-            <span class="comment">// i. Let cp be CodePointAt(string, k).</span>
-            <span class="kw">let</span> <span class="ident">cp</span> <span class="op">=</span> <span class="ident">string</span>.<span class="ident">code_point_at</span>(<span class="ident">k</span>);
+            <span class="comment">// ii. Set R to the string-concatenation of R and C.
+            </span>r.push(c);
+        } <span class="kw">else </span>{
+            <span class="comment">// d. Else,
+            // i. Let cp be CodePointAt(string, k).
+            </span><span class="kw">let </span>cp = string.code_point_at(k);
 
-            <span class="comment">// ii. If cp.[[IsUnpairedSurrogate]] is true, throw a URIError exception.</span>
-            <span class="kw">let</span> <span class="ident">ch</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="ident">CodePoint::Unicode</span>(<span class="ident">ch</span>) <span class="op">=</span> <span class="ident">cp</span> {
-                <span class="ident">ch</span>
-            } <span class="kw">else</span> {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::uri</span>()
-                    .<span class="ident">with_message</span>(<span class="string">&quot;trying to encode an invalid string&quot;</span>)
-                    .<span class="ident">into</span>());
+            <span class="comment">// ii. If cp.[[IsUnpairedSurrogate]] is true, throw a URIError exception.
+            </span><span class="kw">let </span>ch = <span class="kw">if let </span>CodePoint::Unicode(ch) = cp {
+                ch
+            } <span class="kw">else </span>{
+                <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::uri()
+                    .with_message(<span class="string">&quot;trying to encode an invalid string&quot;</span>)
+                    .into());
             };
 
-            <span class="comment">// iii. Set k to k + cp.[[CodeUnitCount]].</span>
-            <span class="ident">k</span> <span class="op">+</span><span class="op">=</span> <span class="ident">cp</span>.<span class="ident">code_unit_count</span>();
+            <span class="comment">// iii. Set k to k + cp.[[CodeUnitCount]].
+            </span>k += cp.code_unit_count();
 
-            <span class="comment">// iv. Let Octets be the List of octets resulting by applying the UTF-8 transformation</span>
-            <span class="comment">//     to cp.[[CodePoint]].</span>
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buff</span> <span class="op">=</span> [<span class="number">0_u8</span>; <span class="number">4</span>]; <span class="comment">// Will never be more than 4 bytes</span>
+            <span class="comment">// iv. Let Octets be the List of octets resulting by applying the UTF-8 transformation
+            //     to cp.[[CodePoint]].
+            </span><span class="kw">let </span><span class="kw-2">mut </span>buff = [<span class="number">0_u8</span>; <span class="number">4</span>]; <span class="comment">// Will never be more than 4 bytes
 
-            <span class="kw">let</span> <span class="ident">octets</span> <span class="op">=</span> <span class="ident">ch</span>.<span class="ident">encode_utf8</span>(<span class="kw-2">&amp;mut</span> <span class="ident">buff</span>);
+            </span><span class="kw">let </span>octets = ch.encode_utf8(<span class="kw-2">&amp;mut </span>buff);
 
-            <span class="comment">// v. For each element octet of Octets, do</span>
-            <span class="kw">for</span> <span class="ident">octet</span> <span class="kw">in</span> <span class="ident">octets</span>.<span class="ident">bytes</span>() {
-                <span class="comment">// 1. Set R to the string-concatenation of:</span>
-                <span class="comment">//    R</span>
-                <span class="comment">//    &quot;%&quot;</span>
-                <span class="comment">//    the String representation of octet, formatted as a two-digit uppercase</span>
-                <span class="comment">//    hexadecimal number, padded to the left with a zero if necessary</span>
-                <span class="ident">r</span>.<span class="ident">extend</span>(<span class="macro">format!</span>(<span class="string">&quot;%{octet:0&gt;2X}&quot;</span>).<span class="ident">encode_utf16</span>());
+            <span class="comment">// v. For each element octet of Octets, do
+            </span><span class="kw">for </span>octet <span class="kw">in </span>octets.bytes() {
+                <span class="comment">// 1. Set R to the string-concatenation of:
+                //    R
+                //    &quot;%&quot;
+                //    the String representation of octet, formatted as a two-digit uppercase
+                //    hexadecimal number, padded to the left with a zero if necessary
+                </span>r.extend(<span class="macro">format!</span>(<span class="string">&quot;%{octet:0&gt;2X}&quot;</span>).encode_utf16());
             }
         }
     }
 }
 
-<span class="doccomment">/// The `Decode ( string, reservedSet )` abstract operation.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The abstract operation Decode takes arguments `string` (a String) and `reservedSet` (a String)</span>
-<span class="doccomment">/// and returns either a normal completion containing a String or a throw completion. It performs</span>
-<span class="doccomment">/// URI unescaping and decoding.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [ECMAScript reference][spec]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-decode</span>
-<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::many_single_char_names</span>)]</span>
-<span class="kw">fn</span> <span class="ident">decode</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="ident">string</span>: <span class="kw-2">&amp;</span><span class="ident">JsString</span>, <span class="ident">reserved_set</span>: <span class="ident">F</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsString</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="ident">u16</span>) -&gt; <span class="ident">bool</span>,
+<span class="doccomment">/// The `Decode ( string, reservedSet )` abstract operation.
+///
+/// The abstract operation Decode takes arguments `string` (a String) and `reservedSet` (a String)
+/// and returns either a normal completion containing a String or a throw completion. It performs
+/// URI unescaping and decoding.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-decode
+</span><span class="attribute">#[allow(clippy::many_single_char_names)]
+</span><span class="kw">fn </span>decode&lt;F&gt;(string: <span class="kw-2">&amp;</span>JsString, reserved_set: F) -&gt; JsResult&lt;JsString&gt;
+<span class="kw">where
+    </span>F: Fn(u16) -&gt; bool,
 {
-    <span class="comment">// 1. Let strLen be the length of string.</span>
-    <span class="kw">let</span> <span class="ident">str_len</span> <span class="op">=</span> <span class="ident">string</span>.<span class="ident">len</span>();
-    <span class="comment">// 2. Let R be the empty String.</span>
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">r</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
+    <span class="comment">// 1. Let strLen be the length of string.
+    </span><span class="kw">let </span>str_len = string.len();
+    <span class="comment">// 2. Let R be the empty String.
+    </span><span class="kw">let </span><span class="kw-2">mut </span>r = Vec::new();
 
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">octets</span> <span class="op">=</span> <span class="ident">Vec::with_capacity</span>(<span class="number">4</span>);
+    <span class="kw">let </span><span class="kw-2">mut </span>octets = Vec::with_capacity(<span class="number">4</span>);
 
-    <span class="comment">// 3. Let k be 0.</span>
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">k</span> <span class="op">=</span> <span class="number">0</span>;
-    <span class="comment">// 4. Repeat,</span>
-    <span class="kw">loop</span> {
-        <span class="comment">// a. If k = strLen, return R.</span>
-        <span class="kw">if</span> <span class="ident">k</span> <span class="op">==</span> <span class="ident">str_len</span> {
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="macro">js_string!</span>(<span class="ident">r</span>));
+    <span class="comment">// 3. Let k be 0.
+    </span><span class="kw">let </span><span class="kw-2">mut </span>k = <span class="number">0</span>;
+    <span class="comment">// 4. Repeat,
+    </span><span class="kw">loop </span>{
+        <span class="comment">// a. If k = strLen, return R.
+        </span><span class="kw">if </span>k == str_len {
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="macro">js_string!</span>(r));
         }
 
-        <span class="comment">// b. Let C be the code unit at index k within string.</span>
-        <span class="kw">let</span> <span class="ident">c</span> <span class="op">=</span> <span class="ident">string</span>[<span class="ident">k</span>];
+        <span class="comment">// b. Let C be the code unit at index k within string.
+        </span><span class="kw">let </span>c = string[k];
 
-        <span class="comment">// c. If C is not the code unit 0x0025 (PERCENT SIGN), then</span>
-        <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::if_not_else</span>)]</span>
-        <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">c</span> <span class="op">!</span><span class="op">=</span> <span class="number">0x0025_u16</span> {
-            <span class="comment">// i. Let S be the String value containing only the code unit C.</span>
-            <span class="ident">Vec::from</span>([<span class="ident">c</span>])
-        } <span class="kw">else</span> {
-            <span class="comment">// d. Else,</span>
-            <span class="comment">// i. Let start be k.</span>
-            <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="ident">k</span>;
+        <span class="comment">// c. If C is not the code unit 0x0025 (PERCENT SIGN), then
+        </span><span class="attribute">#[allow(clippy::if_not_else)]
+        </span><span class="kw">let </span>s = <span class="kw">if </span>c != <span class="number">0x0025_u16 </span>{
+            <span class="comment">// i. Let S be the String value containing only the code unit C.
+            </span>Vec::from([c])
+        } <span class="kw">else </span>{
+            <span class="comment">// d. Else,
+            // i. Let start be k.
+            </span><span class="kw">let </span>start = k;
 
-            <span class="comment">// ii. If k + 2 ≥ strLen, throw a URIError exception.</span>
-            <span class="kw">if</span> <span class="ident">k</span> <span class="op">+</span> <span class="number">2</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">str_len</span> {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::uri</span>()
-                    .<span class="ident">with_message</span>(<span class="string">&quot;invalid escape character found&quot;</span>)
-                    .<span class="ident">into</span>());
+            <span class="comment">// ii. If k + 2 ≥ strLen, throw a URIError exception.
+            </span><span class="kw">if </span>k + <span class="number">2 </span>&gt;= str_len {
+                <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::uri()
+                    .with_message(<span class="string">&quot;invalid escape character found&quot;</span>)
+                    .into());
             }
 
-            <span class="comment">// iii. If the code units at index (k + 1) and (k + 2) within string do not represent</span>
-            <span class="comment">// hexadecimal digits, throw a URIError exception.</span>
-            <span class="comment">// iv. Let B be the 8-bit value represented by the two hexadecimal digits at index (k + 1) and (k + 2).</span>
-            <span class="kw">let</span> <span class="ident">b</span> <span class="op">=</span> <span class="ident">decode_hex_byte</span>(<span class="ident">string</span>[<span class="ident">k</span> <span class="op">+</span> <span class="number">1</span>], <span class="ident">string</span>[<span class="ident">k</span> <span class="op">+</span> <span class="number">2</span>]).<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-                <span class="ident">JsNativeError::uri</span>().<span class="ident">with_message</span>(<span class="string">&quot;invalid hexadecimal digit found&quot;</span>)
+            <span class="comment">// iii. If the code units at index (k + 1) and (k + 2) within string do not represent
+            // hexadecimal digits, throw a URIError exception.
+            // iv. Let B be the 8-bit value represented by the two hexadecimal digits at index (k + 1) and (k + 2).
+            </span><span class="kw">let </span>b = decode_hex_byte(string[k + <span class="number">1</span>], string[k + <span class="number">2</span>]).ok_or_else(|| {
+                JsNativeError::uri().with_message(<span class="string">&quot;invalid hexadecimal digit found&quot;</span>)
             })<span class="question-mark">?</span>;
 
-            <span class="comment">// v. Set k to k + 2.</span>
-            <span class="ident">k</span> <span class="op">+</span><span class="op">=</span> <span class="number">2</span>;
+            <span class="comment">// v. Set k to k + 2.
+            </span>k += <span class="number">2</span>;
 
-            <span class="comment">// vi. Let n be the number of leading 1 bits in B.</span>
-            <span class="kw">let</span> <span class="ident">n</span> <span class="op">=</span> <span class="ident">leading_one_bits</span>(<span class="ident">b</span>);
+            <span class="comment">// vi. Let n be the number of leading 1 bits in B.
+            </span><span class="kw">let </span>n = b.leading_ones() <span class="kw">as </span>usize;
 
-            <span class="comment">// vii. If n = 0, then</span>
-            <span class="kw">if</span> <span class="ident">n</span> <span class="op">==</span> <span class="number">0</span> {
-                <span class="comment">// 1. Let C be the code unit whose value is B.</span>
-                <span class="kw">let</span> <span class="ident">c</span> <span class="op">=</span> <span class="ident">u16::from</span>(<span class="ident">b</span>);
+            <span class="comment">// vii. If n = 0, then
+            </span><span class="kw">if </span>n == <span class="number">0 </span>{
+                <span class="comment">// 1. Let C be the code unit whose value is B.
+                </span><span class="kw">let </span>c = u16::from(b);
 
-                <span class="comment">// 2. If C is not in reservedSet, then</span>
-                <span class="kw">if</span> <span class="op">!</span><span class="ident">reserved_set</span>(<span class="ident">c</span>) {
-                    <span class="comment">// a. Let S be the String value containing only the code unit C.</span>
-                    <span class="ident">Vec::from</span>([<span class="ident">c</span>])
-                } <span class="kw">else</span> {
-                    <span class="comment">// 3. Else,</span>
-                    <span class="comment">// a. Let S be the substring of string from start to k + 1.</span>
-                    <span class="ident">Vec::from</span>(<span class="kw-2">&amp;</span><span class="ident">string</span>[<span class="ident">start</span>..<span class="op">=</span><span class="ident">k</span>])
+                <span class="comment">// 2. If C is not in reservedSet, then
+                </span><span class="kw">if </span>!reserved_set(c) {
+                    <span class="comment">// a. Let S be the String value containing only the code unit C.
+                    </span>Vec::from([c])
+                } <span class="kw">else </span>{
+                    <span class="comment">// 3. Else,
+                    // a. Let S be the substring of string from start to k + 1.
+                    </span>Vec::from(<span class="kw-2">&amp;</span>string[start..=k])
                 }
-            } <span class="kw">else</span> {
-                <span class="comment">// viii. Else,</span>
-                <span class="comment">// 1. If n = 1 or n &gt; 4, throw a URIError exception.</span>
-                <span class="kw">if</span> <span class="ident">n</span> <span class="op">==</span> <span class="number">1</span> <span class="op">|</span><span class="op">|</span> <span class="ident">n</span> <span class="op">&gt;</span> <span class="number">4</span> {
-                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::uri</span>()
-                        .<span class="ident">with_message</span>(<span class="string">&quot;invalid escaped character found&quot;</span>)
-                        .<span class="ident">into</span>());
-                }
-
-                <span class="comment">// 2. If k + (3 × (n - 1)) ≥ strLen, throw a URIError exception.</span>
-                <span class="kw">if</span> <span class="ident">k</span> <span class="op">+</span> (<span class="number">3</span> <span class="op">*</span> (<span class="ident">n</span> <span class="op">-</span> <span class="number">1</span>)) <span class="op">&gt;</span> <span class="ident">str_len</span> {
-                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::uri</span>()
-                        .<span class="ident">with_message</span>(<span class="string">&quot;non-terminated escape character found&quot;</span>)
-                        .<span class="ident">into</span>());
+            } <span class="kw">else </span>{
+                <span class="comment">// viii. Else,
+                // 1. If n = 1 or n &gt; 4, throw a URIError exception.
+                </span><span class="kw">if </span>n == <span class="number">1 </span>|| n &gt; <span class="number">4 </span>{
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::uri()
+                        .with_message(<span class="string">&quot;invalid escaped character found&quot;</span>)
+                        .into());
                 }
 
-                <span class="comment">// 3. Let Octets be « B ».</span>
-                <span class="ident">octets</span>.<span class="ident">push</span>(<span class="ident">b</span>);
+                <span class="comment">// 2. If k + (3 × (n - 1)) ≥ strLen, throw a URIError exception.
+                </span><span class="kw">if </span>k + (<span class="number">3 </span>* (n - <span class="number">1</span>)) &gt; str_len {
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::uri()
+                        .with_message(<span class="string">&quot;non-terminated escape character found&quot;</span>)
+                        .into());
+                }
 
-                <span class="comment">// 4. Let j be 1.</span>
-                <span class="comment">// 5. Repeat, while j &lt; n,</span>
-                <span class="kw">for</span> <span class="ident">_j</span> <span class="kw">in</span> <span class="number">1</span>..<span class="ident">n</span> {
-                    <span class="comment">// a. Set k to k + 1.</span>
-                    <span class="ident">k</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+                <span class="comment">// 3. Let Octets be « B ».
+                </span>octets.push(b);
 
-                    <span class="comment">// b. If the code unit at index k within string is not the code unit 0x0025 (PERCENT SIGN), throw a URIError exception.</span>
-                    <span class="kw">if</span> <span class="ident">string</span>[<span class="ident">k</span>] <span class="op">!</span><span class="op">=</span> <span class="number">0x0025</span> {
-                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::uri</span>()
-                            .<span class="ident">with_message</span>(<span class="string">&quot;escape characters must be preceded with a % sign&quot;</span>)
-                            .<span class="ident">into</span>());
+                <span class="comment">// 4. Let j be 1.
+                // 5. Repeat, while j &lt; n,
+                </span><span class="kw">for </span>_j <span class="kw">in </span><span class="number">1</span>..n {
+                    <span class="comment">// a. Set k to k + 1.
+                    </span>k += <span class="number">1</span>;
+
+                    <span class="comment">// b. If the code unit at index k within string is not the code unit 0x0025 (PERCENT SIGN), throw a URIError exception.
+                    </span><span class="kw">if </span>string[k] != <span class="number">0x0025 </span>{
+                        <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::uri()
+                            .with_message(<span class="string">&quot;escape characters must be preceded with a % sign&quot;</span>)
+                            .into());
                     }
 
-                    <span class="comment">// c. If the code units at index (k + 1) and (k + 2) within string do not represent hexadecimal digits, throw a URIError exception.</span>
-                    <span class="comment">// d. Let B be the 8-bit value represented by the two hexadecimal digits at index (k + 1) and (k + 2).</span>
-                    <span class="kw">let</span> <span class="ident">b</span> <span class="op">=</span> <span class="ident">decode_hex_byte</span>(<span class="ident">string</span>[<span class="ident">k</span> <span class="op">+</span> <span class="number">1</span>], <span class="ident">string</span>[<span class="ident">k</span> <span class="op">+</span> <span class="number">2</span>]).<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-                        <span class="ident">JsNativeError::uri</span>().<span class="ident">with_message</span>(<span class="string">&quot;invalid hexadecimal digit found&quot;</span>)
+                    <span class="comment">// c. If the code units at index (k + 1) and (k + 2) within string do not represent hexadecimal digits, throw a URIError exception.
+                    // d. Let B be the 8-bit value represented by the two hexadecimal digits at index (k + 1) and (k + 2).
+                    </span><span class="kw">let </span>b = decode_hex_byte(string[k + <span class="number">1</span>], string[k + <span class="number">2</span>]).ok_or_else(|| {
+                        JsNativeError::uri().with_message(<span class="string">&quot;invalid hexadecimal digit found&quot;</span>)
                     })<span class="question-mark">?</span>;
 
-                    <span class="comment">// e. Set k to k + 2.</span>
-                    <span class="ident">k</span> <span class="op">+</span><span class="op">=</span> <span class="number">2</span>;
+                    <span class="comment">// e. Set k to k + 2.
+                    </span>k += <span class="number">2</span>;
 
-                    <span class="comment">// f. Append B to Octets.</span>
-                    <span class="ident">octets</span>.<span class="ident">push</span>(<span class="ident">b</span>);
+                    <span class="comment">// f. Append B to Octets.
+                    </span>octets.push(b);
 
-                    <span class="comment">// g. Set j to j + 1.</span>
-                }
+                    <span class="comment">// g. Set j to j + 1.
+                </span>}
 
-                <span class="comment">// 6. Assert: The length of Octets is n.</span>
-                <span class="macro">assert_eq!</span>(<span class="ident">octets</span>.<span class="ident">len</span>(), <span class="ident">n</span>);
+                <span class="comment">// 6. Assert: The length of Octets is n.
+                </span><span class="macro">assert_eq!</span>(octets.len(), n);
 
-                <span class="comment">// 7. If Octets does not contain a valid UTF-8 encoding of a Unicode code point, throw a URIError exception.</span>
-                <span class="kw">match</span> <span class="ident">std::str::from_utf8</span>(<span class="kw-2">&amp;</span><span class="ident">octets</span>) {
+                <span class="comment">// 7. If Octets does not contain a valid UTF-8 encoding of a Unicode code point, throw a URIError exception.
+                </span><span class="kw">match </span>std::str::from_utf8(<span class="kw-2">&amp;</span>octets) {
                     <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; {
-                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::uri</span>()
-                            .<span class="ident">with_message</span>(<span class="string">&quot;invalid UTF-8 encoding found&quot;</span>)
-                            .<span class="ident">into</span>())
+                        <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::uri()
+                            .with_message(<span class="string">&quot;invalid UTF-8 encoding found&quot;</span>)
+                            .into())
                     }
-                    <span class="prelude-val">Ok</span>(<span class="ident">v</span>) =&gt; {
-                        <span class="comment">// 8. Let V be the code point obtained by applying the UTF-8 transformation to Octets, that is, from a List of octets into a 21-bit value.</span>
+                    <span class="prelude-val">Ok</span>(v) =&gt; {
+                        <span class="comment">// 8. Let V be the code point obtained by applying the UTF-8 transformation to Octets, that is, from a List of octets into a 21-bit value.
 
-                        <span class="comment">// 9. Let S be UTF16EncodeCodePoint(V).</span>
-                        <span class="comment">// utf16_encode_codepoint(v)</span>
-                        <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">v</span>.<span class="ident">encode_utf16</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>();
-                        <span class="ident">octets</span>.<span class="ident">clear</span>();
-                        <span class="ident">s</span>
+                        // 9. Let S be UTF16EncodeCodePoint(V).
+                        // utf16_encode_codepoint(v)
+                        </span><span class="kw">let </span>s = v.encode_utf16().collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
+                        octets.clear();
+                        s
                     }
                 }
             }
         };
 
-        <span class="comment">// e. Set R to the string-concatenation of R and S.</span>
-        <span class="ident">r</span>.<span class="ident">extend_from_slice</span>(<span class="kw-2">&amp;</span><span class="ident">s</span>);
+        <span class="comment">// e. Set R to the string-concatenation of R and S.
+        </span>r.extend_from_slice(<span class="kw-2">&amp;</span>s);
 
-        <span class="comment">// f. Set k to k + 1.</span>
-        <span class="ident">k</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+        <span class="comment">// f. Set k to k + 1.
+        </span>k += <span class="number">1</span>;
     }
 }
 
-<span class="doccomment">/// Decodes a byte from two unicode code units.</span>
-<span class="kw">fn</span> <span class="ident">decode_hex_byte</span>(<span class="ident">high</span>: <span class="ident">u16</span>, <span class="ident">low</span>: <span class="ident">u16</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> {
-    <span class="kw">match</span> (
-        <span class="ident">char::from_u32</span>(<span class="ident">u32::from</span>(<span class="ident">high</span>)),
-        <span class="ident">char::from_u32</span>(<span class="ident">u32::from</span>(<span class="ident">low</span>)),
+<span class="doccomment">/// Decodes a byte from two unicode code units.
+</span><span class="kw">fn </span>decode_hex_byte(high: u16, low: u16) -&gt; <span class="prelude-ty">Option</span>&lt;u8&gt; {
+    <span class="kw">match </span>(
+        char::from_u32(u32::from(high)),
+        char::from_u32(u32::from(low)),
     ) {
-        (<span class="prelude-val">Some</span>(<span class="ident">high</span>), <span class="prelude-val">Some</span>(<span class="ident">low</span>)) =&gt; <span class="kw">match</span> (<span class="ident">high</span>.<span class="ident">to_digit</span>(<span class="number">16</span>), <span class="ident">low</span>.<span class="ident">to_digit</span>(<span class="number">16</span>)) {
-            (<span class="prelude-val">Some</span>(<span class="ident">high</span>), <span class="prelude-val">Some</span>(<span class="ident">low</span>)) =&gt; <span class="prelude-val">Some</span>(((<span class="ident">high</span> <span class="kw">as</span> <span class="ident">u8</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">4</span>) <span class="op">+</span> <span class="ident">low</span> <span class="kw">as</span> <span class="ident">u8</span>),
-            <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
+        (<span class="prelude-val">Some</span>(high), <span class="prelude-val">Some</span>(low)) =&gt; <span class="kw">match </span>(high.to_digit(<span class="number">16</span>), low.to_digit(<span class="number">16</span>)) {
+            (<span class="prelude-val">Some</span>(high), <span class="prelude-val">Some</span>(low)) =&gt; <span class="prelude-val">Some</span>(((high <span class="kw">as </span>u8) &lt;&lt; <span class="number">4</span>) + low <span class="kw">as </span>u8),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         },
-        <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
+        <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
     }
 }
 
-<span class="doccomment">/// Counts the number of leading 1 bits in a given byte.</span>
-<span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">fn</span> <span class="ident">leading_one_bits</span>(<span class="ident">byte</span>: <span class="ident">u8</span>) -&gt; <span class="ident">usize</span> {
-    <span class="comment">// This uses a value table for speed</span>
-    <span class="kw">if</span> <span class="ident">byte</span> <span class="op">==</span> <span class="ident">u8::MAX</span> {
-        <span class="number">8</span>
-    } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">byte</span> <span class="op">==</span> <span class="number">0b1111_1110</span> {
-        <span class="number">7</span>
-    } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">byte</span> <span class="op">&amp;</span> <span class="number">0b1111_1100</span> <span class="op">==</span> <span class="number">0b1111_1100</span> {
-        <span class="number">6</span>
-    } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">byte</span> <span class="op">&amp;</span> <span class="number">0b1111_1000</span> <span class="op">==</span> <span class="number">0b1111_1000</span> {
-        <span class="number">5</span>
-    } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">byte</span> <span class="op">&amp;</span> <span class="number">0b1111_0000</span> <span class="op">==</span> <span class="number">0b1111_0000</span> {
-        <span class="number">4</span>
-    } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">byte</span> <span class="op">&amp;</span> <span class="number">0b1110_0000</span> <span class="op">==</span> <span class="number">0b1110_0000</span> {
-        <span class="number">3</span>
-    } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">byte</span> <span class="op">&amp;</span> <span class="number">0b1100_0000</span> <span class="op">==</span> <span class="number">0b1100_0000</span> {
-        <span class="number">2</span>
-    } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">byte</span> <span class="op">&amp;</span> <span class="number">0b1000_0000</span> <span class="op">==</span> <span class="number">0b1000_0000</span> {
-        <span class="number">1</span>
-    } <span class="kw">else</span> {
-        <span class="number">0</span>
-    }
-}
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>tests {
+    <span class="kw">use super</span>::<span class="kw-2">*</span>;
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span> {
-    <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
-
-    <span class="doccomment">/// Checks if the `leading_one_bits()` function works as expected.</span>
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">ut_leading_one_bits</span>() {
-        <span class="macro">assert_eq!</span>(<span class="ident">leading_one_bits</span>(<span class="number">0b1111_1111</span>), <span class="number">8</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">leading_one_bits</span>(<span class="number">0b1111_1110</span>), <span class="number">7</span>);
-
-        <span class="macro">assert_eq!</span>(<span class="ident">leading_one_bits</span>(<span class="number">0b1111_1100</span>), <span class="number">6</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">leading_one_bits</span>(<span class="number">0b1111_1101</span>), <span class="number">6</span>);
-
-        <span class="macro">assert_eq!</span>(<span class="ident">leading_one_bits</span>(<span class="number">0b1111_1011</span>), <span class="number">5</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">leading_one_bits</span>(<span class="number">0b1111_1000</span>), <span class="number">5</span>);
-
-        <span class="macro">assert_eq!</span>(<span class="ident">leading_one_bits</span>(<span class="number">0b1111_0000</span>), <span class="number">4</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">leading_one_bits</span>(<span class="number">0b1111_0111</span>), <span class="number">4</span>);
-
-        <span class="macro">assert_eq!</span>(<span class="ident">leading_one_bits</span>(<span class="number">0b1110_0000</span>), <span class="number">3</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">leading_one_bits</span>(<span class="number">0b1110_1111</span>), <span class="number">3</span>);
-
-        <span class="macro">assert_eq!</span>(<span class="ident">leading_one_bits</span>(<span class="number">0b1100_0000</span>), <span class="number">2</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">leading_one_bits</span>(<span class="number">0b1101_1111</span>), <span class="number">2</span>);
-
-        <span class="macro">assert_eq!</span>(<span class="ident">leading_one_bits</span>(<span class="number">0b1000_0000</span>), <span class="number">1</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">leading_one_bits</span>(<span class="number">0b1011_1111</span>), <span class="number">1</span>);
-
-        <span class="macro">assert_eq!</span>(<span class="ident">leading_one_bits</span>(<span class="number">0b0000_0000</span>), <span class="number">0</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">leading_one_bits</span>(<span class="number">0b0111_1111</span>), <span class="number">0</span>);
-    }
-
-    <span class="doccomment">/// Checks that the `decode_byte()` function works as expected.</span>
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">ut_decode_byte</span>() {
-        <span class="comment">// Sunny day tests</span>
+    <span class="doccomment">/// Checks that the `decode_byte()` function works as expected.
+    </span><span class="attribute">#[test]
+    </span><span class="kw">fn </span>ut_decode_byte() {
+        <span class="comment">// Sunny day tests
+        </span><span class="macro">assert_eq!</span>(
+            decode_hex_byte(u16::from(<span class="string">b&#39;2&#39;</span>), u16::from(<span class="string">b&#39;0&#39;</span>)).unwrap(),
+            <span class="number">0x20
+        </span>);
         <span class="macro">assert_eq!</span>(
-            <span class="ident">decode_hex_byte</span>(<span class="ident">u16::from</span>(<span class="string">b&#39;2&#39;</span>), <span class="ident">u16::from</span>(<span class="string">b&#39;0&#39;</span>)).<span class="ident">unwrap</span>(),
-            <span class="number">0x20</span>
-        );
+            decode_hex_byte(u16::from(<span class="string">b&#39;2&#39;</span>), u16::from(<span class="string">b&#39;A&#39;</span>)).unwrap(),
+            <span class="number">0x2A
+        </span>);
         <span class="macro">assert_eq!</span>(
-            <span class="ident">decode_hex_byte</span>(<span class="ident">u16::from</span>(<span class="string">b&#39;2&#39;</span>), <span class="ident">u16::from</span>(<span class="string">b&#39;A&#39;</span>)).<span class="ident">unwrap</span>(),
-            <span class="number">0x2A</span>
-        );
+            decode_hex_byte(u16::from(<span class="string">b&#39;3&#39;</span>), u16::from(<span class="string">b&#39;C&#39;</span>)).unwrap(),
+            <span class="number">0x3C
+        </span>);
         <span class="macro">assert_eq!</span>(
-            <span class="ident">decode_hex_byte</span>(<span class="ident">u16::from</span>(<span class="string">b&#39;3&#39;</span>), <span class="ident">u16::from</span>(<span class="string">b&#39;C&#39;</span>)).<span class="ident">unwrap</span>(),
-            <span class="number">0x3C</span>
-        );
+            decode_hex_byte(u16::from(<span class="string">b&#39;4&#39;</span>), u16::from(<span class="string">b&#39;0&#39;</span>)).unwrap(),
+            <span class="number">0x40
+        </span>);
         <span class="macro">assert_eq!</span>(
-            <span class="ident">decode_hex_byte</span>(<span class="ident">u16::from</span>(<span class="string">b&#39;4&#39;</span>), <span class="ident">u16::from</span>(<span class="string">b&#39;0&#39;</span>)).<span class="ident">unwrap</span>(),
-            <span class="number">0x40</span>
-        );
+            decode_hex_byte(u16::from(<span class="string">b&#39;7&#39;</span>), u16::from(<span class="string">b&#39;E&#39;</span>)).unwrap(),
+            <span class="number">0x7E
+        </span>);
         <span class="macro">assert_eq!</span>(
-            <span class="ident">decode_hex_byte</span>(<span class="ident">u16::from</span>(<span class="string">b&#39;7&#39;</span>), <span class="ident">u16::from</span>(<span class="string">b&#39;E&#39;</span>)).<span class="ident">unwrap</span>(),
-            <span class="number">0x7E</span>
-        );
-        <span class="macro">assert_eq!</span>(
-            <span class="ident">decode_hex_byte</span>(<span class="ident">u16::from</span>(<span class="string">b&#39;0&#39;</span>), <span class="ident">u16::from</span>(<span class="string">b&#39;0&#39;</span>)).<span class="ident">unwrap</span>(),
-            <span class="number">0x00</span>
-        );
+            decode_hex_byte(u16::from(<span class="string">b&#39;0&#39;</span>), u16::from(<span class="string">b&#39;0&#39;</span>)).unwrap(),
+            <span class="number">0x00
+        </span>);
 
-        <span class="comment">// Rainy day tests</span>
-        <span class="macro">assert!</span>(<span class="ident">decode_hex_byte</span>(<span class="ident">u16::from</span>(<span class="string">b&#39;-&#39;</span>), <span class="ident">u16::from</span>(<span class="string">b&#39;0&#39;</span>)).<span class="ident">is_none</span>());
-        <span class="macro">assert!</span>(<span class="ident">decode_hex_byte</span>(<span class="ident">u16::from</span>(<span class="string">b&#39;f&#39;</span>), <span class="ident">u16::from</span>(<span class="string">b&#39;~&#39;</span>)).<span class="ident">is_none</span>());
-        <span class="macro">assert!</span>(<span class="ident">decode_hex_byte</span>(<span class="ident">u16::from</span>(<span class="string">b&#39;A&#39;</span>), <span class="number">0_u16</span>).<span class="ident">is_none</span>());
-        <span class="macro">assert!</span>(<span class="ident">decode_hex_byte</span>(<span class="ident">u16::from</span>(<span class="string">b&#39;%&#39;</span>), <span class="ident">u16::from</span>(<span class="string">b&#39;&amp;&#39;</span>)).<span class="ident">is_none</span>());
+        <span class="comment">// Rainy day tests
+        </span><span class="macro">assert!</span>(decode_hex_byte(u16::from(<span class="string">b&#39;-&#39;</span>), u16::from(<span class="string">b&#39;0&#39;</span>)).is_none());
+        <span class="macro">assert!</span>(decode_hex_byte(u16::from(<span class="string">b&#39;f&#39;</span>), u16::from(<span class="string">b&#39;~&#39;</span>)).is_none());
+        <span class="macro">assert!</span>(decode_hex_byte(u16::from(<span class="string">b&#39;A&#39;</span>), <span class="number">0_u16</span>).is_none());
+        <span class="macro">assert!</span>(decode_hex_byte(u16::from(<span class="string">b&#39;%&#39;</span>), u16::from(<span class="string">b&#39;&amp;&#39;</span>)).is_none());
 
-        <span class="macro">assert!</span>(<span class="ident">decode_hex_byte</span>(<span class="number">0xFACD_u16</span>, <span class="ident">u16::from</span>(<span class="string">b&#39;-&#39;</span>)).<span class="ident">is_none</span>());
-        <span class="macro">assert!</span>(<span class="ident">decode_hex_byte</span>(<span class="ident">u16::from</span>(<span class="string">b&#39;-&#39;</span>), <span class="number">0xA0FD_u16</span>).<span class="ident">is_none</span>());
+        <span class="macro">assert!</span>(decode_hex_byte(<span class="number">0xFACD_u16</span>, u16::from(<span class="string">b&#39;-&#39;</span>)).is_none());
+        <span class="macro">assert!</span>(decode_hex_byte(u16::from(<span class="string">b&#39;-&#39;</span>), <span class="number">0xA0FD_u16</span>).is_none());
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0 (a55dd71d5 2022-09-19)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0 (897e37553 2022-11-02)" ></div></body></html>

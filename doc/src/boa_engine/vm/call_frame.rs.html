@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_engine/src/vm/call_frame.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>call_frame.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../boa_engine/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../boa_engine/index.html"><div class="logo-container">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_engine/src/vm/call_frame.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>call_frame.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../boa_engine/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../boa_engine/index.html"><div class="logo-container">
                     <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../boa_engine/index.html">
                         <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -123,128 +123,128 @@
 <span id="121">121</span>
 <span id="122">122</span>
 <span id="123">123</span>
-</pre><pre class="rust"><code><span class="doccomment">//! `CallFrame`</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! This module will provides everything needed to implement the `CallFrame`</span>
+</pre><pre class="rust"><code><span class="doccomment">//! `CallFrame`
+//!
+//! This module will provides everything needed to implement the `CallFrame`
 
-<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">object::JsObject</span>, <span class="ident">vm::CodeBlock</span>};
-<span class="kw">use</span> <span class="ident">boa_gc</span>::{<span class="ident">Finalize</span>, <span class="ident">Gc</span>, <span class="ident">Trace</span>};
+</span><span class="kw">use crate</span>::{object::JsObject, vm::CodeBlock};
+<span class="kw">use </span>boa_gc::{Finalize, Gc, Trace};
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Finalize</span>, <span class="ident">Trace</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">CallFrame</span> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">code</span>: <span class="ident">Gc</span><span class="op">&lt;</span><span class="ident">CodeBlock</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">pc</span>: <span class="ident">usize</span>,
-    <span class="attribute">#[<span class="ident">unsafe_ignore_trace</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">catch</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">CatchAddresses</span><span class="op">&gt;</span>,
-    <span class="attribute">#[<span class="ident">unsafe_ignore_trace</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">finally_return</span>: <span class="ident">FinallyReturn</span>,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">finally_jump</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">pop_on_return</span>: <span class="ident">usize</span>,
+<span class="attribute">#[derive(Clone, Debug, Finalize, Trace)]
+</span><span class="kw">pub struct </span>CallFrame {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) code: Gc&lt;CodeBlock&gt;,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) pc: usize,
+    <span class="attribute">#[unsafe_ignore_trace]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) catch: Vec&lt;CatchAddresses&gt;,
+    <span class="attribute">#[unsafe_ignore_trace]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) finally_return: FinallyReturn,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) finally_jump: Vec&lt;<span class="prelude-ty">Option</span>&lt;u32&gt;&gt;,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) pop_on_return: usize,
 
-    <span class="comment">// Tracks the number of environments in the current loop block.</span>
-    <span class="comment">// On abrupt returns this is used to decide how many environments need to be pop&#39;ed.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">loop_env_stack</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>,
+    <span class="comment">// Tracks the number of environments in the current loop block.
+    // On abrupt returns this is used to decide how many environments need to be pop&#39;ed.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) loop_env_stack: Vec&lt;usize&gt;,
 
-    <span class="comment">// Tracks the number of environments in the current try-catch-finally block.</span>
-    <span class="comment">// On abrupt returns this is used to decide how many environments need to be pop&#39;ed.</span>
-    <span class="attribute">#[<span class="ident">unsafe_ignore_trace</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">try_env_stack</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">TryStackEntry</span><span class="op">&gt;</span>,
+    <span class="comment">// Tracks the number of environments in the current try-catch-finally block.
+    // On abrupt returns this is used to decide how many environments need to be pop&#39;ed.
+    </span><span class="attribute">#[unsafe_ignore_trace]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) try_env_stack: Vec&lt;TryStackEntry&gt;,
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">param_count</span>: <span class="ident">usize</span>,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">arg_count</span>: <span class="ident">usize</span>,
-    <span class="attribute">#[<span class="ident">unsafe_ignore_trace</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">generator_resume_kind</span>: <span class="ident">GeneratorResumeKind</span>,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) param_count: usize,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) arg_count: usize,
+    <span class="attribute">#[unsafe_ignore_trace]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) generator_resume_kind: GeneratorResumeKind,
 
-    <span class="comment">// Indicate that the last try block has thrown an exception.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">thrown</span>: <span class="ident">bool</span>,
+    <span class="comment">// Indicate that the last try block has thrown an exception.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) thrown: bool,
 
-    <span class="comment">// When an async generator is resumed, the generator object is needed</span>
-    <span class="comment">// to fulfill the steps 4.e-j in [AsyncGeneratorStart](https://tc39.es/ecma262/#sec-asyncgeneratorstart).</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">async_generator</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JsObject</span><span class="op">&gt;</span>,
+    <span class="comment">// When an async generator is resumed, the generator object is needed
+    // to fulfill the steps 4.e-j in [AsyncGeneratorStart](https://tc39.es/ecma262/#sec-asyncgeneratorstart).
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) async_generator: <span class="prelude-ty">Option</span>&lt;JsObject&gt;,
 }
 
-<span class="kw">impl</span> <span class="ident">CallFrame</span> {
-    <span class="doccomment">/// Tracks that one environment has been pushed in the current loop block.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">loop_env_stack_inc</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="kw-2">*</span><span class="self">self</span>
-            .<span class="ident">loop_env_stack</span>
-            .<span class="ident">last_mut</span>()
-            .<span class="ident">expect</span>(<span class="string">&quot;loop environment stack entry must exist&quot;</span>) <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+<span class="kw">impl </span>CallFrame {
+    <span class="doccomment">/// Tracks that one environment has been pushed in the current loop block.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>loop_env_stack_inc(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="kw-2">*</span><span class="self">self
+            </span>.loop_env_stack
+            .last_mut()
+            .expect(<span class="string">&quot;loop environment stack entry must exist&quot;</span>) += <span class="number">1</span>;
     }
 
-    <span class="doccomment">/// Tracks that one environment has been pop&#39;ed in the current loop block.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">loop_env_stack_dec</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="kw-2">*</span><span class="self">self</span>
-            .<span class="ident">loop_env_stack</span>
-            .<span class="ident">last_mut</span>()
-            .<span class="ident">expect</span>(<span class="string">&quot;loop environment stack entry must exist&quot;</span>) <span class="op">-</span><span class="op">=</span> <span class="number">1</span>;
+    <span class="doccomment">/// Tracks that one environment has been pop&#39;ed in the current loop block.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>loop_env_stack_dec(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="kw-2">*</span><span class="self">self
+            </span>.loop_env_stack
+            .last_mut()
+            .expect(<span class="string">&quot;loop environment stack entry must exist&quot;</span>) -= <span class="number">1</span>;
     }
 
-    <span class="doccomment">/// Tracks that one environment has been pushed in the current try-catch-finally block.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">try_env_stack_inc</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="self">self</span>.<span class="ident">try_env_stack</span>
-            .<span class="ident">last_mut</span>()
-            .<span class="ident">expect</span>(<span class="string">&quot;try environment stack entry must exist&quot;</span>)
-            .<span class="ident">num_env</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+    <span class="doccomment">/// Tracks that one environment has been pushed in the current try-catch-finally block.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>try_env_stack_inc(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="self">self</span>.try_env_stack
+            .last_mut()
+            .expect(<span class="string">&quot;try environment stack entry must exist&quot;</span>)
+            .num_env += <span class="number">1</span>;
     }
 
-    <span class="doccomment">/// Tracks that one environment has been pop&#39;ed in the current try-catch-finally block.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">try_env_stack_dec</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="self">self</span>.<span class="ident">try_env_stack</span>
-            .<span class="ident">last_mut</span>()
-            .<span class="ident">expect</span>(<span class="string">&quot;try environment stack entry must exist&quot;</span>)
-            .<span class="ident">num_env</span> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>;
+    <span class="doccomment">/// Tracks that one environment has been pop&#39;ed in the current try-catch-finally block.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>try_env_stack_dec(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="self">self</span>.try_env_stack
+            .last_mut()
+            .expect(<span class="string">&quot;try environment stack entry must exist&quot;</span>)
+            .num_env -= <span class="number">1</span>;
     }
 
-    <span class="doccomment">/// Tracks that one loop has started in the current try-catch-finally block.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">try_env_stack_loop_inc</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="self">self</span>.<span class="ident">try_env_stack</span>
-            .<span class="ident">last_mut</span>()
-            .<span class="ident">expect</span>(<span class="string">&quot;try environment stack entry must exist&quot;</span>)
-            .<span class="ident">num_loop_stack_entries</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+    <span class="doccomment">/// Tracks that one loop has started in the current try-catch-finally block.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>try_env_stack_loop_inc(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="self">self</span>.try_env_stack
+            .last_mut()
+            .expect(<span class="string">&quot;try environment stack entry must exist&quot;</span>)
+            .num_loop_stack_entries += <span class="number">1</span>;
     }
 
-    <span class="doccomment">/// Tracks that one loop has finished in the current try-catch-finally block.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">try_env_stack_loop_dec</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="self">self</span>.<span class="ident">try_env_stack</span>
-            .<span class="ident">last_mut</span>()
-            .<span class="ident">expect</span>(<span class="string">&quot;try environment stack entry must exist&quot;</span>)
-            .<span class="ident">num_loop_stack_entries</span> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>;
+    <span class="doccomment">/// Tracks that one loop has finished in the current try-catch-finally block.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>try_env_stack_loop_dec(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="self">self</span>.try_env_stack
+            .last_mut()
+            .expect(<span class="string">&quot;try environment stack entry must exist&quot;</span>)
+            .num_loop_stack_entries -= <span class="number">1</span>;
     }
 }
 
-<span class="doccomment">/// Tracks the number of environments in the current try-catch-finally block.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Because of the interactions between loops and try-catch-finally blocks,</span>
-<span class="doccomment">/// the number of loop blocks in the try-catch-finally block also needs to be tracked.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">TryStackEntry</span> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">num_env</span>: <span class="ident">usize</span>,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">num_loop_stack_entries</span>: <span class="ident">usize</span>,
+<span class="doccomment">/// Tracks the number of environments in the current try-catch-finally block.
+///
+/// Because of the interactions between loops and try-catch-finally blocks,
+/// the number of loop blocks in the try-catch-finally block also needs to be tracked.
+</span><span class="attribute">#[derive(Copy, Clone, Debug)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>TryStackEntry {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) num_env: usize,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) num_loop_stack_entries: usize,
 }
 
-<span class="doccomment">/// Tracks the address that should be jumped to when an error is caught.</span>
-<span class="doccomment">/// Additionally the address of a finally block is tracked, to allow for special handling if it exists.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">CatchAddresses</span> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">next</span>: <span class="ident">u32</span>,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">finally</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>,
+<span class="doccomment">/// Tracks the address that should be jumped to when an error is caught.
+/// Additionally the address of a finally block is tracked, to allow for special handling if it exists.
+</span><span class="attribute">#[derive(Copy, Clone, Debug)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>CatchAddresses {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) next: u32,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) finally: <span class="prelude-ty">Option</span>&lt;u32&gt;,
 }
 
-<span class="doccomment">/// Indicates if a function should return or throw at the end of a finally block.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum</span> <span class="ident">FinallyReturn</span> {
+<span class="doccomment">/// Indicates if a function should return or throw at the end of a finally block.
+</span><span class="attribute">#[derive(Copy, Clone, Debug, PartialEq)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum </span>FinallyReturn {
     <span class="prelude-val">None</span>,
     <span class="prelude-val">Ok</span>,
     <span class="prelude-val">Err</span>,
 }
 
-<span class="doccomment">/// Indicates how a generator function that has been called/resumed should return.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum</span> <span class="ident">GeneratorResumeKind</span> {
-    <span class="ident">Normal</span>,
-    <span class="ident">Throw</span>,
-    <span class="ident">Return</span>,
+<span class="doccomment">/// Indicates how a generator function that has been called/resumed should return.
+</span><span class="attribute">#[derive(Copy, Clone, Debug, PartialEq)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum </span>GeneratorResumeKind {
+    Normal,
+    Throw,
+    Return,
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0 (a55dd71d5 2022-09-19)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0 (897e37553 2022-11-02)" ></div></body></html>

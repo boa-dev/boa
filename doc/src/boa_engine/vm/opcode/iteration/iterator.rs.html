@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_engine/src/vm/opcode/iteration/iterator.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>iterator.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../../storage.js"></script><script defer src="../../../../../source-script.js"></script><script defer src="../../../../../source-files.js"></script><script defer src="../../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../../boa_engine/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../../boa_engine/index.html"><div class="logo-container">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_engine/src/vm/opcode/iteration/iterator.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>iterator.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../../normalize.css"><link rel="stylesheet" href="../../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../../dark.css" disabled><link rel="stylesheet" href="../../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../../storage.js"></script><script defer src="../../../../../source-script.js"></script><script defer src="../../../../../source-files.js"></script><script defer src="../../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../../boa_engine/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../../boa_engine/index.html"><div class="logo-container">
                     <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../../boa_engine/index.html">
                         <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -109,114 +109,114 @@
 <span id="107">107</span>
 <span id="108">108</span>
 <span id="109">109</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">builtins</span>::{<span class="ident">iterable::IteratorRecord</span>, <span class="ident">Array</span>},
-    <span class="ident">vm</span>::{<span class="ident">opcode::Operation</span>, <span class="ident">ShouldExit</span>},
-    <span class="ident">Context</span>, <span class="ident">JsResult</span>, <span class="ident">JsValue</span>,
+</pre><pre class="rust"><code><span class="kw">use crate</span>::{
+    builtins::{iterable::IteratorRecord, Array},
+    vm::{opcode::Operation, ShouldExit},
+    Context, JsResult, JsValue,
 };
 
-<span class="doccomment">/// `IteratorNext` implements the Opcode Operation for `Opcode::IteratorNext`</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Operation:</span>
-<span class="doccomment">///  - Advance the iterator by one and put the value on the stack.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">IteratorNext</span>;
+<span class="doccomment">/// `IteratorNext` implements the Opcode Operation for `Opcode::IteratorNext`
+///
+/// Operation:
+///  - Advance the iterator by one and put the value on the stack.
+</span><span class="attribute">#[derive(Debug, Clone, Copy)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>IteratorNext;
 
-<span class="kw">impl</span> <span class="ident">Operation</span> <span class="kw">for</span> <span class="ident">IteratorNext</span> {
-    <span class="kw">const</span> <span class="ident">NAME</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;IteratorNext&quot;</span>;
-    <span class="kw">const</span> <span class="ident">INSTRUCTION</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;INST - IteratorNext&quot;</span>;
+<span class="kw">impl </span>Operation <span class="kw">for </span>IteratorNext {
+    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;IteratorNext&quot;</span>;
+    <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - IteratorNext&quot;</span>;
 
-    <span class="kw">fn</span> <span class="ident">execute</span>(<span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">ShouldExit</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">done</span> <span class="op">=</span> <span class="ident">context</span>
-            .<span class="ident">vm</span>
-            .<span class="ident">pop</span>()
-            .<span class="ident">as_boolean</span>()
-            .<span class="ident">expect</span>(<span class="string">&quot;iterator [[Done]] was not a boolean&quot;</span>);
-        <span class="kw">let</span> <span class="ident">next_method</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">pop</span>();
-        <span class="kw">let</span> <span class="ident">iterator</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">pop</span>();
-        <span class="kw">let</span> <span class="ident">iterator</span> <span class="op">=</span> <span class="ident">iterator</span>.<span class="ident">as_object</span>().<span class="ident">expect</span>(<span class="string">&quot;iterator was not an object&quot;</span>);
+    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;ShouldExit&gt; {
+        <span class="kw">let </span>done = context
+            .vm
+            .pop()
+            .as_boolean()
+            .expect(<span class="string">&quot;iterator [[Done]] was not a boolean&quot;</span>);
+        <span class="kw">let </span>next_method = context.vm.pop();
+        <span class="kw">let </span>iterator = context.vm.pop();
+        <span class="kw">let </span>iterator = iterator.as_object().expect(<span class="string">&quot;iterator was not an object&quot;</span>);
 
-        <span class="kw">let</span> <span class="ident">iterator_record</span> <span class="op">=</span> <span class="ident">IteratorRecord::new</span>(<span class="ident">iterator</span>.<span class="ident">clone</span>(), <span class="ident">next_method</span>.<span class="ident">clone</span>(), <span class="ident">done</span>);
-        <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <span class="ident">iterator_record</span>.<span class="ident">step</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let </span>iterator_record = IteratorRecord::new(iterator.clone(), next_method.clone(), done);
+        <span class="kw">let </span>next = iterator_record.step(context)<span class="question-mark">?</span>;
 
-        <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">push</span>(<span class="ident">iterator</span>.<span class="ident">clone</span>());
-        <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">push</span>(<span class="ident">next_method</span>);
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">next</span>) <span class="op">=</span> <span class="ident">next</span> {
-            <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">next</span>.<span class="ident">value</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
-            <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">push</span>(<span class="bool-val">false</span>);
-            <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">push</span>(<span class="ident">value</span>);
-        } <span class="kw">else</span> {
-            <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">push</span>(<span class="bool-val">true</span>);
-            <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">push</span>(<span class="ident">JsValue::undefined</span>());
+        context.vm.push(iterator.clone());
+        context.vm.push(next_method);
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(next) = next {
+            <span class="kw">let </span>value = next.value(context)<span class="question-mark">?</span>;
+            context.vm.push(<span class="bool-val">false</span>);
+            context.vm.push(value);
+        } <span class="kw">else </span>{
+            context.vm.push(<span class="bool-val">true</span>);
+            context.vm.push(JsValue::undefined());
         }
-        <span class="prelude-val">Ok</span>(<span class="ident">ShouldExit::False</span>)
+        <span class="prelude-val">Ok</span>(ShouldExit::False)
     }
 }
 
-<span class="doccomment">/// `IteratorClose` implements the Opcode Operation for `Opcode::IteratorClose`</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Operation:</span>
-<span class="doccomment">///  - Close an iterator</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">IteratorClose</span>;
+<span class="doccomment">/// `IteratorClose` implements the Opcode Operation for `Opcode::IteratorClose`
+///
+/// Operation:
+///  - Close an iterator
+</span><span class="attribute">#[derive(Debug, Clone, Copy)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>IteratorClose;
 
-<span class="kw">impl</span> <span class="ident">Operation</span> <span class="kw">for</span> <span class="ident">IteratorClose</span> {
-    <span class="kw">const</span> <span class="ident">NAME</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;IteratorClose&quot;</span>;
-    <span class="kw">const</span> <span class="ident">INSTRUCTION</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;INST - IteratorClose&quot;</span>;
+<span class="kw">impl </span>Operation <span class="kw">for </span>IteratorClose {
+    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;IteratorClose&quot;</span>;
+    <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - IteratorClose&quot;</span>;
 
-    <span class="kw">fn</span> <span class="ident">execute</span>(<span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">ShouldExit</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">done</span> <span class="op">=</span> <span class="ident">context</span>
-            .<span class="ident">vm</span>
-            .<span class="ident">pop</span>()
-            .<span class="ident">as_boolean</span>()
-            .<span class="ident">expect</span>(<span class="string">&quot;iterator [[Done]] was not a boolean&quot;</span>);
-        <span class="kw">let</span> <span class="ident">next_method</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">pop</span>();
-        <span class="kw">let</span> <span class="ident">iterator</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">pop</span>();
-        <span class="kw">let</span> <span class="ident">iterator</span> <span class="op">=</span> <span class="ident">iterator</span>.<span class="ident">as_object</span>().<span class="ident">expect</span>(<span class="string">&quot;iterator was not an object&quot;</span>);
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">done</span> {
-            <span class="kw">let</span> <span class="ident">iterator_record</span> <span class="op">=</span> <span class="ident">IteratorRecord::new</span>(<span class="ident">iterator</span>.<span class="ident">clone</span>(), <span class="ident">next_method</span>, <span class="ident">done</span>);
-            <span class="ident">iterator_record</span>.<span class="ident">close</span>(<span class="prelude-val">Ok</span>(<span class="ident">JsValue::Null</span>), <span class="ident">context</span>)<span class="question-mark">?</span>;
+    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;ShouldExit&gt; {
+        <span class="kw">let </span>done = context
+            .vm
+            .pop()
+            .as_boolean()
+            .expect(<span class="string">&quot;iterator [[Done]] was not a boolean&quot;</span>);
+        <span class="kw">let </span>next_method = context.vm.pop();
+        <span class="kw">let </span>iterator = context.vm.pop();
+        <span class="kw">let </span>iterator = iterator.as_object().expect(<span class="string">&quot;iterator was not an object&quot;</span>);
+        <span class="kw">if </span>!done {
+            <span class="kw">let </span>iterator_record = IteratorRecord::new(iterator.clone(), next_method, done);
+            iterator_record.close(<span class="prelude-val">Ok</span>(JsValue::Null), context)<span class="question-mark">?</span>;
         }
-        <span class="prelude-val">Ok</span>(<span class="ident">ShouldExit::False</span>)
+        <span class="prelude-val">Ok</span>(ShouldExit::False)
     }
 }
 
-<span class="doccomment">/// `IteratorToArray` implements the Opcode Operation for `Opcode::IteratorToArray`</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Operation:</span>
-<span class="doccomment">///  - Consume the iterator and construct and array with all the values.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">IteratorToArray</span>;
+<span class="doccomment">/// `IteratorToArray` implements the Opcode Operation for `Opcode::IteratorToArray`
+///
+/// Operation:
+///  - Consume the iterator and construct and array with all the values.
+</span><span class="attribute">#[derive(Debug, Clone, Copy)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>IteratorToArray;
 
-<span class="kw">impl</span> <span class="ident">Operation</span> <span class="kw">for</span> <span class="ident">IteratorToArray</span> {
-    <span class="kw">const</span> <span class="ident">NAME</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;IteratorToArray&quot;</span>;
-    <span class="kw">const</span> <span class="ident">INSTRUCTION</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;INST - IteratorToArray&quot;</span>;
+<span class="kw">impl </span>Operation <span class="kw">for </span>IteratorToArray {
+    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;IteratorToArray&quot;</span>;
+    <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - IteratorToArray&quot;</span>;
 
-    <span class="kw">fn</span> <span class="ident">execute</span>(<span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">ShouldExit</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">done</span> <span class="op">=</span> <span class="ident">context</span>
-            .<span class="ident">vm</span>
-            .<span class="ident">pop</span>()
-            .<span class="ident">as_boolean</span>()
-            .<span class="ident">expect</span>(<span class="string">&quot;iterator [[Done]] was not a boolean&quot;</span>);
-        <span class="kw">let</span> <span class="ident">next_method</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">pop</span>();
-        <span class="kw">let</span> <span class="ident">iterator</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">pop</span>();
-        <span class="kw">let</span> <span class="ident">iterator</span> <span class="op">=</span> <span class="ident">iterator</span>.<span class="ident">as_object</span>().<span class="ident">expect</span>(<span class="string">&quot;iterator was not an object&quot;</span>);
+    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;ShouldExit&gt; {
+        <span class="kw">let </span>done = context
+            .vm
+            .pop()
+            .as_boolean()
+            .expect(<span class="string">&quot;iterator [[Done]] was not a boolean&quot;</span>);
+        <span class="kw">let </span>next_method = context.vm.pop();
+        <span class="kw">let </span>iterator = context.vm.pop();
+        <span class="kw">let </span>iterator = iterator.as_object().expect(<span class="string">&quot;iterator was not an object&quot;</span>);
 
-        <span class="kw">let</span> <span class="ident">iterator_record</span> <span class="op">=</span> <span class="ident">IteratorRecord::new</span>(<span class="ident">iterator</span>.<span class="ident">clone</span>(), <span class="ident">next_method</span>.<span class="ident">clone</span>(), <span class="ident">done</span>);
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">values</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
+        <span class="kw">let </span>iterator_record = IteratorRecord::new(iterator.clone(), next_method.clone(), done);
+        <span class="kw">let </span><span class="kw-2">mut </span>values = Vec::new();
 
-        <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">result</span>) <span class="op">=</span> <span class="ident">iterator_record</span>.<span class="ident">step</span>(<span class="ident">context</span>)<span class="question-mark">?</span> {
-            <span class="ident">values</span>.<span class="ident">push</span>(<span class="ident">result</span>.<span class="ident">value</span>(<span class="ident">context</span>)<span class="question-mark">?</span>);
+        <span class="kw">while let </span><span class="prelude-val">Some</span>(result) = iterator_record.step(context)<span class="question-mark">? </span>{
+            values.push(result.value(context)<span class="question-mark">?</span>);
         }
 
-        <span class="kw">let</span> <span class="ident">array</span> <span class="op">=</span> <span class="ident">Array::create_array_from_list</span>(<span class="ident">values</span>, <span class="ident">context</span>);
+        <span class="kw">let </span>array = Array::create_array_from_list(values, context);
 
-        <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">push</span>(<span class="ident">iterator</span>.<span class="ident">clone</span>());
-        <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">push</span>(<span class="ident">next_method</span>);
-        <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">push</span>(<span class="bool-val">true</span>);
-        <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">push</span>(<span class="ident">array</span>);
-        <span class="prelude-val">Ok</span>(<span class="ident">ShouldExit::False</span>)
+        context.vm.push(iterator.clone());
+        context.vm.push(next_method);
+        context.vm.push(<span class="bool-val">true</span>);
+        context.vm.push(array);
+        <span class="prelude-val">Ok</span>(ShouldExit::False)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0 (a55dd71d5 2022-09-19)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0 (897e37553 2022-11-02)" ></div></body></html>

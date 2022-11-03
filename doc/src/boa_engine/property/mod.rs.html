@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_engine/src/property/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../boa_engine/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../boa_engine/index.html"><div class="logo-container">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_engine/src/property/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../boa_engine/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../boa_engine/index.html"><div class="logo-container">
                     <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../boa_engine/index.html">
                         <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -681,686 +681,686 @@
 <span id="679">679</span>
 <span id="680">680</span>
 <span id="681">681</span>
-</pre><pre class="rust"><code><span class="doccomment">//! This module implements the Property Descriptor.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! The Property Descriptor type is used to explain the manipulation and reification of `Object`</span>
-<span class="doccomment">//! property attributes. Values of the Property Descriptor type are Records. Each field&#39;s name is</span>
-<span class="doccomment">//! an attribute name and its value is a corresponding attribute value as specified in</span>
-<span class="doccomment">//! [6.1.7.1][section]. In addition, any field may be present or absent. The schema name used</span>
-<span class="doccomment">//! within this specification to tag literal descriptions of Property Descriptor records is</span>
-<span class="doccomment">//! `PropertyDescriptor`.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! More information:</span>
-<span class="doccomment">//!  - [MDN documentation][mdn]</span>
-<span class="doccomment">//!  - [ECMAScript reference][spec]</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! [spec]: https://tc39.es/ecma262/#sec-property-descriptor-specification-type</span>
-<span class="doccomment">//! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/defineProperty</span>
-<span class="doccomment">//! [section]: https://tc39.es/ecma262/#sec-property-attributes</span>
+</pre><pre class="rust"><code><span class="doccomment">//! This module implements the Property Descriptor.
+//!
+//! The Property Descriptor type is used to explain the manipulation and reification of `Object`
+//! property attributes. Values of the Property Descriptor type are Records. Each field&#39;s name is
+//! an attribute name and its value is a corresponding attribute value as specified in
+//! [6.1.7.1][section]. In addition, any field may be present or absent. The schema name used
+//! within this specification to tag literal descriptions of Property Descriptor records is
+//! `PropertyDescriptor`.
+//!
+//! More information:
+//!  - [MDN documentation][mdn]
+//!  - [ECMAScript reference][spec]
+//!
+//! [spec]: https://tc39.es/ecma262/#sec-property-descriptor-specification-type
+//! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/defineProperty
+//! [section]: https://tc39.es/ecma262/#sec-property-attributes
 
-<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">js_string</span>, <span class="ident">JsString</span>, <span class="ident">JsSymbol</span>, <span class="ident">JsValue</span>};
-<span class="kw">use</span> <span class="ident">boa_gc</span>::{<span class="ident">Finalize</span>, <span class="ident">Trace</span>};
-<span class="kw">use</span> <span class="ident">std::fmt</span>;
+</span><span class="kw">use crate</span>::{js_string, JsString, JsSymbol, JsValue};
+<span class="kw">use </span>boa_gc::{Finalize, Trace};
+<span class="kw">use </span>std::fmt;
 
-<span class="kw">mod</span> <span class="ident">attribute</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">attribute::Attribute</span>;
+<span class="kw">mod </span>attribute;
+<span class="kw">pub use </span>attribute::Attribute;
 
-<span class="doccomment">/// This represents a JavaScript Property AKA The Property Descriptor.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Property descriptors present in objects come in three main flavors:</span>
-<span class="doccomment">///  - data descriptors</span>
-<span class="doccomment">///  - accessor descriptors</span>
-<span class="doccomment">///  - generic descriptor</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// A data Property Descriptor is one that includes any fields named either</span>
-<span class="doccomment">/// \[\[Value\]\] or \[\[Writable\]\].</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// An accessor Property Descriptor is one that includes any fields named either</span>
-<span class="doccomment">/// \[\[Get\]\] or \[\[Set\]\].</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// A generic Property Descriptor is a Property Descriptor value that is neither</span>
-<span class="doccomment">/// a data Property Descriptor nor an accessor Property Descriptor.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">/// - [MDN documentation][mdn]</span>
-<span class="doccomment">/// - [ECMAScript reference][spec]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-property-descriptor-specification-type</span>
-<span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/defineProperty</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Default</span>, <span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Trace</span>, <span class="ident">Finalize</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">PropertyDescriptor</span> {
-    <span class="ident">enumerable</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span>,
-    <span class="ident">configurable</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span>,
-    <span class="ident">kind</span>: <span class="ident">DescriptorKind</span>,
+<span class="doccomment">/// This represents a JavaScript Property AKA The Property Descriptor.
+///
+/// Property descriptors present in objects come in three main flavors:
+///  - data descriptors
+///  - accessor descriptors
+///  - generic descriptor
+///
+/// A data Property Descriptor is one that includes any fields named either
+/// \[\[Value\]\] or \[\[Writable\]\].
+///
+/// An accessor Property Descriptor is one that includes any fields named either
+/// \[\[Get\]\] or \[\[Set\]\].
+///
+/// A generic Property Descriptor is a Property Descriptor value that is neither
+/// a data Property Descriptor nor an accessor Property Descriptor.
+///
+/// More information:
+/// - [MDN documentation][mdn]
+/// - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-property-descriptor-specification-type
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/defineProperty
+</span><span class="attribute">#[derive(Default, Debug, Clone, Trace, Finalize)]
+</span><span class="kw">pub struct </span>PropertyDescriptor {
+    enumerable: <span class="prelude-ty">Option</span>&lt;bool&gt;,
+    configurable: <span class="prelude-ty">Option</span>&lt;bool&gt;,
+    kind: DescriptorKind,
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Trace</span>, <span class="ident">Finalize</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">DescriptorKind</span> {
-    <span class="ident">Data</span> {
-        <span class="ident">value</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span>,
-        <span class="ident">writable</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span>,
+<span class="attribute">#[derive(Debug, Clone, Trace, Finalize)]
+</span><span class="kw">pub enum </span>DescriptorKind {
+    Data {
+        value: <span class="prelude-ty">Option</span>&lt;JsValue&gt;,
+        writable: <span class="prelude-ty">Option</span>&lt;bool&gt;,
     },
-    <span class="ident">Accessor</span> {
-        <span class="ident">get</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span>,
-        <span class="ident">set</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span>,
+    Accessor {
+        get: <span class="prelude-ty">Option</span>&lt;JsValue&gt;,
+        set: <span class="prelude-ty">Option</span>&lt;JsValue&gt;,
     },
-    <span class="ident">Generic</span>,
+    Generic,
 }
 
-<span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">DescriptorKind</span> {
-    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::Generic</span>
+<span class="kw">impl </span>Default <span class="kw">for </span>DescriptorKind {
+    <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::Generic
     }
 }
 
-<span class="kw">impl</span> <span class="ident">PropertyDescriptor</span> {
-    <span class="doccomment">/// An accessor Property Descriptor is one that includes any fields named either `[[Get]]` or `[[Set]]`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">/// - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-isaccessordescriptor</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_accessor_descriptor</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="macro">matches!</span>(<span class="self">self</span>.<span class="ident">kind</span>, <span class="ident">DescriptorKind::Accessor</span> { .. })
+<span class="kw">impl </span>PropertyDescriptor {
+    <span class="doccomment">/// An accessor Property Descriptor is one that includes any fields named either `[[Get]]` or `[[Set]]`.
+    ///
+    /// More information:
+    /// - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-isaccessordescriptor
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>is_accessor_descriptor(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="macro">matches!</span>(<span class="self">self</span>.kind, DescriptorKind::Accessor { .. })
     }
 
-    <span class="doccomment">/// A data Property Descriptor is one that includes any fields named either `[[Value]]` or `[[Writable]]`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">/// - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-isdatadescriptor</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_data_descriptor</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="macro">matches!</span>(<span class="self">self</span>.<span class="ident">kind</span>, <span class="ident">DescriptorKind::Data</span> { .. })
+    <span class="doccomment">/// A data Property Descriptor is one that includes any fields named either `[[Value]]` or `[[Writable]]`.
+    ///
+    /// More information:
+    /// - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-isdatadescriptor
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>is_data_descriptor(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="macro">matches!</span>(<span class="self">self</span>.kind, DescriptorKind::Data { .. })
     }
 
-    <span class="doccomment">/// A generic Property Descriptor is one that is neither a data descriptor nor an accessor descriptor.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">/// - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-isgenericdescriptor</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_generic_descriptor</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="macro">matches!</span>(<span class="self">self</span>.<span class="ident">kind</span>, <span class="ident">DescriptorKind::Generic</span>)
+    <span class="doccomment">/// A generic Property Descriptor is one that is neither a data descriptor nor an accessor descriptor.
+    ///
+    /// More information:
+    /// - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-isgenericdescriptor
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>is_generic_descriptor(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="macro">matches!</span>(<span class="self">self</span>.kind, DescriptorKind::Generic)
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_empty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">is_generic_descriptor</span>() <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">enumerable</span>.<span class="ident">is_none</span>() <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">configurable</span>.<span class="ident">is_none</span>()
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.is_generic_descriptor() &amp;&amp; <span class="self">self</span>.enumerable.is_none() &amp;&amp; <span class="self">self</span>.configurable.is_none()
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">enumerable</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">enumerable</span>
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>enumerable(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;bool&gt; {
+        <span class="self">self</span>.enumerable
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">configurable</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">configurable</span>
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>configurable(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;bool&gt; {
+        <span class="self">self</span>.configurable
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">writable</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">kind</span> {
-            <span class="ident">DescriptorKind::Data</span> { <span class="ident">writable</span>, .. } =&gt; <span class="ident">writable</span>,
-            <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>writable(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;bool&gt; {
+        <span class="kw">match </span><span class="self">self</span>.kind {
+            DescriptorKind::Data { writable, .. } =&gt; writable,
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         }
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">value</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">kind</span> {
-            <span class="ident">DescriptorKind::Data</span> { <span class="ident">value</span>, .. } =&gt; <span class="ident">value</span>.<span class="ident">as_ref</span>(),
-            <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>value(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>JsValue&gt; {
+        <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.kind {
+            DescriptorKind::Data { value, .. } =&gt; value.as_ref(),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         }
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">kind</span> {
-            <span class="ident">DescriptorKind::Accessor</span> { <span class="ident">get</span>, .. } =&gt; <span class="ident">get</span>.<span class="ident">as_ref</span>(),
-            <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>JsValue&gt; {
+        <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.kind {
+            DescriptorKind::Accessor { get, .. } =&gt; get.as_ref(),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         }
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">kind</span> {
-            <span class="ident">DescriptorKind::Accessor</span> { <span class="ident">set</span>, .. } =&gt; <span class="ident">set</span>.<span class="ident">as_ref</span>(),
-            <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>set(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>JsValue&gt; {
+        <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.kind {
+            DescriptorKind::Accessor { set, .. } =&gt; set.as_ref(),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         }
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">expect_enumerable</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">enumerable</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">enumerable</span> {
-            <span class="ident">enumerable</span>
-        } <span class="kw">else</span> {
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>expect_enumerable(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(enumerable) = <span class="self">self</span>.enumerable {
+            enumerable
+        } <span class="kw">else </span>{
             <span class="macro">panic!</span>(<span class="string">&quot;[[enumerable]] field not in property descriptor&quot;</span>)
         }
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">expect_configurable</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">configurable</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">configurable</span> {
-            <span class="ident">configurable</span>
-        } <span class="kw">else</span> {
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>expect_configurable(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(configurable) = <span class="self">self</span>.configurable {
+            configurable
+        } <span class="kw">else </span>{
             <span class="macro">panic!</span>(<span class="string">&quot;[[configurable]] field not in property descriptor&quot;</span>)
         }
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">expect_writable</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">writable</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">writable</span>() {
-            <span class="ident">writable</span>
-        } <span class="kw">else</span> {
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>expect_writable(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(writable) = <span class="self">self</span>.writable() {
+            writable
+        } <span class="kw">else </span>{
             <span class="macro">panic!</span>(<span class="string">&quot;[[writable]] field not in property descriptor&quot;</span>)
         }
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">expect_value</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">JsValue</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">value</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">value</span>() {
-            <span class="ident">value</span>
-        } <span class="kw">else</span> {
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>expect_value(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>JsValue {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(value) = <span class="self">self</span>.value() {
+            value
+        } <span class="kw">else </span>{
             <span class="macro">panic!</span>(<span class="string">&quot;[[value]] field not in property descriptor&quot;</span>)
         }
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">expect_get</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">JsValue</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">get</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">get</span>() {
-            <span class="ident">get</span>
-        } <span class="kw">else</span> {
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>expect_get(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>JsValue {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(get) = <span class="self">self</span>.get() {
+            get
+        } <span class="kw">else </span>{
             <span class="macro">panic!</span>(<span class="string">&quot;[[get]] field not in property descriptor&quot;</span>)
         }
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">expect_set</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">JsValue</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">set</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">set</span>() {
-            <span class="ident">set</span>
-        } <span class="kw">else</span> {
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>expect_set(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>JsValue {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(set) = <span class="self">self</span>.set() {
+            set
+        } <span class="kw">else </span>{
             <span class="macro">panic!</span>(<span class="string">&quot;[[set]] field not in property descriptor&quot;</span>)
         }
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">kind</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">DescriptorKind</span> {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">kind</span>
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>kind(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>DescriptorKind {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.kind
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">builder</span>() -&gt; <span class="ident">PropertyDescriptorBuilder</span> {
-        <span class="ident">PropertyDescriptorBuilder::new</span>()
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>builder() -&gt; PropertyDescriptorBuilder {
+        PropertyDescriptorBuilder::new()
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_accessor_defaulted</span>(<span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">self</span>.<span class="ident">kind</span> <span class="op">=</span> <span class="ident">DescriptorKind::Accessor</span> {
-            <span class="ident">get</span>: <span class="self">self</span>.<span class="ident">get</span>().<span class="ident">cloned</span>(),
-            <span class="ident">set</span>: <span class="self">self</span>.<span class="ident">set</span>().<span class="ident">cloned</span>(),
+    <span class="attribute">#[inline]
+    #[must_use]
+    </span><span class="kw">pub fn </span>into_accessor_defaulted(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.kind = DescriptorKind::Accessor {
+            get: <span class="self">self</span>.get().cloned(),
+            set: <span class="self">self</span>.set().cloned(),
         };
-        <span class="ident">PropertyDescriptorBuilder</span> { <span class="ident">inner</span>: <span class="self">self</span> }
-            .<span class="ident">complete_with_defaults</span>()
-            .<span class="ident">build</span>()
+        PropertyDescriptorBuilder { inner: <span class="self">self </span>}
+            .complete_with_defaults()
+            .build()
     }
 
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_data_defaulted</span>(<span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">self</span>.<span class="ident">kind</span> <span class="op">=</span> <span class="ident">DescriptorKind::Data</span> {
-            <span class="ident">value</span>: <span class="self">self</span>.<span class="ident">value</span>().<span class="ident">cloned</span>(),
-            <span class="ident">writable</span>: <span class="self">self</span>.<span class="ident">writable</span>(),
+    <span class="attribute">#[must_use]
+    </span><span class="kw">pub fn </span>into_data_defaulted(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.kind = DescriptorKind::Data {
+            value: <span class="self">self</span>.value().cloned(),
+            writable: <span class="self">self</span>.writable(),
         };
-        <span class="ident">PropertyDescriptorBuilder</span> { <span class="ident">inner</span>: <span class="self">self</span> }
-            .<span class="ident">complete_with_defaults</span>()
-            .<span class="ident">build</span>()
+        PropertyDescriptorBuilder { inner: <span class="self">self </span>}
+            .complete_with_defaults()
+            .build()
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">complete_property_descriptor</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">PropertyDescriptorBuilder</span> { <span class="ident">inner</span>: <span class="self">self</span> }
-            .<span class="ident">complete_with_defaults</span>()
-            .<span class="ident">build</span>()
+    <span class="attribute">#[inline]
+    #[must_use]
+    </span><span class="kw">pub fn </span>complete_property_descriptor(<span class="self">self</span>) -&gt; <span class="self">Self </span>{
+        PropertyDescriptorBuilder { inner: <span class="self">self </span>}
+            .complete_with_defaults()
+            .build()
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">fill_with</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">desc</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) {
-        <span class="kw">match</span> (<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">kind</span>, <span class="kw-2">&amp;</span><span class="ident">desc</span>.<span class="ident">kind</span>) {
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>fill_with(<span class="kw-2">&amp;mut </span><span class="self">self</span>, desc: <span class="kw-2">&amp;</span><span class="self">Self</span>) {
+        <span class="kw">match </span>(<span class="kw-2">&amp;mut </span><span class="self">self</span>.kind, <span class="kw-2">&amp;</span>desc.kind) {
             (
-                <span class="ident">DescriptorKind::Data</span> { <span class="ident">value</span>, <span class="ident">writable</span> },
-                <span class="ident">DescriptorKind::Data</span> {
-                    <span class="ident">value</span>: <span class="ident">desc_value</span>,
-                    <span class="ident">writable</span>: <span class="ident">desc_writable</span>,
+                DescriptorKind::Data { value, writable },
+                DescriptorKind::Data {
+                    value: desc_value,
+                    writable: desc_writable,
                 },
             ) =&gt; {
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">desc_value</span>) <span class="op">=</span> <span class="ident">desc_value</span> {
-                    <span class="kw-2">*</span><span class="ident">value</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">desc_value</span>.<span class="ident">clone</span>());
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(desc_value) = desc_value {
+                    <span class="kw-2">*</span>value = <span class="prelude-val">Some</span>(desc_value.clone());
                 }
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">desc_writable</span>) <span class="op">=</span> <span class="ident">desc_writable</span> {
-                    <span class="kw-2">*</span><span class="ident">writable</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="kw-2">*</span><span class="ident">desc_writable</span>);
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(desc_writable) = desc_writable {
+                    <span class="kw-2">*</span>writable = <span class="prelude-val">Some</span>(<span class="kw-2">*</span>desc_writable);
                 }
             }
             (
-                <span class="ident">DescriptorKind::Accessor</span> { <span class="ident">get</span>, <span class="ident">set</span> },
-                <span class="ident">DescriptorKind::Accessor</span> {
-                    <span class="ident">get</span>: <span class="ident">desc_get</span>,
-                    <span class="ident">set</span>: <span class="ident">desc_set</span>,
+                DescriptorKind::Accessor { get, set },
+                DescriptorKind::Accessor {
+                    get: desc_get,
+                    set: desc_set,
                 },
             ) =&gt; {
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">desc_get</span>) <span class="op">=</span> <span class="ident">desc_get</span> {
-                    <span class="kw-2">*</span><span class="ident">get</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">desc_get</span>.<span class="ident">clone</span>());
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(desc_get) = desc_get {
+                    <span class="kw-2">*</span>get = <span class="prelude-val">Some</span>(desc_get.clone());
                 }
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">desc_set</span>) <span class="op">=</span> <span class="ident">desc_set</span> {
-                    <span class="kw-2">*</span><span class="ident">set</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">desc_set</span>.<span class="ident">clone</span>());
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(desc_set) = desc_set {
+                    <span class="kw-2">*</span>set = <span class="prelude-val">Some</span>(desc_set.clone());
                 }
             }
-            (<span class="kw">_</span>, <span class="ident">DescriptorKind::Generic</span>) =&gt; {}
-            <span class="kw">_</span> =&gt; <span class="macro">panic!</span>(<span class="string">&quot;Tried to fill a descriptor with an incompatible descriptor&quot;</span>),
+            (<span class="kw">_</span>, DescriptorKind::Generic) =&gt; {}
+            <span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(<span class="string">&quot;Tried to fill a descriptor with an incompatible descriptor&quot;</span>),
         }
 
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">enumerable</span>) <span class="op">=</span> <span class="ident">desc</span>.<span class="ident">enumerable</span> {
-            <span class="self">self</span>.<span class="ident">enumerable</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">enumerable</span>);
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(enumerable) = desc.enumerable {
+            <span class="self">self</span>.enumerable = <span class="prelude-val">Some</span>(enumerable);
         }
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">configurable</span>) <span class="op">=</span> <span class="ident">desc</span>.<span class="ident">configurable</span> {
-            <span class="self">self</span>.<span class="ident">configurable</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">configurable</span>);
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(configurable) = desc.configurable {
+            <span class="self">self</span>.configurable = <span class="prelude-val">Some</span>(configurable);
         }
     }
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Default</span>, <span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">PropertyDescriptorBuilder</span> {
-    <span class="ident">inner</span>: <span class="ident">PropertyDescriptor</span>,
+<span class="attribute">#[derive(Default, Debug, Clone)]
+</span><span class="kw">pub struct </span>PropertyDescriptorBuilder {
+    inner: PropertyDescriptor,
 }
 
-<span class="kw">impl</span> <span class="ident">PropertyDescriptorBuilder</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::default</span>()
+<span class="kw">impl </span>PropertyDescriptorBuilder {
+    <span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::default()
     }
 
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">value</span><span class="op">&lt;</span><span class="ident">V</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">value</span>: <span class="ident">V</span>) -&gt; <span class="self">Self</span> {
-        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">kind</span> {
-            <span class="ident">DescriptorKind::Data</span> {
-                <span class="ident">value</span>: <span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">v</span>, ..
-            } =&gt; <span class="kw-2">*</span><span class="ident">v</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">value</span>.<span class="ident">into</span>()),
-            <span class="comment">// TODO: maybe panic when trying to convert accessor to data?</span>
-            <span class="kw">_</span> =&gt; {
-                <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">kind</span> <span class="op">=</span> <span class="ident">DescriptorKind::Data</span> {
-                    <span class="ident">value</span>: <span class="prelude-val">Some</span>(<span class="ident">value</span>.<span class="ident">into</span>()),
-                    <span class="ident">writable</span>: <span class="prelude-val">None</span>,
+    <span class="attribute">#[must_use]
+    </span><span class="kw">pub fn </span>value&lt;V: Into&lt;JsValue&gt;&gt;(<span class="kw-2">mut </span><span class="self">self</span>, value: V) -&gt; <span class="self">Self </span>{
+        <span class="kw">match </span><span class="self">self</span>.inner.kind {
+            DescriptorKind::Data {
+                value: <span class="kw-2">ref mut </span>v, ..
+            } =&gt; <span class="kw-2">*</span>v = <span class="prelude-val">Some</span>(value.into()),
+            <span class="comment">// TODO: maybe panic when trying to convert accessor to data?
+            </span><span class="kw">_ </span>=&gt; {
+                <span class="self">self</span>.inner.kind = DescriptorKind::Data {
+                    value: <span class="prelude-val">Some</span>(value.into()),
+                    writable: <span class="prelude-val">None</span>,
                 }
             }
         }
-        <span class="self">self</span>
-    }
+        <span class="self">self
+    </span>}
 
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">writable</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">writable</span>: <span class="ident">bool</span>) -&gt; <span class="self">Self</span> {
-        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">kind</span> {
-            <span class="ident">DescriptorKind::Data</span> {
-                <span class="ident">writable</span>: <span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">w</span>,
+    <span class="attribute">#[must_use]
+    </span><span class="kw">pub fn </span>writable(<span class="kw-2">mut </span><span class="self">self</span>, writable: bool) -&gt; <span class="self">Self </span>{
+        <span class="kw">match </span><span class="self">self</span>.inner.kind {
+            DescriptorKind::Data {
+                writable: <span class="kw-2">ref mut </span>w,
                 ..
-            } =&gt; <span class="kw-2">*</span><span class="ident">w</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">writable</span>),
-            <span class="comment">// TODO: maybe panic when trying to convert accessor to data?</span>
-            <span class="kw">_</span> =&gt; {
-                <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">kind</span> <span class="op">=</span> <span class="ident">DescriptorKind::Data</span> {
-                    <span class="ident">value</span>: <span class="prelude-val">None</span>,
-                    <span class="ident">writable</span>: <span class="prelude-val">Some</span>(<span class="ident">writable</span>),
+            } =&gt; <span class="kw-2">*</span>w = <span class="prelude-val">Some</span>(writable),
+            <span class="comment">// TODO: maybe panic when trying to convert accessor to data?
+            </span><span class="kw">_ </span>=&gt; {
+                <span class="self">self</span>.inner.kind = DescriptorKind::Data {
+                    value: <span class="prelude-val">None</span>,
+                    writable: <span class="prelude-val">Some</span>(writable),
                 }
             }
         }
-        <span class="self">self</span>
-    }
+        <span class="self">self
+    </span>}
 
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get</span><span class="op">&lt;</span><span class="ident">V</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">get</span>: <span class="ident">V</span>) -&gt; <span class="self">Self</span> {
-        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">kind</span> {
-            <span class="ident">DescriptorKind::Accessor</span> { <span class="ident">get</span>: <span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">g</span>, .. } =&gt; <span class="kw-2">*</span><span class="ident">g</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">get</span>.<span class="ident">into</span>()),
-            <span class="comment">// TODO: maybe panic when trying to convert data to accessor?</span>
-            <span class="kw">_</span> =&gt; {
-                <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">kind</span> <span class="op">=</span> <span class="ident">DescriptorKind::Accessor</span> {
-                    <span class="ident">get</span>: <span class="prelude-val">Some</span>(<span class="ident">get</span>.<span class="ident">into</span>()),
-                    <span class="ident">set</span>: <span class="prelude-val">None</span>,
+    <span class="attribute">#[must_use]
+    </span><span class="kw">pub fn </span>get&lt;V: Into&lt;JsValue&gt;&gt;(<span class="kw-2">mut </span><span class="self">self</span>, get: V) -&gt; <span class="self">Self </span>{
+        <span class="kw">match </span><span class="self">self</span>.inner.kind {
+            DescriptorKind::Accessor { get: <span class="kw-2">ref mut </span>g, .. } =&gt; <span class="kw-2">*</span>g = <span class="prelude-val">Some</span>(get.into()),
+            <span class="comment">// TODO: maybe panic when trying to convert data to accessor?
+            </span><span class="kw">_ </span>=&gt; {
+                <span class="self">self</span>.inner.kind = DescriptorKind::Accessor {
+                    get: <span class="prelude-val">Some</span>(get.into()),
+                    set: <span class="prelude-val">None</span>,
                 }
             }
         }
-        <span class="self">self</span>
-    }
+        <span class="self">self
+    </span>}
 
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set</span><span class="op">&lt;</span><span class="ident">V</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">set</span>: <span class="ident">V</span>) -&gt; <span class="self">Self</span> {
-        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">kind</span> {
-            <span class="ident">DescriptorKind::Accessor</span> { <span class="ident">set</span>: <span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">s</span>, .. } =&gt; <span class="kw-2">*</span><span class="ident">s</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">set</span>.<span class="ident">into</span>()),
-            <span class="comment">// TODO: maybe panic when trying to convert data to accessor?</span>
-            <span class="kw">_</span> =&gt; {
-                <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">kind</span> <span class="op">=</span> <span class="ident">DescriptorKind::Accessor</span> {
-                    <span class="ident">set</span>: <span class="prelude-val">Some</span>(<span class="ident">set</span>.<span class="ident">into</span>()),
-                    <span class="ident">get</span>: <span class="prelude-val">None</span>,
+    <span class="attribute">#[must_use]
+    </span><span class="kw">pub fn </span>set&lt;V: Into&lt;JsValue&gt;&gt;(<span class="kw-2">mut </span><span class="self">self</span>, set: V) -&gt; <span class="self">Self </span>{
+        <span class="kw">match </span><span class="self">self</span>.inner.kind {
+            DescriptorKind::Accessor { set: <span class="kw-2">ref mut </span>s, .. } =&gt; <span class="kw-2">*</span>s = <span class="prelude-val">Some</span>(set.into()),
+            <span class="comment">// TODO: maybe panic when trying to convert data to accessor?
+            </span><span class="kw">_ </span>=&gt; {
+                <span class="self">self</span>.inner.kind = DescriptorKind::Accessor {
+                    set: <span class="prelude-val">Some</span>(set.into()),
+                    get: <span class="prelude-val">None</span>,
                 }
             }
         }
-        <span class="self">self</span>
-    }
+        <span class="self">self
+    </span>}
 
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">maybe_enumerable</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">enumerable</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">enumerable</span>) <span class="op">=</span> <span class="ident">enumerable</span> {
-            <span class="self">self</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">enumerable</span>(<span class="ident">enumerable</span>);
+    <span class="attribute">#[must_use]
+    </span><span class="kw">pub fn </span>maybe_enumerable(<span class="kw-2">mut </span><span class="self">self</span>, enumerable: <span class="prelude-ty">Option</span>&lt;bool&gt;) -&gt; <span class="self">Self </span>{
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(enumerable) = enumerable {
+            <span class="self">self </span>= <span class="self">self</span>.enumerable(enumerable);
         }
-        <span class="self">self</span>
-    }
+        <span class="self">self
+    </span>}
 
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">maybe_configurable</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">configurable</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">configurable</span>) <span class="op">=</span> <span class="ident">configurable</span> {
-            <span class="self">self</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">configurable</span>(<span class="ident">configurable</span>);
+    <span class="attribute">#[must_use]
+    </span><span class="kw">pub fn </span>maybe_configurable(<span class="kw-2">mut </span><span class="self">self</span>, configurable: <span class="prelude-ty">Option</span>&lt;bool&gt;) -&gt; <span class="self">Self </span>{
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(configurable) = configurable {
+            <span class="self">self </span>= <span class="self">self</span>.configurable(configurable);
         }
-        <span class="self">self</span>
-    }
+        <span class="self">self
+    </span>}
 
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">maybe_value</span><span class="op">&lt;</span><span class="ident">V</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">value</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">value</span>) <span class="op">=</span> <span class="ident">value</span> {
-            <span class="self">self</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">value</span>(<span class="ident">value</span>);
+    <span class="attribute">#[must_use]
+    </span><span class="kw">pub fn </span>maybe_value&lt;V: Into&lt;JsValue&gt;&gt;(<span class="kw-2">mut </span><span class="self">self</span>, value: <span class="prelude-ty">Option</span>&lt;V&gt;) -&gt; <span class="self">Self </span>{
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(value) = value {
+            <span class="self">self </span>= <span class="self">self</span>.value(value);
         }
-        <span class="self">self</span>
-    }
+        <span class="self">self
+    </span>}
 
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">maybe_writable</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">writable</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">writable</span>) <span class="op">=</span> <span class="ident">writable</span> {
-            <span class="self">self</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">writable</span>(<span class="ident">writable</span>);
+    <span class="attribute">#[must_use]
+    </span><span class="kw">pub fn </span>maybe_writable(<span class="kw-2">mut </span><span class="self">self</span>, writable: <span class="prelude-ty">Option</span>&lt;bool&gt;) -&gt; <span class="self">Self </span>{
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(writable) = writable {
+            <span class="self">self </span>= <span class="self">self</span>.writable(writable);
         }
-        <span class="self">self</span>
-    }
+        <span class="self">self
+    </span>}
 
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">maybe_get</span><span class="op">&lt;</span><span class="ident">V</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">get</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">get</span>) <span class="op">=</span> <span class="ident">get</span> {
-            <span class="self">self</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get</span>(<span class="ident">get</span>);
+    <span class="attribute">#[must_use]
+    </span><span class="kw">pub fn </span>maybe_get&lt;V: Into&lt;JsValue&gt;&gt;(<span class="kw-2">mut </span><span class="self">self</span>, get: <span class="prelude-ty">Option</span>&lt;V&gt;) -&gt; <span class="self">Self </span>{
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(get) = get {
+            <span class="self">self </span>= <span class="self">self</span>.get(get);
         }
-        <span class="self">self</span>
-    }
+        <span class="self">self
+    </span>}
 
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">maybe_set</span><span class="op">&lt;</span><span class="ident">V</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">set</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">set</span>) <span class="op">=</span> <span class="ident">set</span> {
-            <span class="self">self</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">set</span>(<span class="ident">set</span>);
+    <span class="attribute">#[must_use]
+    </span><span class="kw">pub fn </span>maybe_set&lt;V: Into&lt;JsValue&gt;&gt;(<span class="kw-2">mut </span><span class="self">self</span>, set: <span class="prelude-ty">Option</span>&lt;V&gt;) -&gt; <span class="self">Self </span>{
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(set) = set {
+            <span class="self">self </span>= <span class="self">self</span>.set(set);
         }
-        <span class="self">self</span>
-    }
+        <span class="self">self
+    </span>}
 
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">enumerable</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">enumerable</span>: <span class="ident">bool</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">enumerable</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">enumerable</span>);
-        <span class="self">self</span>
-    }
+    <span class="attribute">#[must_use]
+    </span><span class="kw">pub fn </span>enumerable(<span class="kw-2">mut </span><span class="self">self</span>, enumerable: bool) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.inner.enumerable = <span class="prelude-val">Some</span>(enumerable);
+        <span class="self">self
+    </span>}
 
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">configurable</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">configurable</span>: <span class="ident">bool</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">configurable</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">configurable</span>);
-        <span class="self">self</span>
-    }
+    <span class="attribute">#[must_use]
+    </span><span class="kw">pub fn </span>configurable(<span class="kw-2">mut </span><span class="self">self</span>, configurable: bool) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.inner.configurable = <span class="prelude-val">Some</span>(configurable);
+        <span class="self">self
+    </span>}
 
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">complete_with_defaults</span>(<span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="self">Self</span> {
-        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">kind</span> {
-            <span class="ident">DescriptorKind::Generic</span> =&gt; {
-                <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">kind</span> <span class="op">=</span> <span class="ident">DescriptorKind::Data</span> {
-                    <span class="ident">value</span>: <span class="prelude-val">Some</span>(<span class="ident">JsValue::undefined</span>()),
-                    <span class="ident">writable</span>: <span class="prelude-val">Some</span>(<span class="bool-val">false</span>),
+    <span class="attribute">#[must_use]
+    </span><span class="kw">pub fn </span>complete_with_defaults(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
+        <span class="kw">match </span><span class="self">self</span>.inner.kind {
+            DescriptorKind::Generic =&gt; {
+                <span class="self">self</span>.inner.kind = DescriptorKind::Data {
+                    value: <span class="prelude-val">Some</span>(JsValue::undefined()),
+                    writable: <span class="prelude-val">Some</span>(<span class="bool-val">false</span>),
                 }
             }
-            <span class="ident">DescriptorKind::Data</span> {
-                <span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">value</span>,
-                <span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">writable</span>,
+            DescriptorKind::Data {
+                <span class="kw-2">ref mut </span>value,
+                <span class="kw-2">ref mut </span>writable,
             } =&gt; {
-                <span class="kw">if</span> <span class="ident">value</span>.<span class="ident">is_none</span>() {
-                    <span class="kw-2">*</span><span class="ident">value</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">JsValue::undefined</span>());
+                <span class="kw">if </span>value.is_none() {
+                    <span class="kw-2">*</span>value = <span class="prelude-val">Some</span>(JsValue::undefined());
                 }
-                <span class="kw">if</span> <span class="ident">writable</span>.<span class="ident">is_none</span>() {
-                    <span class="kw-2">*</span><span class="ident">writable</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="bool-val">false</span>);
+                <span class="kw">if </span>writable.is_none() {
+                    <span class="kw-2">*</span>writable = <span class="prelude-val">Some</span>(<span class="bool-val">false</span>);
                 }
             }
-            <span class="ident">DescriptorKind::Accessor</span> {
-                <span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">set</span>,
-                <span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">get</span>,
+            DescriptorKind::Accessor {
+                <span class="kw-2">ref mut </span>set,
+                <span class="kw-2">ref mut </span>get,
             } =&gt; {
-                <span class="kw">if</span> <span class="ident">set</span>.<span class="ident">is_none</span>() {
-                    <span class="kw-2">*</span><span class="ident">set</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">JsValue::undefined</span>());
+                <span class="kw">if </span>set.is_none() {
+                    <span class="kw-2">*</span>set = <span class="prelude-val">Some</span>(JsValue::undefined());
                 }
-                <span class="kw">if</span> <span class="ident">get</span>.<span class="ident">is_none</span>() {
-                    <span class="kw-2">*</span><span class="ident">get</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">JsValue::undefined</span>());
-                }
-            }
-        }
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">configurable</span>.<span class="ident">is_none</span>() {
-            <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">configurable</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="bool-val">false</span>);
-        }
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">enumerable</span>.<span class="ident">is_none</span>() {
-            <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">enumerable</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="bool-val">false</span>);
-        }
-        <span class="self">self</span>
-    }
-
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">inner</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">PropertyDescriptor</span> {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">inner</span>
-    }
-
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build</span>(<span class="self">self</span>) -&gt; <span class="ident">PropertyDescriptor</span> {
-        <span class="self">self</span>.<span class="ident">inner</span>
-    }
-}
-
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">PropertyDescriptorBuilder</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">PropertyDescriptor</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">builder</span>: <span class="ident">PropertyDescriptorBuilder</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">builder</span>.<span class="ident">build</span>()
-    }
-}
-
-<span class="doccomment">/// This abstracts away the need for `IsPropertyKey` by transforming the `PropertyKey`</span>
-<span class="doccomment">/// values into an enum with both valid types: String and Symbol</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">/// - [ECMAScript reference][spec]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-ispropertykey</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">PartialEq</span>, <span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">PropertyKey</span> {
-    <span class="ident">String</span>(<span class="ident">JsString</span>),
-    <span class="ident">Symbol</span>(<span class="ident">JsSymbol</span>),
-    <span class="ident">Index</span>(<span class="ident">u32</span>),
-}
-
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">JsString</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">PropertyKey</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">string</span>: <span class="ident">JsString</span>) -&gt; <span class="self">Self</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">index</span>) <span class="op">=</span> <span class="ident">string</span>.<span class="ident">to_std_string</span>().<span class="ident">ok</span>().<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="ident">s</span>.<span class="ident">parse</span>().<span class="ident">ok</span>()) {
-            <span class="ident"><span class="self">Self</span>::Index</span>(<span class="ident">index</span>)
-        } <span class="kw">else</span> {
-            <span class="ident"><span class="self">Self</span>::String</span>(<span class="ident">string</span>)
-        }
-    }
-}
-
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">PropertyKey</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">string</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="self">Self</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">index</span>) <span class="op">=</span> <span class="ident">string</span>.<span class="ident">parse</span>() {
-            <span class="ident"><span class="self">Self</span>::Index</span>(<span class="ident">index</span>)
-        } <span class="kw">else</span> {
-            <span class="ident"><span class="self">Self</span>::String</span>(<span class="ident">string</span>.<span class="ident">into</span>())
-        }
-    }
-}
-
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">PropertyKey</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">string</span>: <span class="ident">String</span>) -&gt; <span class="self">Self</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">index</span>) <span class="op">=</span> <span class="ident">string</span>.<span class="ident">parse</span>() {
-            <span class="ident"><span class="self">Self</span>::Index</span>(<span class="ident">index</span>)
-        } <span class="kw">else</span> {
-            <span class="ident"><span class="self">Self</span>::String</span>(<span class="ident">string</span>.<span class="ident">into</span>())
-        }
-    }
-}
-
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">PropertyKey</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">string</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">index</span>) <span class="op">=</span> <span class="ident">string</span>.<span class="ident">parse</span>() {
-            <span class="ident"><span class="self">Self</span>::Index</span>(<span class="ident">index</span>)
-        } <span class="kw">else</span> {
-            <span class="ident"><span class="self">Self</span>::String</span>(<span class="ident">string</span>.<span class="ident">as_ref</span>().<span class="ident">into</span>())
-        }
-    }
-}
-
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">JsSymbol</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">PropertyKey</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">symbol</span>: <span class="ident">JsSymbol</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::Symbol</span>(<span class="ident">symbol</span>)
-    }
-}
-
-<span class="kw">impl</span> <span class="ident">fmt::Display</span> <span class="kw">for</span> <span class="ident">PropertyKey</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident"><span class="self">Self</span>::String</span>(<span class="kw-2">ref</span> <span class="ident">string</span>) =&gt; <span class="ident">string</span>.<span class="ident">to_std_string_escaped</span>().<span class="ident">fmt</span>(<span class="ident">f</span>),
-            <span class="ident"><span class="self">Self</span>::Symbol</span>(<span class="kw-2">ref</span> <span class="ident">symbol</span>) =&gt; <span class="ident">symbol</span>.<span class="ident">descriptive_string</span>().<span class="ident">to_std_string_escaped</span>().<span class="ident">fmt</span>(<span class="ident">f</span>),
-            <span class="ident"><span class="self">Self</span>::Index</span>(<span class="ident">index</span>) =&gt; <span class="ident">index</span>.<span class="ident">fmt</span>(<span class="ident">f</span>),
-        }
-    }
-}
-
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">PropertyKey</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">JsValue</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">property_key</span>: <span class="kw-2">&amp;</span><span class="ident">PropertyKey</span>) -&gt; <span class="self">Self</span> {
-        <span class="kw">match</span> <span class="ident">property_key</span> {
-            <span class="ident">PropertyKey::String</span>(<span class="kw-2">ref</span> <span class="ident">string</span>) =&gt; <span class="ident">string</span>.<span class="ident">clone</span>().<span class="ident">into</span>(),
-            <span class="ident">PropertyKey::Symbol</span>(<span class="kw-2">ref</span> <span class="ident">symbol</span>) =&gt; <span class="ident">symbol</span>.<span class="ident">clone</span>().<span class="ident">into</span>(),
-            <span class="ident">PropertyKey::Index</span>(<span class="ident">index</span>) =&gt; {
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">integer</span>) <span class="op">=</span> <span class="ident">i32::try_from</span>(<span class="kw-2">*</span><span class="ident">index</span>) {
-                    <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">integer</span>)
-                } <span class="kw">else</span> {
-                    <span class="ident"><span class="self">Self</span>::new</span>(<span class="kw-2">*</span><span class="ident">index</span>)
+                <span class="kw">if </span>get.is_none() {
+                    <span class="kw-2">*</span>get = <span class="prelude-val">Some</span>(JsValue::undefined());
                 }
             }
         }
+        <span class="kw">if </span><span class="self">self</span>.inner.configurable.is_none() {
+            <span class="self">self</span>.inner.configurable = <span class="prelude-val">Some</span>(<span class="bool-val">false</span>);
+        }
+        <span class="kw">if </span><span class="self">self</span>.inner.enumerable.is_none() {
+            <span class="self">self</span>.inner.enumerable = <span class="prelude-val">Some</span>(<span class="bool-val">false</span>);
+        }
+        <span class="self">self
+    </span>}
+
+    <span class="kw">pub fn </span>inner(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>PropertyDescriptor {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.inner
+    }
+
+    <span class="kw">pub fn </span>build(<span class="self">self</span>) -&gt; PropertyDescriptor {
+        <span class="self">self</span>.inner
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">PropertyKey</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">JsValue</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">property_key</span>: <span class="ident">PropertyKey</span>) -&gt; <span class="self">Self</span> {
-        <span class="kw">match</span> <span class="ident">property_key</span> {
-            <span class="ident">PropertyKey::String</span>(<span class="kw-2">ref</span> <span class="ident">string</span>) =&gt; <span class="ident">string</span>.<span class="ident">clone</span>().<span class="ident">into</span>(),
-            <span class="ident">PropertyKey::Symbol</span>(<span class="kw-2">ref</span> <span class="ident">symbol</span>) =&gt; <span class="ident">symbol</span>.<span class="ident">clone</span>().<span class="ident">into</span>(),
-            <span class="ident">PropertyKey::Index</span>(<span class="ident">index</span>) =&gt; <span class="ident">index</span>.<span class="ident">to_string</span>().<span class="ident">into</span>(),
+<span class="kw">impl </span>From&lt;PropertyDescriptorBuilder&gt; <span class="kw">for </span>PropertyDescriptor {
+    <span class="kw">fn </span>from(builder: PropertyDescriptorBuilder) -&gt; <span class="self">Self </span>{
+        builder.build()
+    }
+}
+
+<span class="doccomment">/// This abstracts away the need for `IsPropertyKey` by transforming the `PropertyKey`
+/// values into an enum with both valid types: String and Symbol
+///
+/// More information:
+/// - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-ispropertykey
+</span><span class="attribute">#[derive(PartialEq, Debug, Clone, Eq, Hash)]
+</span><span class="kw">pub enum </span>PropertyKey {
+    String(JsString),
+    Symbol(JsSymbol),
+    Index(u32),
+}
+
+<span class="kw">impl </span>From&lt;JsString&gt; <span class="kw">for </span>PropertyKey {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(string: JsString) -&gt; <span class="self">Self </span>{
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(index) = string.to_std_string().ok().and_then(|s| s.parse().ok()) {
+            <span class="self">Self</span>::Index(index)
+        } <span class="kw">else </span>{
+            <span class="self">Self</span>::String(string)
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">PropertyKey</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <span class="ident">u8</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::Index</span>(<span class="ident">value</span>.<span class="ident">into</span>())
-    }
-}
-
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">u16</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">PropertyKey</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <span class="ident">u16</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::Index</span>(<span class="ident">value</span>.<span class="ident">into</span>())
-    }
-}
-
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">PropertyKey</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <span class="ident">u32</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::Index</span>(<span class="ident">value</span>)
-    }
-}
-
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">PropertyKey</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <span class="ident">usize</span>) -&gt; <span class="self">Self</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">index</span>) <span class="op">=</span> <span class="ident">u32::try_from</span>(<span class="ident">value</span>) {
-            <span class="ident"><span class="self">Self</span>::Index</span>(<span class="ident">index</span>)
-        } <span class="kw">else</span> {
-            <span class="ident"><span class="self">Self</span>::String</span>(<span class="macro">js_string!</span>(<span class="ident">value</span>.<span class="ident">to_string</span>()))
+<span class="kw">impl </span>From&lt;<span class="kw-2">&amp;</span>str&gt; <span class="kw">for </span>PropertyKey {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(string: <span class="kw-2">&amp;</span>str) -&gt; <span class="self">Self </span>{
+        <span class="kw">if let </span><span class="prelude-val">Ok</span>(index) = string.parse() {
+            <span class="self">Self</span>::Index(index)
+        } <span class="kw">else </span>{
+            <span class="self">Self</span>::String(string.into())
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">i64</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">PropertyKey</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <span class="ident">i64</span>) -&gt; <span class="self">Self</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">index</span>) <span class="op">=</span> <span class="ident">u32::try_from</span>(<span class="ident">value</span>) {
-            <span class="ident"><span class="self">Self</span>::Index</span>(<span class="ident">index</span>)
-        } <span class="kw">else</span> {
-            <span class="ident"><span class="self">Self</span>::String</span>(<span class="macro">js_string!</span>(<span class="ident">value</span>.<span class="ident">to_string</span>()))
+<span class="kw">impl </span>From&lt;String&gt; <span class="kw">for </span>PropertyKey {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(string: String) -&gt; <span class="self">Self </span>{
+        <span class="kw">if let </span><span class="prelude-val">Ok</span>(index) = string.parse() {
+            <span class="self">Self</span>::Index(index)
+        } <span class="kw">else </span>{
+            <span class="self">Self</span>::String(string.into())
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">PropertyKey</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <span class="ident">u64</span>) -&gt; <span class="self">Self</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">index</span>) <span class="op">=</span> <span class="ident">u32::try_from</span>(<span class="ident">value</span>) {
-            <span class="ident"><span class="self">Self</span>::Index</span>(<span class="ident">index</span>)
-        } <span class="kw">else</span> {
-            <span class="ident"><span class="self">Self</span>::String</span>(<span class="macro">js_string!</span>(<span class="ident">value</span>.<span class="ident">to_string</span>()))
+<span class="kw">impl </span>From&lt;Box&lt;str&gt;&gt; <span class="kw">for </span>PropertyKey {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(string: Box&lt;str&gt;) -&gt; <span class="self">Self </span>{
+        <span class="kw">if let </span><span class="prelude-val">Ok</span>(index) = string.parse() {
+            <span class="self">Self</span>::Index(index)
+        } <span class="kw">else </span>{
+            <span class="self">Self</span>::String(string.as_ref().into())
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">isize</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">PropertyKey</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <span class="ident">isize</span>) -&gt; <span class="self">Self</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">index</span>) <span class="op">=</span> <span class="ident">u32::try_from</span>(<span class="ident">value</span>) {
-            <span class="ident"><span class="self">Self</span>::Index</span>(<span class="ident">index</span>)
-        } <span class="kw">else</span> {
-            <span class="ident"><span class="self">Self</span>::String</span>(<span class="macro">js_string!</span>(<span class="ident">value</span>.<span class="ident">to_string</span>()))
+<span class="kw">impl </span>From&lt;JsSymbol&gt; <span class="kw">for </span>PropertyKey {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(symbol: JsSymbol) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::Symbol(symbol)
+    }
+}
+
+<span class="kw">impl </span>fmt::Display <span class="kw">for </span>PropertyKey {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="kw">match </span><span class="self">self </span>{
+            <span class="self">Self</span>::String(<span class="kw-2">ref </span>string) =&gt; string.to_std_string_escaped().fmt(f),
+            <span class="self">Self</span>::Symbol(<span class="kw-2">ref </span>symbol) =&gt; symbol.descriptive_string().to_std_string_escaped().fmt(f),
+            <span class="self">Self</span>::Index(index) =&gt; index.fmt(f),
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">PropertyKey</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <span class="ident">i32</span>) -&gt; <span class="self">Self</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">index</span>) <span class="op">=</span> <span class="ident">u32::try_from</span>(<span class="ident">value</span>) {
-            <span class="ident"><span class="self">Self</span>::Index</span>(<span class="ident">index</span>)
-        } <span class="kw">else</span> {
-            <span class="ident"><span class="self">Self</span>::String</span>(<span class="macro">js_string!</span>(<span class="ident">value</span>.<span class="ident">to_string</span>()))
+<span class="kw">impl </span>From&lt;<span class="kw-2">&amp;</span>PropertyKey&gt; <span class="kw">for </span>JsValue {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(property_key: <span class="kw-2">&amp;</span>PropertyKey) -&gt; <span class="self">Self </span>{
+        <span class="kw">match </span>property_key {
+            PropertyKey::String(<span class="kw-2">ref </span>string) =&gt; string.clone().into(),
+            PropertyKey::Symbol(<span class="kw-2">ref </span>symbol) =&gt; symbol.clone().into(),
+            PropertyKey::Index(index) =&gt; {
+                <span class="kw">if let </span><span class="prelude-val">Ok</span>(integer) = i32::try_from(<span class="kw-2">*</span>index) {
+                    <span class="self">Self</span>::new(integer)
+                } <span class="kw">else </span>{
+                    <span class="self">Self</span>::new(<span class="kw-2">*</span>index)
+                }
+            }
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">PropertyKey</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <span class="ident">f64</span>) -&gt; <span class="self">Self</span> {
-        <span class="kw">use</span> <span class="ident">num_traits::cast::FromPrimitive</span>;
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">index</span>) <span class="op">=</span> <span class="ident">u32::from_f64</span>(<span class="ident">value</span>) {
-            <span class="kw">return</span> <span class="ident"><span class="self">Self</span>::Index</span>(<span class="ident">index</span>);
-        }
-
-        <span class="ident"><span class="self">Self</span>::String</span>(<span class="ident">ryu_js::Buffer::new</span>().<span class="ident">format</span>(<span class="ident">value</span>).<span class="ident">into</span>())
-    }
-}
-
-<span class="kw">impl</span> <span class="ident">PartialEq</span><span class="op">&lt;</span>[<span class="ident">u16</span>]<span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">PropertyKey</span> {
-    <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span>[<span class="ident">u16</span>]) -&gt; <span class="ident">bool</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident"><span class="self">Self</span>::String</span>(<span class="kw-2">ref</span> <span class="ident">string</span>) =&gt; <span class="ident">string</span> <span class="op">==</span> <span class="ident">other</span>,
-            <span class="kw">_</span> =&gt; <span class="bool-val">false</span>,
+<span class="kw">impl </span>From&lt;PropertyKey&gt; <span class="kw">for </span>JsValue {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(property_key: PropertyKey) -&gt; <span class="self">Self </span>{
+        <span class="kw">match </span>property_key {
+            PropertyKey::String(<span class="kw-2">ref </span>string) =&gt; string.clone().into(),
+            PropertyKey::Symbol(<span class="kw-2">ref </span>symbol) =&gt; symbol.clone().into(),
+            PropertyKey::Index(index) =&gt; index.to_string().into(),
         }
     }
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum</span> <span class="ident">PropertyNameKind</span> {
-    <span class="ident">Key</span>,
-    <span class="ident">Value</span>,
-    <span class="ident">KeyAndValue</span>,
+<span class="kw">impl </span>From&lt;u8&gt; <span class="kw">for </span>PropertyKey {
+    <span class="kw">fn </span>from(value: u8) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::Index(value.into())
+    }
+}
+
+<span class="kw">impl </span>From&lt;u16&gt; <span class="kw">for </span>PropertyKey {
+    <span class="kw">fn </span>from(value: u16) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::Index(value.into())
+    }
+}
+
+<span class="kw">impl </span>From&lt;u32&gt; <span class="kw">for </span>PropertyKey {
+    <span class="kw">fn </span>from(value: u32) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::Index(value)
+    }
+}
+
+<span class="kw">impl </span>From&lt;usize&gt; <span class="kw">for </span>PropertyKey {
+    <span class="kw">fn </span>from(value: usize) -&gt; <span class="self">Self </span>{
+        <span class="kw">if let </span><span class="prelude-val">Ok</span>(index) = u32::try_from(value) {
+            <span class="self">Self</span>::Index(index)
+        } <span class="kw">else </span>{
+            <span class="self">Self</span>::String(<span class="macro">js_string!</span>(value.to_string()))
+        }
+    }
+}
+
+<span class="kw">impl </span>From&lt;i64&gt; <span class="kw">for </span>PropertyKey {
+    <span class="kw">fn </span>from(value: i64) -&gt; <span class="self">Self </span>{
+        <span class="kw">if let </span><span class="prelude-val">Ok</span>(index) = u32::try_from(value) {
+            <span class="self">Self</span>::Index(index)
+        } <span class="kw">else </span>{
+            <span class="self">Self</span>::String(<span class="macro">js_string!</span>(value.to_string()))
+        }
+    }
+}
+
+<span class="kw">impl </span>From&lt;u64&gt; <span class="kw">for </span>PropertyKey {
+    <span class="kw">fn </span>from(value: u64) -&gt; <span class="self">Self </span>{
+        <span class="kw">if let </span><span class="prelude-val">Ok</span>(index) = u32::try_from(value) {
+            <span class="self">Self</span>::Index(index)
+        } <span class="kw">else </span>{
+            <span class="self">Self</span>::String(<span class="macro">js_string!</span>(value.to_string()))
+        }
+    }
+}
+
+<span class="kw">impl </span>From&lt;isize&gt; <span class="kw">for </span>PropertyKey {
+    <span class="kw">fn </span>from(value: isize) -&gt; <span class="self">Self </span>{
+        <span class="kw">if let </span><span class="prelude-val">Ok</span>(index) = u32::try_from(value) {
+            <span class="self">Self</span>::Index(index)
+        } <span class="kw">else </span>{
+            <span class="self">Self</span>::String(<span class="macro">js_string!</span>(value.to_string()))
+        }
+    }
+}
+
+<span class="kw">impl </span>From&lt;i32&gt; <span class="kw">for </span>PropertyKey {
+    <span class="kw">fn </span>from(value: i32) -&gt; <span class="self">Self </span>{
+        <span class="kw">if let </span><span class="prelude-val">Ok</span>(index) = u32::try_from(value) {
+            <span class="self">Self</span>::Index(index)
+        } <span class="kw">else </span>{
+            <span class="self">Self</span>::String(<span class="macro">js_string!</span>(value.to_string()))
+        }
+    }
+}
+
+<span class="kw">impl </span>From&lt;f64&gt; <span class="kw">for </span>PropertyKey {
+    <span class="kw">fn </span>from(value: f64) -&gt; <span class="self">Self </span>{
+        <span class="kw">use </span>num_traits::cast::FromPrimitive;
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(index) = u32::from_f64(value) {
+            <span class="kw">return </span><span class="self">Self</span>::Index(index);
+        }
+
+        <span class="self">Self</span>::String(ryu_js::Buffer::new().format(value).into())
+    }
+}
+
+<span class="kw">impl </span>PartialEq&lt;[u16]&gt; <span class="kw">for </span>PropertyKey {
+    <span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>[u16]) -&gt; bool {
+        <span class="kw">match </span><span class="self">self </span>{
+            <span class="self">Self</span>::String(<span class="kw-2">ref </span>string) =&gt; string == other,
+            <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
+        }
+    }
+}
+
+<span class="attribute">#[derive(Debug, Clone, Copy)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum </span>PropertyNameKind {
+    Key,
+    Value,
+    KeyAndValue,
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0 (a55dd71d5 2022-09-19)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0 (897e37553 2022-11-02)" ></div></body></html>

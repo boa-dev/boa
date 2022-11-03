@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_ast/src/statement/if.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>if.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../boa_ast/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../boa_ast/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../boa_ast/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_ast/src/statement/if.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>if.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../boa_ast/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../boa_ast/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../boa_ast/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -115,144 +115,122 @@
 <span id="115">115</span>
 <span id="116">116</span>
 <span id="117">117</span>
-<span id="118">118</span>
-<span id="119">119</span>
-<span id="120">120</span>
-<span id="121">121</span>
-<span id="122">122</span>
-<span id="123">123</span>
-<span id="124">124</span>
-<span id="125">125</span>
-<span id="126">126</span>
-<span id="127">127</span>
-<span id="128">128</span>
-</pre><pre class="rust"><code><span class="doccomment">//! If statement</span>
+</pre><pre class="rust"><code><span class="doccomment">//! If statement
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::try_break</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::visitor</span>::{<span class="ident">VisitWith</span>, <span class="ident">Visitor</span>, <span class="ident">VisitorMut</span>};
-<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">expression::Expression</span>, <span class="ident">statement::Statement</span>, <span class="ident">ContainsSymbol</span>};
-<span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">ToIndentedString</span>, <span class="ident">ToInternedString</span>};
-<span class="kw">use</span> <span class="ident">core::ops::ControlFlow</span>;
+</span><span class="kw">use crate</span>::{
+    expression::Expression,
+    statement::Statement,
+    try_break,
+    visitor::{VisitWith, Visitor, VisitorMut},
+};
+<span class="kw">use </span>boa_interner::{Interner, ToIndentedString, ToInternedString};
+<span class="kw">use </span>core::ops::ControlFlow;
 
-<span class="doccomment">/// The `if` statement executes a statement if a specified condition is [`truthy`][truthy]. If</span>
-<span class="doccomment">/// the condition is [`falsy`][falsy], another statement can be executed.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Multiple `if...else` statements can be nested to create an else if clause.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Note that there is no elseif (in one word) keyword in JavaScript.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [ECMAScript reference][spec]</span>
-<span class="doccomment">///  - [MDN documentation][mdn]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-IfStatement</span>
-<span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/if...else</span>
-<span class="doccomment">/// [truthy]: https://developer.mozilla.org/en-US/docs/Glossary/truthy</span>
-<span class="doccomment">/// [falsy]: https://developer.mozilla.org/en-US/docs/Glossary/falsy</span>
-<span class="doccomment">/// [expression]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_Operators#Expressions</span>
-<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>, <span class="ident">derive</span>(<span class="ident">serde::Serialize</span>, <span class="ident">serde::Deserialize</span>))]</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">If</span> {
-    <span class="ident">condition</span>: <span class="ident">Expression</span>,
-    <span class="ident">body</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Statement</span><span class="op">&gt;</span>,
-    <span class="ident">else_node</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Statement</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+<span class="doccomment">/// The `if` statement executes a statement if a specified condition is [`truthy`][truthy]. If
+/// the condition is [`falsy`][falsy], another statement can be executed.
+///
+/// Multiple `if...else` statements can be nested to create an else if clause.
+///
+/// Note that there is no elseif (in one word) keyword in JavaScript.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///  - [MDN documentation][mdn]
+///
+/// [spec]: https://tc39.es/ecma262/#prod-IfStatement
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/if...else
+/// [truthy]: https://developer.mozilla.org/en-US/docs/Glossary/truthy
+/// [falsy]: https://developer.mozilla.org/en-US/docs/Glossary/falsy
+/// [expression]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_Operators#Expressions
+</span><span class="attribute">#[cfg_attr(feature = <span class="string">&quot;serde&quot;</span>, derive(serde::Serialize, serde::Deserialize))]
+#[derive(Clone, Debug, PartialEq)]
+</span><span class="kw">pub struct </span>If {
+    condition: Expression,
+    body: Box&lt;Statement&gt;,
+    else_node: <span class="prelude-ty">Option</span>&lt;Box&lt;Statement&gt;&gt;,
 }
 
-<span class="kw">impl</span> <span class="ident">If</span> {
-    <span class="doccomment">/// Gets the condition of the if statement.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cond</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">Expression</span> {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">condition</span>
+<span class="kw">impl </span>If {
+    <span class="doccomment">/// Gets the condition of the if statement.
+    </span><span class="attribute">#[inline]
+    #[must_use]
+    </span><span class="kw">pub fn </span>cond(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Expression {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.condition
     }
 
-    <span class="doccomment">/// Gets the body to execute if the condition is true.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">body</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">Statement</span> {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">body</span>
+    <span class="doccomment">/// Gets the body to execute if the condition is true.
+    </span><span class="attribute">#[inline]
+    #[must_use]
+    </span><span class="kw">pub fn </span>body(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Statement {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.body
     }
 
-    <span class="doccomment">/// Gets the `else` node, if it has one.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">else_node</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Statement</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">else_node</span>.<span class="ident">as_ref</span>().<span class="ident">map</span>(<span class="ident">Box::as_ref</span>)
+    <span class="doccomment">/// Gets the `else` node, if it has one.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>else_node(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Statement&gt; {
+        <span class="self">self</span>.else_node.as_ref().map(Box::as_ref)
     }
 
-    <span class="doccomment">/// Creates an `If` AST node.</span>
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">condition</span>: <span class="ident">Expression</span>, <span class="ident">body</span>: <span class="ident">Statement</span>, <span class="ident">else_node</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Statement</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">condition</span>,
-            <span class="ident">body</span>: <span class="ident">body</span>.<span class="ident">into</span>(),
-            <span class="ident">else_node</span>: <span class="ident">else_node</span>.<span class="ident">map</span>(<span class="ident">Box::new</span>),
+    <span class="doccomment">/// Creates an `If` AST node.
+    </span><span class="attribute">#[must_use]
+    </span><span class="kw">pub fn </span>new(condition: Expression, body: Statement, else_node: <span class="prelude-ty">Option</span>&lt;Statement&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            condition,
+            body: body.into(),
+            else_node: else_node.map(Box::new),
         }
     }
-
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">contains_arguments</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">condition</span>.<span class="ident">contains_arguments</span>()
-            <span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">body</span>.<span class="ident">contains_arguments</span>()
-            <span class="op">|</span><span class="op">|</span> <span class="macro">matches!</span>(<span class="self">self</span>.<span class="ident">else_node</span>, <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">stmt</span>) <span class="kw">if</span> <span class="ident">stmt</span>.<span class="ident">contains_arguments</span>())
-    }
-
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">symbol</span>: <span class="ident">ContainsSymbol</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">condition</span>.<span class="ident">contains</span>(<span class="ident">symbol</span>)
-            <span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">body</span>.<span class="ident">contains</span>(<span class="ident">symbol</span>)
-            <span class="op">|</span><span class="op">|</span> <span class="macro">matches!</span>(<span class="self">self</span>.<span class="ident">else_node</span>, <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">stmt</span>) <span class="kw">if</span> <span class="ident">stmt</span>.<span class="ident">contains</span>(<span class="ident">symbol</span>))
-    }
 }
 
-<span class="kw">impl</span> <span class="ident">ToIndentedString</span> <span class="kw">for</span> <span class="ident">If</span> {
-    <span class="kw">fn</span> <span class="ident">to_indented_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;</span><span class="ident">Interner</span>, <span class="ident">indent</span>: <span class="ident">usize</span>) -&gt; <span class="ident">String</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <span class="macro">format!</span>(<span class="string">&quot;if ({}) &quot;</span>, <span class="self">self</span>.<span class="ident">cond</span>().<span class="ident">to_interned_string</span>(<span class="ident">interner</span>));
-        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">else_node</span>() {
-            <span class="prelude-val">Some</span>(<span class="ident">else_e</span>) =&gt; {
-                <span class="ident">buf</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(
+<span class="kw">impl </span>ToIndentedString <span class="kw">for </span>If {
+    <span class="kw">fn </span>to_indented_string(<span class="kw-2">&amp;</span><span class="self">self</span>, interner: <span class="kw-2">&amp;</span>Interner, indent: usize) -&gt; String {
+        <span class="kw">let </span><span class="kw-2">mut </span>buf = <span class="macro">format!</span>(<span class="string">&quot;if ({}) &quot;</span>, <span class="self">self</span>.cond().to_interned_string(interner));
+        <span class="kw">match </span><span class="self">self</span>.else_node() {
+            <span class="prelude-val">Some</span>(else_e) =&gt; {
+                buf.push_str(<span class="kw-2">&amp;</span><span class="macro">format!</span>(
                     <span class="string">&quot;{} else {}&quot;</span>,
-                    <span class="self">self</span>.<span class="ident">body</span>().<span class="ident">to_indented_string</span>(<span class="ident">interner</span>, <span class="ident">indent</span>),
-                    <span class="ident">else_e</span>.<span class="ident">to_indented_string</span>(<span class="ident">interner</span>, <span class="ident">indent</span>)
+                    <span class="self">self</span>.body().to_indented_string(interner, indent),
+                    else_e.to_indented_string(interner, indent)
                 ));
             }
-            <span class="prelude-val">None</span> =&gt; {
-                <span class="ident">buf</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">body</span>().<span class="ident">to_indented_string</span>(<span class="ident">interner</span>, <span class="ident">indent</span>));
+            <span class="prelude-val">None </span>=&gt; {
+                buf.push_str(<span class="kw-2">&amp;</span><span class="self">self</span>.body().to_indented_string(interner, indent));
             }
         }
-        <span class="ident">buf</span>
+        buf
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">If</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Statement</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">if_stm</span>: <span class="ident">If</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::If</span>(<span class="ident">if_stm</span>)
+<span class="kw">impl </span>From&lt;If&gt; <span class="kw">for </span>Statement {
+    <span class="kw">fn </span>from(if_stm: If) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::If(if_stm)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">VisitWith</span> <span class="kw">for</span> <span class="ident">If</span> {
-    <span class="kw">fn</span> <span class="ident">visit_with</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">V</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>, <span class="ident">visitor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">V</span>) -&gt; <span class="ident">ControlFlow</span><span class="op">&lt;</span><span class="ident">V::BreakTy</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">V</span>: <span class="ident">Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
+<span class="kw">impl </span>VisitWith <span class="kw">for </span>If {
+    <span class="kw">fn </span>visit_with&lt;<span class="lifetime">&#39;a</span>, V&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>, visitor: <span class="kw-2">&amp;mut </span>V) -&gt; ControlFlow&lt;V::BreakTy&gt;
+    <span class="kw">where
+        </span>V: Visitor&lt;<span class="lifetime">&#39;a</span>&gt;,
     {
-        <span class="macro">try_break!</span>(<span class="ident">visitor</span>.<span class="ident">visit_expression</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">condition</span>));
-        <span class="macro">try_break!</span>(<span class="ident">visitor</span>.<span class="ident">visit_statement</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">body</span>));
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">stmt</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">else_node</span> {
-            <span class="macro">try_break!</span>(<span class="ident">visitor</span>.<span class="ident">visit_statement</span>(<span class="ident">stmt</span>));
+        <span class="macro">try_break!</span>(visitor.visit_expression(<span class="kw-2">&amp;</span><span class="self">self</span>.condition));
+        <span class="macro">try_break!</span>(visitor.visit_statement(<span class="kw-2">&amp;</span><span class="self">self</span>.body));
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(stmt) = <span class="kw-2">&amp;</span><span class="self">self</span>.else_node {
+            <span class="macro">try_break!</span>(visitor.visit_statement(stmt));
         }
-        <span class="ident">ControlFlow::Continue</span>(())
+        ControlFlow::Continue(())
     }
 
-    <span class="kw">fn</span> <span class="ident">visit_with_mut</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">V</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">visitor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">V</span>) -&gt; <span class="ident">ControlFlow</span><span class="op">&lt;</span><span class="ident">V::BreakTy</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">V</span>: <span class="ident">VisitorMut</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
+    <span class="kw">fn </span>visit_with_mut&lt;<span class="lifetime">&#39;a</span>, V&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="self">self</span>, visitor: <span class="kw-2">&amp;mut </span>V) -&gt; ControlFlow&lt;V::BreakTy&gt;
+    <span class="kw">where
+        </span>V: VisitorMut&lt;<span class="lifetime">&#39;a</span>&gt;,
     {
-        <span class="macro">try_break!</span>(<span class="ident">visitor</span>.<span class="ident">visit_expression_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">condition</span>));
-        <span class="macro">try_break!</span>(<span class="ident">visitor</span>.<span class="ident">visit_statement_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">body</span>));
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">stmt</span>) <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">else_node</span> {
-            <span class="macro">try_break!</span>(<span class="ident">visitor</span>.<span class="ident">visit_statement_mut</span>(<span class="ident">stmt</span>));
+        <span class="macro">try_break!</span>(visitor.visit_expression_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>.condition));
+        <span class="macro">try_break!</span>(visitor.visit_statement_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>.body));
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(stmt) = <span class="kw-2">&amp;mut </span><span class="self">self</span>.else_node {
+            <span class="macro">try_break!</span>(visitor.visit_statement_mut(stmt));
         }
-        <span class="ident">ControlFlow::Continue</span>(())
+        ControlFlow::Continue(())
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="boa_ast" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0 (a55dd71d5 2022-09-19)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="boa_ast" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0 (897e37553 2022-11-02)" ></div></body></html>

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_engine/src/object/builtins/jsarray.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>jsarray.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_engine/src/object/builtins/jsarray.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>jsarray.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container">
                     <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../boa_engine/index.html">
                         <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -381,386 +381,386 @@
 <span id="379">379</span>
 <span id="380">380</span>
 <span id="381">381</span>
-</pre><pre class="rust"><code><span class="doccomment">//! This module implements a wrapper for the `Array` Builtin JavaScript Object</span>
-<span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">builtins::Array</span>,
-    <span class="ident">error::JsNativeError</span>,
-    <span class="ident">object</span>::{<span class="ident">JsFunction</span>, <span class="ident">JsObject</span>, <span class="ident">JsObjectType</span>},
-    <span class="ident">value::IntoOrUndefined</span>,
-    <span class="ident">Context</span>, <span class="ident">JsResult</span>, <span class="ident">JsString</span>, <span class="ident">JsValue</span>,
+</pre><pre class="rust"><code><span class="doccomment">//! This module implements a wrapper for the `Array` Builtin JavaScript Object
+</span><span class="kw">use crate</span>::{
+    builtins::Array,
+    error::JsNativeError,
+    object::{JsFunction, JsObject, JsObjectType},
+    value::IntoOrUndefined,
+    Context, JsResult, JsString, JsValue,
 };
-<span class="kw">use</span> <span class="ident">boa_gc</span>::{<span class="ident">Finalize</span>, <span class="ident">Trace</span>};
-<span class="kw">use</span> <span class="ident">std::ops::Deref</span>;
+<span class="kw">use </span>boa_gc::{Finalize, Trace};
+<span class="kw">use </span>std::ops::Deref;
 
-<span class="doccomment">/// `JsArray` provides a wrapper for Boa&#39;s implementation of the JavaScript `Array` object.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Trace</span>, <span class="ident">Finalize</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">JsArray</span> {
-    <span class="ident">inner</span>: <span class="ident">JsObject</span>,
+<span class="doccomment">/// `JsArray` provides a wrapper for Boa&#39;s implementation of the JavaScript `Array` object.
+</span><span class="attribute">#[derive(Debug, Clone, Trace, Finalize)]
+</span><span class="kw">pub struct </span>JsArray {
+    inner: JsObject,
 }
 
-<span class="kw">impl</span> <span class="ident">JsArray</span> {
-    <span class="doccomment">/// Create a new empty array.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="ident">inner</span> <span class="op">=</span> <span class="ident">Array::array_create</span>(<span class="number">0</span>, <span class="prelude-val">None</span>, <span class="ident">context</span>)
-            .<span class="ident">expect</span>(<span class="string">&quot;creating an empty array with the default prototype must not fail&quot;</span>);
+<span class="kw">impl </span>JsArray {
+    <span class="doccomment">/// Create a new empty array.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>new(context: <span class="kw-2">&amp;mut </span>Context) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>inner = Array::array_create(<span class="number">0</span>, <span class="prelude-val">None</span>, context)
+            .expect(<span class="string">&quot;creating an empty array with the default prototype must not fail&quot;</span>);
 
-        <span class="self">Self</span> { <span class="ident">inner</span> }
+        <span class="self">Self </span>{ inner }
     }
 
-    <span class="doccomment">/// Create an array from a `IntoIterator&lt;Item = JsValue&gt;` convertible object.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_iter</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>(<span class="ident">elements</span>: <span class="ident">I</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="self">Self</span>
-    <span class="kw">where</span>
-        <span class="ident">I</span>: <span class="ident">IntoIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">JsValue</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// Create an array from a `IntoIterator&lt;Item = JsValue&gt;` convertible object.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>from_iter&lt;I&gt;(elements: I, context: <span class="kw-2">&amp;mut </span>Context) -&gt; <span class="self">Self
+    </span><span class="kw">where
+        </span>I: IntoIterator&lt;Item = JsValue&gt;,
     {
-        <span class="self">Self</span> {
-            <span class="ident">inner</span>: <span class="ident">Array::create_array_from_list</span>(<span class="ident">elements</span>, <span class="ident">context</span>),
+        <span class="self">Self </span>{
+            inner: Array::create_array_from_list(elements, context),
         }
     }
 
-    <span class="doccomment">/// Create a [`JsArray`] from a [`JsObject`], if the object is not an array throw a `TypeError`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This does not clone the fields of the array, it only does a shallow clone of the object.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_object</span>(<span class="ident">object</span>: <span class="ident">JsObject</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="ident">object</span>.<span class="ident">borrow</span>().<span class="ident">is_array</span>() {
-            <span class="prelude-val">Ok</span>(<span class="self">Self</span> { <span class="ident">inner</span>: <span class="ident">object</span> })
-        } <span class="kw">else</span> {
-            <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
-                .<span class="ident">with_message</span>(<span class="string">&quot;object is not an Array&quot;</span>)
-                .<span class="ident">into</span>())
+    <span class="doccomment">/// Create a [`JsArray`] from a [`JsObject`], if the object is not an array throw a `TypeError`.
+    ///
+    /// This does not clone the fields of the array, it only does a shallow clone of the object.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>from_object(object: JsObject) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
+        <span class="kw">if </span>object.borrow().is_array() {
+            <span class="prelude-val">Ok</span>(<span class="self">Self </span>{ inner: object })
+        } <span class="kw">else </span>{
+            <span class="prelude-val">Err</span>(JsNativeError::typ()
+                .with_message(<span class="string">&quot;object is not an Array&quot;</span>)
+                .into())
         }
     }
 
-    <span class="doccomment">/// Get the length of the array.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Same a `array.length` in JavaScript.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">length</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">length_of_array_like</span>(<span class="ident">context</span>)
+    <span class="doccomment">/// Get the length of the array.
+    ///
+    /// Same a `array.length` in JavaScript.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>length(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;u64&gt; {
+        <span class="self">self</span>.inner.length_of_array_like(context)
     }
 
-    <span class="doccomment">/// Check if the array is empty, i.e. the `length` is zero.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_empty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">length_of_array_like</span>(<span class="ident">context</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">len</span><span class="op">|</span> <span class="ident">len</span> <span class="op">==</span> <span class="number">0</span>)
+    <span class="doccomment">/// Check if the array is empty, i.e. the `length` is zero.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;bool&gt; {
+        <span class="self">self</span>.inner.length_of_array_like(context).map(|len| len == <span class="number">0</span>)
     }
 
-    <span class="doccomment">/// Push an element to the array.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">push</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">value</span>: <span class="ident">T</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">T</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// Push an element to the array.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>push&lt;T&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, value: T, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt;
+    <span class="kw">where
+        </span>T: Into&lt;JsValue&gt;,
     {
-        <span class="self">self</span>.<span class="ident">push_items</span>(<span class="kw-2">&amp;</span>[<span class="ident">value</span>.<span class="ident">into</span>()], <span class="ident">context</span>)
+        <span class="self">self</span>.push_items(<span class="kw-2">&amp;</span>[value.into()], context)
     }
 
-    <span class="doccomment">/// Pushes a slice of elements to the array.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">push_items</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">items</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="ident">Array::push</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">clone</span>().<span class="ident">into</span>(), <span class="ident">items</span>, <span class="ident">context</span>)
+    <span class="doccomment">/// Pushes a slice of elements to the array.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>push_items(<span class="kw-2">&amp;</span><span class="self">self</span>, items: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+        Array::push(<span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(), items, context)
     }
 
-    <span class="doccomment">/// Pops an element from the array.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pop</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="ident">Array::pop</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">clone</span>().<span class="ident">into</span>(), <span class="kw-2">&amp;</span>[], <span class="ident">context</span>)
+    <span class="doccomment">/// Pops an element from the array.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>pop(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+        Array::pop(<span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(), <span class="kw-2">&amp;</span>[], context)
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">at</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">index</span>: <span class="ident">T</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">T</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">i64</span><span class="op">&gt;</span>,
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>at&lt;T&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, index: T, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt;
+    <span class="kw">where
+        </span>T: Into&lt;i64&gt;,
     {
-        <span class="ident">Array::at</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">clone</span>().<span class="ident">into</span>(), <span class="kw-2">&amp;</span>[<span class="ident">index</span>.<span class="ident">into</span>().<span class="ident">into</span>()], <span class="ident">context</span>)
+        Array::at(<span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(), <span class="kw-2">&amp;</span>[index.into().into()], context)
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">shift</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="ident">Array::shift</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">clone</span>().<span class="ident">into</span>(), <span class="kw-2">&amp;</span>[], <span class="ident">context</span>)
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>shift(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+        Array::shift(<span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(), <span class="kw-2">&amp;</span>[], context)
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">unshift</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">items</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="ident">Array::shift</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">clone</span>().<span class="ident">into</span>(), <span class="ident">items</span>, <span class="ident">context</span>)
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>unshift(<span class="kw-2">&amp;</span><span class="self">self</span>, items: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+        Array::shift(<span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(), items, context)
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">reverse</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="ident">Array::reverse</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">clone</span>().<span class="ident">into</span>(), <span class="kw-2">&amp;</span>[], <span class="ident">context</span>)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<span class="self">self</span>.<span class="ident">clone</span>())
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>reverse(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
+        Array::reverse(<span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(), <span class="kw-2">&amp;</span>[], context)<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(<span class="self">self</span>.clone())
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">concat</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">items</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="ident">Array::concat</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">clone</span>().<span class="ident">into</span>(), <span class="ident">items</span>, <span class="ident">context</span>)<span class="question-mark">?</span>
-            .<span class="ident">as_object</span>()
-            .<span class="ident">cloned</span>()
-            .<span class="ident">expect</span>(<span class="string">&quot;Array.prototype.filter should always return object&quot;</span>);
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>concat(<span class="kw-2">&amp;</span><span class="self">self</span>, items: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
+        <span class="kw">let </span>object = Array::concat(<span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(), items, context)<span class="question-mark">?
+            </span>.as_object()
+            .cloned()
+            .expect(<span class="string">&quot;Array.prototype.filter should always return object&quot;</span>);
 
-        <span class="ident"><span class="self">Self</span>::from_object</span>(<span class="ident">object</span>)
+        <span class="self">Self</span>::from_object(object)
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">join</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">separator</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JsString</span><span class="op">&gt;</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsString</span><span class="op">&gt;</span> {
-        <span class="ident">Array::join</span>(
-            <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">clone</span>().<span class="ident">into</span>(),
-            <span class="kw-2">&amp;</span>[<span class="ident">separator</span>.<span class="ident">into_or_undefined</span>()],
-            <span class="ident">context</span>,
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>join(<span class="kw-2">&amp;</span><span class="self">self</span>, separator: <span class="prelude-ty">Option</span>&lt;JsString&gt;, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsString&gt; {
+        Array::join(
+            <span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(),
+            <span class="kw-2">&amp;</span>[separator.into_or_undefined()],
+            context,
         )
-        .<span class="ident">map</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> {
-            <span class="ident">x</span>.<span class="ident">as_string</span>()
-                .<span class="ident">cloned</span>()
-                .<span class="ident">expect</span>(<span class="string">&quot;Array.prototype.join always returns string&quot;</span>)
+        .map(|x| {
+            x.as_string()
+                .cloned()
+                .expect(<span class="string">&quot;Array.prototype.join always returns string&quot;</span>)
         })
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">fill</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>fill&lt;T&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">value</span>: <span class="ident">T</span>,
-        <span class="ident">start</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>,
-        <span class="ident">end</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>,
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">T</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span>,
+        value: T,
+        start: <span class="prelude-ty">Option</span>&lt;u32&gt;,
+        end: <span class="prelude-ty">Option</span>&lt;u32&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;<span class="self">Self</span>&gt;
+    <span class="kw">where
+        </span>T: Into&lt;JsValue&gt;,
     {
-        <span class="ident">Array::fill</span>(
-            <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">clone</span>().<span class="ident">into</span>(),
+        Array::fill(
+            <span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(),
             <span class="kw-2">&amp;</span>[
-                <span class="ident">value</span>.<span class="ident">into</span>(),
-                <span class="ident">start</span>.<span class="ident">into_or_undefined</span>(),
-                <span class="ident">end</span>.<span class="ident">into_or_undefined</span>(),
+                value.into(),
+                start.into_or_undefined(),
+                end.into_or_undefined(),
             ],
-            <span class="ident">context</span>,
+            context,
         )<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<span class="self">self</span>.<span class="ident">clone</span>())
+        <span class="prelude-val">Ok</span>(<span class="self">self</span>.clone())
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">index_of</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>index_of&lt;T&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">search_element</span>: <span class="ident">T</span>,
-        <span class="ident">from_index</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>,
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">T</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span>,
+        search_element: T,
+        from_index: <span class="prelude-ty">Option</span>&lt;u32&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;<span class="prelude-ty">Option</span>&lt;u32&gt;&gt;
+    <span class="kw">where
+        </span>T: Into&lt;JsValue&gt;,
     {
-        <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="ident">Array::index_of</span>(
-            <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">clone</span>().<span class="ident">into</span>(),
-            <span class="kw-2">&amp;</span>[<span class="ident">search_element</span>.<span class="ident">into</span>(), <span class="ident">from_index</span>.<span class="ident">into_or_undefined</span>()],
-            <span class="ident">context</span>,
-        )<span class="question-mark">?</span>
-        .<span class="ident">as_number</span>()
-        .<span class="ident">expect</span>(<span class="string">&quot;Array.prototype.indexOf should always return number&quot;</span>);
+        <span class="kw">let </span>index = Array::index_of(
+            <span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(),
+            <span class="kw-2">&amp;</span>[search_element.into(), from_index.into_or_undefined()],
+            context,
+        )<span class="question-mark">?
+        </span>.as_number()
+        .expect(<span class="string">&quot;Array.prototype.indexOf should always return number&quot;</span>);
 
-        <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::float_cmp</span>)]</span>
-        <span class="kw">if</span> <span class="ident">index</span> <span class="op">==</span> <span class="op">-</span><span class="number">1.0</span> {
+        <span class="attribute">#[allow(clippy::float_cmp)]
+        </span><span class="kw">if </span>index == -<span class="number">1.0 </span>{
             <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>)
-        } <span class="kw">else</span> {
-            <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">index</span> <span class="kw">as</span> <span class="ident">u32</span>))
+        } <span class="kw">else </span>{
+            <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(index <span class="kw">as </span>u32))
         }
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">last_index_of</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>last_index_of&lt;T&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">search_element</span>: <span class="ident">T</span>,
-        <span class="ident">from_index</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>,
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">T</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span>,
+        search_element: T,
+        from_index: <span class="prelude-ty">Option</span>&lt;u32&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;<span class="prelude-ty">Option</span>&lt;u32&gt;&gt;
+    <span class="kw">where
+        </span>T: Into&lt;JsValue&gt;,
     {
-        <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="ident">Array::last_index_of</span>(
-            <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">clone</span>().<span class="ident">into</span>(),
-            <span class="kw-2">&amp;</span>[<span class="ident">search_element</span>.<span class="ident">into</span>(), <span class="ident">from_index</span>.<span class="ident">into_or_undefined</span>()],
-            <span class="ident">context</span>,
-        )<span class="question-mark">?</span>
-        .<span class="ident">as_number</span>()
-        .<span class="ident">expect</span>(<span class="string">&quot;Array.prototype.lastIndexOf should always return number&quot;</span>);
+        <span class="kw">let </span>index = Array::last_index_of(
+            <span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(),
+            <span class="kw-2">&amp;</span>[search_element.into(), from_index.into_or_undefined()],
+            context,
+        )<span class="question-mark">?
+        </span>.as_number()
+        .expect(<span class="string">&quot;Array.prototype.lastIndexOf should always return number&quot;</span>);
 
-        <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::float_cmp</span>)]</span>
-        <span class="kw">if</span> <span class="ident">index</span> <span class="op">==</span> <span class="op">-</span><span class="number">1.0</span> {
+        <span class="attribute">#[allow(clippy::float_cmp)]
+        </span><span class="kw">if </span>index == -<span class="number">1.0 </span>{
             <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>)
-        } <span class="kw">else</span> {
-            <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">index</span> <span class="kw">as</span> <span class="ident">u32</span>))
+        } <span class="kw">else </span>{
+            <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(index <span class="kw">as </span>u32))
         }
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">find</span>(
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>find(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">predicate</span>: <span class="ident">JsFunction</span>,
-        <span class="ident">this_arg</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span>,
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="ident">Array::find</span>(
-            <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">clone</span>().<span class="ident">into</span>(),
-            <span class="kw-2">&amp;</span>[<span class="ident">predicate</span>.<span class="ident">into</span>(), <span class="ident">this_arg</span>.<span class="ident">into_or_undefined</span>()],
-            <span class="ident">context</span>,
+        predicate: JsFunction,
+        this_arg: <span class="prelude-ty">Option</span>&lt;JsValue&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;JsValue&gt; {
+        Array::find(
+            <span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(),
+            <span class="kw-2">&amp;</span>[predicate.into(), this_arg.into_or_undefined()],
+            context,
         )
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">filter</span>(
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>filter(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">callback</span>: <span class="ident">JsFunction</span>,
-        <span class="ident">this_arg</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span>,
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="ident">Array::filter</span>(
-            <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">clone</span>().<span class="ident">into</span>(),
-            <span class="kw-2">&amp;</span>[<span class="ident">callback</span>.<span class="ident">into</span>(), <span class="ident">this_arg</span>.<span class="ident">into_or_undefined</span>()],
-            <span class="ident">context</span>,
-        )<span class="question-mark">?</span>
-        .<span class="ident">as_object</span>()
-        .<span class="ident">cloned</span>()
-        .<span class="ident">expect</span>(<span class="string">&quot;Array.prototype.filter should always return object&quot;</span>);
+        callback: JsFunction,
+        this_arg: <span class="prelude-ty">Option</span>&lt;JsValue&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
+        <span class="kw">let </span>object = Array::filter(
+            <span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(),
+            <span class="kw-2">&amp;</span>[callback.into(), this_arg.into_or_undefined()],
+            context,
+        )<span class="question-mark">?
+        </span>.as_object()
+        .cloned()
+        .expect(<span class="string">&quot;Array.prototype.filter should always return object&quot;</span>);
 
-        <span class="ident"><span class="self">Self</span>::from_object</span>(<span class="ident">object</span>)
+        <span class="self">Self</span>::from_object(object)
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">map</span>(
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>map(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">callback</span>: <span class="ident">JsFunction</span>,
-        <span class="ident">this_arg</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span>,
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="ident">Array::map</span>(
-            <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">clone</span>().<span class="ident">into</span>(),
-            <span class="kw-2">&amp;</span>[<span class="ident">callback</span>.<span class="ident">into</span>(), <span class="ident">this_arg</span>.<span class="ident">into_or_undefined</span>()],
-            <span class="ident">context</span>,
-        )<span class="question-mark">?</span>
-        .<span class="ident">as_object</span>()
-        .<span class="ident">cloned</span>()
-        .<span class="ident">expect</span>(<span class="string">&quot;Array.prototype.map should always return object&quot;</span>);
+        callback: JsFunction,
+        this_arg: <span class="prelude-ty">Option</span>&lt;JsValue&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
+        <span class="kw">let </span>object = Array::map(
+            <span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(),
+            <span class="kw-2">&amp;</span>[callback.into(), this_arg.into_or_undefined()],
+            context,
+        )<span class="question-mark">?
+        </span>.as_object()
+        .cloned()
+        .expect(<span class="string">&quot;Array.prototype.map should always return object&quot;</span>);
 
-        <span class="ident"><span class="self">Self</span>::from_object</span>(<span class="ident">object</span>)
+        <span class="self">Self</span>::from_object(object)
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">every</span>(
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>every(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">callback</span>: <span class="ident">JsFunction</span>,
-        <span class="ident">this_arg</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span>,
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">Array::every</span>(
-            <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">clone</span>().<span class="ident">into</span>(),
-            <span class="kw-2">&amp;</span>[<span class="ident">callback</span>.<span class="ident">into</span>(), <span class="ident">this_arg</span>.<span class="ident">into_or_undefined</span>()],
-            <span class="ident">context</span>,
-        )<span class="question-mark">?</span>
-        .<span class="ident">as_boolean</span>()
-        .<span class="ident">expect</span>(<span class="string">&quot;Array.prototype.every should always return boolean&quot;</span>);
+        callback: JsFunction,
+        this_arg: <span class="prelude-ty">Option</span>&lt;JsValue&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;bool&gt; {
+        <span class="kw">let </span>result = Array::every(
+            <span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(),
+            <span class="kw-2">&amp;</span>[callback.into(), this_arg.into_or_undefined()],
+            context,
+        )<span class="question-mark">?
+        </span>.as_boolean()
+        .expect(<span class="string">&quot;Array.prototype.every should always return boolean&quot;</span>);
 
-        <span class="prelude-val">Ok</span>(<span class="ident">result</span>)
+        <span class="prelude-val">Ok</span>(result)
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">some</span>(
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>some(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">callback</span>: <span class="ident">JsFunction</span>,
-        <span class="ident">this_arg</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span>,
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">Array::some</span>(
-            <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">clone</span>().<span class="ident">into</span>(),
-            <span class="kw-2">&amp;</span>[<span class="ident">callback</span>.<span class="ident">into</span>(), <span class="ident">this_arg</span>.<span class="ident">into_or_undefined</span>()],
-            <span class="ident">context</span>,
-        )<span class="question-mark">?</span>
-        .<span class="ident">as_boolean</span>()
-        .<span class="ident">expect</span>(<span class="string">&quot;Array.prototype.some should always return boolean&quot;</span>);
+        callback: JsFunction,
+        this_arg: <span class="prelude-ty">Option</span>&lt;JsValue&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;bool&gt; {
+        <span class="kw">let </span>result = Array::some(
+            <span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(),
+            <span class="kw-2">&amp;</span>[callback.into(), this_arg.into_or_undefined()],
+            context,
+        )<span class="question-mark">?
+        </span>.as_boolean()
+        .expect(<span class="string">&quot;Array.prototype.some should always return boolean&quot;</span>);
 
-        <span class="prelude-val">Ok</span>(<span class="ident">result</span>)
+        <span class="prelude-val">Ok</span>(result)
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sort</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">compare_fn</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JsFunction</span><span class="op">&gt;</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="ident">Array::sort</span>(
-            <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">clone</span>().<span class="ident">into</span>(),
-            <span class="kw-2">&amp;</span>[<span class="ident">compare_fn</span>.<span class="ident">into_or_undefined</span>()],
-            <span class="ident">context</span>,
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>sort(<span class="kw-2">&amp;</span><span class="self">self</span>, compare_fn: <span class="prelude-ty">Option</span>&lt;JsFunction&gt;, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
+        Array::sort(
+            <span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(),
+            <span class="kw-2">&amp;</span>[compare_fn.into_or_undefined()],
+            context,
         )<span class="question-mark">?</span>;
 
-        <span class="prelude-val">Ok</span>(<span class="self">self</span>.<span class="ident">clone</span>())
+        <span class="prelude-val">Ok</span>(<span class="self">self</span>.clone())
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">slice</span>(
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>slice(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">start</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>,
-        <span class="ident">end</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>,
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="ident">Array::slice</span>(
-            <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">clone</span>().<span class="ident">into</span>(),
-            <span class="kw-2">&amp;</span>[<span class="ident">start</span>.<span class="ident">into_or_undefined</span>(), <span class="ident">end</span>.<span class="ident">into_or_undefined</span>()],
-            <span class="ident">context</span>,
-        )<span class="question-mark">?</span>
-        .<span class="ident">as_object</span>()
-        .<span class="ident">cloned</span>()
-        .<span class="ident">expect</span>(<span class="string">&quot;Array.prototype.slice should always return object&quot;</span>);
+        start: <span class="prelude-ty">Option</span>&lt;u32&gt;,
+        end: <span class="prelude-ty">Option</span>&lt;u32&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
+        <span class="kw">let </span>object = Array::slice(
+            <span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(),
+            <span class="kw-2">&amp;</span>[start.into_or_undefined(), end.into_or_undefined()],
+            context,
+        )<span class="question-mark">?
+        </span>.as_object()
+        .cloned()
+        .expect(<span class="string">&quot;Array.prototype.slice should always return object&quot;</span>);
 
-        <span class="ident"><span class="self">Self</span>::from_object</span>(<span class="ident">object</span>)
+        <span class="self">Self</span>::from_object(object)
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">reduce</span>(
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>reduce(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">callback</span>: <span class="ident">JsFunction</span>,
-        <span class="ident">initial_value</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span>,
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="ident">Array::reduce</span>(
-            <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">clone</span>().<span class="ident">into</span>(),
-            <span class="kw-2">&amp;</span>[<span class="ident">callback</span>.<span class="ident">into</span>(), <span class="ident">initial_value</span>.<span class="ident">into_or_undefined</span>()],
-            <span class="ident">context</span>,
+        callback: JsFunction,
+        initial_value: <span class="prelude-ty">Option</span>&lt;JsValue&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;JsValue&gt; {
+        Array::reduce(
+            <span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(),
+            <span class="kw-2">&amp;</span>[callback.into(), initial_value.into_or_undefined()],
+            context,
         )
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">reduce_right</span>(
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>reduce_right(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">callback</span>: <span class="ident">JsFunction</span>,
-        <span class="ident">initial_value</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span>,
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="ident">Array::reduce_right</span>(
-            <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">clone</span>().<span class="ident">into</span>(),
-            <span class="kw-2">&amp;</span>[<span class="ident">callback</span>.<span class="ident">into</span>(), <span class="ident">initial_value</span>.<span class="ident">into_or_undefined</span>()],
-            <span class="ident">context</span>,
+        callback: JsFunction,
+        initial_value: <span class="prelude-ty">Option</span>&lt;JsValue&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;JsValue&gt; {
+        Array::reduce_right(
+            <span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(),
+            <span class="kw-2">&amp;</span>[callback.into(), initial_value.into_or_undefined()],
+            context,
         )
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">JsArray</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">JsObject</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">o</span>: <span class="ident">JsArray</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">o</span>.<span class="ident">inner</span>.<span class="ident">clone</span>()
+<span class="kw">impl </span>From&lt;JsArray&gt; <span class="kw">for </span>JsObject {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(o: JsArray) -&gt; <span class="self">Self </span>{
+        o.inner.clone()
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">JsArray</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">JsValue</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">o</span>: <span class="ident">JsArray</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">o</span>.<span class="ident">inner</span>.<span class="ident">clone</span>().<span class="ident">into</span>()
+<span class="kw">impl </span>From&lt;JsArray&gt; <span class="kw">for </span>JsValue {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(o: JsArray) -&gt; <span class="self">Self </span>{
+        o.inner.clone().into()
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Deref</span> <span class="kw">for</span> <span class="ident">JsArray</span> {
-    <span class="kw">type</span> <span class="ident">Target</span> <span class="op">=</span> <span class="ident">JsObject</span>;
+<span class="kw">impl </span>Deref <span class="kw">for </span>JsArray {
+    <span class="kw">type </span>Target = JsObject;
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">deref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::Target</span> {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">inner</span>
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="self">Self</span>::Target {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.inner
     }
 }
 
-<span class="kw">impl</span> <span class="ident">JsObjectType</span> <span class="kw">for</span> <span class="ident">JsArray</span> {}
+<span class="kw">impl </span>JsObjectType <span class="kw">for </span>JsArray {}
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0 (a55dd71d5 2022-09-19)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0 (897e37553 2022-11-02)" ></div></body></html>

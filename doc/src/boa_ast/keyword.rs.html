@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_ast/src/keyword.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>keyword.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../boa_ast/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../boa_ast/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../boa_ast/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_ast/src/keyword.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>keyword.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../boa_ast/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../boa_ast/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../boa_ast/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -623,630 +623,630 @@
 <span id="623">623</span>
 <span id="624">624</span>
 <span id="625">625</span>
-</pre><pre class="rust"><code><span class="doccomment">//! The `Keyword` AST node, which represents reserved words of the JavaScript language.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! The [specification][spec] defines keywords as tokens that match an `IdentifierName`, but also</span>
-<span class="doccomment">//! have special meaning in JavaScript. In JavaScript you cannot use these reserved words as variables,</span>
-<span class="doccomment">//! labels, or function names.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! The [MDN documentation][mdn] contains a more extensive explanation about keywords.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! [spec]: https://tc39.es/ecma262/#sec-keywords-and-reserved-words</span>
-<span class="doccomment">//! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Lexical_grammar#Keywords</span>
+</pre><pre class="rust"><code><span class="doccomment">//! The `Keyword` AST node, which represents reserved words of the JavaScript language.
+//!
+//! The [specification][spec] defines keywords as tokens that match an `IdentifierName`, but also
+//! have special meaning in JavaScript. In JavaScript you cannot use these reserved words as variables,
+//! labels, or function names.
+//!
+//! The [MDN documentation][mdn] contains a more extensive explanation about keywords.
+//!
+//! [spec]: https://tc39.es/ecma262/#sec-keywords-and-reserved-words
+//! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Lexical_grammar#Keywords
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::expression::operator::binary</span>::{<span class="ident">BinaryOp</span>, <span class="ident">RelationalOp</span>};
-<span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">Sym</span>};
-<span class="kw">use</span> <span class="ident">boa_macros::utf16</span>;
-<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">convert::TryFrom</span>, <span class="ident">error</span>, <span class="ident">fmt</span>, <span class="ident">str::FromStr</span>};
+</span><span class="kw">use </span><span class="kw">crate</span>::expression::operator::binary::{BinaryOp, RelationalOp};
+<span class="kw">use </span>boa_interner::{Interner, Sym};
+<span class="kw">use </span>boa_macros::utf16;
+<span class="kw">use </span>std::{convert::TryFrom, error, fmt, str::FromStr};
 
-<span class="doccomment">/// List of keywords recognized by the JavaScript grammar.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// See the [module-level documentation][self] for more details.</span>
-<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>, <span class="ident">derive</span>(<span class="ident">serde::Serialize</span>, <span class="ident">serde::Deserialize</span>))]</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Keyword</span> {
-    <span class="doccomment">/// The `await` keyword.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-AwaitExpression</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/await</span>
-    <span class="ident">Await</span>,
+<span class="doccomment">/// List of keywords recognized by the JavaScript grammar.
+///
+/// See the [module-level documentation][self] for more details.
+</span><span class="attribute">#[cfg_attr(feature = <span class="string">&quot;serde&quot;</span>, derive(serde::Serialize, serde::Deserialize))]
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+</span><span class="kw">pub enum </span>Keyword {
+    <span class="doccomment">/// The `await` keyword.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#prod-AwaitExpression
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/await
+    </span>Await,
 
-    <span class="doccomment">/// The `async` keyword.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-AsyncMethod</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/async_function</span>
-    <span class="ident">Async</span>,
+    <span class="doccomment">/// The `async` keyword.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#prod-AsyncMethod
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/async_function
+    </span>Async,
 
-    <span class="doccomment">/// The `break` keyword.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [break `Node` documentation][node]</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-BreakStatement</span>
-    <span class="doccomment">/// [node]: ../node/enum.Node.html#variant.Break</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/break</span>
-    <span class="ident">Break</span>,
+    <span class="doccomment">/// The `break` keyword.
+    ///
+    /// More information:
+    ///  - [break `Node` documentation][node]
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#prod-BreakStatement
+    /// [node]: ../node/enum.Node.html#variant.Break
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/break
+    </span>Break,
 
-    <span class="doccomment">/// The `case` keyword.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [switch `Node` documentation][node]</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-CaseClause</span>
-    <span class="doccomment">/// [node]: ../node/enum.Node.html#variant.Switch</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/switch</span>
-    <span class="ident">Case</span>,
+    <span class="doccomment">/// The `case` keyword.
+    ///
+    /// More information:
+    ///  - [switch `Node` documentation][node]
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#prod-CaseClause
+    /// [node]: ../node/enum.Node.html#variant.Switch
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/switch
+    </span>Case,
 
-    <span class="doccomment">/// The `catch` keyword.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [try `Node` documentation][node]</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-Catch</span>
-    <span class="doccomment">/// [node]: ../node/enum.Node.html#variant.Try</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/try...catch</span>
-    <span class="ident">Catch</span>,
+    <span class="doccomment">/// The `catch` keyword.
+    ///
+    /// More information:
+    ///  - [try `Node` documentation][node]
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#prod-Catch
+    /// [node]: ../node/enum.Node.html#variant.Try
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/try...catch
+    </span>Catch,
 
-    <span class="doccomment">/// The `class` keyword.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-ClassDeclaration</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/class</span>
-    <span class="ident">Class</span>,
+    <span class="doccomment">/// The `class` keyword.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#prod-ClassDeclaration
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/class
+    </span>Class,
 
-    <span class="doccomment">/// The `continue` keyword.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [continue `Node` documentation][node]</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-ContinueStatement</span>
-    <span class="doccomment">/// [node]: ../node/enum.Node.html#variant.Continue</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/continue</span>
-    <span class="ident">Continue</span>,
+    <span class="doccomment">/// The `continue` keyword.
+    ///
+    /// More information:
+    ///  - [continue `Node` documentation][node]
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#prod-ContinueStatement
+    /// [node]: ../node/enum.Node.html#variant.Continue
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/continue
+    </span>Continue,
 
-    <span class="doccomment">/// The `const` keyword.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [const `Node` documentation][node]</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-let-and-const-declarations</span>
-    <span class="doccomment">/// [node]: ../node/enum.Node.html#variant.ConstDecl</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/const</span>
-    <span class="ident">Const</span>,
+    <span class="doccomment">/// The `const` keyword.
+    ///
+    /// More information:
+    ///  - [const `Node` documentation][node]
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-let-and-const-declarations
+    /// [node]: ../node/enum.Node.html#variant.ConstDecl
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/const
+    </span>Const,
 
-    <span class="doccomment">/// The `debugger` keyword.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-debugger-statement</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/debugger</span>
-    <span class="ident">Debugger</span>,
+    <span class="doccomment">/// The `debugger` keyword.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-debugger-statement
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/debugger
+    </span>Debugger,
 
-    <span class="doccomment">/// The `default` keyword.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [switch `Node` documentation][node]</span>
-    <span class="doccomment">///  - [ECMAScript reference default clause][spec-clause]</span>
-    <span class="doccomment">///  - [ECMAScript reference default export][spec-export]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [node]: ../node/enum.Node.html#variant.Switch</span>
-    <span class="doccomment">/// [spec-clause]: https://tc39.es/ecma262/#prod-DefaultClause</span>
-    <span class="doccomment">/// [spec-export]: https://tc39.es/ecma262/#prod-ImportedDefaultBinding</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/default</span>
-    <span class="ident">Default</span>,
+    <span class="doccomment">/// The `default` keyword.
+    ///
+    /// More information:
+    ///  - [switch `Node` documentation][node]
+    ///  - [ECMAScript reference default clause][spec-clause]
+    ///  - [ECMAScript reference default export][spec-export]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [node]: ../node/enum.Node.html#variant.Switch
+    /// [spec-clause]: https://tc39.es/ecma262/#prod-DefaultClause
+    /// [spec-export]: https://tc39.es/ecma262/#prod-ImportedDefaultBinding
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/default
+    </span>Default,
 
-    <span class="doccomment">/// The `delete` keyword.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [delete `UnaryOp` documentation][unary]</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-delete-operator</span>
-    <span class="doccomment">/// [unary]: ../op/enum.UnaryOp.html#variant.Delete</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/delete</span>
-    <span class="ident">Delete</span>,
+    <span class="doccomment">/// The `delete` keyword.
+    ///
+    /// More information:
+    ///  - [delete `UnaryOp` documentation][unary]
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-delete-operator
+    /// [unary]: ../op/enum.UnaryOp.html#variant.Delete
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/delete
+    </span>Delete,
 
-    <span class="doccomment">/// The `do` keyword.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-do-while-statement</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/do...while</span>
-    <span class="ident">Do</span>,
+    <span class="doccomment">/// The `do` keyword.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-do-while-statement
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/do...while
+    </span>Do,
 
-    <span class="doccomment">/// The `else` keyword.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [if `Node` documentation][node]</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [node]: ../node/enum.Node.html#variant.If</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-IfStatement</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/if...else</span>
-    <span class="ident">Else</span>,
+    <span class="doccomment">/// The `else` keyword.
+    ///
+    /// More information:
+    ///  - [if `Node` documentation][node]
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [node]: ../node/enum.Node.html#variant.If
+    /// [spec]: https://tc39.es/ecma262/#prod-IfStatement
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/if...else
+    </span>Else,
 
-    <span class="doccomment">/// The `enum` keyword.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Future reserved keyword.</span>
-    <span class="ident">Enum</span>,
+    <span class="doccomment">/// The `enum` keyword.
+    ///
+    /// Future reserved keyword.
+    </span>Enum,
 
-    <span class="doccomment">/// The `export` keyword.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-exports</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/export</span>
-    <span class="ident">Export</span>,
+    <span class="doccomment">/// The `export` keyword.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-exports
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/export
+    </span>Export,
 
-    <span class="doccomment">/// The `extends` keyword.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-ClassHeritage</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Classes/extends</span>
-    <span class="ident">Extends</span>,
+    <span class="doccomment">/// The `extends` keyword.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#prod-ClassHeritage
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Classes/extends
+    </span>Extends,
 
-    <span class="doccomment">/// The `false` keyword.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-BooleanLiteral</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean</span>
-    <span class="ident">False</span>,
+    <span class="doccomment">/// The `false` keyword.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#prod-BooleanLiteral
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean
+    </span>False,
 
-    <span class="doccomment">/// The `finally` keyword.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [try `Node` documentation][node]</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [node]: ../node/enum.Node.html#variant.Try</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-Finally</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/try...catch</span>
-    <span class="ident">Finally</span>,
+    <span class="doccomment">/// The `finally` keyword.
+    ///
+    /// More information:
+    ///  - [try `Node` documentation][node]
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [node]: ../node/enum.Node.html#variant.Try
+    /// [spec]: https://tc39.es/ecma262/#prod-Finally
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/try...catch
+    </span>Finally,
 
-    <span class="doccomment">/// The `for` keyword.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [for loop `Node` documentation][node]</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [node]: ../node/enum.Node.html#variant.ForLoop</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-ForDeclaration</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/for</span>
-    <span class="ident">For</span>,
+    <span class="doccomment">/// The `for` keyword.
+    ///
+    /// More information:
+    ///  - [for loop `Node` documentation][node]
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [node]: ../node/enum.Node.html#variant.ForLoop
+    /// [spec]: https://tc39.es/ecma262/#prod-ForDeclaration
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/for
+    </span>For,
 
-    <span class="doccomment">/// The `function` keyword.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [function `Node` documentation][node]</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [node]: ../node/enum.Node.html#variant.FunctionDecl</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-terms-and-definitions-function</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function</span>
-    <span class="ident">Function</span>,
+    <span class="doccomment">/// The `function` keyword.
+    ///
+    /// More information:
+    ///  - [function `Node` documentation][node]
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [node]: ../node/enum.Node.html#variant.FunctionDecl
+    /// [spec]: https://tc39.es/ecma262/#sec-terms-and-definitions-function
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function
+    </span>Function,
 
-    <span class="doccomment">/// The `if` keyword.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [if `Node` documentation][node]</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [node]: ../node/enum.Node.html#variant.If</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-IfStatement</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/if...else</span>
-    <span class="ident">If</span>,
+    <span class="doccomment">/// The `if` keyword.
+    ///
+    /// More information:
+    ///  - [if `Node` documentation][node]
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [node]: ../node/enum.Node.html#variant.If
+    /// [spec]: https://tc39.es/ecma262/#prod-IfStatement
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/if...else
+    </span>If,
 
-    <span class="doccomment">/// The `in` keyword.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-RelationalExpression</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/in</span>
-    <span class="ident">In</span>,
+    <span class="doccomment">/// The `in` keyword.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#prod-RelationalExpression
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/in
+    </span>In,
 
-    <span class="doccomment">/// The `instanceof` keyword.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-instanceofoperator</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/instanceof</span>
-    <span class="ident">InstanceOf</span>,
+    <span class="doccomment">/// The `instanceof` keyword.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-instanceofoperator
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/instanceof
+    </span>InstanceOf,
 
-    <span class="doccomment">/// The `import` keyword.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-imports</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/import</span>
-    <span class="ident">Import</span>,
+    <span class="doccomment">/// The `import` keyword.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-imports
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/import
+    </span>Import,
 
-    <span class="doccomment">/// The `let` keyword.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [let `Node` documentation][node]</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [node]: ../node/enum.Node.html#variant.LetDecl</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-let-and-const-declarations</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/let</span>
-    <span class="ident">Let</span>,
+    <span class="doccomment">/// The `let` keyword.
+    ///
+    /// More information:
+    ///  - [let `Node` documentation][node]
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [node]: ../node/enum.Node.html#variant.LetDecl
+    /// [spec]: https://tc39.es/ecma262/#sec-let-and-const-declarations
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/let
+    </span>Let,
 
-    <span class="doccomment">/// The `new` keyword.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [new `Node` documentation][node]</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [node]: ../node/enum.Node.html#variant.New</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-NewExpression</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/new</span>
-    <span class="ident">New</span>,
+    <span class="doccomment">/// The `new` keyword.
+    ///
+    /// More information:
+    ///  - [new `Node` documentation][node]
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [node]: ../node/enum.Node.html#variant.New
+    /// [spec]: https://tc39.es/ecma262/#prod-NewExpression
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/new
+    </span>New,
 
-    <span class="doccomment">/// The `null` keyword.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-NullLiteral</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/null</span>
-    <span class="ident">Null</span>,
+    <span class="doccomment">/// The `null` keyword.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#prod-NullLiteral
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/null
+    </span>Null,
 
-    <span class="doccomment">/// The `of` keyword.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-for-in-and-for-of-statements</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/for...of</span>
-    <span class="ident">Of</span>,
+    <span class="doccomment">/// The `of` keyword.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-for-in-and-for-of-statements
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/for...of
+    </span>Of,
 
-    <span class="doccomment">/// The `return` keyword</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [return `Node` documentation][node]</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [node]: ../node/enum.Node.html#variant.Return</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-ReturnStatement</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/return</span>
-    <span class="ident">Return</span>,
+    <span class="doccomment">/// The `return` keyword
+    ///
+    /// More information:
+    ///  - [return `Node` documentation][node]
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [node]: ../node/enum.Node.html#variant.Return
+    /// [spec]: https://tc39.es/ecma262/#prod-ReturnStatement
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/return
+    </span>Return,
 
-    <span class="doccomment">/// The `super` keyword</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-super-keyword</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/super</span>
-    <span class="ident">Super</span>,
+    <span class="doccomment">/// The `super` keyword
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-super-keyword
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/super
+    </span>Super,
 
-    <span class="doccomment">/// The `switch` keyword.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [switch `Node` documentation][node]</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [node]: ../node/enum.Node.html#variant.Switch</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-SwitchStatement</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/switch</span>
-    <span class="ident">Switch</span>,
+    <span class="doccomment">/// The `switch` keyword.
+    ///
+    /// More information:
+    ///  - [switch `Node` documentation][node]
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [node]: ../node/enum.Node.html#variant.Switch
+    /// [spec]: https://tc39.es/ecma262/#prod-SwitchStatement
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/switch
+    </span>Switch,
 
-    <span class="doccomment">/// The `this` keyword.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [this `Node` documentation][node]</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [node]: ../node/enum.Node.html#variant.This</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-this-keyword</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/this</span>
-    <span class="ident">This</span>,
+    <span class="doccomment">/// The `this` keyword.
+    ///
+    /// More information:
+    ///  - [this `Node` documentation][node]
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [node]: ../node/enum.Node.html#variant.This
+    /// [spec]: https://tc39.es/ecma262/#sec-this-keyword
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/this
+    </span>This,
 
-    <span class="doccomment">/// The `throw` keyword.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [throw `Node` documentation][node]</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [node]: ../node/enum.Node.html#variant.Throw</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-throw-statement</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/throw</span>
-    <span class="ident">Throw</span>,
+    <span class="doccomment">/// The `throw` keyword.
+    ///
+    /// More information:
+    ///  - [throw `Node` documentation][node]
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [node]: ../node/enum.Node.html#variant.Throw
+    /// [spec]: https://tc39.es/ecma262/#sec-throw-statement
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/throw
+    </span>Throw,
 
-    <span class="doccomment">/// The `true` keyword</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-BooleanLiteral</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean</span>
-    <span class="ident">True</span>,
+    <span class="doccomment">/// The `true` keyword
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#prod-BooleanLiteral
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean
+    </span>True,
 
-    <span class="doccomment">/// The `try` keyword.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [try `Node` documentation][node]</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [node]: ../node/enum.Node.html#variant.Try</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-TryStatement</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/try...catch</span>
-    <span class="ident">Try</span>,
+    <span class="doccomment">/// The `try` keyword.
+    ///
+    /// More information:
+    ///  - [try `Node` documentation][node]
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [node]: ../node/enum.Node.html#variant.Try
+    /// [spec]: https://tc39.es/ecma262/#prod-TryStatement
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/try...catch
+    </span>Try,
 
-    <span class="doccomment">/// The `typeof` keyword.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [typeof `UnaryOp` documentation][unary]</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [unary]: ../op/enum.UnaryOp.html#variant.TypeOf</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-typeof-operator</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/typeof</span>
-    <span class="ident">TypeOf</span>,
+    <span class="doccomment">/// The `typeof` keyword.
+    ///
+    /// More information:
+    ///  - [typeof `UnaryOp` documentation][unary]
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [unary]: ../op/enum.UnaryOp.html#variant.TypeOf
+    /// [spec]: https://tc39.es/ecma262/#sec-typeof-operator
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/typeof
+    </span>TypeOf,
 
-    <span class="doccomment">/// The `var` keyword.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [var `Node` documentation][node]</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [node]: ../node/enum.Node.html#variant.VarDecl</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-VariableStatement</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/var</span>
-    <span class="ident">Var</span>,
+    <span class="doccomment">/// The `var` keyword.
+    ///
+    /// More information:
+    ///  - [var `Node` documentation][node]
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [node]: ../node/enum.Node.html#variant.VarDecl
+    /// [spec]: https://tc39.es/ecma262/#prod-VariableStatement
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/var
+    </span>Var,
 
-    <span class="doccomment">/// The `void` keyword.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [void `UnaryOp` documentation][unary]</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [unary]: ../op/enum.UnaryOp.html#variant.Void</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-void-operator</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/void</span>
-    <span class="ident">Void</span>,
+    <span class="doccomment">/// The `void` keyword.
+    ///
+    /// More information:
+    ///  - [void `UnaryOp` documentation][unary]
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [unary]: ../op/enum.UnaryOp.html#variant.Void
+    /// [spec]: https://tc39.es/ecma262/#sec-void-operator
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/void
+    </span>Void,
 
-    <span class="doccomment">/// The `while` keyword.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [while `Node` documentation][node]</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [node]: ../node/enum.Node.html#variant.While</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-grammar-notation-WhileStatement</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/while</span>
-    <span class="ident">While</span>,
+    <span class="doccomment">/// The `while` keyword.
+    ///
+    /// More information:
+    ///  - [while `Node` documentation][node]
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [node]: ../node/enum.Node.html#variant.While
+    /// [spec]: https://tc39.es/ecma262/#prod-grammar-notation-WhileStatement
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/while
+    </span>While,
 
-    <span class="doccomment">/// The `with` keyword.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-WithStatement</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/with</span>
-    <span class="ident">With</span>,
+    <span class="doccomment">/// The `with` keyword.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#prod-WithStatement
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/with
+    </span>With,
 
-    <span class="doccomment">/// The &#39;yield&#39; keyword.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-YieldExpression</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/yield</span>
-    <span class="ident">Yield</span>,
+    <span class="doccomment">/// The &#39;yield&#39; keyword.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#prod-YieldExpression
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/yield
+    </span>Yield,
 }
 
-<span class="kw">impl</span> <span class="ident">Keyword</span> {
-    <span class="doccomment">/// Gets the keyword as a binary operation, if this keyword is the `in` or the `instanceof`</span>
-    <span class="doccomment">/// keywords.</span>
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_binary_op</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">BinaryOp</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident"><span class="self">Self</span>::In</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">BinaryOp::Relational</span>(<span class="ident">RelationalOp::In</span>)),
-            <span class="ident"><span class="self">Self</span>::InstanceOf</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">BinaryOp::Relational</span>(<span class="ident">RelationalOp::InstanceOf</span>)),
-            <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
+<span class="kw">impl </span>Keyword {
+    <span class="doccomment">/// Gets the keyword as a binary operation, if this keyword is the `in` or the `instanceof`
+    /// keywords.
+    </span><span class="attribute">#[must_use]
+    </span><span class="kw">pub fn </span>as_binary_op(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;BinaryOp&gt; {
+        <span class="kw">match </span><span class="self">self </span>{
+            <span class="self">Self</span>::In =&gt; <span class="prelude-val">Some</span>(BinaryOp::Relational(RelationalOp::In)),
+            <span class="self">Self</span>::InstanceOf =&gt; <span class="prelude-val">Some</span>(BinaryOp::Relational(RelationalOp::InstanceOf)),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         }
     }
 
-    <span class="doccomment">/// Gets the keyword as a tuple of strings.</span>
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_str</span>(<span class="self">self</span>) -&gt; (<span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> [<span class="ident">u16</span>]) {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident"><span class="self">Self</span>::Await</span> =&gt; (<span class="string">&quot;await&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;await&quot;</span>)),
-            <span class="ident"><span class="self">Self</span>::Async</span> =&gt; (<span class="string">&quot;async&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;async&quot;</span>)),
-            <span class="ident"><span class="self">Self</span>::Break</span> =&gt; (<span class="string">&quot;break&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;break&quot;</span>)),
-            <span class="ident"><span class="self">Self</span>::Case</span> =&gt; (<span class="string">&quot;case&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;case&quot;</span>)),
-            <span class="ident"><span class="self">Self</span>::Catch</span> =&gt; (<span class="string">&quot;catch&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;catch&quot;</span>)),
-            <span class="ident"><span class="self">Self</span>::Class</span> =&gt; (<span class="string">&quot;class&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;class&quot;</span>)),
-            <span class="ident"><span class="self">Self</span>::Continue</span> =&gt; (<span class="string">&quot;continue&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;continue&quot;</span>)),
-            <span class="ident"><span class="self">Self</span>::Const</span> =&gt; (<span class="string">&quot;const&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;const&quot;</span>)),
-            <span class="ident"><span class="self">Self</span>::Debugger</span> =&gt; (<span class="string">&quot;debugger&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;debugger&quot;</span>)),
-            <span class="ident"><span class="self">Self</span>::Default</span> =&gt; (<span class="string">&quot;default&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;default&quot;</span>)),
-            <span class="ident"><span class="self">Self</span>::Delete</span> =&gt; (<span class="string">&quot;delete&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;delete&quot;</span>)),
-            <span class="ident"><span class="self">Self</span>::Do</span> =&gt; (<span class="string">&quot;do&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;do&quot;</span>)),
-            <span class="ident"><span class="self">Self</span>::Else</span> =&gt; (<span class="string">&quot;else&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;else&quot;</span>)),
-            <span class="ident"><span class="self">Self</span>::Enum</span> =&gt; (<span class="string">&quot;enum&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;enum&quot;</span>)),
-            <span class="ident"><span class="self">Self</span>::Extends</span> =&gt; (<span class="string">&quot;extends&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;extends&quot;</span>)),
-            <span class="ident"><span class="self">Self</span>::Export</span> =&gt; (<span class="string">&quot;export&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;export&quot;</span>)),
-            <span class="ident"><span class="self">Self</span>::False</span> =&gt; (<span class="string">&quot;false&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;false&quot;</span>)),
-            <span class="ident"><span class="self">Self</span>::Finally</span> =&gt; (<span class="string">&quot;finally&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;finally&quot;</span>)),
-            <span class="ident"><span class="self">Self</span>::For</span> =&gt; (<span class="string">&quot;for&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;for&quot;</span>)),
-            <span class="ident"><span class="self">Self</span>::Function</span> =&gt; (<span class="string">&quot;function&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;function&quot;</span>)),
-            <span class="ident"><span class="self">Self</span>::If</span> =&gt; (<span class="string">&quot;if&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;if&quot;</span>)),
-            <span class="ident"><span class="self">Self</span>::In</span> =&gt; (<span class="string">&quot;in&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;in&quot;</span>)),
-            <span class="ident"><span class="self">Self</span>::InstanceOf</span> =&gt; (<span class="string">&quot;instanceof&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;instanceof&quot;</span>)),
-            <span class="ident"><span class="self">Self</span>::Import</span> =&gt; (<span class="string">&quot;import&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;import&quot;</span>)),
-            <span class="ident"><span class="self">Self</span>::Let</span> =&gt; (<span class="string">&quot;let&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;let&quot;</span>)),
-            <span class="ident"><span class="self">Self</span>::New</span> =&gt; (<span class="string">&quot;new&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;new&quot;</span>)),
-            <span class="ident"><span class="self">Self</span>::Null</span> =&gt; (<span class="string">&quot;null&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;null&quot;</span>)),
-            <span class="ident"><span class="self">Self</span>::Of</span> =&gt; (<span class="string">&quot;of&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;of&quot;</span>)),
-            <span class="ident"><span class="self">Self</span>::Return</span> =&gt; (<span class="string">&quot;return&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;return&quot;</span>)),
-            <span class="ident"><span class="self">Self</span>::Super</span> =&gt; (<span class="string">&quot;super&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;super&quot;</span>)),
-            <span class="ident"><span class="self">Self</span>::Switch</span> =&gt; (<span class="string">&quot;switch&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;switch&quot;</span>)),
-            <span class="ident"><span class="self">Self</span>::This</span> =&gt; (<span class="string">&quot;this&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;this&quot;</span>)),
-            <span class="ident"><span class="self">Self</span>::Throw</span> =&gt; (<span class="string">&quot;throw&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;throw&quot;</span>)),
-            <span class="ident"><span class="self">Self</span>::True</span> =&gt; (<span class="string">&quot;true&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;true&quot;</span>)),
-            <span class="ident"><span class="self">Self</span>::Try</span> =&gt; (<span class="string">&quot;try&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;try&quot;</span>)),
-            <span class="ident"><span class="self">Self</span>::TypeOf</span> =&gt; (<span class="string">&quot;typeof&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;typeof&quot;</span>)),
-            <span class="ident"><span class="self">Self</span>::Var</span> =&gt; (<span class="string">&quot;var&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;var&quot;</span>)),
-            <span class="ident"><span class="self">Self</span>::Void</span> =&gt; (<span class="string">&quot;void&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;void&quot;</span>)),
-            <span class="ident"><span class="self">Self</span>::While</span> =&gt; (<span class="string">&quot;while&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;while&quot;</span>)),
-            <span class="ident"><span class="self">Self</span>::With</span> =&gt; (<span class="string">&quot;with&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;with&quot;</span>)),
-            <span class="ident"><span class="self">Self</span>::Yield</span> =&gt; (<span class="string">&quot;yield&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;yield&quot;</span>)),
+    <span class="doccomment">/// Gets the keyword as a tuple of strings.
+    </span><span class="attribute">#[must_use]
+    </span><span class="kw">pub fn </span>as_str(<span class="self">self</span>) -&gt; (<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str, <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[u16]) {
+        <span class="kw">match </span><span class="self">self </span>{
+            <span class="self">Self</span>::Await =&gt; (<span class="string">&quot;await&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;await&quot;</span>)),
+            <span class="self">Self</span>::Async =&gt; (<span class="string">&quot;async&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;async&quot;</span>)),
+            <span class="self">Self</span>::Break =&gt; (<span class="string">&quot;break&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;break&quot;</span>)),
+            <span class="self">Self</span>::Case =&gt; (<span class="string">&quot;case&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;case&quot;</span>)),
+            <span class="self">Self</span>::Catch =&gt; (<span class="string">&quot;catch&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;catch&quot;</span>)),
+            <span class="self">Self</span>::Class =&gt; (<span class="string">&quot;class&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;class&quot;</span>)),
+            <span class="self">Self</span>::Continue =&gt; (<span class="string">&quot;continue&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;continue&quot;</span>)),
+            <span class="self">Self</span>::Const =&gt; (<span class="string">&quot;const&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;const&quot;</span>)),
+            <span class="self">Self</span>::Debugger =&gt; (<span class="string">&quot;debugger&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;debugger&quot;</span>)),
+            <span class="self">Self</span>::Default =&gt; (<span class="string">&quot;default&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;default&quot;</span>)),
+            <span class="self">Self</span>::Delete =&gt; (<span class="string">&quot;delete&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;delete&quot;</span>)),
+            <span class="self">Self</span>::Do =&gt; (<span class="string">&quot;do&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;do&quot;</span>)),
+            <span class="self">Self</span>::Else =&gt; (<span class="string">&quot;else&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;else&quot;</span>)),
+            <span class="self">Self</span>::Enum =&gt; (<span class="string">&quot;enum&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;enum&quot;</span>)),
+            <span class="self">Self</span>::Extends =&gt; (<span class="string">&quot;extends&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;extends&quot;</span>)),
+            <span class="self">Self</span>::Export =&gt; (<span class="string">&quot;export&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;export&quot;</span>)),
+            <span class="self">Self</span>::False =&gt; (<span class="string">&quot;false&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;false&quot;</span>)),
+            <span class="self">Self</span>::Finally =&gt; (<span class="string">&quot;finally&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;finally&quot;</span>)),
+            <span class="self">Self</span>::For =&gt; (<span class="string">&quot;for&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;for&quot;</span>)),
+            <span class="self">Self</span>::Function =&gt; (<span class="string">&quot;function&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;function&quot;</span>)),
+            <span class="self">Self</span>::If =&gt; (<span class="string">&quot;if&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;if&quot;</span>)),
+            <span class="self">Self</span>::In =&gt; (<span class="string">&quot;in&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;in&quot;</span>)),
+            <span class="self">Self</span>::InstanceOf =&gt; (<span class="string">&quot;instanceof&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;instanceof&quot;</span>)),
+            <span class="self">Self</span>::Import =&gt; (<span class="string">&quot;import&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;import&quot;</span>)),
+            <span class="self">Self</span>::Let =&gt; (<span class="string">&quot;let&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;let&quot;</span>)),
+            <span class="self">Self</span>::New =&gt; (<span class="string">&quot;new&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;new&quot;</span>)),
+            <span class="self">Self</span>::Null =&gt; (<span class="string">&quot;null&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;null&quot;</span>)),
+            <span class="self">Self</span>::Of =&gt; (<span class="string">&quot;of&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;of&quot;</span>)),
+            <span class="self">Self</span>::Return =&gt; (<span class="string">&quot;return&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;return&quot;</span>)),
+            <span class="self">Self</span>::Super =&gt; (<span class="string">&quot;super&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;super&quot;</span>)),
+            <span class="self">Self</span>::Switch =&gt; (<span class="string">&quot;switch&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;switch&quot;</span>)),
+            <span class="self">Self</span>::This =&gt; (<span class="string">&quot;this&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;this&quot;</span>)),
+            <span class="self">Self</span>::Throw =&gt; (<span class="string">&quot;throw&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;throw&quot;</span>)),
+            <span class="self">Self</span>::True =&gt; (<span class="string">&quot;true&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;true&quot;</span>)),
+            <span class="self">Self</span>::Try =&gt; (<span class="string">&quot;try&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;try&quot;</span>)),
+            <span class="self">Self</span>::TypeOf =&gt; (<span class="string">&quot;typeof&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;typeof&quot;</span>)),
+            <span class="self">Self</span>::Var =&gt; (<span class="string">&quot;var&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;var&quot;</span>)),
+            <span class="self">Self</span>::Void =&gt; (<span class="string">&quot;void&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;void&quot;</span>)),
+            <span class="self">Self</span>::While =&gt; (<span class="string">&quot;while&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;while&quot;</span>)),
+            <span class="self">Self</span>::With =&gt; (<span class="string">&quot;with&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;with&quot;</span>)),
+            <span class="self">Self</span>::Yield =&gt; (<span class="string">&quot;yield&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;yield&quot;</span>)),
         }
     }
 
-    <span class="comment">// TODO: promote all keywords to statics inside Interner</span>
-    <span class="doccomment">/// Converts the keyword to a symbol in the given interner.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_sym</span>(<span class="self">self</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Interner</span>) -&gt; <span class="ident">Sym</span> {
-        <span class="kw">let</span> (<span class="ident">utf8</span>, <span class="ident">utf16</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">as_str</span>();
-        <span class="ident">interner</span>.<span class="ident">get_or_intern_static</span>(<span class="ident">utf8</span>, <span class="ident">utf16</span>)
+    <span class="comment">// TODO: promote all keywords to statics inside Interner
+    </span><span class="doccomment">/// Converts the keyword to a symbol in the given interner.
+    </span><span class="kw">pub fn </span>to_sym(<span class="self">self</span>, interner: <span class="kw-2">&amp;mut </span>Interner) -&gt; Sym {
+        <span class="kw">let </span>(utf8, utf16) = <span class="self">self</span>.as_str();
+        interner.get_or_intern_static(utf8, utf16)
     }
 }
 
-<span class="comment">// TODO: Should use a proper Error</span>
-<span class="kw">impl</span> <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">Keyword</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">BinaryOp</span> {
-    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">String</span>;
+<span class="comment">// TODO: Should use a proper Error
+</span><span class="kw">impl </span>TryFrom&lt;Keyword&gt; <span class="kw">for </span>BinaryOp {
+    <span class="kw">type </span>Error = String;
 
-    <span class="kw">fn</span> <span class="ident">try_from</span>(<span class="ident">value</span>: <span class="ident">Keyword</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
-        <span class="ident">value</span>
-            .<span class="ident">as_binary_op</span>()
-            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="macro">format!</span>(<span class="string">&quot;No binary operation for {value}&quot;</span>))
+    <span class="kw">fn </span>try_from(value: Keyword) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <span class="self">Self</span>::Error&gt; {
+        value
+            .as_binary_op()
+            .ok_or_else(|| <span class="macro">format!</span>(<span class="string">&quot;No binary operation for {value}&quot;</span>))
     }
 }
 
-<span class="doccomment">/// The error type which is returned from parsing a [`str`] into a [`Keyword`].</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">KeywordError</span>;
-<span class="kw">impl</span> <span class="ident">fmt::Display</span> <span class="kw">for</span> <span class="ident">KeywordError</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
-        <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;invalid token&quot;</span>)
+<span class="doccomment">/// The error type which is returned from parsing a [`str`] into a [`Keyword`].
+</span><span class="attribute">#[derive(Debug, Clone, Copy)]
+</span><span class="kw">pub struct </span>KeywordError;
+<span class="kw">impl </span>fmt::Display <span class="kw">for </span>KeywordError {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="macro">write!</span>(f, <span class="string">&quot;invalid token&quot;</span>)
     }
 }
 
-<span class="comment">// This is important for other errors to wrap this one.</span>
-<span class="kw">impl</span> <span class="ident">error::Error</span> <span class="kw">for</span> <span class="ident">KeywordError</span> {
-    <span class="kw">fn</span> <span class="ident">description</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">str</span> {
-        <span class="string">&quot;invalid token&quot;</span>
-    }
+<span class="comment">// This is important for other errors to wrap this one.
+</span><span class="kw">impl </span>error::Error <span class="kw">for </span>KeywordError {
+    <span class="kw">fn </span>description(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
+        <span class="string">&quot;invalid token&quot;
+    </span>}
 }
-<span class="kw">impl</span> <span class="ident">FromStr</span> <span class="kw">for</span> <span class="ident">Keyword</span> {
-    <span class="kw">type</span> <span class="prelude-val">Err</span> <span class="op">=</span> <span class="ident">KeywordError</span>;
-    <span class="kw">fn</span> <span class="ident">from_str</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident"><span class="self">Self</span>::Err</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="ident">s</span> {
-            <span class="string">&quot;await&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::Await</span>),
-            <span class="string">&quot;async&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::Async</span>),
-            <span class="string">&quot;break&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::Break</span>),
-            <span class="string">&quot;case&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::Case</span>),
-            <span class="string">&quot;catch&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::Catch</span>),
-            <span class="string">&quot;class&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::Class</span>),
-            <span class="string">&quot;continue&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::Continue</span>),
-            <span class="string">&quot;const&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::Const</span>),
-            <span class="string">&quot;debugger&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::Debugger</span>),
-            <span class="string">&quot;default&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::Default</span>),
-            <span class="string">&quot;delete&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::Delete</span>),
-            <span class="string">&quot;do&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::Do</span>),
-            <span class="string">&quot;else&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::Else</span>),
-            <span class="string">&quot;enum&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::Enum</span>),
-            <span class="string">&quot;extends&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::Extends</span>),
-            <span class="string">&quot;export&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::Export</span>),
-            <span class="string">&quot;false&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::False</span>),
-            <span class="string">&quot;finally&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::Finally</span>),
-            <span class="string">&quot;for&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::For</span>),
-            <span class="string">&quot;function&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::Function</span>),
-            <span class="string">&quot;if&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::If</span>),
-            <span class="string">&quot;in&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::In</span>),
-            <span class="string">&quot;instanceof&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::InstanceOf</span>),
-            <span class="string">&quot;import&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::Import</span>),
-            <span class="string">&quot;let&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::Let</span>),
-            <span class="string">&quot;new&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::New</span>),
-            <span class="string">&quot;null&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::Null</span>),
-            <span class="string">&quot;of&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::Of</span>),
-            <span class="string">&quot;return&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::Return</span>),
-            <span class="string">&quot;super&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::Super</span>),
-            <span class="string">&quot;switch&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::Switch</span>),
-            <span class="string">&quot;this&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::This</span>),
-            <span class="string">&quot;throw&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::Throw</span>),
-            <span class="string">&quot;true&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::True</span>),
-            <span class="string">&quot;try&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::Try</span>),
-            <span class="string">&quot;typeof&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::TypeOf</span>),
-            <span class="string">&quot;var&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::Var</span>),
-            <span class="string">&quot;void&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::Void</span>),
-            <span class="string">&quot;while&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::While</span>),
-            <span class="string">&quot;with&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::With</span>),
-            <span class="string">&quot;yield&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::Yield</span>),
-            <span class="kw">_</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">KeywordError</span>),
+<span class="kw">impl </span>FromStr <span class="kw">for </span>Keyword {
+    <span class="kw">type </span><span class="prelude-val">Err </span>= KeywordError;
+    <span class="kw">fn </span>from_str(s: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <span class="self">Self</span>::Err&gt; {
+        <span class="kw">match </span>s {
+            <span class="string">&quot;await&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::Await),
+            <span class="string">&quot;async&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::Async),
+            <span class="string">&quot;break&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::Break),
+            <span class="string">&quot;case&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::Case),
+            <span class="string">&quot;catch&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::Catch),
+            <span class="string">&quot;class&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::Class),
+            <span class="string">&quot;continue&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::Continue),
+            <span class="string">&quot;const&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::Const),
+            <span class="string">&quot;debugger&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::Debugger),
+            <span class="string">&quot;default&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::Default),
+            <span class="string">&quot;delete&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::Delete),
+            <span class="string">&quot;do&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::Do),
+            <span class="string">&quot;else&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::Else),
+            <span class="string">&quot;enum&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::Enum),
+            <span class="string">&quot;extends&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::Extends),
+            <span class="string">&quot;export&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::Export),
+            <span class="string">&quot;false&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::False),
+            <span class="string">&quot;finally&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::Finally),
+            <span class="string">&quot;for&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::For),
+            <span class="string">&quot;function&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::Function),
+            <span class="string">&quot;if&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::If),
+            <span class="string">&quot;in&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::In),
+            <span class="string">&quot;instanceof&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::InstanceOf),
+            <span class="string">&quot;import&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::Import),
+            <span class="string">&quot;let&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::Let),
+            <span class="string">&quot;new&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::New),
+            <span class="string">&quot;null&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::Null),
+            <span class="string">&quot;of&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::Of),
+            <span class="string">&quot;return&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::Return),
+            <span class="string">&quot;super&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::Super),
+            <span class="string">&quot;switch&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::Switch),
+            <span class="string">&quot;this&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::This),
+            <span class="string">&quot;throw&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::Throw),
+            <span class="string">&quot;true&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::True),
+            <span class="string">&quot;try&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::Try),
+            <span class="string">&quot;typeof&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::TypeOf),
+            <span class="string">&quot;var&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::Var),
+            <span class="string">&quot;void&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::Void),
+            <span class="string">&quot;while&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::While),
+            <span class="string">&quot;with&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::With),
+            <span class="string">&quot;yield&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::Yield),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(KeywordError),
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">fmt::Display</span> <span class="kw">for</span> <span class="ident">Keyword</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
-        <span class="ident">fmt::Display::fmt</span>(<span class="self">self</span>.<span class="ident">as_str</span>().<span class="number">0</span>, <span class="ident">f</span>)
+<span class="kw">impl </span>fmt::Display <span class="kw">for </span>Keyword {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        fmt::Display::fmt(<span class="self">self</span>.as_str().<span class="number">0</span>, f)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="boa_ast" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0 (a55dd71d5 2022-09-19)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="boa_ast" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0 (897e37553 2022-11-02)" ></div></body></html>

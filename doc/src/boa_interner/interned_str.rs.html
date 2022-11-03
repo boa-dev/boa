@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_interner/src/interned_str.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>interned_str.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../boa_interner/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../boa_interner/index.html"><div class="logo-container">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_interner/src/interned_str.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>interned_str.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../boa_interner/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../boa_interner/index.html"><div class="logo-container">
                     <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../boa_interner/index.html">
                         <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -82,87 +82,87 @@
 <span id="80">80</span>
 <span id="81">81</span>
 <span id="82">82</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">hash::Hash</span>, <span class="ident">ptr::NonNull</span>};
+</pre><pre class="rust"><code><span class="kw">use </span>std::{hash::Hash, ptr::NonNull};
 
-<span class="doccomment">/// Wrapper for an interned str pointer, required to</span>
-<span class="doccomment">/// quickly check using a hash if a string is inside an [`Interner`][`super::Interner`].</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Safety</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This struct could cause Undefined Behaviour on:</span>
-<span class="doccomment">/// - Use without ensuring the referenced memory is still allocated.</span>
-<span class="doccomment">/// - Construction of an [`InternedStr`] from an invalid [`NonNull&lt;Char&gt;`] pointer.</span>
-<span class="doccomment">/// - Construction of an [`InternedStr`] from a [`NonNull&lt;Char&gt;`] pointer</span>
-<span class="doccomment">/// without checking if the pointed memory of the [`NonNull&lt;Char&gt;`] outlives</span>
-<span class="doccomment">/// the [`InternedStr`].</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// In general, this should not be used outside of an [`Interner`][`super::Interner`].</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct</span> <span class="ident">InternedStr</span><span class="op">&lt;</span><span class="ident">Char</span><span class="op">&gt;</span> {
-    <span class="ident">ptr</span>: <span class="ident">NonNull</span><span class="op">&lt;</span>[<span class="ident">Char</span>]<span class="op">&gt;</span>,
+<span class="doccomment">/// Wrapper for an interned str pointer, required to
+/// quickly check using a hash if a string is inside an [`Interner`][`super::Interner`].
+///
+/// # Safety
+///
+/// This struct could cause Undefined Behaviour on:
+/// - Use without ensuring the referenced memory is still allocated.
+/// - Construction of an [`InternedStr`] from an invalid [`NonNull&lt;Char&gt;`] pointer.
+/// - Construction of an [`InternedStr`] from a [`NonNull&lt;Char&gt;`] pointer
+/// without checking if the pointed memory of the [`NonNull&lt;Char&gt;`] outlives
+/// the [`InternedStr`].
+///
+/// In general, this should not be used outside of an [`Interner`][`super::Interner`].
+</span><span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>InternedStr&lt;Char&gt; {
+    ptr: NonNull&lt;[Char]&gt;,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Char</span><span class="op">&gt;</span> <span class="ident">InternedStr</span><span class="op">&lt;</span><span class="ident">Char</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Create a new interned string from the given `*const u8` pointer,</span>
-    <span class="doccomment">/// length and encoding kind</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Safety</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Not maintaining the invariants specified on the struct definition</span>
-    <span class="doccomment">/// could cause Undefined Behaviour.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">ptr</span>: <span class="ident">NonNull</span><span class="op">&lt;</span>[<span class="ident">Char</span>]<span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> { <span class="ident">ptr</span> }
+<span class="kw">impl</span>&lt;Char&gt; InternedStr&lt;Char&gt; {
+    <span class="doccomment">/// Create a new interned string from the given `*const u8` pointer,
+    /// length and encoding kind
+    ///
+    /// # Safety
+    ///
+    /// Not maintaining the invariants specified on the struct definition
+    /// could cause Undefined Behaviour.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">unsafe fn </span>new(ptr: NonNull&lt;[Char]&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{ ptr }
     }
 
-    <span class="doccomment">/// Returns a shared reference to the underlying string.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Safety</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Not maintaining the invariants specified on the struct definition</span>
-    <span class="doccomment">/// could cause Undefined Behaviour.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">as_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<span class="ident">Char</span>] {
-        <span class="comment">// SAFETY:</span>
-        <span class="comment">// The caller must ensure `ptr` is still valid throughout the</span>
-        <span class="comment">// lifetime of `self`.</span>
-        <span class="kw">unsafe</span> { <span class="self">self</span>.<span class="ident">ptr</span>.<span class="ident">as_ref</span>() }
-    }
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Char</span><span class="op">&gt;</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">InternedStr</span><span class="op">&lt;</span><span class="ident">Char</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> { <span class="ident">ptr</span>: <span class="self">self</span>.<span class="ident">ptr</span> }
+    <span class="doccomment">/// Returns a shared reference to the underlying string.
+    ///
+    /// # Safety
+    ///
+    /// Not maintaining the invariants specified on the struct definition
+    /// could cause Undefined Behaviour.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">unsafe fn </span>as_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[Char] {
+        <span class="comment">// SAFETY:
+        // The caller must ensure `ptr` is still valid throughout the
+        // lifetime of `self`.
+        </span><span class="kw">unsafe </span>{ <span class="self">self</span>.ptr.as_ref() }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Char</span><span class="op">&gt;</span> <span class="ident">Copy</span> <span class="kw">for</span> <span class="ident">InternedStr</span><span class="op">&lt;</span><span class="ident">Char</span><span class="op">&gt;</span> {}
+<span class="kw">impl</span>&lt;Char&gt; Clone <span class="kw">for </span>InternedStr&lt;Char&gt; {
+    <span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{ ptr: <span class="self">self</span>.ptr }
+    }
+}
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Char</span><span class="op">&gt;</span> <span class="ident">Eq</span> <span class="kw">for</span> <span class="ident">InternedStr</span><span class="op">&lt;</span><span class="ident">Char</span><span class="op">&gt;</span> <span class="kw">where</span> <span class="ident">Char</span>: <span class="ident">Eq</span> {}
+<span class="kw">impl</span>&lt;Char&gt; Copy <span class="kw">for </span>InternedStr&lt;Char&gt; {}
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Char</span><span class="op">&gt;</span> <span class="ident">PartialEq</span> <span class="kw">for</span> <span class="ident">InternedStr</span><span class="op">&lt;</span><span class="ident">Char</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">Char</span>: <span class="ident">PartialEq</span>,
+<span class="kw">impl</span>&lt;Char&gt; Eq <span class="kw">for </span>InternedStr&lt;Char&gt; <span class="kw">where </span>Char: Eq {}
+
+<span class="kw">impl</span>&lt;Char&gt; PartialEq <span class="kw">for </span>InternedStr&lt;Char&gt;
+<span class="kw">where
+    </span>Char: PartialEq,
 {
-    <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="comment">// SAFETY: The caller must verify the invariants</span>
-        <span class="comment">// specified in the struct definition.</span>
-        <span class="kw">unsafe</span> { <span class="self">self</span>.<span class="ident">as_ref</span>() <span class="op">==</span> <span class="ident">other</span>.<span class="ident">as_ref</span>() }
+    <span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; bool {
+        <span class="comment">// SAFETY: The caller must verify the invariants
+        // specified in the struct definition.
+        </span><span class="kw">unsafe </span>{ <span class="self">self</span>.as_ref() == other.as_ref() }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Char</span><span class="op">&gt;</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">InternedStr</span><span class="op">&lt;</span><span class="ident">Char</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">Char</span>: <span class="ident">Hash</span>,
+<span class="kw">impl</span>&lt;Char&gt; Hash <span class="kw">for </span>InternedStr&lt;Char&gt;
+<span class="kw">where
+    </span>Char: Hash,
 {
-    <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span>: <span class="ident">std::hash::Hasher</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;mut</span> <span class="ident">H</span>) {
-        <span class="comment">// SAFETY:</span>
-        <span class="comment">// The caller must ensure `ptr` is still valid throughout the</span>
-        <span class="comment">// lifetime of `self`.</span>
-        <span class="kw">unsafe</span> {
-            <span class="self">self</span>.<span class="ident">as_ref</span>().<span class="ident">hash</span>(<span class="ident">state</span>);
+    <span class="kw">fn </span>hash&lt;H: std::hash::Hasher&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, state: <span class="kw-2">&amp;mut </span>H) {
+        <span class="comment">// SAFETY:
+        // The caller must ensure `ptr` is still valid throughout the
+        // lifetime of `self`.
+        </span><span class="kw">unsafe </span>{
+            <span class="self">self</span>.as_ref().hash(state);
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="boa_interner" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0 (a55dd71d5 2022-09-19)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="boa_interner" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0 (897e37553 2022-11-02)" ></div></body></html>

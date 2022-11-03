@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_engine/src/object/operations.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>operations.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../boa_engine/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../boa_engine/index.html"><div class="logo-container">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_engine/src/object/operations.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>operations.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../boa_engine/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../boa_engine/index.html"><div class="logo-container">
                     <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../boa_engine/index.html">
                         <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -855,587 +855,587 @@
 <span id="853">853</span>
 <span id="854">854</span>
 <span id="855">855</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">builtins::Array</span>,
-    <span class="ident">context::intrinsics</span>::{<span class="ident">StandardConstructor</span>, <span class="ident">StandardConstructors</span>},
-    <span class="ident">error::JsNativeError</span>,
-    <span class="ident">object::JsObject</span>,
-    <span class="ident">property</span>::{<span class="ident">PropertyDescriptor</span>, <span class="ident">PropertyDescriptorBuilder</span>, <span class="ident">PropertyKey</span>, <span class="ident">PropertyNameKind</span>},
-    <span class="ident">symbol::WellKnownSymbols</span>,
-    <span class="ident">value::Type</span>,
-    <span class="ident">Context</span>, <span class="ident">JsResult</span>, <span class="ident">JsValue</span>,
+</pre><pre class="rust"><code><span class="kw">use crate</span>::{
+    builtins::Array,
+    context::intrinsics::{StandardConstructor, StandardConstructors},
+    error::JsNativeError,
+    object::JsObject,
+    property::{PropertyDescriptor, PropertyDescriptorBuilder, PropertyKey, PropertyNameKind},
+    symbol::WellKnownSymbols,
+    value::Type,
+    Context, JsResult, JsValue,
 };
 
-<span class="doccomment">/// Object integrity level.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">IntegrityLevel</span> {
-    <span class="doccomment">/// Sealed object integrity level.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Preventing new properties from being added to it and marking all existing</span>
-    <span class="doccomment">/// properties as non-configurable. Values of present properties can still be</span>
-    <span class="doccomment">/// changed as long as they are writable.</span>
-    <span class="ident">Sealed</span>,
+<span class="doccomment">/// Object integrity level.
+</span><span class="attribute">#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+</span><span class="kw">pub enum </span>IntegrityLevel {
+    <span class="doccomment">/// Sealed object integrity level.
+    ///
+    /// Preventing new properties from being added to it and marking all existing
+    /// properties as non-configurable. Values of present properties can still be
+    /// changed as long as they are writable.
+    </span>Sealed,
 
-    <span class="doccomment">/// Frozen object integrity level</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// A frozen object can no longer be changed; freezing an object prevents new</span>
-    <span class="doccomment">/// properties from being added to it, existing properties from being removed,</span>
-    <span class="doccomment">/// prevents changing the enumerability, configurability, or writability of</span>
-    <span class="doccomment">/// existing properties, and prevents the values of existing properties from</span>
-    <span class="doccomment">/// being changed. In addition, freezing an object also prevents its prototype</span>
-    <span class="doccomment">/// from being changed.</span>
-    <span class="ident">Frozen</span>,
+    <span class="doccomment">/// Frozen object integrity level
+    ///
+    /// A frozen object can no longer be changed; freezing an object prevents new
+    /// properties from being added to it, existing properties from being removed,
+    /// prevents changing the enumerability, configurability, or writability of
+    /// existing properties, and prevents the values of existing properties from
+    /// being changed. In addition, freezing an object also prevents its prototype
+    /// from being changed.
+    </span>Frozen,
 }
 
-<span class="kw">impl</span> <span class="ident">IntegrityLevel</span> {
-    <span class="doccomment">/// Returns `true` if the integrity level is sealed.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_sealed</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="ident"><span class="self">Self</span>::Sealed</span>)
+<span class="kw">impl </span>IntegrityLevel {
+    <span class="doccomment">/// Returns `true` if the integrity level is sealed.
+    </span><span class="kw">pub fn </span>is_sealed(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="self">Self</span>::Sealed)
     }
 
-    <span class="doccomment">/// Returns `true` if the integrity level is frozen.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_frozen</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="ident"><span class="self">Self</span>::Frozen</span>)
+    <span class="doccomment">/// Returns `true` if the integrity level is frozen.
+    </span><span class="kw">pub fn </span>is_frozen(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="self">Self</span>::Frozen)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">JsObject</span> {
-    <span class="doccomment">/// Check if object is extensible.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-isextensible-o</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_extensible</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
-        <span class="comment">// 1. Return ? O.[[IsExtensible]]().</span>
-        <span class="self">self</span>.<span class="ident">__is_extensible__</span>(<span class="ident">context</span>)
+<span class="kw">impl </span>JsObject {
+    <span class="doccomment">/// Check if object is extensible.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-isextensible-o
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>is_extensible(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;bool&gt; {
+        <span class="comment">// 1. Return ? O.[[IsExtensible]]().
+        </span><span class="self">self</span>.__is_extensible__(context)
     }
 
-    <span class="doccomment">/// Get property from object or throw.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-get-o-p</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get</span><span class="op">&lt;</span><span class="ident">K</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">key</span>: <span class="ident">K</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">K</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">PropertyKey</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// Get property from object or throw.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-get-o-p
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>get&lt;K&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, key: K, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt;
+    <span class="kw">where
+        </span>K: Into&lt;PropertyKey&gt;,
     {
-        <span class="comment">// 1. Assert: Type(O) is Object.</span>
-        <span class="comment">// 2. Assert: IsPropertyKey(P) is true.</span>
-        <span class="comment">// 3. Return ? O.[[Get]](P, O).</span>
-        <span class="self">self</span>.<span class="ident">__get__</span>(<span class="kw-2">&amp;</span><span class="ident">key</span>.<span class="ident">into</span>(), <span class="self">self</span>.<span class="ident">clone</span>().<span class="ident">into</span>(), <span class="ident">context</span>)
+        <span class="comment">// 1. Assert: Type(O) is Object.
+        // 2. Assert: IsPropertyKey(P) is true.
+        // 3. Return ? O.[[Get]](P, O).
+        </span><span class="self">self</span>.__get__(<span class="kw-2">&amp;</span>key.into(), <span class="self">self</span>.clone().into(), context)
     }
 
-    <span class="doccomment">/// set property of object or throw if bool flag is passed.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-set-o-p-v-throw</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">key</span>: <span class="ident">K</span>, <span class="ident">value</span>: <span class="ident">V</span>, <span class="ident">throw</span>: <span class="ident">bool</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">K</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">PropertyKey</span><span class="op">&gt;</span>,
-        <span class="ident">V</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// set property of object or throw if bool flag is passed.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-set-o-p-v-throw
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>set&lt;K, V&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, key: K, value: V, throw: bool, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;bool&gt;
+    <span class="kw">where
+        </span>K: Into&lt;PropertyKey&gt;,
+        V: Into&lt;JsValue&gt;,
     {
-        <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="ident">key</span>.<span class="ident">into</span>();
-        <span class="comment">// 1. Assert: Type(O) is Object.</span>
-        <span class="comment">// 2. Assert: IsPropertyKey(P) is true.</span>
-        <span class="comment">// 3. Assert: Type(Throw) is Boolean.</span>
-        <span class="comment">// 4. Let success be ? O.[[Set]](P, V, O).</span>
-        <span class="kw">let</span> <span class="ident">success</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">__set__</span>(<span class="ident">key</span>.<span class="ident">clone</span>(), <span class="ident">value</span>.<span class="ident">into</span>(), <span class="self">self</span>.<span class="ident">clone</span>().<span class="ident">into</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>;
-        <span class="comment">// 5. If success is false and Throw is true, throw a TypeError exception.</span>
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">success</span> <span class="op">&amp;&amp;</span> <span class="ident">throw</span> {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
-                .<span class="ident">with_message</span>(<span class="macro">format!</span>(<span class="string">&quot;cannot set non-writable property: {key}&quot;</span>))
-                .<span class="ident">into</span>());
+        <span class="kw">let </span>key = key.into();
+        <span class="comment">// 1. Assert: Type(O) is Object.
+        // 2. Assert: IsPropertyKey(P) is true.
+        // 3. Assert: Type(Throw) is Boolean.
+        // 4. Let success be ? O.[[Set]](P, V, O).
+        </span><span class="kw">let </span>success = <span class="self">self</span>.__set__(key.clone(), value.into(), <span class="self">self</span>.clone().into(), context)<span class="question-mark">?</span>;
+        <span class="comment">// 5. If success is false and Throw is true, throw a TypeError exception.
+        </span><span class="kw">if </span>!success &amp;&amp; throw {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
+                .with_message(<span class="macro">format!</span>(<span class="string">&quot;cannot set non-writable property: {key}&quot;</span>))
+                .into());
         }
-        <span class="comment">// 6. Return success.</span>
-        <span class="prelude-val">Ok</span>(<span class="ident">success</span>)
+        <span class="comment">// 6. Return success.
+        </span><span class="prelude-val">Ok</span>(success)
     }
 
-    <span class="doccomment">/// Create data property</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-createdataproperty</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create_data_property</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span>(
+    <span class="doccomment">/// Create data property
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-createdataproperty
+    </span><span class="kw">pub fn </span>create_data_property&lt;K, V&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">key</span>: <span class="ident">K</span>,
-        <span class="ident">value</span>: <span class="ident">V</span>,
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">K</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">PropertyKey</span><span class="op">&gt;</span>,
-        <span class="ident">V</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span>,
+        key: K,
+        value: V,
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;bool&gt;
+    <span class="kw">where
+        </span>K: Into&lt;PropertyKey&gt;,
+        V: Into&lt;JsValue&gt;,
     {
-        <span class="comment">// 1. Assert: Type(O) is Object.</span>
-        <span class="comment">// 2. Assert: IsPropertyKey(P) is true.</span>
-        <span class="comment">// 3. Let newDesc be the PropertyDescriptor { [[Value]]: V, [[Writable]]: true, [[Enumerable]]: true, [[Configurable]]: true }.</span>
-        <span class="kw">let</span> <span class="ident">new_desc</span> <span class="op">=</span> <span class="ident">PropertyDescriptor::builder</span>()
-            .<span class="ident">value</span>(<span class="ident">value</span>)
-            .<span class="ident">writable</span>(<span class="bool-val">true</span>)
-            .<span class="ident">enumerable</span>(<span class="bool-val">true</span>)
-            .<span class="ident">configurable</span>(<span class="bool-val">true</span>);
-        <span class="comment">// 4. Return ? O.[[DefineOwnProperty]](P, newDesc).</span>
-        <span class="self">self</span>.<span class="ident">__define_own_property__</span>(<span class="ident">key</span>.<span class="ident">into</span>(), <span class="ident">new_desc</span>.<span class="ident">into</span>(), <span class="ident">context</span>)
+        <span class="comment">// 1. Assert: Type(O) is Object.
+        // 2. Assert: IsPropertyKey(P) is true.
+        // 3. Let newDesc be the PropertyDescriptor { [[Value]]: V, [[Writable]]: true, [[Enumerable]]: true, [[Configurable]]: true }.
+        </span><span class="kw">let </span>new_desc = PropertyDescriptor::builder()
+            .value(value)
+            .writable(<span class="bool-val">true</span>)
+            .enumerable(<span class="bool-val">true</span>)
+            .configurable(<span class="bool-val">true</span>);
+        <span class="comment">// 4. Return ? O.[[DefineOwnProperty]](P, newDesc).
+        </span><span class="self">self</span>.__define_own_property__(key.into(), new_desc.into(), context)
     }
 
-    <span class="comment">// todo: CreateMethodProperty</span>
+    <span class="comment">// todo: CreateMethodProperty
 
-    <span class="doccomment">/// Create data property or throw</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-createdatapropertyorthrow</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create_data_property_or_throw</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span>(
+    </span><span class="doccomment">/// Create data property or throw
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-createdatapropertyorthrow
+    </span><span class="kw">pub fn </span>create_data_property_or_throw&lt;K, V&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">key</span>: <span class="ident">K</span>,
-        <span class="ident">value</span>: <span class="ident">V</span>,
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">K</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">PropertyKey</span><span class="op">&gt;</span>,
-        <span class="ident">V</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span>,
+        key: K,
+        value: V,
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;bool&gt;
+    <span class="kw">where
+        </span>K: Into&lt;PropertyKey&gt;,
+        V: Into&lt;JsValue&gt;,
     {
-        <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="ident">key</span>.<span class="ident">into</span>();
-        <span class="comment">// 1. Assert: Type(O) is Object.</span>
-        <span class="comment">// 2. Assert: IsPropertyKey(P) is true.</span>
-        <span class="comment">// 3. Let success be ? CreateDataProperty(O, P, V).</span>
-        <span class="kw">let</span> <span class="ident">success</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">create_data_property</span>(<span class="ident">key</span>.<span class="ident">clone</span>(), <span class="ident">value</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
-        <span class="comment">// 4. If success is false, throw a TypeError exception.</span>
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">success</span> {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
-                .<span class="ident">with_message</span>(<span class="macro">format!</span>(<span class="string">&quot;cannot redefine property: {key}&quot;</span>))
-                .<span class="ident">into</span>());
+        <span class="kw">let </span>key = key.into();
+        <span class="comment">// 1. Assert: Type(O) is Object.
+        // 2. Assert: IsPropertyKey(P) is true.
+        // 3. Let success be ? CreateDataProperty(O, P, V).
+        </span><span class="kw">let </span>success = <span class="self">self</span>.create_data_property(key.clone(), value, context)<span class="question-mark">?</span>;
+        <span class="comment">// 4. If success is false, throw a TypeError exception.
+        </span><span class="kw">if </span>!success {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
+                .with_message(<span class="macro">format!</span>(<span class="string">&quot;cannot redefine property: {key}&quot;</span>))
+                .into());
         }
-        <span class="comment">// 5. Return success.</span>
-        <span class="prelude-val">Ok</span>(<span class="ident">success</span>)
+        <span class="comment">// 5. Return success.
+        </span><span class="prelude-val">Ok</span>(success)
     }
 
-    <span class="doccomment">/// Create non-enumerable data property or throw</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-createnonenumerabledatapropertyinfallibly</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">create_non_enumerable_data_property_or_throw</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span>(
+    <span class="doccomment">/// Create non-enumerable data property or throw
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-createnonenumerabledatapropertyinfallibly
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>create_non_enumerable_data_property_or_throw&lt;K, V&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">key</span>: <span class="ident">K</span>,
-        <span class="ident">value</span>: <span class="ident">V</span>,
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) <span class="kw">where</span>
-        <span class="ident">K</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">PropertyKey</span><span class="op">&gt;</span>,
-        <span class="ident">V</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span>,
+        key: K,
+        value: V,
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) <span class="kw">where
+        </span>K: Into&lt;PropertyKey&gt;,
+        V: Into&lt;JsValue&gt;,
     {
-        <span class="comment">// 1. Assert: O is an ordinary, extensible object with no non-configurable properties.</span>
+        <span class="comment">// 1. Assert: O is an ordinary, extensible object with no non-configurable properties.
 
-        <span class="comment">// 2. Let newDesc be the PropertyDescriptor {</span>
-        <span class="comment">//    [[Value]]: V,</span>
-        <span class="comment">//    [[Writable]]: true,</span>
-        <span class="comment">//    [[Enumerable]]: false,</span>
-        <span class="comment">//    [[Configurable]]: true</span>
-        <span class="comment">//  }.</span>
-        <span class="kw">let</span> <span class="ident">new_desc</span> <span class="op">=</span> <span class="ident">PropertyDescriptorBuilder::new</span>()
-            .<span class="ident">value</span>(<span class="ident">value</span>)
-            .<span class="ident">writable</span>(<span class="bool-val">true</span>)
-            .<span class="ident">enumerable</span>(<span class="bool-val">false</span>)
-            .<span class="ident">configurable</span>(<span class="bool-val">true</span>)
-            .<span class="ident">build</span>();
+        // 2. Let newDesc be the PropertyDescriptor {
+        //    [[Value]]: V,
+        //    [[Writable]]: true,
+        //    [[Enumerable]]: false,
+        //    [[Configurable]]: true
+        //  }.
+        </span><span class="kw">let </span>new_desc = PropertyDescriptorBuilder::new()
+            .value(value)
+            .writable(<span class="bool-val">true</span>)
+            .enumerable(<span class="bool-val">false</span>)
+            .configurable(<span class="bool-val">true</span>)
+            .build();
 
-        <span class="comment">// 3. Perform ! DefinePropertyOrThrow(O, P, newDesc).</span>
-        <span class="self">self</span>.<span class="ident">define_property_or_throw</span>(<span class="ident">key</span>, <span class="ident">new_desc</span>, <span class="ident">context</span>)
-            .<span class="ident">expect</span>(<span class="string">&quot;should not fail according to spec&quot;</span>);
+        <span class="comment">// 3. Perform ! DefinePropertyOrThrow(O, P, newDesc).
+        </span><span class="self">self</span>.define_property_or_throw(key, new_desc, context)
+            .expect(<span class="string">&quot;should not fail according to spec&quot;</span>);
 
-        <span class="comment">// 4. Return unused.</span>
-    }
+        <span class="comment">// 4. Return unused.
+    </span>}
 
-    <span class="doccomment">/// Define property or throw.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-definepropertyorthrow</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">define_property_or_throw</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">P</span><span class="op">&gt;</span>(
+    <span class="doccomment">/// Define property or throw.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-definepropertyorthrow
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>define_property_or_throw&lt;K, P&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">key</span>: <span class="ident">K</span>,
-        <span class="ident">desc</span>: <span class="ident">P</span>,
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">K</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">PropertyKey</span><span class="op">&gt;</span>,
-        <span class="ident">P</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">PropertyDescriptor</span><span class="op">&gt;</span>,
+        key: K,
+        desc: P,
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;bool&gt;
+    <span class="kw">where
+        </span>K: Into&lt;PropertyKey&gt;,
+        P: Into&lt;PropertyDescriptor&gt;,
     {
-        <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="ident">key</span>.<span class="ident">into</span>();
-        <span class="comment">// 1. Assert: Type(O) is Object.</span>
-        <span class="comment">// 2. Assert: IsPropertyKey(P) is true.</span>
-        <span class="comment">// 3. Let success be ? O.[[DefineOwnProperty]](P, desc).</span>
-        <span class="kw">let</span> <span class="ident">success</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">__define_own_property__</span>(<span class="ident">key</span>.<span class="ident">clone</span>(), <span class="ident">desc</span>.<span class="ident">into</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>;
-        <span class="comment">// 4. If success is false, throw a TypeError exception.</span>
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">success</span> {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
-                .<span class="ident">with_message</span>(<span class="macro">format!</span>(<span class="string">&quot;cannot redefine property: {key}&quot;</span>))
-                .<span class="ident">into</span>());
+        <span class="kw">let </span>key = key.into();
+        <span class="comment">// 1. Assert: Type(O) is Object.
+        // 2. Assert: IsPropertyKey(P) is true.
+        // 3. Let success be ? O.[[DefineOwnProperty]](P, desc).
+        </span><span class="kw">let </span>success = <span class="self">self</span>.__define_own_property__(key.clone(), desc.into(), context)<span class="question-mark">?</span>;
+        <span class="comment">// 4. If success is false, throw a TypeError exception.
+        </span><span class="kw">if </span>!success {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
+                .with_message(<span class="macro">format!</span>(<span class="string">&quot;cannot redefine property: {key}&quot;</span>))
+                .into());
         }
-        <span class="comment">// 5. Return success.</span>
-        <span class="prelude-val">Ok</span>(<span class="ident">success</span>)
+        <span class="comment">// 5. Return success.
+        </span><span class="prelude-val">Ok</span>(success)
     }
 
-    <span class="doccomment">/// Defines the property or throws a `TypeError` if the operation fails.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">/// - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-deletepropertyorthrow</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">delete_property_or_throw</span><span class="op">&lt;</span><span class="ident">K</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">key</span>: <span class="ident">K</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">K</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">PropertyKey</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// Defines the property or throws a `TypeError` if the operation fails.
+    ///
+    /// More information:
+    /// - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-deletepropertyorthrow
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>delete_property_or_throw&lt;K&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, key: K, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;bool&gt;
+    <span class="kw">where
+        </span>K: Into&lt;PropertyKey&gt;,
     {
-        <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="ident">key</span>.<span class="ident">into</span>();
-        <span class="comment">// 1. Assert: Type(O) is Object.</span>
-        <span class="comment">// 2. Assert: IsPropertyKey(P) is true.</span>
-        <span class="comment">// 3. Let success be ? O.[[Delete]](P).</span>
-        <span class="kw">let</span> <span class="ident">success</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">__delete__</span>(<span class="kw-2">&amp;</span><span class="ident">key</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
-        <span class="comment">// 4. If success is false, throw a TypeError exception.</span>
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">success</span> {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
-                .<span class="ident">with_message</span>(<span class="macro">format!</span>(<span class="string">&quot;cannot delete property: {key}&quot;</span>))
-                .<span class="ident">into</span>());
+        <span class="kw">let </span>key = key.into();
+        <span class="comment">// 1. Assert: Type(O) is Object.
+        // 2. Assert: IsPropertyKey(P) is true.
+        // 3. Let success be ? O.[[Delete]](P).
+        </span><span class="kw">let </span>success = <span class="self">self</span>.__delete__(<span class="kw-2">&amp;</span>key, context)<span class="question-mark">?</span>;
+        <span class="comment">// 4. If success is false, throw a TypeError exception.
+        </span><span class="kw">if </span>!success {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
+                .with_message(<span class="macro">format!</span>(<span class="string">&quot;cannot delete property: {key}&quot;</span>))
+                .into());
         }
-        <span class="comment">// 5. Return success.</span>
-        <span class="prelude-val">Ok</span>(<span class="ident">success</span>)
+        <span class="comment">// 5. Return success.
+        </span><span class="prelude-val">Ok</span>(success)
     }
 
-    <span class="doccomment">/// Check if object has property.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-hasproperty</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">has_property</span><span class="op">&lt;</span><span class="ident">K</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">key</span>: <span class="ident">K</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">K</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">PropertyKey</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// Check if object has property.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-hasproperty
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>has_property&lt;K&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, key: K, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;bool&gt;
+    <span class="kw">where
+        </span>K: Into&lt;PropertyKey&gt;,
     {
-        <span class="comment">// 1. Assert: Type(O) is Object.</span>
-        <span class="comment">// 2. Assert: IsPropertyKey(P) is true.</span>
-        <span class="comment">// 3. Return ? O.[[HasProperty]](P).</span>
-        <span class="self">self</span>.<span class="ident">__has_property__</span>(<span class="kw-2">&amp;</span><span class="ident">key</span>.<span class="ident">into</span>(), <span class="ident">context</span>)
+        <span class="comment">// 1. Assert: Type(O) is Object.
+        // 2. Assert: IsPropertyKey(P) is true.
+        // 3. Return ? O.[[HasProperty]](P).
+        </span><span class="self">self</span>.__has_property__(<span class="kw-2">&amp;</span>key.into(), context)
     }
 
-    <span class="doccomment">/// Check if object has an own property.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-hasownproperty</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">has_own_property</span><span class="op">&lt;</span><span class="ident">K</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">key</span>: <span class="ident">K</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">K</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">PropertyKey</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// Check if object has an own property.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-hasownproperty
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>has_own_property&lt;K&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, key: K, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;bool&gt;
+    <span class="kw">where
+        </span>K: Into&lt;PropertyKey&gt;,
     {
-        <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="ident">key</span>.<span class="ident">into</span>();
-        <span class="comment">// 1. Assert: Type(O) is Object.</span>
-        <span class="comment">// 2. Assert: IsPropertyKey(P) is true.</span>
-        <span class="comment">// 3. Let desc be ? O.[[GetOwnProperty]](P).</span>
-        <span class="kw">let</span> <span class="ident">desc</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">__get_own_property__</span>(<span class="kw-2">&amp;</span><span class="ident">key</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
-        <span class="comment">// 4. If desc is undefined, return false.</span>
-        <span class="comment">// 5. Return true.</span>
-        <span class="prelude-val">Ok</span>(<span class="ident">desc</span>.<span class="ident">is_some</span>())
+        <span class="kw">let </span>key = key.into();
+        <span class="comment">// 1. Assert: Type(O) is Object.
+        // 2. Assert: IsPropertyKey(P) is true.
+        // 3. Let desc be ? O.[[GetOwnProperty]](P).
+        </span><span class="kw">let </span>desc = <span class="self">self</span>.__get_own_property__(<span class="kw-2">&amp;</span>key, context)<span class="question-mark">?</span>;
+        <span class="comment">// 4. If desc is undefined, return false.
+        // 5. Return true.
+        </span><span class="prelude-val">Ok</span>(desc.is_some())
     }
 
-    <span class="doccomment">/// Call this object.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Panics</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Panics if the object is currently mutably borrowed.</span>
-    <span class="comment">// &lt;https://tc39.es/ecma262/#sec-prepareforordinarycall&gt;</span>
-    <span class="comment">// &lt;https://tc39.es/ecma262/#sec-ecmascript-function-objects-call-thisargument-argumentslist&gt;</span>
-    <span class="attribute">#[<span class="ident">track_caller</span>]</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">call</span>(
+    <span class="doccomment">/// Call this object.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the object is currently mutably borrowed.
+    </span><span class="comment">// &lt;https://tc39.es/ecma262/#sec-prepareforordinarycall&gt;
+    // &lt;https://tc39.es/ecma262/#sec-ecmascript-function-objects-call-thisargument-argumentslist&gt;
+    </span><span class="attribute">#[track_caller]
+    #[inline]
+    </span><span class="kw">pub fn </span>call(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
-        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="comment">// 1. If argumentsList is not present, set argumentsList to a new empty List.</span>
-        <span class="comment">// 2. If IsCallable(F) is false, throw a TypeError exception.</span>
-        <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">is_callable</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="string">&quot;not a function&quot;</span>).<span class="ident">into</span>());
+        this: <span class="kw-2">&amp;</span>JsValue,
+        args: <span class="kw-2">&amp;</span>[JsValue],
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="comment">// 1. If argumentsList is not present, set argumentsList to a new empty List.
+        // 2. If IsCallable(F) is false, throw a TypeError exception.
+        </span><span class="kw">if </span>!<span class="self">self</span>.is_callable() {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ().with_message(<span class="string">&quot;not a function&quot;</span>).into());
         }
-        <span class="comment">// 3. Return ? F.[[Call]](V, argumentsList).</span>
-        <span class="self">self</span>.<span class="ident">__call__</span>(<span class="ident">this</span>, <span class="ident">args</span>, <span class="ident">context</span>)
+        <span class="comment">// 3. Return ? F.[[Call]](V, argumentsList).
+        </span><span class="self">self</span>.__call__(this, args, context)
     }
 
-    <span class="doccomment">/// `Construct ( F [ , argumentsList [ , newTarget ] ] )`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Construct an instance of this object with the specified arguments.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Panics</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Panics if the object is currently mutably borrowed.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-construct</span>
-    <span class="attribute">#[<span class="ident">track_caller</span>]</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">construct</span>(
+    <span class="doccomment">/// `Construct ( F [ , argumentsList [ , newTarget ] ] )`
+    ///
+    /// Construct an instance of this object with the specified arguments.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the object is currently mutably borrowed.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-construct
+    </span><span class="attribute">#[track_caller]
+    #[inline]
+    </span><span class="kw">pub fn </span>construct(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
-        <span class="ident">new_target</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">JsObject</span><span class="op">&gt;</span>,
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsObject</span><span class="op">&gt;</span> {
-        <span class="comment">// 1. If newTarget is not present, set newTarget to F.</span>
-        <span class="kw">let</span> <span class="ident">new_target</span> <span class="op">=</span> <span class="ident">new_target</span>.<span class="ident">unwrap_or</span>(<span class="self">self</span>);
-        <span class="comment">// 2. If argumentsList is not present, set argumentsList to a new empty List.</span>
-        <span class="comment">// 3. Return ? F.[[Construct]](argumentsList, newTarget).</span>
-        <span class="self">self</span>.<span class="ident">__construct__</span>(<span class="ident">args</span>, <span class="ident">new_target</span>, <span class="ident">context</span>)
+        args: <span class="kw-2">&amp;</span>[JsValue],
+        new_target: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>JsObject&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;JsObject&gt; {
+        <span class="comment">// 1. If newTarget is not present, set newTarget to F.
+        </span><span class="kw">let </span>new_target = new_target.unwrap_or(<span class="self">self</span>);
+        <span class="comment">// 2. If argumentsList is not present, set argumentsList to a new empty List.
+        // 3. Return ? F.[[Construct]](argumentsList, newTarget).
+        </span><span class="self">self</span>.__construct__(args, new_target, context)
     }
 
-    <span class="doccomment">/// Make the object [`sealed`][IntegrityLevel::Sealed] or [`frozen`][IntegrityLevel::Frozen].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-setintegritylevel</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_integrity_level</span>(
+    <span class="doccomment">/// Make the object [`sealed`][IntegrityLevel::Sealed] or [`frozen`][IntegrityLevel::Frozen].
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-setintegritylevel
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>set_integrity_level(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">level</span>: <span class="ident">IntegrityLevel</span>,
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
-        <span class="comment">// 1. Assert: Type(O) is Object.</span>
-        <span class="comment">// 2. Assert: level is either sealed or frozen.</span>
+        level: IntegrityLevel,
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;bool&gt; {
+        <span class="comment">// 1. Assert: Type(O) is Object.
+        // 2. Assert: level is either sealed or frozen.
 
-        <span class="comment">// 3. Let status be ? O.[[PreventExtensions]]().</span>
-        <span class="kw">let</span> <span class="ident">status</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">__prevent_extensions__</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
-        <span class="comment">// 4. If status is false, return false.</span>
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">status</span> {
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="bool-val">false</span>);
+        // 3. Let status be ? O.[[PreventExtensions]]().
+        </span><span class="kw">let </span>status = <span class="self">self</span>.__prevent_extensions__(context)<span class="question-mark">?</span>;
+        <span class="comment">// 4. If status is false, return false.
+        </span><span class="kw">if </span>!status {
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="bool-val">false</span>);
         }
 
-        <span class="comment">// 5. Let keys be ? O.[[OwnPropertyKeys]]().</span>
-        <span class="kw">let</span> <span class="ident">keys</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">__own_property_keys__</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="comment">// 5. Let keys be ? O.[[OwnPropertyKeys]]().
+        </span><span class="kw">let </span>keys = <span class="self">self</span>.__own_property_keys__(context)<span class="question-mark">?</span>;
 
-        <span class="kw">match</span> <span class="ident">level</span> {
-            <span class="comment">// 6. If level is sealed, then</span>
-            <span class="ident">IntegrityLevel::Sealed</span> =&gt; {
-                <span class="comment">// a. For each element k of keys, do</span>
-                <span class="kw">for</span> <span class="ident">k</span> <span class="kw">in</span> <span class="ident">keys</span> {
-                    <span class="comment">// i. Perform ? DefinePropertyOrThrow(O, k, PropertyDescriptor { [[Configurable]]: false }).</span>
-                    <span class="self">self</span>.<span class="ident">define_property_or_throw</span>(
-                        <span class="ident">k</span>,
-                        <span class="ident">PropertyDescriptor::builder</span>().<span class="ident">configurable</span>(<span class="bool-val">false</span>).<span class="ident">build</span>(),
-                        <span class="ident">context</span>,
+        <span class="kw">match </span>level {
+            <span class="comment">// 6. If level is sealed, then
+            </span>IntegrityLevel::Sealed =&gt; {
+                <span class="comment">// a. For each element k of keys, do
+                </span><span class="kw">for </span>k <span class="kw">in </span>keys {
+                    <span class="comment">// i. Perform ? DefinePropertyOrThrow(O, k, PropertyDescriptor { [[Configurable]]: false }).
+                    </span><span class="self">self</span>.define_property_or_throw(
+                        k,
+                        PropertyDescriptor::builder().configurable(<span class="bool-val">false</span>).build(),
+                        context,
                     )<span class="question-mark">?</span>;
                 }
             }
-            <span class="comment">// 7. Else,</span>
-            <span class="comment">//     a. Assert: level is frozen.</span>
-            <span class="ident">IntegrityLevel::Frozen</span> =&gt; {
-                <span class="comment">// b. For each element k of keys, do</span>
-                <span class="kw">for</span> <span class="ident">k</span> <span class="kw">in</span> <span class="ident">keys</span> {
-                    <span class="comment">// i. Let currentDesc be ? O.[[GetOwnProperty]](k).</span>
-                    <span class="kw">let</span> <span class="ident">current_desc</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">__get_own_property__</span>(<span class="kw-2">&amp;</span><span class="ident">k</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
-                    <span class="comment">// ii. If currentDesc is not undefined, then</span>
-                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">current_desc</span>) <span class="op">=</span> <span class="ident">current_desc</span> {
-                        <span class="comment">// 1. If IsAccessorDescriptor(currentDesc) is true, then</span>
-                        <span class="kw">let</span> <span class="ident">desc</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">current_desc</span>.<span class="ident">is_accessor_descriptor</span>() {
-                            <span class="comment">// a. Let desc be the PropertyDescriptor { [[Configurable]]: false }.</span>
-                            <span class="ident">PropertyDescriptor::builder</span>().<span class="ident">configurable</span>(<span class="bool-val">false</span>).<span class="ident">build</span>()
-                        <span class="comment">// 2. Else,</span>
-                        } <span class="kw">else</span> {
-                            <span class="comment">// a. Let desc be the PropertyDescriptor { [[Configurable]]: false, [[Writable]]: false }.</span>
-                            <span class="ident">PropertyDescriptor::builder</span>()
-                                .<span class="ident">configurable</span>(<span class="bool-val">false</span>)
-                                .<span class="ident">writable</span>(<span class="bool-val">false</span>)
-                                .<span class="ident">build</span>()
+            <span class="comment">// 7. Else,
+            //     a. Assert: level is frozen.
+            </span>IntegrityLevel::Frozen =&gt; {
+                <span class="comment">// b. For each element k of keys, do
+                </span><span class="kw">for </span>k <span class="kw">in </span>keys {
+                    <span class="comment">// i. Let currentDesc be ? O.[[GetOwnProperty]](k).
+                    </span><span class="kw">let </span>current_desc = <span class="self">self</span>.__get_own_property__(<span class="kw-2">&amp;</span>k, context)<span class="question-mark">?</span>;
+                    <span class="comment">// ii. If currentDesc is not undefined, then
+                    </span><span class="kw">if let </span><span class="prelude-val">Some</span>(current_desc) = current_desc {
+                        <span class="comment">// 1. If IsAccessorDescriptor(currentDesc) is true, then
+                        </span><span class="kw">let </span>desc = <span class="kw">if </span>current_desc.is_accessor_descriptor() {
+                            <span class="comment">// a. Let desc be the PropertyDescriptor { [[Configurable]]: false }.
+                            </span>PropertyDescriptor::builder().configurable(<span class="bool-val">false</span>).build()
+                        <span class="comment">// 2. Else,
+                        </span>} <span class="kw">else </span>{
+                            <span class="comment">// a. Let desc be the PropertyDescriptor { [[Configurable]]: false, [[Writable]]: false }.
+                            </span>PropertyDescriptor::builder()
+                                .configurable(<span class="bool-val">false</span>)
+                                .writable(<span class="bool-val">false</span>)
+                                .build()
                         };
-                        <span class="comment">// 3. Perform ? DefinePropertyOrThrow(O, k, desc).</span>
-                        <span class="self">self</span>.<span class="ident">define_property_or_throw</span>(<span class="ident">k</span>, <span class="ident">desc</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+                        <span class="comment">// 3. Perform ? DefinePropertyOrThrow(O, k, desc).
+                        </span><span class="self">self</span>.define_property_or_throw(k, desc, context)<span class="question-mark">?</span>;
                     }
                 }
             }
         }
 
-        <span class="comment">// 8. Return true.</span>
-        <span class="prelude-val">Ok</span>(<span class="bool-val">true</span>)
+        <span class="comment">// 8. Return true.
+        </span><span class="prelude-val">Ok</span>(<span class="bool-val">true</span>)
     }
 
-    <span class="doccomment">/// Check if the object is [`sealed`][IntegrityLevel::Sealed] or [`frozen`][IntegrityLevel::Frozen].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-testintegritylevel</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">test_integrity_level</span>(
+    <span class="doccomment">/// Check if the object is [`sealed`][IntegrityLevel::Sealed] or [`frozen`][IntegrityLevel::Frozen].
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-testintegritylevel
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>test_integrity_level(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">level</span>: <span class="ident">IntegrityLevel</span>,
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
-        <span class="comment">// 1. Assert: Type(O) is Object.</span>
-        <span class="comment">// 2. Assert: level is either sealed or frozen.</span>
+        level: IntegrityLevel,
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;bool&gt; {
+        <span class="comment">// 1. Assert: Type(O) is Object.
+        // 2. Assert: level is either sealed or frozen.
 
-        <span class="comment">// 3. Let extensible be ? IsExtensible(O).</span>
-        <span class="kw">let</span> <span class="ident">extensible</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">is_extensible</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+        // 3. Let extensible be ? IsExtensible(O).
+        </span><span class="kw">let </span>extensible = <span class="self">self</span>.is_extensible(context)<span class="question-mark">?</span>;
 
-        <span class="comment">// 4. If extensible is true, return false.</span>
-        <span class="kw">if</span> <span class="ident">extensible</span> {
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="bool-val">false</span>);
+        <span class="comment">// 4. If extensible is true, return false.
+        </span><span class="kw">if </span>extensible {
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="bool-val">false</span>);
         }
 
-        <span class="comment">// 5. NOTE: If the object is extensible, none of its properties are examined.</span>
-        <span class="comment">// 6. Let keys be ? O.[[OwnPropertyKeys]]().</span>
-        <span class="kw">let</span> <span class="ident">keys</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">__own_property_keys__</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="comment">// 5. NOTE: If the object is extensible, none of its properties are examined.
+        // 6. Let keys be ? O.[[OwnPropertyKeys]]().
+        </span><span class="kw">let </span>keys = <span class="self">self</span>.__own_property_keys__(context)<span class="question-mark">?</span>;
 
-        <span class="comment">// 7. For each element k of keys, do</span>
-        <span class="kw">for</span> <span class="ident">k</span> <span class="kw">in</span> <span class="ident">keys</span> {
-            <span class="comment">// a. Let currentDesc be ? O.[[GetOwnProperty]](k).</span>
-            <span class="kw">let</span> <span class="ident">current_desc</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">__get_own_property__</span>(<span class="kw-2">&amp;</span><span class="ident">k</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
-            <span class="comment">// b. If currentDesc is not undefined, then</span>
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">current_desc</span>) <span class="op">=</span> <span class="ident">current_desc</span> {
-                <span class="comment">// i. If currentDesc.[[Configurable]] is true, return false.</span>
-                <span class="kw">if</span> <span class="ident">current_desc</span>.<span class="ident">expect_configurable</span>() {
-                    <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="bool-val">false</span>);
+        <span class="comment">// 7. For each element k of keys, do
+        </span><span class="kw">for </span>k <span class="kw">in </span>keys {
+            <span class="comment">// a. Let currentDesc be ? O.[[GetOwnProperty]](k).
+            </span><span class="kw">let </span>current_desc = <span class="self">self</span>.__get_own_property__(<span class="kw-2">&amp;</span>k, context)<span class="question-mark">?</span>;
+            <span class="comment">// b. If currentDesc is not undefined, then
+            </span><span class="kw">if let </span><span class="prelude-val">Some</span>(current_desc) = current_desc {
+                <span class="comment">// i. If currentDesc.[[Configurable]] is true, return false.
+                </span><span class="kw">if </span>current_desc.expect_configurable() {
+                    <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="bool-val">false</span>);
                 }
-                <span class="comment">// ii. If level is frozen and IsDataDescriptor(currentDesc) is true, then</span>
-                <span class="kw">if</span> <span class="ident">level</span>.<span class="ident">is_frozen</span>() <span class="op">&amp;&amp;</span> <span class="ident">current_desc</span>.<span class="ident">is_data_descriptor</span>() {
-                    <span class="comment">// 1. If currentDesc.[[Writable]] is true, return false.</span>
-                    <span class="kw">if</span> <span class="ident">current_desc</span>.<span class="ident">expect_writable</span>() {
-                        <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="bool-val">false</span>);
+                <span class="comment">// ii. If level is frozen and IsDataDescriptor(currentDesc) is true, then
+                </span><span class="kw">if </span>level.is_frozen() &amp;&amp; current_desc.is_data_descriptor() {
+                    <span class="comment">// 1. If currentDesc.[[Writable]] is true, return false.
+                    </span><span class="kw">if </span>current_desc.expect_writable() {
+                        <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="bool-val">false</span>);
                     }
                 }
             }
         }
-        <span class="comment">// 8. Return true.</span>
-        <span class="prelude-val">Ok</span>(<span class="bool-val">true</span>)
+        <span class="comment">// 8. Return true.
+        </span><span class="prelude-val">Ok</span>(<span class="bool-val">true</span>)
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">length_of_array_like</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span> {
-        <span class="comment">// 1. Assert: Type(obj) is Object.</span>
-        <span class="comment">// 2. Return ℝ(? ToLength(? Get(obj, &quot;length&quot;))).</span>
-        <span class="self">self</span>.<span class="ident">get</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">to_length</span>(<span class="ident">context</span>)
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>length_of_array_like(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;u64&gt; {
+        <span class="comment">// 1. Assert: Type(obj) is Object.
+        // 2. Return ℝ(? ToLength(? Get(obj, &quot;length&quot;))).
+        </span><span class="self">self</span>.get(<span class="string">&quot;length&quot;</span>, context)<span class="question-mark">?</span>.to_length(context)
     }
 
-    <span class="doccomment">/// `7.3.22 SpeciesConstructor ( O, defaultConstructor )`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The abstract operation `SpeciesConstructor` takes arguments `O` (an Object) and</span>
-    <span class="doccomment">/// `defaultConstructor` (a constructor). It is used to retrieve the constructor that should be</span>
-    <span class="doccomment">/// used to create new objects that are derived from `O`. `defaultConstructor` is the</span>
-    <span class="doccomment">/// constructor to use if a constructor `@@species` property cannot be found starting from `O`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-speciesconstructor</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">species_constructor</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(
+    <span class="doccomment">/// `7.3.22 SpeciesConstructor ( O, defaultConstructor )`
+    ///
+    /// The abstract operation `SpeciesConstructor` takes arguments `O` (an Object) and
+    /// `defaultConstructor` (a constructor). It is used to retrieve the constructor that should be
+    /// used to create new objects that are derived from `O`. `defaultConstructor` is the
+    /// constructor to use if a constructor `@@species` property cannot be found starting from `O`.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-speciesconstructor
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>species_constructor&lt;F&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">default_constructor</span>: <span class="ident">F</span>,
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="kw-2">&amp;</span><span class="ident">StandardConstructors</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">StandardConstructor</span>,
+        default_constructor: F,
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;<span class="self">Self</span>&gt;
+    <span class="kw">where
+        </span>F: FnOnce(<span class="kw-2">&amp;</span>StandardConstructors) -&gt; <span class="kw-2">&amp;</span>StandardConstructor,
     {
-        <span class="comment">// 1. Assert: Type(O) is Object.</span>
+        <span class="comment">// 1. Assert: Type(O) is Object.
 
-        <span class="comment">// 2. Let C be ? Get(O, &quot;constructor&quot;).</span>
-        <span class="kw">let</span> <span class="ident">c</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get</span>(<span class="string">&quot;constructor&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+        // 2. Let C be ? Get(O, &quot;constructor&quot;).
+        </span><span class="kw">let </span>c = <span class="self">self</span>.get(<span class="string">&quot;constructor&quot;</span>, context)<span class="question-mark">?</span>;
 
-        <span class="comment">// 3. If C is undefined, return defaultConstructor.</span>
-        <span class="kw">if</span> <span class="ident">c</span>.<span class="ident">is_undefined</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">default_constructor</span>(<span class="ident">context</span>.<span class="ident">intrinsics</span>().<span class="ident">constructors</span>()).<span class="ident">constructor</span>());
+        <span class="comment">// 3. If C is undefined, return defaultConstructor.
+        </span><span class="kw">if </span>c.is_undefined() {
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(default_constructor(context.intrinsics().constructors()).constructor());
         }
 
-        <span class="comment">// 4. If Type(C) is not Object, throw a TypeError exception.</span>
-        <span class="kw">let</span> <span class="ident">c</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">c</span>) <span class="op">=</span> <span class="ident">c</span>.<span class="ident">as_object</span>() {
-            <span class="ident">c</span>
-        } <span class="kw">else</span> {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
-                .<span class="ident">with_message</span>(<span class="string">&quot;property &#39;constructor&#39; is not an object&quot;</span>)
-                .<span class="ident">into</span>());
+        <span class="comment">// 4. If Type(C) is not Object, throw a TypeError exception.
+        </span><span class="kw">let </span>c = <span class="kw">if let </span><span class="prelude-val">Some</span>(c) = c.as_object() {
+            c
+        } <span class="kw">else </span>{
+            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
+                .with_message(<span class="string">&quot;property &#39;constructor&#39; is not an object&quot;</span>)
+                .into());
         };
 
-        <span class="comment">// 5. Let S be ? Get(C, @@species).</span>
-        <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">c</span>.<span class="ident">get</span>(<span class="ident">WellKnownSymbols::species</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="comment">// 5. Let S be ? Get(C, @@species).
+        </span><span class="kw">let </span>s = c.get(WellKnownSymbols::species(), context)<span class="question-mark">?</span>;
 
-        <span class="comment">// 6. If S is either undefined or null, return defaultConstructor.</span>
-        <span class="kw">if</span> <span class="ident">s</span>.<span class="ident">is_null_or_undefined</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">default_constructor</span>(<span class="ident">context</span>.<span class="ident">intrinsics</span>().<span class="ident">constructors</span>()).<span class="ident">constructor</span>());
+        <span class="comment">// 6. If S is either undefined or null, return defaultConstructor.
+        </span><span class="kw">if </span>s.is_null_or_undefined() {
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(default_constructor(context.intrinsics().constructors()).constructor());
         }
 
-        <span class="comment">// 7. If IsConstructor(S) is true, return S.</span>
-        <span class="comment">// 8. Throw a TypeError exception.</span>
-        <span class="kw">match</span> <span class="ident">s</span>.<span class="ident">as_object</span>() {
-            <span class="prelude-val">Some</span>(<span class="ident">obj</span>) <span class="kw">if</span> <span class="ident">obj</span>.<span class="ident">is_constructor</span>() =&gt; <span class="prelude-val">Ok</span>(<span class="ident">obj</span>.<span class="ident">clone</span>()),
-            <span class="kw">_</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
-                .<span class="ident">with_message</span>(<span class="string">&quot;property &#39;constructor&#39; is not a constructor&quot;</span>)
-                .<span class="ident">into</span>()),
+        <span class="comment">// 7. If IsConstructor(S) is true, return S.
+        // 8. Throw a TypeError exception.
+        </span><span class="kw">match </span>s.as_object() {
+            <span class="prelude-val">Some</span>(obj) <span class="kw">if </span>obj.is_constructor() =&gt; <span class="prelude-val">Ok</span>(obj.clone()),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(JsNativeError::typ()
+                .with_message(<span class="string">&quot;property &#39;constructor&#39; is not a constructor&quot;</span>)
+                .into()),
         }
     }
 
-    <span class="doccomment">/// It is used to iterate over names of object&#39;s keys.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">/// - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-enumerableownpropertynames</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">enumerable_own_property_names</span>(
+    <span class="doccomment">/// It is used to iterate over names of object&#39;s keys.
+    ///
+    /// More information:
+    /// - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-enumerableownpropertynames
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>enumerable_own_property_names(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">kind</span>: <span class="ident">PropertyNameKind</span>,
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="comment">// 1. Assert: Type(O) is Object.</span>
-        <span class="comment">// 2. Let ownKeys be ? O.[[OwnPropertyKeys]]().</span>
-        <span class="kw">let</span> <span class="ident">own_keys</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">__own_property_keys__</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
-        <span class="comment">// 3. Let properties be a new empty List.</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">properties</span> <span class="op">=</span> <span class="macro">vec!</span>[];
+        kind: PropertyNameKind,
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;Vec&lt;JsValue&gt;&gt; {
+        <span class="comment">// 1. Assert: Type(O) is Object.
+        // 2. Let ownKeys be ? O.[[OwnPropertyKeys]]().
+        </span><span class="kw">let </span>own_keys = <span class="self">self</span>.__own_property_keys__(context)<span class="question-mark">?</span>;
+        <span class="comment">// 3. Let properties be a new empty List.
+        </span><span class="kw">let </span><span class="kw-2">mut </span>properties = <span class="macro">vec!</span>[];
 
-        <span class="comment">// 4. For each element key of ownKeys, do</span>
-        <span class="kw">for</span> <span class="ident">key</span> <span class="kw">in</span> <span class="ident">own_keys</span> {
-            <span class="comment">// a. If Type(key) is String, then</span>
-            <span class="kw">let</span> <span class="ident">key_str</span> <span class="op">=</span> <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">key</span> {
-                <span class="ident">PropertyKey::String</span>(<span class="ident">s</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">s</span>.<span class="ident">clone</span>()),
-                <span class="ident">PropertyKey::Index</span>(<span class="ident">i</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">i</span>.<span class="ident">to_string</span>().<span class="ident">into</span>()),
-                <span class="ident">PropertyKey::Symbol</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
+        <span class="comment">// 4. For each element key of ownKeys, do
+        </span><span class="kw">for </span>key <span class="kw">in </span>own_keys {
+            <span class="comment">// a. If Type(key) is String, then
+            </span><span class="kw">let </span>key_str = <span class="kw">match </span><span class="kw-2">&amp;</span>key {
+                PropertyKey::String(s) =&gt; <span class="prelude-val">Some</span>(s.clone()),
+                PropertyKey::Index(i) =&gt; <span class="prelude-val">Some</span>(i.to_string().into()),
+                PropertyKey::Symbol(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
             };
 
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">key_str</span>) <span class="op">=</span> <span class="ident">key_str</span> {
-                <span class="comment">// i. Let desc be ? O.[[GetOwnProperty]](key).</span>
-                <span class="kw">let</span> <span class="ident">desc</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">__get_own_property__</span>(<span class="kw-2">&amp;</span><span class="ident">key</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
-                <span class="comment">// ii. If desc is not undefined and desc.[[Enumerable]] is true, then</span>
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">desc</span>) <span class="op">=</span> <span class="ident">desc</span> {
-                    <span class="kw">if</span> <span class="ident">desc</span>.<span class="ident">expect_enumerable</span>() {
-                        <span class="kw">match</span> <span class="ident">kind</span> {
-                            <span class="comment">// 1. If kind is key, append key to properties.</span>
-                            <span class="ident">PropertyNameKind::Key</span> =&gt; <span class="ident">properties</span>.<span class="ident">push</span>(<span class="ident">key_str</span>.<span class="ident">into</span>()),
-                            <span class="comment">// 2. Else,</span>
-                            <span class="comment">// a. Let value be ? Get(O, key).</span>
-                            <span class="comment">// b. If kind is value, append value to properties.</span>
-                            <span class="ident">PropertyNameKind::Value</span> =&gt; {
-                                <span class="ident">properties</span>.<span class="ident">push</span>(<span class="self">self</span>.<span class="ident">get</span>(<span class="ident">key</span>.<span class="ident">clone</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>);
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(key_str) = key_str {
+                <span class="comment">// i. Let desc be ? O.[[GetOwnProperty]](key).
+                </span><span class="kw">let </span>desc = <span class="self">self</span>.__get_own_property__(<span class="kw-2">&amp;</span>key, context)<span class="question-mark">?</span>;
+                <span class="comment">// ii. If desc is not undefined and desc.[[Enumerable]] is true, then
+                </span><span class="kw">if let </span><span class="prelude-val">Some</span>(desc) = desc {
+                    <span class="kw">if </span>desc.expect_enumerable() {
+                        <span class="kw">match </span>kind {
+                            <span class="comment">// 1. If kind is key, append key to properties.
+                            </span>PropertyNameKind::Key =&gt; properties.push(key_str.into()),
+                            <span class="comment">// 2. Else,
+                            // a. Let value be ? Get(O, key).
+                            // b. If kind is value, append value to properties.
+                            </span>PropertyNameKind::Value =&gt; {
+                                properties.push(<span class="self">self</span>.get(key.clone(), context)<span class="question-mark">?</span>);
                             }
-                            <span class="comment">// c. Else,</span>
-                            <span class="comment">// i. Assert: kind is key+value.</span>
-                            <span class="comment">// ii. Let entry be ! CreateArrayFromList(« key, value »).</span>
-                            <span class="comment">// iii. Append entry to properties.</span>
-                            <span class="ident">PropertyNameKind::KeyAndValue</span> =&gt; <span class="ident">properties</span>.<span class="ident">push</span>(
-                                <span class="ident">Array::create_array_from_list</span>(
-                                    [<span class="ident">key_str</span>.<span class="ident">into</span>(), <span class="self">self</span>.<span class="ident">get</span>(<span class="ident">key</span>.<span class="ident">clone</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>],
-                                    <span class="ident">context</span>,
+                            <span class="comment">// c. Else,
+                            // i. Assert: kind is key+value.
+                            // ii. Let entry be ! CreateArrayFromList(« key, value »).
+                            // iii. Append entry to properties.
+                            </span>PropertyNameKind::KeyAndValue =&gt; properties.push(
+                                Array::create_array_from_list(
+                                    [key_str.into(), <span class="self">self</span>.get(key.clone(), context)<span class="question-mark">?</span>],
+                                    context,
                                 )
-                                .<span class="ident">into</span>(),
+                                .into(),
                             ),
                         }
                     }
@@ -1443,272 +1443,272 @@
             }
         }
 
-        <span class="comment">// 5. Return properties.</span>
-        <span class="prelude-val">Ok</span>(<span class="ident">properties</span>)
+        <span class="comment">// 5. Return properties.
+        </span><span class="prelude-val">Ok</span>(properties)
     }
 
-    <span class="doccomment">/// Abstract operation `GetMethod ( V, P )`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Retrieves the value of a specific property, when the value of the property is expected to be a function.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">/// - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-getmethod</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_method</span><span class="op">&lt;</span><span class="ident">K</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">key</span>: <span class="ident">K</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">K</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">PropertyKey</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// Abstract operation `GetMethod ( V, P )`
+    ///
+    /// Retrieves the value of a specific property, when the value of the property is expected to be a function.
+    ///
+    /// More information:
+    /// - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-getmethod
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_method&lt;K&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, key: K, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;&gt;
+    <span class="kw">where
+        </span>K: Into&lt;PropertyKey&gt;,
     {
-        <span class="comment">// Note: The spec specifies this function for JsValue.</span>
-        <span class="comment">// It is implemented for JsObject for convenience.</span>
+        <span class="comment">// Note: The spec specifies this function for JsValue.
+        // It is implemented for JsObject for convenience.
 
-        <span class="comment">// 1. Assert: IsPropertyKey(P) is true.</span>
-        <span class="comment">// 2. Let func be ? GetV(V, P).</span>
-        <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">__get__</span>(<span class="kw-2">&amp;</span><span class="ident">key</span>.<span class="ident">into</span>(), <span class="self">self</span>.<span class="ident">clone</span>().<span class="ident">into</span>(), <span class="ident">context</span>)<span class="question-mark">?</span> {
-            <span class="comment">// 3. If func is either undefined or null, return undefined.</span>
-            <span class="ident">JsValue::Undefined</span> <span class="op">|</span> <span class="ident">JsValue::Null</span> =&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
-            <span class="comment">// 5. Return func.</span>
-            <span class="ident">JsValue::Object</span>(<span class="ident">obj</span>) <span class="kw">if</span> <span class="ident">obj</span>.<span class="ident">is_callable</span>() =&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">obj</span>.<span class="ident">clone</span>())),
-            <span class="comment">// 4. If IsCallable(func) is false, throw a TypeError exception.</span>
-            <span class="kw">_</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
-                .<span class="ident">with_message</span>(<span class="string">&quot;value returned for property of object is not a function&quot;</span>)
-                .<span class="ident">into</span>()),
+        // 1. Assert: IsPropertyKey(P) is true.
+        // 2. Let func be ? GetV(V, P).
+        </span><span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.__get__(<span class="kw-2">&amp;</span>key.into(), <span class="self">self</span>.clone().into(), context)<span class="question-mark">? </span>{
+            <span class="comment">// 3. If func is either undefined or null, return undefined.
+            </span>JsValue::Undefined | JsValue::Null =&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
+            <span class="comment">// 5. Return func.
+            </span>JsValue::Object(obj) <span class="kw">if </span>obj.is_callable() =&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(obj.clone())),
+            <span class="comment">// 4. If IsCallable(func) is false, throw a TypeError exception.
+            </span><span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(JsNativeError::typ()
+                .with_message(<span class="string">&quot;value returned for property of object is not a function&quot;</span>)
+                .into()),
         }
     }
 
-    <span class="doccomment">/// Abstract operation `IsArray ( argument )`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Check if a value is an array.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-isarray</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">is_array_abstract</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
-        <span class="comment">// Note: The spec specifies this function for JsValue.</span>
-        <span class="comment">// It is implemented for JsObject for convenience.</span>
+    <span class="doccomment">/// Abstract operation `IsArray ( argument )`
+    ///
+    /// Check if a value is an array.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-isarray
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_array_abstract(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsResult&lt;bool&gt; {
+        <span class="comment">// Note: The spec specifies this function for JsValue.
+        // It is implemented for JsObject for convenience.
 
-        <span class="comment">// 2. If argument is an Array exotic object, return true.</span>
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_array</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="bool-val">true</span>);
+        // 2. If argument is an Array exotic object, return true.
+        </span><span class="kw">if </span><span class="self">self</span>.is_array() {
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="bool-val">true</span>);
         }
 
-        <span class="comment">// 3. If argument is a Proxy exotic object, then</span>
-        <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">borrow</span>();
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">proxy</span>) <span class="op">=</span> <span class="ident">object</span>.<span class="ident">as_proxy</span>() {
-            <span class="comment">// a. If argument.[[ProxyHandler]] is null, throw a TypeError exception.</span>
-            <span class="comment">// b. Let target be argument.[[ProxyTarget]].</span>
-            <span class="kw">let</span> (<span class="ident">target</span>, <span class="kw">_</span>) <span class="op">=</span> <span class="ident">proxy</span>.<span class="ident">try_data</span>()<span class="question-mark">?</span>;
+        <span class="comment">// 3. If argument is a Proxy exotic object, then
+        </span><span class="kw">let </span>object = <span class="self">self</span>.borrow();
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(proxy) = object.as_proxy() {
+            <span class="comment">// a. If argument.[[ProxyHandler]] is null, throw a TypeError exception.
+            // b. Let target be argument.[[ProxyTarget]].
+            </span><span class="kw">let </span>(target, <span class="kw">_</span>) = proxy.try_data()<span class="question-mark">?</span>;
 
-            <span class="comment">// c. Return ? IsArray(target).</span>
-            <span class="kw">return</span> <span class="ident">target</span>.<span class="ident">is_array_abstract</span>(<span class="ident">context</span>);
+            <span class="comment">// c. Return ? IsArray(target).
+            </span><span class="kw">return </span>target.is_array_abstract();
         }
 
-        <span class="comment">// 4. Return false.</span>
-        <span class="prelude-val">Ok</span>(<span class="bool-val">false</span>)
+        <span class="comment">// 4. Return false.
+        </span><span class="prelude-val">Ok</span>(<span class="bool-val">false</span>)
     }
 
-    <span class="comment">// todo: GetFunctionRealm</span>
+    <span class="comment">// todo: GetFunctionRealm
 
-    <span class="comment">// todo: CopyDataProperties</span>
+    // todo: CopyDataProperties
 
-    <span class="comment">// todo: PrivateElementFind</span>
+    // todo: PrivateElementFind
 
-    <span class="comment">// todo: PrivateFieldAdd</span>
+    // todo: PrivateFieldAdd
 
-    <span class="comment">// todo: PrivateMethodOrAccessorAdd</span>
+    // todo: PrivateMethodOrAccessorAdd
 
-    <span class="comment">// todo: PrivateGet</span>
+    // todo: PrivateGet
 
-    <span class="comment">// todo: PrivateSet</span>
+    // todo: PrivateSet
 
-    <span class="comment">// todo: DefineField</span>
+    // todo: DefineField
 
-    <span class="comment">// todo: InitializeInstanceElements</span>
-}
+    // todo: InitializeInstanceElements
+</span>}
 
-<span class="kw">impl</span> <span class="ident">JsValue</span> {
-    <span class="doccomment">/// Abstract operation `GetV ( V, P )`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Retrieves the value of a specific property of an ECMAScript language value. If the value is</span>
-    <span class="doccomment">/// not an object, the property lookup is performed using a wrapper object appropriate for the</span>
-    <span class="doccomment">/// type of the value.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">/// - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-getv</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_v</span><span class="op">&lt;</span><span class="ident">K</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">key</span>: <span class="ident">K</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">K</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">PropertyKey</span><span class="op">&gt;</span>,
+<span class="kw">impl </span>JsValue {
+    <span class="doccomment">/// Abstract operation `GetV ( V, P )`.
+    ///
+    /// Retrieves the value of a specific property of an ECMAScript language value. If the value is
+    /// not an object, the property lookup is performed using a wrapper object appropriate for the
+    /// type of the value.
+    ///
+    /// More information:
+    /// - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-getv
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_v&lt;K&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, key: K, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="self">Self</span>&gt;
+    <span class="kw">where
+        </span>K: Into&lt;PropertyKey&gt;,
     {
-        <span class="comment">// 1. Let O be ? ToObject(V).</span>
-        <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">to_object</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="comment">// 1. Let O be ? ToObject(V).
+        </span><span class="kw">let </span>o = <span class="self">self</span>.to_object(context)<span class="question-mark">?</span>;
 
-        <span class="comment">// 2. Return ? O.[[Get]](P, V).</span>
-        <span class="ident">o</span>.<span class="ident">__get__</span>(<span class="kw-2">&amp;</span><span class="ident">key</span>.<span class="ident">into</span>(), <span class="self">self</span>.<span class="ident">clone</span>(), <span class="ident">context</span>)
+        <span class="comment">// 2. Return ? O.[[Get]](P, V).
+        </span>o.__get__(<span class="kw-2">&amp;</span>key.into(), <span class="self">self</span>.clone(), context)
     }
 
-    <span class="doccomment">/// Abstract operation `GetMethod ( V, P )`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Retrieves the value of a specific property, when the value of the property is expected to be a function.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">/// - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-getmethod</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_method</span><span class="op">&lt;</span><span class="ident">K</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">key</span>: <span class="ident">K</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JsObject</span><span class="op">&gt;</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">K</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">PropertyKey</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// Abstract operation `GetMethod ( V, P )`
+    ///
+    /// Retrieves the value of a specific property, when the value of the property is expected to be a function.
+    ///
+    /// More information:
+    /// - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-getmethod
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_method&lt;K&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, key: K, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="prelude-ty">Option</span>&lt;JsObject&gt;&gt;
+    <span class="kw">where
+        </span>K: Into&lt;PropertyKey&gt;,
     {
-        <span class="comment">// Note: The spec specifies this function for JsValue.</span>
-        <span class="comment">// The main part of the function is implemented for JsObject.</span>
-        <span class="self">self</span>.<span class="ident">to_object</span>(<span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">get_method</span>(<span class="ident">key</span>, <span class="ident">context</span>)
+        <span class="comment">// Note: The spec specifies this function for JsValue.
+        // The main part of the function is implemented for JsObject.
+        </span><span class="self">self</span>.to_object(context)<span class="question-mark">?</span>.get_method(key, context)
     }
 
-    <span class="doccomment">/// It is used to create List value whose elements are provided by the indexed properties of</span>
-    <span class="doccomment">/// self.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">/// - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-createlistfromarraylike</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">create_list_from_array_like</span>(
+    <span class="doccomment">/// It is used to create List value whose elements are provided by the indexed properties of
+    /// self.
+    ///
+    /// More information:
+    /// - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-createlistfromarraylike
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>create_list_from_array_like(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">element_types</span>: <span class="kw-2">&amp;</span>[<span class="ident">Type</span>],
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="comment">// 1. If elementTypes is not present, set elementTypes to « Undefined, Null, Boolean, String, Symbol, Number, BigInt, Object ».</span>
-        <span class="kw">let</span> <span class="ident">types</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">element_types</span>.<span class="ident">is_empty</span>() {
+        element_types: <span class="kw-2">&amp;</span>[Type],
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;Vec&lt;<span class="self">Self</span>&gt;&gt; {
+        <span class="comment">// 1. If elementTypes is not present, set elementTypes to « Undefined, Null, Boolean, String, Symbol, Number, BigInt, Object ».
+        </span><span class="kw">let </span>types = <span class="kw">if </span>element_types.is_empty() {
             <span class="kw-2">&amp;</span>[
-                <span class="ident">Type::Undefined</span>,
-                <span class="ident">Type::Null</span>,
-                <span class="ident">Type::Boolean</span>,
-                <span class="ident">Type::String</span>,
-                <span class="ident">Type::Symbol</span>,
-                <span class="ident">Type::Number</span>,
-                <span class="ident">Type::BigInt</span>,
-                <span class="ident">Type::Object</span>,
+                Type::Undefined,
+                Type::Null,
+                Type::Boolean,
+                Type::String,
+                Type::Symbol,
+                Type::Number,
+                Type::BigInt,
+                Type::Object,
             ]
-        } <span class="kw">else</span> {
-            <span class="ident">element_types</span>
+        } <span class="kw">else </span>{
+            element_types
         };
 
-        <span class="comment">// 2. If Type(obj) is not Object, throw a TypeError exception.</span>
-        <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">as_object</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-            <span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="string">&quot;cannot create list from a primitive&quot;</span>)
+        <span class="comment">// 2. If Type(obj) is not Object, throw a TypeError exception.
+        </span><span class="kw">let </span>obj = <span class="self">self</span>.as_object().ok_or_else(|| {
+            JsNativeError::typ().with_message(<span class="string">&quot;cannot create list from a primitive&quot;</span>)
         })<span class="question-mark">?</span>;
 
-        <span class="comment">// 3. Let len be ? LengthOfArrayLike(obj).</span>
-        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">obj</span>.<span class="ident">length_of_array_like</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="comment">// 3. Let len be ? LengthOfArrayLike(obj).
+        </span><span class="kw">let </span>len = obj.length_of_array_like(context)<span class="question-mark">?</span>;
 
-        <span class="comment">// 4. Let list be a new empty List.</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">list</span> <span class="op">=</span> <span class="ident">Vec::with_capacity</span>(<span class="ident">len</span> <span class="kw">as</span> <span class="ident">usize</span>);
+        <span class="comment">// 4. Let list be a new empty List.
+        </span><span class="kw">let </span><span class="kw-2">mut </span>list = Vec::with_capacity(len <span class="kw">as </span>usize);
 
-        <span class="comment">// 5. Let index be 0.</span>
-        <span class="comment">// 6. Repeat, while index &lt; len,</span>
-        <span class="kw">for</span> <span class="ident">index</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">len</span> {
-            <span class="comment">// a. Let indexName be ! ToString(𝔽(index)).</span>
-            <span class="comment">// b. Let next be ? Get(obj, indexName).</span>
-            <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <span class="ident">obj</span>.<span class="ident">get</span>(<span class="ident">index</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
-            <span class="comment">// c. If Type(next) is not an element of elementTypes, throw a TypeError exception.</span>
-            <span class="kw">if</span> <span class="op">!</span><span class="ident">types</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">next</span>.<span class="ident">get_type</span>()) {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="string">&quot;bad type&quot;</span>).<span class="ident">into</span>());
+        <span class="comment">// 5. Let index be 0.
+        // 6. Repeat, while index &lt; len,
+        </span><span class="kw">for </span>index <span class="kw">in </span><span class="number">0</span>..len {
+            <span class="comment">// a. Let indexName be ! ToString(𝔽(index)).
+            // b. Let next be ? Get(obj, indexName).
+            </span><span class="kw">let </span>next = obj.get(index, context)<span class="question-mark">?</span>;
+            <span class="comment">// c. If Type(next) is not an element of elementTypes, throw a TypeError exception.
+            </span><span class="kw">if </span>!types.contains(<span class="kw-2">&amp;</span>next.get_type()) {
+                <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ().with_message(<span class="string">&quot;bad type&quot;</span>).into());
             }
-            <span class="comment">// d. Append next as the last element of list.</span>
-            <span class="ident">list</span>.<span class="ident">push</span>(<span class="ident">next</span>.<span class="ident">clone</span>());
-            <span class="comment">// e. Set index to index + 1.</span>
-        }
+            <span class="comment">// d. Append next as the last element of list.
+            </span>list.push(next.clone());
+            <span class="comment">// e. Set index to index + 1.
+        </span>}
 
-        <span class="comment">// 7. Return list.</span>
-        <span class="prelude-val">Ok</span>(<span class="ident">list</span>)
+        <span class="comment">// 7. Return list.
+        </span><span class="prelude-val">Ok</span>(list)
     }
 
-    <span class="doccomment">/// Abstract operation `( V, P [ , argumentsList ] )`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Calls a method property of an ECMAScript language value.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">/// - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-invoke</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">invoke</span><span class="op">&lt;</span><span class="ident">K</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">key</span>: <span class="ident">K</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="self">Self</span>], <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">K</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">PropertyKey</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// Abstract operation `( V, P [ , argumentsList ] )`
+    ///
+    /// Calls a method property of an ECMAScript language value.
+    ///
+    /// More information:
+    /// - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-invoke
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>invoke&lt;K&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, key: K, args: <span class="kw-2">&amp;</span>[<span class="self">Self</span>], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="self">Self</span>&gt;
+    <span class="kw">where
+        </span>K: Into&lt;PropertyKey&gt;,
     {
-        <span class="comment">// 1. If argumentsList is not present, set argumentsList to a new empty List.</span>
-        <span class="comment">// 2. Let func be ? GetV(V, P).</span>
-        <span class="kw">let</span> <span class="ident">func</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_v</span>(<span class="ident">key</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="comment">// 1. If argumentsList is not present, set argumentsList to a new empty List.
+        // 2. Let func be ? GetV(V, P).
+        </span><span class="kw">let </span>func = <span class="self">self</span>.get_v(key, context)<span class="question-mark">?</span>;
 
-        <span class="comment">// 3. Return ? Call(func, V, argumentsList)</span>
-        <span class="ident">context</span>.<span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="ident">func</span>, <span class="self">self</span>, <span class="ident">args</span>)
+        <span class="comment">// 3. Return ? Call(func, V, argumentsList)
+        </span>context.call(<span class="kw-2">&amp;</span>func, <span class="self">self</span>, args)
     }
 
-    <span class="doccomment">/// Abstract operation `OrdinaryHasInstance ( C, O )`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">/// - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-ordinaryhasinstance</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ordinary_has_instance</span>(
-        <span class="ident">function</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>,
-        <span class="ident">object</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>,
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
-        <span class="comment">// 1. If IsCallable(C) is false, return false.</span>
-        <span class="kw">let</span> <span class="ident">function</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">function</span>) <span class="op">=</span> <span class="ident">function</span>.<span class="ident">as_callable</span>() {
-            <span class="ident">function</span>
-        } <span class="kw">else</span> {
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="bool-val">false</span>);
+    <span class="doccomment">/// Abstract operation `OrdinaryHasInstance ( C, O )`
+    ///
+    /// More information:
+    /// - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-ordinaryhasinstance
+    </span><span class="kw">pub fn </span>ordinary_has_instance(
+        function: <span class="kw-2">&amp;</span><span class="self">Self</span>,
+        object: <span class="kw-2">&amp;</span><span class="self">Self</span>,
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;bool&gt; {
+        <span class="comment">// 1. If IsCallable(C) is false, return false.
+        </span><span class="kw">let </span>function = <span class="kw">if let </span><span class="prelude-val">Some</span>(function) = function.as_callable() {
+            function
+        } <span class="kw">else </span>{
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="bool-val">false</span>);
         };
 
-        <span class="comment">// 2. If C has a [[BoundTargetFunction]] internal slot, then</span>
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">bound_function</span>) <span class="op">=</span> <span class="ident">function</span>.<span class="ident">borrow</span>().<span class="ident">as_bound_function</span>() {
-            <span class="comment">// a. Let BC be C.[[BoundTargetFunction]].</span>
-            <span class="comment">// b. Return ? InstanceofOperator(O, BC).</span>
-            <span class="kw">return</span> <span class="ident"><span class="self">Self</span>::instance_of</span>(
-                <span class="ident">object</span>,
-                <span class="kw-2">&amp;</span><span class="ident">bound_function</span>.<span class="ident">target_function</span>().<span class="ident">clone</span>().<span class="ident">into</span>(),
-                <span class="ident">context</span>,
+        <span class="comment">// 2. If C has a [[BoundTargetFunction]] internal slot, then
+        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(bound_function) = function.borrow().as_bound_function() {
+            <span class="comment">// a. Let BC be C.[[BoundTargetFunction]].
+            // b. Return ? InstanceofOperator(O, BC).
+            </span><span class="kw">return </span><span class="self">Self</span>::instance_of(
+                object,
+                <span class="kw-2">&amp;</span>bound_function.target_function().clone().into(),
+                context,
             );
         }
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">object</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">obj</span>) <span class="op">=</span> <span class="ident">object</span>.<span class="ident">as_object</span>() {
-            <span class="ident">obj</span>.<span class="ident">clone</span>()
-        } <span class="kw">else</span> {
-            <span class="comment">// 3. If Type(O) is not Object, return false.</span>
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="bool-val">false</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>object = <span class="kw">if let </span><span class="prelude-val">Some</span>(obj) = object.as_object() {
+            obj.clone()
+        } <span class="kw">else </span>{
+            <span class="comment">// 3. If Type(O) is not Object, return false.
+            </span><span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="bool-val">false</span>);
         };
 
-        <span class="comment">// 4. Let P be ? Get(C, &quot;prototype&quot;).</span>
-        <span class="kw">let</span> <span class="ident">prototype</span> <span class="op">=</span> <span class="ident">function</span>.<span class="ident">get</span>(<span class="string">&quot;prototype&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="comment">// 4. Let P be ? Get(C, &quot;prototype&quot;).
+        </span><span class="kw">let </span>prototype = function.get(<span class="string">&quot;prototype&quot;</span>, context)<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="ident">prototype</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">obj</span>) <span class="op">=</span> <span class="ident">prototype</span>.<span class="ident">as_object</span>() {
-            <span class="ident">obj</span>
-        } <span class="kw">else</span> {
-            <span class="comment">// 5. If Type(P) is not Object, throw a TypeError exception.</span>
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
-                .<span class="ident">with_message</span>(<span class="string">&quot;function has non-object prototype in instanceof check&quot;</span>)
-                .<span class="ident">into</span>());
+        <span class="kw">let </span>prototype = <span class="kw">if let </span><span class="prelude-val">Some</span>(obj) = prototype.as_object() {
+            obj
+        } <span class="kw">else </span>{
+            <span class="comment">// 5. If Type(P) is not Object, throw a TypeError exception.
+            </span><span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
+                .with_message(<span class="string">&quot;function has non-object prototype in instanceof check&quot;</span>)
+                .into());
         };
 
-        <span class="comment">// 6. Repeat,</span>
-        <span class="kw">loop</span> {
-            <span class="comment">// a. Set O to ? O.[[GetPrototypeOf]]().</span>
-            <span class="ident">object</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">object</span>.<span class="ident">__get_prototype_of__</span>(<span class="ident">context</span>)<span class="question-mark">?</span> {
-                <span class="prelude-val">Some</span>(<span class="ident">obj</span>) =&gt; <span class="ident">obj</span>,
-                <span class="comment">// b. If O is null, return false.</span>
-                <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="bool-val">false</span>),
+        <span class="comment">// 6. Repeat,
+        </span><span class="kw">loop </span>{
+            <span class="comment">// a. Set O to ? O.[[GetPrototypeOf]]().
+            </span>object = <span class="kw">match </span>object.__get_prototype_of__(context)<span class="question-mark">? </span>{
+                <span class="prelude-val">Some</span>(obj) =&gt; obj,
+                <span class="comment">// b. If O is null, return false.
+                </span><span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="bool-val">false</span>),
             };
 
-            <span class="comment">// c. If SameValue(P, O) is true, return true.</span>
-            <span class="kw">if</span> <span class="ident">JsObject::equals</span>(<span class="kw-2">&amp;</span><span class="ident">object</span>, <span class="ident">prototype</span>) {
-                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="bool-val">true</span>);
+            <span class="comment">// c. If SameValue(P, O) is true, return true.
+            </span><span class="kw">if </span>JsObject::equals(<span class="kw-2">&amp;</span>object, prototype) {
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="bool-val">true</span>);
             }
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0 (a55dd71d5 2022-09-19)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0 (897e37553 2022-11-02)" ></div></body></html>

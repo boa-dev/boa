@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_engine/src/class.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>class.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../boa_engine/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../boa_engine/index.html"><div class="logo-container">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_engine/src/class.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>class.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../boa_engine/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../boa_engine/index.html"><div class="logo-container">
                     <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../boa_engine/index.html">
                         <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -309,314 +309,314 @@
 <span id="307">307</span>
 <span id="308">308</span>
 <span id="309">309</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Traits and structs for implementing native classes.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! Native classes are implemented through the [`Class`][class-trait] trait.</span>
-<span class="doccomment">//! ```</span>
-<span class="doccomment">//! # use boa_engine::{</span>
-<span class="doccomment">//! #    property::Attribute,</span>
-<span class="doccomment">//! #    class::{Class, ClassBuilder},</span>
-<span class="doccomment">//! #    Context, JsResult, JsValue,</span>
-<span class="doccomment">//! #    builtins::JsArgs,</span>
-<span class="doccomment">//! # };</span>
-<span class="doccomment">//! # use boa_gc::{Finalize, Trace};</span>
-<span class="doccomment">//! #</span>
-<span class="doccomment">//! // This does not have to be an enum it can also be a struct.</span>
-<span class="doccomment">//! #[derive(Debug, Trace, Finalize)]</span>
-<span class="doccomment">//! enum Animal {</span>
-<span class="doccomment">//!     Cat,</span>
-<span class="doccomment">//!     Dog,</span>
-<span class="doccomment">//!     Other,</span>
-<span class="doccomment">//! }</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! impl Class for Animal {</span>
-<span class="doccomment">//!     // we set the binging name of this function to be `&quot;Animal&quot;`.</span>
-<span class="doccomment">//!     const NAME: &amp;&#39;static str = &quot;Animal&quot;;</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//!     // We set the length to `1` since we accept 1 arguments in the constructor.</span>
-<span class="doccomment">//!     const LENGTH: usize = 1;</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//!     // This is what is called when we do `new Animal()`</span>
-<span class="doccomment">//!     fn constructor(_this: &amp;JsValue, args: &amp;[JsValue], context: &amp;mut Context) -&gt; JsResult&lt;Self&gt; {</span>
-<span class="doccomment">//!         // This is equivalent to `String(arg)`.</span>
-<span class="doccomment">//!         let kind = args.get_or_undefined(0).to_string(context)?;</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//!         let animal = match kind.to_std_string_escaped().as_str() {</span>
-<span class="doccomment">//!             &quot;cat&quot; =&gt; Self::Cat,</span>
-<span class="doccomment">//!             &quot;dog&quot; =&gt; Self::Dog,</span>
-<span class="doccomment">//!             _ =&gt; Self::Other,</span>
-<span class="doccomment">//!         };</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//!         Ok(animal)</span>
-<span class="doccomment">//!     }</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//!     /// This is where the object is initialized.</span>
-<span class="doccomment">//!     fn init(class: &amp;mut ClassBuilder) -&gt; JsResult&lt;()&gt; {</span>
-<span class="doccomment">//!         class.method(&quot;speak&quot;, 0, |this, _args, _ctx| {</span>
-<span class="doccomment">//!             if let Some(object) = this.as_object() {</span>
-<span class="doccomment">//!                 if let Some(animal) = object.downcast_ref::&lt;Animal&gt;() {</span>
-<span class="doccomment">//!                     match &amp;*animal {</span>
-<span class="doccomment">//!                         Self::Cat =&gt; println!(&quot;meow&quot;),</span>
-<span class="doccomment">//!                         Self::Dog =&gt; println!(&quot;woof&quot;),</span>
-<span class="doccomment">//!                         Self::Other =&gt; println!(r&quot;¯\_(ツ)_/¯&quot;),</span>
-<span class="doccomment">//!                     }</span>
-<span class="doccomment">//!                 }</span>
-<span class="doccomment">//!             }</span>
-<span class="doccomment">//!             Ok(JsValue::undefined())</span>
-<span class="doccomment">//!         });</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//!         Ok(())</span>
-<span class="doccomment">//!     }</span>
-<span class="doccomment">//! }</span>
-<span class="doccomment">//! ```</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! [class-trait]: ./trait.Class.html</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Traits and structs for implementing native classes.
+//!
+//! Native classes are implemented through the [`Class`][class-trait] trait.
+//! ```
+//! # use boa_engine::{
+//! #    property::Attribute,
+//! #    class::{Class, ClassBuilder},
+//! #    Context, JsResult, JsValue,
+//! #    builtins::JsArgs,
+//! # };
+//! # use boa_gc::{Finalize, Trace};
+//! #
+//! // This does not have to be an enum it can also be a struct.
+//! #[derive(Debug, Trace, Finalize)]
+//! enum Animal {
+//!     Cat,
+//!     Dog,
+//!     Other,
+//! }
+//!
+//! impl Class for Animal {
+//!     // we set the binging name of this function to be `&quot;Animal&quot;`.
+//!     const NAME: &amp;&#39;static str = &quot;Animal&quot;;
+//!
+//!     // We set the length to `1` since we accept 1 arguments in the constructor.
+//!     const LENGTH: usize = 1;
+//!
+//!     // This is what is called when we do `new Animal()`
+//!     fn constructor(_this: &amp;JsValue, args: &amp;[JsValue], context: &amp;mut Context) -&gt; JsResult&lt;Self&gt; {
+//!         // This is equivalent to `String(arg)`.
+//!         let kind = args.get_or_undefined(0).to_string(context)?;
+//!
+//!         let animal = match kind.to_std_string_escaped().as_str() {
+//!             &quot;cat&quot; =&gt; Self::Cat,
+//!             &quot;dog&quot; =&gt; Self::Dog,
+//!             _ =&gt; Self::Other,
+//!         };
+//!
+//!         Ok(animal)
+//!     }
+//!
+//!     /// This is where the object is initialized.
+//!     fn init(class: &amp;mut ClassBuilder) -&gt; JsResult&lt;()&gt; {
+//!         class.method(&quot;speak&quot;, 0, |this, _args, _ctx| {
+//!             if let Some(object) = this.as_object() {
+//!                 if let Some(animal) = object.downcast_ref::&lt;Animal&gt;() {
+//!                     match &amp;*animal {
+//!                         Self::Cat =&gt; println!(&quot;meow&quot;),
+//!                         Self::Dog =&gt; println!(&quot;woof&quot;),
+//!                         Self::Other =&gt; println!(r&quot;¯\_(ツ)_/¯&quot;),
+//!                     }
+//!                 }
+//!             }
+//!             Ok(JsValue::undefined())
+//!         });
+//!
+//!         Ok(())
+//!     }
+//! }
+//! ```
+//!
+//! [class-trait]: ./trait.Class.html
 
-<span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">builtins::function::NativeFunctionSignature</span>,
-    <span class="ident">error::JsNativeError</span>,
-    <span class="ident">object</span>::{<span class="ident">ConstructorBuilder</span>, <span class="ident">JsFunction</span>, <span class="ident">JsObject</span>, <span class="ident">NativeObject</span>, <span class="ident">ObjectData</span>, <span class="ident">PROTOTYPE</span>},
-    <span class="ident">property</span>::{<span class="ident">Attribute</span>, <span class="ident">PropertyDescriptor</span>, <span class="ident">PropertyKey</span>},
-    <span class="ident">Context</span>, <span class="ident">JsResult</span>, <span class="ident">JsValue</span>,
+</span><span class="kw">use crate</span>::{
+    builtins::function::NativeFunctionSignature,
+    error::JsNativeError,
+    object::{ConstructorBuilder, JsFunction, JsObject, NativeObject, ObjectData, PROTOTYPE},
+    property::{Attribute, PropertyDescriptor, PropertyKey},
+    Context, JsResult, JsValue,
 };
 
-<span class="doccomment">/// Native class.</span>
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">Class</span>: <span class="ident">NativeObject</span> <span class="op">+</span> <span class="ident">Sized</span> {
-    <span class="doccomment">/// The binding name of the object.</span>
-    <span class="kw">const</span> <span class="ident">NAME</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>;
-    <span class="doccomment">/// The amount of arguments the class `constructor` takes, default is `0`.</span>
-    <span class="kw">const</span> <span class="ident">LENGTH</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">0</span>;
-    <span class="doccomment">/// The attributes the class will be binded with, default is `writable`, `enumerable`, `configurable`.</span>
-    <span class="kw">const</span> <span class="ident">ATTRIBUTES</span>: <span class="ident">Attribute</span> <span class="op">=</span> <span class="ident">Attribute::all</span>();
+<span class="doccomment">/// Native class.
+</span><span class="kw">pub trait </span>Class: NativeObject + Sized {
+    <span class="doccomment">/// The binding name of the object.
+    </span><span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str;
+    <span class="doccomment">/// The amount of arguments the class `constructor` takes, default is `0`.
+    </span><span class="kw">const </span>LENGTH: usize = <span class="number">0</span>;
+    <span class="doccomment">/// The attributes the class will be binded with, default is `writable`, `enumerable`, `configurable`.
+    </span><span class="kw">const </span>ATTRIBUTES: Attribute = Attribute::all();
 
-    <span class="doccomment">/// The constructor of the class.</span>
-    <span class="kw">fn</span> <span class="ident">constructor</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>;
+    <span class="doccomment">/// The constructor of the class.
+    </span><span class="kw">fn </span>constructor(this: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="self">Self</span>&gt;;
 
-    <span class="doccomment">/// Initializes the internals and the methods of the class.</span>
-    <span class="kw">fn</span> <span class="ident">init</span>(<span class="ident">class</span>: <span class="kw-2">&amp;mut</span> <span class="ident">ClassBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span>;
+    <span class="doccomment">/// Initializes the internals and the methods of the class.
+    </span><span class="kw">fn </span>init(class: <span class="kw-2">&amp;mut </span>ClassBuilder&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;()&gt;;
 }
 
-<span class="doccomment">/// This is a wrapper around `Class::constructor` that sets the internal data of a class.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This is automatically implemented, when a type implements `Class`.</span>
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">ClassConstructor</span>: <span class="ident">Class</span> {
-    <span class="doccomment">/// The raw constructor that matches the `NativeFunction` signature.</span>
-    <span class="kw">fn</span> <span class="ident">raw_constructor</span>(
-        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
-        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="self">Self</span>: <span class="ident">Sized</span>;
+<span class="doccomment">/// This is a wrapper around `Class::constructor` that sets the internal data of a class.
+///
+/// This is automatically implemented, when a type implements `Class`.
+</span><span class="kw">pub trait </span>ClassConstructor: Class {
+    <span class="doccomment">/// The raw constructor that matches the `NativeFunction` signature.
+    </span><span class="kw">fn </span>raw_constructor(
+        this: <span class="kw-2">&amp;</span>JsValue,
+        args: <span class="kw-2">&amp;</span>[JsValue],
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;JsValue&gt;
+    <span class="kw">where
+        </span><span class="self">Self</span>: Sized;
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Class</span><span class="op">&gt;</span> <span class="ident">ClassConstructor</span> <span class="kw">for</span> <span class="ident">T</span> {
-    <span class="kw">fn</span> <span class="ident">raw_constructor</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="self">Self</span>: <span class="ident">Sized</span>,
+<span class="kw">impl</span>&lt;T: Class&gt; ClassConstructor <span class="kw">for </span>T {
+    <span class="kw">fn </span>raw_constructor(this: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt;
+    <span class="kw">where
+        </span><span class="self">Self</span>: Sized,
     {
-        <span class="kw">if</span> <span class="ident">this</span>.<span class="ident">is_undefined</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
-                .<span class="ident">with_message</span>(<span class="macro">format!</span>(
+        <span class="kw">if </span>this.is_undefined() {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
+                .with_message(<span class="macro">format!</span>(
                     <span class="string">&quot;cannot call constructor of native class `{}` without new&quot;</span>,
-                    <span class="ident">T::NAME</span>
+                    T::NAME
                 ))
-                .<span class="ident">into</span>());
+                .into());
         }
 
-        <span class="kw">let</span> <span class="ident">class_constructor</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">global_object</span>().<span class="ident">clone</span>().<span class="ident">get</span>(<span class="ident">T::NAME</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">class_constructor</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="ident">JsValue::Object</span>(<span class="kw-2">ref</span> <span class="ident">obj</span>) <span class="op">=</span> <span class="ident">class_constructor</span> {
-            <span class="ident">obj</span>
-        } <span class="kw">else</span> {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
-                .<span class="ident">with_message</span>(<span class="macro">format!</span>(
+        <span class="kw">let </span>class_constructor = context.global_object().clone().get(T::NAME, context)<span class="question-mark">?</span>;
+        <span class="kw">let </span>class_constructor = <span class="kw">if let </span>JsValue::Object(<span class="kw-2">ref </span>obj) = class_constructor {
+            obj
+        } <span class="kw">else </span>{
+            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
+                .with_message(<span class="macro">format!</span>(
                     <span class="string">&quot;invalid constructor for native class `{}` &quot;</span>,
-                    <span class="ident">T::NAME</span>
+                    T::NAME
                 ))
-                .<span class="ident">into</span>());
+                .into());
         };
-        <span class="kw">let</span> <span class="ident">class_prototype</span> <span class="op">=</span>
-            <span class="kw">if</span> <span class="kw">let</span> <span class="ident">JsValue::Object</span>(<span class="kw-2">ref</span> <span class="ident">obj</span>) <span class="op">=</span> <span class="ident">class_constructor</span>.<span class="ident">get</span>(<span class="ident">PROTOTYPE</span>, <span class="ident">context</span>)<span class="question-mark">?</span> {
-                <span class="ident">obj</span>.<span class="ident">clone</span>()
-            } <span class="kw">else</span> {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
-                    .<span class="ident">with_message</span>(<span class="macro">format!</span>(
+        <span class="kw">let </span>class_prototype =
+            <span class="kw">if let </span>JsValue::Object(<span class="kw-2">ref </span>obj) = class_constructor.get(PROTOTYPE, context)<span class="question-mark">? </span>{
+                obj.clone()
+            } <span class="kw">else </span>{
+                <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
+                    .with_message(<span class="macro">format!</span>(
                         <span class="string">&quot;invalid default prototype for native class `{}`&quot;</span>,
-                        <span class="ident">T::NAME</span>
+                        T::NAME
                     ))
-                    .<span class="ident">into</span>());
+                    .into());
             };
 
-        <span class="kw">let</span> <span class="ident">prototype</span> <span class="op">=</span> <span class="ident">this</span>
-            .<span class="ident">as_object</span>()
-            .<span class="ident">cloned</span>()
-            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">obj</span><span class="op">|</span> {
-                <span class="ident">obj</span>.<span class="ident">get</span>(<span class="ident">PROTOTYPE</span>, <span class="ident">context</span>)
-                    .<span class="ident">map</span>(<span class="op">|</span><span class="ident">val</span><span class="op">|</span> <span class="ident">val</span>.<span class="ident">as_object</span>().<span class="ident">cloned</span>())
+        <span class="kw">let </span>prototype = this
+            .as_object()
+            .cloned()
+            .map(|obj| {
+                obj.get(PROTOTYPE, context)
+                    .map(|val| val.as_object().cloned())
             })
-            .<span class="ident">transpose</span>()<span class="question-mark">?</span>
-            .<span class="ident">flatten</span>()
-            .<span class="ident">unwrap_or</span>(<span class="ident">class_prototype</span>);
+            .transpose()<span class="question-mark">?
+            </span>.flatten()
+            .unwrap_or(class_prototype);
 
-        <span class="kw">let</span> <span class="ident">native_instance</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::constructor</span>(<span class="ident">this</span>, <span class="ident">args</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">object_instance</span> <span class="op">=</span> <span class="ident">JsObject::from_proto_and_data</span>(
-            <span class="ident">prototype</span>,
-            <span class="ident">ObjectData::native_object</span>(<span class="ident">Box::new</span>(<span class="ident">native_instance</span>)),
+        <span class="kw">let </span>native_instance = <span class="self">Self</span>::constructor(this, args, context)<span class="question-mark">?</span>;
+        <span class="kw">let </span>object_instance = JsObject::from_proto_and_data(
+            prototype,
+            ObjectData::native_object(Box::new(native_instance)),
         );
-        <span class="prelude-val">Ok</span>(<span class="ident">object_instance</span>.<span class="ident">into</span>())
+        <span class="prelude-val">Ok</span>(object_instance.into())
     }
 }
 
-<span class="doccomment">/// Class builder which allows adding methods and static methods to the class.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ClassBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;context</span><span class="op">&gt;</span> {
-    <span class="ident">builder</span>: <span class="ident">ConstructorBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;context</span><span class="op">&gt;</span>,
+<span class="doccomment">/// Class builder which allows adding methods and static methods to the class.
+</span><span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub struct </span>ClassBuilder&lt;<span class="lifetime">&#39;context</span>&gt; {
+    builder: ConstructorBuilder&lt;<span class="lifetime">&#39;context</span>&gt;,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;context</span><span class="op">&gt;</span> <span class="ident">ClassBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;context</span><span class="op">&gt;</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;context</span> <span class="kw-2">mut</span> <span class="ident">Context</span>) -&gt; <span class="self">Self</span>
-    <span class="kw">where</span>
-        <span class="ident">T</span>: <span class="ident">ClassConstructor</span>,
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;context</span>&gt; ClassBuilder&lt;<span class="lifetime">&#39;context</span>&gt; {
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new&lt;T&gt;(context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;context </span><span class="kw-2">mut </span>Context) -&gt; <span class="self">Self
+    </span><span class="kw">where
+        </span>T: ClassConstructor,
     {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">builder</span> <span class="op">=</span> <span class="ident">ConstructorBuilder::new</span>(<span class="ident">context</span>, <span class="ident">T::raw_constructor</span>);
-        <span class="ident">builder</span>.<span class="ident">name</span>(<span class="ident">T::NAME</span>);
-        <span class="ident">builder</span>.<span class="ident">length</span>(<span class="ident">T::LENGTH</span>);
-        <span class="self">Self</span> { <span class="ident">builder</span> }
+        <span class="kw">let </span><span class="kw-2">mut </span>builder = ConstructorBuilder::new(context, T::raw_constructor);
+        builder.name(T::NAME);
+        builder.length(T::LENGTH);
+        <span class="self">Self </span>{ builder }
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">build</span>(<span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="ident">JsFunction</span> {
-        <span class="ident">JsFunction::from_object_unchecked</span>(<span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">build</span>().<span class="ident">into</span>())
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>build(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; JsFunction {
+        JsFunction::from_object_unchecked(<span class="self">self</span>.builder.build().into())
     }
 
-    <span class="doccomment">/// Add a method to the class.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// It is added to `prototype`.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">method</span><span class="op">&lt;</span><span class="ident">N</span><span class="op">&gt;</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">name</span>: <span class="ident">N</span>,
-        <span class="ident">length</span>: <span class="ident">usize</span>,
-        <span class="ident">function</span>: <span class="ident">NativeFunctionSignature</span>,
-    ) -&gt; <span class="kw-2">&amp;mut</span> <span class="self">Self</span>
-    <span class="kw">where</span>
-        <span class="ident">N</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// Add a method to the class.
+    ///
+    /// It is added to `prototype`.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>method&lt;N&gt;(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        name: N,
+        length: usize,
+        function: NativeFunctionSignature,
+    ) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self
+    </span><span class="kw">where
+        </span>N: AsRef&lt;str&gt;,
     {
-        <span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">method</span>(<span class="ident">function</span>, <span class="ident">name</span>.<span class="ident">as_ref</span>(), <span class="ident">length</span>);
-        <span class="self">self</span>
-    }
+        <span class="self">self</span>.builder.method(function, name.as_ref(), length);
+        <span class="self">self
+    </span>}
 
-    <span class="doccomment">/// Add a static method to the class.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// It is added to class object itself.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">static_method</span><span class="op">&lt;</span><span class="ident">N</span><span class="op">&gt;</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">name</span>: <span class="ident">N</span>,
-        <span class="ident">length</span>: <span class="ident">usize</span>,
-        <span class="ident">function</span>: <span class="ident">NativeFunctionSignature</span>,
-    ) -&gt; <span class="kw-2">&amp;mut</span> <span class="self">Self</span>
-    <span class="kw">where</span>
-        <span class="ident">N</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// Add a static method to the class.
+    ///
+    /// It is added to class object itself.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>static_method&lt;N&gt;(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        name: N,
+        length: usize,
+        function: NativeFunctionSignature,
+    ) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self
+    </span><span class="kw">where
+        </span>N: AsRef&lt;str&gt;,
     {
-        <span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">static_method</span>(<span class="ident">function</span>, <span class="ident">name</span>.<span class="ident">as_ref</span>(), <span class="ident">length</span>);
-        <span class="self">self</span>
-    }
+        <span class="self">self</span>.builder.static_method(function, name.as_ref(), length);
+        <span class="self">self
+    </span>}
 
-    <span class="doccomment">/// Add a data property to the class, with the specified attribute.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// It is added to `prototype`.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">property</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">key</span>: <span class="ident">K</span>, <span class="ident">value</span>: <span class="ident">V</span>, <span class="ident">attribute</span>: <span class="ident">Attribute</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="self">Self</span>
-    <span class="kw">where</span>
-        <span class="ident">K</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">PropertyKey</span><span class="op">&gt;</span>,
-        <span class="ident">V</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// Add a data property to the class, with the specified attribute.
+    ///
+    /// It is added to `prototype`.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>property&lt;K, V&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: K, value: V, attribute: Attribute) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self
+    </span><span class="kw">where
+        </span>K: Into&lt;PropertyKey&gt;,
+        V: Into&lt;JsValue&gt;,
     {
-        <span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">property</span>(<span class="ident">key</span>, <span class="ident">value</span>, <span class="ident">attribute</span>);
-        <span class="self">self</span>
-    }
+        <span class="self">self</span>.builder.property(key, value, attribute);
+        <span class="self">self
+    </span>}
 
-    <span class="doccomment">/// Add a static data property to the class, with the specified attribute.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// It is added to class object itself.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">static_property</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">key</span>: <span class="ident">K</span>, <span class="ident">value</span>: <span class="ident">V</span>, <span class="ident">attribute</span>: <span class="ident">Attribute</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="self">Self</span>
-    <span class="kw">where</span>
-        <span class="ident">K</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">PropertyKey</span><span class="op">&gt;</span>,
-        <span class="ident">V</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// Add a static data property to the class, with the specified attribute.
+    ///
+    /// It is added to class object itself.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>static_property&lt;K, V&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: K, value: V, attribute: Attribute) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self
+    </span><span class="kw">where
+        </span>K: Into&lt;PropertyKey&gt;,
+        V: Into&lt;JsValue&gt;,
     {
-        <span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">static_property</span>(<span class="ident">key</span>, <span class="ident">value</span>, <span class="ident">attribute</span>);
-        <span class="self">self</span>
-    }
+        <span class="self">self</span>.builder.static_property(key, value, attribute);
+        <span class="self">self
+    </span>}
 
-    <span class="doccomment">/// Add an accessor property to the class, with the specified attribute.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// It is added to `prototype`.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">accessor</span><span class="op">&lt;</span><span class="ident">K</span><span class="op">&gt;</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">key</span>: <span class="ident">K</span>,
-        <span class="ident">get</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JsFunction</span><span class="op">&gt;</span>,
-        <span class="ident">set</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JsFunction</span><span class="op">&gt;</span>,
-        <span class="ident">attribute</span>: <span class="ident">Attribute</span>,
-    ) -&gt; <span class="kw-2">&amp;mut</span> <span class="self">Self</span>
-    <span class="kw">where</span>
-        <span class="ident">K</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">PropertyKey</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// Add an accessor property to the class, with the specified attribute.
+    ///
+    /// It is added to `prototype`.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>accessor&lt;K&gt;(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        key: K,
+        get: <span class="prelude-ty">Option</span>&lt;JsFunction&gt;,
+        set: <span class="prelude-ty">Option</span>&lt;JsFunction&gt;,
+        attribute: Attribute,
+    ) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self
+    </span><span class="kw">where
+        </span>K: Into&lt;PropertyKey&gt;,
     {
-        <span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">accessor</span>(<span class="ident">key</span>, <span class="ident">get</span>, <span class="ident">set</span>, <span class="ident">attribute</span>);
-        <span class="self">self</span>
-    }
+        <span class="self">self</span>.builder.accessor(key, get, set, attribute);
+        <span class="self">self
+    </span>}
 
-    <span class="doccomment">/// Add a static accessor property to the class, with the specified attribute.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// It is added to class object itself.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">static_accessor</span><span class="op">&lt;</span><span class="ident">K</span><span class="op">&gt;</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">key</span>: <span class="ident">K</span>,
-        <span class="ident">get</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JsFunction</span><span class="op">&gt;</span>,
-        <span class="ident">set</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JsFunction</span><span class="op">&gt;</span>,
-        <span class="ident">attribute</span>: <span class="ident">Attribute</span>,
-    ) -&gt; <span class="kw-2">&amp;mut</span> <span class="self">Self</span>
-    <span class="kw">where</span>
-        <span class="ident">K</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">PropertyKey</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// Add a static accessor property to the class, with the specified attribute.
+    ///
+    /// It is added to class object itself.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>static_accessor&lt;K&gt;(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        key: K,
+        get: <span class="prelude-ty">Option</span>&lt;JsFunction&gt;,
+        set: <span class="prelude-ty">Option</span>&lt;JsFunction&gt;,
+        attribute: Attribute,
+    ) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self
+    </span><span class="kw">where
+        </span>K: Into&lt;PropertyKey&gt;,
     {
-        <span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">static_accessor</span>(<span class="ident">key</span>, <span class="ident">get</span>, <span class="ident">set</span>, <span class="ident">attribute</span>);
-        <span class="self">self</span>
-    }
+        <span class="self">self</span>.builder.static_accessor(key, get, set, attribute);
+        <span class="self">self
+    </span>}
 
-    <span class="doccomment">/// Add a property descriptor to the class, with the specified attribute.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// It is added to `prototype`.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">property_descriptor</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">P</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">key</span>: <span class="ident">K</span>, <span class="ident">property</span>: <span class="ident">P</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="self">Self</span>
-    <span class="kw">where</span>
-        <span class="ident">K</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">PropertyKey</span><span class="op">&gt;</span>,
-        <span class="ident">P</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">PropertyDescriptor</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// Add a property descriptor to the class, with the specified attribute.
+    ///
+    /// It is added to `prototype`.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>property_descriptor&lt;K, P&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: K, property: P) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self
+    </span><span class="kw">where
+        </span>K: Into&lt;PropertyKey&gt;,
+        P: Into&lt;PropertyDescriptor&gt;,
     {
-        <span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">property_descriptor</span>(<span class="ident">key</span>, <span class="ident">property</span>);
-        <span class="self">self</span>
-    }
+        <span class="self">self</span>.builder.property_descriptor(key, property);
+        <span class="self">self
+    </span>}
 
-    <span class="doccomment">/// Add a static property descriptor to the class, with the specified attribute.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// It is added to class object itself.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">static_property_descriptor</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">P</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">key</span>: <span class="ident">K</span>, <span class="ident">property</span>: <span class="ident">P</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="self">Self</span>
-    <span class="kw">where</span>
-        <span class="ident">K</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">PropertyKey</span><span class="op">&gt;</span>,
-        <span class="ident">P</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">PropertyDescriptor</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// Add a static property descriptor to the class, with the specified attribute.
+    ///
+    /// It is added to class object itself.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>static_property_descriptor&lt;K, P&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: K, property: P) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self
+    </span><span class="kw">where
+        </span>K: Into&lt;PropertyKey&gt;,
+        P: Into&lt;PropertyDescriptor&gt;,
     {
-        <span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">static_property_descriptor</span>(<span class="ident">key</span>, <span class="ident">property</span>);
-        <span class="self">self</span>
-    }
+        <span class="self">self</span>.builder.static_property_descriptor(key, property);
+        <span class="self">self
+    </span>}
 
-    <span class="doccomment">/// Return the current context.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">context</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;_</span> <span class="kw-2">mut</span> <span class="ident">Context</span> {
-        <span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">context</span>()
+    <span class="doccomment">/// Return the current context.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>context(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;_ </span><span class="kw-2">mut </span>Context {
+        <span class="self">self</span>.builder.context()
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0 (a55dd71d5 2022-09-19)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0 (897e37553 2022-11-02)" ></div></body></html>

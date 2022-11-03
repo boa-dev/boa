@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_ast/src/expression/operator/unary/op.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>op.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../../storage.js"></script><script defer src="../../../../../source-script.js"></script><script defer src="../../../../../source-files.js"></script><script defer src="../../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../../boa_ast/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../../boa_ast/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../../boa_ast/index.html"><img class="rust-logo" src="../../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_ast/src/expression/operator/unary/op.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>op.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../../normalize.css"><link rel="stylesheet" href="../../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../../dark.css" disabled><link rel="stylesheet" href="../../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../../storage.js"></script><script defer src="../../../../../source-script.js"></script><script defer src="../../../../../source-files.js"></script><script defer src="../../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../../boa_ast/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../../boa_ast/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../../boa_ast/index.html"><img class="rust-logo" src="../../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -213,220 +213,220 @@
 <span id="213">213</span>
 <span id="214">214</span>
 <span id="215">215</span>
-</pre><pre class="rust"><code><span class="doccomment">/// A unary operator is one that takes a single operand/argument and performs an operation.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// A unary operation is an operation with only one operand. This operand comes either</span>
-<span class="doccomment">/// before or after the operator. Unary operators are more efficient than standard JavaScript</span>
-<span class="doccomment">/// function calls.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [ECMAScript reference][spec]</span>
-<span class="doccomment">///  - [MDN documentation][mdn]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-UnaryExpression</span>
-<span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_Operators#Unary</span>
-<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>, <span class="ident">derive</span>(<span class="ident">serde::Serialize</span>, <span class="ident">serde::Deserialize</span>))]</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">UnaryOp</span> {
-    <span class="doccomment">/// The increment operator increments (adds one to) its operand and returns a value.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Syntax: `++x`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This operator increments and returns the value after incrementing.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-postfix-increment-operator</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Arithmetic_Operators#Increment</span>
-    <span class="ident">IncrementPost</span>,
+</pre><pre class="rust"><code><span class="doccomment">/// A unary operator is one that takes a single operand/argument and performs an operation.
+///
+/// A unary operation is an operation with only one operand. This operand comes either
+/// before or after the operator. Unary operators are more efficient than standard JavaScript
+/// function calls.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///  - [MDN documentation][mdn]
+///
+/// [spec]: https://tc39.es/ecma262/#prod-UnaryExpression
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_Operators#Unary
+</span><span class="attribute">#[cfg_attr(feature = <span class="string">&quot;serde&quot;</span>, derive(serde::Serialize, serde::Deserialize))]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+</span><span class="kw">pub enum </span>UnaryOp {
+    <span class="doccomment">/// The increment operator increments (adds one to) its operand and returns a value.
+    ///
+    /// Syntax: `++x`
+    ///
+    /// This operator increments and returns the value after incrementing.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-postfix-increment-operator
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Arithmetic_Operators#Increment
+    </span>IncrementPost,
 
-    <span class="doccomment">/// The increment operator increments (adds one to) its operand and returns a value.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Syntax: `x++`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This operator increments and returns the value before incrementing.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-prefix-increment-operator</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Arithmetic_Operators#Increment</span>
-    <span class="ident">IncrementPre</span>,
+    <span class="doccomment">/// The increment operator increments (adds one to) its operand and returns a value.
+    ///
+    /// Syntax: `x++`
+    ///
+    /// This operator increments and returns the value before incrementing.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-prefix-increment-operator
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Arithmetic_Operators#Increment
+    </span>IncrementPre,
 
-    <span class="doccomment">/// The decrement operator decrements (subtracts one from) its operand and returns a value.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Syntax: `--x`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This operator decrements and returns the value before decrementing.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-postfix-decrement-operator</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Arithmetic_Operators#Decrement</span>
-    <span class="ident">DecrementPost</span>,
+    <span class="doccomment">/// The decrement operator decrements (subtracts one from) its operand and returns a value.
+    ///
+    /// Syntax: `--x`
+    ///
+    /// This operator decrements and returns the value before decrementing.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-postfix-decrement-operator
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Arithmetic_Operators#Decrement
+    </span>DecrementPost,
 
-    <span class="doccomment">/// The decrement operator decrements (subtracts one from) its operand and returns a value.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Syntax: `x--`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This operator decrements the operand and returns the value after decrementing.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-prefix-decrement-operator</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Arithmetic_Operators#Decrement</span>
-    <span class="ident">DecrementPre</span>,
+    <span class="doccomment">/// The decrement operator decrements (subtracts one from) its operand and returns a value.
+    ///
+    /// Syntax: `x--`
+    ///
+    /// This operator decrements the operand and returns the value after decrementing.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-prefix-decrement-operator
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Arithmetic_Operators#Decrement
+    </span>DecrementPre,
 
-    <span class="doccomment">/// The unary negation operator precedes its operand and negates it.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Syntax: `-x`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Converts non-numbers data types to numbers like unary plus,</span>
-    <span class="doccomment">/// however, it performs an additional operation, negation.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-unary-minus-operator</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Arithmetic_Operators#Unary_negation</span>
-    <span class="ident">Minus</span>,
+    <span class="doccomment">/// The unary negation operator precedes its operand and negates it.
+    ///
+    /// Syntax: `-x`
+    ///
+    /// Converts non-numbers data types to numbers like unary plus,
+    /// however, it performs an additional operation, negation.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-unary-minus-operator
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Arithmetic_Operators#Unary_negation
+    </span>Minus,
 
-    <span class="doccomment">/// The unary plus operator attempts to convert the operand into a number, if it isn&#39;t already.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Syntax: `+x`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Although unary negation (`-`) also can convert non-numbers, unary plus is the fastest and preferred</span>
-    <span class="doccomment">/// way of converting something into a number, because it does not perform any other operations on the number.</span>
-    <span class="doccomment">/// It can convert `string` representations of integers and floats, as well as the non-string values `true`, `false`, and `null`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-unary-plus-operator</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Arithmetic_Operators#Unary_plus</span>
-    <span class="ident">Plus</span>,
+    <span class="doccomment">/// The unary plus operator attempts to convert the operand into a number, if it isn&#39;t already.
+    ///
+    /// Syntax: `+x`
+    ///
+    /// Although unary negation (`-`) also can convert non-numbers, unary plus is the fastest and preferred
+    /// way of converting something into a number, because it does not perform any other operations on the number.
+    /// It can convert `string` representations of integers and floats, as well as the non-string values `true`, `false`, and `null`.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-unary-plus-operator
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Arithmetic_Operators#Unary_plus
+    </span>Plus,
 
-    <span class="doccomment">/// Returns `false` if its single operand can be converted to `true`; otherwise, returns `true`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Syntax: `!x`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Boolean values simply get inverted: `!true === false` and `!false === true`.</span>
-    <span class="doccomment">/// Non-boolean values get converted to boolean values first, then are negated.</span>
-    <span class="doccomment">/// This means that it is possible to use a couple of NOT operators in series to explicitly</span>
-    <span class="doccomment">/// force the conversion of any value to the corresponding boolean primitive.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-logical-not-operator</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Logical_Operators#Logical_NOT</span>
-    <span class="ident">Not</span>,
+    <span class="doccomment">/// Returns `false` if its single operand can be converted to `true`; otherwise, returns `true`.
+    ///
+    /// Syntax: `!x`
+    ///
+    /// Boolean values simply get inverted: `!true === false` and `!false === true`.
+    /// Non-boolean values get converted to boolean values first, then are negated.
+    /// This means that it is possible to use a couple of NOT operators in series to explicitly
+    /// force the conversion of any value to the corresponding boolean primitive.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-logical-not-operator
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Logical_Operators#Logical_NOT
+    </span>Not,
 
-    <span class="doccomment">/// Performs the NOT operator on each bit.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Syntax: `~x`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// NOT `a` yields the inverted value (or one&#39;s complement) of `a`.</span>
-    <span class="doccomment">/// Bitwise NOTing any number x yields -(x + 1). For example, ~-5 yields 4.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-bitwise-not-operator</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Bitwise_Operators#Bitwise_NOT</span>
-    <span class="ident">Tilde</span>,
+    <span class="doccomment">/// Performs the NOT operator on each bit.
+    ///
+    /// Syntax: `~x`
+    ///
+    /// NOT `a` yields the inverted value (or one&#39;s complement) of `a`.
+    /// Bitwise NOTing any number x yields -(x + 1). For example, ~-5 yields 4.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-bitwise-not-operator
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Bitwise_Operators#Bitwise_NOT
+    </span>Tilde,
 
-    <span class="doccomment">/// The `typeof` operator returns a string indicating the type of the unevaluated operand.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Syntax: `typeof x` or `typeof(x)`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The `typeof` is a JavaScript keyword that will return the type of a variable when you call it.</span>
-    <span class="doccomment">/// You can use this to validate function parameters or check if variables are defined.</span>
-    <span class="doccomment">/// There are other uses as well.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-typeof-operator</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/typeof</span>
-    <span class="ident">TypeOf</span>,
+    <span class="doccomment">/// The `typeof` operator returns a string indicating the type of the unevaluated operand.
+    ///
+    /// Syntax: `typeof x` or `typeof(x)`
+    ///
+    /// The `typeof` is a JavaScript keyword that will return the type of a variable when you call it.
+    /// You can use this to validate function parameters or check if variables are defined.
+    /// There are other uses as well.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-typeof-operator
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/typeof
+    </span>TypeOf,
 
-    <span class="doccomment">/// The JavaScript `delete` operator removes a property from an object.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Syntax: `delete x`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Unlike what common belief suggests, the delete operator has nothing to do with</span>
-    <span class="doccomment">/// directly freeing memory. Memory management is done indirectly via breaking references.</span>
-    <span class="doccomment">/// If no more references to the same property are held, it is eventually released automatically.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The `delete` operator returns `true` for all cases except when the property is an</span>
-    <span class="doccomment">/// [own](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/hasOwnProperty)</span>
-    <span class="doccomment">/// [non-configurable](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Errors/Cant_delete)</span>
-    <span class="doccomment">/// property, in which case, `false` is returned in non-strict mode.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-delete-operator</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/delete</span>
-    <span class="ident">Delete</span>,
+    <span class="doccomment">/// The JavaScript `delete` operator removes a property from an object.
+    ///
+    /// Syntax: `delete x`
+    ///
+    /// Unlike what common belief suggests, the delete operator has nothing to do with
+    /// directly freeing memory. Memory management is done indirectly via breaking references.
+    /// If no more references to the same property are held, it is eventually released automatically.
+    ///
+    /// The `delete` operator returns `true` for all cases except when the property is an
+    /// [own](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/hasOwnProperty)
+    /// [non-configurable](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Errors/Cant_delete)
+    /// property, in which case, `false` is returned in non-strict mode.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-delete-operator
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/delete
+    </span>Delete,
 
-    <span class="doccomment">/// The `void` operator evaluates the given `expression` and then returns `undefined`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Syntax: `void x`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This operator allows evaluating expressions that produce a value into places where an</span>
-    <span class="doccomment">/// expression that evaluates to `undefined` is desired.</span>
-    <span class="doccomment">/// The `void` operator is often used merely to obtain the `undefined` primitive value, usually using `void(0)`</span>
-    <span class="doccomment">/// (which is equivalent to `void 0`). In these cases, the global variable undefined can be used.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// When using an [immediately-invoked function expression](https://developer.mozilla.org/en-US/docs/Glossary/IIFE),</span>
-    <span class="doccomment">/// `void` can be used to force the function keyword to be treated as an expression instead of a declaration.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///  - [MDN documentation][mdn]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-void-operator</span>
-    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/void</span>
-    <span class="ident">Void</span>,
+    <span class="doccomment">/// The `void` operator evaluates the given `expression` and then returns `undefined`.
+    ///
+    /// Syntax: `void x`
+    ///
+    /// This operator allows evaluating expressions that produce a value into places where an
+    /// expression that evaluates to `undefined` is desired.
+    /// The `void` operator is often used merely to obtain the `undefined` primitive value, usually using `void(0)`
+    /// (which is equivalent to `void 0`). In these cases, the global variable undefined can be used.
+    ///
+    /// When using an [immediately-invoked function expression](https://developer.mozilla.org/en-US/docs/Glossary/IIFE),
+    /// `void` can be used to force the function keyword to be treated as an expression instead of a declaration.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-void-operator
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/void
+    </span>Void,
 }
 
-<span class="kw">impl</span> <span class="ident">UnaryOp</span> {
-    <span class="doccomment">/// Retrieves the operation as a static string.</span>
-    <span class="kw">fn</span> <span class="ident">as_str</span>(<span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident"><span class="self">Self</span>::IncrementPost</span> <span class="op">|</span> <span class="ident"><span class="self">Self</span>::IncrementPre</span> =&gt; <span class="string">&quot;++&quot;</span>,
-            <span class="ident"><span class="self">Self</span>::DecrementPost</span> <span class="op">|</span> <span class="ident"><span class="self">Self</span>::DecrementPre</span> =&gt; <span class="string">&quot;--&quot;</span>,
-            <span class="ident"><span class="self">Self</span>::Plus</span> =&gt; <span class="string">&quot;+&quot;</span>,
-            <span class="ident"><span class="self">Self</span>::Minus</span> =&gt; <span class="string">&quot;-&quot;</span>,
-            <span class="ident"><span class="self">Self</span>::Not</span> =&gt; <span class="string">&quot;!&quot;</span>,
-            <span class="ident"><span class="self">Self</span>::Tilde</span> =&gt; <span class="string">&quot;~&quot;</span>,
-            <span class="ident"><span class="self">Self</span>::Delete</span> =&gt; <span class="string">&quot;delete&quot;</span>,
-            <span class="ident"><span class="self">Self</span>::TypeOf</span> =&gt; <span class="string">&quot;typeof&quot;</span>,
-            <span class="ident"><span class="self">Self</span>::Void</span> =&gt; <span class="string">&quot;void&quot;</span>,
+<span class="kw">impl </span>UnaryOp {
+    <span class="doccomment">/// Retrieves the operation as a static string.
+    </span><span class="kw">fn </span>as_str(<span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str {
+        <span class="kw">match </span><span class="self">self </span>{
+            <span class="self">Self</span>::IncrementPost | <span class="self">Self</span>::IncrementPre =&gt; <span class="string">&quot;++&quot;</span>,
+            <span class="self">Self</span>::DecrementPost | <span class="self">Self</span>::DecrementPre =&gt; <span class="string">&quot;--&quot;</span>,
+            <span class="self">Self</span>::Plus =&gt; <span class="string">&quot;+&quot;</span>,
+            <span class="self">Self</span>::Minus =&gt; <span class="string">&quot;-&quot;</span>,
+            <span class="self">Self</span>::Not =&gt; <span class="string">&quot;!&quot;</span>,
+            <span class="self">Self</span>::Tilde =&gt; <span class="string">&quot;~&quot;</span>,
+            <span class="self">Self</span>::Delete =&gt; <span class="string">&quot;delete&quot;</span>,
+            <span class="self">Self</span>::TypeOf =&gt; <span class="string">&quot;typeof&quot;</span>,
+            <span class="self">Self</span>::Void =&gt; <span class="string">&quot;void&quot;</span>,
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">std::fmt::Display</span> <span class="kw">for</span> <span class="ident">UnaryOp</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">std::fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">std::fmt::Result</span> {
-        <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.<span class="ident">as_str</span>())
+<span class="kw">impl </span>std::fmt::Display <span class="kw">for </span>UnaryOp {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
+        <span class="macro">write!</span>(f, <span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.as_str())
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="boa_ast" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0 (a55dd71d5 2022-09-19)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="boa_ast" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0 (897e37553 2022-11-02)" ></div></body></html>

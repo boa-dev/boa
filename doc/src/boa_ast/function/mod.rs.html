@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_ast/src/function/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../boa_ast/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../boa_ast/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../boa_ast/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_ast/src/function/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../boa_ast/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../boa_ast/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../boa_ast/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -152,159 +152,159 @@
 <span id="152">152</span>
 <span id="153">153</span>
 <span id="154">154</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Functions and classes nodes, as defined by the [spec].</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! [Functions][func] are mainly subprograms that can be called by external code to execute a sequence of</span>
-<span class="doccomment">//! statements (the *body* of the function). Javascript functions fall in several categories:</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! - [`Function`]s.</span>
-<span class="doccomment">//! - [`ArrowFunction`]s.</span>
-<span class="doccomment">//! - [`Generator`]s.</span>
-<span class="doccomment">//! - [`AsyncFunction`]s.</span>
-<span class="doccomment">//! - [`AsyncGenerator`]s.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! All of them can be declared in either [declaration][decl] form or [expression][expr] form,</span>
-<span class="doccomment">//! except from `ArrowFunction`s, which can only be declared in expression form.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! This module also contains [`Class`]es, which are templates for creating objects. Classes</span>
-<span class="doccomment">//! can also be declared in either declaration or expression form.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! [spec]: https://tc39.es/ecma262/#sec-ecmascript-language-functions-and-classes</span>
-<span class="doccomment">//! [func]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions</span>
-<span class="doccomment">//! [decl]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function</span>
-<span class="doccomment">//! [expr]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/function</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Functions and classes nodes, as defined by the [spec].
+//!
+//! [Functions][func] are mainly subprograms that can be called by external code to execute a sequence of
+//! statements (the *body* of the function). Javascript functions fall in several categories:
+//!
+//! - [`Function`]s.
+//! - [`ArrowFunction`]s.
+//! - [`Generator`]s.
+//! - [`AsyncFunction`]s.
+//! - [`AsyncGenerator`]s.
+//!
+//! All of them can be declared in either [declaration][decl] form or [expression][expr] form,
+//! except from `ArrowFunction`s, which can only be declared in expression form.
+//!
+//! This module also contains [`Class`]es, which are templates for creating objects. Classes
+//! can also be declared in either declaration or expression form.
+//!
+//! [spec]: https://tc39.es/ecma262/#sec-ecmascript-language-functions-and-classes
+//! [func]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions
+//! [decl]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function
+//! [expr]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/function
 
-<span class="kw">mod</span> <span class="ident">arrow_function</span>;
-<span class="kw">mod</span> <span class="ident">async_function</span>;
-<span class="kw">mod</span> <span class="ident">async_generator</span>;
-<span class="kw">mod</span> <span class="ident">class</span>;
-<span class="kw">mod</span> <span class="ident">generator</span>;
-<span class="kw">mod</span> <span class="ident">parameters</span>;
+</span><span class="kw">mod </span>arrow_function;
+<span class="kw">mod </span>async_function;
+<span class="kw">mod </span>async_generator;
+<span class="kw">mod </span>class;
+<span class="kw">mod </span>generator;
+<span class="kw">mod </span>parameters;
 
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">arrow_function::ArrowFunction</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">async_function::AsyncFunction</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">async_generator::AsyncGenerator</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">class</span>::{<span class="ident">Class</span>, <span class="ident">ClassElement</span>};
-<span class="kw">use</span> <span class="ident">core::ops::ControlFlow</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">generator::Generator</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">parameters</span>::{<span class="ident">FormalParameter</span>, <span class="ident">FormalParameterList</span>, <span class="ident">FormalParameterListFlags</span>};
+<span class="kw">pub use </span>arrow_function::ArrowFunction;
+<span class="kw">pub use </span>async_function::AsyncFunction;
+<span class="kw">pub use </span>async_generator::AsyncGenerator;
+<span class="kw">pub use </span>class::{Class, ClassElement};
+<span class="kw">use </span>core::ops::ControlFlow;
+<span class="kw">pub use </span>generator::Generator;
+<span class="kw">pub use </span>parameters::{FormalParameter, FormalParameterList, FormalParameterListFlags};
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::try_break</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::visitor</span>::{<span class="ident">VisitWith</span>, <span class="ident">Visitor</span>, <span class="ident">VisitorMut</span>};
-<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">block_to_string</span>, <span class="ident">join_nodes</span>, <span class="ident">StatementList</span>};
-<span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">ToIndentedString</span>};
+<span class="kw">use </span><span class="kw">crate</span>::try_break;
+<span class="kw">use </span><span class="kw">crate</span>::visitor::{VisitWith, Visitor, VisitorMut};
+<span class="kw">use crate</span>::{block_to_string, join_nodes, StatementList};
+<span class="kw">use </span>boa_interner::{Interner, ToIndentedString};
 
-<span class="kw">use</span> <span class="ident"><span class="kw">super</span>::expression</span>::{<span class="ident">Expression</span>, <span class="ident">Identifier</span>};
-<span class="kw">use</span> <span class="ident"><span class="kw">super</span>::Declaration</span>;
+<span class="kw">use </span><span class="kw">super</span>::expression::{Expression, Identifier};
+<span class="kw">use </span><span class="kw">super</span>::Declaration;
 
-<span class="doccomment">/// A function definition, as defined by the [spec].</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// By default, functions return `undefined`. To return any other value, the function must have</span>
-<span class="doccomment">/// a return statement that specifies the value to return.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [MDN documentation][mdn]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-function-definitions</span>
-<span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions</span>
-<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>, <span class="ident">derive</span>(<span class="ident">serde::Serialize</span>, <span class="ident">serde::Deserialize</span>))]</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Function</span> {
-    <span class="ident">name</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Identifier</span><span class="op">&gt;</span>,
-    <span class="ident">parameters</span>: <span class="ident">FormalParameterList</span>,
-    <span class="ident">body</span>: <span class="ident">StatementList</span>,
+<span class="doccomment">/// A function definition, as defined by the [spec].
+///
+/// By default, functions return `undefined`. To return any other value, the function must have
+/// a return statement that specifies the value to return.
+///
+/// More information:
+///  - [MDN documentation][mdn]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-function-definitions
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions
+</span><span class="attribute">#[cfg_attr(feature = <span class="string">&quot;serde&quot;</span>, derive(serde::Serialize, serde::Deserialize))]
+#[derive(Clone, Debug, PartialEq)]
+</span><span class="kw">pub struct </span>Function {
+    name: <span class="prelude-ty">Option</span>&lt;Identifier&gt;,
+    parameters: FormalParameterList,
+    body: StatementList,
 }
 
-<span class="kw">impl</span> <span class="ident">Function</span> {
-    <span class="doccomment">/// Creates a new function expression</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(
-        <span class="ident">name</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Identifier</span><span class="op">&gt;</span>,
-        <span class="ident">parameters</span>: <span class="ident">FormalParameterList</span>,
-        <span class="ident">body</span>: <span class="ident">StatementList</span>,
-    ) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">name</span>,
-            <span class="ident">parameters</span>,
-            <span class="ident">body</span>,
+<span class="kw">impl </span>Function {
+    <span class="doccomment">/// Creates a new function expression
+    </span><span class="attribute">#[inline]
+    #[must_use]
+    </span><span class="kw">pub fn </span>new(
+        name: <span class="prelude-ty">Option</span>&lt;Identifier&gt;,
+        parameters: FormalParameterList,
+        body: StatementList,
+    ) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            name,
+            parameters,
+            body,
         }
     }
 
-    <span class="doccomment">/// Gets the name of the function declaration.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Identifier</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">name</span>
+    <span class="doccomment">/// Gets the name of the function declaration.
+    </span><span class="attribute">#[inline]
+    #[must_use]
+    </span><span class="kw">pub fn </span>name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Identifier&gt; {
+        <span class="self">self</span>.name
     }
 
-    <span class="doccomment">/// Gets the list of parameters of the function declaration.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parameters</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">FormalParameterList</span> {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">parameters</span>
+    <span class="doccomment">/// Gets the list of parameters of the function declaration.
+    </span><span class="attribute">#[inline]
+    #[must_use]
+    </span><span class="kw">pub fn </span>parameters(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>FormalParameterList {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.parameters
     }
 
-    <span class="doccomment">/// Gets the body of the function declaration.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">body</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">StatementList</span> {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">body</span>
+    <span class="doccomment">/// Gets the body of the function declaration.
+    </span><span class="attribute">#[inline]
+    #[must_use]
+    </span><span class="kw">pub fn </span>body(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StatementList {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.body
     }
 }
 
-<span class="kw">impl</span> <span class="ident">ToIndentedString</span> <span class="kw">for</span> <span class="ident">Function</span> {
-    <span class="kw">fn</span> <span class="ident">to_indented_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;</span><span class="ident">Interner</span>, <span class="ident">indentation</span>: <span class="ident">usize</span>) -&gt; <span class="ident">String</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <span class="string">&quot;function&quot;</span>.<span class="ident">to_owned</span>();
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">name</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">name</span> {
-            <span class="ident">buf</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot; {}&quot;</span>, <span class="ident">interner</span>.<span class="ident">resolve_expect</span>(<span class="ident">name</span>.<span class="ident">sym</span>())));
+<span class="kw">impl </span>ToIndentedString <span class="kw">for </span>Function {
+    <span class="kw">fn </span>to_indented_string(<span class="kw-2">&amp;</span><span class="self">self</span>, interner: <span class="kw-2">&amp;</span>Interner, indentation: usize) -&gt; String {
+        <span class="kw">let </span><span class="kw-2">mut </span>buf = <span class="string">&quot;function&quot;</span>.to_owned();
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(name) = <span class="self">self</span>.name {
+            buf.push_str(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot; {}&quot;</span>, interner.resolve_expect(name.sym())));
         }
-        <span class="ident">buf</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(
+        buf.push_str(<span class="kw-2">&amp;</span><span class="macro">format!</span>(
             <span class="string">&quot;({}) {}&quot;</span>,
-            <span class="ident">join_nodes</span>(<span class="ident">interner</span>, <span class="self">self</span>.<span class="ident">parameters</span>.<span class="ident">as_ref</span>()),
-            <span class="ident">block_to_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">body</span>, <span class="ident">interner</span>, <span class="ident">indentation</span>)
+            join_nodes(interner, <span class="self">self</span>.parameters.as_ref()),
+            block_to_string(<span class="kw-2">&amp;</span><span class="self">self</span>.body, interner, indentation)
         ));
 
-        <span class="ident">buf</span>
+        buf
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Function</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Expression</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">expr</span>: <span class="ident">Function</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::Function</span>(<span class="ident">expr</span>)
+<span class="kw">impl </span>From&lt;Function&gt; <span class="kw">for </span>Expression {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(expr: Function) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::Function(expr)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Function</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Declaration</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">f</span>: <span class="ident">Function</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::Function</span>(<span class="ident">f</span>)
+<span class="kw">impl </span>From&lt;Function&gt; <span class="kw">for </span>Declaration {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(f: Function) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::Function(f)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">VisitWith</span> <span class="kw">for</span> <span class="ident">Function</span> {
-    <span class="kw">fn</span> <span class="ident">visit_with</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">V</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>, <span class="ident">visitor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">V</span>) -&gt; <span class="ident">ControlFlow</span><span class="op">&lt;</span><span class="ident">V::BreakTy</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">V</span>: <span class="ident">Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
+<span class="kw">impl </span>VisitWith <span class="kw">for </span>Function {
+    <span class="kw">fn </span>visit_with&lt;<span class="lifetime">&#39;a</span>, V&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>, visitor: <span class="kw-2">&amp;mut </span>V) -&gt; ControlFlow&lt;V::BreakTy&gt;
+    <span class="kw">where
+        </span>V: Visitor&lt;<span class="lifetime">&#39;a</span>&gt;,
     {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">ident</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">name</span> {
-            <span class="macro">try_break!</span>(<span class="ident">visitor</span>.<span class="ident">visit_identifier</span>(<span class="ident">ident</span>));
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(ident) = <span class="kw-2">&amp;</span><span class="self">self</span>.name {
+            <span class="macro">try_break!</span>(visitor.visit_identifier(ident));
         }
-        <span class="macro">try_break!</span>(<span class="ident">visitor</span>.<span class="ident">visit_formal_parameter_list</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">parameters</span>));
-        <span class="ident">visitor</span>.<span class="ident">visit_statement_list</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">body</span>)
+        <span class="macro">try_break!</span>(visitor.visit_formal_parameter_list(<span class="kw-2">&amp;</span><span class="self">self</span>.parameters));
+        visitor.visit_statement_list(<span class="kw-2">&amp;</span><span class="self">self</span>.body)
     }
 
-    <span class="kw">fn</span> <span class="ident">visit_with_mut</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">V</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">visitor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">V</span>) -&gt; <span class="ident">ControlFlow</span><span class="op">&lt;</span><span class="ident">V::BreakTy</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">V</span>: <span class="ident">VisitorMut</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
+    <span class="kw">fn </span>visit_with_mut&lt;<span class="lifetime">&#39;a</span>, V&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="self">self</span>, visitor: <span class="kw-2">&amp;mut </span>V) -&gt; ControlFlow&lt;V::BreakTy&gt;
+    <span class="kw">where
+        </span>V: VisitorMut&lt;<span class="lifetime">&#39;a</span>&gt;,
     {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">ident</span>) <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">name</span> {
-            <span class="macro">try_break!</span>(<span class="ident">visitor</span>.<span class="ident">visit_identifier_mut</span>(<span class="ident">ident</span>));
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(ident) = <span class="kw-2">&amp;mut </span><span class="self">self</span>.name {
+            <span class="macro">try_break!</span>(visitor.visit_identifier_mut(ident));
         }
-        <span class="macro">try_break!</span>(<span class="ident">visitor</span>.<span class="ident">visit_formal_parameter_list_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">parameters</span>));
-        <span class="ident">visitor</span>.<span class="ident">visit_statement_list_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">body</span>)
+        <span class="macro">try_break!</span>(visitor.visit_formal_parameter_list_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>.parameters));
+        visitor.visit_statement_list_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>.body)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="boa_ast" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0 (a55dd71d5 2022-09-19)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="boa_ast" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0 (897e37553 2022-11-02)" ></div></body></html>

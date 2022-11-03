@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_ast/src/position.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>position.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../boa_ast/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../boa_ast/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../boa_ast/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_ast/src/position.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>position.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../boa_ast/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../boa_ast/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../boa_ast/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -301,308 +301,308 @@
 <span id="301">301</span>
 <span id="302">302</span>
 <span id="303">303</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">cmp::Ordering</span>, <span class="ident">fmt</span>, <span class="ident">num::NonZeroU32</span>};
+</pre><pre class="rust"><code><span class="kw">use </span>std::{cmp::Ordering, fmt, num::NonZeroU32};
 
-<span class="doccomment">/// A position in the JavaScript source code.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Stores both the column number and the line number.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ## Similar Implementations</span>
-<span class="doccomment">/// [V8: Location](https://cs.chromium.org/chromium/src/v8/src/parsing/scanner.h?type=cs&amp;q=isValid+Location&amp;g=0&amp;l=216)</span>
-<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>, <span class="ident">derive</span>(<span class="ident">serde::Serialize</span>, <span class="ident">serde::Deserialize</span>))]</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Ord</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Position</span> {
-    <span class="doccomment">/// Line number.</span>
-    <span class="ident">line_number</span>: <span class="ident">NonZeroU32</span>,
-    <span class="doccomment">/// Column number.</span>
-    <span class="ident">column_number</span>: <span class="ident">NonZeroU32</span>,
+<span class="doccomment">/// A position in the JavaScript source code.
+///
+/// Stores both the column number and the line number.
+///
+/// ## Similar Implementations
+/// [V8: Location](https://cs.chromium.org/chromium/src/v8/src/parsing/scanner.h?type=cs&amp;q=isValid+Location&amp;g=0&amp;l=216)
+</span><span class="attribute">#[cfg_attr(feature = <span class="string">&quot;serde&quot;</span>, derive(serde::Serialize, serde::Deserialize))]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+</span><span class="kw">pub struct </span>Position {
+    <span class="doccomment">/// Line number.
+    </span>line_number: NonZeroU32,
+    <span class="doccomment">/// Column number.
+    </span>column_number: NonZeroU32,
 }
 
-<span class="kw">impl</span> <span class="ident">Position</span> {
-    <span class="doccomment">/// Creates a new `Position`.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="attribute">#[<span class="ident">track_caller</span>]</span>
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">line_number</span>: <span class="ident">u32</span>, <span class="ident">column_number</span>: <span class="ident">u32</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">line_number</span>: <span class="ident">NonZeroU32::new</span>(<span class="ident">line_number</span>).<span class="ident">expect</span>(<span class="string">&quot;line number cannot be 0&quot;</span>),
-            <span class="ident">column_number</span>: <span class="ident">NonZeroU32::new</span>(<span class="ident">column_number</span>).<span class="ident">expect</span>(<span class="string">&quot;column number cannot be 0&quot;</span>),
+<span class="kw">impl </span>Position {
+    <span class="doccomment">/// Creates a new `Position`.
+    </span><span class="attribute">#[inline]
+    #[track_caller]
+    #[must_use]
+    </span><span class="kw">pub fn </span>new(line_number: u32, column_number: u32) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            line_number: NonZeroU32::new(line_number).expect(<span class="string">&quot;line number cannot be 0&quot;</span>),
+            column_number: NonZeroU32::new(column_number).expect(<span class="string">&quot;column number cannot be 0&quot;</span>),
         }
     }
 
-    <span class="doccomment">/// Gets the line number of the position.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">line_number</span>(<span class="self">self</span>) -&gt; <span class="ident">u32</span> {
-        <span class="self">self</span>.<span class="ident">line_number</span>.<span class="ident">get</span>()
+    <span class="doccomment">/// Gets the line number of the position.
+    </span><span class="attribute">#[inline]
+    #[must_use]
+    </span><span class="kw">pub fn </span>line_number(<span class="self">self</span>) -&gt; u32 {
+        <span class="self">self</span>.line_number.get()
     }
 
-    <span class="doccomment">/// Gets the column number of the position.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">column_number</span>(<span class="self">self</span>) -&gt; <span class="ident">u32</span> {
-        <span class="self">self</span>.<span class="ident">column_number</span>.<span class="ident">get</span>()
-    }
-}
-
-<span class="kw">impl</span> <span class="ident">fmt::Display</span> <span class="kw">for</span> <span class="ident">Position</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
-        <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{}:{}&quot;</span>, <span class="self">self</span>.<span class="ident">line_number</span>, <span class="self">self</span>.<span class="ident">column_number</span>)
+    <span class="doccomment">/// Gets the column number of the position.
+    </span><span class="attribute">#[inline]
+    #[must_use]
+    </span><span class="kw">pub fn </span>column_number(<span class="self">self</span>) -&gt; u32 {
+        <span class="self">self</span>.column_number.get()
     }
 }
 
-<span class="doccomment">/// A span in the JavaScript source code.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Stores a start position and an end position.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Note that spans are of the form [start, end) i.e. that the start position is inclusive</span>
-<span class="doccomment">/// and the end position is exclusive.</span>
-<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>, <span class="ident">derive</span>(<span class="ident">serde::Serialize</span>, <span class="ident">serde::Deserialize</span>))]</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Span</span> {
-    <span class="ident">start</span>: <span class="ident">Position</span>,
-    <span class="ident">end</span>: <span class="ident">Position</span>,
+<span class="kw">impl </span>fmt::Display <span class="kw">for </span>Position {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="macro">write!</span>(f, <span class="string">&quot;{}:{}&quot;</span>, <span class="self">self</span>.line_number, <span class="self">self</span>.column_number)
+    }
 }
 
-<span class="kw">impl</span> <span class="ident">Span</span> {
-    <span class="doccomment">/// Creates a new `Span`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Panics</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Panics if the start position is bigger than the end position.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="attribute">#[<span class="ident">track_caller</span>]</span>
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">start</span>: <span class="ident">Position</span>, <span class="ident">end</span>: <span class="ident">Position</span>) -&gt; <span class="self">Self</span> {
-        <span class="macro">assert!</span>(<span class="ident">start</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">end</span>, <span class="string">&quot;a span cannot start after its end&quot;</span>);
+<span class="doccomment">/// A span in the JavaScript source code.
+///
+/// Stores a start position and an end position.
+///
+/// Note that spans are of the form [start, end) i.e. that the start position is inclusive
+/// and the end position is exclusive.
+</span><span class="attribute">#[cfg_attr(feature = <span class="string">&quot;serde&quot;</span>, derive(serde::Serialize, serde::Deserialize))]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+</span><span class="kw">pub struct </span>Span {
+    start: Position,
+    end: Position,
+}
 
-        <span class="self">Self</span> { <span class="ident">start</span>, <span class="ident">end</span> }
+<span class="kw">impl </span>Span {
+    <span class="doccomment">/// Creates a new `Span`.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the start position is bigger than the end position.
+    </span><span class="attribute">#[inline]
+    #[track_caller]
+    #[must_use]
+    </span><span class="kw">pub fn </span>new(start: Position, end: Position) -&gt; <span class="self">Self </span>{
+        <span class="macro">assert!</span>(start &lt;= end, <span class="string">&quot;a span cannot start after its end&quot;</span>);
+
+        <span class="self">Self </span>{ start, end }
     }
 
-    <span class="doccomment">/// Gets the starting position of the span.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">start</span>(<span class="self">self</span>) -&gt; <span class="ident">Position</span> {
-        <span class="self">self</span>.<span class="ident">start</span>
+    <span class="doccomment">/// Gets the starting position of the span.
+    </span><span class="attribute">#[inline]
+    #[must_use]
+    </span><span class="kw">pub fn </span>start(<span class="self">self</span>) -&gt; Position {
+        <span class="self">self</span>.start
     }
 
-    <span class="doccomment">/// Gets the final position of the span.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">end</span>(<span class="self">self</span>) -&gt; <span class="ident">Position</span> {
-        <span class="self">self</span>.<span class="ident">end</span>
+    <span class="doccomment">/// Gets the final position of the span.
+    </span><span class="attribute">#[inline]
+    #[must_use]
+    </span><span class="kw">pub fn </span>end(<span class="self">self</span>) -&gt; Position {
+        <span class="self">self</span>.end
     }
 
-    <span class="doccomment">/// Checks if this span inclusively contains another span or position.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">contains</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="ident">S</span>) -&gt; <span class="ident">bool</span>
-    <span class="kw">where</span>
-        <span class="ident">S</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// Checks if this span inclusively contains another span or position.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>contains&lt;S&gt;(<span class="self">self</span>, other: S) -&gt; bool
+    <span class="kw">where
+        </span>S: Into&lt;<span class="self">Self</span>&gt;,
     {
-        <span class="kw">let</span> <span class="ident">other</span> <span class="op">=</span> <span class="ident">other</span>.<span class="ident">into</span>();
-        <span class="self">self</span>.<span class="ident">start</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">other</span>.<span class="ident">start</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">end</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">other</span>.<span class="ident">end</span>
+        <span class="kw">let </span>other = other.into();
+        <span class="self">self</span>.start &lt;= other.start &amp;&amp; <span class="self">self</span>.end &gt;= other.end
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Position</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Span</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">pos</span>: <span class="ident">Position</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">start</span>: <span class="ident">pos</span>,
-            <span class="ident">end</span>: <span class="ident">pos</span>,
+<span class="kw">impl </span>From&lt;Position&gt; <span class="kw">for </span>Span {
+    <span class="kw">fn </span>from(pos: Position) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            start: pos,
+            end: pos,
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">PartialOrd</span> <span class="kw">for</span> <span class="ident">Span</span> {
-    <span class="kw">fn</span> <span class="ident">partial_cmp</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Ordering</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="self">self</span> <span class="op">==</span> <span class="ident">other</span> {
-            <span class="prelude-val">Some</span>(<span class="ident">Ordering::Equal</span>)
-        } <span class="kw">else</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">end</span> <span class="op">&lt;</span> <span class="ident">other</span>.<span class="ident">start</span> {
-            <span class="prelude-val">Some</span>(<span class="ident">Ordering::Less</span>)
-        } <span class="kw">else</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">start</span> <span class="op">&gt;</span> <span class="ident">other</span>.<span class="ident">end</span> {
-            <span class="prelude-val">Some</span>(<span class="ident">Ordering::Greater</span>)
-        } <span class="kw">else</span> {
-            <span class="prelude-val">None</span>
-        }
+<span class="kw">impl </span>PartialOrd <span class="kw">for </span>Span {
+    <span class="kw">fn </span>partial_cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Ordering&gt; {
+        <span class="kw">if </span><span class="self">self </span>== other {
+            <span class="prelude-val">Some</span>(Ordering::Equal)
+        } <span class="kw">else if </span><span class="self">self</span>.end &lt; other.start {
+            <span class="prelude-val">Some</span>(Ordering::Less)
+        } <span class="kw">else if </span><span class="self">self</span>.start &gt; other.end {
+            <span class="prelude-val">Some</span>(Ordering::Greater)
+        } <span class="kw">else </span>{
+            <span class="prelude-val">None
+        </span>}
     }
 }
 
-<span class="kw">impl</span> <span class="ident">fmt::Display</span> <span class="kw">for</span> <span class="ident">Span</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
-        <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;[{}..{}]&quot;</span>, <span class="self">self</span>.<span class="ident">start</span>, <span class="self">self</span>.<span class="ident">end</span>)
+<span class="kw">impl </span>fmt::Display <span class="kw">for </span>Span {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="macro">write!</span>(f, <span class="string">&quot;[{}..{}]&quot;</span>, <span class="self">self</span>.start, <span class="self">self</span>.end)
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span> {
-    <span class="attribute">#![<span class="ident">allow</span>(<span class="ident">clippy::similar_names</span>)]</span>
-    <span class="attribute">#![<span class="ident">allow</span>(<span class="ident">unused_must_use</span>)]</span>
-    <span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">Position</span>, <span class="ident">Span</span>};
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>tests {
+    <span class="attribute">#![allow(clippy::similar_names)]
+    #![allow(unused_must_use)]
+    </span><span class="kw">use super</span>::{Position, Span};
 
-    <span class="doccomment">/// Checks that we cannot create a position with 0 as the column.</span>
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="attribute">#[<span class="ident">should_panic</span>]</span>
-    <span class="kw">fn</span> <span class="ident">invalid_position_column</span>() {
-        <span class="ident">Position::new</span>(<span class="number">10</span>, <span class="number">0</span>);
+    <span class="doccomment">/// Checks that we cannot create a position with 0 as the column.
+    </span><span class="attribute">#[test]
+    #[should_panic]
+    </span><span class="kw">fn </span>invalid_position_column() {
+        Position::new(<span class="number">10</span>, <span class="number">0</span>);
     }
 
-    <span class="doccomment">/// Checks that we cannot create a position with 0 as the line.</span>
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="attribute">#[<span class="ident">should_panic</span>]</span>
-    <span class="kw">fn</span> <span class="ident">invalid_position_line</span>() {
-        <span class="ident">Position::new</span>(<span class="number">0</span>, <span class="number">10</span>);
+    <span class="doccomment">/// Checks that we cannot create a position with 0 as the line.
+    </span><span class="attribute">#[test]
+    #[should_panic]
+    </span><span class="kw">fn </span>invalid_position_line() {
+        Position::new(<span class="number">0</span>, <span class="number">10</span>);
     }
 
-    <span class="doccomment">/// Checks that the `PartialEq` implementation of `Position` is consistent.</span>
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">position_equality</span>() {
-        <span class="macro">assert_eq!</span>(<span class="ident">Position::new</span>(<span class="number">10</span>, <span class="number">50</span>), <span class="ident">Position::new</span>(<span class="number">10</span>, <span class="number">50</span>));
-        <span class="macro">assert_ne!</span>(<span class="ident">Position::new</span>(<span class="number">10</span>, <span class="number">50</span>), <span class="ident">Position::new</span>(<span class="number">10</span>, <span class="number">51</span>));
-        <span class="macro">assert_ne!</span>(<span class="ident">Position::new</span>(<span class="number">10</span>, <span class="number">50</span>), <span class="ident">Position::new</span>(<span class="number">11</span>, <span class="number">50</span>));
-        <span class="macro">assert_ne!</span>(<span class="ident">Position::new</span>(<span class="number">10</span>, <span class="number">50</span>), <span class="ident">Position::new</span>(<span class="number">11</span>, <span class="number">51</span>));
+    <span class="doccomment">/// Checks that the `PartialEq` implementation of `Position` is consistent.
+    </span><span class="attribute">#[test]
+    </span><span class="kw">fn </span>position_equality() {
+        <span class="macro">assert_eq!</span>(Position::new(<span class="number">10</span>, <span class="number">50</span>), Position::new(<span class="number">10</span>, <span class="number">50</span>));
+        <span class="macro">assert_ne!</span>(Position::new(<span class="number">10</span>, <span class="number">50</span>), Position::new(<span class="number">10</span>, <span class="number">51</span>));
+        <span class="macro">assert_ne!</span>(Position::new(<span class="number">10</span>, <span class="number">50</span>), Position::new(<span class="number">11</span>, <span class="number">50</span>));
+        <span class="macro">assert_ne!</span>(Position::new(<span class="number">10</span>, <span class="number">50</span>), Position::new(<span class="number">11</span>, <span class="number">51</span>));
     }
 
-    <span class="doccomment">/// Checks that the `PartialOrd` implementation of `Position` is consistent.</span>
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">position_order</span>() {
-        <span class="macro">assert!</span>(<span class="ident">Position::new</span>(<span class="number">10</span>, <span class="number">50</span>) <span class="op">&lt;</span> <span class="ident">Position::new</span>(<span class="number">10</span>, <span class="number">51</span>));
-        <span class="macro">assert!</span>(<span class="ident">Position::new</span>(<span class="number">9</span>, <span class="number">50</span>) <span class="op">&lt;</span> <span class="ident">Position::new</span>(<span class="number">10</span>, <span class="number">50</span>));
-        <span class="macro">assert!</span>(<span class="ident">Position::new</span>(<span class="number">10</span>, <span class="number">50</span>) <span class="op">&lt;</span> <span class="ident">Position::new</span>(<span class="number">11</span>, <span class="number">51</span>));
-        <span class="macro">assert!</span>(<span class="ident">Position::new</span>(<span class="number">10</span>, <span class="number">50</span>) <span class="op">&lt;</span> <span class="ident">Position::new</span>(<span class="number">11</span>, <span class="number">49</span>));
+    <span class="doccomment">/// Checks that the `PartialOrd` implementation of `Position` is consistent.
+    </span><span class="attribute">#[test]
+    </span><span class="kw">fn </span>position_order() {
+        <span class="macro">assert!</span>(Position::new(<span class="number">10</span>, <span class="number">50</span>) &lt; Position::new(<span class="number">10</span>, <span class="number">51</span>));
+        <span class="macro">assert!</span>(Position::new(<span class="number">9</span>, <span class="number">50</span>) &lt; Position::new(<span class="number">10</span>, <span class="number">50</span>));
+        <span class="macro">assert!</span>(Position::new(<span class="number">10</span>, <span class="number">50</span>) &lt; Position::new(<span class="number">11</span>, <span class="number">51</span>));
+        <span class="macro">assert!</span>(Position::new(<span class="number">10</span>, <span class="number">50</span>) &lt; Position::new(<span class="number">11</span>, <span class="number">49</span>));
 
-        <span class="macro">assert!</span>(<span class="ident">Position::new</span>(<span class="number">10</span>, <span class="number">51</span>) <span class="op">&gt;</span> <span class="ident">Position::new</span>(<span class="number">10</span>, <span class="number">50</span>));
-        <span class="macro">assert!</span>(<span class="ident">Position::new</span>(<span class="number">10</span>, <span class="number">50</span>) <span class="op">&gt;</span> <span class="ident">Position::new</span>(<span class="number">9</span>, <span class="number">50</span>));
-        <span class="macro">assert!</span>(<span class="ident">Position::new</span>(<span class="number">11</span>, <span class="number">51</span>) <span class="op">&gt;</span> <span class="ident">Position::new</span>(<span class="number">10</span>, <span class="number">50</span>));
-        <span class="macro">assert!</span>(<span class="ident">Position::new</span>(<span class="number">11</span>, <span class="number">49</span>) <span class="op">&gt;</span> <span class="ident">Position::new</span>(<span class="number">10</span>, <span class="number">50</span>));
+        <span class="macro">assert!</span>(Position::new(<span class="number">10</span>, <span class="number">51</span>) &gt; Position::new(<span class="number">10</span>, <span class="number">50</span>));
+        <span class="macro">assert!</span>(Position::new(<span class="number">10</span>, <span class="number">50</span>) &gt; Position::new(<span class="number">9</span>, <span class="number">50</span>));
+        <span class="macro">assert!</span>(Position::new(<span class="number">11</span>, <span class="number">51</span>) &gt; Position::new(<span class="number">10</span>, <span class="number">50</span>));
+        <span class="macro">assert!</span>(Position::new(<span class="number">11</span>, <span class="number">49</span>) &gt; Position::new(<span class="number">10</span>, <span class="number">50</span>));
     }
 
-    <span class="doccomment">/// Checks that the position getters actually retrieve correct values.</span>
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">position_getters</span>() {
-        <span class="kw">let</span> <span class="ident">pos</span> <span class="op">=</span> <span class="ident">Position::new</span>(<span class="number">10</span>, <span class="number">50</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">pos</span>.<span class="ident">line_number</span>(), <span class="number">10</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">pos</span>.<span class="ident">column_number</span>(), <span class="number">50</span>);
+    <span class="doccomment">/// Checks that the position getters actually retrieve correct values.
+    </span><span class="attribute">#[test]
+    </span><span class="kw">fn </span>position_getters() {
+        <span class="kw">let </span>pos = Position::new(<span class="number">10</span>, <span class="number">50</span>);
+        <span class="macro">assert_eq!</span>(pos.line_number(), <span class="number">10</span>);
+        <span class="macro">assert_eq!</span>(pos.column_number(), <span class="number">50</span>);
     }
 
-    <span class="doccomment">/// Checks that the string representation of a position is correct.</span>
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">position_to_string</span>() {
-        <span class="kw">let</span> <span class="ident">pos</span> <span class="op">=</span> <span class="ident">Position::new</span>(<span class="number">10</span>, <span class="number">50</span>);
+    <span class="doccomment">/// Checks that the string representation of a position is correct.
+    </span><span class="attribute">#[test]
+    </span><span class="kw">fn </span>position_to_string() {
+        <span class="kw">let </span>pos = Position::new(<span class="number">10</span>, <span class="number">50</span>);
 
-        <span class="macro">assert_eq!</span>(<span class="string">&quot;10:50&quot;</span>, <span class="ident">pos</span>.<span class="ident">to_string</span>());
-        <span class="macro">assert_eq!</span>(<span class="string">&quot;10:50&quot;</span>, <span class="ident">pos</span>.<span class="ident">to_string</span>());
+        <span class="macro">assert_eq!</span>(<span class="string">&quot;10:50&quot;</span>, pos.to_string());
+        <span class="macro">assert_eq!</span>(<span class="string">&quot;10:50&quot;</span>, pos.to_string());
     }
 
-    <span class="doccomment">/// Checks that we cannot create an invalid span.</span>
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="attribute">#[<span class="ident">should_panic</span>]</span>
-    <span class="kw">fn</span> <span class="ident">invalid_span</span>() {
-        <span class="kw">let</span> <span class="ident">a</span> <span class="op">=</span> <span class="ident">Position::new</span>(<span class="number">10</span>, <span class="number">30</span>);
-        <span class="kw">let</span> <span class="ident">b</span> <span class="op">=</span> <span class="ident">Position::new</span>(<span class="number">10</span>, <span class="number">50</span>);
-        <span class="ident">Span::new</span>(<span class="ident">b</span>, <span class="ident">a</span>);
+    <span class="doccomment">/// Checks that we cannot create an invalid span.
+    </span><span class="attribute">#[test]
+    #[should_panic]
+    </span><span class="kw">fn </span>invalid_span() {
+        <span class="kw">let </span>a = Position::new(<span class="number">10</span>, <span class="number">30</span>);
+        <span class="kw">let </span>b = Position::new(<span class="number">10</span>, <span class="number">50</span>);
+        Span::new(b, a);
     }
 
-    <span class="doccomment">/// Checks that we can create valid spans.</span>
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">span_creation</span>() {
-        <span class="kw">let</span> <span class="ident">a</span> <span class="op">=</span> <span class="ident">Position::new</span>(<span class="number">10</span>, <span class="number">30</span>);
-        <span class="kw">let</span> <span class="ident">b</span> <span class="op">=</span> <span class="ident">Position::new</span>(<span class="number">10</span>, <span class="number">50</span>);
+    <span class="doccomment">/// Checks that we can create valid spans.
+    </span><span class="attribute">#[test]
+    </span><span class="kw">fn </span>span_creation() {
+        <span class="kw">let </span>a = Position::new(<span class="number">10</span>, <span class="number">30</span>);
+        <span class="kw">let </span>b = Position::new(<span class="number">10</span>, <span class="number">50</span>);
 
-        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">Span::new</span>(<span class="ident">a</span>, <span class="ident">b</span>);
-        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">Span::new</span>(<span class="ident">a</span>, <span class="ident">a</span>);
-        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">Span::from</span>(<span class="ident">a</span>);
+        <span class="kw">let _ </span>= Span::new(a, b);
+        <span class="kw">let _ </span>= Span::new(a, a);
+        <span class="kw">let _ </span>= Span::from(a);
     }
 
-    <span class="doccomment">/// Checks that the `PartialEq` implementation of `Span` is consistent.</span>
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">span_equality</span>() {
-        <span class="kw">let</span> <span class="ident">a</span> <span class="op">=</span> <span class="ident">Position::new</span>(<span class="number">10</span>, <span class="number">50</span>);
-        <span class="kw">let</span> <span class="ident">b</span> <span class="op">=</span> <span class="ident">Position::new</span>(<span class="number">10</span>, <span class="number">52</span>);
-        <span class="kw">let</span> <span class="ident">c</span> <span class="op">=</span> <span class="ident">Position::new</span>(<span class="number">11</span>, <span class="number">20</span>);
+    <span class="doccomment">/// Checks that the `PartialEq` implementation of `Span` is consistent.
+    </span><span class="attribute">#[test]
+    </span><span class="kw">fn </span>span_equality() {
+        <span class="kw">let </span>a = Position::new(<span class="number">10</span>, <span class="number">50</span>);
+        <span class="kw">let </span>b = Position::new(<span class="number">10</span>, <span class="number">52</span>);
+        <span class="kw">let </span>c = Position::new(<span class="number">11</span>, <span class="number">20</span>);
 
-        <span class="kw">let</span> <span class="ident">span_ab</span> <span class="op">=</span> <span class="ident">Span::new</span>(<span class="ident">a</span>, <span class="ident">b</span>);
-        <span class="kw">let</span> <span class="ident">span_ab_2</span> <span class="op">=</span> <span class="ident">Span::new</span>(<span class="ident">a</span>, <span class="ident">b</span>);
-        <span class="kw">let</span> <span class="ident">span_ac</span> <span class="op">=</span> <span class="ident">Span::new</span>(<span class="ident">a</span>, <span class="ident">c</span>);
-        <span class="kw">let</span> <span class="ident">span_bc</span> <span class="op">=</span> <span class="ident">Span::new</span>(<span class="ident">b</span>, <span class="ident">c</span>);
+        <span class="kw">let </span>span_ab = Span::new(a, b);
+        <span class="kw">let </span>span_ab_2 = Span::new(a, b);
+        <span class="kw">let </span>span_ac = Span::new(a, c);
+        <span class="kw">let </span>span_bc = Span::new(b, c);
 
-        <span class="macro">assert_eq!</span>(<span class="ident">span_ab</span>, <span class="ident">span_ab_2</span>);
-        <span class="macro">assert_ne!</span>(<span class="ident">span_ab</span>, <span class="ident">span_ac</span>);
-        <span class="macro">assert_ne!</span>(<span class="ident">span_ab</span>, <span class="ident">span_bc</span>);
-        <span class="macro">assert_ne!</span>(<span class="ident">span_bc</span>, <span class="ident">span_ac</span>);
+        <span class="macro">assert_eq!</span>(span_ab, span_ab_2);
+        <span class="macro">assert_ne!</span>(span_ab, span_ac);
+        <span class="macro">assert_ne!</span>(span_ab, span_bc);
+        <span class="macro">assert_ne!</span>(span_bc, span_ac);
 
-        <span class="kw">let</span> <span class="ident">span_a</span> <span class="op">=</span> <span class="ident">Span::from</span>(<span class="ident">a</span>);
-        <span class="kw">let</span> <span class="ident">span_aa</span> <span class="op">=</span> <span class="ident">Span::new</span>(<span class="ident">a</span>, <span class="ident">a</span>);
+        <span class="kw">let </span>span_a = Span::from(a);
+        <span class="kw">let </span>span_aa = Span::new(a, a);
 
-        <span class="macro">assert_eq!</span>(<span class="ident">span_a</span>, <span class="ident">span_aa</span>);
+        <span class="macro">assert_eq!</span>(span_a, span_aa);
     }
 
-    <span class="doccomment">/// Checks that the getters retrieve the correct value.</span>
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">span_getters</span>() {
-        <span class="kw">let</span> <span class="ident">a</span> <span class="op">=</span> <span class="ident">Position::new</span>(<span class="number">10</span>, <span class="number">50</span>);
-        <span class="kw">let</span> <span class="ident">b</span> <span class="op">=</span> <span class="ident">Position::new</span>(<span class="number">10</span>, <span class="number">52</span>);
+    <span class="doccomment">/// Checks that the getters retrieve the correct value.
+    </span><span class="attribute">#[test]
+    </span><span class="kw">fn </span>span_getters() {
+        <span class="kw">let </span>a = Position::new(<span class="number">10</span>, <span class="number">50</span>);
+        <span class="kw">let </span>b = Position::new(<span class="number">10</span>, <span class="number">52</span>);
 
-        <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="ident">Span::new</span>(<span class="ident">a</span>, <span class="ident">b</span>);
+        <span class="kw">let </span>span = Span::new(a, b);
 
-        <span class="macro">assert_eq!</span>(<span class="ident">span</span>.<span class="ident">start</span>(), <span class="ident">a</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">span</span>.<span class="ident">end</span>(), <span class="ident">b</span>);
+        <span class="macro">assert_eq!</span>(span.start(), a);
+        <span class="macro">assert_eq!</span>(span.end(), b);
     }
 
-    <span class="doccomment">/// Checks that the `Span::contains()` method works properly.</span>
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">span_contains</span>() {
-        <span class="kw">let</span> <span class="ident">a</span> <span class="op">=</span> <span class="ident">Position::new</span>(<span class="number">10</span>, <span class="number">50</span>);
-        <span class="kw">let</span> <span class="ident">b</span> <span class="op">=</span> <span class="ident">Position::new</span>(<span class="number">10</span>, <span class="number">52</span>);
-        <span class="kw">let</span> <span class="ident">c</span> <span class="op">=</span> <span class="ident">Position::new</span>(<span class="number">11</span>, <span class="number">20</span>);
-        <span class="kw">let</span> <span class="ident">d</span> <span class="op">=</span> <span class="ident">Position::new</span>(<span class="number">12</span>, <span class="number">5</span>);
+    <span class="doccomment">/// Checks that the `Span::contains()` method works properly.
+    </span><span class="attribute">#[test]
+    </span><span class="kw">fn </span>span_contains() {
+        <span class="kw">let </span>a = Position::new(<span class="number">10</span>, <span class="number">50</span>);
+        <span class="kw">let </span>b = Position::new(<span class="number">10</span>, <span class="number">52</span>);
+        <span class="kw">let </span>c = Position::new(<span class="number">11</span>, <span class="number">20</span>);
+        <span class="kw">let </span>d = Position::new(<span class="number">12</span>, <span class="number">5</span>);
 
-        <span class="kw">let</span> <span class="ident">span_ac</span> <span class="op">=</span> <span class="ident">Span::new</span>(<span class="ident">a</span>, <span class="ident">c</span>);
-        <span class="macro">assert!</span>(<span class="ident">span_ac</span>.<span class="ident">contains</span>(<span class="ident">b</span>));
+        <span class="kw">let </span>span_ac = Span::new(a, c);
+        <span class="macro">assert!</span>(span_ac.contains(b));
 
-        <span class="kw">let</span> <span class="ident">span_ab</span> <span class="op">=</span> <span class="ident">Span::new</span>(<span class="ident">a</span>, <span class="ident">b</span>);
-        <span class="kw">let</span> <span class="ident">span_cd</span> <span class="op">=</span> <span class="ident">Span::new</span>(<span class="ident">c</span>, <span class="ident">d</span>);
+        <span class="kw">let </span>span_ab = Span::new(a, b);
+        <span class="kw">let </span>span_cd = Span::new(c, d);
 
-        <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">span_ab</span>.<span class="ident">contains</span>(<span class="ident">span_cd</span>));
-        <span class="macro">assert!</span>(<span class="ident">span_ab</span>.<span class="ident">contains</span>(<span class="ident">b</span>));
+        <span class="macro">assert!</span>(!span_ab.contains(span_cd));
+        <span class="macro">assert!</span>(span_ab.contains(b));
 
-        <span class="kw">let</span> <span class="ident">span_ad</span> <span class="op">=</span> <span class="ident">Span::new</span>(<span class="ident">a</span>, <span class="ident">d</span>);
-        <span class="kw">let</span> <span class="ident">span_bc</span> <span class="op">=</span> <span class="ident">Span::new</span>(<span class="ident">b</span>, <span class="ident">c</span>);
+        <span class="kw">let </span>span_ad = Span::new(a, d);
+        <span class="kw">let </span>span_bc = Span::new(b, c);
 
-        <span class="macro">assert!</span>(<span class="ident">span_ad</span>.<span class="ident">contains</span>(<span class="ident">span_bc</span>));
-        <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">span_bc</span>.<span class="ident">contains</span>(<span class="ident">span_ad</span>));
+        <span class="macro">assert!</span>(span_ad.contains(span_bc));
+        <span class="macro">assert!</span>(!span_bc.contains(span_ad));
 
-        <span class="kw">let</span> <span class="ident">span_ac</span> <span class="op">=</span> <span class="ident">Span::new</span>(<span class="ident">a</span>, <span class="ident">c</span>);
-        <span class="kw">let</span> <span class="ident">span_bd</span> <span class="op">=</span> <span class="ident">Span::new</span>(<span class="ident">b</span>, <span class="ident">d</span>);
+        <span class="kw">let </span>span_ac = Span::new(a, c);
+        <span class="kw">let </span>span_bd = Span::new(b, d);
 
-        <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">span_ac</span>.<span class="ident">contains</span>(<span class="ident">span_bd</span>));
-        <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">span_bd</span>.<span class="ident">contains</span>(<span class="ident">span_ac</span>));
+        <span class="macro">assert!</span>(!span_ac.contains(span_bd));
+        <span class="macro">assert!</span>(!span_bd.contains(span_ac));
     }
 
-    <span class="doccomment">/// Checks that the string representation of a span is correct.</span>
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">span_to_string</span>() {
-        <span class="kw">let</span> <span class="ident">a</span> <span class="op">=</span> <span class="ident">Position::new</span>(<span class="number">10</span>, <span class="number">50</span>);
-        <span class="kw">let</span> <span class="ident">b</span> <span class="op">=</span> <span class="ident">Position::new</span>(<span class="number">11</span>, <span class="number">20</span>);
-        <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="ident">Span::new</span>(<span class="ident">a</span>, <span class="ident">b</span>);
+    <span class="doccomment">/// Checks that the string representation of a span is correct.
+    </span><span class="attribute">#[test]
+    </span><span class="kw">fn </span>span_to_string() {
+        <span class="kw">let </span>a = Position::new(<span class="number">10</span>, <span class="number">50</span>);
+        <span class="kw">let </span>b = Position::new(<span class="number">11</span>, <span class="number">20</span>);
+        <span class="kw">let </span>span = Span::new(a, b);
 
-        <span class="macro">assert_eq!</span>(<span class="string">&quot;[10:50..11:20]&quot;</span>, <span class="ident">span</span>.<span class="ident">to_string</span>());
-        <span class="macro">assert_eq!</span>(<span class="string">&quot;[10:50..11:20]&quot;</span>, <span class="ident">span</span>.<span class="ident">to_string</span>());
+        <span class="macro">assert_eq!</span>(<span class="string">&quot;[10:50..11:20]&quot;</span>, span.to_string());
+        <span class="macro">assert_eq!</span>(<span class="string">&quot;[10:50..11:20]&quot;</span>, span.to_string());
     }
 
-    <span class="doccomment">/// Checks that the ordering of spans is correct.</span>
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">span_ordering</span>() {
-        <span class="kw">let</span> <span class="ident">a</span> <span class="op">=</span> <span class="ident">Position::new</span>(<span class="number">10</span>, <span class="number">50</span>);
-        <span class="kw">let</span> <span class="ident">b</span> <span class="op">=</span> <span class="ident">Position::new</span>(<span class="number">10</span>, <span class="number">52</span>);
-        <span class="kw">let</span> <span class="ident">c</span> <span class="op">=</span> <span class="ident">Position::new</span>(<span class="number">11</span>, <span class="number">20</span>);
-        <span class="kw">let</span> <span class="ident">d</span> <span class="op">=</span> <span class="ident">Position::new</span>(<span class="number">12</span>, <span class="number">5</span>);
+    <span class="doccomment">/// Checks that the ordering of spans is correct.
+    </span><span class="attribute">#[test]
+    </span><span class="kw">fn </span>span_ordering() {
+        <span class="kw">let </span>a = Position::new(<span class="number">10</span>, <span class="number">50</span>);
+        <span class="kw">let </span>b = Position::new(<span class="number">10</span>, <span class="number">52</span>);
+        <span class="kw">let </span>c = Position::new(<span class="number">11</span>, <span class="number">20</span>);
+        <span class="kw">let </span>d = Position::new(<span class="number">12</span>, <span class="number">5</span>);
 
-        <span class="kw">let</span> <span class="ident">span_ab</span> <span class="op">=</span> <span class="ident">Span::new</span>(<span class="ident">a</span>, <span class="ident">b</span>);
-        <span class="kw">let</span> <span class="ident">span_cd</span> <span class="op">=</span> <span class="ident">Span::new</span>(<span class="ident">c</span>, <span class="ident">d</span>);
+        <span class="kw">let </span>span_ab = Span::new(a, b);
+        <span class="kw">let </span>span_cd = Span::new(c, d);
 
-        <span class="macro">assert!</span>(<span class="ident">span_ab</span> <span class="op">&lt;</span> <span class="ident">span_cd</span>);
-        <span class="macro">assert!</span>(<span class="ident">span_cd</span> <span class="op">&gt;</span> <span class="ident">span_ab</span>);
+        <span class="macro">assert!</span>(span_ab &lt; span_cd);
+        <span class="macro">assert!</span>(span_cd &gt; span_ab);
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="boa_ast" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0 (a55dd71d5 2022-09-19)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="boa_ast" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0 (897e37553 2022-11-02)" ></div></body></html>

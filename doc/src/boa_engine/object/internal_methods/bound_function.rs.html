@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_engine/src/object/internal_methods/bound_function.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>bound_function.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_engine/src/object/internal_methods/bound_function.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>bound_function.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container">
                     <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../boa_engine/index.html">
                         <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -100,105 +100,105 @@
 <span id="98">98</span>
 <span id="99">99</span>
 <span id="100">100</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">object::JsObject</span>, <span class="ident">Context</span>, <span class="ident">JsResult</span>, <span class="ident">JsValue</span>};
+</pre><pre class="rust"><code><span class="kw">use crate</span>::{object::JsObject, Context, JsResult, JsValue};
 
-<span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">InternalObjectMethods</span>, <span class="ident">ORDINARY_INTERNAL_METHODS</span>};
+<span class="kw">use super</span>::{InternalObjectMethods, ORDINARY_INTERNAL_METHODS};
 
-<span class="doccomment">/// Definitions of the internal object methods for function objects.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [ECMAScript reference][spec]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-ecmascript-function-objects</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">BOUND_FUNCTION_EXOTIC_INTERNAL_METHODS</span>: <span class="ident">InternalObjectMethods</span> <span class="op">=</span>
-    <span class="ident">InternalObjectMethods</span> {
-        <span class="ident">__call__</span>: <span class="prelude-val">Some</span>(<span class="ident">bound_function_exotic_call</span>),
-        ..<span class="ident">ORDINARY_INTERNAL_METHODS</span>
+<span class="doccomment">/// Definitions of the internal object methods for function objects.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-ecmascript-function-objects
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>BOUND_FUNCTION_EXOTIC_INTERNAL_METHODS: InternalObjectMethods =
+    InternalObjectMethods {
+        __call__: <span class="prelude-val">Some</span>(bound_function_exotic_call),
+        ..ORDINARY_INTERNAL_METHODS
     };
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">BOUND_CONSTRUCTOR_EXOTIC_INTERNAL_METHODS</span>: <span class="ident">InternalObjectMethods</span> <span class="op">=</span>
-    <span class="ident">InternalObjectMethods</span> {
-        <span class="ident">__call__</span>: <span class="prelude-val">Some</span>(<span class="ident">bound_function_exotic_call</span>),
-        <span class="ident">__construct__</span>: <span class="prelude-val">Some</span>(<span class="ident">bound_function_exotic_construct</span>),
-        ..<span class="ident">ORDINARY_INTERNAL_METHODS</span>
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>BOUND_CONSTRUCTOR_EXOTIC_INTERNAL_METHODS: InternalObjectMethods =
+    InternalObjectMethods {
+        __call__: <span class="prelude-val">Some</span>(bound_function_exotic_call),
+        __construct__: <span class="prelude-val">Some</span>(bound_function_exotic_construct),
+        ..ORDINARY_INTERNAL_METHODS
     };
 
-<span class="doccomment">/// Internal method `[[Call]]` for Bound Function Exotic Objects</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [ECMAScript reference][spec]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-bound-function-exotic-objects-call-thisargument-argumentslist</span>
-<span class="attribute">#[<span class="ident">track_caller</span>]</span>
-<span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">fn</span> <span class="ident">bound_function_exotic_call</span>(
-    <span class="ident">obj</span>: <span class="kw-2">&amp;</span><span class="ident">JsObject</span>,
-    <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
-    <span class="ident">arguments_list</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
-    <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">obj</span>.<span class="ident">borrow</span>();
-    <span class="kw">let</span> <span class="ident">bound_function</span> <span class="op">=</span> <span class="ident">obj</span>
-        .<span class="ident">as_bound_function</span>()
-        .<span class="ident">expect</span>(<span class="string">&quot;bound function exotic method should only be callable from bound function objects&quot;</span>);
+<span class="doccomment">/// Internal method `[[Call]]` for Bound Function Exotic Objects
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-bound-function-exotic-objects-call-thisargument-argumentslist
+</span><span class="attribute">#[track_caller]
+#[inline]
+</span><span class="kw">fn </span>bound_function_exotic_call(
+    obj: <span class="kw-2">&amp;</span>JsObject,
+    <span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue,
+    arguments_list: <span class="kw-2">&amp;</span>[JsValue],
+    context: <span class="kw-2">&amp;mut </span>Context,
+) -&gt; JsResult&lt;JsValue&gt; {
+    <span class="kw">let </span>obj = obj.borrow();
+    <span class="kw">let </span>bound_function = obj
+        .as_bound_function()
+        .expect(<span class="string">&quot;bound function exotic method should only be callable from bound function objects&quot;</span>);
 
-    <span class="comment">// 1. Let target be F.[[BoundTargetFunction]].</span>
-    <span class="kw">let</span> <span class="ident">target</span> <span class="op">=</span> <span class="ident">bound_function</span>.<span class="ident">target_function</span>();
+    <span class="comment">// 1. Let target be F.[[BoundTargetFunction]].
+    </span><span class="kw">let </span>target = bound_function.target_function();
 
-    <span class="comment">// 2. Let boundThis be F.[[BoundThis]].</span>
-    <span class="kw">let</span> <span class="ident">bound_this</span> <span class="op">=</span> <span class="ident">bound_function</span>.<span class="ident">this</span>();
+    <span class="comment">// 2. Let boundThis be F.[[BoundThis]].
+    </span><span class="kw">let </span>bound_this = bound_function.this();
 
-    <span class="comment">// 3. Let boundArgs be F.[[BoundArguments]].</span>
-    <span class="kw">let</span> <span class="ident">bound_args</span> <span class="op">=</span> <span class="ident">bound_function</span>.<span class="ident">args</span>();
+    <span class="comment">// 3. Let boundArgs be F.[[BoundArguments]].
+    </span><span class="kw">let </span>bound_args = bound_function.args();
 
-    <span class="comment">// 4. Let args be the list-concatenation of boundArgs and argumentsList.</span>
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">args</span> <span class="op">=</span> <span class="ident">bound_args</span>.<span class="ident">to_vec</span>();
-    <span class="ident">args</span>.<span class="ident">extend_from_slice</span>(<span class="ident">arguments_list</span>);
+    <span class="comment">// 4. Let args be the list-concatenation of boundArgs and argumentsList.
+    </span><span class="kw">let </span><span class="kw-2">mut </span>args = bound_args.to_vec();
+    args.extend_from_slice(arguments_list);
 
-    <span class="comment">// 5. Return ? Call(target, boundThis, args).</span>
-    <span class="ident">target</span>.<span class="ident">call</span>(<span class="ident">bound_this</span>, <span class="kw-2">&amp;</span><span class="ident">args</span>, <span class="ident">context</span>)
+    <span class="comment">// 5. Return ? Call(target, boundThis, args).
+    </span>target.call(bound_this, <span class="kw-2">&amp;</span>args, context)
 }
 
-<span class="doccomment">/// Internal method `[[Construct]]` for Bound Function Exotic Objects</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [ECMAScript reference][spec]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-bound-function-exotic-objects-construct-argumentslist-newtarget</span>
-<span class="attribute">#[<span class="ident">track_caller</span>]</span>
-<span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">fn</span> <span class="ident">bound_function_exotic_construct</span>(
-    <span class="ident">obj</span>: <span class="kw-2">&amp;</span><span class="ident">JsObject</span>,
-    <span class="ident">arguments_list</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
-    <span class="ident">new_target</span>: <span class="kw-2">&amp;</span><span class="ident">JsObject</span>,
-    <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsObject</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="ident">obj</span>.<span class="ident">borrow</span>();
-    <span class="kw">let</span> <span class="ident">bound_function</span> <span class="op">=</span> <span class="ident">object</span>
-        .<span class="ident">as_bound_function</span>()
-        .<span class="ident">expect</span>(<span class="string">&quot;bound function exotic method should only be callable from bound function objects&quot;</span>);
+<span class="doccomment">/// Internal method `[[Construct]]` for Bound Function Exotic Objects
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-bound-function-exotic-objects-construct-argumentslist-newtarget
+</span><span class="attribute">#[track_caller]
+#[inline]
+</span><span class="kw">fn </span>bound_function_exotic_construct(
+    obj: <span class="kw-2">&amp;</span>JsObject,
+    arguments_list: <span class="kw-2">&amp;</span>[JsValue],
+    new_target: <span class="kw-2">&amp;</span>JsObject,
+    context: <span class="kw-2">&amp;mut </span>Context,
+) -&gt; JsResult&lt;JsObject&gt; {
+    <span class="kw">let </span>object = obj.borrow();
+    <span class="kw">let </span>bound_function = object
+        .as_bound_function()
+        .expect(<span class="string">&quot;bound function exotic method should only be callable from bound function objects&quot;</span>);
 
-    <span class="comment">// 1. Let target be F.[[BoundTargetFunction]].</span>
-    <span class="kw">let</span> <span class="ident">target</span> <span class="op">=</span> <span class="ident">bound_function</span>.<span class="ident">target_function</span>();
+    <span class="comment">// 1. Let target be F.[[BoundTargetFunction]].
+    </span><span class="kw">let </span>target = bound_function.target_function();
 
-    <span class="comment">// 2. Assert: IsConstructor(target) is true.</span>
+    <span class="comment">// 2. Assert: IsConstructor(target) is true.
 
-    <span class="comment">// 3. Let boundArgs be F.[[BoundArguments]].</span>
-    <span class="kw">let</span> <span class="ident">bound_args</span> <span class="op">=</span> <span class="ident">bound_function</span>.<span class="ident">args</span>();
+    // 3. Let boundArgs be F.[[BoundArguments]].
+    </span><span class="kw">let </span>bound_args = bound_function.args();
 
-    <span class="comment">// 4. Let args be the list-concatenation of boundArgs and argumentsList.</span>
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">args</span> <span class="op">=</span> <span class="ident">bound_args</span>.<span class="ident">to_vec</span>();
-    <span class="ident">args</span>.<span class="ident">extend_from_slice</span>(<span class="ident">arguments_list</span>);
+    <span class="comment">// 4. Let args be the list-concatenation of boundArgs and argumentsList.
+    </span><span class="kw">let </span><span class="kw-2">mut </span>args = bound_args.to_vec();
+    args.extend_from_slice(arguments_list);
 
-    <span class="comment">// 5. If SameValue(F, newTarget) is true, set newTarget to target.</span>
-    <span class="kw">let</span> <span class="ident">new_target</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">JsObject::equals</span>(<span class="ident">obj</span>, <span class="ident">new_target</span>) {
-        <span class="ident">target</span>
-    } <span class="kw">else</span> {
-        <span class="ident">new_target</span>
+    <span class="comment">// 5. If SameValue(F, newTarget) is true, set newTarget to target.
+    </span><span class="kw">let </span>new_target = <span class="kw">if </span>JsObject::equals(obj, new_target) {
+        target
+    } <span class="kw">else </span>{
+        new_target
     };
 
-    <span class="comment">// 6. Return ? Construct(target, args, newTarget).</span>
-    <span class="ident">target</span>.<span class="ident">construct</span>(<span class="kw-2">&amp;</span><span class="ident">args</span>, <span class="prelude-val">Some</span>(<span class="ident">new_target</span>), <span class="ident">context</span>)
+    <span class="comment">// 6. Return ? Construct(target, args, newTarget).
+    </span>target.construct(<span class="kw-2">&amp;</span>args, <span class="prelude-val">Some</span>(new_target), context)
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0 (a55dd71d5 2022-09-19)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0 (897e37553 2022-11-02)" ></div></body></html>

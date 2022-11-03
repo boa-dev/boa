@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_engine/src/syntax/parser/cursor/buffered_lexer/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../../../storage.js"></script><script defer src="../../../../../../source-script.js"></script><script defer src="../../../../../../source-files.js"></script><script defer src="../../../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../../../boa_engine/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../../../boa_engine/index.html"><div class="logo-container">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_engine/src/syntax/parser/cursor/buffered_lexer/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../../../normalize.css"><link rel="stylesheet" href="../../../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../../../dark.css" disabled><link rel="stylesheet" href="../../../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../../../storage.js"></script><script defer src="../../../../../../source-script.js"></script><script defer src="../../../../../../source-files.js"></script><script defer src="../../../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../../../boa_engine/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../../../boa_engine/index.html"><div class="logo-container">
                     <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../../../boa_engine/index.html">
                         <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -255,260 +255,260 @@
 <span id="253">253</span>
 <span id="254">254</span>
 <span id="255">255</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax</span>::{
-    <span class="ident">lexer</span>::{<span class="ident">InputElement</span>, <span class="ident">Lexer</span>, <span class="ident">Token</span>, <span class="ident">TokenKind</span>},
-    <span class="ident">parser::error::ParseError</span>,
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::syntax::{
+    lexer::{InputElement, Lexer, Token, TokenKind},
+    parser::error::ParseError,
 };
-<span class="kw">use</span> <span class="ident">boa_ast::Position</span>;
-<span class="kw">use</span> <span class="ident">boa_interner::Interner</span>;
-<span class="kw">use</span> <span class="ident">boa_profiler::Profiler</span>;
-<span class="kw">use</span> <span class="ident">std::io::Read</span>;
+<span class="kw">use </span>boa_ast::Position;
+<span class="kw">use </span>boa_interner::Interner;
+<span class="kw">use </span>boa_profiler::Profiler;
+<span class="kw">use </span>std::io::Read;
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span>;
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>tests;
 
-<span class="doccomment">/// The maximum number of tokens which can be peeked ahead.</span>
-<span class="kw">const</span> <span class="ident">MAX_PEEK_SKIP</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">3</span>;
+<span class="doccomment">/// The maximum number of tokens which can be peeked ahead.
+</span><span class="kw">const </span>MAX_PEEK_SKIP: usize = <span class="number">3</span>;
 
-<span class="doccomment">/// The fixed size of the buffer used for storing values that are peeked ahead.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The size is calculated for a worst case scenario, where we want to peek `MAX_PEEK_SKIP` tokens</span>
-<span class="doccomment">/// skipping line terminators, and the stream ends just after:</span>
-<span class="doccomment">/// ```text</span>
-<span class="doccomment">/// [\n, B, \n, C, \n, D, \n, E, \n, F, None]</span>
-<span class="doccomment">///   0  0   1  1   2  2   3  3   4  4  5</span>
-<span class="doccomment">/// ```</span>
-<span class="kw">const</span> <span class="ident">PEEK_BUF_SIZE</span>: <span class="ident">usize</span> <span class="op">=</span> (<span class="ident">MAX_PEEK_SKIP</span> <span class="op">+</span> <span class="number">1</span>) <span class="op">*</span> <span class="number">2</span> <span class="op">+</span> <span class="number">1</span>;
+<span class="doccomment">/// The fixed size of the buffer used for storing values that are peeked ahead.
+///
+/// The size is calculated for a worst case scenario, where we want to peek `MAX_PEEK_SKIP` tokens
+/// skipping line terminators, and the stream ends just after:
+/// ```text
+/// [\n, B, \n, C, \n, D, \n, E, \n, F, None]
+///   0  0   1  1   2  2   3  3   4  4  5
+/// ```
+</span><span class="kw">const </span>PEEK_BUF_SIZE: usize = (MAX_PEEK_SKIP + <span class="number">1</span>) * <span class="number">2 </span>+ <span class="number">1</span>;
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct</span> <span class="ident">BufferedLexer</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
-    <span class="ident">lexer</span>: <span class="ident">Lexer</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>,
-    <span class="ident">peeked</span>: [<span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Token</span><span class="op">&gt;</span>; <span class="ident">PEEK_BUF_SIZE</span>],
-    <span class="ident">read_index</span>: <span class="ident">usize</span>,
-    <span class="ident">write_index</span>: <span class="ident">usize</span>,
+<span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>BufferedLexer&lt;R&gt; {
+    lexer: Lexer&lt;R&gt;,
+    peeked: [<span class="prelude-ty">Option</span>&lt;Token&gt;; PEEK_BUF_SIZE],
+    read_index: usize,
+    write_index: usize,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Lexer</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">BufferedLexer</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">R</span>: <span class="ident">Read</span>,
+<span class="kw">impl</span>&lt;R&gt; From&lt;Lexer&lt;R&gt;&gt; <span class="kw">for </span>BufferedLexer&lt;R&gt;
+<span class="kw">where
+    </span>R: Read,
 {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">lexer</span>: <span class="ident">Lexer</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">lexer</span>,
-            <span class="ident">peeked</span>: [
-                <span class="prelude-val">None</span>::<span class="op">&lt;</span><span class="ident">Token</span><span class="op">&gt;</span>,
-                <span class="prelude-val">None</span>::<span class="op">&lt;</span><span class="ident">Token</span><span class="op">&gt;</span>,
-                <span class="prelude-val">None</span>::<span class="op">&lt;</span><span class="ident">Token</span><span class="op">&gt;</span>,
-                <span class="prelude-val">None</span>::<span class="op">&lt;</span><span class="ident">Token</span><span class="op">&gt;</span>,
-                <span class="prelude-val">None</span>::<span class="op">&lt;</span><span class="ident">Token</span><span class="op">&gt;</span>,
-                <span class="prelude-val">None</span>::<span class="op">&lt;</span><span class="ident">Token</span><span class="op">&gt;</span>,
-                <span class="prelude-val">None</span>::<span class="op">&lt;</span><span class="ident">Token</span><span class="op">&gt;</span>,
-                <span class="prelude-val">None</span>::<span class="op">&lt;</span><span class="ident">Token</span><span class="op">&gt;</span>,
-                <span class="prelude-val">None</span>::<span class="op">&lt;</span><span class="ident">Token</span><span class="op">&gt;</span>,
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(lexer: Lexer&lt;R&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            lexer,
+            peeked: [
+                <span class="prelude-val">None</span>::&lt;Token&gt;,
+                <span class="prelude-val">None</span>::&lt;Token&gt;,
+                <span class="prelude-val">None</span>::&lt;Token&gt;,
+                <span class="prelude-val">None</span>::&lt;Token&gt;,
+                <span class="prelude-val">None</span>::&lt;Token&gt;,
+                <span class="prelude-val">None</span>::&lt;Token&gt;,
+                <span class="prelude-val">None</span>::&lt;Token&gt;,
+                <span class="prelude-val">None</span>::&lt;Token&gt;,
+                <span class="prelude-val">None</span>::&lt;Token&gt;,
             ],
-            <span class="ident">read_index</span>: <span class="number">0</span>,
-            <span class="ident">write_index</span>: <span class="number">0</span>,
+            read_index: <span class="number">0</span>,
+            write_index: <span class="number">0</span>,
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">BufferedLexer</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">R</span>: <span class="ident">Read</span>,
+<span class="kw">impl</span>&lt;R&gt; From&lt;R&gt; <span class="kw">for </span>BufferedLexer&lt;R&gt;
+<span class="kw">where
+    </span>R: Read,
 {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">reader</span>: <span class="ident">R</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">Lexer::new</span>(<span class="ident">reader</span>).<span class="ident">into</span>()
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(reader: R) -&gt; <span class="self">Self </span>{
+        Lexer::new(reader).into()
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="ident">BufferedLexer</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">R</span>: <span class="ident">Read</span>,
+<span class="kw">impl</span>&lt;R&gt; BufferedLexer&lt;R&gt;
+<span class="kw">where
+    </span>R: Read,
 {
-    <span class="doccomment">/// Sets the goal symbol for the lexer.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">set_goal</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">elm</span>: <span class="ident">InputElement</span>) {
-        <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;cursor::set_goal()&quot;</span>, <span class="string">&quot;Parsing&quot;</span>);
-        <span class="self">self</span>.<span class="ident">lexer</span>.<span class="ident">set_goal</span>(<span class="ident">elm</span>);
+    <span class="doccomment">/// Sets the goal symbol for the lexer.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>set_goal(<span class="kw-2">&amp;mut </span><span class="self">self</span>, elm: InputElement) {
+        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;cursor::set_goal()&quot;</span>, <span class="string">&quot;Parsing&quot;</span>);
+        <span class="self">self</span>.lexer.set_goal(elm);
     }
 
-    <span class="doccomment">/// Lexes the next tokens as a regex assuming that the starting &#39;/&#39; has already been consumed.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">lex_regex</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">start</span>: <span class="ident">Position</span>,
-        <span class="ident">interner</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Interner</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Token</span>, <span class="ident">ParseError</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;cursor::lex_regex()&quot;</span>, <span class="string">&quot;Parsing&quot;</span>);
-        <span class="self">self</span>.<span class="ident">set_goal</span>(<span class="ident">InputElement::RegExp</span>);
-        <span class="self">self</span>.<span class="ident">lexer</span>
-            .<span class="ident">lex_slash_token</span>(<span class="ident">start</span>, <span class="ident">interner</span>)
-            .<span class="ident">map_err</span>(<span class="ident">Into::into</span>)
+    <span class="doccomment">/// Lexes the next tokens as a regex assuming that the starting &#39;/&#39; has already been consumed.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>lex_regex(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        start: Position,
+        interner: <span class="kw-2">&amp;mut </span>Interner,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;Token, ParseError&gt; {
+        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;cursor::lex_regex()&quot;</span>, <span class="string">&quot;Parsing&quot;</span>);
+        <span class="self">self</span>.set_goal(InputElement::RegExp);
+        <span class="self">self</span>.lexer
+            .lex_slash_token(start, interner)
+            .map_err(Into::into)
     }
 
-    <span class="doccomment">/// Lexes the next tokens as template middle or template tail assuming that the starting</span>
-    <span class="doccomment">/// &#39;}&#39; has already been consumed.</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">lex_template</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">start</span>: <span class="ident">Position</span>,
-        <span class="ident">interner</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Interner</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Token</span>, <span class="ident">ParseError</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">lexer</span>
-            .<span class="ident">lex_template</span>(<span class="ident">start</span>, <span class="ident">interner</span>)
-            .<span class="ident">map_err</span>(<span class="ident">ParseError::from</span>)
+    <span class="doccomment">/// Lexes the next tokens as template middle or template tail assuming that the starting
+    /// &#39;}&#39; has already been consumed.
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>lex_template(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        start: Position,
+        interner: <span class="kw-2">&amp;mut </span>Interner,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;Token, ParseError&gt; {
+        <span class="self">self</span>.lexer
+            .lex_template(start, interner)
+            .map_err(ParseError::from)
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">strict_mode</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">lexer</span>.<span class="ident">strict_mode</span>()
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>strict_mode(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.lexer.strict_mode()
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">set_strict_mode</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">strict_mode</span>: <span class="ident">bool</span>) {
-        <span class="self">self</span>.<span class="ident">lexer</span>.<span class="ident">set_strict_mode</span>(<span class="ident">strict_mode</span>);
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>set_strict_mode(<span class="kw-2">&amp;mut </span><span class="self">self</span>, strict_mode: bool) {
+        <span class="self">self</span>.lexer.set_strict_mode(strict_mode);
     }
 
-    <span class="doccomment">/// Fills the peeking buffer with the next token.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// It will not fill two line terminators one after the other.</span>
-    <span class="kw">fn</span> <span class="ident">fill</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Interner</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">ParseError</span><span class="op">&gt;</span> {
+    <span class="doccomment">/// Fills the peeking buffer with the next token.
+    ///
+    /// It will not fill two line terminators one after the other.
+    </span><span class="kw">fn </span>fill(<span class="kw-2">&amp;mut </span><span class="self">self</span>, interner: <span class="kw-2">&amp;mut </span>Interner) -&gt; <span class="prelude-ty">Result</span>&lt;(), ParseError&gt; {
         <span class="macro">debug_assert!</span>(
-            <span class="self">self</span>.<span class="ident">write_index</span> <span class="op">&lt;</span> <span class="ident">PEEK_BUF_SIZE</span>,
-            <span class="string">&quot;write index went out of bounds&quot;</span>
-        );
+            <span class="self">self</span>.write_index &lt; PEEK_BUF_SIZE,
+            <span class="string">&quot;write index went out of bounds&quot;
+        </span>);
 
-        <span class="kw">let</span> <span class="ident">previous_index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">write_index</span>.<span class="ident">checked_sub</span>(<span class="number">1</span>).<span class="ident">unwrap_or</span>(<span class="ident">PEEK_BUF_SIZE</span> <span class="op">-</span> <span class="number">1</span>);
+        <span class="kw">let </span>previous_index = <span class="self">self</span>.write_index.checked_sub(<span class="number">1</span>).unwrap_or(PEEK_BUF_SIZE - <span class="number">1</span>);
 
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">token</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">peeked</span>[<span class="ident">previous_index</span>] {
-            <span class="kw">if</span> <span class="ident">token</span>.<span class="ident">kind</span>() <span class="op">==</span> <span class="kw-2">&amp;</span><span class="ident">TokenKind::LineTerminator</span> {
-                <span class="comment">// We don&#39;t want to have multiple contiguous line terminators in the buffer, since</span>
-                <span class="comment">// they have no meaning.</span>
-                <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <span class="kw">loop</span> {
-                    <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">lexer</span>.<span class="ident">next</span>(<span class="ident">interner</span>)<span class="question-mark">?</span>;
-                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">token</span>) <span class="op">=</span> <span class="ident">next</span> {
-                        <span class="kw">if</span> <span class="ident">token</span>.<span class="ident">kind</span>() <span class="op">!</span><span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">TokenKind::LineTerminator</span> {
-                            <span class="kw">break</span> <span class="ident">next</span>;
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>token) = <span class="self">self</span>.peeked[previous_index] {
+            <span class="kw">if </span>token.kind() == <span class="kw-2">&amp;</span>TokenKind::LineTerminator {
+                <span class="comment">// We don&#39;t want to have multiple contiguous line terminators in the buffer, since
+                // they have no meaning.
+                </span><span class="kw">let </span>next = <span class="kw">loop </span>{
+                    <span class="kw">let </span>next = <span class="self">self</span>.lexer.next(interner)<span class="question-mark">?</span>;
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>token) = next {
+                        <span class="kw">if </span>token.kind() != <span class="kw-2">&amp;</span>TokenKind::LineTerminator {
+                            <span class="kw">break </span>next;
                         }
-                    } <span class="kw">else</span> {
-                        <span class="kw">break</span> <span class="prelude-val">None</span>;
+                    } <span class="kw">else </span>{
+                        <span class="kw">break </span><span class="prelude-val">None</span>;
                     }
                 };
 
-                <span class="self">self</span>.<span class="ident">peeked</span>[<span class="self">self</span>.<span class="ident">write_index</span>] <span class="op">=</span> <span class="ident">next</span>;
-            } <span class="kw">else</span> {
-                <span class="self">self</span>.<span class="ident">peeked</span>[<span class="self">self</span>.<span class="ident">write_index</span>] <span class="op">=</span> <span class="self">self</span>.<span class="ident">lexer</span>.<span class="ident">next</span>(<span class="ident">interner</span>)<span class="question-mark">?</span>;
+                <span class="self">self</span>.peeked[<span class="self">self</span>.write_index] = next;
+            } <span class="kw">else </span>{
+                <span class="self">self</span>.peeked[<span class="self">self</span>.write_index] = <span class="self">self</span>.lexer.next(interner)<span class="question-mark">?</span>;
             }
-        } <span class="kw">else</span> {
-            <span class="self">self</span>.<span class="ident">peeked</span>[<span class="self">self</span>.<span class="ident">write_index</span>] <span class="op">=</span> <span class="self">self</span>.<span class="ident">lexer</span>.<span class="ident">next</span>(<span class="ident">interner</span>)<span class="question-mark">?</span>;
+        } <span class="kw">else </span>{
+            <span class="self">self</span>.peeked[<span class="self">self</span>.write_index] = <span class="self">self</span>.lexer.next(interner)<span class="question-mark">?</span>;
         }
-        <span class="self">self</span>.<span class="ident">write_index</span> <span class="op">=</span> (<span class="self">self</span>.<span class="ident">write_index</span> <span class="op">+</span> <span class="number">1</span>) <span class="op">%</span> <span class="ident">PEEK_BUF_SIZE</span>;
+        <span class="self">self</span>.write_index = (<span class="self">self</span>.write_index + <span class="number">1</span>) % PEEK_BUF_SIZE;
 
         <span class="macro">debug_assert_ne!</span>(
-            <span class="self">self</span>.<span class="ident">read_index</span>, <span class="self">self</span>.<span class="ident">write_index</span>,
-            <span class="string">&quot;we reached the read index with the write index&quot;</span>
-        );
+            <span class="self">self</span>.read_index, <span class="self">self</span>.write_index,
+            <span class="string">&quot;we reached the read index with the write index&quot;
+        </span>);
         <span class="macro">debug_assert!</span>(
-            <span class="self">self</span>.<span class="ident">read_index</span> <span class="op">&lt;</span> <span class="ident">PEEK_BUF_SIZE</span>,
-            <span class="string">&quot;read index went out of bounds&quot;</span>
-        );
+            <span class="self">self</span>.read_index &lt; PEEK_BUF_SIZE,
+            <span class="string">&quot;read index went out of bounds&quot;
+        </span>);
 
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="doccomment">/// Moves the cursor to the next token and returns the token.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If `skip_line_terminators` is true then line terminators will be discarded.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This follows iterator semantics in that a `peek(0, false)` followed by a `next(false)` will</span>
-    <span class="doccomment">/// return the same value. Note that because a `peek(n, false)` may return a line terminator a</span>
-    <span class="comment">// subsequent `next(true)` may not return the same value.</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">next</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">skip_line_terminators</span>: <span class="ident">bool</span>,
-        <span class="ident">interner</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Interner</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Token</span><span class="op">&gt;</span>, <span class="ident">ParseError</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">read_index</span> <span class="op">==</span> <span class="self">self</span>.<span class="ident">write_index</span> {
-            <span class="self">self</span>.<span class="ident">fill</span>(<span class="ident">interner</span>)<span class="question-mark">?</span>;
+    <span class="doccomment">/// Moves the cursor to the next token and returns the token.
+    ///
+    /// If `skip_line_terminators` is true then line terminators will be discarded.
+    ///
+    /// This follows iterator semantics in that a `peek(0, false)` followed by a `next(false)` will
+    /// return the same value. Note that because a `peek(n, false)` may return a line terminator a
+    </span><span class="comment">// subsequent `next(true)` may not return the same value.
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>next(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        skip_line_terminators: bool,
+        interner: <span class="kw-2">&amp;mut </span>Interner,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;Token&gt;, ParseError&gt; {
+        <span class="kw">if </span><span class="self">self</span>.read_index == <span class="self">self</span>.write_index {
+            <span class="self">self</span>.fill(interner)<span class="question-mark">?</span>;
         }
 
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">token</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">peeked</span>[<span class="self">self</span>.<span class="ident">read_index</span>] {
-            <span class="kw">if</span> <span class="ident">skip_line_terminators</span> <span class="op">&amp;&amp;</span> <span class="ident">token</span>.<span class="ident">kind</span>() <span class="op">==</span> <span class="kw-2">&amp;</span><span class="ident">TokenKind::LineTerminator</span> {
-                <span class="comment">// We only store 1 contiguous line terminator, so if the one at `self.read_index`</span>
-                <span class="comment">// was a line terminator, we know that the next won&#39;t be one.</span>
-                <span class="self">self</span>.<span class="ident">read_index</span> <span class="op">=</span> (<span class="self">self</span>.<span class="ident">read_index</span> <span class="op">+</span> <span class="number">1</span>) <span class="op">%</span> <span class="ident">PEEK_BUF_SIZE</span>;
-                <span class="kw">if</span> <span class="self">self</span>.<span class="ident">read_index</span> <span class="op">==</span> <span class="self">self</span>.<span class="ident">write_index</span> {
-                    <span class="self">self</span>.<span class="ident">fill</span>(<span class="ident">interner</span>)<span class="question-mark">?</span>;
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>token) = <span class="self">self</span>.peeked[<span class="self">self</span>.read_index] {
+            <span class="kw">if </span>skip_line_terminators &amp;&amp; token.kind() == <span class="kw-2">&amp;</span>TokenKind::LineTerminator {
+                <span class="comment">// We only store 1 contiguous line terminator, so if the one at `self.read_index`
+                // was a line terminator, we know that the next won&#39;t be one.
+                </span><span class="self">self</span>.read_index = (<span class="self">self</span>.read_index + <span class="number">1</span>) % PEEK_BUF_SIZE;
+                <span class="kw">if </span><span class="self">self</span>.read_index == <span class="self">self</span>.write_index {
+                    <span class="self">self</span>.fill(interner)<span class="question-mark">?</span>;
                 }
             }
-            <span class="kw">let</span> <span class="ident">tok</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">peeked</span>[<span class="self">self</span>.<span class="ident">read_index</span>].<span class="ident">take</span>();
-            <span class="self">self</span>.<span class="ident">read_index</span> <span class="op">=</span> (<span class="self">self</span>.<span class="ident">read_index</span> <span class="op">+</span> <span class="number">1</span>) <span class="op">%</span> <span class="ident">PEEK_BUF_SIZE</span>;
+            <span class="kw">let </span>tok = <span class="self">self</span>.peeked[<span class="self">self</span>.read_index].take();
+            <span class="self">self</span>.read_index = (<span class="self">self</span>.read_index + <span class="number">1</span>) % PEEK_BUF_SIZE;
 
-            <span class="prelude-val">Ok</span>(<span class="ident">tok</span>)
-        } <span class="kw">else</span> {
-            <span class="comment">// We do not update the read index, since we should always return `None` from now on.</span>
-            <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>)
+            <span class="prelude-val">Ok</span>(tok)
+        } <span class="kw">else </span>{
+            <span class="comment">// We do not update the read index, since we should always return `None` from now on.
+            </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>)
         }
     }
 
-    <span class="doccomment">/// Peeks the `n`th token after the next token.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// **Note:** `n` must be in the range `[0, 3]`.</span>
-    <span class="doccomment">/// i.e. if there are tokens `A`, `B`, `C`, `D`, `E` and `peek(0, false)` returns `A` then:</span>
-    <span class="doccomment">///  - `peek(1, false) == peek(1, true) == B`.</span>
-    <span class="doccomment">///  - `peek(2, false)` will return `C`.</span>
-    <span class="doccomment">/// where `A`, `B`, `C`, `D` and `E` are tokens but not line terminators.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If `skip_line_terminators` is `true` then line terminators will be discarded.</span>
-    <span class="doccomment">/// i.e. If there are tokens `A`, `\n`, `B` and `peek(0, false)` is `A` then the following</span>
-    <span class="doccomment">/// will hold:</span>
-    <span class="doccomment">///  - `peek(0, true) == A`</span>
-    <span class="doccomment">///  - `peek(0, false) == A`</span>
-    <span class="doccomment">///  - `peek(1, true) == B`</span>
-    <span class="doccomment">///  - `peek(1, false) == \n`</span>
-    <span class="doccomment">///  - `peek(2, true) == None` (End of stream)</span>
-    <span class="doccomment">///  - `peek(2, false) == B`</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">peek</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">skip_n</span>: <span class="ident">usize</span>,
-        <span class="ident">skip_line_terminators</span>: <span class="ident">bool</span>,
-        <span class="ident">interner</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Interner</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Token</span><span class="op">&gt;</span>, <span class="ident">ParseError</span><span class="op">&gt;</span> {
+    <span class="doccomment">/// Peeks the `n`th token after the next token.
+    ///
+    /// **Note:** `n` must be in the range `[0, 3]`.
+    /// i.e. if there are tokens `A`, `B`, `C`, `D`, `E` and `peek(0, false)` returns `A` then:
+    ///  - `peek(1, false) == peek(1, true) == B`.
+    ///  - `peek(2, false)` will return `C`.
+    /// where `A`, `B`, `C`, `D` and `E` are tokens but not line terminators.
+    ///
+    /// If `skip_line_terminators` is `true` then line terminators will be discarded.
+    /// i.e. If there are tokens `A`, `\n`, `B` and `peek(0, false)` is `A` then the following
+    /// will hold:
+    ///  - `peek(0, true) == A`
+    ///  - `peek(0, false) == A`
+    ///  - `peek(1, true) == B`
+    ///  - `peek(1, false) == \n`
+    ///  - `peek(2, true) == None` (End of stream)
+    ///  - `peek(2, false) == B`
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>peek(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        skip_n: usize,
+        skip_line_terminators: bool,
+        interner: <span class="kw-2">&amp;mut </span>Interner,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Token&gt;, ParseError&gt; {
         <span class="macro">assert!</span>(
-            <span class="ident">skip_n</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">MAX_PEEK_SKIP</span>,
+            skip_n &lt;= MAX_PEEK_SKIP,
             <span class="string">&quot;you cannot skip more than {} elements&quot;</span>,
-            <span class="ident">MAX_PEEK_SKIP</span>
+            MAX_PEEK_SKIP
         );
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">read_index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">read_index</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">count</span> <span class="op">=</span> <span class="number">0</span>;
-        <span class="kw">let</span> <span class="ident">res_token</span> <span class="op">=</span> <span class="kw">loop</span> {
-            <span class="kw">if</span> <span class="ident">read_index</span> <span class="op">==</span> <span class="self">self</span>.<span class="ident">write_index</span> {
-                <span class="self">self</span>.<span class="ident">fill</span>(<span class="ident">interner</span>)<span class="question-mark">?</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>read_index = <span class="self">self</span>.read_index;
+        <span class="kw">let </span><span class="kw-2">mut </span>count = <span class="number">0</span>;
+        <span class="kw">let </span>res_token = <span class="kw">loop </span>{
+            <span class="kw">if </span>read_index == <span class="self">self</span>.write_index {
+                <span class="self">self</span>.fill(interner)<span class="question-mark">?</span>;
             }
 
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">token</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">peeked</span>[<span class="ident">read_index</span>] {
-                <span class="kw">if</span> <span class="ident">skip_line_terminators</span> <span class="op">&amp;&amp;</span> <span class="ident">token</span>.<span class="ident">kind</span>() <span class="op">==</span> <span class="kw-2">&amp;</span><span class="ident">TokenKind::LineTerminator</span> {
-                    <span class="ident">read_index</span> <span class="op">=</span> (<span class="ident">read_index</span> <span class="op">+</span> <span class="number">1</span>) <span class="op">%</span> <span class="ident">PEEK_BUF_SIZE</span>;
-                    <span class="comment">// We only store 1 contiguous line terminator, so if the one at `self.read_index`</span>
-                    <span class="comment">// was a line terminator, we know that the next won&#39;t be one.</span>
-                    <span class="kw">if</span> <span class="ident">read_index</span> <span class="op">==</span> <span class="self">self</span>.<span class="ident">write_index</span> {
-                        <span class="self">self</span>.<span class="ident">fill</span>(<span class="ident">interner</span>)<span class="question-mark">?</span>;
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>token) = <span class="self">self</span>.peeked[read_index] {
+                <span class="kw">if </span>skip_line_terminators &amp;&amp; token.kind() == <span class="kw-2">&amp;</span>TokenKind::LineTerminator {
+                    read_index = (read_index + <span class="number">1</span>) % PEEK_BUF_SIZE;
+                    <span class="comment">// We only store 1 contiguous line terminator, so if the one at `self.read_index`
+                    // was a line terminator, we know that the next won&#39;t be one.
+                    </span><span class="kw">if </span>read_index == <span class="self">self</span>.write_index {
+                        <span class="self">self</span>.fill(interner)<span class="question-mark">?</span>;
                     }
                 }
-                <span class="kw">if</span> <span class="ident">count</span> <span class="op">==</span> <span class="ident">skip_n</span> {
-                    <span class="kw">break</span> <span class="self">self</span>.<span class="ident">peeked</span>[<span class="ident">read_index</span>].<span class="ident">as_ref</span>();
+                <span class="kw">if </span>count == skip_n {
+                    <span class="kw">break </span><span class="self">self</span>.peeked[read_index].as_ref();
                 }
-            } <span class="kw">else</span> {
-                <span class="kw">break</span> <span class="prelude-val">None</span>;
+            } <span class="kw">else </span>{
+                <span class="kw">break </span><span class="prelude-val">None</span>;
             }
-            <span class="ident">read_index</span> <span class="op">=</span> (<span class="ident">read_index</span> <span class="op">+</span> <span class="number">1</span>) <span class="op">%</span> <span class="ident">PEEK_BUF_SIZE</span>;
-            <span class="ident">count</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+            read_index = (read_index + <span class="number">1</span>) % PEEK_BUF_SIZE;
+            count += <span class="number">1</span>;
         };
 
-        <span class="prelude-val">Ok</span>(<span class="ident">res_token</span>)
+        <span class="prelude-val">Ok</span>(res_token)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0 (a55dd71d5 2022-09-19)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0 (897e37553 2022-11-02)" ></div></body></html>

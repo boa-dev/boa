@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_engine/src/string/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../boa_engine/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../boa_engine/index.html"><div class="logo-container">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_engine/src/string/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../boa_engine/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../boa_engine/index.html"><div class="logo-container">
                     <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../boa_engine/index.html">
                         <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -1038,1043 +1038,1043 @@
 <span id="1036">1036</span>
 <span id="1037">1037</span>
 <span id="1038">1038</span>
-</pre><pre class="rust"><code><span class="doccomment">//! A UTF-16–encoded, reference counted, immutable string.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! This module contains the [`JsString`] type, the [`js_string`][crate::js_string] macro and the</span>
-<span class="doccomment">//! [`utf16`] macro.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! The [`js_string`][crate::js_string] macro is used when you need to create a new [`JsString`],</span>
-<span class="doccomment">//! and the [`utf16`] macro is used for const conversions of string literals to UTF-16.</span>
+</pre><pre class="rust"><code><span class="doccomment">//! A UTF-16–encoded, reference counted, immutable string.
+//!
+//! This module contains the [`JsString`] type, the [`js_string`][crate::js_string] macro and the
+//! [`utf16`] macro.
+//!
+//! The [`js_string`][crate::js_string] macro is used when you need to create a new [`JsString`],
+//! and the [`utf16`] macro is used for const conversions of string literals to UTF-16.
 
-<span class="comment">// Required per unsafe code standards to ensure every unsafe usage is properly documented.</span>
-<span class="comment">// - `unsafe_op_in_unsafe_fn` will be warn-by-default in edition 2024:</span>
-<span class="comment">//   https://github.com/rust-lang/rust/issues/71668#issuecomment-1189396860</span>
-<span class="comment">// - `undocumented_unsafe_blocks` and `missing_safety_doc` requires a `Safety:` section in the</span>
-<span class="comment">//   comment or doc of the unsafe block or function, respectively.</span>
-<span class="attribute">#![<span class="ident">deny</span>(
-    <span class="ident">unsafe_op_in_unsafe_fn</span>,
-    <span class="ident">clippy::undocumented_unsafe_blocks</span>,
-    <span class="ident">clippy::missing_safety_doc</span>
-)]</span>
-<span class="comment">// Remove when/if https://github.com/rust-lang/rust/issues/95228 stabilizes.</span>
-<span class="comment">// Right now this allows us to use the stable polyfill from the `sptr` crate, which uses</span>
-<span class="comment">// the same names from the unstable functions of the `std::ptr` module.</span>
-<span class="attribute">#![<span class="ident">allow</span>(<span class="ident">unstable_name_collisions</span>)]</span>
+</span><span class="comment">// Required per unsafe code standards to ensure every unsafe usage is properly documented.
+// - `unsafe_op_in_unsafe_fn` will be warn-by-default in edition 2024:
+//   https://github.com/rust-lang/rust/issues/71668#issuecomment-1189396860
+// - `undocumented_unsafe_blocks` and `missing_safety_doc` requires a `Safety:` section in the
+//   comment or doc of the unsafe block or function, respectively.
+</span><span class="attribute">#![deny(
+    unsafe_op_in_unsafe_fn,
+    clippy::undocumented_unsafe_blocks,
+    clippy::missing_safety_doc
+)]
+</span><span class="comment">// Remove when/if https://github.com/rust-lang/rust/issues/95228 stabilizes.
+// Right now this allows us to use the stable polyfill from the `sptr` crate, which uses
+// the same names from the unstable functions of the `std::ptr` module.
+</span><span class="attribute">#![allow(unstable_name_collisions)]
 
-<span class="kw">mod</span> <span class="ident">common</span>;
+</span><span class="kw">mod </span>common;
 
-<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">builtins::string::is_trimmable_whitespace</span>, <span class="ident">JsBigInt</span>};
-<span class="kw">use</span> <span class="ident">boa_gc</span>::{<span class="ident">unsafe_empty_trace</span>, <span class="ident">Finalize</span>, <span class="ident">Trace</span>};
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">boa_macros::utf16</span>;
+<span class="kw">use crate</span>::{builtins::string::is_trimmable_whitespace, JsBigInt};
+<span class="kw">use </span>boa_gc::{unsafe_empty_trace, Finalize, Trace};
+<span class="kw">pub use </span>boa_macros::utf16;
 
-<span class="kw">use</span> <span class="ident">std</span>::{
-    <span class="ident">alloc</span>::{<span class="ident">alloc</span>, <span class="ident">dealloc</span>, <span class="ident">Layout</span>},
-    <span class="ident">borrow::Borrow</span>,
-    <span class="ident">cell::Cell</span>,
-    <span class="ident">hash</span>::{<span class="ident">Hash</span>, <span class="ident">Hasher</span>},
-    <span class="ident">ops</span>::{<span class="ident">Deref</span>, <span class="ident">Index</span>},
-    <span class="ident">ptr</span>::{<span class="self">self</span>, <span class="ident">NonNull</span>},
-    <span class="ident">slice::SliceIndex</span>,
+<span class="kw">use </span>std::{
+    alloc::{alloc, dealloc, Layout},
+    borrow::Borrow,
+    cell::Cell,
+    hash::{Hash, Hasher},
+    ops::{Deref, Index},
+    ptr::{<span class="self">self</span>, NonNull},
+    slice::SliceIndex,
 };
 
-<span class="kw">use</span> <span class="ident"><span class="self">self</span>::common</span>::{<span class="ident">COMMON_STRINGS</span>, <span class="ident">COMMON_STRINGS_CACHE</span>, <span class="ident">MAX_COMMON_STRING_LENGTH</span>};
+<span class="kw">use </span><span class="self">self</span>::common::{COMMON_STRINGS, COMMON_STRINGS_CACHE, MAX_COMMON_STRING_LENGTH};
 
-<span class="doccomment">/// Utility macro to create a [`JsString`].</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Examples</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// You can call the macro without arguments to create an empty `JsString`:</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">/// use boa_engine::js_string;</span>
-<span class="doccomment">/// use boa_engine::string::utf16;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// let empty_str = js_string!();</span>
-<span class="doccomment">/// assert!(empty_str.is_empty());</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">///</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// You can create a `JsString` from a string literal, which completely skips the runtime</span>
-<span class="doccomment">/// conversion from [`&amp;str`] to &lt;code&gt;[&amp;\[u16\]][slice]&lt;/code&gt;:</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">/// # use boa_engine::js_string;</span>
-<span class="doccomment">/// # use boa_engine::string::utf16;</span>
-<span class="doccomment">/// let hw = js_string!(&quot;Hello, world!&quot;);</span>
-<span class="doccomment">/// assert_eq!(&amp;hw, utf16!(&quot;Hello, world!&quot;));</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Any `&amp;[u16]` slice is a valid `JsString`, including unpaired surrogates:</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">/// # use boa_engine::js_string;</span>
-<span class="doccomment">/// let array = js_string!(&amp;[0xD8AFu16, 0x00A0, 0xD8FF, 0x00F0]);</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// You can also pass it any number of `&amp;[u16]` as arguments to create a new `JsString` with</span>
-<span class="doccomment">/// the concatenation of every slice:</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">/// # use boa_engine::js_string;</span>
-<span class="doccomment">/// # use boa_engine::string::utf16;</span>
-<span class="doccomment">/// const NAME: &amp;[u16]  = utf16!(&quot;human! &quot;);</span>
-<span class="doccomment">/// let greeting = js_string!(&quot;Hello, &quot;);</span>
-<span class="doccomment">/// let msg = js_string!(&amp;greeting, &amp;NAME, utf16!(&quot;Nice to meet you!&quot;));</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// assert_eq!(&amp;msg, utf16!(&quot;Hello, human! Nice to meet you!&quot;));</span>
-<span class="doccomment">/// ```</span>
-<span class="attribute">#[<span class="ident">macro_export</span>]</span>
-<span class="macro">macro_rules!</span> <span class="ident">js_string</span> {
+<span class="doccomment">/// Utility macro to create a [`JsString`].
+///
+/// # Examples
+///
+/// You can call the macro without arguments to create an empty `JsString`:
+///
+/// ```
+/// use boa_engine::js_string;
+/// use boa_engine::string::utf16;
+///
+/// let empty_str = js_string!();
+/// assert!(empty_str.is_empty());
+/// ```
+///
+///
+/// You can create a `JsString` from a string literal, which completely skips the runtime
+/// conversion from [`&amp;str`] to &lt;code&gt;[&amp;\[u16\]][slice]&lt;/code&gt;:
+///
+/// ```
+/// # use boa_engine::js_string;
+/// # use boa_engine::string::utf16;
+/// let hw = js_string!(&quot;Hello, world!&quot;);
+/// assert_eq!(&amp;hw, utf16!(&quot;Hello, world!&quot;));
+/// ```
+///
+/// Any `&amp;[u16]` slice is a valid `JsString`, including unpaired surrogates:
+///
+/// ```
+/// # use boa_engine::js_string;
+/// let array = js_string!(&amp;[0xD8AFu16, 0x00A0, 0xD8FF, 0x00F0]);
+/// ```
+///
+/// You can also pass it any number of `&amp;[u16]` as arguments to create a new `JsString` with
+/// the concatenation of every slice:
+///
+/// ```
+/// # use boa_engine::js_string;
+/// # use boa_engine::string::utf16;
+/// const NAME: &amp;[u16]  = utf16!(&quot;human! &quot;);
+/// let greeting = js_string!(&quot;Hello, &quot;);
+/// let msg = js_string!(&amp;greeting, &amp;NAME, utf16!(&quot;Nice to meet you!&quot;));
+///
+/// assert_eq!(&amp;msg, utf16!(&quot;Hello, human! Nice to meet you!&quot;));
+/// ```
+</span><span class="attribute">#[macro_export]
+</span><span class="macro">macro_rules! </span>js_string {
     () =&gt; {
-        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::JsString::default</span>()
+        <span class="macro-nonterminal">$crate::JsString::default</span>()
     };
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">s</span>:<span class="ident">literal</span>) =&gt; {
-        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::JsString::from</span>(<span class="macro-nonterminal">$</span><span class="macro">crate::string::utf16!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">s</span>))
+    (<span class="macro-nonterminal">$s</span>:literal) =&gt; {
+        <span class="macro-nonterminal">$crate::JsString::from</span>(<span class="macro-nonterminal">$</span><span class="macro">crate::string::utf16!</span>(<span class="macro-nonterminal">$s</span>))
     };
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">s</span>:<span class="ident">expr</span>) =&gt; {
-        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::JsString::from</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">s</span>)
+    (<span class="macro-nonterminal">$s</span>:expr) =&gt; {
+        <span class="macro-nonterminal">$crate::JsString::from</span>(<span class="macro-nonterminal">$s</span>)
     };
-    ( <span class="macro-nonterminal">$</span><span class="macro-nonterminal">x</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">y</span>:<span class="ident">expr</span> ) =&gt; {
-        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::JsString::concat</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">x</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">y</span>)
+    ( <span class="macro-nonterminal">$x</span>:expr, <span class="macro-nonterminal">$y</span>:expr ) =&gt; {
+        <span class="macro-nonterminal">$crate::JsString::concat</span>(<span class="macro-nonterminal">$x</span>, <span class="macro-nonterminal">$y</span>)
     };
-    ( $( <span class="macro-nonterminal">$</span><span class="macro-nonterminal">s</span>:<span class="ident">expr</span> ),<span class="op">+</span> ) =&gt; {
-        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::JsString::concat_array</span>(<span class="kw-2">&amp;</span>[ $( <span class="macro-nonterminal">$</span><span class="macro-nonterminal">s</span> ),<span class="op">+</span> ])
+    ( $( <span class="macro-nonterminal">$s</span>:expr ),+ ) =&gt; {
+        <span class="macro-nonterminal">$crate::JsString::concat_array</span>(<span class="kw-2">&amp;</span>[ $( <span class="macro-nonterminal">$s </span>),+ ])
     };
 }
 
-<span class="doccomment">/// Represents a Unicode codepoint within a [`JsString`], which could be a valid</span>
-<span class="doccomment">/// &#39;[Unicode scalar value]&#39;, or an unpaired surrogate.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [Unicode scalar value]: https://www.unicode.org/glossary/#unicode_scalar_value</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">CodePoint</span> {
-    <span class="ident">Unicode</span>(<span class="ident">char</span>),
-    <span class="ident">UnpairedSurrogate</span>(<span class="ident">u16</span>),
+<span class="doccomment">/// Represents a Unicode codepoint within a [`JsString`], which could be a valid
+/// &#39;[Unicode scalar value]&#39;, or an unpaired surrogate.
+///
+/// [Unicode scalar value]: https://www.unicode.org/glossary/#unicode_scalar_value
+</span><span class="attribute">#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+</span><span class="kw">pub enum </span>CodePoint {
+    Unicode(char),
+    UnpairedSurrogate(u16),
 }
 
-<span class="kw">impl</span> <span class="ident">CodePoint</span> {
-    <span class="doccomment">/// Get the number of UTF-16 code units needed to encode this code point.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">code_unit_count</span>(<span class="self">self</span>) -&gt; <span class="ident">usize</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident"><span class="self">Self</span>::Unicode</span>(<span class="ident">c</span>) =&gt; <span class="ident">c</span>.<span class="ident">len_utf16</span>(),
-            <span class="ident"><span class="self">Self</span>::UnpairedSurrogate</span>(<span class="kw">_</span>) =&gt; <span class="number">1</span>,
+<span class="kw">impl </span>CodePoint {
+    <span class="doccomment">/// Get the number of UTF-16 code units needed to encode this code point.
+    </span><span class="kw">pub fn </span>code_unit_count(<span class="self">self</span>) -&gt; usize {
+        <span class="kw">match </span><span class="self">self </span>{
+            <span class="self">Self</span>::Unicode(c) =&gt; c.len_utf16(),
+            <span class="self">Self</span>::UnpairedSurrogate(<span class="kw">_</span>) =&gt; <span class="number">1</span>,
         }
     }
 
-    <span class="doccomment">/// Convert the code point to its [`u32`] representation.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_u32</span>(<span class="self">self</span>) -&gt; <span class="ident">u32</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident"><span class="self">Self</span>::Unicode</span>(<span class="ident">c</span>) =&gt; <span class="ident">u32::from</span>(<span class="ident">c</span>),
-            <span class="ident"><span class="self">Self</span>::UnpairedSurrogate</span>(<span class="ident">surr</span>) =&gt; <span class="ident">u32::from</span>(<span class="ident">surr</span>),
+    <span class="doccomment">/// Convert the code point to its [`u32`] representation.
+    </span><span class="kw">pub fn </span>as_u32(<span class="self">self</span>) -&gt; u32 {
+        <span class="kw">match </span><span class="self">self </span>{
+            <span class="self">Self</span>::Unicode(c) =&gt; u32::from(c),
+            <span class="self">Self</span>::UnpairedSurrogate(surr) =&gt; u32::from(surr),
         }
     }
 
-    <span class="doccomment">/// If the code point represents a valid &#39;Unicode scalar value&#39;, returns its [`char`]</span>
-    <span class="doccomment">/// representation, otherwise returns [`None`] on unpaired surrogates.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_char</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">char</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident"><span class="self">Self</span>::Unicode</span>(<span class="ident">c</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">c</span>),
-            <span class="ident"><span class="self">Self</span>::UnpairedSurrogate</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
+    <span class="doccomment">/// If the code point represents a valid &#39;Unicode scalar value&#39;, returns its [`char`]
+    /// representation, otherwise returns [`None`] on unpaired surrogates.
+    </span><span class="kw">pub fn </span>as_char(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;char&gt; {
+        <span class="kw">match </span><span class="self">self </span>{
+            <span class="self">Self</span>::Unicode(c) =&gt; <span class="prelude-val">Some</span>(c),
+            <span class="self">Self</span>::UnpairedSurrogate(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
         }
     }
 
-    <span class="doccomment">/// Encodes this code point as UTF-16 into the provided u16 buffer, and then returns the subslice</span>
-    <span class="doccomment">/// of the buffer that contains the encoded character.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Panics</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Panics if the buffer is not large enough. A buffer of length 2 is large enough to encode any</span>
-    <span class="doccomment">/// code point.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">encode_utf16</span>(<span class="self">self</span>, <span class="ident">dst</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">u16</span>]) -&gt; <span class="kw-2">&amp;mut</span> [<span class="ident">u16</span>] {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">CodePoint::Unicode</span>(<span class="ident">c</span>) =&gt; <span class="ident">c</span>.<span class="ident">encode_utf16</span>(<span class="ident">dst</span>),
-            <span class="ident">CodePoint::UnpairedSurrogate</span>(<span class="ident">surr</span>) =&gt; {
-                <span class="ident">dst</span>[<span class="number">0</span>] <span class="op">=</span> <span class="ident">surr</span>;
-                <span class="kw-2">&amp;mut</span> <span class="ident">dst</span>[<span class="number">0</span>..<span class="op">=</span><span class="number">0</span>]
+    <span class="doccomment">/// Encodes this code point as UTF-16 into the provided u16 buffer, and then returns the subslice
+    /// of the buffer that contains the encoded character.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the buffer is not large enough. A buffer of length 2 is large enough to encode any
+    /// code point.
+    </span><span class="kw">pub fn </span>encode_utf16(<span class="self">self</span>, dst: <span class="kw-2">&amp;mut </span>[u16]) -&gt; <span class="kw-2">&amp;mut </span>[u16] {
+        <span class="kw">match </span><span class="self">self </span>{
+            CodePoint::Unicode(c) =&gt; c.encode_utf16(dst),
+            CodePoint::UnpairedSurrogate(surr) =&gt; {
+                dst[<span class="number">0</span>] = surr;
+                <span class="kw-2">&amp;mut </span>dst[<span class="number">0</span>..=<span class="number">0</span>]
             }
         }
     }
 }
 
-<span class="doccomment">/// The raw representation of a [`JsString`] in the heap.</span>
-<span class="attribute">#[<span class="ident">repr</span>(<span class="ident">C</span>)]</span>
-<span class="kw">struct</span> <span class="ident">RawJsString</span> {
-    <span class="doccomment">/// The UTF-16 length.</span>
-    <span class="ident">len</span>: <span class="ident">usize</span>,
+<span class="doccomment">/// The raw representation of a [`JsString`] in the heap.
+</span><span class="attribute">#[repr(C)]
+</span><span class="kw">struct </span>RawJsString {
+    <span class="doccomment">/// The UTF-16 length.
+    </span>len: usize,
 
-    <span class="doccomment">/// The number of references to the string.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// When this reaches `0` the string is deallocated.</span>
-    <span class="ident">refcount</span>: <span class="ident">Cell</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// The number of references to the string.
+    ///
+    /// When this reaches `0` the string is deallocated.
+    </span>refcount: Cell&lt;usize&gt;,
 
-    <span class="doccomment">/// An empty array which is used to get the offset of string data.</span>
-    <span class="ident">data</span>: [<span class="ident">u16</span>; <span class="number">0</span>],
+    <span class="doccomment">/// An empty array which is used to get the offset of string data.
+    </span>data: [u16; <span class="number">0</span>],
 }
 
-<span class="doccomment">/// This struct uses a technique called tagged pointer to benefit from the fact that newly allocated</span>
-<span class="doccomment">/// pointers are always word aligned on 64-bits platforms, making it impossible to have a LSB equal</span>
-<span class="doccomment">/// to 1. More details about this technique on the article of Wikipedia about [tagged pointers][tagged_wp].</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Representation</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// If the LSB of the internal [`NonNull&lt;RawJsString&gt;`] is set (1), then the pointer address represents</span>
-<span class="doccomment">/// an index value for [`COMMON_STRINGS`], where the remaining MSBs store the index.</span>
-<span class="doccomment">/// Otherwise, the whole pointer represents the address of a heap allocated [`RawJsString`].</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// It uses [`NonNull`], which guarantees that [`TaggedJsString`] (and subsequently [`JsString`]) can</span>
-<span class="doccomment">/// use the &quot;null pointer optimization&quot; to optimize the size of [`Option&lt;TaggedJsString&gt;`].</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Provenance</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This struct stores a [`NonNull&lt;RawJsString&gt;`] instead of a [`NonZeroUsize`][std::num::NonZeroUsize]</span>
-<span class="doccomment">/// in order to preserve the provenance of our valid heap pointers.</span>
-<span class="doccomment">/// On the other hand, all index values are just casted to invalid pointers, because we don&#39;t need to</span>
-<span class="doccomment">/// preserve the provenance of [`usize`] indices.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [tagged_wp]: https://en.wikipedia.org/wiki/Tagged_pointer</span>
-<span class="attribute">#[<span class="ident">repr</span>(<span class="ident">transparent</span>)]</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">Ord</span>, <span class="ident">PartialOrd</span>, <span class="ident">Hash</span>)]</span>
-<span class="kw">struct</span> <span class="ident">TaggedJsString</span>(<span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">RawJsString</span><span class="op">&gt;</span>);
+<span class="doccomment">/// This struct uses a technique called tagged pointer to benefit from the fact that newly allocated
+/// pointers are always word aligned on 64-bits platforms, making it impossible to have a LSB equal
+/// to 1. More details about this technique on the article of Wikipedia about [tagged pointers][tagged_wp].
+///
+/// # Representation
+///
+/// If the LSB of the internal [`NonNull&lt;RawJsString&gt;`] is set (1), then the pointer address represents
+/// an index value for [`COMMON_STRINGS`], where the remaining MSBs store the index.
+/// Otherwise, the whole pointer represents the address of a heap allocated [`RawJsString`].
+///
+/// It uses [`NonNull`], which guarantees that [`TaggedJsString`] (and subsequently [`JsString`]) can
+/// use the &quot;null pointer optimization&quot; to optimize the size of [`Option&lt;TaggedJsString&gt;`].
+///
+/// # Provenance
+///
+/// This struct stores a [`NonNull&lt;RawJsString&gt;`] instead of a [`NonZeroUsize`][std::num::NonZeroUsize]
+/// in order to preserve the provenance of our valid heap pointers.
+/// On the other hand, all index values are just casted to invalid pointers, because we don&#39;t need to
+/// preserve the provenance of [`usize`] indices.
+///
+/// [tagged_wp]: https://en.wikipedia.org/wiki/Tagged_pointer
+</span><span class="attribute">#[repr(transparent)]
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
+</span><span class="kw">struct </span>TaggedJsString(NonNull&lt;RawJsString&gt;);
 
-<span class="kw">impl</span> <span class="ident">TaggedJsString</span> {
-    <span class="doccomment">/// Creates a new [`TaggedJsString`] from a pointer to a valid [`RawJsString`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Safety</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// `inner` must point to a valid instance of [`RawJsString`], which should be deallocated only</span>
-    <span class="doccomment">/// by [`JsString`].</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">new_heap</span>(<span class="ident">inner</span>: <span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">RawJsString</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span>(<span class="ident">inner</span>)
+<span class="kw">impl </span>TaggedJsString {
+    <span class="doccomment">/// Creates a new [`TaggedJsString`] from a pointer to a valid [`RawJsString`].
+    ///
+    /// # Safety
+    ///
+    /// `inner` must point to a valid instance of [`RawJsString`], which should be deallocated only
+    /// by [`JsString`].
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">unsafe fn </span>new_heap(inner: NonNull&lt;RawJsString&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>(inner)
     }
 
-    <span class="doccomment">/// Creates a new static [`TaggedJsString`] from the index of an element inside</span>
-    <span class="doccomment">/// [`COMMON_STRINGS`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Safety</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// `idx` must be a valid index on [`COMMON_STRINGS`].</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">const</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">new_static</span>(<span class="ident">idx</span>: <span class="ident">usize</span>) -&gt; <span class="self">Self</span> {
-        <span class="comment">// SAFETY:</span>
-        <span class="comment">// The operation `(idx &lt;&lt; 1) | 1` sets the least significant bit to 1, meaning any pointer</span>
-        <span class="comment">// (valid or invalid) created using this address cannot be null.</span>
-        <span class="kw">unsafe</span> { <span class="self">Self</span>(<span class="ident">NonNull::new_unchecked</span>(<span class="ident">sptr::invalid_mut</span>((<span class="ident">idx</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">1</span>) <span class="op">|</span> <span class="number">1</span>))) }
+    <span class="doccomment">/// Creates a new static [`TaggedJsString`] from the index of an element inside
+    /// [`COMMON_STRINGS`].
+    ///
+    /// # Safety
+    ///
+    /// `idx` must be a valid index on [`COMMON_STRINGS`].
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">const unsafe fn </span>new_static(idx: usize) -&gt; <span class="self">Self </span>{
+        <span class="comment">// SAFETY:
+        // The operation `(idx &lt;&lt; 1) | 1` sets the least significant bit to 1, meaning any pointer
+        // (valid or invalid) created using this address cannot be null.
+        </span><span class="kw">unsafe </span>{ <span class="self">Self</span>(NonNull::new_unchecked(sptr::invalid_mut((idx &lt;&lt; <span class="number">1</span>) | <span class="number">1</span>))) }
     }
 
-    <span class="doccomment">/// Checks if [`TaggedJsString`] contains an index for [`COMMON_STRINGS`].</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">is_static</span>(<span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        (<span class="self">self</span>.<span class="number">0</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="ident">usize</span>) <span class="op">&amp;</span> <span class="number">1</span> <span class="op">==</span> <span class="number">1</span>
-    }
+    <span class="doccomment">/// Checks if [`TaggedJsString`] contains an index for [`COMMON_STRINGS`].
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">fn </span>is_static(<span class="self">self</span>) -&gt; bool {
+        (<span class="self">self</span>.<span class="number">0</span>.as_ptr() <span class="kw">as </span>usize) &amp; <span class="number">1 </span>== <span class="number">1
+    </span>}
 
-    <span class="doccomment">/// Returns a reference to a string stored on the heap, without checking if its internal pointer</span>
-    <span class="doccomment">/// is valid.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Safety</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// `self` must be a heap allocated [`RawJsString`].</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">const</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">get_heap_unchecked</span>(<span class="self">self</span>) -&gt; <span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">RawJsString</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="number">0</span>
-    }
+    <span class="doccomment">/// Returns a reference to a string stored on the heap, without checking if its internal pointer
+    /// is valid.
+    ///
+    /// # Safety
+    ///
+    /// `self` must be a heap allocated [`RawJsString`].
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">const unsafe fn </span>get_heap_unchecked(<span class="self">self</span>) -&gt; NonNull&lt;RawJsString&gt; {
+        <span class="self">self</span>.<span class="number">0
+    </span>}
 
-    <span class="doccomment">/// Returns the string inside [`COMMON_STRINGS`] corresponding to the index inside</span>
-    <span class="doccomment">/// [`TaggedJsString`], without checking its validity.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Safety</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// `self` must not be a pointer to a heap allocated [`RawJsString`], and it must be a valid</span>
-    <span class="doccomment">/// index inside [`COMMON_STRINGS`].</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">get_static_unchecked</span>(<span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> [<span class="ident">u16</span>] {
-        <span class="comment">// SAFETY:</span>
-        <span class="comment">// The caller must ensure `self` is a valid index inside `COMMON_STRINGS`.</span>
-        <span class="kw">unsafe</span> { <span class="ident">COMMON_STRINGS</span>.<span class="ident">get_unchecked</span>((<span class="self">self</span>.<span class="number">0</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="ident">usize</span>) <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">1</span>) }
+    <span class="doccomment">/// Returns the string inside [`COMMON_STRINGS`] corresponding to the index inside
+    /// [`TaggedJsString`], without checking its validity.
+    ///
+    /// # Safety
+    ///
+    /// `self` must not be a pointer to a heap allocated [`RawJsString`], and it must be a valid
+    /// index inside [`COMMON_STRINGS`].
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">unsafe fn </span>get_static_unchecked(<span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[u16] {
+        <span class="comment">// SAFETY:
+        // The caller must ensure `self` is a valid index inside `COMMON_STRINGS`.
+        </span><span class="kw">unsafe </span>{ COMMON_STRINGS.get_unchecked((<span class="self">self</span>.<span class="number">0</span>.as_ptr() <span class="kw">as </span>usize) &gt;&gt; <span class="number">1</span>) }
     }
 }
 
-<span class="doccomment">/// Enum representing either a reference to a heap allocated [`RawJsString`] or a static reference to</span>
-<span class="doccomment">/// a [`\[u16\]`][slice] inside [`COMMON_STRINGS`].</span>
-<span class="kw">enum</span> <span class="ident">JsStringPtrKind</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="comment">// A string allocated on the heap.</span>
-    <span class="ident">Heap</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">RawJsString</span>),
-    <span class="comment">// A static string slice.</span>
-    <span class="ident">Static</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> [<span class="ident">u16</span>]),
+<span class="doccomment">/// Enum representing either a reference to a heap allocated [`RawJsString`] or a static reference to
+/// a [`\[u16\]`][slice] inside [`COMMON_STRINGS`].
+</span><span class="kw">enum </span>JsStringPtrKind&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="comment">// A string allocated on the heap.
+    </span>Heap(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>RawJsString),
+    <span class="comment">// A static string slice.
+    </span>Static(<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[u16]),
 }
 
-<span class="doccomment">/// A UTF-16–encoded, reference counted, immutable string.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This is pretty similar to a &lt;code&gt;[Rc][std::rc::Rc]\&lt;[\[u16\]][slice]\&gt;&lt;/code&gt;, but without</span>
-<span class="doccomment">/// the length metadata associated with the `Rc` fat pointer. Instead, the length of</span>
-<span class="doccomment">/// every string is stored on the heap, along with its reference counter and its data.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// We define some commonly used string constants in an interner. For these strings, we don&#39;t allocate</span>
-<span class="doccomment">/// memory on the heap to reduce the overhead of memory allocation and reference counting.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Deref</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [`JsString`] implements &lt;code&gt;[Deref]&lt;Target = \[u16\]&gt;&lt;/code&gt;, inheriting all of</span>
-<span class="doccomment">/// &lt;code&gt;\[u16\]&lt;/code&gt;&#39;s methods.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Finalize</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">JsString</span> {
-    <span class="ident">ptr</span>: <span class="ident">TaggedJsString</span>,
+<span class="doccomment">/// A UTF-16–encoded, reference counted, immutable string.
+///
+/// This is pretty similar to a &lt;code&gt;[Rc][std::rc::Rc]\&lt;[\[u16\]][slice]\&gt;&lt;/code&gt;, but without
+/// the length metadata associated with the `Rc` fat pointer. Instead, the length of
+/// every string is stored on the heap, along with its reference counter and its data.
+///
+/// We define some commonly used string constants in an interner. For these strings, we don&#39;t allocate
+/// memory on the heap to reduce the overhead of memory allocation and reference counting.
+///
+/// # Deref
+///
+/// [`JsString`] implements &lt;code&gt;[Deref]&lt;Target = \[u16\]&gt;&lt;/code&gt;, inheriting all of
+/// &lt;code&gt;\[u16\]&lt;/code&gt;&#39;s methods.
+</span><span class="attribute">#[derive(Finalize)]
+</span><span class="kw">pub struct </span>JsString {
+    ptr: TaggedJsString,
 }
 
-<span class="comment">// Safety: `JsString` does not contain any objects which needs to be traced, so this is safe.</span>
-<span class="kw">unsafe</span> <span class="kw">impl</span> <span class="ident">Trace</span> <span class="kw">for</span> <span class="ident">JsString</span> {
+<span class="comment">// Safety: `JsString` does not contain any objects which needs to be traced, so this is safe.
+</span><span class="kw">unsafe impl </span>Trace <span class="kw">for </span>JsString {
     <span class="macro">unsafe_empty_trace!</span>();
 }
 
-<span class="kw">impl</span> <span class="ident">JsString</span> {
-    <span class="doccomment">/// Obtains the underlying [`&amp;[u16]`][slice] slice of a [`JsString`]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_slice</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<span class="ident">u16</span>] {
-        <span class="self">self</span>
+<span class="kw">impl </span>JsString {
+    <span class="doccomment">/// Obtains the underlying [`&amp;[u16]`][slice] slice of a [`JsString`]
+    </span><span class="kw">pub fn </span>as_slice(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[u16] {
+        <span class="self">self
+    </span>}
+
+    <span class="doccomment">/// Creates a new [`JsString`] from the concatenation of `x` and `y`.
+    </span><span class="kw">pub fn </span>concat(x: <span class="kw-2">&amp;</span>[u16], y: <span class="kw-2">&amp;</span>[u16]) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::concat_array(<span class="kw-2">&amp;</span>[x, y])
     }
 
-    <span class="doccomment">/// Creates a new [`JsString`] from the concatenation of `x` and `y`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">concat</span>(<span class="ident">x</span>: <span class="kw-2">&amp;</span>[<span class="ident">u16</span>], <span class="ident">y</span>: <span class="kw-2">&amp;</span>[<span class="ident">u16</span>]) -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::concat_array</span>(<span class="kw-2">&amp;</span>[<span class="ident">x</span>, <span class="ident">y</span>])
-    }
+    <span class="doccomment">/// Creates a new [`JsString`] from the concatenation of every element of
+    /// `strings`.
+    </span><span class="kw">pub fn </span>concat_array(strings: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>[u16]]) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>full_count = strings.iter().fold(<span class="number">0</span>, |len, s| len + s.len());
 
-    <span class="doccomment">/// Creates a new [`JsString`] from the concatenation of every element of</span>
-    <span class="doccomment">/// `strings`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">concat_array</span>(<span class="ident">strings</span>: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>[<span class="ident">u16</span>]]) -&gt; <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="ident">full_count</span> <span class="op">=</span> <span class="ident">strings</span>.<span class="ident">iter</span>().<span class="ident">fold</span>(<span class="number">0</span>, <span class="op">|</span><span class="ident">len</span>, <span class="ident">s</span><span class="op">|</span> <span class="ident">len</span> <span class="op">+</span> <span class="ident">s</span>.<span class="ident">len</span>());
+        <span class="kw">let </span>ptr = <span class="self">Self</span>::allocate_inner(full_count);
 
-        <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::allocate_inner</span>(<span class="ident">full_count</span>);
-
-        <span class="kw">let</span> <span class="ident">string</span> <span class="op">=</span> {
-            <span class="comment">// SAFETY:</span>
-            <span class="comment">// `ptr` being a `NonNull` ensures that a dereference of its underlying pointer is always valid.</span>
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">data</span> <span class="op">=</span> <span class="kw">unsafe</span> { (<span class="kw-2">*</span><span class="ident">ptr</span>.<span class="ident">as_ptr</span>()).<span class="ident">data</span>.<span class="ident">as_mut_ptr</span>() };
-            <span class="kw">for</span> <span class="ident">string</span> <span class="kw">in</span> <span class="ident">strings</span> {
-                <span class="kw">let</span> <span class="ident">count</span> <span class="op">=</span> <span class="ident">string</span>.<span class="ident">len</span>();
-                <span class="comment">// SAFETY:</span>
-                <span class="comment">// The sum of all `count` for each `string` equals `full_count`, and since we&#39;re</span>
-                <span class="comment">// iteratively writing each of them to `data`, `copy_non_overlapping` always stays</span>
-                <span class="comment">// in-bounds for `count` reads of each string and `full_count` writes to `data`.</span>
-                <span class="comment">//</span>
-                <span class="comment">// Each `string` must be properly aligned to be a valid slice, and `data` must be</span>
-                <span class="comment">// properly aligned by `allocate_inner`.</span>
-                <span class="comment">//</span>
-                <span class="comment">// `allocate_inner` must return a valid pointer to newly allocated memory, meaning</span>
-                <span class="comment">// `ptr` and all `string`s should never overlap.</span>
-                <span class="kw">unsafe</span> {
-                    <span class="ident">ptr::copy_nonoverlapping</span>(<span class="ident">string</span>.<span class="ident">as_ptr</span>(), <span class="ident">data</span>, <span class="ident">count</span>);
-                    <span class="ident">data</span> <span class="op">=</span> <span class="ident">data</span>.<span class="ident">add</span>(<span class="ident">count</span>);
+        <span class="kw">let </span>string = {
+            <span class="comment">// SAFETY:
+            // `ptr` being a `NonNull` ensures that a dereference of its underlying pointer is always valid.
+            </span><span class="kw">let </span><span class="kw-2">mut </span>data = <span class="kw">unsafe </span>{ (<span class="kw-2">*</span>ptr.as_ptr()).data.as_mut_ptr() };
+            <span class="kw">for </span>string <span class="kw">in </span>strings {
+                <span class="kw">let </span>count = string.len();
+                <span class="comment">// SAFETY:
+                // The sum of all `count` for each `string` equals `full_count`, and since we&#39;re
+                // iteratively writing each of them to `data`, `copy_non_overlapping` always stays
+                // in-bounds for `count` reads of each string and `full_count` writes to `data`.
+                //
+                // Each `string` must be properly aligned to be a valid slice, and `data` must be
+                // properly aligned by `allocate_inner`.
+                //
+                // `allocate_inner` must return a valid pointer to newly allocated memory, meaning
+                // `ptr` and all `string`s should never overlap.
+                </span><span class="kw">unsafe </span>{
+                    ptr::copy_nonoverlapping(string.as_ptr(), data, count);
+                    data = data.add(count);
                 }
             }
-            <span class="self">Self</span> {
-                <span class="comment">// Safety: We already know it&#39;s a valid heap pointer.</span>
-                <span class="ident">ptr</span>: <span class="kw">unsafe</span> { <span class="ident">TaggedJsString::new_heap</span>(<span class="ident">ptr</span>) },
+            <span class="self">Self </span>{
+                <span class="comment">// Safety: We already know it&#39;s a valid heap pointer.
+                </span>ptr: <span class="kw">unsafe </span>{ TaggedJsString::new_heap(ptr) },
             }
         };
 
-        <span class="kw">if</span> <span class="ident">string</span>.<span class="ident">len</span>() <span class="op">&lt;</span><span class="op">=</span> <span class="ident">MAX_COMMON_STRING_LENGTH</span> {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">constant</span>) <span class="op">=</span> <span class="ident">COMMON_STRINGS_CACHE</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">c</span><span class="op">|</span> <span class="ident">c</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">string</span>[..]).<span class="ident">cloned</span>()) {
-                <span class="kw">return</span> <span class="ident">constant</span>;
+        <span class="kw">if </span>string.len() &lt;= MAX_COMMON_STRING_LENGTH {
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(constant) = COMMON_STRINGS_CACHE.with(|c| c.get(<span class="kw-2">&amp;</span>string[..]).cloned()) {
+                <span class="kw">return </span>constant;
             }
         }
 
-        <span class="ident">string</span>
+        string
     }
 
-    <span class="doccomment">/// Decodes a [`JsString`] into a [`String`], replacing invalid data with its escaped representation</span>
-    <span class="doccomment">/// in 4 digit hexadecimal.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_std_string_escaped</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">String</span> {
-        <span class="self">self</span>.<span class="ident">to_string_escaped</span>()
+    <span class="doccomment">/// Decodes a [`JsString`] into a [`String`], replacing invalid data with its escaped representation
+    /// in 4 digit hexadecimal.
+    </span><span class="kw">pub fn </span>to_std_string_escaped(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; String {
+        <span class="self">self</span>.to_string_escaped()
     }
 
-    <span class="doccomment">/// Decodes a [`JsString`] into a [`String`], returning</span>
-    <span class="doccomment">/// [`FromUtf16Error`][std::string::FromUtf16Error] if it contains any invalid data.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_std_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">std::string::FromUtf16Error</span><span class="op">&gt;</span> {
-        <span class="ident">String::from_utf16</span>(<span class="self">self</span>)
+    <span class="doccomment">/// Decodes a [`JsString`] into a [`String`], returning
+    /// [`FromUtf16Error`][std::string::FromUtf16Error] if it contains any invalid data.
+    </span><span class="kw">pub fn </span>to_std_string(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;String, std::string::FromUtf16Error&gt; {
+        String::from_utf16(<span class="self">self</span>)
     }
 
-    <span class="doccomment">/// Gets an iterator of all the Unicode codepoints of a [`JsString`].</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">code_points</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">CodePoint</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;_</span> {
-        <span class="ident">char::decode_utf16</span>(<span class="self">self</span>.<span class="ident">iter</span>().<span class="ident">copied</span>()).<span class="ident">map</span>(<span class="op">|</span><span class="ident">res</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">res</span> {
-            <span class="prelude-val">Ok</span>(<span class="ident">c</span>) =&gt; <span class="ident">CodePoint::Unicode</span>(<span class="ident">c</span>),
-            <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; <span class="ident">CodePoint::UnpairedSurrogate</span>(<span class="ident">e</span>.<span class="ident">unpaired_surrogate</span>()),
+    <span class="doccomment">/// Gets an iterator of all the Unicode codepoints of a [`JsString`].
+    </span><span class="kw">pub fn </span>code_points(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = CodePoint&gt; + <span class="lifetime">&#39;_ </span>{
+        char::decode_utf16(<span class="self">self</span>.iter().copied()).map(|res| <span class="kw">match </span>res {
+            <span class="prelude-val">Ok</span>(c) =&gt; CodePoint::Unicode(c),
+            <span class="prelude-val">Err</span>(e) =&gt; CodePoint::UnpairedSurrogate(e.unpaired_surrogate()),
         })
     }
 
-    <span class="doccomment">/// Abstract operation `StringIndexOf ( string, searchValue, fromIndex )`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Note: Instead of returning an isize with `-1` as the &quot;not found&quot; value, we make use of the</span>
-    <span class="doccomment">/// type system and return &lt;code&gt;[Option]\&lt;usize\&gt;&lt;/code&gt; with [`None`] as the &quot;not found&quot; value.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-stringindexof</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">index_of</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">search_value</span>: <span class="kw-2">&amp;</span>[<span class="ident">u16</span>], <span class="ident">from_index</span>: <span class="ident">usize</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
-        <span class="comment">// 1. Assert: Type(string) is String.</span>
-        <span class="comment">// 2. Assert: Type(searchValue) is String.</span>
-        <span class="comment">// 3. Assert: fromIndex is a non-negative integer.</span>
+    <span class="doccomment">/// Abstract operation `StringIndexOf ( string, searchValue, fromIndex )`
+    ///
+    /// Note: Instead of returning an isize with `-1` as the &quot;not found&quot; value, we make use of the
+    /// type system and return &lt;code&gt;[Option]\&lt;usize\&gt;&lt;/code&gt; with [`None`] as the &quot;not found&quot; value.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-stringindexof
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>index_of(<span class="kw-2">&amp;</span><span class="self">self</span>, search_value: <span class="kw-2">&amp;</span>[u16], from_index: usize) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
+        <span class="comment">// 1. Assert: Type(string) is String.
+        // 2. Assert: Type(searchValue) is String.
+        // 3. Assert: fromIndex is a non-negative integer.
 
-        <span class="comment">// 4. Let len be the length of string.</span>
-        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">len</span>();
+        // 4. Let len be the length of string.
+        </span><span class="kw">let </span>len = <span class="self">self</span>.len();
 
-        <span class="comment">// 5. If searchValue is the empty String and fromIndex ≤ len, return fromIndex.</span>
-        <span class="kw">if</span> <span class="ident">search_value</span>.<span class="ident">is_empty</span>() {
-            <span class="kw">return</span> <span class="kw">if</span> <span class="ident">from_index</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">len</span> {
-                <span class="prelude-val">Some</span>(<span class="ident">from_index</span>)
-            } <span class="kw">else</span> {
-                <span class="prelude-val">None</span>
-            };
+        <span class="comment">// 5. If searchValue is the empty String and fromIndex ≤ len, return fromIndex.
+        </span><span class="kw">if </span>search_value.is_empty() {
+            <span class="kw">return if </span>from_index &lt;= len {
+                <span class="prelude-val">Some</span>(from_index)
+            } <span class="kw">else </span>{
+                <span class="prelude-val">None
+            </span>};
         }
 
-        <span class="comment">// 6. Let searchLen be the length of searchValue.</span>
-        <span class="comment">// 7. For each integer i starting with fromIndex such that i ≤ len - searchLen, in ascending order, do</span>
-        <span class="comment">// a. Let candidate be the substring of string from i to i + searchLen.</span>
-        <span class="comment">// b. If candidate is the same sequence of code units as searchValue, return i.</span>
-        <span class="comment">// 8. Return -1.</span>
-        <span class="self">self</span>.<span class="ident">windows</span>(<span class="ident">search_value</span>.<span class="ident">len</span>())
-            .<span class="ident">skip</span>(<span class="ident">from_index</span>)
-            .<span class="ident">position</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="ident">s</span> <span class="op">==</span> <span class="ident">search_value</span>)
-            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">i</span><span class="op">|</span> <span class="ident">i</span> <span class="op">+</span> <span class="ident">from_index</span>)
+        <span class="comment">// 6. Let searchLen be the length of searchValue.
+        // 7. For each integer i starting with fromIndex such that i ≤ len - searchLen, in ascending order, do
+        // a. Let candidate be the substring of string from i to i + searchLen.
+        // b. If candidate is the same sequence of code units as searchValue, return i.
+        // 8. Return -1.
+        </span><span class="self">self</span>.windows(search_value.len())
+            .skip(from_index)
+            .position(|s| s == search_value)
+            .map(|i| i + from_index)
     }
 
-    <span class="doccomment">/// Abstract operation `CodePointAt( string, position )`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The abstract operation `CodePointAt` takes arguments `string` (a String) and `position` (a</span>
-    <span class="doccomment">/// non-negative integer) and returns a Record with fields `[[CodePoint]]` (a code point),</span>
-    <span class="doccomment">/// `[[CodeUnitCount]]` (a positive integer), and `[[IsUnpairedSurrogate]]` (a Boolean). It</span>
-    <span class="doccomment">/// interprets string as a sequence of UTF-16 encoded code points, as described in 6.1.4, and reads</span>
-    <span class="doccomment">/// from it a single code point starting with the code unit at index `position`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-codepointat</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">code_point_at</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">position</span>: <span class="ident">usize</span>) -&gt; <span class="ident">CodePoint</span> {
-        <span class="comment">// 1. Let size be the length of string.</span>
-        <span class="kw">let</span> <span class="ident">size</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">len</span>();
+    <span class="doccomment">/// Abstract operation `CodePointAt( string, position )`.
+    ///
+    /// The abstract operation `CodePointAt` takes arguments `string` (a String) and `position` (a
+    /// non-negative integer) and returns a Record with fields `[[CodePoint]]` (a code point),
+    /// `[[CodeUnitCount]]` (a positive integer), and `[[IsUnpairedSurrogate]]` (a Boolean). It
+    /// interprets string as a sequence of UTF-16 encoded code points, as described in 6.1.4, and reads
+    /// from it a single code point starting with the code unit at index `position`.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-codepointat
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>code_point_at(<span class="kw-2">&amp;</span><span class="self">self</span>, position: usize) -&gt; CodePoint {
+        <span class="comment">// 1. Let size be the length of string.
+        </span><span class="kw">let </span>size = <span class="self">self</span>.len();
 
-        <span class="comment">// 2. Assert: position ≥ 0 and position &lt; size.</span>
-        <span class="comment">// position &gt;= 0 ensured by position: usize</span>
-        <span class="macro">assert!</span>(<span class="ident">position</span> <span class="op">&lt;</span> <span class="ident">size</span>);
+        <span class="comment">// 2. Assert: position ≥ 0 and position &lt; size.
+        // position &gt;= 0 ensured by position: usize
+        </span><span class="macro">assert!</span>(position &lt; size);
 
-        <span class="comment">// 3. Let first be the code unit at index position within string.</span>
-        <span class="comment">// 4. Let cp be the code point whose numeric value is that of first.</span>
-        <span class="comment">// 5. If first is not a leading surrogate or trailing surrogate, then</span>
-        <span class="comment">// a. Return the Record { [[CodePoint]]: cp, [[CodeUnitCount]]: 1, [[IsUnpairedSurrogate]]: false }.</span>
-        <span class="comment">// 6. If first is a trailing surrogate or position + 1 = size, then</span>
-        <span class="comment">// a. Return the Record { [[CodePoint]]: cp, [[CodeUnitCount]]: 1, [[IsUnpairedSurrogate]]: true }.</span>
-        <span class="comment">// 7. Let second be the code unit at index position + 1 within string.</span>
-        <span class="comment">// 8. If second is not a trailing surrogate, then</span>
-        <span class="comment">// a. Return the Record { [[CodePoint]]: cp, [[CodeUnitCount]]: 1, [[IsUnpairedSurrogate]]: true }.</span>
-        <span class="comment">// 9. Set cp to ! UTF16SurrogatePairToCodePoint(first, second).</span>
+        <span class="comment">// 3. Let first be the code unit at index position within string.
+        // 4. Let cp be the code point whose numeric value is that of first.
+        // 5. If first is not a leading surrogate or trailing surrogate, then
+        // a. Return the Record { [[CodePoint]]: cp, [[CodeUnitCount]]: 1, [[IsUnpairedSurrogate]]: false }.
+        // 6. If first is a trailing surrogate or position + 1 = size, then
+        // a. Return the Record { [[CodePoint]]: cp, [[CodeUnitCount]]: 1, [[IsUnpairedSurrogate]]: true }.
+        // 7. Let second be the code unit at index position + 1 within string.
+        // 8. If second is not a trailing surrogate, then
+        // a. Return the Record { [[CodePoint]]: cp, [[CodeUnitCount]]: 1, [[IsUnpairedSurrogate]]: true }.
+        // 9. Set cp to ! UTF16SurrogatePairToCodePoint(first, second).
 
-        <span class="comment">// We can skip the checks and instead use the `char::decode_utf16` function to take care of that for us.</span>
-        <span class="kw">let</span> <span class="ident">code_point</span> <span class="op">=</span> <span class="self">self</span>
-            .<span class="ident">get</span>(<span class="ident">position</span>..<span class="op">=</span><span class="ident">position</span> <span class="op">+</span> <span class="number">1</span>)
-            .<span class="ident">unwrap_or</span>(<span class="kw-2">&amp;</span><span class="self">self</span>[<span class="ident">position</span>..<span class="op">=</span><span class="ident">position</span>]);
+        // We can skip the checks and instead use the `char::decode_utf16` function to take care of that for us.
+        </span><span class="kw">let </span>code_point = <span class="self">self
+            </span>.get(position..=position + <span class="number">1</span>)
+            .unwrap_or(<span class="kw-2">&amp;</span><span class="self">self</span>[position..=position]);
 
-        <span class="kw">match</span> <span class="ident">char::decode_utf16</span>(<span class="ident">code_point</span>.<span class="ident">iter</span>().<span class="ident">copied</span>())
-            .<span class="ident">next</span>()
-            .<span class="ident">expect</span>(<span class="string">&quot;code_point always has a value&quot;</span>)
+        <span class="kw">match </span>char::decode_utf16(code_point.iter().copied())
+            .next()
+            .expect(<span class="string">&quot;code_point always has a value&quot;</span>)
         {
-            <span class="prelude-val">Ok</span>(<span class="ident">c</span>) =&gt; <span class="ident">CodePoint::Unicode</span>(<span class="ident">c</span>),
-            <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; <span class="ident">CodePoint::UnpairedSurrogate</span>(<span class="ident">e</span>.<span class="ident">unpaired_surrogate</span>()),
+            <span class="prelude-val">Ok</span>(c) =&gt; CodePoint::Unicode(c),
+            <span class="prelude-val">Err</span>(e) =&gt; CodePoint::UnpairedSurrogate(e.unpaired_surrogate()),
         }
     }
 
-    <span class="doccomment">/// Abstract operation `StringToNumber ( str )`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">/// - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-stringtonumber</span>
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::question_mark</span>)]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">to_number</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">f64</span> {
-        <span class="comment">// 1. Let text be ! StringToCodePoints(str).</span>
-        <span class="comment">// 2. Let literal be ParseText(text, StringNumericLiteral).</span>
-        <span class="kw">let</span> <span class="ident">string</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">string</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">to_std_string</span>() {
-            <span class="ident">string</span>
-        } <span class="kw">else</span> {
-            <span class="comment">// 3. If literal is a List of errors, return NaN.</span>
-            <span class="kw">return</span> <span class="ident">f64::NAN</span>;
+    <span class="doccomment">/// Abstract operation `StringToNumber ( str )`
+    ///
+    /// More information:
+    /// - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-stringtonumber
+    </span><span class="attribute">#[allow(clippy::question_mark)]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>to_number(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; f64 {
+        <span class="comment">// 1. Let text be ! StringToCodePoints(str).
+        // 2. Let literal be ParseText(text, StringNumericLiteral).
+        </span><span class="kw">let </span>string = <span class="kw">if let </span><span class="prelude-val">Ok</span>(string) = <span class="self">self</span>.to_std_string() {
+            string
+        } <span class="kw">else </span>{
+            <span class="comment">// 3. If literal is a List of errors, return NaN.
+            </span><span class="kw">return </span>f64::NAN;
         };
-        <span class="comment">// 4. Return StringNumericValue of literal.</span>
-        <span class="kw">let</span> <span class="ident">string</span> <span class="op">=</span> <span class="ident">string</span>.<span class="ident">trim_matches</span>(<span class="ident">is_trimmable_whitespace</span>);
-        <span class="kw">match</span> <span class="ident">string</span> {
-            <span class="string">&quot;&quot;</span> =&gt; <span class="kw">return</span> <span class="number">0.0</span>,
-            <span class="string">&quot;-Infinity&quot;</span> =&gt; <span class="kw">return</span> <span class="ident">f64::NEG_INFINITY</span>,
-            <span class="string">&quot;Infinity&quot;</span> <span class="op">|</span> <span class="string">&quot;+Infinity&quot;</span> =&gt; <span class="kw">return</span> <span class="ident">f64::INFINITY</span>,
-            <span class="kw">_</span> =&gt; {}
+        <span class="comment">// 4. Return StringNumericValue of literal.
+        </span><span class="kw">let </span>string = string.trim_matches(is_trimmable_whitespace);
+        <span class="kw">match </span>string {
+            <span class="string">&quot;&quot; </span>=&gt; <span class="kw">return </span><span class="number">0.0</span>,
+            <span class="string">&quot;-Infinity&quot; </span>=&gt; <span class="kw">return </span>f64::NEG_INFINITY,
+            <span class="string">&quot;Infinity&quot; </span>| <span class="string">&quot;+Infinity&quot; </span>=&gt; <span class="kw">return </span>f64::INFINITY,
+            <span class="kw">_ </span>=&gt; {}
         }
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">string</span>.<span class="ident">bytes</span>();
-        <span class="kw">let</span> <span class="ident">base</span> <span class="op">=</span> <span class="kw">match</span> (<span class="ident">s</span>.<span class="ident">next</span>(), <span class="ident">s</span>.<span class="ident">next</span>()) {
-            (<span class="prelude-val">Some</span>(<span class="string">b&#39;0&#39;</span>), <span class="prelude-val">Some</span>(<span class="string">b&#39;b&#39;</span> <span class="op">|</span> <span class="string">b&#39;B&#39;</span>)) =&gt; <span class="prelude-val">Some</span>(<span class="number">2</span>),
-            (<span class="prelude-val">Some</span>(<span class="string">b&#39;0&#39;</span>), <span class="prelude-val">Some</span>(<span class="string">b&#39;o&#39;</span> <span class="op">|</span> <span class="string">b&#39;O&#39;</span>)) =&gt; <span class="prelude-val">Some</span>(<span class="number">8</span>),
-            (<span class="prelude-val">Some</span>(<span class="string">b&#39;0&#39;</span>), <span class="prelude-val">Some</span>(<span class="string">b&#39;x&#39;</span> <span class="op">|</span> <span class="string">b&#39;X&#39;</span>)) =&gt; <span class="prelude-val">Some</span>(<span class="number">16</span>),
-            <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
+        <span class="kw">let </span><span class="kw-2">mut </span>s = string.bytes();
+        <span class="kw">let </span>base = <span class="kw">match </span>(s.next(), s.next()) {
+            (<span class="prelude-val">Some</span>(<span class="string">b&#39;0&#39;</span>), <span class="prelude-val">Some</span>(<span class="string">b&#39;b&#39; </span>| <span class="string">b&#39;B&#39;</span>)) =&gt; <span class="prelude-val">Some</span>(<span class="number">2</span>),
+            (<span class="prelude-val">Some</span>(<span class="string">b&#39;0&#39;</span>), <span class="prelude-val">Some</span>(<span class="string">b&#39;o&#39; </span>| <span class="string">b&#39;O&#39;</span>)) =&gt; <span class="prelude-val">Some</span>(<span class="number">8</span>),
+            (<span class="prelude-val">Some</span>(<span class="string">b&#39;0&#39;</span>), <span class="prelude-val">Some</span>(<span class="string">b&#39;x&#39; </span>| <span class="string">b&#39;X&#39;</span>)) =&gt; <span class="prelude-val">Some</span>(<span class="number">16</span>),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         };
 
-        <span class="comment">// Parse numbers that begin with `0b`, `0o` and `0x`.</span>
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">base</span>) <span class="op">=</span> <span class="ident">base</span> {
-            <span class="kw">let</span> <span class="ident">string</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">string</span>[<span class="number">2</span>..];
-            <span class="kw">if</span> <span class="ident">string</span>.<span class="ident">is_empty</span>() {
-                <span class="kw">return</span> <span class="ident">f64::NAN</span>;
+        <span class="comment">// Parse numbers that begin with `0b`, `0o` and `0x`.
+        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(base) = base {
+            <span class="kw">let </span>string = <span class="kw-2">&amp;</span>string[<span class="number">2</span>..];
+            <span class="kw">if </span>string.is_empty() {
+                <span class="kw">return </span>f64::NAN;
             }
 
-            <span class="comment">// Fast path</span>
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">value</span>) <span class="op">=</span> <span class="ident">u32::from_str_radix</span>(<span class="ident">string</span>, <span class="ident">base</span>) {
-                <span class="kw">return</span> <span class="ident">f64::from</span>(<span class="ident">value</span>);
+            <span class="comment">// Fast path
+            </span><span class="kw">if let </span><span class="prelude-val">Ok</span>(value) = u32::from_str_radix(string, base) {
+                <span class="kw">return </span>f64::from(value);
             }
 
-            <span class="comment">// Slow path</span>
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">value</span> <span class="op">=</span> <span class="number">0.0</span>;
-            <span class="kw">for</span> <span class="ident">c</span> <span class="kw">in</span> <span class="ident">s</span> {
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">digit</span>) <span class="op">=</span> <span class="ident">char::from</span>(<span class="ident">c</span>).<span class="ident">to_digit</span>(<span class="ident">base</span>) {
-                    <span class="ident">value</span> <span class="op">=</span> <span class="ident">value</span> <span class="op">*</span> <span class="ident">f64::from</span>(<span class="ident">base</span>) <span class="op">+</span> <span class="ident">f64::from</span>(<span class="ident">digit</span>);
-                } <span class="kw">else</span> {
-                    <span class="kw">return</span> <span class="ident">f64::NAN</span>;
+            <span class="comment">// Slow path
+            </span><span class="kw">let </span><span class="kw-2">mut </span>value = <span class="number">0.0</span>;
+            <span class="kw">for </span>c <span class="kw">in </span>s {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(digit) = char::from(c).to_digit(base) {
+                    value = value * f64::from(base) + f64::from(digit);
+                } <span class="kw">else </span>{
+                    <span class="kw">return </span>f64::NAN;
                 }
             }
-            <span class="kw">return</span> <span class="ident">value</span>;
+            <span class="kw">return </span>value;
         }
 
-        <span class="kw">match</span> <span class="ident">string</span> {
-            <span class="comment">// Handle special cases so `fast_float` does not return infinity.</span>
-            <span class="string">&quot;inf&quot;</span> <span class="op">|</span> <span class="string">&quot;+inf&quot;</span> <span class="op">|</span> <span class="string">&quot;-inf&quot;</span> =&gt; <span class="ident">f64::NAN</span>,
-            <span class="ident">string</span> =&gt; <span class="ident">fast_float::parse</span>(<span class="ident">string</span>).<span class="ident">unwrap_or</span>(<span class="ident">f64::NAN</span>),
-        }
-    }
-
-    <span class="doccomment">/// Abstract operation `StringToBigInt ( str )`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">/// - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-stringtobigint</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">to_big_int</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JsBigInt</span><span class="op">&gt;</span> {
-        <span class="comment">// 1. Let text be ! StringToCodePoints(str).</span>
-        <span class="comment">// 2. Let literal be ParseText(text, StringIntegerLiteral).</span>
-        <span class="comment">// 3. If literal is a List of errors, return undefined.</span>
-        <span class="comment">// 4. Let mv be the MV of literal.</span>
-        <span class="comment">// 5. Assert: mv is an integer.</span>
-        <span class="comment">// 6. Return ℤ(mv).</span>
-        <span class="ident">JsBigInt::from_string</span>(<span class="self">self</span>.<span class="ident">to_std_string</span>().<span class="ident">ok</span>().<span class="ident">as_ref</span>()<span class="question-mark">?</span>)
-    }
-
-    <span class="doccomment">/// Returns the inner pointer data, unwrapping its tagged data if the pointer contains a static</span>
-    <span class="doccomment">/// index for [`COMMON_STRINGS`].</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">ptr</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">JsStringPtrKind</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
-        <span class="comment">// Check the first bit to 1.</span>
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">ptr</span>.<span class="ident">is_static</span>() {
-            <span class="comment">// Safety: We already checked.</span>
-            <span class="ident">JsStringPtrKind::Static</span>(<span class="kw">unsafe</span> { <span class="self">self</span>.<span class="ident">ptr</span>.<span class="ident">get_static_unchecked</span>() })
-        } <span class="kw">else</span> {
-            <span class="comment">// Safety: We already checked.</span>
-            <span class="ident">JsStringPtrKind::Heap</span>(<span class="kw">unsafe</span> { <span class="self">self</span>.<span class="ident">ptr</span>.<span class="ident">get_heap_unchecked</span>().<span class="ident">as_mut</span>() })
+        <span class="kw">match </span>string {
+            <span class="comment">// Handle special cases so `fast_float` does not return infinity.
+            </span><span class="string">&quot;inf&quot; </span>| <span class="string">&quot;+inf&quot; </span>| <span class="string">&quot;-inf&quot; </span>=&gt; f64::NAN,
+            string =&gt; fast_float::parse(string).unwrap_or(f64::NAN),
         }
     }
 
-    <span class="comment">// This is marked as safe because it is always valid to call this function to request any number</span>
-    <span class="comment">// of `u16`, since this function ought to fail on an OOM error.</span>
-    <span class="doccomment">/// Allocates a new [`RawJsString`] with an internal capacity of `str_len` chars.</span>
-    <span class="kw">fn</span> <span class="ident">allocate_inner</span>(<span class="ident">str_len</span>: <span class="ident">usize</span>) -&gt; <span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">RawJsString</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> (<span class="ident">layout</span>, <span class="ident">offset</span>) <span class="op">=</span> <span class="ident">Layout::array</span>::<span class="op">&lt;</span><span class="ident">u16</span><span class="op">&gt;</span>(<span class="ident">str_len</span>)
-            .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">arr</span><span class="op">|</span> <span class="ident">Layout::new</span>::<span class="op">&lt;</span><span class="ident">RawJsString</span><span class="op">&gt;</span>().<span class="ident">extend</span>(<span class="ident">arr</span>))
-            .<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">layout</span>, <span class="ident">offset</span>)<span class="op">|</span> (<span class="ident">layout</span>.<span class="ident">pad_to_align</span>(), <span class="ident">offset</span>))
-            .<span class="ident">expect</span>(<span class="string">&quot;failed to create memory layout&quot;</span>);
+    <span class="doccomment">/// Abstract operation `StringToBigInt ( str )`
+    ///
+    /// More information:
+    /// - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-stringtobigint
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>to_big_int(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;JsBigInt&gt; {
+        <span class="comment">// 1. Let text be ! StringToCodePoints(str).
+        // 2. Let literal be ParseText(text, StringIntegerLiteral).
+        // 3. If literal is a List of errors, return undefined.
+        // 4. Let mv be the MV of literal.
+        // 5. Assert: mv is an integer.
+        // 6. Return ℤ(mv).
+        </span>JsBigInt::from_string(<span class="self">self</span>.to_std_string().ok().as_ref()<span class="question-mark">?</span>)
+    }
 
-        <span class="comment">// SAFETY:</span>
-        <span class="comment">// The layout size of `RawJsString` is never zero, since it has to store</span>
-        <span class="comment">// the length of the string and the reference count.</span>
-        <span class="kw">let</span> <span class="ident">inner</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">alloc</span>(<span class="ident">layout</span>).<span class="ident">cast</span>::<span class="op">&lt;</span><span class="ident">RawJsString</span><span class="op">&gt;</span>() };
+    <span class="doccomment">/// Returns the inner pointer data, unwrapping its tagged data if the pointer contains a static
+    /// index for [`COMMON_STRINGS`].
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">fn </span>ptr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsStringPtrKind&lt;<span class="lifetime">&#39;_</span>&gt; {
+        <span class="comment">// Check the first bit to 1.
+        </span><span class="kw">if </span><span class="self">self</span>.ptr.is_static() {
+            <span class="comment">// Safety: We already checked.
+            </span>JsStringPtrKind::Static(<span class="kw">unsafe </span>{ <span class="self">self</span>.ptr.get_static_unchecked() })
+        } <span class="kw">else </span>{
+            <span class="comment">// Safety: We already checked.
+            </span>JsStringPtrKind::Heap(<span class="kw">unsafe </span>{ <span class="self">self</span>.ptr.get_heap_unchecked().as_mut() })
+        }
+    }
 
-        <span class="comment">// We need to verify that the pointer returned by `alloc` is not null, otherwise</span>
-        <span class="comment">// we should abort, since an allocation error is pretty unrecoverable for us</span>
-        <span class="comment">// right now.</span>
-        <span class="kw">let</span> <span class="ident">inner</span> <span class="op">=</span> <span class="ident">NonNull::new</span>(<span class="ident">inner</span>).<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">std::alloc::handle_alloc_error</span>(<span class="ident">layout</span>));
+    <span class="comment">// This is marked as safe because it is always valid to call this function to request any number
+    // of `u16`, since this function ought to fail on an OOM error.
+    </span><span class="doccomment">/// Allocates a new [`RawJsString`] with an internal capacity of `str_len` chars.
+    </span><span class="kw">fn </span>allocate_inner(str_len: usize) -&gt; NonNull&lt;RawJsString&gt; {
+        <span class="kw">let </span>(layout, offset) = Layout::array::&lt;u16&gt;(str_len)
+            .and_then(|arr| Layout::new::&lt;RawJsString&gt;().extend(arr))
+            .map(|(layout, offset)| (layout.pad_to_align(), offset))
+            .expect(<span class="string">&quot;failed to create memory layout&quot;</span>);
 
-        <span class="comment">// SAFETY:</span>
-        <span class="comment">// `NonNull` verified for us that the pointer returned by `alloc` is valid,</span>
-        <span class="comment">// meaning we can write to its pointed memory.</span>
-        <span class="kw">unsafe</span> {
-            <span class="comment">// Write the first part, the `RawJsString`.</span>
-            <span class="ident">inner</span>.<span class="ident">as_ptr</span>().<span class="ident">write</span>(<span class="ident">RawJsString</span> {
-                <span class="ident">len</span>: <span class="ident">str_len</span>,
-                <span class="ident">refcount</span>: <span class="ident">Cell::new</span>(<span class="number">1</span>),
-                <span class="ident">data</span>: [<span class="number">0</span>; <span class="number">0</span>],
+        <span class="comment">// SAFETY:
+        // The layout size of `RawJsString` is never zero, since it has to store
+        // the length of the string and the reference count.
+        </span><span class="kw">let </span>inner = <span class="kw">unsafe </span>{ alloc(layout).cast::&lt;RawJsString&gt;() };
+
+        <span class="comment">// We need to verify that the pointer returned by `alloc` is not null, otherwise
+        // we should abort, since an allocation error is pretty unrecoverable for us
+        // right now.
+        </span><span class="kw">let </span>inner = NonNull::new(inner).unwrap_or_else(|| std::alloc::handle_alloc_error(layout));
+
+        <span class="comment">// SAFETY:
+        // `NonNull` verified for us that the pointer returned by `alloc` is valid,
+        // meaning we can write to its pointed memory.
+        </span><span class="kw">unsafe </span>{
+            <span class="comment">// Write the first part, the `RawJsString`.
+            </span>inner.as_ptr().write(RawJsString {
+                len: str_len,
+                refcount: Cell::new(<span class="number">1</span>),
+                data: [<span class="number">0</span>; <span class="number">0</span>],
             });
         }
 
         <span class="macro">debug_assert!</span>({
-            <span class="kw">let</span> <span class="ident">inner</span> <span class="op">=</span> <span class="ident">inner</span>.<span class="ident">as_ptr</span>();
-            <span class="comment">// SAFETY:</span>
-            <span class="comment">// - `inner` must be a valid pointer, since it comes from a `NonNull`,</span>
-            <span class="comment">// meaning we can safely dereference it to `RawJsString`.</span>
-            <span class="comment">// - `offset` should point us to the beginning of the array,</span>
-            <span class="comment">// and since we requested an `RawJsString` layout with a trailing</span>
-            <span class="comment">// `[u16; str_len]`, the memory of the array must be in the `usize`</span>
-            <span class="comment">// range for the allocation to succeed.</span>
-            <span class="kw">unsafe</span> {
-                <span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> (<span class="kw-2">*</span><span class="ident">inner</span>).<span class="ident">data</span>.<span class="ident">as_ptr</span>();
-                <span class="ident">ptr::eq</span>(<span class="ident">inner</span>.<span class="ident">cast</span>::<span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>().<span class="ident">add</span>(<span class="ident">offset</span>).<span class="ident">cast</span>(), <span class="ident">data</span>)
+            <span class="kw">let </span>inner = inner.as_ptr();
+            <span class="comment">// SAFETY:
+            // - `inner` must be a valid pointer, since it comes from a `NonNull`,
+            // meaning we can safely dereference it to `RawJsString`.
+            // - `offset` should point us to the beginning of the array,
+            // and since we requested an `RawJsString` layout with a trailing
+            // `[u16; str_len]`, the memory of the array must be in the `usize`
+            // range for the allocation to succeed.
+            </span><span class="kw">unsafe </span>{
+                <span class="kw">let </span>data = (<span class="kw-2">*</span>inner).data.as_ptr();
+                ptr::eq(inner.cast::&lt;u8&gt;().add(offset).cast(), data)
             }
         });
 
-        <span class="ident">inner</span>
+        inner
     }
 
-    <span class="doccomment">/// Creates a new [`JsString`] from `data`, without checking if the string is in the interner.</span>
-    <span class="kw">fn</span> <span class="ident">from_slice_skip_interning</span>(<span class="ident">data</span>: <span class="kw-2">&amp;</span>[<span class="ident">u16</span>]) -&gt; <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="ident">count</span> <span class="op">=</span> <span class="ident">data</span>.<span class="ident">len</span>();
-        <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::allocate_inner</span>(<span class="ident">count</span>);
-        <span class="comment">// SAFETY:</span>
-        <span class="comment">// - We read `count = data.len()` elements from `data`, which is within the bounds of the slice.</span>
-        <span class="comment">// - `allocate_inner` must allocate at least `count` elements, which allows us to safely</span>
-        <span class="comment">//   write at least `count` elements.</span>
-        <span class="comment">// - `allocate_inner` should already take care of the alignment of `ptr`, and `data` must be</span>
-        <span class="comment">//   aligned to be a valid slice.</span>
-        <span class="comment">// - `allocate_inner` must return a valid pointer to newly allocated memory, meaning `ptr`</span>
-        <span class="comment">//   and `data` should never overlap.</span>
-        <span class="kw">unsafe</span> {
-            <span class="ident">ptr::copy_nonoverlapping</span>(<span class="ident">data</span>.<span class="ident">as_ptr</span>(), (<span class="kw-2">*</span><span class="ident">ptr</span>.<span class="ident">as_ptr</span>()).<span class="ident">data</span>.<span class="ident">as_mut_ptr</span>(), <span class="ident">count</span>);
+    <span class="doccomment">/// Creates a new [`JsString`] from `data`, without checking if the string is in the interner.
+    </span><span class="kw">fn </span>from_slice_skip_interning(data: <span class="kw-2">&amp;</span>[u16]) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>count = data.len();
+        <span class="kw">let </span>ptr = <span class="self">Self</span>::allocate_inner(count);
+        <span class="comment">// SAFETY:
+        // - We read `count = data.len()` elements from `data`, which is within the bounds of the slice.
+        // - `allocate_inner` must allocate at least `count` elements, which allows us to safely
+        //   write at least `count` elements.
+        // - `allocate_inner` should already take care of the alignment of `ptr`, and `data` must be
+        //   aligned to be a valid slice.
+        // - `allocate_inner` must return a valid pointer to newly allocated memory, meaning `ptr`
+        //   and `data` should never overlap.
+        </span><span class="kw">unsafe </span>{
+            ptr::copy_nonoverlapping(data.as_ptr(), (<span class="kw-2">*</span>ptr.as_ptr()).data.as_mut_ptr(), count);
         }
-        <span class="self">Self</span> {
-            <span class="comment">// Safety: We already know it&#39;s a valid heap pointer.</span>
-            <span class="ident">ptr</span>: <span class="kw">unsafe</span> { <span class="ident">TaggedJsString::new_heap</span>(<span class="ident">ptr</span>) },
+        <span class="self">Self </span>{
+            <span class="comment">// Safety: We already know it&#39;s a valid heap pointer.
+            </span>ptr: <span class="kw">unsafe </span>{ TaggedJsString::new_heap(ptr) },
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">AsRef</span><span class="op">&lt;</span>[<span class="ident">u16</span>]<span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">JsString</span> {
-    <span class="kw">fn</span> <span class="ident">as_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<span class="ident">u16</span>] {
-        <span class="self">self</span>
-    }
+<span class="kw">impl </span>AsRef&lt;[u16]&gt; <span class="kw">for </span>JsString {
+    <span class="kw">fn </span>as_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[u16] {
+        <span class="self">self
+    </span>}
 }
 
-<span class="kw">impl</span> <span class="ident">Borrow</span><span class="op">&lt;</span>[<span class="ident">u16</span>]<span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">JsString</span> {
-    <span class="kw">fn</span> <span class="ident">borrow</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<span class="ident">u16</span>] {
-        <span class="self">self</span>
-    }
+<span class="kw">impl </span>Borrow&lt;[u16]&gt; <span class="kw">for </span>JsString {
+    <span class="kw">fn </span>borrow(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[u16] {
+        <span class="self">self
+    </span>}
 }
 
-<span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">JsString</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">JsStringPtrKind::Heap</span>(<span class="ident">inner</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">ptr</span>() {
-            <span class="ident">inner</span>.<span class="ident">refcount</span>.<span class="ident">set</span>(<span class="ident">inner</span>.<span class="ident">refcount</span>.<span class="ident">get</span>() <span class="op">+</span> <span class="number">1</span>);
+<span class="kw">impl </span>Clone <span class="kw">for </span>JsString {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
+        <span class="kw">if let </span>JsStringPtrKind::Heap(inner) = <span class="self">self</span>.ptr() {
+            inner.refcount.set(inner.refcount.get() + <span class="number">1</span>);
         }
-        <span class="self">Self</span> { <span class="ident">ptr</span>: <span class="self">self</span>.<span class="ident">ptr</span> }
+        <span class="self">Self </span>{ ptr: <span class="self">self</span>.ptr }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">JsString</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
-        <span class="macro">sa::const_assert!</span>(<span class="op">!</span><span class="ident">COMMON_STRINGS</span>.<span class="ident">is_empty</span>());
-        <span class="comment">// Safety:</span>
-        <span class="comment">// `COMMON_STRINGS` must not be empty for this to be safe.</span>
-        <span class="comment">// The static assertion above verifies this.</span>
-        <span class="kw">unsafe</span> {
-            <span class="self">Self</span> {
-                <span class="ident">ptr</span>: <span class="ident">TaggedJsString::new_static</span>(<span class="number">0</span>),
+<span class="kw">impl </span>Default <span class="kw">for </span>JsString {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
+        <span class="macro">sa::const_assert!</span>(!COMMON_STRINGS.is_empty());
+        <span class="comment">// Safety:
+        // `COMMON_STRINGS` must not be empty for this to be safe.
+        // The static assertion above verifies this.
+        </span><span class="kw">unsafe </span>{
+            <span class="self">Self </span>{
+                ptr: TaggedJsString::new_static(<span class="number">0</span>),
             }
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Drop</span> <span class="kw">for</span> <span class="ident">JsString</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">JsStringPtrKind::Heap</span>(<span class="ident">inner</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">ptr</span>() {
-            <span class="ident">inner</span>.<span class="ident">refcount</span>.<span class="ident">set</span>(<span class="ident">inner</span>.<span class="ident">refcount</span>.<span class="ident">get</span>() <span class="op">-</span> <span class="number">1</span>);
-            <span class="kw">if</span> <span class="ident">inner</span>.<span class="ident">refcount</span>.<span class="ident">get</span>() <span class="op">==</span> <span class="number">0</span> {
-                <span class="comment">// SAFETY:</span>
-                <span class="comment">// All the checks for the validity of the layout have already been made on `alloc_inner`,</span>
-                <span class="comment">// so we can skip the unwrap.</span>
-                <span class="kw">let</span> <span class="ident">layout</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-                    <span class="ident">Layout::for_value</span>(<span class="ident">inner</span>)
-                        .<span class="ident">extend</span>(<span class="ident">Layout::array</span>::<span class="op">&lt;</span><span class="ident">u16</span><span class="op">&gt;</span>(<span class="ident">inner</span>.<span class="ident">len</span>).<span class="ident">unwrap_unchecked</span>())
-                        .<span class="ident">unwrap_unchecked</span>()
-                        .<span class="number">0</span>
-                        .<span class="ident">pad_to_align</span>()
+<span class="kw">impl </span>Drop <span class="kw">for </span>JsString {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="kw">if let </span>JsStringPtrKind::Heap(inner) = <span class="self">self</span>.ptr() {
+            inner.refcount.set(inner.refcount.get() - <span class="number">1</span>);
+            <span class="kw">if </span>inner.refcount.get() == <span class="number">0 </span>{
+                <span class="comment">// SAFETY:
+                // All the checks for the validity of the layout have already been made on `alloc_inner`,
+                // so we can skip the unwrap.
+                </span><span class="kw">let </span>layout = <span class="kw">unsafe </span>{
+                    Layout::for_value(inner)
+                        .extend(Layout::array::&lt;u16&gt;(inner.len).unwrap_unchecked())
+                        .unwrap_unchecked()
+                        .<span class="number">0
+                        </span>.pad_to_align()
                 };
 
-                <span class="comment">// Safety:</span>
-                <span class="comment">// If refcount is 0 and we call drop, that means this is the last `JsString` which</span>
-                <span class="comment">// points to this memory allocation, so deallocating it is safe.</span>
-                <span class="kw">unsafe</span> {
-                    <span class="ident">dealloc</span>((<span class="ident">inner</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">RawJsString</span>).<span class="ident">cast</span>(), <span class="ident">layout</span>);
+                <span class="comment">// Safety:
+                // If refcount is 0 and we call drop, that means this is the last `JsString` which
+                // points to this memory allocation, so deallocating it is safe.
+                </span><span class="kw">unsafe </span>{
+                    dealloc((inner <span class="kw">as </span><span class="kw-2">*mut </span>RawJsString).cast(), layout);
                 }
             }
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">std::fmt::Debug</span> <span class="kw">for</span> <span class="ident">JsString</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">std::fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">std::fmt::Result</span> {
-        <span class="ident">std::char::decode_utf16</span>(<span class="self">self</span>.<span class="ident">as_slice</span>().<span class="ident">to_owned</span>())
-            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">r</span><span class="op">|</span> {
-                <span class="ident">r</span>.<span class="ident">map_or_else</span>(
-                    <span class="op">|</span><span class="ident">err</span><span class="op">|</span> <span class="macro">format!</span>(<span class="string">&quot;&lt;0x{:04x}&gt;&quot;</span>, <span class="ident">err</span>.<span class="ident">unpaired_surrogate</span>()),
-                    <span class="ident">String::from</span>,
+<span class="kw">impl </span>std::fmt::Debug <span class="kw">for </span>JsString {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
+        std::char::decode_utf16(<span class="self">self</span>.as_slice().to_owned())
+            .map(|r| {
+                r.map_or_else(
+                    |err| <span class="macro">format!</span>(<span class="string">&quot;&lt;0x{:04x}&gt;&quot;</span>, err.unpaired_surrogate()),
+                    String::from,
                 )
             })
-            .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>()
-            .<span class="ident">fmt</span>(<span class="ident">f</span>)
+            .collect::&lt;String&gt;()
+            .fmt(f)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Deref</span> <span class="kw">for</span> <span class="ident">JsString</span> {
-    <span class="kw">type</span> <span class="ident">Target</span> <span class="op">=</span> [<span class="ident">u16</span>];
+<span class="kw">impl </span>Deref <span class="kw">for </span>JsString {
+    <span class="kw">type </span>Target = [u16];
 
-    <span class="kw">fn</span> <span class="ident">deref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::Target</span> {
-        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">ptr</span>() {
-            <span class="ident">JsStringPtrKind::Heap</span>(<span class="ident">h</span>) =&gt; {
-                <span class="comment">// SAFETY:</span>
-                <span class="comment">// - The `RawJsString` type has all the necessary information to reconstruct a valid</span>
-                <span class="comment">//   slice (length and starting pointer).</span>
-                <span class="comment">//</span>
-                <span class="comment">// - We aligned `h.data` on allocation, and the block is of size `h.len`, so this</span>
-                <span class="comment">//   should only generate valid reads.</span>
-                <span class="comment">//</span>
-                <span class="comment">// - The lifetime of `&amp;Self::Target` is shorter than the lifetime of `self`, as seen</span>
-                <span class="comment">//   by its signature, so this doesn&#39;t outlive `self`.</span>
-                <span class="kw">unsafe</span> { <span class="ident">std::slice::from_raw_parts</span>(<span class="ident">h</span>.<span class="ident">data</span>.<span class="ident">as_ptr</span>(), <span class="ident">h</span>.<span class="ident">len</span>) }
+    <span class="kw">fn </span>deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="self">Self</span>::Target {
+        <span class="kw">match </span><span class="self">self</span>.ptr() {
+            JsStringPtrKind::Heap(h) =&gt; {
+                <span class="comment">// SAFETY:
+                // - The `RawJsString` type has all the necessary information to reconstruct a valid
+                //   slice (length and starting pointer).
+                //
+                // - We aligned `h.data` on allocation, and the block is of size `h.len`, so this
+                //   should only generate valid reads.
+                //
+                // - The lifetime of `&amp;Self::Target` is shorter than the lifetime of `self`, as seen
+                //   by its signature, so this doesn&#39;t outlive `self`.
+                </span><span class="kw">unsafe </span>{ std::slice::from_raw_parts(h.data.as_ptr(), h.len) }
             }
-            <span class="ident">JsStringPtrKind::Static</span>(<span class="ident">s</span>) =&gt; <span class="ident">s</span>,
+            JsStringPtrKind::Static(s) =&gt; s,
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Eq</span> <span class="kw">for</span> <span class="ident">JsString</span> {}
+<span class="kw">impl </span>Eq <span class="kw">for </span>JsString {}
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>[<span class="ident">u16</span>]<span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">JsString</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span>[<span class="ident">u16</span>]) -&gt; <span class="self">Self</span> {
-        <span class="kw">if</span> <span class="ident">s</span>.<span class="ident">len</span>() <span class="op">&lt;</span><span class="op">=</span> <span class="ident">MAX_COMMON_STRING_LENGTH</span> {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">constant</span>) <span class="op">=</span> <span class="ident">COMMON_STRINGS_CACHE</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">c</span><span class="op">|</span> <span class="ident">c</span>.<span class="ident">get</span>(<span class="ident">s</span>).<span class="ident">cloned</span>()) {
-                <span class="kw">return</span> <span class="ident">constant</span>;
+<span class="kw">impl </span>From&lt;<span class="kw-2">&amp;</span>[u16]&gt; <span class="kw">for </span>JsString {
+    <span class="kw">fn </span>from(s: <span class="kw-2">&amp;</span>[u16]) -&gt; <span class="self">Self </span>{
+        <span class="kw">if </span>s.len() &lt;= MAX_COMMON_STRING_LENGTH {
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(constant) = COMMON_STRINGS_CACHE.with(|c| c.get(s).cloned()) {
+                <span class="kw">return </span>constant;
             }
         }
-        <span class="ident"><span class="self">Self</span>::from_slice_skip_interning</span>(<span class="ident">s</span>)
+        <span class="self">Self</span>::from_slice_skip_interning(s)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u16</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">JsString</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">vec</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u16</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">JsString::from</span>(<span class="kw-2">&amp;</span><span class="ident">vec</span>[..])
+<span class="kw">impl </span>From&lt;Vec&lt;u16&gt;&gt; <span class="kw">for </span>JsString {
+    <span class="kw">fn </span>from(vec: Vec&lt;u16&gt;) -&gt; <span class="self">Self </span>{
+        JsString::from(<span class="kw-2">&amp;</span>vec[..])
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">JsString</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">s</span>.<span class="ident">encode_utf16</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>();
+<span class="kw">impl </span>From&lt;<span class="kw-2">&amp;</span>str&gt; <span class="kw">for </span>JsString {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(s: <span class="kw-2">&amp;</span>str) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>s = s.encode_utf16().collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
 
-        <span class="ident"><span class="self">Self</span>::from</span>(<span class="kw-2">&amp;</span><span class="ident">s</span>[..])
+        <span class="self">Self</span>::from(<span class="kw-2">&amp;</span>s[..])
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">JsString</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">s</span>: <span class="ident">String</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::from</span>(<span class="ident">s</span>.<span class="ident">as_str</span>())
+<span class="kw">impl </span>From&lt;String&gt; <span class="kw">for </span>JsString {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(s: String) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::from(s.as_str())
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="kw">const</span> <span class="ident">N</span>: <span class="ident">usize</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>[<span class="ident">u16</span>; <span class="ident">N</span>]<span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">JsString</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span>[<span class="ident">u16</span>; <span class="ident">N</span>]) -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::from</span>(<span class="kw-2">&amp;</span><span class="ident">s</span>[..])
+<span class="kw">impl</span>&lt;<span class="kw">const </span>N: usize&gt; From&lt;<span class="kw-2">&amp;</span>[u16; N]&gt; <span class="kw">for </span>JsString {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(s: <span class="kw-2">&amp;</span>[u16; N]) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::from(<span class="kw-2">&amp;</span>s[..])
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">JsString</span> {
-    <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span>: <span class="ident">Hasher</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;mut</span> <span class="ident">H</span>) {
-        <span class="self">self</span>[..].<span class="ident">hash</span>(<span class="ident">state</span>);
+<span class="kw">impl </span>Hash <span class="kw">for </span>JsString {
+    <span class="kw">fn </span>hash&lt;H: Hasher&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, state: <span class="kw-2">&amp;mut </span>H) {
+        <span class="self">self</span>[..].hash(state);
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">I</span>: <span class="ident">SliceIndex</span><span class="op">&lt;</span>[<span class="ident">u16</span>]<span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">Index</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">JsString</span> {
-    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">I::Output</span>;
+<span class="kw">impl</span>&lt;I: SliceIndex&lt;[u16]&gt;&gt; Index&lt;I&gt; <span class="kw">for </span>JsString {
+    <span class="kw">type </span>Output = I::Output;
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">index</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">index</span>: <span class="ident">I</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::Output</span> {
-        <span class="ident">Index::index</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="kw-2">*</span><span class="self">self</span>, <span class="ident">index</span>)
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>index(<span class="kw-2">&amp;</span><span class="self">self</span>, index: I) -&gt; <span class="kw-2">&amp;</span><span class="self">Self</span>::Output {
+        Index::index(<span class="kw-2">&amp;**</span><span class="self">self</span>, index)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Ord</span> <span class="kw">for</span> <span class="ident">JsString</span> {
-    <span class="kw">fn</span> <span class="ident">cmp</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">std::cmp::Ordering</span> {
-        <span class="self">self</span>[..].<span class="ident">cmp</span>(<span class="ident">other</span>)
+<span class="kw">impl </span>Ord <span class="kw">for </span>JsString {
+    <span class="kw">fn </span>cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; std::cmp::Ordering {
+        <span class="self">self</span>[..].cmp(other)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">PartialEq</span> <span class="kw">for</span> <span class="ident">JsString</span> {
-    <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">ptr</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">ptr</span> {
-            <span class="kw">return</span> <span class="bool-val">true</span>;
+<span class="kw">impl </span>PartialEq <span class="kw">for </span>JsString {
+    <span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; bool {
+        <span class="kw">if </span><span class="self">self</span>.ptr == other.ptr {
+            <span class="kw">return </span><span class="bool-val">true</span>;
         }
 
-        <span class="self">self</span>[..] <span class="op">==</span> <span class="ident">other</span>[..]
+        <span class="self">self</span>[..] == other[..]
     }
 }
 
-<span class="kw">impl</span> <span class="ident">PartialEq</span><span class="op">&lt;</span><span class="ident">JsString</span><span class="op">&gt;</span> <span class="kw">for</span> [<span class="ident">u16</span>] {
-    <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="ident">JsString</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span> <span class="op">==</span> <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="kw-2">*</span><span class="ident">other</span>
+<span class="kw">impl </span>PartialEq&lt;JsString&gt; <span class="kw">for </span>[u16] {
+    <span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>JsString) -&gt; bool {
+        <span class="self">self </span>== <span class="kw-2">&amp;**</span>other
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="kw">const</span> <span class="ident">N</span>: <span class="ident">usize</span><span class="op">&gt;</span> <span class="ident">PartialEq</span><span class="op">&lt;</span><span class="ident">JsString</span><span class="op">&gt;</span> <span class="kw">for</span> [<span class="ident">u16</span>; <span class="ident">N</span>] {
-    <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="ident">JsString</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>[..] <span class="op">==</span> <span class="kw-2">*</span><span class="ident">other</span>
+<span class="kw">impl</span>&lt;<span class="kw">const </span>N: usize&gt; PartialEq&lt;JsString&gt; <span class="kw">for </span>[u16; N] {
+    <span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>JsString) -&gt; bool {
+        <span class="self">self</span>[..] == <span class="kw-2">*</span>other
     }
 }
 
-<span class="kw">impl</span> <span class="ident">PartialEq</span><span class="op">&lt;</span>[<span class="ident">u16</span>]<span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">JsString</span> {
-    <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span>[<span class="ident">u16</span>]) -&gt; <span class="ident">bool</span> {
-        <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="kw-2">*</span><span class="self">self</span> <span class="op">==</span> <span class="ident">other</span>
+<span class="kw">impl </span>PartialEq&lt;[u16]&gt; <span class="kw">for </span>JsString {
+    <span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>[u16]) -&gt; bool {
+        <span class="kw-2">&amp;**</span><span class="self">self </span>== other
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="kw">const</span> <span class="ident">N</span>: <span class="ident">usize</span><span class="op">&gt;</span> <span class="ident">PartialEq</span><span class="op">&lt;</span>[<span class="ident">u16</span>; <span class="ident">N</span>]<span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">JsString</span> {
-    <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span>[<span class="ident">u16</span>; <span class="ident">N</span>]) -&gt; <span class="ident">bool</span> {
-        <span class="kw-2">*</span><span class="self">self</span> <span class="op">==</span> <span class="ident">other</span>[..]
+<span class="kw">impl</span>&lt;<span class="kw">const </span>N: usize&gt; PartialEq&lt;[u16; N]&gt; <span class="kw">for </span>JsString {
+    <span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>[u16; N]) -&gt; bool {
+        <span class="kw-2">*</span><span class="self">self </span>== other[..]
     }
 }
 
-<span class="kw">impl</span> <span class="ident">PartialEq</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">JsString</span> {
-    <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">bool</span> {
-        <span class="kw">let</span> <span class="ident">utf16</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">code_points</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">utf8</span> <span class="op">=</span> <span class="ident">other</span>.<span class="ident">chars</span>();
+<span class="kw">impl </span>PartialEq&lt;str&gt; <span class="kw">for </span>JsString {
+    <span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>str) -&gt; bool {
+        <span class="kw">let </span>utf16 = <span class="self">self</span>.code_points();
+        <span class="kw">let </span><span class="kw-2">mut </span>utf8 = other.chars();
 
-        <span class="kw">for</span> <span class="ident">lhs</span> <span class="kw">in</span> <span class="ident">utf16</span> {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">rhs</span>) <span class="op">=</span> <span class="ident">utf8</span>.<span class="ident">next</span>() {
-                <span class="kw">match</span> <span class="ident">lhs</span> {
-                    <span class="ident">CodePoint::Unicode</span>(<span class="ident">lhs</span>) <span class="kw">if</span> <span class="ident">lhs</span> <span class="op">==</span> <span class="ident">rhs</span> =&gt; <span class="kw">continue</span>,
-                    <span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="bool-val">false</span>,
+        <span class="kw">for </span>lhs <span class="kw">in </span>utf16 {
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(rhs) = utf8.next() {
+                <span class="kw">match </span>lhs {
+                    CodePoint::Unicode(lhs) <span class="kw">if </span>lhs == rhs =&gt; <span class="kw">continue</span>,
+                    <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="bool-val">false</span>,
                 }
             }
-            <span class="kw">return</span> <span class="bool-val">false</span>;
+            <span class="kw">return </span><span class="bool-val">false</span>;
         }
-        <span class="ident">utf8</span>.<span class="ident">next</span>().<span class="ident">is_none</span>()
+        utf8.next().is_none()
     }
 }
 
-<span class="kw">impl</span> <span class="ident">PartialEq</span><span class="op">&lt;</span><span class="ident">JsString</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">str</span> {
-    <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="ident">JsString</span>) -&gt; <span class="ident">bool</span> {
-        <span class="ident">other</span> <span class="op">==</span> <span class="self">self</span>
+<span class="kw">impl </span>PartialEq&lt;JsString&gt; <span class="kw">for </span>str {
+    <span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>JsString) -&gt; bool {
+        other == <span class="self">self
+    </span>}
+}
+
+<span class="kw">impl </span>PartialOrd <span class="kw">for </span>JsString {
+    <span class="kw">fn </span>partial_cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;std::cmp::Ordering&gt; {
+        <span class="self">self</span>[..].partial_cmp(other)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">PartialOrd</span> <span class="kw">for</span> <span class="ident">JsString</span> {
-    <span class="kw">fn</span> <span class="ident">partial_cmp</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">std::cmp::Ordering</span><span class="op">&gt;</span> {
-        <span class="self">self</span>[..].<span class="ident">partial_cmp</span>(<span class="ident">other</span>)
-    }
-}
-
-<span class="doccomment">/// Utility trait that adds trimming functionality to every `UTF-16` string.</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">trait</span> <span class="ident">Utf16Trim</span> {
-    <span class="doccomment">/// Trims both leading and trailing space from `self`.</span>
-    <span class="kw">fn</span> <span class="ident">trim</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="self">Self</span> {
-        <span class="self">self</span>.<span class="ident">trim_start</span>().<span class="ident">trim_end</span>()
+<span class="doccomment">/// Utility trait that adds trimming functionality to every `UTF-16` string.
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">trait </span>Utf16Trim {
+    <span class="doccomment">/// Trims both leading and trailing space from `self`.
+    </span><span class="kw">fn </span>trim(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="self">Self </span>{
+        <span class="self">self</span>.trim_start().trim_end()
     }
 
-    <span class="doccomment">/// Trims all leading space from `self`.</span>
-    <span class="kw">fn</span> <span class="ident">trim_start</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="self">Self</span>;
+    <span class="doccomment">/// Trims all leading space from `self`.
+    </span><span class="kw">fn </span>trim_start(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="self">Self</span>;
 
-    <span class="doccomment">/// Trims all trailing space from `self`.</span>
-    <span class="kw">fn</span> <span class="ident">trim_end</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="self">Self</span>;
+    <span class="doccomment">/// Trims all trailing space from `self`.
+    </span><span class="kw">fn </span>trim_end(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="self">Self</span>;
 }
 
-<span class="kw">impl</span> <span class="ident">Utf16Trim</span> <span class="kw">for</span> [<span class="ident">u16</span>] {
-    <span class="kw">fn</span> <span class="ident">trim_start</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="self">Self</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">left</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">iter</span>().<span class="ident">copied</span>().<span class="ident">position</span>(<span class="op">|</span><span class="ident">r</span><span class="op">|</span> {
-            <span class="op">!</span><span class="ident">char::from_u32</span>(<span class="ident">u32::from</span>(<span class="ident">r</span>))
-                .<span class="ident">map</span>(<span class="ident">is_trimmable_whitespace</span>)
-                .<span class="ident">unwrap_or_default</span>()
+<span class="kw">impl </span>Utf16Trim <span class="kw">for </span>[u16] {
+    <span class="kw">fn </span>trim_start(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="self">Self </span>{
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(left) = <span class="self">self</span>.iter().copied().position(|r| {
+            !char::from_u32(u32::from(r))
+                .map(is_trimmable_whitespace)
+                .unwrap_or_default()
         }) {
-            <span class="kw-2">&amp;</span><span class="self">self</span>[<span class="ident">left</span>..]
-        } <span class="kw">else</span> {
+            <span class="kw-2">&amp;</span><span class="self">self</span>[left..]
+        } <span class="kw">else </span>{
             <span class="kw-2">&amp;</span>[]
         }
     }
-    <span class="kw">fn</span> <span class="ident">trim_end</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="self">Self</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">right</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">iter</span>().<span class="ident">copied</span>().<span class="ident">rposition</span>(<span class="op">|</span><span class="ident">r</span><span class="op">|</span> {
-            <span class="op">!</span><span class="ident">char::from_u32</span>(<span class="ident">u32::from</span>(<span class="ident">r</span>))
-                .<span class="ident">map</span>(<span class="ident">is_trimmable_whitespace</span>)
-                .<span class="ident">unwrap_or_default</span>()
+    <span class="kw">fn </span>trim_end(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="self">Self </span>{
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(right) = <span class="self">self</span>.iter().copied().rposition(|r| {
+            !char::from_u32(u32::from(r))
+                .map(is_trimmable_whitespace)
+                .unwrap_or_default()
         }) {
-            <span class="kw-2">&amp;</span><span class="self">self</span>[..<span class="op">=</span><span class="ident">right</span>]
-        } <span class="kw">else</span> {
+            <span class="kw-2">&amp;</span><span class="self">self</span>[..=right]
+        } <span class="kw">else </span>{
             <span class="kw-2">&amp;</span>[]
         }
     }
 }
 
-<span class="doccomment">/// Utility trait that adds a `UTF-16` escaped representation to every [`[u16]`][slice].</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">trait</span> <span class="ident">ToStringEscaped</span> {
-    <span class="doccomment">/// Decodes `self` as an `UTF-16` encoded string, escaping any unpaired surrogates by its</span>
-    <span class="doccomment">/// codepoint value.</span>
-    <span class="kw">fn</span> <span class="ident">to_string_escaped</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">String</span>;
+<span class="doccomment">/// Utility trait that adds a `UTF-16` escaped representation to every [`[u16]`][slice].
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">trait </span>ToStringEscaped {
+    <span class="doccomment">/// Decodes `self` as an `UTF-16` encoded string, escaping any unpaired surrogates by its
+    /// codepoint value.
+    </span><span class="kw">fn </span>to_string_escaped(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; String;
 }
 
-<span class="kw">impl</span> <span class="ident">ToStringEscaped</span> <span class="kw">for</span> [<span class="ident">u16</span>] {
-    <span class="kw">fn</span> <span class="ident">to_string_escaped</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">String</span> {
-        <span class="ident">char::decode_utf16</span>(<span class="self">self</span>.<span class="ident">iter</span>().<span class="ident">copied</span>())
-            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">r</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">r</span> {
-                <span class="prelude-val">Ok</span>(<span class="ident">c</span>) =&gt; <span class="ident">String::from</span>(<span class="ident">c</span>),
-                <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; <span class="macro">format!</span>(<span class="string">&quot;\\u{:04X}&quot;</span>, <span class="ident">e</span>.<span class="ident">unpaired_surrogate</span>()),
+<span class="kw">impl </span>ToStringEscaped <span class="kw">for </span>[u16] {
+    <span class="kw">fn </span>to_string_escaped(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; String {
+        char::decode_utf16(<span class="self">self</span>.iter().copied())
+            .map(|r| <span class="kw">match </span>r {
+                <span class="prelude-val">Ok</span>(c) =&gt; String::from(c),
+                <span class="prelude-val">Err</span>(e) =&gt; <span class="macro">format!</span>(<span class="string">&quot;\\u{:04X}&quot;</span>, e.unpaired_surrogate()),
             })
-            .<span class="ident">collect</span>()
+            .collect()
     }
 }
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span> {
-    <span class="kw">use</span> <span class="ident"><span class="kw">super</span>::utf16</span>;
-    <span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">JsString</span>, <span class="ident">JsStringPtrKind</span>};
-    <span class="kw">use</span> <span class="ident">std::mem::size_of</span>;
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>tests {
+    <span class="kw">use </span><span class="kw">super</span>::utf16;
+    <span class="kw">use super</span>::{JsString, JsStringPtrKind};
+    <span class="kw">use </span>std::mem::size_of;
 
-    <span class="kw">impl</span> <span class="ident">JsString</span> {
-        <span class="doccomment">/// Gets the number of `JsString`s which point to this allocation.</span>
-        <span class="attribute">#[<span class="ident">inline</span>]</span>
-        <span class="kw">fn</span> <span class="ident">refcount</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
-            <span class="kw">match</span> <span class="self">self</span>.<span class="ident">ptr</span>() {
-                <span class="ident">JsStringPtrKind::Heap</span>(<span class="ident">inner</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">inner</span>.<span class="ident">refcount</span>.<span class="ident">get</span>()),
-                <span class="ident">JsStringPtrKind::Static</span>(<span class="ident">_inner</span>) =&gt; <span class="prelude-val">None</span>,
+    <span class="kw">impl </span>JsString {
+        <span class="doccomment">/// Gets the number of `JsString`s which point to this allocation.
+        </span><span class="attribute">#[inline]
+        </span><span class="kw">fn </span>refcount(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
+            <span class="kw">match </span><span class="self">self</span>.ptr() {
+                JsStringPtrKind::Heap(inner) =&gt; <span class="prelude-val">Some</span>(inner.refcount.get()),
+                JsStringPtrKind::Static(_inner) =&gt; <span class="prelude-val">None</span>,
             }
         }
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">empty</span>() {
-        <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="macro">js_string!</span>();
-        <span class="macro">assert_eq!</span>(<span class="kw-2">*</span><span class="ident">s</span>, <span class="string">&quot;&quot;</span>.<span class="ident">encode_utf16</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u16</span><span class="op">&gt;</span><span class="op">&gt;</span>());
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>empty() {
+        <span class="kw">let </span>s = <span class="macro">js_string!</span>();
+        <span class="macro">assert_eq!</span>(<span class="kw-2">*</span>s, <span class="string">&quot;&quot;</span>.encode_utf16().collect::&lt;Vec&lt;u16&gt;&gt;());
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">pointer_size</span>() {
-        <span class="macro">assert_eq!</span>(<span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">JsString</span><span class="op">&gt;</span>(), <span class="ident">size_of</span>::<span class="op">&lt;</span><span class="kw-2">*const</span> ()<span class="op">&gt;</span>());
-        <span class="macro">assert_eq!</span>(<span class="ident">size_of</span>::<span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JsString</span><span class="op">&gt;</span><span class="op">&gt;</span>(), <span class="ident">size_of</span>::<span class="op">&lt;</span><span class="kw-2">*const</span> ()<span class="op">&gt;</span>());
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>pointer_size() {
+        <span class="macro">assert_eq!</span>(size_of::&lt;JsString&gt;(), size_of::&lt;<span class="kw-2">*const </span>()&gt;());
+        <span class="macro">assert_eq!</span>(size_of::&lt;<span class="prelude-ty">Option</span>&lt;JsString&gt;&gt;(), size_of::&lt;<span class="kw-2">*const </span>()&gt;());
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">refcount</span>() {
-        <span class="kw">let</span> <span class="ident">x</span> <span class="op">=</span> <span class="macro">js_string!</span>(<span class="string">&quot;Hello world&quot;</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">x</span>.<span class="ident">refcount</span>(), <span class="prelude-val">Some</span>(<span class="number">1</span>));
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>refcount() {
+        <span class="kw">let </span>x = <span class="macro">js_string!</span>(<span class="string">&quot;Hello world&quot;</span>);
+        <span class="macro">assert_eq!</span>(x.refcount(), <span class="prelude-val">Some</span>(<span class="number">1</span>));
 
         {
-            <span class="kw">let</span> <span class="ident">y</span> <span class="op">=</span> <span class="ident">x</span>.<span class="ident">clone</span>();
-            <span class="macro">assert_eq!</span>(<span class="ident">x</span>.<span class="ident">refcount</span>(), <span class="prelude-val">Some</span>(<span class="number">2</span>));
-            <span class="macro">assert_eq!</span>(<span class="ident">y</span>.<span class="ident">refcount</span>(), <span class="prelude-val">Some</span>(<span class="number">2</span>));
+            <span class="kw">let </span>y = x.clone();
+            <span class="macro">assert_eq!</span>(x.refcount(), <span class="prelude-val">Some</span>(<span class="number">2</span>));
+            <span class="macro">assert_eq!</span>(y.refcount(), <span class="prelude-val">Some</span>(<span class="number">2</span>));
 
             {
-                <span class="kw">let</span> <span class="ident">z</span> <span class="op">=</span> <span class="ident">y</span>.<span class="ident">clone</span>();
-                <span class="macro">assert_eq!</span>(<span class="ident">x</span>.<span class="ident">refcount</span>(), <span class="prelude-val">Some</span>(<span class="number">3</span>));
-                <span class="macro">assert_eq!</span>(<span class="ident">y</span>.<span class="ident">refcount</span>(), <span class="prelude-val">Some</span>(<span class="number">3</span>));
-                <span class="macro">assert_eq!</span>(<span class="ident">z</span>.<span class="ident">refcount</span>(), <span class="prelude-val">Some</span>(<span class="number">3</span>));
+                <span class="kw">let </span>z = y.clone();
+                <span class="macro">assert_eq!</span>(x.refcount(), <span class="prelude-val">Some</span>(<span class="number">3</span>));
+                <span class="macro">assert_eq!</span>(y.refcount(), <span class="prelude-val">Some</span>(<span class="number">3</span>));
+                <span class="macro">assert_eq!</span>(z.refcount(), <span class="prelude-val">Some</span>(<span class="number">3</span>));
             }
 
-            <span class="macro">assert_eq!</span>(<span class="ident">x</span>.<span class="ident">refcount</span>(), <span class="prelude-val">Some</span>(<span class="number">2</span>));
-            <span class="macro">assert_eq!</span>(<span class="ident">y</span>.<span class="ident">refcount</span>(), <span class="prelude-val">Some</span>(<span class="number">2</span>));
+            <span class="macro">assert_eq!</span>(x.refcount(), <span class="prelude-val">Some</span>(<span class="number">2</span>));
+            <span class="macro">assert_eq!</span>(y.refcount(), <span class="prelude-val">Some</span>(<span class="number">2</span>));
         }
 
-        <span class="macro">assert_eq!</span>(<span class="ident">x</span>.<span class="ident">refcount</span>(), <span class="prelude-val">Some</span>(<span class="number">1</span>));
+        <span class="macro">assert_eq!</span>(x.refcount(), <span class="prelude-val">Some</span>(<span class="number">1</span>));
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">static_refcount</span>() {
-        <span class="kw">let</span> <span class="ident">x</span> <span class="op">=</span> <span class="macro">js_string!</span>();
-        <span class="macro">assert_eq!</span>(<span class="ident">x</span>.<span class="ident">refcount</span>(), <span class="prelude-val">None</span>);
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>static_refcount() {
+        <span class="kw">let </span>x = <span class="macro">js_string!</span>();
+        <span class="macro">assert_eq!</span>(x.refcount(), <span class="prelude-val">None</span>);
 
         {
-            <span class="kw">let</span> <span class="ident">y</span> <span class="op">=</span> <span class="ident">x</span>.<span class="ident">clone</span>();
-            <span class="macro">assert_eq!</span>(<span class="ident">x</span>.<span class="ident">refcount</span>(), <span class="prelude-val">None</span>);
-            <span class="macro">assert_eq!</span>(<span class="ident">y</span>.<span class="ident">refcount</span>(), <span class="prelude-val">None</span>);
+            <span class="kw">let </span>y = x.clone();
+            <span class="macro">assert_eq!</span>(x.refcount(), <span class="prelude-val">None</span>);
+            <span class="macro">assert_eq!</span>(y.refcount(), <span class="prelude-val">None</span>);
         };
 
-        <span class="macro">assert_eq!</span>(<span class="ident">x</span>.<span class="ident">refcount</span>(), <span class="prelude-val">None</span>);
+        <span class="macro">assert_eq!</span>(x.refcount(), <span class="prelude-val">None</span>);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">ptr_eq</span>() {
-        <span class="kw">let</span> <span class="ident">x</span> <span class="op">=</span> <span class="macro">js_string!</span>(<span class="string">&quot;Hello&quot;</span>);
-        <span class="kw">let</span> <span class="ident">y</span> <span class="op">=</span> <span class="ident">x</span>.<span class="ident">clone</span>();
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>ptr_eq() {
+        <span class="kw">let </span>x = <span class="macro">js_string!</span>(<span class="string">&quot;Hello&quot;</span>);
+        <span class="kw">let </span>y = x.clone();
 
-        <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">x</span>.<span class="ident">ptr</span>.<span class="ident">is_static</span>());
+        <span class="macro">assert!</span>(!x.ptr.is_static());
 
-        <span class="macro">assert_eq!</span>(<span class="ident">x</span>.<span class="ident">ptr</span>, <span class="ident">y</span>.<span class="ident">ptr</span>);
+        <span class="macro">assert_eq!</span>(x.ptr, y.ptr);
 
-        <span class="kw">let</span> <span class="ident">z</span> <span class="op">=</span> <span class="macro">js_string!</span>(<span class="string">&quot;Hello&quot;</span>);
-        <span class="macro">assert_ne!</span>(<span class="ident">x</span>.<span class="ident">ptr</span>, <span class="ident">z</span>.<span class="ident">ptr</span>);
-        <span class="macro">assert_ne!</span>(<span class="ident">y</span>.<span class="ident">ptr</span>, <span class="ident">z</span>.<span class="ident">ptr</span>);
+        <span class="kw">let </span>z = <span class="macro">js_string!</span>(<span class="string">&quot;Hello&quot;</span>);
+        <span class="macro">assert_ne!</span>(x.ptr, z.ptr);
+        <span class="macro">assert_ne!</span>(y.ptr, z.ptr);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">static_ptr_eq</span>() {
-        <span class="kw">let</span> <span class="ident">x</span> <span class="op">=</span> <span class="macro">js_string!</span>();
-        <span class="kw">let</span> <span class="ident">y</span> <span class="op">=</span> <span class="ident">x</span>.<span class="ident">clone</span>();
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>static_ptr_eq() {
+        <span class="kw">let </span>x = <span class="macro">js_string!</span>();
+        <span class="kw">let </span>y = x.clone();
 
-        <span class="macro">assert!</span>(<span class="ident">x</span>.<span class="ident">ptr</span>.<span class="ident">is_static</span>());
+        <span class="macro">assert!</span>(x.ptr.is_static());
 
-        <span class="macro">assert_eq!</span>(<span class="ident">x</span>.<span class="ident">ptr</span>, <span class="ident">y</span>.<span class="ident">ptr</span>);
+        <span class="macro">assert_eq!</span>(x.ptr, y.ptr);
 
-        <span class="kw">let</span> <span class="ident">z</span> <span class="op">=</span> <span class="macro">js_string!</span>();
-        <span class="macro">assert_eq!</span>(<span class="ident">x</span>.<span class="ident">ptr</span>, <span class="ident">z</span>.<span class="ident">ptr</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">y</span>.<span class="ident">ptr</span>, <span class="ident">z</span>.<span class="ident">ptr</span>);
+        <span class="kw">let </span>z = <span class="macro">js_string!</span>();
+        <span class="macro">assert_eq!</span>(x.ptr, z.ptr);
+        <span class="macro">assert_eq!</span>(y.ptr, z.ptr);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">as_str</span>() {
-        <span class="kw">const</span> <span class="ident">HELLO</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;Hello&quot;</span>;
-        <span class="kw">let</span> <span class="ident">x</span> <span class="op">=</span> <span class="macro">js_string!</span>(<span class="ident">HELLO</span>);
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>as_str() {
+        <span class="kw">const </span>HELLO: <span class="kw-2">&amp;</span>str = <span class="string">&quot;Hello&quot;</span>;
+        <span class="kw">let </span>x = <span class="macro">js_string!</span>(HELLO);
 
-        <span class="macro">assert_eq!</span>(<span class="kw-2">*</span><span class="ident">x</span>, <span class="ident">HELLO</span>.<span class="ident">encode_utf16</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u16</span><span class="op">&gt;</span><span class="op">&gt;</span>());
+        <span class="macro">assert_eq!</span>(<span class="kw-2">*</span>x, HELLO.encode_utf16().collect::&lt;Vec&lt;u16&gt;&gt;());
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">hash</span>() {
-        <span class="kw">use</span> <span class="ident">std::collections::hash_map::DefaultHasher</span>;
-        <span class="kw">use</span> <span class="ident">std::hash</span>::{<span class="ident">Hash</span>, <span class="ident">Hasher</span>};
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>hash() {
+        <span class="kw">use </span>std::collections::hash_map::DefaultHasher;
+        <span class="kw">use </span>std::hash::{Hash, Hasher};
 
-        <span class="kw">const</span> <span class="ident">HELLOWORLD</span>: <span class="kw-2">&amp;</span>[<span class="ident">u16</span>] <span class="op">=</span> <span class="macro">utf16!</span>(<span class="string">&quot;Hello World!&quot;</span>);
-        <span class="kw">let</span> <span class="ident">x</span> <span class="op">=</span> <span class="macro">js_string!</span>(<span class="ident">HELLOWORLD</span>);
+        <span class="kw">const </span>HELLOWORLD: <span class="kw-2">&amp;</span>[u16] = <span class="macro">utf16!</span>(<span class="string">&quot;Hello World!&quot;</span>);
+        <span class="kw">let </span>x = <span class="macro">js_string!</span>(HELLOWORLD);
 
-        <span class="macro">assert_eq!</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">x</span>, <span class="ident">HELLOWORLD</span>);
+        <span class="macro">assert_eq!</span>(<span class="kw-2">&amp;*</span>x, HELLOWORLD);
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">hasher</span> <span class="op">=</span> <span class="ident">DefaultHasher::new</span>();
-        <span class="ident">HELLOWORLD</span>.<span class="ident">hash</span>(<span class="kw-2">&amp;mut</span> <span class="ident">hasher</span>);
-        <span class="kw">let</span> <span class="ident">s_hash</span> <span class="op">=</span> <span class="ident">hasher</span>.<span class="ident">finish</span>();
+        <span class="kw">let </span><span class="kw-2">mut </span>hasher = DefaultHasher::new();
+        HELLOWORLD.hash(<span class="kw-2">&amp;mut </span>hasher);
+        <span class="kw">let </span>s_hash = hasher.finish();
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">hasher</span> <span class="op">=</span> <span class="ident">DefaultHasher::new</span>();
-        <span class="ident">x</span>.<span class="ident">hash</span>(<span class="kw-2">&amp;mut</span> <span class="ident">hasher</span>);
-        <span class="kw">let</span> <span class="ident">x_hash</span> <span class="op">=</span> <span class="ident">hasher</span>.<span class="ident">finish</span>();
+        <span class="kw">let </span><span class="kw-2">mut </span>hasher = DefaultHasher::new();
+        x.hash(<span class="kw-2">&amp;mut </span>hasher);
+        <span class="kw">let </span>x_hash = hasher.finish();
 
-        <span class="macro">assert_eq!</span>(<span class="ident">s_hash</span>, <span class="ident">x_hash</span>);
+        <span class="macro">assert_eq!</span>(s_hash, x_hash);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">concat</span>() {
-        <span class="kw">const</span> <span class="ident">Y</span>: <span class="kw-2">&amp;</span>[<span class="ident">u16</span>] <span class="op">=</span> <span class="macro">utf16!</span>(<span class="string">&quot;, &quot;</span>);
-        <span class="kw">const</span> <span class="ident">W</span>: <span class="kw-2">&amp;</span>[<span class="ident">u16</span>] <span class="op">=</span> <span class="macro">utf16!</span>(<span class="string">&quot;!&quot;</span>);
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>concat() {
+        <span class="kw">const </span>Y: <span class="kw-2">&amp;</span>[u16] = <span class="macro">utf16!</span>(<span class="string">&quot;, &quot;</span>);
+        <span class="kw">const </span>W: <span class="kw-2">&amp;</span>[u16] = <span class="macro">utf16!</span>(<span class="string">&quot;!&quot;</span>);
 
-        <span class="kw">let</span> <span class="ident">x</span> <span class="op">=</span> <span class="macro">js_string!</span>(<span class="string">&quot;hello&quot;</span>);
-        <span class="kw">let</span> <span class="ident">z</span> <span class="op">=</span> <span class="macro">js_string!</span>(<span class="string">&quot;world&quot;</span>);
+        <span class="kw">let </span>x = <span class="macro">js_string!</span>(<span class="string">&quot;hello&quot;</span>);
+        <span class="kw">let </span>z = <span class="macro">js_string!</span>(<span class="string">&quot;world&quot;</span>);
 
-        <span class="kw">let</span> <span class="ident">xy</span> <span class="op">=</span> <span class="macro">js_string!</span>(<span class="kw-2">&amp;</span><span class="ident">x</span>, <span class="ident">Y</span>);
-        <span class="macro">assert_eq!</span>(<span class="kw-2">&amp;</span><span class="ident">xy</span>, <span class="macro">utf16!</span>(<span class="string">&quot;hello, &quot;</span>));
-        <span class="macro">assert_eq!</span>(<span class="ident">xy</span>.<span class="ident">refcount</span>(), <span class="prelude-val">Some</span>(<span class="number">1</span>));
+        <span class="kw">let </span>xy = <span class="macro">js_string!</span>(<span class="kw-2">&amp;</span>x, Y);
+        <span class="macro">assert_eq!</span>(<span class="kw-2">&amp;</span>xy, <span class="macro">utf16!</span>(<span class="string">&quot;hello, &quot;</span>));
+        <span class="macro">assert_eq!</span>(xy.refcount(), <span class="prelude-val">Some</span>(<span class="number">1</span>));
 
-        <span class="kw">let</span> <span class="ident">xyz</span> <span class="op">=</span> <span class="macro">js_string!</span>(<span class="kw-2">&amp;</span><span class="ident">xy</span>, <span class="kw-2">&amp;</span><span class="ident">z</span>);
-        <span class="macro">assert_eq!</span>(<span class="kw-2">&amp;</span><span class="ident">xyz</span>, <span class="macro">utf16!</span>(<span class="string">&quot;hello, world&quot;</span>));
-        <span class="macro">assert_eq!</span>(<span class="ident">xyz</span>.<span class="ident">refcount</span>(), <span class="prelude-val">Some</span>(<span class="number">1</span>));
+        <span class="kw">let </span>xyz = <span class="macro">js_string!</span>(<span class="kw-2">&amp;</span>xy, <span class="kw-2">&amp;</span>z);
+        <span class="macro">assert_eq!</span>(<span class="kw-2">&amp;</span>xyz, <span class="macro">utf16!</span>(<span class="string">&quot;hello, world&quot;</span>));
+        <span class="macro">assert_eq!</span>(xyz.refcount(), <span class="prelude-val">Some</span>(<span class="number">1</span>));
 
-        <span class="kw">let</span> <span class="ident">xyzw</span> <span class="op">=</span> <span class="macro">js_string!</span>(<span class="kw-2">&amp;</span><span class="ident">xyz</span>, <span class="ident">W</span>);
-        <span class="macro">assert_eq!</span>(<span class="kw-2">&amp;</span><span class="ident">xyzw</span>, <span class="macro">utf16!</span>(<span class="string">&quot;hello, world!&quot;</span>));
-        <span class="macro">assert_eq!</span>(<span class="ident">xyzw</span>.<span class="ident">refcount</span>(), <span class="prelude-val">Some</span>(<span class="number">1</span>));
+        <span class="kw">let </span>xyzw = <span class="macro">js_string!</span>(<span class="kw-2">&amp;</span>xyz, W);
+        <span class="macro">assert_eq!</span>(<span class="kw-2">&amp;</span>xyzw, <span class="macro">utf16!</span>(<span class="string">&quot;hello, world!&quot;</span>));
+        <span class="macro">assert_eq!</span>(xyzw.refcount(), <span class="prelude-val">Some</span>(<span class="number">1</span>));
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0 (a55dd71d5 2022-09-19)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0 (897e37553 2022-11-02)" ></div></body></html>

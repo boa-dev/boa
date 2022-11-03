@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_tester/src/results.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>results.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../boa_tester/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../boa_tester/index.html"><div class="logo-container">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_tester/src/results.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>results.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../boa_tester/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../boa_tester/index.html"><div class="logo-container">
                     <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../boa_tester/index.html">
                         <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -515,172 +515,172 @@
 <span id="513">513</span>
 <span id="514">514</span>
 <span id="515">515</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">super</span>::SuiteResult</span>;
-<span class="kw">use</span> <span class="ident">serde</span>::{<span class="ident">Deserialize</span>, <span class="ident">Serialize</span>};
-<span class="kw">use</span> <span class="ident">std</span>::{
-    <span class="ident">env</span>, <span class="ident">fs</span>,
-    <span class="ident">io</span>::{<span class="self">self</span>, <span class="ident">BufReader</span>, <span class="ident">BufWriter</span>},
-    <span class="ident">path::Path</span>,
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">super</span>::SuiteResult;
+<span class="kw">use </span>serde::{Deserialize, Serialize};
+<span class="kw">use </span>std::{
+    env, fs,
+    io::{<span class="self">self</span>, BufReader, BufWriter},
+    path::Path,
 };
 
-<span class="doccomment">/// Structure to store full result information.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Deserialize</span>, <span class="ident">Serialize</span>)]</span>
-<span class="kw">struct</span> <span class="ident">ResultInfo</span> {
-    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename</span> <span class="op">=</span> <span class="string">&quot;c&quot;</span>)]</span>
-    <span class="ident">commit</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>,
-    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename</span> <span class="op">=</span> <span class="string">&quot;u&quot;</span>)]</span>
-    <span class="ident">test262_commit</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>,
-    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename</span> <span class="op">=</span> <span class="string">&quot;r&quot;</span>)]</span>
-    <span class="ident">results</span>: <span class="ident">SuiteResult</span>,
+<span class="doccomment">/// Structure to store full result information.
+</span><span class="attribute">#[derive(Debug, Clone, Deserialize, Serialize)]
+</span><span class="kw">struct </span>ResultInfo {
+    <span class="attribute">#[serde(rename = <span class="string">&quot;c&quot;</span>)]
+    </span>commit: Box&lt;str&gt;,
+    <span class="attribute">#[serde(rename = <span class="string">&quot;u&quot;</span>)]
+    </span>test262_commit: Box&lt;str&gt;,
+    <span class="attribute">#[serde(rename = <span class="string">&quot;r&quot;</span>)]
+    </span>results: SuiteResult,
 }
 
-<span class="doccomment">/// Structure to store full result information.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Deserialize</span>, <span class="ident">Serialize</span>)]</span>
-<span class="kw">struct</span> <span class="ident">ReducedResultInfo</span> {
-    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename</span> <span class="op">=</span> <span class="string">&quot;c&quot;</span>)]</span>
-    <span class="ident">commit</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>,
-    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename</span> <span class="op">=</span> <span class="string">&quot;u&quot;</span>)]</span>
-    <span class="ident">test262_commit</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>,
-    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename</span> <span class="op">=</span> <span class="string">&quot;t&quot;</span>)]</span>
-    <span class="ident">total</span>: <span class="ident">usize</span>,
-    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename</span> <span class="op">=</span> <span class="string">&quot;o&quot;</span>)]</span>
-    <span class="ident">passed</span>: <span class="ident">usize</span>,
-    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename</span> <span class="op">=</span> <span class="string">&quot;i&quot;</span>)]</span>
-    <span class="ident">ignored</span>: <span class="ident">usize</span>,
-    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename</span> <span class="op">=</span> <span class="string">&quot;p&quot;</span>)]</span>
-    <span class="ident">panic</span>: <span class="ident">usize</span>,
+<span class="doccomment">/// Structure to store full result information.
+</span><span class="attribute">#[derive(Debug, Clone, Deserialize, Serialize)]
+</span><span class="kw">struct </span>ReducedResultInfo {
+    <span class="attribute">#[serde(rename = <span class="string">&quot;c&quot;</span>)]
+    </span>commit: Box&lt;str&gt;,
+    <span class="attribute">#[serde(rename = <span class="string">&quot;u&quot;</span>)]
+    </span>test262_commit: Box&lt;str&gt;,
+    <span class="attribute">#[serde(rename = <span class="string">&quot;t&quot;</span>)]
+    </span>total: usize,
+    <span class="attribute">#[serde(rename = <span class="string">&quot;o&quot;</span>)]
+    </span>passed: usize,
+    <span class="attribute">#[serde(rename = <span class="string">&quot;i&quot;</span>)]
+    </span>ignored: usize,
+    <span class="attribute">#[serde(rename = <span class="string">&quot;p&quot;</span>)]
+    </span>panic: usize,
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">ResultInfo</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ReducedResultInfo</span> {
-    <span class="doccomment">/// Creates a new reduced suite result from a full suite result.</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">info</span>: <span class="ident">ResultInfo</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">commit</span>: <span class="ident">info</span>.<span class="ident">commit</span>,
-            <span class="ident">test262_commit</span>: <span class="ident">info</span>.<span class="ident">test262_commit</span>,
-            <span class="ident">total</span>: <span class="ident">info</span>.<span class="ident">results</span>.<span class="ident">total</span>,
-            <span class="ident">passed</span>: <span class="ident">info</span>.<span class="ident">results</span>.<span class="ident">passed</span>,
-            <span class="ident">ignored</span>: <span class="ident">info</span>.<span class="ident">results</span>.<span class="ident">ignored</span>,
-            <span class="ident">panic</span>: <span class="ident">info</span>.<span class="ident">results</span>.<span class="ident">panic</span>,
+<span class="kw">impl </span>From&lt;ResultInfo&gt; <span class="kw">for </span>ReducedResultInfo {
+    <span class="doccomment">/// Creates a new reduced suite result from a full suite result.
+    </span><span class="kw">fn </span>from(info: ResultInfo) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            commit: info.commit,
+            test262_commit: info.test262_commit,
+            total: info.results.total,
+            passed: info.results.passed,
+            ignored: info.results.ignored,
+            panic: info.results.panic,
         }
     }
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Deserialize</span>, <span class="ident">Serialize</span>)]</span>
-<span class="kw">struct</span> <span class="ident">FeaturesInfo</span> {
-    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename</span> <span class="op">=</span> <span class="string">&quot;c&quot;</span>)]</span>
-    <span class="ident">commit</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>,
-    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename</span> <span class="op">=</span> <span class="string">&quot;u&quot;</span>)]</span>
-    <span class="ident">test262_commit</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>,
-    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename</span> <span class="op">=</span> <span class="string">&quot;n&quot;</span>)]</span>
-    <span class="ident">suite_name</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>,
-    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename</span> <span class="op">=</span> <span class="string">&quot;f&quot;</span>)]</span>
-    <span class="ident">features</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
+<span class="attribute">#[derive(Debug, Clone, Deserialize, Serialize)]
+</span><span class="kw">struct </span>FeaturesInfo {
+    <span class="attribute">#[serde(rename = <span class="string">&quot;c&quot;</span>)]
+    </span>commit: Box&lt;str&gt;,
+    <span class="attribute">#[serde(rename = <span class="string">&quot;u&quot;</span>)]
+    </span>test262_commit: Box&lt;str&gt;,
+    <span class="attribute">#[serde(rename = <span class="string">&quot;n&quot;</span>)]
+    </span>suite_name: Box&lt;str&gt;,
+    <span class="attribute">#[serde(rename = <span class="string">&quot;f&quot;</span>)]
+    </span>features: Vec&lt;String&gt;,
 }
 
-<span class="kw">fn</span> <span class="ident">remove_duplicates</span>(<span class="ident">features_vec</span>: <span class="kw-2">&amp;</span>[<span class="ident">String</span>]) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">features_vec</span>.<span class="ident">to_vec</span>();
-    <span class="ident">result</span>.<span class="ident">sort</span>();
-    <span class="ident">result</span>.<span class="ident">dedup</span>();
-    <span class="ident">result</span>
+<span class="kw">fn </span>remove_duplicates(features_vec: <span class="kw-2">&amp;</span>[String]) -&gt; Vec&lt;String&gt; {
+    <span class="kw">let </span><span class="kw-2">mut </span>result = features_vec.to_vec();
+    result.sort();
+    result.dedup();
+    result
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">ResultInfo</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">FeaturesInfo</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">info</span>: <span class="ident">ResultInfo</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">commit</span>: <span class="ident">info</span>.<span class="ident">commit</span>,
-            <span class="ident">test262_commit</span>: <span class="ident">info</span>.<span class="ident">test262_commit</span>,
-            <span class="ident">suite_name</span>: <span class="ident">info</span>.<span class="ident">results</span>.<span class="ident">name</span>,
-            <span class="ident">features</span>: <span class="ident">remove_duplicates</span>(<span class="kw-2">&amp;</span><span class="ident">info</span>.<span class="ident">results</span>.<span class="ident">features</span>),
+<span class="kw">impl </span>From&lt;ResultInfo&gt; <span class="kw">for </span>FeaturesInfo {
+    <span class="kw">fn </span>from(info: ResultInfo) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            commit: info.commit,
+            test262_commit: info.test262_commit,
+            suite_name: info.results.name,
+            features: remove_duplicates(<span class="kw-2">&amp;</span>info.results.features),
         }
     }
 }
 
-<span class="doccomment">/// File name of the &quot;latest results&quot; JSON file.</span>
-<span class="kw">const</span> <span class="ident">LATEST_FILE_NAME</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;latest.json&quot;</span>;
+<span class="doccomment">/// File name of the &quot;latest results&quot; JSON file.
+</span><span class="kw">const </span>LATEST_FILE_NAME: <span class="kw-2">&amp;</span>str = <span class="string">&quot;latest.json&quot;</span>;
 
-<span class="doccomment">/// File name of the &quot;all results&quot; JSON file.</span>
-<span class="kw">const</span> <span class="ident">RESULTS_FILE_NAME</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;results.json&quot;</span>;
+<span class="doccomment">/// File name of the &quot;all results&quot; JSON file.
+</span><span class="kw">const </span>RESULTS_FILE_NAME: <span class="kw-2">&amp;</span>str = <span class="string">&quot;results.json&quot;</span>;
 
-<span class="doccomment">/// File name of the &quot;features&quot; JSON file.</span>
-<span class="kw">const</span> <span class="ident">FEATURES_FILE_NAME</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;features.json&quot;</span>;
+<span class="doccomment">/// File name of the &quot;features&quot; JSON file.
+</span><span class="kw">const </span>FEATURES_FILE_NAME: <span class="kw-2">&amp;</span>str = <span class="string">&quot;features.json&quot;</span>;
 
-<span class="doccomment">/// Writes the results of running the test suite to the given JSON output file.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// It will append the results to the ones already present, in an array.</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">write_json</span>(
-    <span class="ident">results</span>: <span class="ident">SuiteResult</span>,
-    <span class="ident">output</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Path</span><span class="op">&gt;</span>,
-    <span class="ident">verbose</span>: <span class="ident">u8</span>,
-) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">path</span>) <span class="op">=</span> <span class="ident">output</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">branch</span> <span class="op">=</span> <span class="ident">env::var</span>(<span class="string">&quot;GITHUB_REF&quot;</span>).<span class="ident">unwrap_or_default</span>();
-        <span class="kw">if</span> <span class="ident">branch</span>.<span class="ident">starts_with</span>(<span class="string">&quot;refs/pull&quot;</span>) {
-            <span class="ident">branch</span> <span class="op">=</span> <span class="string">&quot;pull&quot;</span>.<span class="ident">to_owned</span>();
+<span class="doccomment">/// Writes the results of running the test suite to the given JSON output file.
+///
+/// It will append the results to the ones already present, in an array.
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>write_json(
+    results: SuiteResult,
+    output: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Path&gt;,
+    verbose: u8,
+) -&gt; io::Result&lt;()&gt; {
+    <span class="kw">if let </span><span class="prelude-val">Some</span>(path) = output {
+        <span class="kw">let </span><span class="kw-2">mut </span>branch = env::var(<span class="string">&quot;GITHUB_REF&quot;</span>).unwrap_or_default();
+        <span class="kw">if </span>branch.starts_with(<span class="string">&quot;refs/pull&quot;</span>) {
+            branch = <span class="string">&quot;pull&quot;</span>.to_owned();
         }
 
-        <span class="kw">let</span> <span class="ident">path</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">branch</span>.<span class="ident">is_empty</span>() {
-            <span class="ident">path</span>.<span class="ident">to_path_buf</span>()
-        } <span class="kw">else</span> {
-            <span class="kw">let</span> <span class="ident">folder</span> <span class="op">=</span> <span class="ident">path</span>.<span class="ident">join</span>(<span class="ident">branch</span>);
-            <span class="ident">fs::create_dir_all</span>(<span class="kw-2">&amp;</span><span class="ident">folder</span>)<span class="question-mark">?</span>;
-            <span class="ident">folder</span>
+        <span class="kw">let </span>path = <span class="kw">if </span>branch.is_empty() {
+            path.to_path_buf()
+        } <span class="kw">else </span>{
+            <span class="kw">let </span>folder = path.join(branch);
+            fs::create_dir_all(<span class="kw-2">&amp;</span>folder)<span class="question-mark">?</span>;
+            folder
         };
 
-        <span class="comment">// We make sure we are using the latest commit information in GitHub pages:</span>
-        <span class="ident">update_gh_pages_repo</span>(<span class="ident">path</span>.<span class="ident">as_path</span>(), <span class="ident">verbose</span>);
+        <span class="comment">// We make sure we are using the latest commit information in GitHub pages:
+        </span>update_gh_pages_repo(path.as_path(), verbose);
 
-        <span class="kw">if</span> <span class="ident">verbose</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
-            <span class="macro">println!</span>(<span class="string">&quot;Writing the results to {}...&quot;</span>, <span class="ident">path</span>.<span class="ident">display</span>());
+        <span class="kw">if </span>verbose != <span class="number">0 </span>{
+            <span class="macro">println!</span>(<span class="string">&quot;Writing the results to {}...&quot;</span>, path.display());
         }
 
-        <span class="comment">// Write the latest results.</span>
+        <span class="comment">// Write the latest results.
 
-        <span class="kw">let</span> <span class="ident">latest_path</span> <span class="op">=</span> <span class="ident">path</span>.<span class="ident">join</span>(<span class="ident">LATEST_FILE_NAME</span>);
+        </span><span class="kw">let </span>latest_path = path.join(LATEST_FILE_NAME);
 
-        <span class="kw">let</span> <span class="ident">new_results</span> <span class="op">=</span> <span class="ident">ResultInfo</span> {
-            <span class="ident">commit</span>: <span class="ident">env::var</span>(<span class="string">&quot;GITHUB_SHA&quot;</span>).<span class="ident">unwrap_or_default</span>().<span class="ident">into_boxed_str</span>(),
-            <span class="ident">test262_commit</span>: <span class="ident">get_test262_commit</span>(),
-            <span class="ident">results</span>,
+        <span class="kw">let </span>new_results = ResultInfo {
+            commit: env::var(<span class="string">&quot;GITHUB_SHA&quot;</span>).unwrap_or_default().into_boxed_str(),
+            test262_commit: get_test262_commit(),
+            results,
         };
 
-        <span class="kw">let</span> <span class="ident">latest_output</span> <span class="op">=</span> <span class="ident">BufWriter::new</span>(<span class="ident">fs::File::create</span>(<span class="ident">latest_path</span>)<span class="question-mark">?</span>);
-        <span class="ident">serde_json::to_writer</span>(<span class="ident">latest_output</span>, <span class="kw-2">&amp;</span><span class="ident">new_results</span>)<span class="question-mark">?</span>;
+        <span class="kw">let </span>latest_output = BufWriter::new(fs::File::create(latest_path)<span class="question-mark">?</span>);
+        serde_json::to_writer(latest_output, <span class="kw-2">&amp;</span>new_results)<span class="question-mark">?</span>;
 
-        <span class="comment">// Write the full list of results, retrieving the existing ones first.</span>
+        <span class="comment">// Write the full list of results, retrieving the existing ones first.
 
-        <span class="kw">let</span> <span class="ident">all_path</span> <span class="op">=</span> <span class="ident">path</span>.<span class="ident">join</span>(<span class="ident">RESULTS_FILE_NAME</span>);
+        </span><span class="kw">let </span>all_path = path.join(RESULTS_FILE_NAME);
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">all_results</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">ReducedResultInfo</span><span class="op">&gt;</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">all_path</span>.<span class="ident">exists</span>() {
-            <span class="ident">serde_json::from_reader</span>(<span class="ident">BufReader::new</span>(<span class="ident">fs::File::open</span>(<span class="kw-2">&amp;</span><span class="ident">all_path</span>)<span class="question-mark">?</span>))<span class="question-mark">?</span>
-        } <span class="kw">else</span> {
-            <span class="ident">Vec::new</span>()
+        <span class="kw">let </span><span class="kw-2">mut </span>all_results: Vec&lt;ReducedResultInfo&gt; = <span class="kw">if </span>all_path.exists() {
+            serde_json::from_reader(BufReader::new(fs::File::open(<span class="kw-2">&amp;</span>all_path)<span class="question-mark">?</span>))<span class="question-mark">?
+        </span>} <span class="kw">else </span>{
+            Vec::new()
         };
 
-        <span class="ident">all_results</span>.<span class="ident">push</span>(<span class="ident">new_results</span>.<span class="ident">clone</span>().<span class="ident">into</span>());
+        all_results.push(new_results.clone().into());
 
-        <span class="kw">let</span> <span class="ident">output</span> <span class="op">=</span> <span class="ident">BufWriter::new</span>(<span class="ident">fs::File::create</span>(<span class="kw-2">&amp;</span><span class="ident">all_path</span>)<span class="question-mark">?</span>);
-        <span class="ident">serde_json::to_writer</span>(<span class="ident">output</span>, <span class="kw-2">&amp;</span><span class="ident">all_results</span>)<span class="question-mark">?</span>;
+        <span class="kw">let </span>output = BufWriter::new(fs::File::create(<span class="kw-2">&amp;</span>all_path)<span class="question-mark">?</span>);
+        serde_json::to_writer(output, <span class="kw-2">&amp;</span>all_results)<span class="question-mark">?</span>;
 
-        <span class="kw">if</span> <span class="ident">verbose</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
+        <span class="kw">if </span>verbose != <span class="number">0 </span>{
             <span class="macro">println!</span>(<span class="string">&quot;Results written correctly&quot;</span>);
         }
 
-        <span class="comment">// Write the full list of features, existing features go first.</span>
+        <span class="comment">// Write the full list of features, existing features go first.
 
-        <span class="kw">let</span> <span class="ident">features_path</span> <span class="op">=</span> <span class="ident">path</span>.<span class="ident">join</span>(<span class="ident">FEATURES_FILE_NAME</span>);
+        </span><span class="kw">let </span>features_path = path.join(FEATURES_FILE_NAME);
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">all_features</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">FeaturesInfo</span><span class="op">&gt;</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">features_path</span>.<span class="ident">exists</span>() {
-            <span class="ident">serde_json::from_reader</span>(<span class="ident">BufReader::new</span>(<span class="ident">fs::File::open</span>(<span class="kw-2">&amp;</span><span class="ident">features_path</span>)<span class="question-mark">?</span>))<span class="question-mark">?</span>
-        } <span class="kw">else</span> {
-            <span class="ident">Vec::new</span>()
+        <span class="kw">let </span><span class="kw-2">mut </span>all_features: Vec&lt;FeaturesInfo&gt; = <span class="kw">if </span>features_path.exists() {
+            serde_json::from_reader(BufReader::new(fs::File::open(<span class="kw-2">&amp;</span>features_path)<span class="question-mark">?</span>))<span class="question-mark">?
+        </span>} <span class="kw">else </span>{
+            Vec::new()
         };
 
-        <span class="ident">all_features</span>.<span class="ident">push</span>(<span class="ident">new_results</span>.<span class="ident">into</span>());
+        all_features.push(new_results.into());
 
-        <span class="kw">let</span> <span class="ident">features_output</span> <span class="op">=</span> <span class="ident">BufWriter::new</span>(<span class="ident">fs::File::create</span>(<span class="kw-2">&amp;</span><span class="ident">features_path</span>)<span class="question-mark">?</span>);
-        <span class="ident">serde_json::to_writer</span>(<span class="ident">features_output</span>, <span class="kw-2">&amp;</span><span class="ident">all_features</span>)<span class="question-mark">?</span>;
+        <span class="kw">let </span>features_output = BufWriter::new(fs::File::create(<span class="kw-2">&amp;</span>features_path)<span class="question-mark">?</span>);
+        serde_json::to_writer(features_output, <span class="kw-2">&amp;</span>all_features)<span class="question-mark">?</span>;
 
-        <span class="kw">if</span> <span class="ident">verbose</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
+        <span class="kw">if </span>verbose != <span class="number">0 </span>{
             <span class="macro">println!</span>(<span class="string">&quot;Features written correctly&quot;</span>);
         }
     }
@@ -688,108 +688,108 @@
     <span class="prelude-val">Ok</span>(())
 }
 
-<span class="doccomment">/// Gets the commit OID of the test262 submodule.</span>
-<span class="kw">fn</span> <span class="ident">get_test262_commit</span>() -&gt; <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">commit_id</span> <span class="op">=</span> <span class="ident">fs::read_to_string</span>(<span class="string">&quot;.git/modules/test262/HEAD&quot;</span>)
-        .<span class="ident">expect</span>(<span class="string">&quot;did not find git submodule ref at &#39;.git/modules/test262/HEAD&#39;&quot;</span>);
-    <span class="comment">// Remove newline.</span>
-    <span class="ident">commit_id</span>.<span class="ident">pop</span>();
-    <span class="ident">commit_id</span>.<span class="ident">into_boxed_str</span>()
+<span class="doccomment">/// Gets the commit OID of the test262 submodule.
+</span><span class="kw">fn </span>get_test262_commit() -&gt; Box&lt;str&gt; {
+    <span class="kw">let </span><span class="kw-2">mut </span>commit_id = fs::read_to_string(<span class="string">&quot;.git/modules/test262/HEAD&quot;</span>)
+        .expect(<span class="string">&quot;did not find git submodule ref at &#39;.git/modules/test262/HEAD&#39;&quot;</span>);
+    <span class="comment">// Remove newline.
+    </span>commit_id.pop();
+    commit_id.into_boxed_str()
 }
 
-<span class="doccomment">/// Updates the GitHub pages repository by pulling latest changes before writing the new things.</span>
-<span class="kw">fn</span> <span class="ident">update_gh_pages_repo</span>(<span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>, <span class="ident">verbose</span>: <span class="ident">u8</span>) {
-    <span class="kw">if</span> <span class="ident">env::var</span>(<span class="string">&quot;GITHUB_REF&quot;</span>).<span class="ident">is_ok</span>() {
-        <span class="kw">use</span> <span class="ident">std::process::Command</span>;
+<span class="doccomment">/// Updates the GitHub pages repository by pulling latest changes before writing the new things.
+</span><span class="kw">fn </span>update_gh_pages_repo(path: <span class="kw-2">&amp;</span>Path, verbose: u8) {
+    <span class="kw">if </span>env::var(<span class="string">&quot;GITHUB_REF&quot;</span>).is_ok() {
+        <span class="kw">use </span>std::process::Command;
 
-        <span class="comment">// We run the command to pull the gh-pages branch: git -C ../gh-pages/ pull origin</span>
-        <span class="ident">Command::new</span>(<span class="string">&quot;git&quot;</span>)
-            .<span class="ident">args</span>(<span class="kw-2">&amp;</span>[<span class="string">&quot;-C&quot;</span>, <span class="string">&quot;../gh-pages&quot;</span>, <span class="string">&quot;pull&quot;</span>, <span class="string">&quot;--ff-only&quot;</span>])
-            .<span class="ident">output</span>()
-            .<span class="ident">expect</span>(<span class="string">&quot;could not update GitHub Pages&quot;</span>);
+        <span class="comment">// We run the command to pull the gh-pages branch: git -C ../gh-pages/ pull origin
+        </span>Command::new(<span class="string">&quot;git&quot;</span>)
+            .args([<span class="string">&quot;-C&quot;</span>, <span class="string">&quot;../gh-pages&quot;</span>, <span class="string">&quot;pull&quot;</span>, <span class="string">&quot;--ff-only&quot;</span>])
+            .output()
+            .expect(<span class="string">&quot;could not update GitHub Pages&quot;</span>);
 
-        <span class="comment">// Copy the full results file</span>
-        <span class="kw">let</span> <span class="ident">from</span> <span class="op">=</span> <span class="ident">Path::new</span>(<span class="string">&quot;../gh-pages/test262/refs/heads/main/&quot;</span>).<span class="ident">join</span>(<span class="ident">RESULTS_FILE_NAME</span>);
-        <span class="kw">let</span> <span class="ident">to</span> <span class="op">=</span> <span class="ident">path</span>.<span class="ident">join</span>(<span class="ident">RESULTS_FILE_NAME</span>);
+        <span class="comment">// Copy the full results file
+        </span><span class="kw">let </span>from = Path::new(<span class="string">&quot;../gh-pages/test262/refs/heads/main/&quot;</span>).join(RESULTS_FILE_NAME);
+        <span class="kw">let </span>to = path.join(RESULTS_FILE_NAME);
 
-        <span class="kw">if</span> <span class="ident">verbose</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
+        <span class="kw">if </span>verbose != <span class="number">0 </span>{
             <span class="macro">println!</span>(
                 <span class="string">&quot;Copying the {} file to {} in order to add the results&quot;</span>,
-                <span class="ident">from</span>.<span class="ident">display</span>(),
-                <span class="ident">to</span>.<span class="ident">display</span>()
+                from.display(),
+                to.display()
             );
         }
 
-        <span class="ident">fs::copy</span>(<span class="ident">from</span>, <span class="ident">to</span>).<span class="ident">expect</span>(<span class="string">&quot;could not copy the main results file&quot;</span>);
+        fs::copy(from, to).expect(<span class="string">&quot;could not copy the main results file&quot;</span>);
     }
 }
 
-<span class="doccomment">/// Compares the results of two test suite runs.</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">compare_results</span>(<span class="ident">base</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>, <span class="ident">new</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>, <span class="ident">markdown</span>: <span class="ident">bool</span>) {
-    <span class="kw">let</span> <span class="ident">base_results</span>: <span class="ident">ResultInfo</span> <span class="op">=</span> <span class="ident">serde_json::from_reader</span>(<span class="ident">BufReader::new</span>(
-        <span class="ident">fs::File::open</span>(<span class="ident">base</span>).<span class="ident">expect</span>(<span class="string">&quot;could not open the base results file&quot;</span>),
+<span class="doccomment">/// Compares the results of two test suite runs.
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>compare_results(base: <span class="kw-2">&amp;</span>Path, new: <span class="kw-2">&amp;</span>Path, markdown: bool) {
+    <span class="kw">let </span>base_results: ResultInfo = serde_json::from_reader(BufReader::new(
+        fs::File::open(base).expect(<span class="string">&quot;could not open the base results file&quot;</span>),
     ))
-    .<span class="ident">expect</span>(<span class="string">&quot;could not read the base results&quot;</span>);
+    .expect(<span class="string">&quot;could not read the base results&quot;</span>);
 
-    <span class="kw">let</span> <span class="ident">new_results</span>: <span class="ident">ResultInfo</span> <span class="op">=</span> <span class="ident">serde_json::from_reader</span>(<span class="ident">BufReader::new</span>(
-        <span class="ident">fs::File::open</span>(<span class="ident">new</span>).<span class="ident">expect</span>(<span class="string">&quot;could not open the new results file&quot;</span>),
+    <span class="kw">let </span>new_results: ResultInfo = serde_json::from_reader(BufReader::new(
+        fs::File::open(new).expect(<span class="string">&quot;could not open the new results file&quot;</span>),
     ))
-    .<span class="ident">expect</span>(<span class="string">&quot;could not read the new results&quot;</span>);
+    .expect(<span class="string">&quot;could not read the new results&quot;</span>);
 
-    <span class="kw">let</span> <span class="ident">base_total</span> <span class="op">=</span> <span class="ident">base_results</span>.<span class="ident">results</span>.<span class="ident">total</span> <span class="kw">as</span> <span class="ident">isize</span>;
-    <span class="kw">let</span> <span class="ident">new_total</span> <span class="op">=</span> <span class="ident">new_results</span>.<span class="ident">results</span>.<span class="ident">total</span> <span class="kw">as</span> <span class="ident">isize</span>;
-    <span class="kw">let</span> <span class="ident">total_diff</span> <span class="op">=</span> <span class="ident">new_total</span> <span class="op">-</span> <span class="ident">base_total</span>;
+    <span class="kw">let </span>base_total = base_results.results.total <span class="kw">as </span>isize;
+    <span class="kw">let </span>new_total = new_results.results.total <span class="kw">as </span>isize;
+    <span class="kw">let </span>total_diff = new_total - base_total;
 
-    <span class="kw">let</span> <span class="ident">base_passed</span> <span class="op">=</span> <span class="ident">base_results</span>.<span class="ident">results</span>.<span class="ident">passed</span> <span class="kw">as</span> <span class="ident">isize</span>;
-    <span class="kw">let</span> <span class="ident">new_passed</span> <span class="op">=</span> <span class="ident">new_results</span>.<span class="ident">results</span>.<span class="ident">passed</span> <span class="kw">as</span> <span class="ident">isize</span>;
-    <span class="kw">let</span> <span class="ident">passed_diff</span> <span class="op">=</span> <span class="ident">new_passed</span> <span class="op">-</span> <span class="ident">base_passed</span>;
+    <span class="kw">let </span>base_passed = base_results.results.passed <span class="kw">as </span>isize;
+    <span class="kw">let </span>new_passed = new_results.results.passed <span class="kw">as </span>isize;
+    <span class="kw">let </span>passed_diff = new_passed - base_passed;
 
-    <span class="kw">let</span> <span class="ident">base_ignored</span> <span class="op">=</span> <span class="ident">base_results</span>.<span class="ident">results</span>.<span class="ident">ignored</span> <span class="kw">as</span> <span class="ident">isize</span>;
-    <span class="kw">let</span> <span class="ident">new_ignored</span> <span class="op">=</span> <span class="ident">new_results</span>.<span class="ident">results</span>.<span class="ident">ignored</span> <span class="kw">as</span> <span class="ident">isize</span>;
-    <span class="kw">let</span> <span class="ident">ignored_diff</span> <span class="op">=</span> <span class="ident">new_ignored</span> <span class="op">-</span> <span class="ident">base_ignored</span>;
+    <span class="kw">let </span>base_ignored = base_results.results.ignored <span class="kw">as </span>isize;
+    <span class="kw">let </span>new_ignored = new_results.results.ignored <span class="kw">as </span>isize;
+    <span class="kw">let </span>ignored_diff = new_ignored - base_ignored;
 
-    <span class="kw">let</span> <span class="ident">base_failed</span> <span class="op">=</span> <span class="ident">base_total</span> <span class="op">-</span> <span class="ident">base_passed</span> <span class="op">-</span> <span class="ident">base_ignored</span>;
-    <span class="kw">let</span> <span class="ident">new_failed</span> <span class="op">=</span> <span class="ident">new_total</span> <span class="op">-</span> <span class="ident">new_passed</span> <span class="op">-</span> <span class="ident">new_ignored</span>;
-    <span class="kw">let</span> <span class="ident">failed_diff</span> <span class="op">=</span> <span class="ident">new_failed</span> <span class="op">-</span> <span class="ident">base_failed</span>;
+    <span class="kw">let </span>base_failed = base_total - base_passed - base_ignored;
+    <span class="kw">let </span>new_failed = new_total - new_passed - new_ignored;
+    <span class="kw">let </span>failed_diff = new_failed - base_failed;
 
-    <span class="kw">let</span> <span class="ident">base_panics</span> <span class="op">=</span> <span class="ident">base_results</span>.<span class="ident">results</span>.<span class="ident">panic</span> <span class="kw">as</span> <span class="ident">isize</span>;
-    <span class="kw">let</span> <span class="ident">new_panics</span> <span class="op">=</span> <span class="ident">new_results</span>.<span class="ident">results</span>.<span class="ident">panic</span> <span class="kw">as</span> <span class="ident">isize</span>;
-    <span class="kw">let</span> <span class="ident">panic_diff</span> <span class="op">=</span> <span class="ident">new_panics</span> <span class="op">-</span> <span class="ident">base_panics</span>;
+    <span class="kw">let </span>base_panics = base_results.results.panic <span class="kw">as </span>isize;
+    <span class="kw">let </span>new_panics = new_results.results.panic <span class="kw">as </span>isize;
+    <span class="kw">let </span>panic_diff = new_panics - base_panics;
 
-    <span class="kw">let</span> <span class="ident">base_conformance</span> <span class="op">=</span> (<span class="ident">base_passed</span> <span class="kw">as</span> <span class="ident">f64</span> <span class="op">/</span> <span class="ident">base_total</span> <span class="kw">as</span> <span class="ident">f64</span>) <span class="op">*</span> <span class="number">100_f64</span>;
-    <span class="kw">let</span> <span class="ident">new_conformance</span> <span class="op">=</span> (<span class="ident">new_passed</span> <span class="kw">as</span> <span class="ident">f64</span> <span class="op">/</span> <span class="ident">new_total</span> <span class="kw">as</span> <span class="ident">f64</span>) <span class="op">*</span> <span class="number">100_f64</span>;
-    <span class="kw">let</span> <span class="ident">conformance_diff</span> <span class="op">=</span> <span class="ident">new_conformance</span> <span class="op">-</span> <span class="ident">base_conformance</span>;
+    <span class="kw">let </span>base_conformance = (base_passed <span class="kw">as </span>f64 / base_total <span class="kw">as </span>f64) * <span class="number">100_f64</span>;
+    <span class="kw">let </span>new_conformance = (new_passed <span class="kw">as </span>f64 / new_total <span class="kw">as </span>f64) * <span class="number">100_f64</span>;
+    <span class="kw">let </span>conformance_diff = new_conformance - base_conformance;
 
-    <span class="kw">let</span> <span class="ident">test_diff</span> <span class="op">=</span> <span class="ident">compute_result_diff</span>(<span class="ident">Path::new</span>(<span class="string">&quot;&quot;</span>), <span class="kw-2">&amp;</span><span class="ident">base_results</span>.<span class="ident">results</span>, <span class="kw-2">&amp;</span><span class="ident">new_results</span>.<span class="ident">results</span>);
+    <span class="kw">let </span>test_diff = compute_result_diff(Path::new(<span class="string">&quot;&quot;</span>), <span class="kw-2">&amp;</span>base_results.results, <span class="kw-2">&amp;</span>new_results.results);
 
-    <span class="kw">if</span> <span class="ident">markdown</span> {
-        <span class="doccomment">/// Simple function to add commas as thousands separator for integers.</span>
-        <span class="kw">fn</span> <span class="ident">pretty_int</span>(<span class="ident">i</span>: <span class="ident">isize</span>) -&gt; <span class="ident">String</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">String::new</span>();
+    <span class="kw">if </span>markdown {
+        <span class="doccomment">/// Simple function to add commas as thousands separator for integers.
+        </span><span class="kw">fn </span>pretty_int(i: isize) -&gt; String {
+            <span class="kw">let </span><span class="kw-2">mut </span>res = String::new();
 
-            <span class="kw">for</span> (<span class="ident">idx</span>, <span class="ident">val</span>) <span class="kw">in</span> <span class="ident">i</span>.<span class="ident">abs</span>().<span class="ident">to_string</span>().<span class="ident">chars</span>().<span class="ident">rev</span>().<span class="ident">enumerate</span>() {
-                <span class="kw">if</span> <span class="ident">idx</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <span class="ident">idx</span> <span class="op">%</span> <span class="number">3</span> <span class="op">==</span> <span class="number">0</span> {
-                    <span class="ident">res</span>.<span class="ident">insert</span>(<span class="number">0</span>, <span class="string">&#39;,&#39;</span>);
+            <span class="kw">for </span>(idx, val) <span class="kw">in </span>i.abs().to_string().chars().rev().enumerate() {
+                <span class="kw">if </span>idx != <span class="number">0 </span>&amp;&amp; idx % <span class="number">3 </span>== <span class="number">0 </span>{
+                    res.insert(<span class="number">0</span>, <span class="string">&#39;,&#39;</span>);
                 }
-                <span class="ident">res</span>.<span class="ident">insert</span>(<span class="number">0</span>, <span class="ident">val</span>);
+                res.insert(<span class="number">0</span>, val);
             }
-            <span class="ident">res</span>
+            res
         }
 
-        <span class="doccomment">/// Generates a proper diff format, with some bold text if things change.</span>
-        <span class="kw">fn</span> <span class="ident">diff_format</span>(<span class="ident">diff</span>: <span class="ident">isize</span>) -&gt; <span class="ident">String</span> {
+        <span class="doccomment">/// Generates a proper diff format, with some bold text if things change.
+        </span><span class="kw">fn </span>diff_format(diff: isize) -&gt; String {
             <span class="macro">format!</span>(
                 <span class="string">&quot;{}{}{}{}&quot;</span>,
-                <span class="kw">if</span> <span class="ident">diff</span> <span class="op">==</span> <span class="number">0</span> { <span class="string">&quot;&quot;</span> } <span class="kw">else</span> { <span class="string">&quot;**&quot;</span> },
-                <span class="kw">if</span> <span class="ident">diff</span>.<span class="ident">is_positive</span>() {
-                    <span class="string">&quot;+&quot;</span>
-                } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">diff</span>.<span class="ident">is_negative</span>() {
-                    <span class="string">&quot;-&quot;</span>
-                } <span class="kw">else</span> {
-                    <span class="string">&quot;&quot;</span>
-                },
-                <span class="ident">pretty_int</span>(<span class="ident">diff</span>),
-                <span class="kw">if</span> <span class="ident">diff</span> <span class="op">==</span> <span class="number">0</span> { <span class="string">&quot;&quot;</span> } <span class="kw">else</span> { <span class="string">&quot;**&quot;</span> }
+                <span class="kw">if </span>diff == <span class="number">0 </span>{ <span class="string">&quot;&quot; </span>} <span class="kw">else </span>{ <span class="string">&quot;**&quot; </span>},
+                <span class="kw">if </span>diff.is_positive() {
+                    <span class="string">&quot;+&quot;
+                </span>} <span class="kw">else if </span>diff.is_negative() {
+                    <span class="string">&quot;-&quot;
+                </span>} <span class="kw">else </span>{
+                    <span class="string">&quot;&quot;
+                </span>},
+                pretty_int(diff),
+                <span class="kw">if </span>diff == <span class="number">0 </span>{ <span class="string">&quot;&quot; </span>} <span class="kw">else </span>{ <span class="string">&quot;**&quot; </span>}
             )
         }
 
@@ -797,238 +797,238 @@
         <span class="macro">println!</span>(<span class="string">&quot;| :---------: | :----------: | :------: | :--------: |&quot;</span>);
         <span class="macro">println!</span>(
             <span class="string">&quot;| Total | {} | {} | {} |&quot;</span>,
-            <span class="ident">pretty_int</span>(<span class="ident">base_total</span>),
-            <span class="ident">pretty_int</span>(<span class="ident">new_total</span>),
-            <span class="ident">diff_format</span>(<span class="ident">total_diff</span>),
+            pretty_int(base_total),
+            pretty_int(new_total),
+            diff_format(total_diff),
         );
         <span class="macro">println!</span>(
             <span class="string">&quot;| Passed | {} | {} | {} |&quot;</span>,
-            <span class="ident">pretty_int</span>(<span class="ident">base_passed</span>),
-            <span class="ident">pretty_int</span>(<span class="ident">new_passed</span>),
-            <span class="ident">diff_format</span>(<span class="ident">passed_diff</span>),
+            pretty_int(base_passed),
+            pretty_int(new_passed),
+            diff_format(passed_diff),
         );
         <span class="macro">println!</span>(
             <span class="string">&quot;| Ignored | {} | {} | {} |&quot;</span>,
-            <span class="ident">pretty_int</span>(<span class="ident">base_ignored</span>),
-            <span class="ident">pretty_int</span>(<span class="ident">new_ignored</span>),
-            <span class="ident">diff_format</span>(<span class="ident">ignored_diff</span>),
+            pretty_int(base_ignored),
+            pretty_int(new_ignored),
+            diff_format(ignored_diff),
         );
         <span class="macro">println!</span>(
             <span class="string">&quot;| Failed | {} | {} | {} |&quot;</span>,
-            <span class="ident">pretty_int</span>(<span class="ident">base_failed</span>),
-            <span class="ident">pretty_int</span>(<span class="ident">new_failed</span>),
-            <span class="ident">diff_format</span>(<span class="ident">failed_diff</span>),
+            pretty_int(base_failed),
+            pretty_int(new_failed),
+            diff_format(failed_diff),
         );
         <span class="macro">println!</span>(
             <span class="string">&quot;| Panics | {} | {} | {} |&quot;</span>,
-            <span class="ident">pretty_int</span>(<span class="ident">base_panics</span>),
-            <span class="ident">pretty_int</span>(<span class="ident">new_panics</span>),
-            <span class="ident">diff_format</span>(<span class="ident">panic_diff</span>),
+            pretty_int(base_panics),
+            pretty_int(new_panics),
+            diff_format(panic_diff),
         );
         <span class="macro">println!</span>(
             <span class="string">&quot;| Conformance | {:.2}% | {:.2}% | {}{}{:.2}%{} |&quot;</span>,
-            <span class="ident">base_conformance</span>,
-            <span class="ident">new_conformance</span>,
-            <span class="kw">if</span> <span class="ident">conformance_diff</span>.<span class="ident">abs</span>() <span class="op">&gt;</span> <span class="ident">f64::EPSILON</span> {
-                <span class="string">&quot;**&quot;</span>
-            } <span class="kw">else</span> {
-                <span class="string">&quot;&quot;</span>
-            },
-            <span class="kw">if</span> <span class="ident">conformance_diff</span> <span class="op">&gt;</span> <span class="number">0_f64</span> { <span class="string">&quot;+&quot;</span> } <span class="kw">else</span> { <span class="string">&quot;&quot;</span> },
-            <span class="ident">conformance_diff</span>,
-            <span class="kw">if</span> <span class="ident">conformance_diff</span>.<span class="ident">abs</span>() <span class="op">&gt;</span> <span class="ident">f64::EPSILON</span> {
-                <span class="string">&quot;**&quot;</span>
-            } <span class="kw">else</span> {
-                <span class="string">&quot;&quot;</span>
-            },
+            base_conformance,
+            new_conformance,
+            <span class="kw">if </span>conformance_diff.abs() &gt; f64::EPSILON {
+                <span class="string">&quot;**&quot;
+            </span>} <span class="kw">else </span>{
+                <span class="string">&quot;&quot;
+            </span>},
+            <span class="kw">if </span>conformance_diff &gt; <span class="number">0_f64 </span>{ <span class="string">&quot;+&quot; </span>} <span class="kw">else </span>{ <span class="string">&quot;&quot; </span>},
+            conformance_diff,
+            <span class="kw">if </span>conformance_diff.abs() &gt; f64::EPSILON {
+                <span class="string">&quot;**&quot;
+            </span>} <span class="kw">else </span>{
+                <span class="string">&quot;&quot;
+            </span>},
         );
 
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">test_diff</span>.<span class="ident">fixed</span>.<span class="ident">is_empty</span>() {
+        <span class="kw">if </span>!test_diff.fixed.is_empty() {
             <span class="macro">println!</span>();
             <span class="macro">println!</span>(
                 <span class="string">&quot;&lt;details&gt;&lt;summary&gt;&lt;b&gt;Fixed tests ({}):&lt;/b&gt;&lt;/summary&gt;&quot;</span>,
-                <span class="ident">test_diff</span>.<span class="ident">fixed</span>.<span class="ident">len</span>()
+                test_diff.fixed.len()
             );
             <span class="macro">println!</span>(<span class="string">&quot;\n```&quot;</span>);
-            <span class="kw">for</span> <span class="ident">test</span> <span class="kw">in</span> <span class="ident">test_diff</span>.<span class="ident">fixed</span> {
+            <span class="kw">for </span>test <span class="kw">in </span>test_diff.fixed {
                 <span class="macro">println!</span>(<span class="string">&quot;{test}&quot;</span>);
             }
             <span class="macro">println!</span>(<span class="string">&quot;```&quot;</span>);
             <span class="macro">println!</span>(<span class="string">&quot;&lt;/details&gt;&quot;</span>);
         }
 
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">test_diff</span>.<span class="ident">broken</span>.<span class="ident">is_empty</span>() {
+        <span class="kw">if </span>!test_diff.broken.is_empty() {
             <span class="macro">println!</span>();
             <span class="macro">println!</span>(
                 <span class="string">&quot;&lt;details&gt;&lt;summary&gt;&lt;b&gt;Broken tests ({}):&lt;/b&gt;&lt;/summary&gt;&quot;</span>,
-                <span class="ident">test_diff</span>.<span class="ident">broken</span>.<span class="ident">len</span>()
+                test_diff.broken.len()
             );
             <span class="macro">println!</span>(<span class="string">&quot;\n```&quot;</span>);
-            <span class="kw">for</span> <span class="ident">test</span> <span class="kw">in</span> <span class="ident">test_diff</span>.<span class="ident">broken</span> {
+            <span class="kw">for </span>test <span class="kw">in </span>test_diff.broken {
                 <span class="macro">println!</span>(<span class="string">&quot;{test}&quot;</span>);
             }
             <span class="macro">println!</span>(<span class="string">&quot;```&quot;</span>);
             <span class="macro">println!</span>(<span class="string">&quot;&lt;/details&gt;&quot;</span>);
         }
 
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">test_diff</span>.<span class="ident">new_panics</span>.<span class="ident">is_empty</span>() {
+        <span class="kw">if </span>!test_diff.new_panics.is_empty() {
             <span class="macro">println!</span>();
             <span class="macro">println!</span>(
                 <span class="string">&quot;&lt;details&gt;&lt;summary&gt;&lt;b&gt;New panics ({}):&lt;/b&gt;&lt;/summary&gt;&quot;</span>,
-                <span class="ident">test_diff</span>.<span class="ident">new_panics</span>.<span class="ident">len</span>()
+                test_diff.new_panics.len()
             );
             <span class="macro">println!</span>(<span class="string">&quot;\n```&quot;</span>);
-            <span class="kw">for</span> <span class="ident">test</span> <span class="kw">in</span> <span class="ident">test_diff</span>.<span class="ident">new_panics</span> {
+            <span class="kw">for </span>test <span class="kw">in </span>test_diff.new_panics {
                 <span class="macro">println!</span>(<span class="string">&quot;{test}&quot;</span>);
             }
             <span class="macro">println!</span>(<span class="string">&quot;```&quot;</span>);
             <span class="macro">println!</span>(<span class="string">&quot;&lt;/details&gt;&quot;</span>);
         }
 
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">test_diff</span>.<span class="ident">panic_fixes</span>.<span class="ident">is_empty</span>() {
+        <span class="kw">if </span>!test_diff.panic_fixes.is_empty() {
             <span class="macro">println!</span>();
             <span class="macro">println!</span>(
                 <span class="string">&quot;&lt;details&gt;&lt;summary&gt;&lt;b&gt;Fixed panics ({}):&lt;/b&gt;&lt;/summary&gt;&quot;</span>,
-                <span class="ident">test_diff</span>.<span class="ident">panic_fixes</span>.<span class="ident">len</span>()
+                test_diff.panic_fixes.len()
             );
             <span class="macro">println!</span>(<span class="string">&quot;\n```&quot;</span>);
-            <span class="kw">for</span> <span class="ident">test</span> <span class="kw">in</span> <span class="ident">test_diff</span>.<span class="ident">panic_fixes</span> {
+            <span class="kw">for </span>test <span class="kw">in </span>test_diff.panic_fixes {
                 <span class="macro">println!</span>(<span class="string">&quot;{test}&quot;</span>);
             }
             <span class="macro">println!</span>(<span class="string">&quot;```&quot;</span>);
             <span class="macro">println!</span>(<span class="string">&quot;&lt;/details&gt;&quot;</span>);
         }
-    } <span class="kw">else</span> {
+    } <span class="kw">else </span>{
         <span class="macro">println!</span>(<span class="string">&quot;Test262 conformance changes:&quot;</span>);
         <span class="macro">println!</span>(<span class="string">&quot;| Test result | main |    PR   | difference |&quot;</span>);
         <span class="macro">println!</span>(
             <span class="string">&quot;|    Passed   | {base_passed:^6} | {new_passed:^5} | {:^10} |&quot;</span>,
-            <span class="ident">base_passed</span> <span class="op">-</span> <span class="ident">new_passed</span>
+            base_passed - new_passed
         );
         <span class="macro">println!</span>(
             <span class="string">&quot;|   Ignored   | {base_ignored:^6} | {new_ignored:^5} | {:^10} |&quot;</span>,
-            <span class="ident">base_ignored</span> <span class="op">-</span> <span class="ident">new_ignored</span>
+            base_ignored - new_ignored
         );
         <span class="macro">println!</span>(
             <span class="string">&quot;|   Failed    | {base_failed:^6} | {new_failed:^5} | {:^10} |&quot;</span>,
-            <span class="ident">base_failed</span> <span class="op">-</span> <span class="ident">new_failed</span>,
+            base_failed - new_failed,
         );
         <span class="macro">println!</span>(
             <span class="string">&quot;|   Panics    | {base_panics:^6} | {new_panics:^5} | {:^10} |&quot;</span>,
-            <span class="ident">base_panics</span> <span class="op">-</span> <span class="ident">new_panics</span>
+            base_panics - new_panics
         );
 
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">test_diff</span>.<span class="ident">fixed</span>.<span class="ident">is_empty</span>() {
+        <span class="kw">if </span>!test_diff.fixed.is_empty() {
             <span class="macro">println!</span>();
-            <span class="macro">println!</span>(<span class="string">&quot;Fixed tests ({}):&quot;</span>, <span class="ident">test_diff</span>.<span class="ident">fixed</span>.<span class="ident">len</span>());
-            <span class="kw">for</span> <span class="ident">test</span> <span class="kw">in</span> <span class="ident">test_diff</span>.<span class="ident">fixed</span> {
+            <span class="macro">println!</span>(<span class="string">&quot;Fixed tests ({}):&quot;</span>, test_diff.fixed.len());
+            <span class="kw">for </span>test <span class="kw">in </span>test_diff.fixed {
                 <span class="macro">println!</span>(<span class="string">&quot;{test}&quot;</span>);
             }
         }
 
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">test_diff</span>.<span class="ident">broken</span>.<span class="ident">is_empty</span>() {
+        <span class="kw">if </span>!test_diff.broken.is_empty() {
             <span class="macro">println!</span>();
-            <span class="macro">println!</span>(<span class="string">&quot;Broken tests ({}):&quot;</span>, <span class="ident">test_diff</span>.<span class="ident">broken</span>.<span class="ident">len</span>());
-            <span class="kw">for</span> <span class="ident">test</span> <span class="kw">in</span> <span class="ident">test_diff</span>.<span class="ident">broken</span> {
+            <span class="macro">println!</span>(<span class="string">&quot;Broken tests ({}):&quot;</span>, test_diff.broken.len());
+            <span class="kw">for </span>test <span class="kw">in </span>test_diff.broken {
                 <span class="macro">println!</span>(<span class="string">&quot;{test}&quot;</span>);
             }
         }
 
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">test_diff</span>.<span class="ident">new_panics</span>.<span class="ident">is_empty</span>() {
+        <span class="kw">if </span>!test_diff.new_panics.is_empty() {
             <span class="macro">println!</span>();
-            <span class="macro">println!</span>(<span class="string">&quot;New panics ({}):&quot;</span>, <span class="ident">test_diff</span>.<span class="ident">new_panics</span>.<span class="ident">len</span>());
-            <span class="kw">for</span> <span class="ident">test</span> <span class="kw">in</span> <span class="ident">test_diff</span>.<span class="ident">new_panics</span> {
+            <span class="macro">println!</span>(<span class="string">&quot;New panics ({}):&quot;</span>, test_diff.new_panics.len());
+            <span class="kw">for </span>test <span class="kw">in </span>test_diff.new_panics {
                 <span class="macro">println!</span>(<span class="string">&quot;{test}&quot;</span>);
             }
         }
 
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">test_diff</span>.<span class="ident">panic_fixes</span>.<span class="ident">is_empty</span>() {
+        <span class="kw">if </span>!test_diff.panic_fixes.is_empty() {
             <span class="macro">println!</span>();
-            <span class="macro">println!</span>(<span class="string">&quot;Fixed panics ({}):&quot;</span>, <span class="ident">test_diff</span>.<span class="ident">panic_fixes</span>.<span class="ident">len</span>());
-            <span class="kw">for</span> <span class="ident">test</span> <span class="kw">in</span> <span class="ident">test_diff</span>.<span class="ident">panic_fixes</span> {
+            <span class="macro">println!</span>(<span class="string">&quot;Fixed panics ({}):&quot;</span>, test_diff.panic_fixes.len());
+            <span class="kw">for </span>test <span class="kw">in </span>test_diff.panic_fixes {
                 <span class="macro">println!</span>(<span class="string">&quot;{test}&quot;</span>);
             }
         }
     }
 }
 
-<span class="doccomment">/// Test differences.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Default</span>)]</span>
-<span class="kw">struct</span> <span class="ident">ResultDiff</span> {
-    <span class="ident">fixed</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="ident">broken</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="ident">new_panics</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="ident">panic_fixes</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+<span class="doccomment">/// Test differences.
+</span><span class="attribute">#[derive(Debug, Clone, Default)]
+</span><span class="kw">struct </span>ResultDiff {
+    fixed: Vec&lt;Box&lt;str&gt;&gt;,
+    broken: Vec&lt;Box&lt;str&gt;&gt;,
+    new_panics: Vec&lt;Box&lt;str&gt;&gt;,
+    panic_fixes: Vec&lt;Box&lt;str&gt;&gt;,
 }
 
-<span class="kw">impl</span> <span class="ident">ResultDiff</span> {
-    <span class="doccomment">/// Extends the diff with new results.</span>
-    <span class="kw">fn</span> <span class="ident">extend</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">new</span>: <span class="self">Self</span>) {
-        <span class="self">self</span>.<span class="ident">fixed</span>.<span class="ident">extend</span>(<span class="ident">new</span>.<span class="ident">fixed</span>);
-        <span class="self">self</span>.<span class="ident">broken</span>.<span class="ident">extend</span>(<span class="ident">new</span>.<span class="ident">broken</span>);
-        <span class="self">self</span>.<span class="ident">new_panics</span>.<span class="ident">extend</span>(<span class="ident">new</span>.<span class="ident">new_panics</span>);
-        <span class="self">self</span>.<span class="ident">panic_fixes</span>.<span class="ident">extend</span>(<span class="ident">new</span>.<span class="ident">panic_fixes</span>);
+<span class="kw">impl </span>ResultDiff {
+    <span class="doccomment">/// Extends the diff with new results.
+    </span><span class="kw">fn </span>extend(<span class="kw-2">&amp;mut </span><span class="self">self</span>, new: <span class="self">Self</span>) {
+        <span class="self">self</span>.fixed.extend(new.fixed);
+        <span class="self">self</span>.broken.extend(new.broken);
+        <span class="self">self</span>.new_panics.extend(new.new_panics);
+        <span class="self">self</span>.panic_fixes.extend(new.panic_fixes);
     }
 }
 
-<span class="doccomment">/// Compares a base and a new result and returns the list of differences.</span>
-<span class="kw">fn</span> <span class="ident">compute_result_diff</span>(
-    <span class="ident">base</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>,
-    <span class="ident">base_result</span>: <span class="kw-2">&amp;</span><span class="ident">SuiteResult</span>,
-    <span class="ident">new_result</span>: <span class="kw-2">&amp;</span><span class="ident">SuiteResult</span>,
-) -&gt; <span class="ident">ResultDiff</span> {
-    <span class="kw">use</span> <span class="ident"><span class="kw">super</span>::TestOutcomeResult</span>;
+<span class="doccomment">/// Compares a base and a new result and returns the list of differences.
+</span><span class="kw">fn </span>compute_result_diff(
+    base: <span class="kw-2">&amp;</span>Path,
+    base_result: <span class="kw-2">&amp;</span>SuiteResult,
+    new_result: <span class="kw-2">&amp;</span>SuiteResult,
+) -&gt; ResultDiff {
+    <span class="kw">use </span><span class="kw">super</span>::TestOutcomeResult;
 
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">final_diff</span> <span class="op">=</span> <span class="ident">ResultDiff::default</span>();
+    <span class="kw">let </span><span class="kw-2">mut </span>final_diff = ResultDiff::default();
 
-    <span class="kw">for</span> <span class="ident">base_test</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">base_result</span>.<span class="ident">tests</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">new_test</span>) <span class="op">=</span> <span class="ident">new_result</span>
-            .<span class="ident">tests</span>
-            .<span class="ident">iter</span>()
-            .<span class="ident">find</span>(<span class="op">|</span><span class="ident">new_test</span><span class="op">|</span> <span class="ident">new_test</span>.<span class="ident">strict</span> <span class="op">==</span> <span class="ident">base_test</span>.<span class="ident">strict</span> <span class="op">&amp;&amp;</span> <span class="ident">new_test</span>.<span class="ident">name</span> <span class="op">==</span> <span class="ident">base_test</span>.<span class="ident">name</span>)
+    <span class="kw">for </span>base_test <span class="kw">in </span><span class="kw-2">&amp;</span>base_result.tests {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(new_test) = new_result
+            .tests
+            .iter()
+            .find(|new_test| new_test.strict == base_test.strict &amp;&amp; new_test.name == base_test.name)
         {
-            <span class="kw">let</span> <span class="ident">test_name</span> <span class="op">=</span> <span class="macro">format!</span>(
+            <span class="kw">let </span>test_name = <span class="macro">format!</span>(
                 <span class="string">&quot;test/{}/{}.js {}(previously {:?})&quot;</span>,
-                <span class="ident">base</span>.<span class="ident">display</span>(),
-                <span class="ident">new_test</span>.<span class="ident">name</span>,
-                <span class="kw">if</span> <span class="ident">base_test</span>.<span class="ident">strict</span> {
-                    <span class="string">&quot;[strict mode] &quot;</span>
-                } <span class="kw">else</span> {
-                    <span class="string">&quot;&quot;</span>
-                },
-                <span class="ident">base_test</span>.<span class="ident">result</span>
+                base.display(),
+                new_test.name,
+                <span class="kw">if </span>base_test.strict {
+                    <span class="string">&quot;[strict mode] &quot;
+                </span>} <span class="kw">else </span>{
+                    <span class="string">&quot;&quot;
+                </span>},
+                base_test.result
             )
-            .<span class="ident">into_boxed_str</span>();
+            .into_boxed_str();
 
-            <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::match_same_arms</span>)]</span>
-            <span class="kw">match</span> (<span class="ident">base_test</span>.<span class="ident">result</span>, <span class="ident">new_test</span>.<span class="ident">result</span>) {
-                (<span class="ident">a</span>, <span class="ident">b</span>) <span class="kw">if</span> <span class="ident">a</span> <span class="op">==</span> <span class="ident">b</span> =&gt; {}
-                (<span class="ident">TestOutcomeResult::Ignored</span>, <span class="ident">TestOutcomeResult::Failed</span>) =&gt; {}
+            <span class="attribute">#[allow(clippy::match_same_arms)]
+            </span><span class="kw">match </span>(base_test.result, new_test.result) {
+                (a, b) <span class="kw">if </span>a == b =&gt; {}
+                (TestOutcomeResult::Ignored, TestOutcomeResult::Failed) =&gt; {}
 
-                (<span class="kw">_</span>, <span class="ident">TestOutcomeResult::Passed</span>) =&gt; <span class="ident">final_diff</span>.<span class="ident">fixed</span>.<span class="ident">push</span>(<span class="ident">test_name</span>),
-                (<span class="ident">TestOutcomeResult::Panic</span>, <span class="kw">_</span>) =&gt; <span class="ident">final_diff</span>.<span class="ident">panic_fixes</span>.<span class="ident">push</span>(<span class="ident">test_name</span>),
-                (<span class="kw">_</span>, <span class="ident">TestOutcomeResult::Failed</span>) =&gt; <span class="ident">final_diff</span>.<span class="ident">broken</span>.<span class="ident">push</span>(<span class="ident">test_name</span>),
-                (<span class="kw">_</span>, <span class="ident">TestOutcomeResult::Panic</span>) =&gt; <span class="ident">final_diff</span>.<span class="ident">new_panics</span>.<span class="ident">push</span>(<span class="ident">test_name</span>),
+                (<span class="kw">_</span>, TestOutcomeResult::Passed) =&gt; final_diff.fixed.push(test_name),
+                (TestOutcomeResult::Panic, <span class="kw">_</span>) =&gt; final_diff.panic_fixes.push(test_name),
+                (<span class="kw">_</span>, TestOutcomeResult::Failed) =&gt; final_diff.broken.push(test_name),
+                (<span class="kw">_</span>, TestOutcomeResult::Panic) =&gt; final_diff.new_panics.push(test_name),
 
-                <span class="kw">_</span> =&gt; {}
+                <span class="kw">_ </span>=&gt; {}
             }
         }
     }
 
-    <span class="kw">for</span> <span class="ident">base_suite</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">base_result</span>.<span class="ident">suites</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">new_suite</span>) <span class="op">=</span> <span class="ident">new_result</span>
-            .<span class="ident">suites</span>
-            .<span class="ident">iter</span>()
-            .<span class="ident">find</span>(<span class="op">|</span><span class="ident">new_suite</span><span class="op">|</span> <span class="ident">new_suite</span>.<span class="ident">name</span> <span class="op">==</span> <span class="ident">base_suite</span>.<span class="ident">name</span>)
+    <span class="kw">for </span>base_suite <span class="kw">in </span><span class="kw-2">&amp;</span>base_result.suites {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(new_suite) = new_result
+            .suites
+            .iter()
+            .find(|new_suite| new_suite.name == base_suite.name)
         {
-            <span class="kw">let</span> <span class="ident">new_base</span> <span class="op">=</span> <span class="ident">base</span>.<span class="ident">join</span>(<span class="ident">new_suite</span>.<span class="ident">name</span>.<span class="ident">as_ref</span>());
-            <span class="kw">let</span> <span class="ident">diff</span> <span class="op">=</span> <span class="ident">compute_result_diff</span>(<span class="ident">new_base</span>.<span class="ident">as_path</span>(), <span class="ident">base_suite</span>, <span class="ident">new_suite</span>);
+            <span class="kw">let </span>new_base = base.join(new_suite.name.as_ref());
+            <span class="kw">let </span>diff = compute_result_diff(new_base.as_path(), base_suite, new_suite);
 
-            <span class="ident">final_diff</span>.<span class="ident">extend</span>(<span class="ident">diff</span>);
+            final_diff.extend(diff);
         }
     }
 
-    <span class="ident">final_diff</span>
+    final_diff
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="boa_tester" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0 (a55dd71d5 2022-09-19)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="boa_tester" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0 (897e37553 2022-11-02)" ></div></body></html>

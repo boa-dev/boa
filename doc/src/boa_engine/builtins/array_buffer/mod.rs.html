@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_engine/src/builtins/array_buffer/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_engine/src/builtins/array_buffer/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container">
                     <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../boa_engine/index.html">
                         <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -843,848 +843,848 @@
 <span id="841">841</span>
 <span id="842">842</span>
 <span id="843">843</span>
-</pre><pre class="rust"><code><span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span>;
+</pre><pre class="rust"><code><span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>tests;
 
-<span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">builtins</span>::{<span class="ident">typed_array::TypedArrayKind</span>, <span class="ident">BuiltIn</span>, <span class="ident">JsArgs</span>},
-    <span class="ident">context::intrinsics::StandardConstructors</span>,
-    <span class="ident">error::JsNativeError</span>,
-    <span class="ident">object</span>::{
-        <span class="ident">internal_methods::get_prototype_from_constructor</span>, <span class="ident">ConstructorBuilder</span>, <span class="ident">FunctionBuilder</span>,
-        <span class="ident">JsObject</span>, <span class="ident">ObjectData</span>,
+<span class="kw">use crate</span>::{
+    builtins::{typed_array::TypedArrayKind, BuiltIn, JsArgs},
+    context::intrinsics::StandardConstructors,
+    error::JsNativeError,
+    object::{
+        internal_methods::get_prototype_from_constructor, ConstructorBuilder, FunctionBuilder,
+        JsObject, ObjectData,
     },
-    <span class="ident">property::Attribute</span>,
-    <span class="ident">symbol::WellKnownSymbols</span>,
-    <span class="ident">value</span>::{<span class="ident">IntegerOrInfinity</span>, <span class="ident">Numeric</span>},
-    <span class="ident">Context</span>, <span class="ident">JsResult</span>, <span class="ident">JsValue</span>,
+    property::Attribute,
+    symbol::WellKnownSymbols,
+    value::{IntegerOrInfinity, Numeric},
+    Context, JsResult, JsValue,
 };
-<span class="kw">use</span> <span class="ident">boa_gc</span>::{<span class="ident">Finalize</span>, <span class="ident">Trace</span>};
-<span class="kw">use</span> <span class="ident">boa_profiler::Profiler</span>;
-<span class="kw">use</span> <span class="ident">num_traits</span>::{<span class="ident">Signed</span>, <span class="ident">ToPrimitive</span>};
-<span class="kw">use</span> <span class="ident">tap</span>::{<span class="ident">Conv</span>, <span class="ident">Pipe</span>};
+<span class="kw">use </span>boa_gc::{Finalize, Trace};
+<span class="kw">use </span>boa_profiler::Profiler;
+<span class="kw">use </span>num_traits::{Signed, ToPrimitive};
+<span class="kw">use </span>tap::{Conv, Pipe};
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Trace</span>, <span class="ident">Finalize</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ArrayBuffer</span> {
-    <span class="kw">pub</span> <span class="ident">array_buffer_data</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span> <span class="ident">array_buffer_byte_length</span>: <span class="ident">u64</span>,
-    <span class="kw">pub</span> <span class="ident">array_buffer_detach_key</span>: <span class="ident">JsValue</span>,
+<span class="attribute">#[derive(Debug, Clone, Trace, Finalize)]
+</span><span class="kw">pub struct </span>ArrayBuffer {
+    <span class="kw">pub </span>array_buffer_data: <span class="prelude-ty">Option</span>&lt;Vec&lt;u8&gt;&gt;,
+    <span class="kw">pub </span>array_buffer_byte_length: u64,
+    <span class="kw">pub </span>array_buffer_detach_key: JsValue,
 }
 
-<span class="kw">impl</span> <span class="ident">ArrayBuffer</span> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">array_buffer_byte_length</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">u64</span> {
-        <span class="self">self</span>.<span class="ident">array_buffer_byte_length</span>
+<span class="kw">impl </span>ArrayBuffer {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>array_buffer_byte_length(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64 {
+        <span class="self">self</span>.array_buffer_byte_length
     }
 }
 
-<span class="kw">impl</span> <span class="ident">BuiltIn</span> <span class="kw">for</span> <span class="ident">ArrayBuffer</span> {
-    <span class="kw">const</span> <span class="ident">NAME</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;ArrayBuffer&quot;</span>;
+<span class="kw">impl </span>BuiltIn <span class="kw">for </span>ArrayBuffer {
+    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;ArrayBuffer&quot;</span>;
 
-    <span class="kw">fn</span> <span class="ident">init</span>(<span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="ident"><span class="self">Self</span>::NAME</span>, <span class="string">&quot;init&quot;</span>);
+    <span class="kw">fn </span>init(context: <span class="kw-2">&amp;mut </span>Context) -&gt; <span class="prelude-ty">Option</span>&lt;JsValue&gt; {
+        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="self">Self</span>::NAME, <span class="string">&quot;init&quot;</span>);
 
-        <span class="kw">let</span> <span class="ident">flag_attributes</span> <span class="op">=</span> <span class="ident">Attribute::CONFIGURABLE</span> <span class="op">|</span> <span class="ident">Attribute::NON_ENUMERABLE</span>;
+        <span class="kw">let </span>flag_attributes = Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE;
 
-        <span class="kw">let</span> <span class="ident">get_species</span> <span class="op">=</span> <span class="ident">FunctionBuilder::native</span>(<span class="ident">context</span>, <span class="ident"><span class="self">Self</span>::get_species</span>)
-            .<span class="ident">name</span>(<span class="string">&quot;get [Symbol.species]&quot;</span>)
-            .<span class="ident">constructor</span>(<span class="bool-val">false</span>)
-            .<span class="ident">build</span>();
+        <span class="kw">let </span>get_species = FunctionBuilder::native(context, <span class="self">Self</span>::get_species)
+            .name(<span class="string">&quot;get [Symbol.species]&quot;</span>)
+            .constructor(<span class="bool-val">false</span>)
+            .build();
 
-        <span class="kw">let</span> <span class="ident">get_byte_length</span> <span class="op">=</span> <span class="ident">FunctionBuilder::native</span>(<span class="ident">context</span>, <span class="ident"><span class="self">Self</span>::get_byte_length</span>)
-            .<span class="ident">name</span>(<span class="string">&quot;get byteLength&quot;</span>)
-            .<span class="ident">build</span>();
+        <span class="kw">let </span>get_byte_length = FunctionBuilder::native(context, <span class="self">Self</span>::get_byte_length)
+            .name(<span class="string">&quot;get byteLength&quot;</span>)
+            .build();
 
-        <span class="ident">ConstructorBuilder::with_standard_constructor</span>(
-            <span class="ident">context</span>,
-            <span class="ident"><span class="self">Self</span>::constructor</span>,
-            <span class="ident">context</span>.<span class="ident">intrinsics</span>().<span class="ident">constructors</span>().<span class="ident">array_buffer</span>().<span class="ident">clone</span>(),
+        ConstructorBuilder::with_standard_constructor(
+            context,
+            <span class="self">Self</span>::constructor,
+            context.intrinsics().constructors().array_buffer().clone(),
         )
-        .<span class="ident">name</span>(<span class="ident"><span class="self">Self</span>::NAME</span>)
-        .<span class="ident">length</span>(<span class="ident"><span class="self">Self</span>::LENGTH</span>)
-        .<span class="ident">accessor</span>(<span class="string">&quot;byteLength&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">get_byte_length</span>), <span class="prelude-val">None</span>, <span class="ident">flag_attributes</span>)
-        .<span class="ident">static_accessor</span>(
-            <span class="ident">WellKnownSymbols::species</span>(),
-            <span class="prelude-val">Some</span>(<span class="ident">get_species</span>),
+        .name(<span class="self">Self</span>::NAME)
+        .length(<span class="self">Self</span>::LENGTH)
+        .accessor(<span class="string">&quot;byteLength&quot;</span>, <span class="prelude-val">Some</span>(get_byte_length), <span class="prelude-val">None</span>, flag_attributes)
+        .static_accessor(
+            WellKnownSymbols::species(),
+            <span class="prelude-val">Some</span>(get_species),
             <span class="prelude-val">None</span>,
-            <span class="ident">Attribute::CONFIGURABLE</span>,
+            Attribute::CONFIGURABLE,
         )
-        .<span class="ident">static_method</span>(<span class="ident"><span class="self">Self</span>::is_view</span>, <span class="string">&quot;isView&quot;</span>, <span class="number">1</span>)
-        .<span class="ident">method</span>(<span class="ident"><span class="self">Self</span>::slice</span>, <span class="string">&quot;slice&quot;</span>, <span class="number">2</span>)
-        .<span class="ident">property</span>(
-            <span class="ident">WellKnownSymbols::to_string_tag</span>(),
-            <span class="ident"><span class="self">Self</span>::NAME</span>,
-            <span class="ident">Attribute::READONLY</span> <span class="op">|</span> <span class="ident">Attribute::NON_ENUMERABLE</span> <span class="op">|</span> <span class="ident">Attribute::CONFIGURABLE</span>,
+        .static_method(<span class="self">Self</span>::is_view, <span class="string">&quot;isView&quot;</span>, <span class="number">1</span>)
+        .method(<span class="self">Self</span>::slice, <span class="string">&quot;slice&quot;</span>, <span class="number">2</span>)
+        .property(
+            WellKnownSymbols::to_string_tag(),
+            <span class="self">Self</span>::NAME,
+            Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
         )
-        .<span class="ident">build</span>()
-        .<span class="ident">conv</span>::<span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span>()
-        .<span class="ident">pipe</span>(<span class="prelude-val">Some</span>)
+        .build()
+        .conv::&lt;JsValue&gt;()
+        .pipe(<span class="prelude-val">Some</span>)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">ArrayBuffer</span> {
-    <span class="kw">const</span> <span class="ident">LENGTH</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">1</span>;
+<span class="kw">impl </span>ArrayBuffer {
+    <span class="kw">const </span>LENGTH: usize = <span class="number">1</span>;
 
-    <span class="doccomment">/// `25.1.3.1 ArrayBuffer ( length )`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-arraybuffer-length</span>
-    <span class="kw">fn</span> <span class="ident">constructor</span>(
-        <span class="ident">new_target</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
-        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="comment">// 1. If NewTarget is undefined, throw a TypeError exception.</span>
-        <span class="kw">if</span> <span class="ident">new_target</span>.<span class="ident">is_undefined</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
-                .<span class="ident">with_message</span>(<span class="string">&quot;ArrayBuffer.constructor called with undefined new target&quot;</span>)
-                .<span class="ident">into</span>());
+    <span class="doccomment">/// `25.1.3.1 ArrayBuffer ( length )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-arraybuffer-length
+    </span><span class="kw">fn </span>constructor(
+        new_target: <span class="kw-2">&amp;</span>JsValue,
+        args: <span class="kw-2">&amp;</span>[JsValue],
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="comment">// 1. If NewTarget is undefined, throw a TypeError exception.
+        </span><span class="kw">if </span>new_target.is_undefined() {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
+                .with_message(<span class="string">&quot;ArrayBuffer.constructor called with undefined new target&quot;</span>)
+                .into());
         }
 
-        <span class="comment">// 2. Let byteLength be ? ToIndex(length).</span>
-        <span class="kw">let</span> <span class="ident">byte_length</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>).<span class="ident">to_index</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="comment">// 2. Let byteLength be ? ToIndex(length).
+        </span><span class="kw">let </span>byte_length = args.get_or_undefined(<span class="number">0</span>).to_index(context)<span class="question-mark">?</span>;
 
-        <span class="comment">// 3. Return ? AllocateArrayBuffer(NewTarget, byteLength).</span>
-        <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::allocate</span>(<span class="ident">new_target</span>, <span class="ident">byte_length</span>, <span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">into</span>())
+        <span class="comment">// 3. Return ? AllocateArrayBuffer(NewTarget, byteLength).
+        </span><span class="prelude-val">Ok</span>(<span class="self">Self</span>::allocate(new_target, byte_length, context)<span class="question-mark">?</span>.into())
     }
 
-    <span class="doccomment">/// `25.1.4.3 get ArrayBuffer [ @@species ]`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-get-arraybuffer-@@species</span>
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::unnecessary_wraps</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">get_species</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="kw">_</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="comment">// 1. Return the this value.</span>
-        <span class="prelude-val">Ok</span>(<span class="ident">this</span>.<span class="ident">clone</span>())
+    <span class="doccomment">/// `25.1.4.3 get ArrayBuffer [ @@species ]`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-get-arraybuffer-@@species
+    </span><span class="attribute">#[allow(clippy::unnecessary_wraps)]
+    </span><span class="kw">fn </span>get_species(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="comment">// 1. Return the this value.
+        </span><span class="prelude-val">Ok</span>(this.clone())
     }
 
-    <span class="doccomment">/// `25.1.4.1 ArrayBuffer.isView ( arg )`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-arraybuffer.isview</span>
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::unnecessary_wraps</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">is_view</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">_context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="comment">// 1. If Type(arg) is not Object, return false.</span>
-        <span class="comment">// 2. If arg has a [[ViewedArrayBuffer]] internal slot, return true.</span>
-        <span class="comment">// 3. Return false.</span>
-        <span class="prelude-val">Ok</span>(<span class="ident">args</span>
-            .<span class="ident">get_or_undefined</span>(<span class="number">0</span>)
-            .<span class="ident">as_object</span>()
-            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">obj</span><span class="op">|</span> <span class="ident">obj</span>.<span class="ident">borrow</span>().<span class="ident">has_viewed_array_buffer</span>())
-            .<span class="ident">unwrap_or_default</span>()
-            .<span class="ident">into</span>())
+    <span class="doccomment">/// `25.1.4.1 ArrayBuffer.isView ( arg )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-arraybuffer.isview
+    </span><span class="attribute">#[allow(clippy::unnecessary_wraps)]
+    </span><span class="kw">fn </span>is_view(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], _context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="comment">// 1. If Type(arg) is not Object, return false.
+        // 2. If arg has a [[ViewedArrayBuffer]] internal slot, return true.
+        // 3. Return false.
+        </span><span class="prelude-val">Ok</span>(args
+            .get_or_undefined(<span class="number">0</span>)
+            .as_object()
+            .map(|obj| obj.borrow().has_viewed_array_buffer())
+            .unwrap_or_default()
+            .into())
     }
 
-    <span class="doccomment">/// `25.1.5.1 get ArrayBuffer.prototype.byteLength`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-get-arraybuffer.prototype.bytelength</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_byte_length</span>(
-        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
-        <span class="ident">_args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
-        <span class="kw">_</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="comment">// 1. Let O be the this value.</span>
-        <span class="comment">// 2. Perform ? RequireInternalSlot(O, [[ArrayBufferData]]).</span>
-        <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">obj</span>) <span class="op">=</span> <span class="ident">this</span>.<span class="ident">as_object</span>() {
-            <span class="ident">obj</span>
-        } <span class="kw">else</span> {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
-                .<span class="ident">with_message</span>(<span class="string">&quot;ArrayBuffer.byteLength called with non-object value&quot;</span>)
-                .<span class="ident">into</span>());
+    <span class="doccomment">/// `25.1.5.1 get ArrayBuffer.prototype.byteLength`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-get-arraybuffer.prototype.bytelength
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_byte_length(
+        this: <span class="kw-2">&amp;</span>JsValue,
+        _args: <span class="kw-2">&amp;</span>[JsValue],
+        <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="comment">// 1. Let O be the this value.
+        // 2. Perform ? RequireInternalSlot(O, [[ArrayBufferData]]).
+        </span><span class="kw">let </span>obj = <span class="kw">if let </span><span class="prelude-val">Some</span>(obj) = this.as_object() {
+            obj
+        } <span class="kw">else </span>{
+            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
+                .with_message(<span class="string">&quot;ArrayBuffer.byteLength called with non-object value&quot;</span>)
+                .into());
         };
-        <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">obj</span>.<span class="ident">borrow</span>();
-        <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">o</span>) <span class="op">=</span> <span class="ident">obj</span>.<span class="ident">as_array_buffer</span>() {
-            <span class="ident">o</span>
-        } <span class="kw">else</span> {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
-                .<span class="ident">with_message</span>(<span class="string">&quot;ArrayBuffer.byteLength called with invalid object&quot;</span>)
-                .<span class="ident">into</span>());
+        <span class="kw">let </span>obj = obj.borrow();
+        <span class="kw">let </span>o = <span class="kw">if let </span><span class="prelude-val">Some</span>(o) = obj.as_array_buffer() {
+            o
+        } <span class="kw">else </span>{
+            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
+                .with_message(<span class="string">&quot;ArrayBuffer.byteLength called with invalid object&quot;</span>)
+                .into());
         };
 
-        <span class="comment">// TODO: Shared Array Buffer</span>
-        <span class="comment">// 3. If IsSharedArrayBuffer(O) is true, throw a TypeError exception.</span>
+        <span class="comment">// TODO: Shared Array Buffer
+        // 3. If IsSharedArrayBuffer(O) is true, throw a TypeError exception.
 
-        <span class="comment">// 4. If IsDetachedBuffer(O) is true, return +0𝔽.</span>
-        <span class="kw">if</span> <span class="ident"><span class="self">Self</span>::is_detached_buffer</span>(<span class="ident">o</span>) {
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="number">0</span>.<span class="ident">into</span>());
+        // 4. If IsDetachedBuffer(O) is true, return +0𝔽.
+        </span><span class="kw">if </span><span class="self">Self</span>::is_detached_buffer(o) {
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="number">0</span>.into());
         }
 
-        <span class="comment">// 5. Let length be O.[[ArrayBufferByteLength]].</span>
-        <span class="comment">// 6. Return 𝔽(length).</span>
-        <span class="prelude-val">Ok</span>(<span class="ident">o</span>.<span class="ident">array_buffer_byte_length</span>.<span class="ident">into</span>())
+        <span class="comment">// 5. Let length be O.[[ArrayBufferByteLength]].
+        // 6. Return 𝔽(length).
+        </span><span class="prelude-val">Ok</span>(o.array_buffer_byte_length.into())
     }
 
-    <span class="doccomment">/// `25.1.5.3 ArrayBuffer.prototype.slice ( start, end )`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-arraybuffer.prototype.slice</span>
-    <span class="kw">fn</span> <span class="ident">slice</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="comment">// 1. Let O be the this value.</span>
-        <span class="comment">// 2. Perform ? RequireInternalSlot(O, [[ArrayBufferData]]).</span>
-        <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">obj</span>) <span class="op">=</span> <span class="ident">this</span>.<span class="ident">as_object</span>() {
-            <span class="ident">obj</span>
-        } <span class="kw">else</span> {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
-                .<span class="ident">with_message</span>(<span class="string">&quot;ArrayBuffer.slice called with non-object value&quot;</span>)
-                .<span class="ident">into</span>());
+    <span class="doccomment">/// `25.1.5.3 ArrayBuffer.prototype.slice ( start, end )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-arraybuffer.prototype.slice
+    </span><span class="kw">fn </span>slice(this: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="comment">// 1. Let O be the this value.
+        // 2. Perform ? RequireInternalSlot(O, [[ArrayBufferData]]).
+        </span><span class="kw">let </span>obj = <span class="kw">if let </span><span class="prelude-val">Some</span>(obj) = this.as_object() {
+            obj
+        } <span class="kw">else </span>{
+            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
+                .with_message(<span class="string">&quot;ArrayBuffer.slice called with non-object value&quot;</span>)
+                .into());
         };
-        <span class="kw">let</span> <span class="ident">obj_borrow</span> <span class="op">=</span> <span class="ident">obj</span>.<span class="ident">borrow</span>();
-        <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">o</span>) <span class="op">=</span> <span class="ident">obj_borrow</span>.<span class="ident">as_array_buffer</span>() {
-            <span class="ident">o</span>
-        } <span class="kw">else</span> {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
-                .<span class="ident">with_message</span>(<span class="string">&quot;ArrayBuffer.slice called with invalid object&quot;</span>)
-                .<span class="ident">into</span>());
+        <span class="kw">let </span>obj_borrow = obj.borrow();
+        <span class="kw">let </span>o = <span class="kw">if let </span><span class="prelude-val">Some</span>(o) = obj_borrow.as_array_buffer() {
+            o
+        } <span class="kw">else </span>{
+            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
+                .with_message(<span class="string">&quot;ArrayBuffer.slice called with invalid object&quot;</span>)
+                .into());
         };
 
-        <span class="comment">// TODO: Shared Array Buffer</span>
-        <span class="comment">// 3. If IsSharedArrayBuffer(O) is true, throw a TypeError exception.</span>
+        <span class="comment">// TODO: Shared Array Buffer
+        // 3. If IsSharedArrayBuffer(O) is true, throw a TypeError exception.
 
-        <span class="comment">// 4. If IsDetachedBuffer(O) is true, throw a TypeError exception.</span>
-        <span class="kw">if</span> <span class="ident"><span class="self">Self</span>::is_detached_buffer</span>(<span class="ident">o</span>) {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
-                .<span class="ident">with_message</span>(<span class="string">&quot;ArrayBuffer.slice called with detached buffer&quot;</span>)
-                .<span class="ident">into</span>());
+        // 4. If IsDetachedBuffer(O) is true, throw a TypeError exception.
+        </span><span class="kw">if </span><span class="self">Self</span>::is_detached_buffer(o) {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
+                .with_message(<span class="string">&quot;ArrayBuffer.slice called with detached buffer&quot;</span>)
+                .into());
         }
 
-        <span class="comment">// 5. Let len be O.[[ArrayBufferByteLength]].</span>
-        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">o</span>.<span class="ident">array_buffer_byte_length</span> <span class="kw">as</span> <span class="ident">i64</span>;
+        <span class="comment">// 5. Let len be O.[[ArrayBufferByteLength]].
+        </span><span class="kw">let </span>len = o.array_buffer_byte_length <span class="kw">as </span>i64;
 
-        <span class="comment">// 6. Let relativeStart be ? ToIntegerOrInfinity(start).</span>
-        <span class="kw">let</span> <span class="ident">relative_start</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>).<span class="ident">to_integer_or_infinity</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="comment">// 6. Let relativeStart be ? ToIntegerOrInfinity(start).
+        </span><span class="kw">let </span>relative_start = args.get_or_undefined(<span class="number">0</span>).to_integer_or_infinity(context)<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="ident">first</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">relative_start</span> {
-            <span class="comment">// 7. If relativeStart is -∞, let first be 0.</span>
-            <span class="ident">IntegerOrInfinity::NegativeInfinity</span> =&gt; <span class="number">0</span>,
-            <span class="comment">// 8. Else if relativeStart &lt; 0, let first be max(len + relativeStart, 0).</span>
-            <span class="ident">IntegerOrInfinity::Integer</span>(<span class="ident">i</span>) <span class="kw">if</span> <span class="ident">i</span> <span class="op">&lt;</span> <span class="number">0</span> =&gt; <span class="ident">std::cmp::max</span>(<span class="ident">len</span> <span class="op">+</span> <span class="ident">i</span>, <span class="number">0</span>),
-            <span class="comment">// 9. Else, let first be min(relativeStart, len).</span>
-            <span class="ident">IntegerOrInfinity::Integer</span>(<span class="ident">i</span>) =&gt; <span class="ident">std::cmp::min</span>(<span class="ident">i</span>, <span class="ident">len</span>),
-            <span class="ident">IntegerOrInfinity::PositiveInfinity</span> =&gt; <span class="ident">len</span>,
+        <span class="kw">let </span>first = <span class="kw">match </span>relative_start {
+            <span class="comment">// 7. If relativeStart is -∞, let first be 0.
+            </span>IntegerOrInfinity::NegativeInfinity =&gt; <span class="number">0</span>,
+            <span class="comment">// 8. Else if relativeStart &lt; 0, let first be max(len + relativeStart, 0).
+            </span>IntegerOrInfinity::Integer(i) <span class="kw">if </span>i &lt; <span class="number">0 </span>=&gt; std::cmp::max(len + i, <span class="number">0</span>),
+            <span class="comment">// 9. Else, let first be min(relativeStart, len).
+            </span>IntegerOrInfinity::Integer(i) =&gt; std::cmp::min(i, len),
+            IntegerOrInfinity::PositiveInfinity =&gt; len,
         };
 
-        <span class="comment">// 10. If end is undefined, let relativeEnd be len; else let relativeEnd be ? ToIntegerOrInfinity(end).</span>
-        <span class="kw">let</span> <span class="ident">end</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">1</span>);
-        <span class="kw">let</span> <span class="ident">relative_end</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">end</span>.<span class="ident">is_undefined</span>() {
-            <span class="ident">IntegerOrInfinity::Integer</span>(<span class="ident">len</span>)
-        } <span class="kw">else</span> {
-            <span class="ident">end</span>.<span class="ident">to_integer_or_infinity</span>(<span class="ident">context</span>)<span class="question-mark">?</span>
+        <span class="comment">// 10. If end is undefined, let relativeEnd be len; else let relativeEnd be ? ToIntegerOrInfinity(end).
+        </span><span class="kw">let </span>end = args.get_or_undefined(<span class="number">1</span>);
+        <span class="kw">let </span>relative_end = <span class="kw">if </span>end.is_undefined() {
+            IntegerOrInfinity::Integer(len)
+        } <span class="kw">else </span>{
+            end.to_integer_or_infinity(context)<span class="question-mark">?
+        </span>};
+
+        <span class="kw">let </span>r#final = <span class="kw">match </span>relative_end {
+            <span class="comment">// 11. If relativeEnd is -∞, let final be 0.
+            </span>IntegerOrInfinity::NegativeInfinity =&gt; <span class="number">0</span>,
+            <span class="comment">// 12. Else if relativeEnd &lt; 0, let final be max(len + relativeEnd, 0).
+            </span>IntegerOrInfinity::Integer(i) <span class="kw">if </span>i &lt; <span class="number">0 </span>=&gt; std::cmp::max(len + i, <span class="number">0</span>),
+            <span class="comment">// 13. Else, let final be min(relativeEnd, len).
+            </span>IntegerOrInfinity::Integer(i) =&gt; std::cmp::min(i, len),
+            IntegerOrInfinity::PositiveInfinity =&gt; len,
         };
 
-        <span class="kw">let</span> <span class="ident">r#final</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">relative_end</span> {
-            <span class="comment">// 11. If relativeEnd is -∞, let final be 0.</span>
-            <span class="ident">IntegerOrInfinity::NegativeInfinity</span> =&gt; <span class="number">0</span>,
-            <span class="comment">// 12. Else if relativeEnd &lt; 0, let final be max(len + relativeEnd, 0).</span>
-            <span class="ident">IntegerOrInfinity::Integer</span>(<span class="ident">i</span>) <span class="kw">if</span> <span class="ident">i</span> <span class="op">&lt;</span> <span class="number">0</span> =&gt; <span class="ident">std::cmp::max</span>(<span class="ident">len</span> <span class="op">+</span> <span class="ident">i</span>, <span class="number">0</span>),
-            <span class="comment">// 13. Else, let final be min(relativeEnd, len).</span>
-            <span class="ident">IntegerOrInfinity::Integer</span>(<span class="ident">i</span>) =&gt; <span class="ident">std::cmp::min</span>(<span class="ident">i</span>, <span class="ident">len</span>),
-            <span class="ident">IntegerOrInfinity::PositiveInfinity</span> =&gt; <span class="ident">len</span>,
-        };
+        <span class="comment">// 14. Let newLen be max(final - first, 0).
+        </span><span class="kw">let </span>new_len = std::cmp::max(r#final - first, <span class="number">0</span>) <span class="kw">as </span>u64;
 
-        <span class="comment">// 14. Let newLen be max(final - first, 0).</span>
-        <span class="kw">let</span> <span class="ident">new_len</span> <span class="op">=</span> <span class="ident">std::cmp::max</span>(<span class="ident">r#final</span> <span class="op">-</span> <span class="ident">first</span>, <span class="number">0</span>) <span class="kw">as</span> <span class="ident">u64</span>;
+        <span class="comment">// 15. Let ctor be ? SpeciesConstructor(O, %ArrayBuffer%).
+        </span><span class="kw">let </span>ctor = obj.species_constructor(StandardConstructors::array_buffer, context)<span class="question-mark">?</span>;
 
-        <span class="comment">// 15. Let ctor be ? SpeciesConstructor(O, %ArrayBuffer%).</span>
-        <span class="kw">let</span> <span class="ident">ctor</span> <span class="op">=</span> <span class="ident">obj</span>.<span class="ident">species_constructor</span>(<span class="ident">StandardConstructors::array_buffer</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
-
-        <span class="comment">// 16. Let new be ? Construct(ctor, « 𝔽(newLen) »).</span>
-        <span class="kw">let</span> <span class="ident">new</span> <span class="op">=</span> <span class="ident">ctor</span>.<span class="ident">construct</span>(<span class="kw-2">&amp;</span>[<span class="ident">new_len</span>.<span class="ident">into</span>()], <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">ctor</span>), <span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="comment">// 16. Let new be ? Construct(ctor, « 𝔽(newLen) »).
+        </span><span class="kw">let </span>new = ctor.construct(<span class="kw-2">&amp;</span>[new_len.into()], <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>ctor), context)<span class="question-mark">?</span>;
 
         {
-            <span class="kw">let</span> <span class="ident">new_obj</span> <span class="op">=</span> <span class="ident">new</span>.<span class="ident">borrow</span>();
-            <span class="comment">// 17. Perform ? RequireInternalSlot(new, [[ArrayBufferData]]).</span>
-            <span class="kw">let</span> <span class="ident">new_array_buffer</span> <span class="op">=</span> <span class="ident">new_obj</span>.<span class="ident">as_array_buffer</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-                <span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="string">&quot;ArrayBuffer constructor returned invalid object&quot;</span>)
+            <span class="kw">let </span>new_obj = new.borrow();
+            <span class="comment">// 17. Perform ? RequireInternalSlot(new, [[ArrayBufferData]]).
+            </span><span class="kw">let </span>new_array_buffer = new_obj.as_array_buffer().ok_or_else(|| {
+                JsNativeError::typ().with_message(<span class="string">&quot;ArrayBuffer constructor returned invalid object&quot;</span>)
             })<span class="question-mark">?</span>;
 
-            <span class="comment">// TODO: Shared Array Buffer</span>
-            <span class="comment">// 18. If IsSharedArrayBuffer(new) is true, throw a TypeError exception.</span>
+            <span class="comment">// TODO: Shared Array Buffer
+            // 18. If IsSharedArrayBuffer(new) is true, throw a TypeError exception.
 
-            <span class="comment">// 19. If IsDetachedBuffer(new) is true, throw a TypeError exception.</span>
-            <span class="kw">if</span> <span class="ident">new_array_buffer</span>.<span class="ident">is_detached_buffer</span>() {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
-                    .<span class="ident">with_message</span>(<span class="string">&quot;ArrayBuffer constructor returned detached ArrayBuffer&quot;</span>)
-                    .<span class="ident">into</span>());
+            // 19. If IsDetachedBuffer(new) is true, throw a TypeError exception.
+            </span><span class="kw">if </span>new_array_buffer.is_detached_buffer() {
+                <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
+                    .with_message(<span class="string">&quot;ArrayBuffer constructor returned detached ArrayBuffer&quot;</span>)
+                    .into());
             }
         }
-        <span class="comment">// 20. If SameValue(new, O) is true, throw a TypeError exception.</span>
-        <span class="kw">if</span> <span class="ident">this</span>
-            .<span class="ident">as_object</span>()
-            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">obj</span><span class="op">|</span> <span class="ident">JsObject::equals</span>(<span class="ident">obj</span>, <span class="kw-2">&amp;</span><span class="ident">new</span>))
-            .<span class="ident">unwrap_or_default</span>()
+        <span class="comment">// 20. If SameValue(new, O) is true, throw a TypeError exception.
+        </span><span class="kw">if </span>this
+            .as_object()
+            .map(|obj| JsObject::equals(obj, <span class="kw-2">&amp;</span>new))
+            .unwrap_or_default()
         {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
-                .<span class="ident">with_message</span>(<span class="string">&quot;New ArrayBuffer is the same as this ArrayBuffer&quot;</span>)
-                .<span class="ident">into</span>());
+            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
+                .with_message(<span class="string">&quot;New ArrayBuffer is the same as this ArrayBuffer&quot;</span>)
+                .into());
         }
 
         {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">new_obj_borrow</span> <span class="op">=</span> <span class="ident">new</span>.<span class="ident">borrow_mut</span>();
-            <span class="kw">let</span> <span class="ident">new_array_buffer</span> <span class="op">=</span> <span class="ident">new_obj_borrow</span>
-                .<span class="ident">as_array_buffer_mut</span>()
-                .<span class="ident">expect</span>(<span class="string">&quot;Already checked that `new_obj` was an `ArrayBuffer`&quot;</span>);
+            <span class="kw">let </span><span class="kw-2">mut </span>new_obj_borrow = new.borrow_mut();
+            <span class="kw">let </span>new_array_buffer = new_obj_borrow
+                .as_array_buffer_mut()
+                .expect(<span class="string">&quot;Already checked that `new_obj` was an `ArrayBuffer`&quot;</span>);
 
-            <span class="comment">// 21. If new.[[ArrayBufferByteLength]] &lt; newLen, throw a TypeError exception.</span>
-            <span class="kw">if</span> <span class="ident">new_array_buffer</span>.<span class="ident">array_buffer_byte_length</span> <span class="op">&lt;</span> <span class="ident">new_len</span> {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
-                    .<span class="ident">with_message</span>(<span class="string">&quot;New ArrayBuffer length too small&quot;</span>)
-                    .<span class="ident">into</span>());
+            <span class="comment">// 21. If new.[[ArrayBufferByteLength]] &lt; newLen, throw a TypeError exception.
+            </span><span class="kw">if </span>new_array_buffer.array_buffer_byte_length &lt; new_len {
+                <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
+                    .with_message(<span class="string">&quot;New ArrayBuffer length too small&quot;</span>)
+                    .into());
             }
 
-            <span class="comment">// 22. NOTE: Side-effects of the above steps may have detached O.</span>
-            <span class="comment">// 23. If IsDetachedBuffer(O) is true, throw a TypeError exception.</span>
-            <span class="kw">if</span> <span class="ident"><span class="self">Self</span>::is_detached_buffer</span>(<span class="ident">o</span>) {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
-                    .<span class="ident">with_message</span>(<span class="string">&quot;ArrayBuffer detached while ArrayBuffer.slice was running&quot;</span>)
-                    .<span class="ident">into</span>());
+            <span class="comment">// 22. NOTE: Side-effects of the above steps may have detached O.
+            // 23. If IsDetachedBuffer(O) is true, throw a TypeError exception.
+            </span><span class="kw">if </span><span class="self">Self</span>::is_detached_buffer(o) {
+                <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
+                    .with_message(<span class="string">&quot;ArrayBuffer detached while ArrayBuffer.slice was running&quot;</span>)
+                    .into());
             }
 
-            <span class="comment">// 24. Let fromBuf be O.[[ArrayBufferData]].</span>
-            <span class="kw">let</span> <span class="ident">from_buf</span> <span class="op">=</span> <span class="ident">o</span>
-                .<span class="ident">array_buffer_data</span>
-                .<span class="ident">as_ref</span>()
-                .<span class="ident">expect</span>(<span class="string">&quot;ArrayBuffer cannot be detached here&quot;</span>);
+            <span class="comment">// 24. Let fromBuf be O.[[ArrayBufferData]].
+            </span><span class="kw">let </span>from_buf = o
+                .array_buffer_data
+                .as_ref()
+                .expect(<span class="string">&quot;ArrayBuffer cannot be detached here&quot;</span>);
 
-            <span class="comment">// 25. Let toBuf be new.[[ArrayBufferData]].</span>
-            <span class="kw">let</span> <span class="ident">to_buf</span> <span class="op">=</span> <span class="ident">new_array_buffer</span>
-                .<span class="ident">array_buffer_data</span>
-                .<span class="ident">as_mut</span>()
-                .<span class="ident">expect</span>(<span class="string">&quot;ArrayBuffer cannot be detached here&quot;</span>);
+            <span class="comment">// 25. Let toBuf be new.[[ArrayBufferData]].
+            </span><span class="kw">let </span>to_buf = new_array_buffer
+                .array_buffer_data
+                .as_mut()
+                .expect(<span class="string">&quot;ArrayBuffer cannot be detached here&quot;</span>);
 
-            <span class="comment">// 26. Perform CopyDataBlockBytes(toBuf, 0, fromBuf, first, newLen).</span>
-            <span class="ident">copy_data_block_bytes</span>(<span class="ident">to_buf</span>, <span class="number">0</span>, <span class="ident">from_buf</span>, <span class="ident">first</span> <span class="kw">as</span> <span class="ident">usize</span>, <span class="ident">new_len</span> <span class="kw">as</span> <span class="ident">usize</span>);
+            <span class="comment">// 26. Perform CopyDataBlockBytes(toBuf, 0, fromBuf, first, newLen).
+            </span>copy_data_block_bytes(to_buf, <span class="number">0</span>, from_buf, first <span class="kw">as </span>usize, new_len <span class="kw">as </span>usize);
         }
 
-        <span class="comment">// 27. Return new.</span>
-        <span class="prelude-val">Ok</span>(<span class="ident">new</span>.<span class="ident">into</span>())
+        <span class="comment">// 27. Return new.
+        </span><span class="prelude-val">Ok</span>(new.into())
     }
 
-    <span class="doccomment">/// `25.1.2.1 AllocateArrayBuffer ( constructor, byteLength )`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-allocatearraybuffer</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">allocate</span>(
-        <span class="ident">constructor</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
-        <span class="ident">byte_length</span>: <span class="ident">u64</span>,
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsObject</span><span class="op">&gt;</span> {
-        <span class="comment">// 1. Let obj be ? OrdinaryCreateFromConstructor(constructor, &quot;%ArrayBuffer.prototype%&quot;, « [[ArrayBufferData]], [[ArrayBufferByteLength]], [[ArrayBufferDetachKey]] »).</span>
-        <span class="kw">let</span> <span class="ident">prototype</span> <span class="op">=</span> <span class="ident">get_prototype_from_constructor</span>(
-            <span class="ident">constructor</span>,
-            <span class="ident">StandardConstructors::array_buffer</span>,
-            <span class="ident">context</span>,
+    <span class="doccomment">/// `25.1.2.1 AllocateArrayBuffer ( constructor, byteLength )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-allocatearraybuffer
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>allocate(
+        constructor: <span class="kw-2">&amp;</span>JsValue,
+        byte_length: u64,
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;JsObject&gt; {
+        <span class="comment">// 1. Let obj be ? OrdinaryCreateFromConstructor(constructor, &quot;%ArrayBuffer.prototype%&quot;, « [[ArrayBufferData]], [[ArrayBufferByteLength]], [[ArrayBufferDetachKey]] »).
+        </span><span class="kw">let </span>prototype = get_prototype_from_constructor(
+            constructor,
+            StandardConstructors::array_buffer,
+            context,
         )<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">construct_object</span>();
-        <span class="ident">obj</span>.<span class="ident">set_prototype</span>(<span class="ident">prototype</span>.<span class="ident">into</span>());
+        <span class="kw">let </span>obj = context.construct_object();
+        obj.set_prototype(prototype.into());
 
-        <span class="comment">// 2. Let block be ? CreateByteDataBlock(byteLength).</span>
-        <span class="kw">let</span> <span class="ident">block</span> <span class="op">=</span> <span class="ident">create_byte_data_block</span>(<span class="ident">byte_length</span>)<span class="question-mark">?</span>;
+        <span class="comment">// 2. Let block be ? CreateByteDataBlock(byteLength).
+        </span><span class="kw">let </span>block = create_byte_data_block(byte_length)<span class="question-mark">?</span>;
 
-        <span class="comment">// 3. Set obj.[[ArrayBufferData]] to block.</span>
-        <span class="comment">// 4. Set obj.[[ArrayBufferByteLength]] to byteLength.</span>
-        <span class="ident">obj</span>.<span class="ident">borrow_mut</span>().<span class="ident">data</span> <span class="op">=</span> <span class="ident">ObjectData::array_buffer</span>(<span class="self">Self</span> {
-            <span class="ident">array_buffer_data</span>: <span class="prelude-val">Some</span>(<span class="ident">block</span>),
-            <span class="ident">array_buffer_byte_length</span>: <span class="ident">byte_length</span>,
-            <span class="ident">array_buffer_detach_key</span>: <span class="ident">JsValue::Undefined</span>,
+        <span class="comment">// 3. Set obj.[[ArrayBufferData]] to block.
+        // 4. Set obj.[[ArrayBufferByteLength]] to byteLength.
+        </span>obj.borrow_mut().data = ObjectData::array_buffer(<span class="self">Self </span>{
+            array_buffer_data: <span class="prelude-val">Some</span>(block),
+            array_buffer_byte_length: byte_length,
+            array_buffer_detach_key: JsValue::Undefined,
         });
 
-        <span class="comment">// 5. Return obj.</span>
-        <span class="prelude-val">Ok</span>(<span class="ident">obj</span>)
+        <span class="comment">// 5. Return obj.
+        </span><span class="prelude-val">Ok</span>(obj)
     }
 
-    <span class="doccomment">/// `25.1.2.2 IsDetachedBuffer ( arrayBuffer )`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-isdetachedbuffer</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">is_detached_buffer</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="comment">// 1. If arrayBuffer.[[ArrayBufferData]] is null, return true.</span>
-        <span class="comment">// 2. Return false.</span>
-        <span class="self">self</span>.<span class="ident">array_buffer_data</span>.<span class="ident">is_none</span>()
+    <span class="doccomment">/// `25.1.2.2 IsDetachedBuffer ( arrayBuffer )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-isdetachedbuffer
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_detached_buffer(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="comment">// 1. If arrayBuffer.[[ArrayBufferData]] is null, return true.
+        // 2. Return false.
+        </span><span class="self">self</span>.array_buffer_data.is_none()
     }
 
-    <span class="doccomment">/// `25.1.2.4 CloneArrayBuffer ( srcBuffer, srcByteOffset, srcLength, cloneConstructor )`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-clonearraybuffer</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">clone_array_buffer</span>(
+    <span class="doccomment">/// `25.1.2.4 CloneArrayBuffer ( srcBuffer, srcByteOffset, srcLength, cloneConstructor )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-clonearraybuffer
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>clone_array_buffer(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">src_byte_offset</span>: <span class="ident">u64</span>,
-        <span class="ident">src_length</span>: <span class="ident">u64</span>,
-        <span class="ident">clone_constructor</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsObject</span><span class="op">&gt;</span> {
-        <span class="comment">// 1. Let targetBuffer be ? AllocateArrayBuffer(cloneConstructor, srcLength).</span>
-        <span class="kw">let</span> <span class="ident">target_buffer</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::allocate</span>(<span class="ident">clone_constructor</span>, <span class="ident">src_length</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+        src_byte_offset: u64,
+        src_length: u64,
+        clone_constructor: <span class="kw-2">&amp;</span>JsValue,
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;JsObject&gt; {
+        <span class="comment">// 1. Let targetBuffer be ? AllocateArrayBuffer(cloneConstructor, srcLength).
+        </span><span class="kw">let </span>target_buffer = <span class="self">Self</span>::allocate(clone_constructor, src_length, context)<span class="question-mark">?</span>;
 
-        <span class="comment">// 2. If IsDetachedBuffer(srcBuffer) is true, throw a TypeError exception.</span>
-        <span class="comment">// 3. Let srcBlock be srcBuffer.[[ArrayBufferData]].</span>
-        <span class="kw">let</span> <span class="ident">src_block</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">b</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">array_buffer_data</span> {
-            <span class="ident">b</span>
-        } <span class="kw">else</span> {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::syntax</span>()
-                .<span class="ident">with_message</span>(<span class="string">&quot;Cannot clone detached array buffer&quot;</span>)
-                .<span class="ident">into</span>());
+        <span class="comment">// 2. If IsDetachedBuffer(srcBuffer) is true, throw a TypeError exception.
+        // 3. Let srcBlock be srcBuffer.[[ArrayBufferData]].
+        </span><span class="kw">let </span>src_block = <span class="kw">if let </span><span class="prelude-val">Some</span>(b) = <span class="kw-2">&amp;</span><span class="self">self</span>.array_buffer_data {
+            b
+        } <span class="kw">else </span>{
+            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::syntax()
+                .with_message(<span class="string">&quot;Cannot clone detached array buffer&quot;</span>)
+                .into());
         };
 
         {
-            <span class="comment">// 4. Let targetBlock be targetBuffer.[[ArrayBufferData]].</span>
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">target_buffer_mut</span> <span class="op">=</span> <span class="ident">target_buffer</span>.<span class="ident">borrow_mut</span>();
-            <span class="kw">let</span> <span class="ident">target_block</span> <span class="op">=</span> <span class="ident">target_buffer_mut</span>
-                .<span class="ident">as_array_buffer_mut</span>()
-                .<span class="ident">expect</span>(<span class="string">&quot;This must be an ArrayBuffer&quot;</span>);
+            <span class="comment">// 4. Let targetBlock be targetBuffer.[[ArrayBufferData]].
+            </span><span class="kw">let </span><span class="kw-2">mut </span>target_buffer_mut = target_buffer.borrow_mut();
+            <span class="kw">let </span>target_block = target_buffer_mut
+                .as_array_buffer_mut()
+                .expect(<span class="string">&quot;This must be an ArrayBuffer&quot;</span>);
 
-            <span class="comment">// 5. Perform CopyDataBlockBytes(targetBlock, 0, srcBlock, srcByteOffset, srcLength).</span>
-            <span class="ident">copy_data_block_bytes</span>(
-                <span class="ident">target_block</span>
-                    .<span class="ident">array_buffer_data</span>
-                    .<span class="ident">as_mut</span>()
-                    .<span class="ident">expect</span>(<span class="string">&quot;ArrayBuffer cannot me detached here&quot;</span>),
+            <span class="comment">// 5. Perform CopyDataBlockBytes(targetBlock, 0, srcBlock, srcByteOffset, srcLength).
+            </span>copy_data_block_bytes(
+                target_block
+                    .array_buffer_data
+                    .as_mut()
+                    .expect(<span class="string">&quot;ArrayBuffer cannot me detached here&quot;</span>),
                 <span class="number">0</span>,
-                <span class="ident">src_block</span>,
-                <span class="ident">src_byte_offset</span> <span class="kw">as</span> <span class="ident">usize</span>,
-                <span class="ident">src_length</span> <span class="kw">as</span> <span class="ident">usize</span>,
+                src_block,
+                src_byte_offset <span class="kw">as </span>usize,
+                src_length <span class="kw">as </span>usize,
             );
         }
 
-        <span class="comment">// 6. Return targetBuffer.</span>
-        <span class="prelude-val">Ok</span>(<span class="ident">target_buffer</span>)
+        <span class="comment">// 6. Return targetBuffer.
+        </span><span class="prelude-val">Ok</span>(target_buffer)
     }
 
-    <span class="doccomment">/// `25.1.2.6 IsUnclampedIntegerElementType ( type )`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-isunclampedintegerelementtype</span>
-    <span class="kw">fn</span> <span class="ident">is_unclamped_integer_element_type</span>(<span class="ident">t</span>: <span class="ident">TypedArrayKind</span>) -&gt; <span class="ident">bool</span> {
-        <span class="comment">// 1. If type is Int8, Uint8, Int16, Uint16, Int32, or Uint32, return true.</span>
-        <span class="comment">// 2. Return false.</span>
-        <span class="macro">matches!</span>(
-            <span class="ident">t</span>,
-            <span class="ident">TypedArrayKind::Int8</span>
-                <span class="op">|</span> <span class="ident">TypedArrayKind::Uint8</span>
-                <span class="op">|</span> <span class="ident">TypedArrayKind::Int16</span>
-                <span class="op">|</span> <span class="ident">TypedArrayKind::Uint16</span>
-                <span class="op">|</span> <span class="ident">TypedArrayKind::Int32</span>
-                <span class="op">|</span> <span class="ident">TypedArrayKind::Uint32</span>
+    <span class="doccomment">/// `25.1.2.6 IsUnclampedIntegerElementType ( type )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-isunclampedintegerelementtype
+    </span><span class="kw">fn </span>is_unclamped_integer_element_type(t: TypedArrayKind) -&gt; bool {
+        <span class="comment">// 1. If type is Int8, Uint8, Int16, Uint16, Int32, or Uint32, return true.
+        // 2. Return false.
+        </span><span class="macro">matches!</span>(
+            t,
+            TypedArrayKind::Int8
+                | TypedArrayKind::Uint8
+                | TypedArrayKind::Int16
+                | TypedArrayKind::Uint16
+                | TypedArrayKind::Int32
+                | TypedArrayKind::Uint32
         )
     }
 
-    <span class="doccomment">/// `25.1.2.7 IsBigIntElementType ( type )`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-isbigintelementtype</span>
-    <span class="kw">fn</span> <span class="ident">is_big_int_element_type</span>(<span class="ident">t</span>: <span class="ident">TypedArrayKind</span>) -&gt; <span class="ident">bool</span> {
-        <span class="comment">// 1. If type is BigUint64 or BigInt64, return true.</span>
-        <span class="comment">// 2. Return false.</span>
-        <span class="macro">matches!</span>(<span class="ident">t</span>, <span class="ident">TypedArrayKind::BigUint64</span> <span class="op">|</span> <span class="ident">TypedArrayKind::BigInt64</span>)
+    <span class="doccomment">/// `25.1.2.7 IsBigIntElementType ( type )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-isbigintelementtype
+    </span><span class="kw">fn </span>is_big_int_element_type(t: TypedArrayKind) -&gt; bool {
+        <span class="comment">// 1. If type is BigUint64 or BigInt64, return true.
+        // 2. Return false.
+        </span><span class="macro">matches!</span>(t, TypedArrayKind::BigUint64 | TypedArrayKind::BigInt64)
     }
 
-    <span class="doccomment">/// `25.1.2.8 IsNoTearConfiguration ( type, order )`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-isnotearconfiguration</span>
-    <span class="comment">// TODO: Allow unused function until shared array buffers are implemented.</span>
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">dead_code</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">is_no_tear_configuration</span>(<span class="ident">t</span>: <span class="ident">TypedArrayKind</span>, <span class="ident">order</span>: <span class="ident">SharedMemoryOrder</span>) -&gt; <span class="ident">bool</span> {
-        <span class="comment">// 1. If ! IsUnclampedIntegerElementType(type) is true, return true.</span>
-        <span class="kw">if</span> <span class="ident"><span class="self">Self</span>::is_unclamped_integer_element_type</span>(<span class="ident">t</span>) {
-            <span class="kw">return</span> <span class="bool-val">true</span>;
+    <span class="doccomment">/// `25.1.2.8 IsNoTearConfiguration ( type, order )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-isnotearconfiguration
+    </span><span class="comment">// TODO: Allow unused function until shared array buffers are implemented.
+    </span><span class="attribute">#[allow(dead_code)]
+    </span><span class="kw">fn </span>is_no_tear_configuration(t: TypedArrayKind, order: SharedMemoryOrder) -&gt; bool {
+        <span class="comment">// 1. If ! IsUnclampedIntegerElementType(type) is true, return true.
+        </span><span class="kw">if </span><span class="self">Self</span>::is_unclamped_integer_element_type(t) {
+            <span class="kw">return </span><span class="bool-val">true</span>;
         }
 
-        <span class="comment">// 2. If ! IsBigIntElementType(type) is true and order is not Init or Unordered, return true.</span>
-        <span class="kw">if</span> <span class="ident"><span class="self">Self</span>::is_big_int_element_type</span>(<span class="ident">t</span>)
-            <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="macro">matches!</span>(
-                <span class="ident">order</span>,
-                <span class="ident">SharedMemoryOrder::Init</span> <span class="op">|</span> <span class="ident">SharedMemoryOrder::Unordered</span>
+        <span class="comment">// 2. If ! IsBigIntElementType(type) is true and order is not Init or Unordered, return true.
+        </span><span class="kw">if </span><span class="self">Self</span>::is_big_int_element_type(t)
+            &amp;&amp; !<span class="macro">matches!</span>(
+                order,
+                SharedMemoryOrder::Init | SharedMemoryOrder::Unordered
             )
         {
-            <span class="kw">return</span> <span class="bool-val">true</span>;
+            <span class="kw">return </span><span class="bool-val">true</span>;
         }
 
-        <span class="comment">// 3. Return false.</span>
-        <span class="bool-val">false</span>
-    }
+        <span class="comment">// 3. Return false.
+        </span><span class="bool-val">false
+    </span>}
 
-    <span class="doccomment">/// `25.1.2.9 RawBytesToNumeric ( type, rawBytes, isLittleEndian )`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-rawbytestonumeric</span>
-    <span class="kw">fn</span> <span class="ident">raw_bytes_to_numeric</span>(<span class="ident">t</span>: <span class="ident">TypedArrayKind</span>, <span class="ident">bytes</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">is_little_endian</span>: <span class="ident">bool</span>) -&gt; <span class="ident">JsValue</span> {
-        <span class="kw">let</span> <span class="ident">n</span>: <span class="ident">Numeric</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">t</span> {
-            <span class="ident">TypedArrayKind::Int8</span> =&gt; {
-                <span class="kw">if</span> <span class="ident">is_little_endian</span> {
-                    <span class="ident">i8::from_le_bytes</span>(<span class="ident">bytes</span>.<span class="ident">try_into</span>().<span class="ident">expect</span>(<span class="string">&quot;slice with incorrect length&quot;</span>)).<span class="ident">into</span>()
-                } <span class="kw">else</span> {
-                    <span class="ident">i8::from_be_bytes</span>(<span class="ident">bytes</span>.<span class="ident">try_into</span>().<span class="ident">expect</span>(<span class="string">&quot;slice with incorrect length&quot;</span>)).<span class="ident">into</span>()
+    <span class="doccomment">/// `25.1.2.9 RawBytesToNumeric ( type, rawBytes, isLittleEndian )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-rawbytestonumeric
+    </span><span class="kw">fn </span>raw_bytes_to_numeric(t: TypedArrayKind, bytes: <span class="kw-2">&amp;</span>[u8], is_little_endian: bool) -&gt; JsValue {
+        <span class="kw">let </span>n: Numeric = <span class="kw">match </span>t {
+            TypedArrayKind::Int8 =&gt; {
+                <span class="kw">if </span>is_little_endian {
+                    i8::from_le_bytes(bytes.try_into().expect(<span class="string">&quot;slice with incorrect length&quot;</span>)).into()
+                } <span class="kw">else </span>{
+                    i8::from_be_bytes(bytes.try_into().expect(<span class="string">&quot;slice with incorrect length&quot;</span>)).into()
                 }
             }
-            <span class="ident">TypedArrayKind::Uint8</span> <span class="op">|</span> <span class="ident">TypedArrayKind::Uint8Clamped</span> =&gt; {
-                <span class="kw">if</span> <span class="ident">is_little_endian</span> {
-                    <span class="ident">u8::from_le_bytes</span>(<span class="ident">bytes</span>.<span class="ident">try_into</span>().<span class="ident">expect</span>(<span class="string">&quot;slice with incorrect length&quot;</span>)).<span class="ident">into</span>()
-                } <span class="kw">else</span> {
-                    <span class="ident">u8::from_be_bytes</span>(<span class="ident">bytes</span>.<span class="ident">try_into</span>().<span class="ident">expect</span>(<span class="string">&quot;slice with incorrect length&quot;</span>)).<span class="ident">into</span>()
+            TypedArrayKind::Uint8 | TypedArrayKind::Uint8Clamped =&gt; {
+                <span class="kw">if </span>is_little_endian {
+                    u8::from_le_bytes(bytes.try_into().expect(<span class="string">&quot;slice with incorrect length&quot;</span>)).into()
+                } <span class="kw">else </span>{
+                    u8::from_be_bytes(bytes.try_into().expect(<span class="string">&quot;slice with incorrect length&quot;</span>)).into()
                 }
             }
-            <span class="ident">TypedArrayKind::Int16</span> =&gt; {
-                <span class="kw">if</span> <span class="ident">is_little_endian</span> {
-                    <span class="ident">i16::from_le_bytes</span>(<span class="ident">bytes</span>.<span class="ident">try_into</span>().<span class="ident">expect</span>(<span class="string">&quot;slice with incorrect length&quot;</span>))
-                        .<span class="ident">into</span>()
-                } <span class="kw">else</span> {
-                    <span class="ident">i16::from_be_bytes</span>(<span class="ident">bytes</span>.<span class="ident">try_into</span>().<span class="ident">expect</span>(<span class="string">&quot;slice with incorrect length&quot;</span>))
-                        .<span class="ident">into</span>()
+            TypedArrayKind::Int16 =&gt; {
+                <span class="kw">if </span>is_little_endian {
+                    i16::from_le_bytes(bytes.try_into().expect(<span class="string">&quot;slice with incorrect length&quot;</span>))
+                        .into()
+                } <span class="kw">else </span>{
+                    i16::from_be_bytes(bytes.try_into().expect(<span class="string">&quot;slice with incorrect length&quot;</span>))
+                        .into()
                 }
             }
-            <span class="ident">TypedArrayKind::Uint16</span> =&gt; {
-                <span class="kw">if</span> <span class="ident">is_little_endian</span> {
-                    <span class="ident">u16::from_le_bytes</span>(<span class="ident">bytes</span>.<span class="ident">try_into</span>().<span class="ident">expect</span>(<span class="string">&quot;slice with incorrect length&quot;</span>))
-                        .<span class="ident">into</span>()
-                } <span class="kw">else</span> {
-                    <span class="ident">u16::from_be_bytes</span>(<span class="ident">bytes</span>.<span class="ident">try_into</span>().<span class="ident">expect</span>(<span class="string">&quot;slice with incorrect length&quot;</span>))
-                        .<span class="ident">into</span>()
+            TypedArrayKind::Uint16 =&gt; {
+                <span class="kw">if </span>is_little_endian {
+                    u16::from_le_bytes(bytes.try_into().expect(<span class="string">&quot;slice with incorrect length&quot;</span>))
+                        .into()
+                } <span class="kw">else </span>{
+                    u16::from_be_bytes(bytes.try_into().expect(<span class="string">&quot;slice with incorrect length&quot;</span>))
+                        .into()
                 }
             }
-            <span class="ident">TypedArrayKind::Int32</span> =&gt; {
-                <span class="kw">if</span> <span class="ident">is_little_endian</span> {
-                    <span class="ident">i32::from_le_bytes</span>(<span class="ident">bytes</span>.<span class="ident">try_into</span>().<span class="ident">expect</span>(<span class="string">&quot;slice with incorrect length&quot;</span>))
-                        .<span class="ident">into</span>()
-                } <span class="kw">else</span> {
-                    <span class="ident">i32::from_be_bytes</span>(<span class="ident">bytes</span>.<span class="ident">try_into</span>().<span class="ident">expect</span>(<span class="string">&quot;slice with incorrect length&quot;</span>))
-                        .<span class="ident">into</span>()
+            TypedArrayKind::Int32 =&gt; {
+                <span class="kw">if </span>is_little_endian {
+                    i32::from_le_bytes(bytes.try_into().expect(<span class="string">&quot;slice with incorrect length&quot;</span>))
+                        .into()
+                } <span class="kw">else </span>{
+                    i32::from_be_bytes(bytes.try_into().expect(<span class="string">&quot;slice with incorrect length&quot;</span>))
+                        .into()
                 }
             }
-            <span class="ident">TypedArrayKind::Uint32</span> =&gt; {
-                <span class="kw">if</span> <span class="ident">is_little_endian</span> {
-                    <span class="ident">u32::from_le_bytes</span>(<span class="ident">bytes</span>.<span class="ident">try_into</span>().<span class="ident">expect</span>(<span class="string">&quot;slice with incorrect length&quot;</span>))
-                        .<span class="ident">into</span>()
-                } <span class="kw">else</span> {
-                    <span class="ident">u32::from_be_bytes</span>(<span class="ident">bytes</span>.<span class="ident">try_into</span>().<span class="ident">expect</span>(<span class="string">&quot;slice with incorrect length&quot;</span>))
-                        .<span class="ident">into</span>()
+            TypedArrayKind::Uint32 =&gt; {
+                <span class="kw">if </span>is_little_endian {
+                    u32::from_le_bytes(bytes.try_into().expect(<span class="string">&quot;slice with incorrect length&quot;</span>))
+                        .into()
+                } <span class="kw">else </span>{
+                    u32::from_be_bytes(bytes.try_into().expect(<span class="string">&quot;slice with incorrect length&quot;</span>))
+                        .into()
                 }
             }
-            <span class="ident">TypedArrayKind::BigInt64</span> =&gt; {
-                <span class="kw">if</span> <span class="ident">is_little_endian</span> {
-                    <span class="ident">i64::from_le_bytes</span>(<span class="ident">bytes</span>.<span class="ident">try_into</span>().<span class="ident">expect</span>(<span class="string">&quot;slice with incorrect length&quot;</span>))
-                        .<span class="ident">into</span>()
-                } <span class="kw">else</span> {
-                    <span class="ident">i64::from_be_bytes</span>(<span class="ident">bytes</span>.<span class="ident">try_into</span>().<span class="ident">expect</span>(<span class="string">&quot;slice with incorrect length&quot;</span>))
-                        .<span class="ident">into</span>()
+            TypedArrayKind::BigInt64 =&gt; {
+                <span class="kw">if </span>is_little_endian {
+                    i64::from_le_bytes(bytes.try_into().expect(<span class="string">&quot;slice with incorrect length&quot;</span>))
+                        .into()
+                } <span class="kw">else </span>{
+                    i64::from_be_bytes(bytes.try_into().expect(<span class="string">&quot;slice with incorrect length&quot;</span>))
+                        .into()
                 }
             }
-            <span class="ident">TypedArrayKind::BigUint64</span> =&gt; {
-                <span class="kw">if</span> <span class="ident">is_little_endian</span> {
-                    <span class="ident">u64::from_le_bytes</span>(<span class="ident">bytes</span>.<span class="ident">try_into</span>().<span class="ident">expect</span>(<span class="string">&quot;slice with incorrect length&quot;</span>))
-                        .<span class="ident">into</span>()
-                } <span class="kw">else</span> {
-                    <span class="ident">u64::from_be_bytes</span>(<span class="ident">bytes</span>.<span class="ident">try_into</span>().<span class="ident">expect</span>(<span class="string">&quot;slice with incorrect length&quot;</span>))
-                        .<span class="ident">into</span>()
+            TypedArrayKind::BigUint64 =&gt; {
+                <span class="kw">if </span>is_little_endian {
+                    u64::from_le_bytes(bytes.try_into().expect(<span class="string">&quot;slice with incorrect length&quot;</span>))
+                        .into()
+                } <span class="kw">else </span>{
+                    u64::from_be_bytes(bytes.try_into().expect(<span class="string">&quot;slice with incorrect length&quot;</span>))
+                        .into()
                 }
             }
-            <span class="ident">TypedArrayKind::Float32</span> =&gt; {
-                <span class="kw">if</span> <span class="ident">is_little_endian</span> {
-                    <span class="ident">f32::from_le_bytes</span>(<span class="ident">bytes</span>.<span class="ident">try_into</span>().<span class="ident">expect</span>(<span class="string">&quot;slice with incorrect length&quot;</span>))
-                        .<span class="ident">into</span>()
-                } <span class="kw">else</span> {
-                    <span class="ident">f32::from_be_bytes</span>(<span class="ident">bytes</span>.<span class="ident">try_into</span>().<span class="ident">expect</span>(<span class="string">&quot;slice with incorrect length&quot;</span>))
-                        .<span class="ident">into</span>()
+            TypedArrayKind::Float32 =&gt; {
+                <span class="kw">if </span>is_little_endian {
+                    f32::from_le_bytes(bytes.try_into().expect(<span class="string">&quot;slice with incorrect length&quot;</span>))
+                        .into()
+                } <span class="kw">else </span>{
+                    f32::from_be_bytes(bytes.try_into().expect(<span class="string">&quot;slice with incorrect length&quot;</span>))
+                        .into()
                 }
             }
-            <span class="ident">TypedArrayKind::Float64</span> =&gt; {
-                <span class="kw">if</span> <span class="ident">is_little_endian</span> {
-                    <span class="ident">f64::from_le_bytes</span>(<span class="ident">bytes</span>.<span class="ident">try_into</span>().<span class="ident">expect</span>(<span class="string">&quot;slice with incorrect length&quot;</span>))
-                        .<span class="ident">into</span>()
-                } <span class="kw">else</span> {
-                    <span class="ident">f64::from_be_bytes</span>(<span class="ident">bytes</span>.<span class="ident">try_into</span>().<span class="ident">expect</span>(<span class="string">&quot;slice with incorrect length&quot;</span>))
-                        .<span class="ident">into</span>()
+            TypedArrayKind::Float64 =&gt; {
+                <span class="kw">if </span>is_little_endian {
+                    f64::from_le_bytes(bytes.try_into().expect(<span class="string">&quot;slice with incorrect length&quot;</span>))
+                        .into()
+                } <span class="kw">else </span>{
+                    f64::from_be_bytes(bytes.try_into().expect(<span class="string">&quot;slice with incorrect length&quot;</span>))
+                        .into()
                 }
             }
         };
 
-        <span class="ident">n</span>.<span class="ident">into</span>()
+        n.into()
     }
 
-    <span class="doccomment">/// `25.1.2.10 GetValueFromBuffer ( arrayBuffer, byteIndex, type, isTypedArray, order [ , isLittleEndian ] )`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-getvaluefrombuffer</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_value_from_buffer</span>(
+    <span class="doccomment">/// `25.1.2.10 GetValueFromBuffer ( arrayBuffer, byteIndex, type, isTypedArray, order [ , isLittleEndian ] )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-getvaluefrombuffer
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_value_from_buffer(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">byte_index</span>: <span class="ident">u64</span>,
-        <span class="ident">t</span>: <span class="ident">TypedArrayKind</span>,
-        <span class="ident">_is_typed_array</span>: <span class="ident">bool</span>,
-        <span class="ident">_order</span>: <span class="ident">SharedMemoryOrder</span>,
-        <span class="ident">is_little_endian</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span>,
-    ) -&gt; <span class="ident">JsValue</span> {
-        <span class="comment">// 1. Assert: IsDetachedBuffer(arrayBuffer) is false.</span>
-        <span class="comment">// 2. Assert: There are sufficient bytes in arrayBuffer starting at byteIndex to represent a value of type.</span>
-        <span class="comment">// 3. Let block be arrayBuffer.[[ArrayBufferData]].</span>
-        <span class="kw">let</span> <span class="ident">block</span> <span class="op">=</span> <span class="self">self</span>
-            .<span class="ident">array_buffer_data</span>
-            .<span class="ident">as_ref</span>()
-            .<span class="ident">expect</span>(<span class="string">&quot;ArrayBuffer cannot be detached here&quot;</span>);
+        byte_index: u64,
+        t: TypedArrayKind,
+        _is_typed_array: bool,
+        _order: SharedMemoryOrder,
+        is_little_endian: <span class="prelude-ty">Option</span>&lt;bool&gt;,
+    ) -&gt; JsValue {
+        <span class="comment">// 1. Assert: IsDetachedBuffer(arrayBuffer) is false.
+        // 2. Assert: There are sufficient bytes in arrayBuffer starting at byteIndex to represent a value of type.
+        // 3. Let block be arrayBuffer.[[ArrayBufferData]].
+        </span><span class="kw">let </span>block = <span class="self">self
+            </span>.array_buffer_data
+            .as_ref()
+            .expect(<span class="string">&quot;ArrayBuffer cannot be detached here&quot;</span>);
 
-        <span class="comment">// 4. Let elementSize be the Element Size value specified in Table 73 for Element Type type.</span>
-        <span class="kw">let</span> <span class="ident">element_size</span> <span class="op">=</span> <span class="ident">t</span>.<span class="ident">element_size</span>() <span class="kw">as</span> <span class="ident">usize</span>;
+        <span class="comment">// 4. Let elementSize be the Element Size value specified in Table 73 for Element Type type.
+        </span><span class="kw">let </span>element_size = t.element_size() <span class="kw">as </span>usize;
 
-        <span class="comment">// TODO: Shared Array Buffer</span>
-        <span class="comment">// 5. If IsSharedArrayBuffer(arrayBuffer) is true, then</span>
+        <span class="comment">// TODO: Shared Array Buffer
+        // 5. If IsSharedArrayBuffer(arrayBuffer) is true, then
 
-        <span class="comment">// 6. Else, let rawValue be a List whose elements are bytes from block at indices byteIndex (inclusive) through byteIndex + elementSize (exclusive).</span>
-        <span class="comment">// 7. Assert: The number of elements in rawValue is elementSize.</span>
-        <span class="kw">let</span> <span class="ident">byte_index</span> <span class="op">=</span> <span class="ident">byte_index</span> <span class="kw">as</span> <span class="ident">usize</span>;
-        <span class="kw">let</span> <span class="ident">raw_value</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">block</span>[<span class="ident">byte_index</span>..<span class="ident">byte_index</span> <span class="op">+</span> <span class="ident">element_size</span>];
+        // 6. Else, let rawValue be a List whose elements are bytes from block at indices byteIndex (inclusive) through byteIndex + elementSize (exclusive).
+        // 7. Assert: The number of elements in rawValue is elementSize.
+        </span><span class="kw">let </span>byte_index = byte_index <span class="kw">as </span>usize;
+        <span class="kw">let </span>raw_value = <span class="kw-2">&amp;</span>block[byte_index..byte_index + element_size];
 
-        <span class="comment">// TODO: Agent Record [[LittleEndian]] filed</span>
-        <span class="comment">// 8. If isLittleEndian is not present, set isLittleEndian to the value of the [[LittleEndian]] field of the surrounding agent&#39;s Agent Record.</span>
-        <span class="kw">let</span> <span class="ident">is_little_endian</span> <span class="op">=</span> <span class="ident">is_little_endian</span>.<span class="ident">unwrap_or</span>(<span class="bool-val">true</span>);
+        <span class="comment">// TODO: Agent Record [[LittleEndian]] filed
+        // 8. If isLittleEndian is not present, set isLittleEndian to the value of the [[LittleEndian]] field of the surrounding agent&#39;s Agent Record.
+        </span><span class="kw">let </span>is_little_endian = is_little_endian.unwrap_or(<span class="bool-val">true</span>);
 
-        <span class="comment">// 9. Return RawBytesToNumeric(type, rawValue, isLittleEndian).</span>
-        <span class="ident"><span class="self">Self</span>::raw_bytes_to_numeric</span>(<span class="ident">t</span>, <span class="ident">raw_value</span>, <span class="ident">is_little_endian</span>)
+        <span class="comment">// 9. Return RawBytesToNumeric(type, rawValue, isLittleEndian).
+        </span><span class="self">Self</span>::raw_bytes_to_numeric(t, raw_value, is_little_endian)
     }
 
-    <span class="doccomment">/// `25.1.2.11 NumericToRawBytes ( type, value, isLittleEndian )`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-numerictorawbytes</span>
-    <span class="kw">fn</span> <span class="ident">numeric_to_raw_bytes</span>(
-        <span class="ident">t</span>: <span class="ident">TypedArrayKind</span>,
-        <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
-        <span class="ident">is_little_endian</span>: <span class="ident">bool</span>,
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="kw">match</span> <span class="ident">t</span> {
-            <span class="ident">TypedArrayKind::Int8</span> <span class="kw">if</span> <span class="ident">is_little_endian</span> =&gt; {
-                <span class="ident">value</span>.<span class="ident">to_int8</span>(<span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">to_le_bytes</span>().<span class="ident">to_vec</span>()
+    <span class="doccomment">/// `25.1.2.11 NumericToRawBytes ( type, value, isLittleEndian )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-numerictorawbytes
+    </span><span class="kw">fn </span>numeric_to_raw_bytes(
+        t: TypedArrayKind,
+        value: <span class="kw-2">&amp;</span>JsValue,
+        is_little_endian: bool,
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;Vec&lt;u8&gt;&gt; {
+        <span class="prelude-val">Ok</span>(<span class="kw">match </span>t {
+            TypedArrayKind::Int8 <span class="kw">if </span>is_little_endian =&gt; {
+                value.to_int8(context)<span class="question-mark">?</span>.to_le_bytes().to_vec()
             }
-            <span class="ident">TypedArrayKind::Int8</span> =&gt; <span class="ident">value</span>.<span class="ident">to_int8</span>(<span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">to_be_bytes</span>().<span class="ident">to_vec</span>(),
-            <span class="ident">TypedArrayKind::Uint8</span> <span class="kw">if</span> <span class="ident">is_little_endian</span> =&gt; {
-                <span class="ident">value</span>.<span class="ident">to_uint8</span>(<span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">to_le_bytes</span>().<span class="ident">to_vec</span>()
+            TypedArrayKind::Int8 =&gt; value.to_int8(context)<span class="question-mark">?</span>.to_be_bytes().to_vec(),
+            TypedArrayKind::Uint8 <span class="kw">if </span>is_little_endian =&gt; {
+                value.to_uint8(context)<span class="question-mark">?</span>.to_le_bytes().to_vec()
             }
-            <span class="ident">TypedArrayKind::Uint8</span> =&gt; <span class="ident">value</span>.<span class="ident">to_uint8</span>(<span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">to_be_bytes</span>().<span class="ident">to_vec</span>(),
-            <span class="ident">TypedArrayKind::Uint8Clamped</span> <span class="kw">if</span> <span class="ident">is_little_endian</span> =&gt; {
-                <span class="ident">value</span>.<span class="ident">to_uint8_clamp</span>(<span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">to_le_bytes</span>().<span class="ident">to_vec</span>()
+            TypedArrayKind::Uint8 =&gt; value.to_uint8(context)<span class="question-mark">?</span>.to_be_bytes().to_vec(),
+            TypedArrayKind::Uint8Clamped <span class="kw">if </span>is_little_endian =&gt; {
+                value.to_uint8_clamp(context)<span class="question-mark">?</span>.to_le_bytes().to_vec()
             }
-            <span class="ident">TypedArrayKind::Uint8Clamped</span> =&gt; <span class="ident">value</span>.<span class="ident">to_uint8_clamp</span>(<span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">to_be_bytes</span>().<span class="ident">to_vec</span>(),
-            <span class="ident">TypedArrayKind::Int16</span> <span class="kw">if</span> <span class="ident">is_little_endian</span> =&gt; {
-                <span class="ident">value</span>.<span class="ident">to_int16</span>(<span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">to_le_bytes</span>().<span class="ident">to_vec</span>()
+            TypedArrayKind::Uint8Clamped =&gt; value.to_uint8_clamp(context)<span class="question-mark">?</span>.to_be_bytes().to_vec(),
+            TypedArrayKind::Int16 <span class="kw">if </span>is_little_endian =&gt; {
+                value.to_int16(context)<span class="question-mark">?</span>.to_le_bytes().to_vec()
             }
-            <span class="ident">TypedArrayKind::Int16</span> =&gt; <span class="ident">value</span>.<span class="ident">to_int16</span>(<span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">to_be_bytes</span>().<span class="ident">to_vec</span>(),
-            <span class="ident">TypedArrayKind::Uint16</span> <span class="kw">if</span> <span class="ident">is_little_endian</span> =&gt; {
-                <span class="ident">value</span>.<span class="ident">to_uint16</span>(<span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">to_le_bytes</span>().<span class="ident">to_vec</span>()
+            TypedArrayKind::Int16 =&gt; value.to_int16(context)<span class="question-mark">?</span>.to_be_bytes().to_vec(),
+            TypedArrayKind::Uint16 <span class="kw">if </span>is_little_endian =&gt; {
+                value.to_uint16(context)<span class="question-mark">?</span>.to_le_bytes().to_vec()
             }
-            <span class="ident">TypedArrayKind::Uint16</span> =&gt; <span class="ident">value</span>.<span class="ident">to_uint16</span>(<span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">to_be_bytes</span>().<span class="ident">to_vec</span>(),
-            <span class="ident">TypedArrayKind::Int32</span> <span class="kw">if</span> <span class="ident">is_little_endian</span> =&gt; {
-                <span class="ident">value</span>.<span class="ident">to_i32</span>(<span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">to_le_bytes</span>().<span class="ident">to_vec</span>()
+            TypedArrayKind::Uint16 =&gt; value.to_uint16(context)<span class="question-mark">?</span>.to_be_bytes().to_vec(),
+            TypedArrayKind::Int32 <span class="kw">if </span>is_little_endian =&gt; {
+                value.to_i32(context)<span class="question-mark">?</span>.to_le_bytes().to_vec()
             }
-            <span class="ident">TypedArrayKind::Int32</span> =&gt; <span class="ident">value</span>.<span class="ident">to_i32</span>(<span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">to_be_bytes</span>().<span class="ident">to_vec</span>(),
-            <span class="ident">TypedArrayKind::Uint32</span> <span class="kw">if</span> <span class="ident">is_little_endian</span> =&gt; {
-                <span class="ident">value</span>.<span class="ident">to_u32</span>(<span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">to_le_bytes</span>().<span class="ident">to_vec</span>()
+            TypedArrayKind::Int32 =&gt; value.to_i32(context)<span class="question-mark">?</span>.to_be_bytes().to_vec(),
+            TypedArrayKind::Uint32 <span class="kw">if </span>is_little_endian =&gt; {
+                value.to_u32(context)<span class="question-mark">?</span>.to_le_bytes().to_vec()
             }
-            <span class="ident">TypedArrayKind::Uint32</span> =&gt; <span class="ident">value</span>.<span class="ident">to_u32</span>(<span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">to_be_bytes</span>().<span class="ident">to_vec</span>(),
-            <span class="ident">TypedArrayKind::BigInt64</span> <span class="kw">if</span> <span class="ident">is_little_endian</span> =&gt; {
-                <span class="kw">let</span> <span class="ident">big_int</span> <span class="op">=</span> <span class="ident">value</span>.<span class="ident">to_big_int64</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
-                <span class="ident">big_int</span>
-                    .<span class="ident">to_i64</span>()
-                    .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-                        <span class="kw">if</span> <span class="ident">big_int</span>.<span class="ident">is_positive</span>() {
-                            <span class="ident">i64::MAX</span>
-                        } <span class="kw">else</span> {
-                            <span class="ident">i64::MIN</span>
+            TypedArrayKind::Uint32 =&gt; value.to_u32(context)<span class="question-mark">?</span>.to_be_bytes().to_vec(),
+            TypedArrayKind::BigInt64 <span class="kw">if </span>is_little_endian =&gt; {
+                <span class="kw">let </span>big_int = value.to_big_int64(context)<span class="question-mark">?</span>;
+                big_int
+                    .to_i64()
+                    .unwrap_or_else(|| {
+                        <span class="kw">if </span>big_int.is_positive() {
+                            i64::MAX
+                        } <span class="kw">else </span>{
+                            i64::MIN
                         }
                     })
-                    .<span class="ident">to_le_bytes</span>()
-                    .<span class="ident">to_vec</span>()
+                    .to_le_bytes()
+                    .to_vec()
             }
-            <span class="ident">TypedArrayKind::BigInt64</span> =&gt; {
-                <span class="kw">let</span> <span class="ident">big_int</span> <span class="op">=</span> <span class="ident">value</span>.<span class="ident">to_big_int64</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
-                <span class="ident">big_int</span>
-                    .<span class="ident">to_i64</span>()
-                    .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-                        <span class="kw">if</span> <span class="ident">big_int</span>.<span class="ident">is_positive</span>() {
-                            <span class="ident">i64::MAX</span>
-                        } <span class="kw">else</span> {
-                            <span class="ident">i64::MIN</span>
+            TypedArrayKind::BigInt64 =&gt; {
+                <span class="kw">let </span>big_int = value.to_big_int64(context)<span class="question-mark">?</span>;
+                big_int
+                    .to_i64()
+                    .unwrap_or_else(|| {
+                        <span class="kw">if </span>big_int.is_positive() {
+                            i64::MAX
+                        } <span class="kw">else </span>{
+                            i64::MIN
                         }
                     })
-                    .<span class="ident">to_be_bytes</span>()
-                    .<span class="ident">to_vec</span>()
+                    .to_be_bytes()
+                    .to_vec()
             }
-            <span class="ident">TypedArrayKind::BigUint64</span> <span class="kw">if</span> <span class="ident">is_little_endian</span> =&gt; <span class="ident">value</span>
-                .<span class="ident">to_big_uint64</span>(<span class="ident">context</span>)<span class="question-mark">?</span>
-                .<span class="ident">to_u64</span>()
-                .<span class="ident">unwrap_or</span>(<span class="ident">u64::MAX</span>)
-                .<span class="ident">to_le_bytes</span>()
-                .<span class="ident">to_vec</span>(),
-            <span class="ident">TypedArrayKind::BigUint64</span> =&gt; <span class="ident">value</span>
-                .<span class="ident">to_big_uint64</span>(<span class="ident">context</span>)<span class="question-mark">?</span>
-                .<span class="ident">to_u64</span>()
-                .<span class="ident">unwrap_or</span>(<span class="ident">u64::MAX</span>)
-                .<span class="ident">to_be_bytes</span>()
-                .<span class="ident">to_vec</span>(),
-            <span class="ident">TypedArrayKind::Float32</span> =&gt; <span class="kw">match</span> <span class="ident">value</span>.<span class="ident">to_number</span>(<span class="ident">context</span>)<span class="question-mark">?</span> {
-                <span class="ident">f</span> <span class="kw">if</span> <span class="ident">is_little_endian</span> =&gt; (<span class="ident">f</span> <span class="kw">as</span> <span class="ident">f32</span>).<span class="ident">to_le_bytes</span>().<span class="ident">to_vec</span>(),
-                <span class="ident">f</span> =&gt; (<span class="ident">f</span> <span class="kw">as</span> <span class="ident">f32</span>).<span class="ident">to_be_bytes</span>().<span class="ident">to_vec</span>(),
+            TypedArrayKind::BigUint64 <span class="kw">if </span>is_little_endian =&gt; value
+                .to_big_uint64(context)<span class="question-mark">?
+                </span>.to_u64()
+                .unwrap_or(u64::MAX)
+                .to_le_bytes()
+                .to_vec(),
+            TypedArrayKind::BigUint64 =&gt; value
+                .to_big_uint64(context)<span class="question-mark">?
+                </span>.to_u64()
+                .unwrap_or(u64::MAX)
+                .to_be_bytes()
+                .to_vec(),
+            TypedArrayKind::Float32 =&gt; <span class="kw">match </span>value.to_number(context)<span class="question-mark">? </span>{
+                f <span class="kw">if </span>is_little_endian =&gt; (f <span class="kw">as </span>f32).to_le_bytes().to_vec(),
+                f =&gt; (f <span class="kw">as </span>f32).to_be_bytes().to_vec(),
             },
-            <span class="ident">TypedArrayKind::Float64</span> =&gt; <span class="kw">match</span> <span class="ident">value</span>.<span class="ident">to_number</span>(<span class="ident">context</span>)<span class="question-mark">?</span> {
-                <span class="ident">f</span> <span class="kw">if</span> <span class="ident">is_little_endian</span> =&gt; <span class="ident">f</span>.<span class="ident">to_le_bytes</span>().<span class="ident">to_vec</span>(),
-                <span class="ident">f</span> =&gt; <span class="ident">f</span>.<span class="ident">to_be_bytes</span>().<span class="ident">to_vec</span>(),
+            TypedArrayKind::Float64 =&gt; <span class="kw">match </span>value.to_number(context)<span class="question-mark">? </span>{
+                f <span class="kw">if </span>is_little_endian =&gt; f.to_le_bytes().to_vec(),
+                f =&gt; f.to_be_bytes().to_vec(),
             },
         })
     }
 
-    <span class="doccomment">/// `25.1.2.12 SetValueInBuffer ( arrayBuffer, byteIndex, type, value, isTypedArray, order [ , isLittleEndian ] )`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-setvalueinbuffer</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">set_value_in_buffer</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">byte_index</span>: <span class="ident">u64</span>,
-        <span class="ident">t</span>: <span class="ident">TypedArrayKind</span>,
-        <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
-        <span class="ident">_order</span>: <span class="ident">SharedMemoryOrder</span>,
-        <span class="ident">is_little_endian</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span>,
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="comment">// 1. Assert: IsDetachedBuffer(arrayBuffer) is false.</span>
-        <span class="comment">// 2. Assert: There are sufficient bytes in arrayBuffer starting at byteIndex to represent a value of type.</span>
-        <span class="comment">// 3. Assert: Type(value) is BigInt if ! IsBigIntElementType(type) is true; otherwise, Type(value) is Number.</span>
-        <span class="comment">// 4. Let block be arrayBuffer.[[ArrayBufferData]].</span>
-        <span class="kw">let</span> <span class="ident">block</span> <span class="op">=</span> <span class="self">self</span>
-            .<span class="ident">array_buffer_data</span>
-            .<span class="ident">as_mut</span>()
-            .<span class="ident">expect</span>(<span class="string">&quot;ArrayBuffer cannot be detached here&quot;</span>);
+    <span class="doccomment">/// `25.1.2.12 SetValueInBuffer ( arrayBuffer, byteIndex, type, value, isTypedArray, order [ , isLittleEndian ] )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-setvalueinbuffer
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_value_in_buffer(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        byte_index: u64,
+        t: TypedArrayKind,
+        value: <span class="kw-2">&amp;</span>JsValue,
+        _order: SharedMemoryOrder,
+        is_little_endian: <span class="prelude-ty">Option</span>&lt;bool&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="comment">// 1. Assert: IsDetachedBuffer(arrayBuffer) is false.
+        // 2. Assert: There are sufficient bytes in arrayBuffer starting at byteIndex to represent a value of type.
+        // 3. Assert: Type(value) is BigInt if ! IsBigIntElementType(type) is true; otherwise, Type(value) is Number.
+        // 4. Let block be arrayBuffer.[[ArrayBufferData]].
+        </span><span class="kw">let </span>block = <span class="self">self
+            </span>.array_buffer_data
+            .as_mut()
+            .expect(<span class="string">&quot;ArrayBuffer cannot be detached here&quot;</span>);
 
-        <span class="comment">// 5. Let elementSize be the Element Size value specified in Table 73 for Element Type type.</span>
+        <span class="comment">// 5. Let elementSize be the Element Size value specified in Table 73 for Element Type type.
 
-        <span class="comment">// TODO: Agent Record [[LittleEndian]] filed</span>
-        <span class="comment">// 6. If isLittleEndian is not present, set isLittleEndian to the value of the [[LittleEndian]] field of the surrounding agent&#39;s Agent Record.</span>
-        <span class="kw">let</span> <span class="ident">is_little_endian</span> <span class="op">=</span> <span class="ident">is_little_endian</span>.<span class="ident">unwrap_or</span>(<span class="bool-val">true</span>);
+        // TODO: Agent Record [[LittleEndian]] filed
+        // 6. If isLittleEndian is not present, set isLittleEndian to the value of the [[LittleEndian]] field of the surrounding agent&#39;s Agent Record.
+        </span><span class="kw">let </span>is_little_endian = is_little_endian.unwrap_or(<span class="bool-val">true</span>);
 
-        <span class="comment">// 7. Let rawBytes be NumericToRawBytes(type, value, isLittleEndian).</span>
-        <span class="kw">let</span> <span class="ident">raw_bytes</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::numeric_to_raw_bytes</span>(<span class="ident">t</span>, <span class="ident">value</span>, <span class="ident">is_little_endian</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="comment">// 7. Let rawBytes be NumericToRawBytes(type, value, isLittleEndian).
+        </span><span class="kw">let </span>raw_bytes = <span class="self">Self</span>::numeric_to_raw_bytes(t, value, is_little_endian, context)<span class="question-mark">?</span>;
 
-        <span class="comment">// TODO: Shared Array Buffer</span>
-        <span class="comment">// 8. If IsSharedArrayBuffer(arrayBuffer) is true, then</span>
+        <span class="comment">// TODO: Shared Array Buffer
+        // 8. If IsSharedArrayBuffer(arrayBuffer) is true, then
 
-        <span class="comment">// 9. Else, store the individual bytes of rawBytes into block, starting at block[byteIndex].</span>
-        <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">raw_byte</span>) <span class="kw">in</span> <span class="ident">raw_bytes</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
-            <span class="ident">block</span>[<span class="ident">byte_index</span> <span class="kw">as</span> <span class="ident">usize</span> <span class="op">+</span> <span class="ident">i</span>] <span class="op">=</span> <span class="kw-2">*</span><span class="ident">raw_byte</span>;
+        // 9. Else, store the individual bytes of rawBytes into block, starting at block[byteIndex].
+        </span><span class="kw">for </span>(i, raw_byte) <span class="kw">in </span>raw_bytes.iter().enumerate() {
+            block[byte_index <span class="kw">as </span>usize + i] = <span class="kw-2">*</span>raw_byte;
         }
 
-        <span class="comment">// 10. Return NormalCompletion(undefined).</span>
-        <span class="prelude-val">Ok</span>(<span class="ident">JsValue::undefined</span>())
+        <span class="comment">// 10. Return NormalCompletion(undefined).
+        </span><span class="prelude-val">Ok</span>(JsValue::undefined())
     }
 }
 
-<span class="doccomment">/// `CreateByteDataBlock ( size )` abstract operation.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The abstract operation `CreateByteDataBlock` takes argument `size` (a non-negative</span>
-<span class="doccomment">/// integer). For more information, check the [spec][spec].</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-createbytedatablock</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create_byte_data_block</span>(<span class="ident">size</span>: <span class="ident">u64</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-    <span class="comment">// 1. Let db be a new Data Block value consisting of size bytes. If it is impossible to</span>
-    <span class="comment">//    create such a Data Block, throw a RangeError exception.</span>
-    <span class="kw">let</span> <span class="ident">size</span> <span class="op">=</span> <span class="ident">size</span>.<span class="ident">try_into</span>().<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
-        <span class="ident">JsNativeError::range</span>().<span class="ident">with_message</span>(<span class="macro">format!</span>(<span class="string">&quot;couldn&#39;t allocate the data block: {e}&quot;</span>))
+<span class="doccomment">/// `CreateByteDataBlock ( size )` abstract operation.
+///
+/// The abstract operation `CreateByteDataBlock` takes argument `size` (a non-negative
+/// integer). For more information, check the [spec][spec].
+///
+/// [spec]: https://tc39.es/ecma262/#sec-createbytedatablock
+</span><span class="kw">pub fn </span>create_byte_data_block(size: u64) -&gt; JsResult&lt;Vec&lt;u8&gt;&gt; {
+    <span class="comment">// 1. Let db be a new Data Block value consisting of size bytes. If it is impossible to
+    //    create such a Data Block, throw a RangeError exception.
+    </span><span class="kw">let </span>size = size.try_into().map_err(|e| {
+        JsNativeError::range().with_message(<span class="macro">format!</span>(<span class="string">&quot;couldn&#39;t allocate the data block: {e}&quot;</span>))
     })<span class="question-mark">?</span>;
 
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">data_block</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-    <span class="ident">data_block</span>.<span class="ident">try_reserve</span>(<span class="ident">size</span>).<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
-        <span class="ident">JsNativeError::range</span>().<span class="ident">with_message</span>(<span class="macro">format!</span>(<span class="string">&quot;couldn&#39;t allocate the data block: {e}&quot;</span>))
+    <span class="kw">let </span><span class="kw-2">mut </span>data_block = Vec::new();
+    data_block.try_reserve(size).map_err(|e| {
+        JsNativeError::range().with_message(<span class="macro">format!</span>(<span class="string">&quot;couldn&#39;t allocate the data block: {e}&quot;</span>))
     })<span class="question-mark">?</span>;
 
-    <span class="comment">// 2. Set all of the bytes of db to 0.</span>
-    <span class="ident">data_block</span>.<span class="ident">resize</span>(<span class="ident">size</span>, <span class="number">0</span>);
+    <span class="comment">// 2. Set all of the bytes of db to 0.
+    </span>data_block.resize(size, <span class="number">0</span>);
 
-    <span class="comment">// 3. Return db.</span>
-    <span class="prelude-val">Ok</span>(<span class="ident">data_block</span>)
+    <span class="comment">// 3. Return db.
+    </span><span class="prelude-val">Ok</span>(data_block)
 }
 
-<span class="doccomment">/// `6.2.8.3 CopyDataBlockBytes ( toBlock, toIndex, fromBlock, fromIndex, count )`</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [ECMAScript reference][spec]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-copydatablockbytes</span>
-<span class="kw">fn</span> <span class="ident">copy_data_block_bytes</span>(
-    <span class="ident">to_block</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">u8</span>],
-    <span class="kw-2">mut</span> <span class="ident">to_index</span>: <span class="ident">usize</span>,
-    <span class="ident">from_block</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
-    <span class="kw-2">mut</span> <span class="ident">from_index</span>: <span class="ident">usize</span>,
-    <span class="kw-2">mut</span> <span class="ident">count</span>: <span class="ident">usize</span>,
+<span class="doccomment">/// `6.2.8.3 CopyDataBlockBytes ( toBlock, toIndex, fromBlock, fromIndex, count )`
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-copydatablockbytes
+</span><span class="kw">fn </span>copy_data_block_bytes(
+    to_block: <span class="kw-2">&amp;mut </span>[u8],
+    <span class="kw-2">mut </span>to_index: usize,
+    from_block: <span class="kw-2">&amp;</span>[u8],
+    <span class="kw-2">mut </span>from_index: usize,
+    <span class="kw-2">mut </span>count: usize,
 ) {
-    <span class="comment">// 1. Assert: fromBlock and toBlock are distinct values.</span>
-    <span class="comment">// 2. Let fromSize be the number of bytes in fromBlock.</span>
-    <span class="kw">let</span> <span class="ident">from_size</span> <span class="op">=</span> <span class="ident">from_block</span>.<span class="ident">len</span>();
+    <span class="comment">// 1. Assert: fromBlock and toBlock are distinct values.
+    // 2. Let fromSize be the number of bytes in fromBlock.
+    </span><span class="kw">let </span>from_size = from_block.len();
 
-    <span class="comment">// 3. Assert: fromIndex + count ≤ fromSize.</span>
-    <span class="macro">assert!</span>(<span class="ident">from_index</span> <span class="op">+</span> <span class="ident">count</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">from_size</span>);
+    <span class="comment">// 3. Assert: fromIndex + count ≤ fromSize.
+    </span><span class="macro">assert!</span>(from_index + count &lt;= from_size);
 
-    <span class="comment">// 4. Let toSize be the number of bytes in toBlock.</span>
-    <span class="kw">let</span> <span class="ident">to_size</span> <span class="op">=</span> <span class="ident">to_block</span>.<span class="ident">len</span>();
+    <span class="comment">// 4. Let toSize be the number of bytes in toBlock.
+    </span><span class="kw">let </span>to_size = to_block.len();
 
-    <span class="comment">// 5. Assert: toIndex + count ≤ toSize.</span>
-    <span class="macro">assert!</span>(<span class="ident">to_index</span> <span class="op">+</span> <span class="ident">count</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">to_size</span>);
+    <span class="comment">// 5. Assert: toIndex + count ≤ toSize.
+    </span><span class="macro">assert!</span>(to_index + count &lt;= to_size);
 
-    <span class="comment">// 6. Repeat, while count &gt; 0,</span>
-    <span class="kw">while</span> <span class="ident">count</span> <span class="op">&gt;</span> <span class="number">0</span> {
-        <span class="comment">// a. If fromBlock is a Shared Data Block, then</span>
-        <span class="comment">// TODO: Shared Data Block</span>
+    <span class="comment">// 6. Repeat, while count &gt; 0,
+    </span><span class="kw">while </span>count &gt; <span class="number">0 </span>{
+        <span class="comment">// a. If fromBlock is a Shared Data Block, then
+        // TODO: Shared Data Block
 
-        <span class="comment">// b. Else,</span>
-        <span class="comment">// i. Assert: toBlock is not a Shared Data Block.</span>
-        <span class="comment">// ii. Set toBlock[toIndex] to fromBlock[fromIndex].</span>
-        <span class="ident">to_block</span>[<span class="ident">to_index</span>] <span class="op">=</span> <span class="ident">from_block</span>[<span class="ident">from_index</span>];
+        // b. Else,
+        // i. Assert: toBlock is not a Shared Data Block.
+        // ii. Set toBlock[toIndex] to fromBlock[fromIndex].
+        </span>to_block[to_index] = from_block[from_index];
 
-        <span class="comment">// c. Set toIndex to toIndex + 1.</span>
-        <span class="ident">to_index</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+        <span class="comment">// c. Set toIndex to toIndex + 1.
+        </span>to_index += <span class="number">1</span>;
 
-        <span class="comment">// d. Set fromIndex to fromIndex + 1.</span>
-        <span class="ident">from_index</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+        <span class="comment">// d. Set fromIndex to fromIndex + 1.
+        </span>from_index += <span class="number">1</span>;
 
-        <span class="comment">// e. Set count to count - 1.</span>
-        <span class="ident">count</span> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>;
+        <span class="comment">// e. Set count to count - 1.
+        </span>count -= <span class="number">1</span>;
     }
 
-    <span class="comment">// 7. Return NormalCompletion(empty).</span>
-}
+    <span class="comment">// 7. Return NormalCompletion(empty).
+</span>}
 
-<span class="comment">// TODO: Allow unused variants until shared array buffers are implemented.</span>
-<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">dead_code</span>)]</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum</span> <span class="ident">SharedMemoryOrder</span> {
-    <span class="ident">Init</span>,
-    <span class="ident">SeqCst</span>,
-    <span class="ident">Unordered</span>,
+<span class="comment">// TODO: Allow unused variants until shared array buffers are implemented.
+</span><span class="attribute">#[allow(dead_code)]
+#[derive(Debug, PartialEq, Clone, Copy)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum </span>SharedMemoryOrder {
+    Init,
+    SeqCst,
+    Unordered,
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0 (a55dd71d5 2022-09-19)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0 (897e37553 2022-11-02)" ></div></body></html>

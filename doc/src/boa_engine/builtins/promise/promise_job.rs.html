@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_engine/src/builtins/promise/promise_job.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>promise_job.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_engine/src/builtins/promise/promise_job.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>promise_job.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../boa_engine/index.html"><div class="logo-container">
                     <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../boa_engine/index.html">
                         <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -189,194 +189,194 @@
 <span id="187">187</span>
 <span id="188">188</span>
 <span id="189">189</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">Promise</span>, <span class="ident">PromiseCapability</span>};
-<span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">builtins::promise</span>::{<span class="ident">ReactionRecord</span>, <span class="ident">ReactionType</span>},
-    <span class="ident">job::JobCallback</span>,
-    <span class="ident">object</span>::{<span class="ident">FunctionBuilder</span>, <span class="ident">JsObject</span>},
-    <span class="ident">Context</span>, <span class="ident">JsValue</span>,
+</pre><pre class="rust"><code><span class="kw">use super</span>::{Promise, PromiseCapability};
+<span class="kw">use crate</span>::{
+    builtins::promise::{ReactionRecord, ReactionType},
+    job::JobCallback,
+    object::{FunctionBuilder, JsObject},
+    Context, JsValue,
 };
-<span class="kw">use</span> <span class="ident">boa_gc</span>::{<span class="ident">Finalize</span>, <span class="ident">Trace</span>};
+<span class="kw">use </span>boa_gc::{Finalize, Trace};
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">PromiseJob</span>;
+<span class="attribute">#[derive(Debug, Clone, Copy)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>PromiseJob;
 
-<span class="kw">impl</span> <span class="ident">PromiseJob</span> {
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-newpromisereactionjob</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new_promise_reaction_job</span>(
-        <span class="ident">reaction</span>: <span class="ident">ReactionRecord</span>,
-        <span class="ident">argument</span>: <span class="ident">JsValue</span>,
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JobCallback</span> {
-        <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Trace</span>, <span class="ident">Finalize</span>)]</span>
-        <span class="kw">struct</span> <span class="ident">ReactionJobCaptures</span> {
-            <span class="ident">reaction</span>: <span class="ident">ReactionRecord</span>,
-            <span class="ident">argument</span>: <span class="ident">JsValue</span>,
+<span class="kw">impl </span>PromiseJob {
+    <span class="doccomment">/// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-newpromisereactionjob
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new_promise_reaction_job(
+        reaction: ReactionRecord,
+        argument: JsValue,
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JobCallback {
+        <span class="attribute">#[derive(Debug, Trace, Finalize)]
+        </span><span class="kw">struct </span>ReactionJobCaptures {
+            reaction: ReactionRecord,
+            argument: JsValue,
         }
 
-        <span class="comment">// 1. Let job be a new Job Abstract Closure with no parameters that captures reaction and argument and performs the following steps when called:</span>
-        <span class="kw">let</span> <span class="ident">job</span> <span class="op">=</span> <span class="ident">FunctionBuilder::closure_with_captures</span>(
-            <span class="ident">context</span>,
-            <span class="op">|</span><span class="ident">_this</span>, <span class="ident">_args</span>, <span class="ident">captures</span>, <span class="ident">context</span><span class="op">|</span> {
-                <span class="kw">let</span> <span class="ident">ReactionJobCaptures</span> { <span class="ident">reaction</span>, <span class="ident">argument</span> } <span class="op">=</span> <span class="ident">captures</span>;
+        <span class="comment">// 1. Let job be a new Job Abstract Closure with no parameters that captures reaction and argument and performs the following steps when called:
+        </span><span class="kw">let </span>job = FunctionBuilder::closure_with_captures(
+            context,
+            |_this, _args, captures, context| {
+                <span class="kw">let </span>ReactionJobCaptures { reaction, argument } = captures;
 
-                <span class="kw">let</span> <span class="ident">ReactionRecord</span> {
-                    <span class="comment">//   a. Let promiseCapability be reaction.[[Capability]].</span>
-                    <span class="ident">promise_capability</span>,
-                    <span class="comment">//   b. Let type be reaction.[[Type]].</span>
-                    <span class="ident">reaction_type</span>,
-                    <span class="comment">//   c. Let handler be reaction.[[Handler]].</span>
-                    <span class="ident">handler</span>,
-                } <span class="op">=</span> <span class="ident">reaction</span>;
+                <span class="kw">let </span>ReactionRecord {
+                    <span class="comment">//   a. Let promiseCapability be reaction.[[Capability]].
+                    </span>promise_capability,
+                    <span class="comment">//   b. Let type be reaction.[[Type]].
+                    </span>reaction_type,
+                    <span class="comment">//   c. Let handler be reaction.[[Handler]].
+                    </span>handler,
+                } = reaction;
 
-                <span class="kw">let</span> <span class="ident">handler_result</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">handler</span> {
-                    <span class="comment">// d. If handler is empty, then</span>
-                    <span class="prelude-val">None</span> =&gt; <span class="kw">match</span> <span class="ident">reaction_type</span> {
-                        <span class="comment">// i. If type is Fulfill, let handlerResult be NormalCompletion(argument).</span>
-                        <span class="ident">ReactionType::Fulfill</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">argument</span>.<span class="ident">clone</span>()),
-                        <span class="comment">// ii. Else,</span>
-                        <span class="comment">//   1. Assert: type is Reject.</span>
-                        <span class="ident">ReactionType::Reject</span> =&gt; {
-                            <span class="comment">// 2. Let handlerResult be ThrowCompletion(argument).</span>
-                            <span class="prelude-val">Err</span>(<span class="ident">argument</span>.<span class="ident">clone</span>())
+                <span class="kw">let </span>handler_result = <span class="kw">match </span>handler {
+                    <span class="comment">// d. If handler is empty, then
+                    </span><span class="prelude-val">None </span>=&gt; <span class="kw">match </span>reaction_type {
+                        <span class="comment">// i. If type is Fulfill, let handlerResult be NormalCompletion(argument).
+                        </span>ReactionType::Fulfill =&gt; <span class="prelude-val">Ok</span>(argument.clone()),
+                        <span class="comment">// ii. Else,
+                        //   1. Assert: type is Reject.
+                        </span>ReactionType::Reject =&gt; {
+                            <span class="comment">// 2. Let handlerResult be ThrowCompletion(argument).
+                            </span><span class="prelude-val">Err</span>(argument.clone())
                         }
                     },
-                    <span class="comment">//   e. Else, let handlerResult be Completion(HostCallJobCallback(handler, undefined, « argument »)).</span>
-                    <span class="prelude-val">Some</span>(<span class="ident">handler</span>) =&gt; <span class="ident">handler</span>
-                        .<span class="ident">call_job_callback</span>(<span class="kw-2">&amp;</span><span class="ident">JsValue::Undefined</span>, <span class="kw-2">&amp;</span>[<span class="ident">argument</span>.<span class="ident">clone</span>()], <span class="ident">context</span>)
-                        .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">e</span>.<span class="ident">to_opaque</span>(<span class="ident">context</span>)),
+                    <span class="comment">//   e. Else, let handlerResult be Completion(HostCallJobCallback(handler, undefined, « argument »)).
+                    </span><span class="prelude-val">Some</span>(handler) =&gt; handler
+                        .call_job_callback(<span class="kw-2">&amp;</span>JsValue::Undefined, <span class="kw-2">&amp;</span>[argument.clone()], context)
+                        .map_err(|e| e.to_opaque(context)),
                 };
 
-                <span class="kw">match</span> <span class="ident">promise_capability</span> {
-                    <span class="prelude-val">None</span> =&gt; {
-                        <span class="comment">// f. If promiseCapability is undefined, then</span>
-                        <span class="comment">//    i. Assert: handlerResult is not an abrupt completion.</span>
-                        <span class="macro">assert!</span>(
-                            <span class="ident">handler_result</span>.<span class="ident">is_ok</span>(),
-                            <span class="string">&quot;Assertion: &lt;handlerResult is not an abrupt completion&gt; failed&quot;</span>
-                        );
+                <span class="kw">match </span>promise_capability {
+                    <span class="prelude-val">None </span>=&gt; {
+                        <span class="comment">// f. If promiseCapability is undefined, then
+                        //    i. Assert: handlerResult is not an abrupt completion.
+                        </span><span class="macro">assert!</span>(
+                            handler_result.is_ok(),
+                            <span class="string">&quot;Assertion: &lt;handlerResult is not an abrupt completion&gt; failed&quot;
+                        </span>);
 
-                        <span class="comment">// ii. Return empty.</span>
-                        <span class="prelude-val">Ok</span>(<span class="ident">JsValue::Undefined</span>)
+                        <span class="comment">// ii. Return empty.
+                        </span><span class="prelude-val">Ok</span>(JsValue::Undefined)
                     }
-                    <span class="prelude-val">Some</span>(<span class="ident">promise_capability_record</span>) =&gt; {
-                        <span class="comment">// g. Assert: promiseCapability is a PromiseCapability Record.</span>
-                        <span class="kw">let</span> <span class="ident">PromiseCapability</span> {
-                            <span class="ident">promise</span>: <span class="kw">_</span>,
-                            <span class="ident">resolve</span>,
-                            <span class="ident">reject</span>,
-                        } <span class="op">=</span> <span class="ident">promise_capability_record</span>;
+                    <span class="prelude-val">Some</span>(promise_capability_record) =&gt; {
+                        <span class="comment">// g. Assert: promiseCapability is a PromiseCapability Record.
+                        </span><span class="kw">let </span>PromiseCapability {
+                            promise: <span class="kw">_</span>,
+                            resolve,
+                            reject,
+                        } = promise_capability_record;
 
-                        <span class="kw">match</span> <span class="ident">handler_result</span> {
-                            <span class="comment">// h. If handlerResult is an abrupt completion, then</span>
-                            <span class="prelude-val">Err</span>(<span class="ident">value</span>) =&gt; {
-                                <span class="comment">// i. Return ? Call(promiseCapability.[[Reject]], undefined, « handlerResult.[[Value]] »).</span>
-                                <span class="ident">context</span>.<span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="ident">reject</span>.<span class="ident">clone</span>().<span class="ident">into</span>(), <span class="kw-2">&amp;</span><span class="ident">JsValue::Undefined</span>, <span class="kw-2">&amp;</span>[<span class="ident">value</span>])
+                        <span class="kw">match </span>handler_result {
+                            <span class="comment">// h. If handlerResult is an abrupt completion, then
+                            </span><span class="prelude-val">Err</span>(value) =&gt; {
+                                <span class="comment">// i. Return ? Call(promiseCapability.[[Reject]], undefined, « handlerResult.[[Value]] »).
+                                </span>context.call(<span class="kw-2">&amp;</span>reject.clone().into(), <span class="kw-2">&amp;</span>JsValue::Undefined, <span class="kw-2">&amp;</span>[value])
                             }
 
-                            <span class="comment">// i. Else,</span>
-                            <span class="prelude-val">Ok</span>(<span class="ident">value</span>) =&gt; {
-                                <span class="comment">// i. Return ? Call(promiseCapability.[[Resolve]], undefined, « handlerResult.[[Value]] »).</span>
-                                <span class="ident">context</span>.<span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="ident">resolve</span>.<span class="ident">clone</span>().<span class="ident">into</span>(), <span class="kw-2">&amp;</span><span class="ident">JsValue::Undefined</span>, <span class="kw-2">&amp;</span>[<span class="ident">value</span>])
+                            <span class="comment">// i. Else,
+                            </span><span class="prelude-val">Ok</span>(value) =&gt; {
+                                <span class="comment">// i. Return ? Call(promiseCapability.[[Resolve]], undefined, « handlerResult.[[Value]] »).
+                                </span>context.call(<span class="kw-2">&amp;</span>resolve.clone().into(), <span class="kw-2">&amp;</span>JsValue::Undefined, <span class="kw-2">&amp;</span>[value])
                             }
                         }
                     }
                 }
             },
-            <span class="ident">ReactionJobCaptures</span> { <span class="ident">reaction</span>, <span class="ident">argument</span> },
+            ReactionJobCaptures { reaction, argument },
         )
-        .<span class="ident">build</span>()
-        .<span class="ident">into</span>();
+        .build()
+        .into();
 
-        <span class="comment">// 2. Let handlerRealm be null.</span>
-        <span class="comment">// 3. If reaction.[[Handler]] is not empty, then</span>
-        <span class="comment">//   a. Let getHandlerRealmResult be Completion(GetFunctionRealm(reaction.[[Handler]].[[Callback]])).</span>
-        <span class="comment">//   b. If getHandlerRealmResult is a normal completion, set handlerRealm to getHandlerRealmResult.[[Value]].</span>
-        <span class="comment">//   c. Else, set handlerRealm to the current Realm Record.</span>
-        <span class="comment">//   d. NOTE: handlerRealm is never null unless the handler is undefined. When the handler is a revoked Proxy and no ECMAScript code runs, handlerRealm is used to create error objects.</span>
-        <span class="comment">// 4. Return the Record { [[Job]]: job, [[Realm]]: handlerRealm }.</span>
-        <span class="ident">JobCallback::make_job_callback</span>(<span class="ident">job</span>)
+        <span class="comment">// 2. Let handlerRealm be null.
+        // 3. If reaction.[[Handler]] is not empty, then
+        //   a. Let getHandlerRealmResult be Completion(GetFunctionRealm(reaction.[[Handler]].[[Callback]])).
+        //   b. If getHandlerRealmResult is a normal completion, set handlerRealm to getHandlerRealmResult.[[Value]].
+        //   c. Else, set handlerRealm to the current Realm Record.
+        //   d. NOTE: handlerRealm is never null unless the handler is undefined. When the handler is a revoked Proxy and no ECMAScript code runs, handlerRealm is used to create error objects.
+        // 4. Return the Record { [[Job]]: job, [[Realm]]: handlerRealm }.
+        </span>JobCallback::make_job_callback(job)
     }
 
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-newpromiseresolvethenablejob</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new_promise_resolve_thenable_job</span>(
-        <span class="ident">promise_to_resolve</span>: <span class="ident">JsObject</span>,
-        <span class="ident">thenable</span>: <span class="ident">JsValue</span>,
-        <span class="ident">then</span>: <span class="ident">JobCallback</span>,
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JobCallback</span> {
-        <span class="comment">// 1. Let job be a new Job Abstract Closure with no parameters that captures promiseToResolve, thenable, and then and performs the following steps when called:</span>
-        <span class="kw">let</span> <span class="ident">job</span> <span class="op">=</span> <span class="ident">FunctionBuilder::closure_with_captures</span>(
-            <span class="ident">context</span>,
-            <span class="op">|</span><span class="ident">_this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">_args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">captures</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">|</span> {
-                <span class="kw">let</span> <span class="ident">JobCapture</span> {
-                    <span class="ident">promise_to_resolve</span>,
-                    <span class="ident">thenable</span>,
-                    <span class="ident">then</span>,
-                } <span class="op">=</span> <span class="ident">captures</span>;
+    <span class="doccomment">/// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-newpromiseresolvethenablejob
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new_promise_resolve_thenable_job(
+        promise_to_resolve: JsObject,
+        thenable: JsValue,
+        then: JobCallback,
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JobCallback {
+        <span class="comment">// 1. Let job be a new Job Abstract Closure with no parameters that captures promiseToResolve, thenable, and then and performs the following steps when called:
+        </span><span class="kw">let </span>job = FunctionBuilder::closure_with_captures(
+            context,
+            |_this: <span class="kw-2">&amp;</span>JsValue, _args: <span class="kw-2">&amp;</span>[JsValue], captures, context: <span class="kw-2">&amp;mut </span>Context| {
+                <span class="kw">let </span>JobCapture {
+                    promise_to_resolve,
+                    thenable,
+                    then,
+                } = captures;
 
-                <span class="comment">//    a. Let resolvingFunctions be CreateResolvingFunctions(promiseToResolve).</span>
-                <span class="kw">let</span> <span class="ident">resolving_functions</span> <span class="op">=</span>
-                    <span class="ident">Promise::create_resolving_functions</span>(<span class="ident">promise_to_resolve</span>, <span class="ident">context</span>);
+                <span class="comment">//    a. Let resolvingFunctions be CreateResolvingFunctions(promiseToResolve).
+                </span><span class="kw">let </span>resolving_functions =
+                    Promise::create_resolving_functions(promise_to_resolve, context);
 
-                <span class="comment">//    b. Let thenCallResult be Completion(HostCallJobCallback(then, thenable, « resolvingFunctions.[[Resolve]], resolvingFunctions.[[Reject]] »)).</span>
-                <span class="kw">let</span> <span class="ident">then_call_result</span> <span class="op">=</span> <span class="ident">then</span>.<span class="ident">call_job_callback</span>(
-                    <span class="ident">thenable</span>,
+                <span class="comment">//    b. Let thenCallResult be Completion(HostCallJobCallback(then, thenable, « resolvingFunctions.[[Resolve]], resolvingFunctions.[[Reject]] »)).
+                </span><span class="kw">let </span>then_call_result = then.call_job_callback(
+                    thenable,
                     <span class="kw-2">&amp;</span>[
-                        <span class="ident">resolving_functions</span>.<span class="ident">resolve</span>,
-                        <span class="ident">resolving_functions</span>.<span class="ident">reject</span>.<span class="ident">clone</span>(),
+                        resolving_functions.resolve,
+                        resolving_functions.reject.clone(),
                     ],
-                    <span class="ident">context</span>,
+                    context,
                 );
 
-                <span class="comment">//    c. If thenCallResult is an abrupt completion, then</span>
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">value</span>) <span class="op">=</span> <span class="ident">then_call_result</span> {
-                    <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">value</span>.<span class="ident">to_opaque</span>(<span class="ident">context</span>);
-                    <span class="comment">//    i. Return ? Call(resolvingFunctions.[[Reject]], undefined, « thenCallResult.[[Value]] »).</span>
-                    <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">call</span>(
-                        <span class="kw-2">&amp;</span><span class="ident">resolving_functions</span>.<span class="ident">reject</span>,
-                        <span class="kw-2">&amp;</span><span class="ident">JsValue::Undefined</span>,
-                        <span class="kw-2">&amp;</span>[<span class="ident">value</span>],
+                <span class="comment">//    c. If thenCallResult is an abrupt completion, then
+                </span><span class="kw">if let </span><span class="prelude-val">Err</span>(value) = then_call_result {
+                    <span class="kw">let </span>value = value.to_opaque(context);
+                    <span class="comment">//    i. Return ? Call(resolvingFunctions.[[Reject]], undefined, « thenCallResult.[[Value]] »).
+                    </span><span class="kw">return </span>context.call(
+                        <span class="kw-2">&amp;</span>resolving_functions.reject,
+                        <span class="kw-2">&amp;</span>JsValue::Undefined,
+                        <span class="kw-2">&amp;</span>[value],
                     );
                 }
 
-                <span class="comment">//    d. Return ? thenCallResult.</span>
-                <span class="ident">then_call_result</span>
+                <span class="comment">//    d. Return ? thenCallResult.
+                </span>then_call_result
             },
-            <span class="ident">JobCapture::new</span>(<span class="ident">promise_to_resolve</span>, <span class="ident">thenable</span>, <span class="ident">then</span>),
+            JobCapture::new(promise_to_resolve, thenable, then),
         )
-        .<span class="ident">build</span>();
+        .build();
 
-        <span class="comment">// 2. Let getThenRealmResult be Completion(GetFunctionRealm(then.[[Callback]])).</span>
-        <span class="comment">// 3. If getThenRealmResult is a normal completion, let thenRealm be getThenRealmResult.[[Value]].</span>
-        <span class="comment">// 4. Else, let thenRealm be the current Realm Record.</span>
-        <span class="comment">// 5. NOTE: thenRealm is never null. When then.[[Callback]] is a revoked Proxy and no code runs, thenRealm is used to create error objects.</span>
-        <span class="comment">// 6. Return the Record { [[Job]]: job, [[Realm]]: thenRealm }.</span>
-        <span class="ident">JobCallback::make_job_callback</span>(<span class="ident">job</span>.<span class="ident">into</span>())
+        <span class="comment">// 2. Let getThenRealmResult be Completion(GetFunctionRealm(then.[[Callback]])).
+        // 3. If getThenRealmResult is a normal completion, let thenRealm be getThenRealmResult.[[Value]].
+        // 4. Else, let thenRealm be the current Realm Record.
+        // 5. NOTE: thenRealm is never null. When then.[[Callback]] is a revoked Proxy and no code runs, thenRealm is used to create error objects.
+        // 6. Return the Record { [[Job]]: job, [[Realm]]: thenRealm }.
+        </span>JobCallback::make_job_callback(job.into())
     }
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Trace</span>, <span class="ident">Finalize</span>)]</span>
-<span class="kw">struct</span> <span class="ident">JobCapture</span> {
-    <span class="ident">promise_to_resolve</span>: <span class="ident">JsObject</span>,
-    <span class="ident">thenable</span>: <span class="ident">JsValue</span>,
-    <span class="ident">then</span>: <span class="ident">JobCallback</span>,
+<span class="attribute">#[derive(Debug, Trace, Finalize)]
+</span><span class="kw">struct </span>JobCapture {
+    promise_to_resolve: JsObject,
+    thenable: JsValue,
+    then: JobCallback,
 }
 
-<span class="kw">impl</span> <span class="ident">JobCapture</span> {
-    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">promise_to_resolve</span>: <span class="ident">JsObject</span>, <span class="ident">thenable</span>: <span class="ident">JsValue</span>, <span class="ident">then</span>: <span class="ident">JobCallback</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">promise_to_resolve</span>,
-            <span class="ident">thenable</span>,
-            <span class="ident">then</span>,
+<span class="kw">impl </span>JobCapture {
+    <span class="kw">fn </span>new(promise_to_resolve: JsObject, thenable: JsValue, then: JobCallback) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            promise_to_resolve,
+            thenable,
+            then,
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0 (a55dd71d5 2022-09-19)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0 (897e37553 2022-11-02)" ></div></body></html>
