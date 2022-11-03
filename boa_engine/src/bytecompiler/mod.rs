@@ -1,6 +1,7 @@
 //! This module contains the bytecode compiler.
 
 mod function;
+mod expression;
 
 use crate::{
     environments::{BindingLocator, CompileTimeEnvironment},
@@ -920,124 +921,8 @@ impl<'b> ByteCompiler<'b> {
     #[inline]
     pub fn compile_expr(&mut self, expr: &Expression, use_expr: bool) -> JsResult<()> {
         match expr {
-            Expression::Literal(lit) => {
-                match lit {
-                    literal::Literal::String(v) => self.emit_push_literal(Literal::String(
-                        self.interner().resolve_expect(*v).into_common(false),
-                    )),
-                    literal::Literal::Int(v) => self.emit_push_integer(*v),
-                    literal::Literal::Num(v) => self.emit_push_rational(*v),
-                    literal::Literal::BigInt(v) => {
-                        self.emit_push_literal(Literal::BigInt(v.clone().into()));
-                    }
-                    literal::Literal::Bool(true) => self.emit(Opcode::PushTrue, &[]),
-                    literal::Literal::Bool(false) => self.emit(Opcode::PushFalse, &[]),
-                    literal::Literal::Null => self.emit(Opcode::PushNull, &[]),
-                    literal::Literal::Undefined => self.emit(Opcode::PushUndefined, &[]),
-                }
-
-                if !use_expr {
-                    self.emit(Opcode::Pop, &[]);
-                }
-            }
-            Expression::Unary(unary) => {
-                let opcode = match unary.op() {
-                    UnaryOp::IncrementPre => {
-                        // TODO: promote to an early error.
-                        let access = Access::from_expression(unary.target()).ok_or_else(|| {
-                            JsNativeError::syntax().with_message("Invalid increment operand")
-                        })?;
-
-                        self.access_set(access, true, |compiler, _| {
-                            compiler.compile_expr(unary.target(), true)?;
-                            compiler.emit(Opcode::Inc, &[]);
-                            Ok(())
-                        })?;
-
-                        None
-                    }
-                    UnaryOp::DecrementPre => {
-                        // TODO: promote to an early error.
-                        let access = Access::from_expression(unary.target()).ok_or_else(|| {
-                            JsNativeError::syntax().with_message("Invalid decrement operand")
-                        })?;
-
-                        self.access_set(access, true, |compiler, _| {
-                            compiler.compile_expr(unary.target(), true)?;
-                            compiler.emit(Opcode::Dec, &[]);
-                            Ok(())
-                        })?;
-                        None
-                    }
-                    UnaryOp::IncrementPost => {
-                        // TODO: promote to an early error.
-                        let access = Access::from_expression(unary.target()).ok_or_else(|| {
-                            JsNativeError::syntax().with_message("Invalid increment operand")
-                        })?;
-
-                        self.access_set(access, false, |compiler, level| {
-                            compiler.compile_expr(unary.target(), true)?;
-                            compiler.emit(Opcode::IncPost, &[]);
-                            compiler.emit_opcode(Opcode::RotateRight);
-                            compiler.emit_u8(level + 2);
-                            Ok(())
-                        })?;
-
-                        None
-                    }
-                    UnaryOp::DecrementPost => {
-                        // TODO: promote to an early error.
-                        let access = Access::from_expression(unary.target()).ok_or_else(|| {
-                            JsNativeError::syntax().with_message("Invalid decrement operand")
-                        })?;
-
-                        self.access_set(access, false, |compiler, level| {
-                            compiler.compile_expr(unary.target(), true)?;
-                            compiler.emit(Opcode::DecPost, &[]);
-                            compiler.emit_opcode(Opcode::RotateRight);
-                            compiler.emit_u8(level + 2);
-                            Ok(())
-                        })?;
-
-                        None
-                    }
-                    UnaryOp::Delete => {
-                        if let Some(access) = Access::from_expression(unary.target()) {
-                            self.access_delete(access)?;
-                        } else {
-                            self.compile_expr(unary.target(), false)?;
-                            self.emit(Opcode::PushTrue, &[]);
-                        }
-                        None
-                    }
-                    UnaryOp::Minus => Some(Opcode::Neg),
-                    UnaryOp::Plus => Some(Opcode::Pos),
-                    UnaryOp::Not => Some(Opcode::LogicalNot),
-                    UnaryOp::Tilde => Some(Opcode::BitNot),
-                    UnaryOp::TypeOf => {
-                        match &unary.target() {
-                            Expression::Identifier(identifier) => {
-                                let binding = self.context.get_binding_value(*identifier);
-                                let index = self.get_or_insert_binding(binding);
-                                self.emit(Opcode::GetNameOrUndefined, &[index]);
-                            }
-                            expr => self.compile_expr(expr, true)?,
-                        }
-                        self.emit_opcode(Opcode::TypeOf);
-                        None
-                    }
-                    UnaryOp::Void => Some(Opcode::Void),
-                };
-
-                if let Some(opcode) = opcode {
-                    self.compile_expr(unary.target(), true)?;
-                    self.emit(opcode, &[]);
-                }
-
-                if !use_expr {
-                    self.emit(Opcode::Pop, &[]);
-                }
-            }
+            Expression::Literal(lit) => expression::compile_literal(self, lit, use_expr),
+            Expression::Unary(unary) => expression::compile_unary(self, unary, use_expr)?,
             Expression::Binary(binary) => {
                 self.compile_expr(binary.lhs(), true)?;
                 match binary.op() {
