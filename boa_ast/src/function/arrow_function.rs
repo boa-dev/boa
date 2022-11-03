@@ -2,7 +2,7 @@ use crate::try_break;
 use crate::visitor::{VisitWith, Visitor, VisitorMut};
 use crate::{
     expression::{Expression, Identifier},
-    join_nodes, ContainsSymbol, StatementList,
+    join_nodes, StatementList,
 };
 use boa_interner::{Interner, ToIndentedString};
 use core::ops::ControlFlow;
@@ -63,26 +63,6 @@ impl ArrowFunction {
     #[must_use]
     pub fn body(&self) -> &StatementList {
         &self.body
-    }
-
-    #[inline]
-    pub(crate) fn contains_arguments(&self) -> bool {
-        self.parameters.contains_arguments() || self.body.contains_arguments()
-    }
-
-    #[inline]
-    pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
-        if ![
-            ContainsSymbol::NewTarget,
-            ContainsSymbol::SuperProperty,
-            ContainsSymbol::SuperCall,
-            ContainsSymbol::This,
-        ]
-        .contains(&symbol)
-        {
-            return false;
-        }
-        self.parameters.contains(symbol) || self.body.contains(symbol)
     }
 }
 

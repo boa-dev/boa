@@ -9,7 +9,6 @@ use crate::syntax::{
             GeneratorMethod, LeftHandSideExpression, PropertyName,
         },
         function::{FormalParameters, FunctionBody, UniqueFormalParameters, FUNCTION_BREAK_TOKENS},
-        function_contains_super, has_direct_super,
         statement::StatementList,
         AllowAwait, AllowDefault, AllowYield, Cursor, ParseError, ParseResult, TokenParser,
     },
@@ -18,8 +17,9 @@ use boa_ast::{
     self as ast,
     expression::Identifier,
     function::{self, Class, FormalParameterList, Function},
+    operations::{contains, contains_arguments, has_direct_super, ContainsSymbol},
     property::{ClassElementName, MethodDefinition},
-    ContainsSymbol, Declaration, Expression, Keyword, Punctuator,
+    Declaration, Expression, Keyword, Punctuator,
 };
 use boa_interner::{Interner, Sym};
 use rustc_hash::{FxHashMap, FxHashSet};
@@ -171,7 +171,7 @@ where
 
             if super_ref.is_none() {
                 if let Some(constructor) = &constructor {
-                    if function_contains_super(constructor.body(), constructor.parameters()) {
+                    if contains(constructor, ContainsSymbol::Super) {
                         return Err(ParseError::lex(LexError::Syntax(
                             "invalid super usage".into(),
                             body_start,
@@ -309,7 +309,7 @@ where
                         match &element {
                             function::ClassElement::PrivateMethodDefinition(name, method) => {
                                 // It is a Syntax Error if PropName of MethodDefinition is not "constructor" and HasDirectSuper of MethodDefinition is true.
-                                if has_direct_super(method.body(), method.parameters()) {
+                                if has_direct_super(method) {
                                     return Err(ParseError::lex(LexError::Syntax(
                                         "invalid super usage".into(),
                                         position,
@@ -367,7 +367,7 @@ where
                             }
                             function::ClassElement::PrivateStaticMethodDefinition(name, method) => {
                                 // It is a Syntax Error if HasDirectSuper of MethodDefinition is true.
-                                if has_direct_super(method.body(), method.parameters()) {
+                                if has_direct_super(method) {
                                     return Err(ParseError::lex(LexError::Syntax(
                                         "invalid super usage".into(),
                                         position,
@@ -425,7 +425,7 @@ where
                             }
                             function::ClassElement::PrivateFieldDefinition(name, init) => {
                                 if let Some(node) = init {
-                                    if node.contains(ContainsSymbol::SuperCall) {
+                                    if contains(node, ContainsSymbol::SuperCall) {
                                         return Err(ParseError::lex(LexError::Syntax(
                                             "invalid super usage".into(),
                                             position,
@@ -444,7 +444,7 @@ where
                             }
                             function::ClassElement::PrivateStaticFieldDefinition(name, init) => {
                                 if let Some(node) = init {
-                                    if node.contains(ContainsSymbol::SuperCall) {
+                                    if contains(node, ContainsSymbol::SuperCall) {
                                         return Err(ParseError::lex(LexError::Syntax(
                                             "invalid super usage".into(),
                                             position,
@@ -467,7 +467,7 @@ where
                                 //  It is a Syntax Error if PropName of MethodDefinition is not "constructor" and HasDirectSuper of MethodDefinition is true.
                                 // ClassElement : static MethodDefinition:
                                 //  It is a Syntax Error if HasDirectSuper of MethodDefinition is true.
-                                if has_direct_super(method.body(), method.parameters()) {
+                                if has_direct_super(method) {
                                     return Err(ParseError::lex(LexError::Syntax(
                                         "invalid super usage".into(),
                                         position,
@@ -476,7 +476,7 @@ where
                             }
                             function::ClassElement::FieldDefinition(_, Some(node))
                             | function::ClassElement::StaticFieldDefinition(_, Some(node)) => {
-                                if node.contains(ContainsSymbol::SuperCall) {
+                                if contains(node, ContainsSymbol::SuperCall) {
                                     return Err(ParseError::lex(LexError::Syntax(
                                         "invalid super usage".into(),
                                         position,
@@ -1270,7 +1270,7 @@ where
             | function::ClassElement::StaticFieldDefinition(_, Some(node))
             | function::ClassElement::PrivateFieldDefinition(_, Some(node))
             | function::ClassElement::PrivateStaticFieldDefinition(_, Some(node)) => {
-                if node.contains_arguments() {
+                if contains_arguments(node) {
                     return Err(ParseError::general(
                         "'arguments' not allowed in class field definition",
                         position,
@@ -1282,13 +1282,13 @@ where
             // It is a Syntax Error if ClassStaticBlockStatementList Contains SuperCall is true.
             function::ClassElement::StaticBlock(block) => {
                 for node in block.statements() {
-                    if node.contains_arguments() {
+                    if contains_arguments(node) {
                         return Err(ParseError::general(
                             "'arguments' not allowed in class static block",
                             position,
                         ));
                     }
-                    if node.contains(ContainsSymbol::SuperCall) {
+                    if contains(node, ContainsSymbol::SuperCall) {
                         return Err(ParseError::general("invalid super usage", position));
                     }
                 }

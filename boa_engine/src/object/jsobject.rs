@@ -728,7 +728,7 @@ Cannot both specify accessors and a value or writable attribute",
 impl AsRef<boa_gc::Cell<Object>> for JsObject {
     #[inline]
     fn as_ref(&self) -> &boa_gc::Cell<Object> {
-        &*self.inner
+        &self.inner
     }
 }
 

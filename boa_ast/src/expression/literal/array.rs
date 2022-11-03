@@ -1,10 +1,10 @@
 //! Array declaration Expression.
 
 use crate::expression::operator::assign::AssignTarget;
+use crate::expression::Expression;
 use crate::pattern::{ArrayPattern, ArrayPatternElement, Pattern};
 use crate::try_break;
 use crate::visitor::{VisitWith, Visitor, VisitorMut};
-use crate::{expression::Expression, ContainsSymbol};
 use boa_interner::{Interner, Sym, ToInternedString};
 use core::ops::ControlFlow;
 
@@ -150,19 +150,6 @@ impl ArrayLiteral {
             }
         }
         Some(ArrayPattern::new(bindings.into()))
-    }
-
-    #[inline]
-    pub(crate) fn contains_arguments(&self) -> bool {
-        self.arr
-            .iter()
-            .flatten()
-            .any(Expression::contains_arguments)
-    }
-
-    #[inline]
-    pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
-        self.arr.iter().flatten().any(|expr| expr.contains(symbol))
     }
 }
 

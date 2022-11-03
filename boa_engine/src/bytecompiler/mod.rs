@@ -346,17 +346,17 @@ impl<'b> ByteCompiler<'b> {
 
     #[inline]
     fn emit_u64(&mut self, value: u64) {
-        self.code_block.code.extend(&value.to_ne_bytes());
+        self.code_block.code.extend(value.to_ne_bytes());
     }
 
     #[inline]
     fn emit_u32(&mut self, value: u32) {
-        self.code_block.code.extend(&value.to_ne_bytes());
+        self.code_block.code.extend(value.to_ne_bytes());
     }
 
     #[inline]
     fn emit_u16(&mut self, value: u16) {
-        self.code_block.code.extend(&value.to_ne_bytes());
+        self.code_block.code.extend(value.to_ne_bytes());
     }
 
     #[inline]
@@ -696,7 +696,7 @@ impl<'b> ByteCompiler<'b> {
                     }
                     PropertyAccessField::Expr(expr) => {
                         self.emit_opcode(Opcode::Super);
-                        self.compile_expr(&**expr, true)?;
+                        self.compile_expr(expr, true)?;
                         self.emit_opcode(Opcode::GetPropertyByValue);
                     }
                 },

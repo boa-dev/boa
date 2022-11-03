@@ -627,7 +627,7 @@ impl JsObject {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-isarray
-    pub(crate) fn is_array_abstract(&self, context: &mut Context) -> JsResult<bool> {
+    pub(crate) fn is_array_abstract(&self) -> JsResult<bool> {
         // Note: The spec specifies this function for JsValue.
         // It is implemented for JsObject for convenience.
 
@@ -644,7 +644,7 @@ impl JsObject {
             let (target, _) = proxy.try_data()?;
 
             // c. Return ? IsArray(target).
-            return target.is_array_abstract(context);
+            return target.is_array_abstract();
         }
 
         // 4. Return false.

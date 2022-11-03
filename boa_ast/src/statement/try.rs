@@ -5,12 +5,9 @@ use crate::visitor::{VisitWith, Visitor, VisitorMut};
 use crate::{
     declaration::Binding,
     statement::{Block, Statement},
-    StatementListItem,
 };
 use boa_interner::{Interner, ToIndentedString, ToInternedString};
 use core::ops::ControlFlow;
-
-use super::ContainsSymbol;
 
 /// The `try...catch` statement marks a block of statements to try and specifies a response
 /// should an exception be thrown.
@@ -77,20 +74,6 @@ impl Try {
             ErrorHandler::Finally(f) | ErrorHandler::Full(_, f) => Some(f),
             ErrorHandler::Catch(_) => None,
         }
-    }
-
-    #[inline]
-    pub(crate) fn contains_arguments(&self) -> bool {
-        self.block.contains_arguments()
-            || matches!(self.catch(), Some(catch) if catch.contains_arguments())
-            || matches!(self.finally(), Some(finally) if finally.contains_arguments())
-    }
-
-    #[inline]
-    pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
-        self.block.contains(symbol)
-            || matches!(self.catch(), Some(catch) if catch.contains(symbol))
-            || matches!(self.finally(), Some(finally) if finally.contains(symbol))
     }
 }
 
@@ -181,24 +164,6 @@ impl Catch {
     pub fn block(&self) -> &Block {
         &self.block
     }
-
-    #[inline]
-    pub(crate) fn contains_arguments(&self) -> bool {
-        self.block
-            .statement_list()
-            .statements()
-            .iter()
-            .any(StatementListItem::contains_arguments)
-    }
-
-    #[inline]
-    pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
-        self.block
-            .statement_list()
-            .statements()
-            .iter()
-            .any(|stmt| stmt.contains(symbol))
-    }
 }
 
 impl ToIndentedString for Catch {
@@ -251,24 +216,6 @@ impl Finally {
     #[must_use]
     pub fn block(&self) -> &Block {
         &self.block
-    }
-
-    #[inline]
-    pub(crate) fn contains_arguments(&self) -> bool {
-        self.block
-            .statement_list()
-            .statements()
-            .iter()
-            .any(StatementListItem::contains_arguments)
-    }
-
-    #[inline]
-    pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
-        self.block
-            .statement_list()
-            .statements()
-            .iter()
-            .any(|stmt| stmt.contains(symbol))
     }
 }
 

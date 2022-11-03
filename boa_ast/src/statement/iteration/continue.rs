@@ -34,11 +34,6 @@ impl Continue {
     pub fn label(&self) -> Option<Sym> {
         self.label
     }
-
-    #[inline]
-    pub(crate) fn contains_arguments(self) -> bool {
-        matches!(self.label, Some(label) if label == Sym::ARGUMENTS)
-    }
 }
 
 impl ToInternedString for Continue {

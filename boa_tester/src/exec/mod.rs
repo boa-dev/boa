@@ -379,7 +379,7 @@ impl Test {
         for include in self.includes.iter() {
             context
                 .eval(
-                    &harness
+                    harness
                         .includes
                         .get(include)
                         .ok_or_else(|| format!("could not find the {include} include file."))?

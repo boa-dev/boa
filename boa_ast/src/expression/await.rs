@@ -1,6 +1,5 @@
 //! Await expression Expression.
 
-use crate::ContainsSymbol;
 use core::ops::ControlFlow;
 
 use super::Expression;
@@ -28,16 +27,6 @@ impl Await {
     #[must_use]
     pub fn target(&self) -> &Expression {
         &self.target
-    }
-
-    #[inline]
-    pub(crate) fn contains_arguments(&self) -> bool {
-        self.target.contains_arguments()
-    }
-
-    #[inline]
-    pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
-        self.target.contains(symbol)
     }
 }
 

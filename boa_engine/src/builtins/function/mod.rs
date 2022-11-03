@@ -30,7 +30,11 @@ use crate::{
     value::IntegerOrInfinity,
     Context, JsResult, JsString, JsValue,
 };
-use boa_ast::{function::FormalParameterList, StatementList};
+use boa_ast::{
+    function::FormalParameterList,
+    operations::{contains, ContainsSymbol},
+    StatementList,
+};
 use boa_gc::{self, custom_trace, Finalize, Gc, Trace};
 use boa_interner::Sym;
 use boa_profiler::Profiler;
@@ -240,15 +244,21 @@ pub enum Function {
     Async {
         code: Gc<crate::vm::CodeBlock>,
         environments: DeclarativeEnvironmentStack,
+        /// The `[[HomeObject]]` internal slot.
+        home_object: Option<JsObject>,
         promise_capability: PromiseCapability,
     },
     Generator {
         code: Gc<crate::vm::CodeBlock>,
         environments: DeclarativeEnvironmentStack,
+        /// The `[[HomeObject]]` internal slot.
+        home_object: Option<JsObject>,
     },
     AsyncGenerator {
         code: Gc<crate::vm::CodeBlock>,
         environments: DeclarativeEnvironmentStack,
+        /// The `[[HomeObject]]` internal slot.
+        home_object: Option<JsObject>,
     },
 }
 
@@ -266,15 +276,17 @@ unsafe impl Trace for Function {
                     mark(elem);
                 }
             }
-            Self::Async { code, environments, promise_capability } => {
+            Self::Async { code, environments, home_object, promise_capability } => {
                 mark(code);
                 mark(environments);
+                mark(home_object);
                 mark(promise_capability);
             }
-            Self::Generator { code, environments }
-            | Self::AsyncGenerator { code, environments } => {
+            Self::Generator { code, environments, home_object}
+            | Self::AsyncGenerator { code, environments, home_object} => {
                 mark(code);
                 mark(environments);
+                mark(home_object);
             }
         }
     }}
@@ -312,17 +324,23 @@ impl Function {
 
     /// Returns a reference to the function `[[HomeObject]]` slot if present.
     pub(crate) fn get_home_object(&self) -> Option<&JsObject> {
-        if let Self::Ordinary { home_object, .. } = self {
-            home_object.as_ref()
-        } else {
-            None
+        match self {
+            Self::Ordinary { home_object, .. }
+            | Self::Async { home_object, .. }
+            | Self::Generator { home_object, .. }
+            | Self::AsyncGenerator { home_object, .. } => home_object.as_ref(),
+            _ => None,
         }
     }
 
     ///  Sets the `[[HomeObject]]` slot if present.
     pub(crate) fn set_home_object(&mut self, object: JsObject) {
-        if let Self::Ordinary { home_object, .. } = self {
-            *home_object = Some(object);
+        match self {
+            Self::Ordinary { home_object, .. }
+            | Self::Async { home_object, .. }
+            | Self::Generator { home_object, .. }
+            | Self::AsyncGenerator { home_object, .. } => *home_object = Some(object),
+            _ => {}
         }
     }
 
@@ -515,7 +533,7 @@ impl BuiltInFunctionObject {
                     }
                 };
 
-                if generator && parameters.contains_yield_expression() {
+                if generator && contains(&parameters, ContainsSymbol::YieldExpression) {
                     return Err(JsNativeError::syntax().with_message(
                             "yield expression is not allowed in formal parameter list of generator function",
                         ).into());
@@ -525,14 +543,14 @@ impl BuiltInFunctionObject {
             };
 
             // It is a Syntax Error if FormalParameters Contains YieldExpression is true.
-            if generator && r#async && parameters.contains_yield_expression() {
+            if generator && r#async && contains(&parameters, ContainsSymbol::YieldExpression) {
                 return Err(JsNativeError::syntax()
                     .with_message("yield expression not allowed in async generator parameters")
                     .into());
             }
 
             // It is a Syntax Error if FormalParameters Contains AwaitExpression is true.
-            if generator && r#async && parameters.contains_await_expression() {
+            if generator && r#async && contains(&parameters, ContainsSymbol::AwaitExpression) {
                 return Err(JsNativeError::syntax()
                     .with_message("await expression not allowed in async generator parameters")
                     .into());

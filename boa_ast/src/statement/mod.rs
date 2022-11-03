@@ -37,7 +37,6 @@ use rustc_hash::FxHashSet;
 use super::{
     declaration::{Binding, VarDeclaration},
     expression::{Expression, Identifier},
-    ContainsSymbol,
 };
 
 /// The `Statement` Parse Node.
@@ -226,65 +225,16 @@ impl Statement {
         }
     }
 
-    /// Returns true if the node contains a identifier reference named 'arguments'.
+    /// Abstract operation [`IsLabelledFunction`][spec].
     ///
-    /// More information:
-    ///  - [ECMAScript specification][spec]
+    /// This recursively checks if this `Statement` is a labelled function, since adding
+    /// several labels in a function should not change the return value of the abstract operation:
     ///
-    /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-containsarguments
-    // TODO: replace with a visitor
-    pub(crate) fn contains_arguments(&self) -> bool {
-        match self {
-            Self::Empty => false,
-            Self::Block(block) => block.contains_arguments(),
-            Self::Var(var) => var.contains_arguments(),
-            Self::Expression(expr) => expr.contains_arguments(),
-            Self::If(r#if) => r#if.contains_arguments(),
-            Self::DoWhileLoop(dowhile) => dowhile.contains_arguments(),
-            Self::WhileLoop(whileloop) => whileloop.contains_arguments(),
-            Self::ForLoop(forloop) => forloop.contains_arguments(),
-            Self::ForInLoop(forin) => forin.contains_arguments(),
-            Self::ForOfLoop(forof) => forof.contains_arguments(),
-            Self::Switch(switch) => switch.contains_arguments(),
-            Self::Continue(r#continue) => r#continue.contains_arguments(),
-            Self::Break(r#break) => r#break.contains_arguments(),
-            Self::Return(r#return) => r#return.contains_arguments(),
-            Self::Labelled(labelled) => labelled.contains_arguments(),
-            Self::Throw(throw) => throw.contains_arguments(),
-            Self::Try(r#try) => r#try.contains_arguments(),
-        }
-    }
-
-    /// Returns `true` if the node contains the given token.
+    /// ```Javascript
+    /// l1: l2: l3: l4: function f(){ }
+    /// ```
     ///
-    /// More information:
-    ///  - [ECMAScript specification][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-contains
-    // TODO: replace with a visitor
-    pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
-        match self {
-            Self::Empty | Self::Continue(_) | Self::Break(_) => false,
-            Self::Block(block) => block.contains(symbol),
-            Self::Var(var) => var.contains(symbol),
-            Self::Expression(expr) => expr.contains(symbol),
-            Self::If(r#if) => r#if.contains(symbol),
-            Self::DoWhileLoop(dowhile) => dowhile.contains(symbol),
-            Self::WhileLoop(whileloop) => whileloop.contains(symbol),
-            Self::ForLoop(forloop) => forloop.contains(symbol),
-            Self::ForInLoop(forin) => forin.contains(symbol),
-            Self::ForOfLoop(forof) => forof.contains(symbol),
-            Self::Switch(switch) => switch.contains(symbol),
-            Self::Return(r#return) => r#return.contains(symbol),
-            Self::Labelled(labelled) => labelled.contains(symbol),
-            Self::Throw(throw) => throw.contains(symbol),
-            Self::Try(r#try) => r#try.contains(symbol),
-        }
-    }
-
-    /// `IsLabelledFunction` static operation, as defined by the [spec].
-    ///
-    /// Returns `true` if this `Statement` is a labelled function.
+    /// This should return `true` for that snippet.
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-islabelledfunction
     #[inline]

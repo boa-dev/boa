@@ -1,7 +1,9 @@
-use super::Statement;
-use crate::try_break;
-use crate::visitor::{VisitWith, Visitor, VisitorMut};
-use crate::{function::Function, ContainsSymbol};
+use crate::{
+    function::Function,
+    try_break,
+    visitor::{VisitWith, Visitor, VisitorMut},
+    Statement,
+};
 use boa_interner::{Interner, Sym, ToIndentedString, ToInternedString};
 use core::ops::ControlFlow;
 
@@ -28,22 +30,6 @@ impl LabelledItem {
         match self {
             LabelledItem::Function(f) => f.to_indented_string(interner, indentation),
             LabelledItem::Statement(stmt) => stmt.to_indented_string(interner, indentation),
-        }
-    }
-
-    #[inline]
-    pub(crate) fn contains_arguments(&self) -> bool {
-        match self {
-            LabelledItem::Function(_) => false,
-            LabelledItem::Statement(stmt) => stmt.contains_arguments(),
-        }
-    }
-
-    #[inline]
-    pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
-        match self {
-            LabelledItem::Function(_) => false,
-            LabelledItem::Statement(stmt) => stmt.contains(symbol),
         }
     }
 }
@@ -129,16 +115,6 @@ impl Labelled {
             interner.resolve_expect(self.label),
             self.item.to_indented_string(interner, indentation)
         )
-    }
-
-    #[inline]
-    pub(crate) fn contains_arguments(&self) -> bool {
-        self.label == Sym::ARGUMENTS || self.item.contains_arguments()
-    }
-
-    #[inline]
-    pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
-        self.item.contains(symbol)
     }
 }
 

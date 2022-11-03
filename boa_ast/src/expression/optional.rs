@@ -1,9 +1,9 @@
 use boa_interner::{Interner, Sym, ToInternedString};
 use core::ops::ControlFlow;
 
+use crate::join_nodes;
 use crate::try_break;
 use crate::visitor::{VisitWith, Visitor, VisitorMut};
-use crate::{join_nodes, ContainsSymbol};
 
 use super::{access::PropertyAccessField, Expression};
 
@@ -26,25 +26,6 @@ pub enum OptionalOperationKind {
         /// The args passed to the function call.
         args: Box<[Expression]>,
     },
-}
-
-impl OptionalOperationKind {
-    #[inline]
-    pub(crate) fn contains_arguments(&self) -> bool {
-        match self {
-            OptionalOperationKind::SimplePropertyAccess { field } => field.contains_arguments(),
-            OptionalOperationKind::PrivatePropertyAccess { .. } => false,
-            OptionalOperationKind::Call { args } => args.iter().any(Expression::contains_arguments),
-        }
-    }
-    #[inline]
-    pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
-        match self {
-            OptionalOperationKind::SimplePropertyAccess { field } => field.contains(symbol),
-            OptionalOperationKind::PrivatePropertyAccess { .. } => false,
-            OptionalOperationKind::Call { args } => args.iter().any(|e| e.contains(symbol)),
-        }
-    }
 }
 
 impl VisitWith for OptionalOperationKind {
@@ -118,16 +99,6 @@ impl OptionalOperation {
     #[must_use]
     pub fn shorted(&self) -> bool {
         self.shorted
-    }
-
-    #[inline]
-    pub(crate) fn contains_arguments(&self) -> bool {
-        self.kind.contains_arguments()
-    }
-
-    #[inline]
-    pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
-        self.kind.contains(symbol)
     }
 }
 
@@ -257,16 +228,6 @@ impl Optional {
     #[must_use]
     pub fn chain(&self) -> &[OptionalOperation] {
         self.chain.as_ref()
-    }
-
-    #[inline]
-    pub(crate) fn contains_arguments(&self) -> bool {
-        self.target.contains_arguments()
-            || self.chain.iter().any(OptionalOperation::contains_arguments)
-    }
-    #[inline]
-    pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
-        self.target.contains(symbol) || self.chain.iter().any(|item| item.contains(symbol))
     }
 }
 

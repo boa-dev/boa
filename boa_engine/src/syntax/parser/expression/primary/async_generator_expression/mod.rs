@@ -15,11 +15,15 @@ use crate::syntax::{
     parser::{
         expression::BindingIdentifier,
         function::{FormalParameters, FunctionBody},
-        function_contains_super, name_in_lexically_declared_names, Cursor, ParseError, ParseResult,
-        TokenParser,
+        name_in_lexically_declared_names, Cursor, ParseError, ParseResult, TokenParser,
     },
 };
-use boa_ast::{expression::Identifier, function::AsyncGenerator, Keyword, Position, Punctuator};
+use boa_ast::{
+    expression::Identifier,
+    function::AsyncGenerator,
+    operations::{contains, ContainsSymbol},
+    Keyword, Position, Punctuator,
+};
 use boa_interner::{Interner, Sym};
 use boa_profiler::Profiler;
 use std::io::Read;
@@ -102,7 +106,7 @@ where
         let params = FormalParameters::new(true, true).parse(cursor, interner)?;
 
         // It is a Syntax Error if FormalParameters Contains YieldExpression is true.
-        if params.contains_yield_expression() {
+        if contains(&params, ContainsSymbol::YieldExpression) {
             return Err(ParseError::lex(LexError::Syntax(
                 "yield expression not allowed in async generator expression parameters".into(),
                 params_start_position,
@@ -110,7 +114,7 @@ where
         }
 
         // It is a Syntax Error if FormalParameters Contains AwaitExpression is true.
-        if params.contains_await_expression() {
+        if contains(&params, ContainsSymbol::AwaitExpression) {
             return Err(ParseError::lex(LexError::Syntax(
                 "await expression not allowed in async generator expression parameters".into(),
                 params_start_position,
@@ -162,7 +166,9 @@ where
             params_start_position,
         )?;
 
-        if function_contains_super(&body, &params) {
+        let function = AsyncGenerator::new(name, params, body);
+
+        if contains(&function, ContainsSymbol::Super) {
             return Err(ParseError::lex(LexError::Syntax(
                 "invalid super usage".into(),
                 params_start_position,
@@ -170,6 +176,6 @@ where
         }
 
         //implement the below AsyncGeneratorExpr in ast::node
-        Ok(AsyncGenerator::new(name, params, body))
+        Ok(function)
     }
 }

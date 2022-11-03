@@ -2,7 +2,6 @@ use boa_interner::{Interner, ToInternedString};
 use core::ops::ControlFlow;
 
 use crate::visitor::{VisitWith, Visitor, VisitorMut};
-use crate::ContainsSymbol;
 
 use super::Expression;
 
@@ -44,16 +43,6 @@ impl Spread {
         Self {
             target: Box::new(target),
         }
-    }
-
-    #[inline]
-    pub(crate) fn contains_arguments(&self) -> bool {
-        self.target.contains_arguments()
-    }
-
-    #[inline]
-    pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
-        self.target.contains(symbol)
     }
 }
 

@@ -9,7 +9,7 @@ use crate::{
     expression::Expression,
     try_break,
     visitor::{VisitWith, Visitor, VisitorMut},
-    ContainsSymbol, ToStringEscaped,
+    ToStringEscaped,
 };
 
 /// Template literals are string literals allowing embedded expressions.
@@ -60,22 +60,6 @@ impl TemplateLiteral {
     #[must_use]
     pub fn elements(&self) -> &[TemplateElement] {
         &self.elements
-    }
-
-    #[inline]
-    pub(crate) fn contains_arguments(&self) -> bool {
-        self.elements.iter().any(|e| match e {
-            TemplateElement::String(_) => false,
-            TemplateElement::Expr(expr) => expr.contains_arguments(),
-        })
-    }
-
-    #[inline]
-    pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
-        self.elements.iter().any(|e| match e {
-            TemplateElement::String(_) => false,
-            TemplateElement::Expr(expr) => expr.contains(symbol),
-        })
     }
 }
 

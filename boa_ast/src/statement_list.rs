@@ -1,9 +1,12 @@
 //! Statement list node.
 
 use super::{declaration::Binding, Declaration};
-use crate::try_break;
-use crate::visitor::{VisitWith, Visitor, VisitorMut};
-use crate::{expression::Identifier, statement::Statement, ContainsSymbol};
+use crate::{
+    expression::Identifier,
+    statement::Statement,
+    try_break,
+    visitor::{VisitWith, Visitor, VisitorMut},
+};
 use boa_interner::{Interner, ToIndentedString};
 use core::ops::ControlFlow;
 use rustc_hash::FxHashSet;
@@ -46,36 +49,6 @@ impl StatementListItem {
         match self {
             StatementListItem::Statement(stmt) => stmt.var_declared_names(vars),
             StatementListItem::Declaration(_) => {}
-        }
-    }
-
-    /// Returns true if the node contains a identifier reference named 'arguments'.
-    ///
-    /// More information:
-    ///  - [ECMAScript specification][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-containsarguments
-    #[inline]
-    #[must_use]
-    pub fn contains_arguments(&self) -> bool {
-        match self {
-            StatementListItem::Statement(stmt) => stmt.contains_arguments(),
-            StatementListItem::Declaration(decl) => decl.contains_arguments(),
-        }
-    }
-
-    /// Returns `true` if the node contains the given token.
-    ///
-    /// More information:
-    ///  - [ECMAScript specification][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-contains
-    #[inline]
-    #[must_use]
-    pub fn contains(&self, symbol: ContainsSymbol) -> bool {
-        match self {
-            StatementListItem::Statement(stmt) => stmt.contains(symbol),
-            StatementListItem::Declaration(decl) => decl.contains(symbol),
         }
     }
 }
@@ -251,31 +224,6 @@ impl StatementList {
         }
 
         names
-    }
-
-    /// Returns true if the node contains a identifier reference named 'arguments'.
-    ///
-    /// More information:
-    ///  - [ECMAScript specification][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-containsarguments
-    #[inline]
-    pub fn contains_arguments(&self) -> bool {
-        self.statements
-            .iter()
-            .any(StatementListItem::contains_arguments)
-    }
-
-    /// Returns `true` if the node contains the given token.
-    ///
-    /// More information:
-    ///  - [ECMAScript specification][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-contains
-    #[inline]
-    #[must_use]
-    pub fn contains(&self, symbol: ContainsSymbol) -> bool {
-        self.statements.iter().any(|stmt| stmt.contains(symbol))
     }
 }
 

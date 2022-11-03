@@ -9,7 +9,7 @@
 //! [primary]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators#primary_expressions
 //! [lhs]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators#left-hand-side_expressions
 
-use boa_interner::{Interner, Sym, ToIndentedString, ToInternedString};
+use boa_interner::{Interner, ToIndentedString, ToInternedString};
 use core::ops::ControlFlow;
 
 use self::{
@@ -21,7 +21,7 @@ use self::{
 use super::{
     function::FormalParameterList,
     function::{ArrowFunction, AsyncFunction, AsyncGenerator, Class, Function, Generator},
-    ContainsSymbol, Statement,
+    Statement,
 };
 
 mod r#await;
@@ -188,91 +188,6 @@ impl Expression {
             Self::Await(aw) => aw.to_interned_string(interner),
             Self::Yield(yi) => yi.to_interned_string(interner),
             Self::FormalParameterList(_) => unreachable!(),
-        }
-    }
-
-    /// Returns true if the expression contains a identifier reference named 'arguments'.
-    ///
-    /// More information:
-    ///  - [ECMAScript specification][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-containsarguments
-    // TODO: replace with a visitor
-    #[inline]
-    #[must_use]
-    pub fn contains_arguments(&self) -> bool {
-        match self {
-            Expression::Identifier(ident) => *ident == Sym::ARGUMENTS,
-            Expression::Function(_)
-            | Expression::Generator(_)
-            | Expression::AsyncFunction(_)
-            | Expression::AsyncGenerator(_)
-            | Expression::Literal(_)
-            | Expression::This
-            | Expression::NewTarget => false,
-            Expression::ArrayLiteral(array) => array.contains_arguments(),
-            Expression::ObjectLiteral(object) => object.contains_arguments(),
-            Expression::Spread(spread) => spread.contains_arguments(),
-            Expression::ArrowFunction(arrow) => arrow.contains_arguments(),
-            Expression::Class(class) => class.contains_arguments(),
-            Expression::TemplateLiteral(template) => template.contains_arguments(),
-            Expression::PropertyAccess(access) => access.contains_arguments(),
-            Expression::New(new) => new.contains_arguments(),
-            Expression::Call(call) => call.contains_arguments(),
-            Expression::SuperCall(call) => call.contains_arguments(),
-            Expression::Optional(opt) => opt.contains_arguments(),
-            Expression::TaggedTemplate(tag) => tag.contains_arguments(),
-            Expression::Assign(assign) => assign.contains_arguments(),
-            Expression::Unary(unary) => unary.contains_arguments(),
-            Expression::Binary(binary) => binary.contains_arguments(),
-            Expression::Conditional(cond) => cond.contains_arguments(),
-            Expression::Await(r#await) => r#await.contains_arguments(),
-            Expression::Yield(r#yield) => r#yield.contains_arguments(),
-            // TODO: remove variant
-            Expression::FormalParameterList(_) => unreachable!(),
-        }
-    }
-
-    /// Returns `true` if the node contains the given token.
-    ///
-    /// More information:
-    ///  - [ECMAScript specification][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-contains
-    // TODO: replace with a visitor
-    #[must_use]
-    pub fn contains(&self, symbol: ContainsSymbol) -> bool {
-        match self {
-            Expression::This => symbol == ContainsSymbol::This,
-            Expression::Identifier(_)
-            | Expression::Literal(_)
-            | Expression::Function(_)
-            | Expression::Generator(_)
-            | Expression::AsyncFunction(_)
-            | Expression::AsyncGenerator(_) => false,
-            Expression::ArrayLiteral(array) => array.contains(symbol),
-            Expression::ObjectLiteral(obj) => obj.contains(symbol),
-            Expression::Spread(spread) => spread.contains(symbol),
-            Expression::ArrowFunction(arrow) => arrow.contains(symbol),
-            Expression::Class(class) => class.contains(symbol),
-            Expression::TemplateLiteral(temp) => temp.contains(symbol),
-            Expression::PropertyAccess(prop) => prop.contains(symbol),
-            Expression::New(new) => new.contains(symbol),
-            Expression::Call(call) => call.contains(symbol),
-            Expression::SuperCall(_) if symbol == ContainsSymbol::SuperCall => true,
-            Expression::SuperCall(expr) => expr.contains(symbol),
-            Expression::Optional(opt) => opt.contains(symbol),
-            Expression::TaggedTemplate(temp) => temp.contains(symbol),
-            Expression::NewTarget => symbol == ContainsSymbol::NewTarget,
-            Expression::Assign(assign) => assign.contains(symbol),
-            Expression::Unary(unary) => unary.contains(symbol),
-            Expression::Binary(binary) => binary.contains(symbol),
-            Expression::Conditional(cond) => cond.contains(symbol),
-            Expression::Await(_) if symbol == ContainsSymbol::AwaitExpression => true,
-            Expression::Await(r#await) => r#await.contains(symbol),
-            Expression::Yield(_) if symbol == ContainsSymbol::YieldExpression => true,
-            Expression::Yield(r#yield) => r#yield.contains(symbol),
-            Expression::FormalParameterList(_) => unreachable!(),
         }
     }
 }

@@ -1,5 +1,5 @@
+use crate::expression::Call;
 use crate::visitor::{VisitWith, Visitor, VisitorMut};
-use crate::{expression::Call, ContainsSymbol};
 use boa_interner::{Interner, ToInternedString};
 use core::ops::ControlFlow;
 
@@ -45,16 +45,6 @@ impl New {
     #[must_use]
     pub fn call(&self) -> &Call {
         &self.call
-    }
-
-    #[inline]
-    pub(crate) fn contains_arguments(&self) -> bool {
-        self.call.contains_arguments()
-    }
-
-    #[inline]
-    pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
-        self.call.contains(symbol)
     }
 }
 

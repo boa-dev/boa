@@ -234,7 +234,7 @@ impl Json {
         if let Some(obj) = val.as_object() {
             // a. Let isArray be ? IsArray(val).
             // b. If isArray is true, then
-            if obj.is_array_abstract(context)? {
+            if obj.is_array_abstract()? {
                 // i. Let I be 0.
                 // ii. Let len be ? LengthOfArrayLike(val).
                 // iii. Repeat, while I < len,
@@ -339,7 +339,7 @@ impl Json {
             } else {
                 // i. Let isArray be ? IsArray(replacer).
                 // ii. If isArray is true, then
-                if replacer_obj.is_array_abstract(context)? {
+                if replacer_obj.is_array_abstract()? {
                     // 1. Set PropertyList to a new empty List.
                     let mut property_set = indexmap::IndexSet::new();
 
@@ -562,7 +562,7 @@ impl Json {
                 // a. Let isArray be ? IsArray(value).
                 // b. If isArray is true, return ? SerializeJSONArray(state, value).
                 // c. Return ? SerializeJSONObject(state, value).
-                return if obj.is_array_abstract(context)? {
+                return if obj.is_array_abstract()? {
                     Ok(Some(Self::serialize_json_array(state, obj, context)?))
                 } else {
                     Ok(Some(Self::serialize_json_object(state, obj, context)?))
