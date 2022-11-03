@@ -1,8 +1,7 @@
 use crate::try_break;
 use crate::visitor::{VisitWith, Visitor, VisitorMut};
 use crate::{
-    declaration::{LexicalDeclaration, VarDeclaration, Variable},
-    expression::Identifier,
+    declaration::{LexicalDeclaration, VarDeclaration},
     statement::Statement,
     Expression,
 };
@@ -203,27 +202,6 @@ pub enum ForLoopInitializer {
     Var(VarDeclaration),
     /// A lexical declaration initializer.
     Lexical(LexicalDeclaration),
-}
-
-impl ForLoopInitializer {
-    /// Return the bound names of a for loop initializer.
-    ///
-    /// More information:
-    ///  - [ECMAScript specification][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-boundnames
-    #[must_use]
-    pub fn bound_names(&self) -> Vec<Identifier> {
-        match self {
-            ForLoopInitializer::Lexical(lex) => lex
-                .variable_list()
-                .as_ref()
-                .iter()
-                .flat_map(Variable::idents)
-                .collect(),
-            _ => Vec::new(),
-        }
-    }
 }
 
 impl ToInternedString for ForLoopInitializer {

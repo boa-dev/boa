@@ -16,6 +16,7 @@ use crate::syntax::{
         AllowAwait, AllowReturn, AllowYield, Cursor, ParseError, ParseResult, TokenParser,
     },
 };
+use ast::operations::bound_names;
 use boa_ast::{
     self as ast,
     statement::{
@@ -185,8 +186,8 @@ where
                 // It is a Syntax Error if the BoundNames of ForDeclaration contains any duplicate entries.
                 let mut vars = FxHashSet::default();
                 body.var_declared_names(&mut vars);
-                let mut bound_names = FxHashSet::default();
-                for name in init.bound_names() {
+                let mut names = FxHashSet::default();
+                for name in bound_names(&init) {
                     if name == Sym::LET {
                         return Err(ParseError::general(
                             "Cannot use 'let' as a lexically bound name",
@@ -199,7 +200,7 @@ where
                             position,
                         ));
                     }
-                    if !bound_names.insert(name) {
+                    if !names.insert(name) {
                         return Err(ParseError::general(
                             "For loop initializer cannot contain duplicate identifiers",
                             position,
@@ -238,8 +239,8 @@ where
                 // It is a Syntax Error if the BoundNames of ForDeclaration contains any duplicate entries.
                 let mut vars = FxHashSet::default();
                 body.var_declared_names(&mut vars);
-                let mut bound_names = FxHashSet::default();
-                for name in init.bound_names() {
+                let mut names = FxHashSet::default();
+                for name in bound_names(&init) {
                     if name == Sym::LET {
                         return Err(ParseError::general(
                             "Cannot use 'let' as a lexically bound name",
@@ -252,7 +253,7 @@ where
                             position,
                         ));
                     }
-                    if !bound_names.insert(name) {
+                    if !names.insert(name) {
                         return Err(ParseError::general(
                             "For loop initializer cannot contain duplicate identifiers",
                             position,
@@ -322,7 +323,7 @@ where
         let mut vars = FxHashSet::default();
         body.var_declared_names(&mut vars);
         if let Some(ref init) = init {
-            for name in init.bound_names() {
+            for name in bound_names(init) {
                 if vars.contains(&name) {
                     return Err(ParseError::general(
                         "For loop initializer declared in loop body",

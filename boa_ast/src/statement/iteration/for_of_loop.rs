@@ -49,7 +49,7 @@ impl ForOfLoop {
     /// Gets the initializer of the for...of loop.
     #[inline]
     #[must_use]
-    pub fn init(&self) -> &IterableLoopInitializer {
+    pub fn initializer(&self) -> &IterableLoopInitializer {
         &self.init
     }
 

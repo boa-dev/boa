@@ -187,7 +187,7 @@ impl Statement {
                 for_in_loop.body().var_declared_names(vars);
             }
             Self::ForOfLoop(for_of_loop) => {
-                if let IterableLoopInitializer::Var(bind) = for_of_loop.init() {
+                if let IterableLoopInitializer::Var(bind) = for_of_loop.initializer() {
                     vars.extend(bind.idents());
                 }
                 for_of_loop.body().var_declared_names(vars);

@@ -21,6 +21,7 @@ use boa_ast::{
         ArrowFunction, AsyncArrowFunction, AsyncFunction, AsyncGenerator, Class, ClassElement,
         FormalParameterList, Function, Generator,
     },
+    operations::bound_names,
     pattern::{ArrayPatternElement, ObjectPatternElement, Pattern},
     property::{MethodDefinition, PropertyDefinition, PropertyName},
     statement::{
@@ -1920,7 +1921,7 @@ impl<'b> ByteCompiler<'b> {
         label: Option<Sym>,
         configurable_globals: bool,
     ) -> JsResult<()> {
-        let init_bound_names = for_in_loop.initializer().bound_names();
+        let init_bound_names = bound_names(for_in_loop.initializer());
         if init_bound_names.is_empty() {
             self.compile_expr(for_in_loop.target(), true)?;
         } else {
@@ -2035,7 +2036,7 @@ impl<'b> ByteCompiler<'b> {
         label: Option<Sym>,
         configurable_globals: bool,
     ) -> JsResult<()> {
-        let init_bound_names = for_of_loop.init().bound_names();
+        let init_bound_names = bound_names(for_of_loop.initializer());
         if init_bound_names.is_empty() {
             self.compile_expr(for_of_loop.iterable(), true)?;
         } else {
@@ -2077,7 +2078,7 @@ impl<'b> ByteCompiler<'b> {
             self.emit_opcode_with_operand(Opcode::ForInLoopNext)
         };
 
-        match for_of_loop.init() {
+        match for_of_loop.initializer() {
             IterableLoopInitializer::Identifier(ref ident) => {
                 self.context.create_mutable_binding(*ident, true, true);
                 let binding = self.context.set_mutable_binding(*ident);

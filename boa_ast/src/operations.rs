@@ -3,18 +3,21 @@
 //! [spec]: https://tc39.es/ecma262/#sec-syntax-directed-operations
 
 use core::ops::ControlFlow;
+use std::convert::Infallible;
 
 use boa_interner::Sym;
 
 use crate::{
+    declaration::{Binding, Variable},
     expression::{access::SuperPropertyAccess, Await, Identifier, SuperCall, Yield},
     function::{
         ArrowFunction, AsyncArrowFunction, AsyncFunction, AsyncGenerator, Class, ClassElement,
         Function, Generator,
     },
     property::{MethodDefinition, PropertyDefinition},
-    visitor::{VisitWith, Visitor},
-    Expression,
+    statement::iteration::{ForLoopInitializer, IterableLoopInitializer},
+    visitor::{NodeRef, VisitWith, Visitor},
+    Declaration, Expression,
 };
 
 /// Represents all the possible symbols searched for by the [`Contains`][contains] operation.
@@ -279,4 +282,95 @@ pub fn has_direct_super(method: &MethodDefinition) -> bool {
         MethodDefinition::AsyncGenerator(f) => contains(f, ContainsSymbol::SuperCall),
         MethodDefinition::Async(f) => contains(f, ContainsSymbol::SuperCall),
     }
+}
+
+/// Returns a list with the bound names of an AST node, which may contain duplicates.
+///
+/// This is equivalent to the [`BoundNames`][spec] syntax operation in the spec.
+///
+/// [spec]: https://tc39.es/ecma262/#sec-static-semantics-boundnames
+#[must_use]
+pub fn bound_names<'a, N>(node: &'a N) -> Vec<Identifier>
+where
+    &'a N: Into<NodeRef<'a>>,
+{
+    struct BoundNamesVisitor(Vec<Identifier>);
+
+    impl<'ast> Visitor<'ast> for BoundNamesVisitor {
+        type BreakTy = Infallible;
+
+        fn visit_identifier(&mut self, node: &'ast Identifier) -> ControlFlow<Self::BreakTy> {
+            self.0.push(*node);
+            ControlFlow::Continue(())
+        }
+        fn visit_binding(&mut self, _: &'ast Binding) -> ControlFlow<Self::BreakTy> {
+            ControlFlow::Continue(())
+        }
+        fn visit_variable(&mut self, node: &'ast Variable) -> ControlFlow<Self::BreakTy> {
+            node.binding().visit_with(self)
+        }
+        fn visit_iterable_loop_initializer(
+            &mut self,
+            node: &'ast IterableLoopInitializer,
+        ) -> ControlFlow<Self::BreakTy> {
+            match node {
+                IterableLoopInitializer::Var(b)
+                | IterableLoopInitializer::Let(b)
+                | IterableLoopInitializer::Const(b) => b.visit_with(self),
+                _ => ControlFlow::Continue(()),
+            }
+        }
+
+        fn visit_for_loop_initializer(
+            &mut self,
+            node: &'ast ForLoopInitializer,
+        ) -> ControlFlow<Self::BreakTy> {
+            match node {
+                ForLoopInitializer::Expression(_) => ControlFlow::Continue(()),
+                ForLoopInitializer::Var(decl) => decl.visit_with(self),
+                ForLoopInitializer::Lexical(decl) => decl.visit_with(self),
+            }
+        }
+
+        fn visit_declaration(&mut self, node: &'ast Declaration) -> ControlFlow<Self::BreakTy> {
+            // TODO: add "*default" for module default functions without name
+            match node {
+                Declaration::Function(f) => {
+                    if let Some(ident) = f.name() {
+                        self.0.push(ident);
+                    }
+                }
+                Declaration::Generator(f) => {
+                    if let Some(ident) = f.name() {
+                        self.0.push(ident);
+                    }
+                }
+                Declaration::AsyncFunction(f) => {
+                    if let Some(ident) = f.name() {
+                        self.0.push(ident);
+                    }
+                }
+                Declaration::AsyncGenerator(f) => {
+                    if let Some(ident) = f.name() {
+                        self.0.push(ident);
+                    }
+                }
+                Declaration::Class(f) => {
+                    if let Some(ident) = f.name() {
+                        self.0.push(ident);
+                    }
+                }
+                Declaration::Lexical(decl) => {
+                    decl.visit_with(self);
+                }
+            }
+            ControlFlow::Continue(())
+        }
+    }
+
+    let mut visitor = BoundNamesVisitor(Vec::new());
+
+    visitor.visit(node.into());
+
+    visitor.0
 }
