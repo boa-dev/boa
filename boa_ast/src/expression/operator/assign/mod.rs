@@ -38,6 +38,7 @@ pub struct Assign {
 
 impl Assign {
     /// Creates an `Assign` AST Expression.
+    #[must_use]
     pub fn new(op: AssignOp, lhs: AssignTarget, rhs: Expression) -> Self {
         Self {
             op,
@@ -48,18 +49,21 @@ impl Assign {
 
     /// Gets the operator of the assignment operation.
     #[inline]
+    #[must_use]
     pub fn op(&self) -> AssignOp {
         self.op
     }
 
     /// Gets the left hand side of the assignment operation.
     #[inline]
+    #[must_use]
     pub fn lhs(&self) -> &AssignTarget {
         &self.lhs
     }
 
     /// Gets the right hand side of the assignment operation.
     #[inline]
+    #[must_use]
     pub fn rhs(&self) -> &Expression {
         &self.rhs
     }
@@ -138,6 +142,7 @@ pub enum AssignTarget {
 impl AssignTarget {
     /// Converts the left-hand-side Expression of an assignment expression into an [`AssignTarget`].
     /// Returns `None` if the given Expression is an invalid left-hand-side for a assignment expression.
+    #[must_use]
     pub fn from_expression(
         expression: &Expression,
         strict: bool,

@@ -26,18 +26,21 @@ pub struct Case {
 impl Case {
     /// Creates a `Case` AST node.
     #[inline]
+    #[must_use]
     pub fn new(condition: Expression, body: StatementList) -> Self {
         Self { condition, body }
     }
 
     /// Gets the condition of the case.
     #[inline]
+    #[must_use]
     pub fn condition(&self) -> &Expression {
         &self.condition
     }
 
     /// Gets the statement listin the body of the case.
     #[inline]
+    #[must_use]
     pub fn body(&self) -> &StatementList {
         &self.body
     }
@@ -103,6 +106,7 @@ pub struct Switch {
 impl Switch {
     /// Creates a `Switch` AST node.
     #[inline]
+    #[must_use]
     pub fn new(val: Expression, cases: Box<[Case]>, default: Option<StatementList>) -> Self {
         Self {
             val,
@@ -113,18 +117,21 @@ impl Switch {
 
     /// Gets the value to switch.
     #[inline]
+    #[must_use]
     pub fn val(&self) -> &Expression {
         &self.val
     }
 
     /// Gets the list of cases for the switch statement.
     #[inline]
+    #[must_use]
     pub fn cases(&self) -> &[Case] {
         &self.cases
     }
 
     /// Gets the default statement list, if any.
     #[inline]
+    #[must_use]
     pub fn default(&self) -> Option<&StatementList> {
         self.default.as_ref()
     }

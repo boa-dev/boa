@@ -25,11 +25,13 @@ pub struct Throw {
 
 impl Throw {
     /// Gets the target expression of this `Throw` statement.
+    #[must_use]
     pub fn target(&self) -> &Expression {
         &self.target
     }
 
     /// Creates a `Throw` AST node.
+    #[must_use]
     pub fn new(target: Expression) -> Self {
         Self { target }
     }

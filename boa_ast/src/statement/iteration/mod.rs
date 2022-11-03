@@ -62,6 +62,7 @@ impl IterableLoopInitializer {
     ///  - [ECMAScript specification][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-boundnames
+    #[must_use]
     pub fn bound_names(&self) -> Vec<Identifier> {
         match self {
             Self::Let(binding) | Self::Const(binding) => binding.idents(),

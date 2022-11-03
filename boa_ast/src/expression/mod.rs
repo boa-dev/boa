@@ -199,6 +199,7 @@ impl Expression {
     /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-containsarguments
     // TODO: replace with a visitor
     #[inline]
+    #[must_use]
     pub fn contains_arguments(&self) -> bool {
         match self {
             Expression::Identifier(ident) => *ident == Sym::ARGUMENTS,
@@ -239,6 +240,7 @@ impl Expression {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-contains
     // TODO: replace with a visitor
+    #[must_use]
     pub fn contains(&self, symbol: ContainsSymbol) -> bool {
         match self {
             Expression::This => symbol == ContainsSymbol::This,

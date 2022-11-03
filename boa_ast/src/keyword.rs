@@ -477,6 +477,7 @@ pub enum Keyword {
 impl Keyword {
     /// Gets the keyword as a binary operation, if this keyword is the `in` or the `instanceof`
     /// keywords.
+    #[must_use]
     pub fn as_binary_op(self) -> Option<BinaryOp> {
         match self {
             Self::In => Some(BinaryOp::Relational(RelationalOp::In)),
@@ -486,6 +487,7 @@ impl Keyword {
     }
 
     /// Gets the keyword as a tuple of strings.
+    #[must_use]
     pub fn as_str(self) -> (&'static str, &'static [u16]) {
         match self {
             Self::Await => ("await", utf16!("await")),

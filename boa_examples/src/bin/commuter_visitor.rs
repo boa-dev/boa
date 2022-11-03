@@ -45,21 +45,18 @@ impl<'ast> VisitorMut<'ast> for CommutorVisitor {
     type BreakTy = Infallible;
 
     fn visit_binary_mut(&mut self, node: &'ast mut Binary) -> ControlFlow<Self::BreakTy> {
-        match node.op() {
-            BinaryOp::Arithmetic(op) => {
-                match op {
-                    ArithmeticOp::Add | ArithmeticOp::Mul => {
-                        // set up the exchanger and swap lhs and rhs
-                        let mut exchanger = OpExchanger::default();
-                        assert!(matches!(
-                            exchanger.visit_binary_mut(node),
-                            ControlFlow::Break(_)
-                        ));
-                    }
-                    _ => {}
+        if let BinaryOp::Arithmetic(op) = node.op() {
+            match op {
+                ArithmeticOp::Add | ArithmeticOp::Mul => {
+                    // set up the exchanger and swap lhs and rhs
+                    let mut exchanger = OpExchanger::default();
+                    assert!(matches!(
+                        exchanger.visit_binary_mut(node),
+                        ControlFlow::Break(_)
+                    ));
                 }
+                _ => {}
             }
-            _ => {}
         }
         // traverse further in; there may nested binary operations
         node.visit_with_mut(self)

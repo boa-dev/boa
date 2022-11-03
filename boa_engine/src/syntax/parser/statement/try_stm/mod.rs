@@ -10,7 +10,10 @@ use crate::syntax::{
     lexer::TokenKind,
     parser::{AllowAwait, AllowReturn, AllowYield, Cursor, ParseError, ParseResult, TokenParser},
 };
-use boa_ast::{statement::Try, Keyword};
+use boa_ast::{
+    statement::{ErrorHandler, Try},
+    Keyword,
+};
 use boa_interner::Interner;
 use boa_profiler::Profiler;
 use std::io::Read;
@@ -89,7 +92,7 @@ where
         };
 
         let next_token = cursor.peek(0, interner)?;
-        let finally_block = if let Some(token) = next_token {
+        let finally = if let Some(token) = next_token {
             match token.kind() {
                 TokenKind::Keyword((Keyword::Finally, true)) => {
                     return Err(ParseError::general(
@@ -107,6 +110,13 @@ where
             None
         };
 
-        Ok(Try::new(try_clause, catch, finally_block))
+        let handler = match (catch, finally) {
+            (Some(catch), None) => ErrorHandler::Catch(catch),
+            (None, Some(finally)) => ErrorHandler::Finally(finally),
+            (Some(catch), Some(finally)) => ErrorHandler::Full(catch, finally),
+            (None, None) => unreachable!(),
+        };
+
+        Ok(Try::new(try_clause, handler))
     }
 }

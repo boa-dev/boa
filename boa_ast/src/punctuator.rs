@@ -143,6 +143,7 @@ impl Punctuator {
     /// Attempts to convert a punctuator (`+`, `=`...) to an Assign Operator
     ///
     /// If there is no match, `None` will be returned.
+    #[must_use]
     pub const fn as_assign_op(self) -> Option<AssignOp> {
         match self {
             Self::Assign => Some(AssignOp::Assign),
@@ -168,6 +169,7 @@ impl Punctuator {
     /// Attempts to convert a punctuator (`+`, `=`...) to a Binary Operator
     ///
     /// If there is no match, `None` will be returned.
+    #[must_use]
     pub const fn as_binary_op(self) -> Option<BinaryOp> {
         match self {
             Self::Add => Some(BinaryOp::Arithmetic(ArithmeticOp::Add)),
@@ -198,6 +200,7 @@ impl Punctuator {
     }
 
     /// Retrieves the punctuator as a static string.
+    #[must_use]
     pub const fn as_str(self) -> &'static str {
         match self {
             Self::Add => "+",

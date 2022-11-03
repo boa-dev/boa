@@ -28,11 +28,13 @@ pub struct Return {
 
 impl Return {
     /// Gets the target expression value of this `Return` statement.
+    #[must_use]
     pub fn target(&self) -> Option<&Expression> {
         self.target.as_ref()
     }
 
     /// Creates a `Return` AST node.
+    #[must_use]
     pub fn new(expression: Option<Expression>) -> Self {
         Self { target: expression }
     }

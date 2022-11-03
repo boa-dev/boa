@@ -26,11 +26,13 @@ pub struct Break {
 
 impl Break {
     /// Creates a `Break` AST node.
+    #[must_use]
     pub fn new(label: Option<Sym>) -> Self {
         Self { label }
     }
 
     /// Gets the label of the break statement, if any.
+    #[must_use]
     pub fn label(&self) -> Option<Sym> {
         self.label
     }

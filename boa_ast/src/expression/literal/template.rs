@@ -51,11 +51,13 @@ pub enum TemplateElement {
 impl TemplateLiteral {
     /// Creates a new `TemplateLiteral` from a list of [`TemplateElement`]s.
     #[inline]
+    #[must_use]
     pub fn new(elements: Box<[TemplateElement]>) -> Self {
         Self { elements }
     }
 
     /// Gets the element list of this `TemplateLiteral`.
+    #[must_use]
     pub fn elements(&self) -> &[TemplateElement] {
         &self.elements
     }

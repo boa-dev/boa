@@ -32,12 +32,14 @@ pub struct Spread {
 impl Spread {
     /// Gets the target expression to be expanded by the spread operator.
     #[inline]
+    #[must_use]
     pub fn target(&self) -> &Expression {
         &self.target
     }
 
     /// Creates a `Spread` AST Expression.
     #[inline]
+    #[must_use]
     pub fn new(target: Expression) -> Self {
         Self {
             target: Box::new(target),

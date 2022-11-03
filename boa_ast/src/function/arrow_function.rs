@@ -29,6 +29,7 @@ pub struct ArrowFunction {
 impl ArrowFunction {
     /// Creates a new `ArrowFunctionDecl` AST Expression.
     #[inline]
+    #[must_use]
     pub fn new(name: Option<Identifier>, params: FormalParameterList, body: StatementList) -> Self {
         Self {
             name,
@@ -39,6 +40,7 @@ impl ArrowFunction {
 
     /// Gets the name of the function declaration.
     #[inline]
+    #[must_use]
     pub fn name(&self) -> Option<Identifier> {
         self.name
     }
@@ -51,12 +53,14 @@ impl ArrowFunction {
 
     /// Gets the list of parameters of the arrow function.
     #[inline]
+    #[must_use]
     pub fn parameters(&self) -> &FormalParameterList {
         &self.parameters
     }
 
     /// Gets the body of the arrow function.
     #[inline]
+    #[must_use]
     pub fn body(&self) -> &StatementList {
         &self.body
     }
@@ -84,7 +88,7 @@ impl ArrowFunction {
 
 impl ToIndentedString for ArrowFunction {
     fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
-        let mut buf = format!("({}", join_nodes(interner, &self.parameters.as_ref()));
+        let mut buf = format!("({}", join_nodes(interner, self.parameters.as_ref()));
         if self.body().statements().is_empty() {
             buf.push_str(") => {}");
         } else {

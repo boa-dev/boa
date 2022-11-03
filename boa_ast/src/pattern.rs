@@ -82,6 +82,7 @@ impl Pattern {
     ///
     /// A single pattern may have 0 to n identifiers.
     #[inline]
+    #[must_use]
     pub fn idents(&self) -> Vec<Identifier> {
         match &self {
             Pattern::Object(pattern) => pattern.idents(),
@@ -183,18 +184,21 @@ impl ToInternedString for ObjectPattern {
 impl ObjectPattern {
     /// Creates a new object binding pattern.
     #[inline]
+    #[must_use]
     pub fn new(bindings: Box<[ObjectPatternElement]>) -> Self {
         Self(bindings)
     }
 
     /// Gets the bindings for the object binding pattern.
     #[inline]
+    #[must_use]
     pub fn bindings(&self) -> &[ObjectPatternElement] {
         &self.0
     }
 
     /// Gets the list of identifiers declared by the object binding pattern.
     #[inline]
+    #[must_use]
     pub fn idents(&self) -> Vec<Identifier> {
         self.0
             .iter()
@@ -204,6 +208,7 @@ impl ObjectPattern {
 
     /// Returns true if the object binding pattern has a rest element.
     #[inline]
+    #[must_use]
     pub fn has_rest(&self) -> bool {
         matches!(
             self.0.last(),
@@ -286,12 +291,14 @@ impl ToInternedString for ArrayPattern {
 impl ArrayPattern {
     /// Creates a new array binding pattern.
     #[inline]
+    #[must_use]
     pub fn new(bindings: Box<[ArrayPatternElement]>) -> Self {
         Self(bindings)
     }
 
     /// Gets the bindings for the array binding pattern.
     #[inline]
+    #[must_use]
     pub fn bindings(&self) -> &[ArrayPatternElement] {
         &self.0
     }

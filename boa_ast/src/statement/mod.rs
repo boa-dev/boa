@@ -24,7 +24,7 @@ pub use self::{
     labelled::{Labelled, LabelledItem},
     r#if::If,
     r#return::Return,
-    r#try::{Catch, Finally, Try},
+    r#try::{Catch, ErrorHandler, Finally, Try},
     switch::{Case, Switch},
     throw::Throw,
 };
@@ -213,7 +213,7 @@ impl Statement {
                     }
                 }
                 if let Some(finally) = try_statement.finally() {
-                    for node in finally.statement_list().statements() {
+                    for node in finally.block().statement_list().statements() {
                         node.var_declared_names(vars);
                     }
                 }
@@ -288,6 +288,7 @@ impl Statement {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-islabelledfunction
     #[inline]
+    #[must_use]
     pub fn is_labelled_function(&self) -> bool {
         match self {
             Self::Labelled(stmt) => match stmt.item() {

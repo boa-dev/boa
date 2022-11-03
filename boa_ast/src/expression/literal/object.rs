@@ -42,11 +42,13 @@ pub struct ObjectLiteral {
 impl ObjectLiteral {
     /// Gets the object literal properties
     #[inline]
+    #[must_use]
     pub fn properties(&self) -> &[PropertyDefinition] {
         &self.properties
     }
 
     /// Converts the object literal into an [`ObjectPattern`].
+    #[must_use]
     pub fn to_pattern(&self, strict: bool) -> Option<ObjectPattern> {
         let mut bindings = Vec::new();
         let mut excluded_keys = Vec::new();
@@ -249,16 +251,16 @@ impl ToIndentedString for ObjectLiteral {
                             MethodDefinition::Get(expression)
                             | MethodDefinition::Set(expression)
                             | MethodDefinition::Ordinary(expression) => {
-                                join_nodes(interner, &expression.parameters().as_ref())
+                                join_nodes(interner, expression.parameters().as_ref())
                             }
                             MethodDefinition::Generator(expression) => {
-                                join_nodes(interner, &expression.parameters().as_ref())
+                                join_nodes(interner, expression.parameters().as_ref())
                             }
                             MethodDefinition::AsyncGenerator(expression) => {
-                                join_nodes(interner, &expression.parameters().as_ref())
+                                join_nodes(interner, expression.parameters().as_ref())
                             }
                             MethodDefinition::Async(expression) => {
-                                join_nodes(interner, &expression.parameters().as_ref())
+                                join_nodes(interner, expression.parameters().as_ref())
                             }
                         },
                         match &method {

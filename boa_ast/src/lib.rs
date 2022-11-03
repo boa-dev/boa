@@ -49,7 +49,11 @@
     nonstandard_style,
     missing_docs
 )]
-#![allow(rustdoc::missing_doc_code_examples)]
+#![allow(
+    clippy::module_name_repetitions,
+    clippy::too_many_lines,
+    rustdoc::missing_doc_code_examples
+)]
 
 mod position;
 mod punctuator;
@@ -79,7 +83,7 @@ pub use self::{
 /// Represents all the possible symbols searched for by the [`Contains`][contains] operation.
 ///
 /// [contains]: https://tc39.es/ecma262/#sec-syntax-directed-operations-contains
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 #[non_exhaustive]
 pub enum ContainsSymbol {
     /// A super property access (`super.prop`).

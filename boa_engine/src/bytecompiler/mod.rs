@@ -2589,9 +2589,9 @@ impl<'b> ByteCompiler<'b> {
                     let push_env =
                         self.emit_opcode_with_two_operands(Opcode::PushDeclarativeEnvironment);
 
-                    self.create_decls(finally.statement_list(), configurable_globals);
+                    self.create_decls(finally.block().statement_list(), configurable_globals);
                     self.compile_statement_list(
-                        finally.statement_list(),
+                        finally.block().statement_list(),
                         false,
                         configurable_globals,
                     )?;

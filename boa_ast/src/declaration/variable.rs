@@ -118,6 +118,7 @@ pub enum LexicalDeclaration {
 
 impl LexicalDeclaration {
     /// Gets the inner variable list of the `LexicalDeclaration`
+    #[must_use]
     pub fn variable_list(&self) -> &VariableList {
         match self {
             LexicalDeclaration::Const(list) | LexicalDeclaration::Let(list) => list,
@@ -193,6 +194,7 @@ pub struct VariableList {
 
 impl VariableList {
     /// Creates a variable list if the provided list of [`Variable`] is not empty.
+    #[must_use]
     pub fn new(list: Box<[Variable]>) -> Option<Self> {
         if list.is_empty() {
             return None;
@@ -295,6 +297,7 @@ impl ToInternedString for Variable {
 impl Variable {
     /// Creates a new variable declaration from a `BindingIdentifier`.
     #[inline]
+    #[must_use]
     pub fn from_identifier(ident: Identifier, init: Option<Expression>) -> Self {
         Self {
             binding: Binding::Identifier(ident),
@@ -304,6 +307,7 @@ impl Variable {
 
     /// Creates a new variable declaration from a `Pattern`.
     #[inline]
+    #[must_use]
     pub fn from_pattern(pattern: Pattern, init: Option<Expression>) -> Self {
         Self {
             binding: Binding::Pattern(pattern),
@@ -311,17 +315,20 @@ impl Variable {
         }
     }
     /// Gets the variable declaration binding.
+    #[must_use]
     pub fn binding(&self) -> &Binding {
         &self.binding
     }
 
     /// Gets the initialization expression for the variable declaration, if any.
     #[inline]
+    #[must_use]
     pub fn init(&self) -> Option<&Expression> {
         self.init.as_ref()
     }
 
     /// Gets the list of declared identifiers.
+    #[must_use]
     pub fn idents(&self) -> Vec<Identifier> {
         self.binding.idents()
     }
@@ -343,6 +350,7 @@ impl Variable {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-contains
     #[inline]
+    #[must_use]
     pub fn contains(&self, symbol: ContainsSymbol) -> bool {
         if let Some(ref node) = self.init {
             if node.contains(symbol) {

@@ -24,11 +24,13 @@ pub struct Continue {
 
 impl Continue {
     /// Creates a `Continue` AST node.
+    #[must_use]
     pub fn new(label: Option<Sym>) -> Self {
         Self { label }
     }
 
     /// Gets the label of this `Continue` statement.
+    #[must_use]
     pub fn label(&self) -> Option<Sym> {
         self.label
     }

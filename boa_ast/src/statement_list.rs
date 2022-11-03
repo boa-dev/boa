@@ -26,6 +26,7 @@ pub enum StatementListItem {
 
 impl StatementListItem {
     /// Returns a node ordering based on the hoistability of each statement.
+    #[must_use]
     pub fn hoistable_order(a: &Self, b: &Self) -> Ordering {
         match (a, b) {
             (
@@ -55,6 +56,7 @@ impl StatementListItem {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-containsarguments
     #[inline]
+    #[must_use]
     pub fn contains_arguments(&self) -> bool {
         match self {
             StatementListItem::Statement(stmt) => stmt.contains_arguments(),
@@ -69,6 +71,7 @@ impl StatementListItem {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-contains
     #[inline]
+    #[must_use]
     pub fn contains(&self, symbol: ContainsSymbol) -> bool {
         match self {
             StatementListItem::Statement(stmt) => stmt.contains(symbol),
@@ -158,12 +161,14 @@ pub struct StatementList {
 impl StatementList {
     /// Gets the list of statements.
     #[inline]
+    #[must_use]
     pub fn statements(&self) -> &[StatementListItem] {
         &self.statements
     }
 
     /// Get the strict mode.
     #[inline]
+    #[must_use]
     pub fn strict(&self) -> bool {
         self.strict
     }
@@ -192,6 +197,7 @@ impl StatementList {
     ///  - [ECMAScript specification][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-lexicallydeclarednames
+    #[must_use]
     pub fn lexically_declared_names(&self) -> Vec<(Identifier, bool)> {
         let mut names = Vec::new();
 
@@ -215,6 +221,7 @@ impl StatementList {
     ///  - [ECMAScript specification][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-toplevellexicallydeclarednames
+    #[must_use]
     pub fn lexically_declared_names_top_level(&self) -> Vec<Identifier> {
         let mut names = Vec::new();
 
@@ -266,6 +273,7 @@ impl StatementList {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-contains
     #[inline]
+    #[must_use]
     pub fn contains(&self, symbol: ContainsSymbol) -> bool {
         self.statements.iter().any(|stmt| stmt.contains(symbol))
     }

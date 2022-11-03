@@ -250,6 +250,7 @@ pub enum MethodDefinition {
 
 impl MethodDefinition {
     /// Gets the body of the method.
+    #[must_use]
     pub fn body(&self) -> &StatementList {
         match self {
             MethodDefinition::Get(expr)
@@ -262,6 +263,7 @@ impl MethodDefinition {
     }
 
     /// Gets the parameters of the method.
+    #[must_use]
     pub fn parameters(&self) -> &FormalParameterList {
         match self {
             MethodDefinition::Get(expr)
@@ -332,6 +334,7 @@ pub enum PropertyName {
 
 impl PropertyName {
     /// Returns the literal property name if it exists.
+    #[must_use]
     pub fn literal(&self) -> Option<Sym> {
         if let Self::Literal(sym) = self {
             Some(*sym)
@@ -341,6 +344,7 @@ impl PropertyName {
     }
 
     /// Returns the expression if the property name is computed.
+    #[must_use]
     pub fn computed(&self) -> Option<&Expression> {
         if let Self::Computed(expr) = self {
             Some(expr)
@@ -350,6 +354,7 @@ impl PropertyName {
     }
 
     /// Returns either the literal property name or the computed const string property name.
+    #[must_use]
     pub fn prop_name(&self) -> Option<Sym> {
         match self {
             PropertyName::Literal(sym)

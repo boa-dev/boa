@@ -27,6 +27,7 @@ impl TaggedTemplate {
     /// Creates a new tagged template with a tag, the list of raw strings, the cooked strings and
     /// the expressions.
     #[inline]
+    #[must_use]
     pub fn new(
         tag: Expression,
         raws: Box<[Sym]>,
@@ -43,24 +44,28 @@ impl TaggedTemplate {
 
     /// Gets the tag function of the template.
     #[inline]
+    #[must_use]
     pub fn tag(&self) -> &Expression {
         &self.tag
     }
 
     /// Gets the inner raw strings of the template.
     #[inline]
+    #[must_use]
     pub fn raws(&self) -> &[Sym] {
         &self.raws
     }
 
     /// Gets the cooked strings of the template.
     #[inline]
+    #[must_use]
     pub fn cookeds(&self) -> &[Option<Sym>] {
         &self.cookeds
     }
 
     /// Gets the interpolated expressions of the template.
     #[inline]
+    #[must_use]
     pub fn exprs(&self) -> &[Expression] {
         &self.exprs
     }

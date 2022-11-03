@@ -103,6 +103,7 @@ pub struct Labelled {
 
 impl Labelled {
     /// Creates a new `Labelled` statement.
+    #[must_use]
     pub fn new(item: LabelledItem, label: Sym) -> Self {
         Self {
             item: Box::new(item),
@@ -111,11 +112,13 @@ impl Labelled {
     }
 
     /// Gets the labelled item.
+    #[must_use]
     pub fn item(&self) -> &LabelledItem {
         &self.item
     }
 
     /// Gets the label name.
+    #[must_use]
     pub fn label(&self) -> Sym {
         self.label
     }

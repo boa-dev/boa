@@ -25,6 +25,7 @@ pub struct WhileLoop {
 impl WhileLoop {
     /// Creates a `WhileLoop` AST node.
     #[inline]
+    #[must_use]
     pub fn new(condition: Expression, body: Statement) -> Self {
         Self {
             condition,
@@ -34,12 +35,14 @@ impl WhileLoop {
 
     /// Gets the condition of the while loop.
     #[inline]
+    #[must_use]
     pub fn condition(&self) -> &Expression {
         &self.condition
     }
 
     /// Gets the body of the while loop.
     #[inline]
+    #[must_use]
     pub fn body(&self) -> &Statement {
         &self.body
     }

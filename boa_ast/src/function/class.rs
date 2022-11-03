@@ -33,6 +33,7 @@ pub struct Class {
 impl Class {
     /// Creates a new class declaration.
     #[inline]
+    #[must_use]
     pub fn new(
         name: Option<Identifier>,
         super_ref: Option<Expression>,
@@ -49,24 +50,28 @@ impl Class {
 
     /// Returns the name of the class.
     #[inline]
+    #[must_use]
     pub fn name(&self) -> Option<Identifier> {
         self.name
     }
 
     /// Returns the super class ref of the class.
     #[inline]
+    #[must_use]
     pub fn super_ref(&self) -> Option<&Expression> {
         self.super_ref.as_ref()
     }
 
     /// Returns the constructor of the class.
     #[inline]
+    #[must_use]
     pub fn constructor(&self) -> Option<&Function> {
         self.constructor.as_ref()
     }
 
     /// Gets the list of all fields defined on the class.
     #[inline]
+    #[must_use]
     pub fn elements(&self) -> &[ClassElement] {
         &self.elements
     }
@@ -123,7 +128,7 @@ impl ToIndentedString for Class {
         if let Some(expr) = &self.constructor {
             buf.push_str(&format!(
                 "{indentation}constructor({}) {}\n",
-                join_nodes(interner, &expr.parameters().as_ref()),
+                join_nodes(interner, expr.parameters().as_ref()),
                 block_to_string(expr.body(), interner, indent_n + 1)
             ));
         }
@@ -142,16 +147,16 @@ impl ToIndentedString for Class {
                             MethodDefinition::Get(expr)
                             | MethodDefinition::Set(expr)
                             | MethodDefinition::Ordinary(expr) => {
-                                join_nodes(interner, &expr.parameters().as_ref())
+                                join_nodes(interner, expr.parameters().as_ref())
                             }
                             MethodDefinition::Generator(expr) => {
-                                join_nodes(interner, &expr.parameters().as_ref())
+                                join_nodes(interner, expr.parameters().as_ref())
                             }
                             MethodDefinition::AsyncGenerator(expr) => {
-                                join_nodes(interner, &expr.parameters().as_ref())
+                                join_nodes(interner, expr.parameters().as_ref())
                             }
                             MethodDefinition::Async(expr) => {
-                                join_nodes(interner, &expr.parameters().as_ref())
+                                join_nodes(interner, expr.parameters().as_ref())
                             }
                         },
                         match &method {
@@ -185,16 +190,16 @@ impl ToIndentedString for Class {
                             MethodDefinition::Get(expr)
                             | MethodDefinition::Set(expr)
                             | MethodDefinition::Ordinary(expr) => {
-                                join_nodes(interner, &expr.parameters().as_ref())
+                                join_nodes(interner, expr.parameters().as_ref())
                             }
                             MethodDefinition::Generator(expr) => {
-                                join_nodes(interner, &expr.parameters().as_ref())
+                                join_nodes(interner, expr.parameters().as_ref())
                             }
                             MethodDefinition::AsyncGenerator(expr) => {
-                                join_nodes(interner, &expr.parameters().as_ref())
+                                join_nodes(interner, expr.parameters().as_ref())
                             }
                             MethodDefinition::Async(expr) => {
-                                join_nodes(interner, &expr.parameters().as_ref())
+                                join_nodes(interner, expr.parameters().as_ref())
                             }
                         },
                         match &method {
@@ -255,16 +260,16 @@ impl ToIndentedString for Class {
                             MethodDefinition::Get(expr)
                             | MethodDefinition::Set(expr)
                             | MethodDefinition::Ordinary(expr) => {
-                                join_nodes(interner, &expr.parameters().as_ref())
+                                join_nodes(interner, expr.parameters().as_ref())
                             }
                             MethodDefinition::Generator(expr) => {
-                                join_nodes(interner, &expr.parameters().as_ref())
+                                join_nodes(interner, expr.parameters().as_ref())
                             }
                             MethodDefinition::AsyncGenerator(expr) => {
-                                join_nodes(interner, &expr.parameters().as_ref())
+                                join_nodes(interner, expr.parameters().as_ref())
                             }
                             MethodDefinition::Async(expr) => {
-                                join_nodes(interner, &expr.parameters().as_ref())
+                                join_nodes(interner, expr.parameters().as_ref())
                             }
                         },
                         match &method {
@@ -298,16 +303,16 @@ impl ToIndentedString for Class {
                             MethodDefinition::Get(expr)
                             | MethodDefinition::Set(expr)
                             | MethodDefinition::Ordinary(expr) => {
-                                join_nodes(interner, &expr.parameters().as_ref())
+                                join_nodes(interner, expr.parameters().as_ref())
                             }
                             MethodDefinition::Generator(expr) => {
-                                join_nodes(interner, &expr.parameters().as_ref())
+                                join_nodes(interner, expr.parameters().as_ref())
                             }
                             MethodDefinition::AsyncGenerator(expr) => {
-                                join_nodes(interner, &expr.parameters().as_ref())
+                                join_nodes(interner, expr.parameters().as_ref())
                             }
                             MethodDefinition::Async(expr) => {
-                                join_nodes(interner, &expr.parameters().as_ref())
+                                join_nodes(interner, expr.parameters().as_ref())
                             }
                         },
                         match &method {

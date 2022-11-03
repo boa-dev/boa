@@ -101,11 +101,13 @@ pub struct OptionalOperation {
 impl OptionalOperation {
     /// Creates a new `OptionalOperation`.
     #[inline]
+    #[must_use]
     pub fn new(kind: OptionalOperationKind, shorted: bool) -> Self {
         Self { kind, shorted }
     }
     /// Gets the kind of operation.
     #[inline]
+    #[must_use]
     pub fn kind(&self) -> &OptionalOperationKind {
         &self.kind
     }
@@ -113,6 +115,7 @@ impl OptionalOperation {
     /// Returns `true` if the operation short-circuits the [`Optional`] chain when the target is
     /// `undefined` or `null`.
     #[inline]
+    #[must_use]
     pub fn shorted(&self) -> bool {
         self.shorted
     }
@@ -234,6 +237,7 @@ impl VisitWith for Optional {
 impl Optional {
     /// Creates a new `Optional` expression.
     #[inline]
+    #[must_use]
     pub fn new(target: Expression, chain: Box<[OptionalOperation]>) -> Self {
         Self {
             target: Box::new(target),
@@ -243,12 +247,14 @@ impl Optional {
 
     /// Gets the target of this `Optional` expression.
     #[inline]
+    #[must_use]
     pub fn target(&self) -> &Expression {
         self.target.as_ref()
     }
 
     /// Gets the chain of accesses and calls that will be applied to the target at runtime.
     #[inline]
+    #[must_use]
     pub fn chain(&self) -> &[OptionalOperation] {
         self.chain.as_ref()
     }

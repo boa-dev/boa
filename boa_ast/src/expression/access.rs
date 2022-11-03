@@ -171,12 +171,14 @@ pub struct SimplePropertyAccess {
 impl SimplePropertyAccess {
     /// Gets the target object of the property access.
     #[inline]
+    #[must_use]
     pub fn target(&self) -> &Expression {
         &self.target
     }
 
     /// Gets the accessed field of the target object.
     #[inline]
+    #[must_use]
     pub fn field(&self) -> &PropertyAccessField {
         &self.field
     }
@@ -262,6 +264,7 @@ pub struct PrivatePropertyAccess {
 impl PrivatePropertyAccess {
     /// Creates a `GetPrivateField` AST Expression.
     #[inline]
+    #[must_use]
     pub fn new(value: Expression, field: Sym) -> Self {
         Self {
             target: value.into(),
@@ -271,12 +274,14 @@ impl PrivatePropertyAccess {
 
     /// Gets the original object from where to get the field from.
     #[inline]
+    #[must_use]
     pub fn target(&self) -> &Expression {
         &self.target
     }
 
     /// Gets the name of the field to retrieve.
     #[inline]
+    #[must_use]
     pub fn field(&self) -> Sym {
         self.field
     }
@@ -343,12 +348,14 @@ pub struct SuperPropertyAccess {
 
 impl SuperPropertyAccess {
     /// Creates a new property access field node.
+    #[must_use]
     pub fn new(field: PropertyAccessField) -> Self {
         Self { field }
     }
 
     /// Gets the name of the field to retrieve.
     #[inline]
+    #[must_use]
     pub fn field(&self) -> &PropertyAccessField {
         &self.field
     }

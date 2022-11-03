@@ -29,6 +29,7 @@ pub struct ForLoop {
 impl ForLoop {
     /// Creates a new for loop AST node.
     #[inline]
+    #[must_use]
     pub fn new(
         init: Option<ForLoopInitializer>,
         condition: Option<Expression>,
@@ -42,24 +43,28 @@ impl ForLoop {
 
     /// Gets the initialization node.
     #[inline]
+    #[must_use]
     pub fn init(&self) -> Option<&ForLoopInitializer> {
         self.inner.init()
     }
 
     /// Gets the loop condition node.
     #[inline]
+    #[must_use]
     pub fn condition(&self) -> Option<&Expression> {
         self.inner.condition()
     }
 
     /// Gets the final expression node.
     #[inline]
+    #[must_use]
     pub fn final_expr(&self) -> Option<&Expression> {
         self.inner.final_expr()
     }
 
     /// Gets the body of the for loop.
     #[inline]
+    #[must_use]
     pub fn body(&self) -> &Statement {
         self.inner.body()
     }
@@ -225,6 +230,7 @@ impl ForLoopInitializer {
     ///  - [ECMAScript specification][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-boundnames
+    #[must_use]
     pub fn bound_names(&self) -> Vec<Identifier> {
         match self {
             ForLoopInitializer::Lexical(lex) => lex

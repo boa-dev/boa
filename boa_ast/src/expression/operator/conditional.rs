@@ -29,24 +29,28 @@ pub struct Conditional {
 impl Conditional {
     /// Gets the condition of the `Conditional` expression.
     #[inline]
+    #[must_use]
     pub fn condition(&self) -> &Expression {
         &self.condition
     }
 
     /// Gets the expression returned if `condition` is truthy.
     #[inline]
+    #[must_use]
     pub fn if_true(&self) -> &Expression {
         &self.if_true
     }
 
     /// Gets the expression returned if `condition` is falsy.
     #[inline]
+    #[must_use]
     pub fn if_false(&self) -> &Expression {
         &self.if_false
     }
 
     /// Creates a `Conditional` AST Expression.
     #[inline]
+    #[must_use]
     pub fn new(condition: Expression, if_true: Expression, if_false: Expression) -> Self {
         Self {
             condition: Box::new(condition),

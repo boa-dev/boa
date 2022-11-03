@@ -19,6 +19,7 @@ impl Position {
     /// Creates a new `Position`.
     #[inline]
     #[track_caller]
+    #[must_use]
     pub fn new(line_number: u32, column_number: u32) -> Self {
         Self {
             line_number: NonZeroU32::new(line_number).expect("line number cannot be 0"),
@@ -28,12 +29,14 @@ impl Position {
 
     /// Gets the line number of the position.
     #[inline]
+    #[must_use]
     pub fn line_number(self) -> u32 {
         self.line_number.get()
     }
 
     /// Gets the column number of the position.
     #[inline]
+    #[must_use]
     pub fn column_number(self) -> u32 {
         self.column_number.get()
     }
@@ -60,8 +63,13 @@ pub struct Span {
 
 impl Span {
     /// Creates a new `Span`.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the start position is bigger than the end position.
     #[inline]
     #[track_caller]
+    #[must_use]
     pub fn new(start: Position, end: Position) -> Self {
         assert!(start <= end, "a span cannot start after its end");
 
@@ -70,12 +78,14 @@ impl Span {
 
     /// Gets the starting position of the span.
     #[inline]
+    #[must_use]
     pub fn start(self) -> Position {
         self.start
     }
 
     /// Gets the final position of the span.
     #[inline]
+    #[must_use]
     pub fn end(self) -> Position {
         self.end
     }
@@ -121,8 +131,9 @@ impl fmt::Display for Span {
 }
 
 #[cfg(test)]
-#[allow(clippy::similar_names)]
 mod tests {
+    #![allow(clippy::similar_names)]
+    #![allow(unused_must_use)]
     use super::{Position, Span};
 
     /// Checks that we cannot create a position with 0 as the column.

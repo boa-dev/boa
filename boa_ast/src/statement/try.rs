@@ -29,56 +29,68 @@ use super::ContainsSymbol;
 #[derive(Clone, Debug, PartialEq)]
 pub struct Try {
     block: Block,
-    catch: Option<Catch>,
-    finally: Option<Finally>,
+    handler: ErrorHandler,
+}
+
+/// The type of error handler in a [`Try`] statement.
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive(Clone, Debug, PartialEq)]
+pub enum ErrorHandler {
+    /// A [`Catch`] error handler.
+    Catch(Catch),
+    /// A [`Finally`] error handler.
+    Finally(Finally),
+    /// A [`Catch`] and [`Finally`] error handler.
+    Full(Catch, Finally),
 }
 
 impl Try {
     /// Creates a new `Try` AST node.
     #[inline]
-    pub fn new(block: Block, catch: Option<Catch>, finally: Option<Finally>) -> Self {
-        assert!(
-            catch.is_some() || finally.is_some(),
-            "one of catch or finally must be pressent"
-        );
-
-        Self {
-            block,
-            catch,
-            finally,
-        }
+    #[must_use]
+    pub fn new(block: Block, handler: ErrorHandler) -> Self {
+        Self { block, handler }
     }
 
     /// Gets the `try` block.
     #[inline]
+    #[must_use]
     pub fn block(&self) -> &Block {
         &self.block
     }
 
     /// Gets the `catch` block, if any.
     #[inline]
+    #[must_use]
     pub fn catch(&self) -> Option<&Catch> {
-        self.catch.as_ref()
+        match &self.handler {
+            ErrorHandler::Catch(c) | ErrorHandler::Full(c, _) => Some(c),
+            ErrorHandler::Finally(_) => None,
+        }
     }
 
     /// Gets the `finally` block, if any.
     #[inline]
-    pub fn finally(&self) -> Option<&Block> {
-        self.finally.as_ref().map(Finally::block)
+    #[must_use]
+    pub fn finally(&self) -> Option<&Finally> {
+        match &self.handler {
+            ErrorHandler::Finally(f) | ErrorHandler::Full(_, f) => Some(f),
+            ErrorHandler::Catch(_) => None,
+        }
     }
 
     #[inline]
     pub(crate) fn contains_arguments(&self) -> bool {
         self.block.contains_arguments()
-            || matches!(self.catch, Some(ref catch) if catch.contains_arguments())
-            || matches!(self.finally, Some(ref finally) if finally.contains_arguments())
+            || matches!(self.catch(), Some(catch) if catch.contains_arguments())
+            || matches!(self.finally(), Some(finally) if finally.contains_arguments())
     }
 
     #[inline]
     pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
         self.block.contains(symbol)
-            || matches!(self.catch, Some(ref catch) if catch.contains(symbol))
-            || matches!(self.finally, Some(ref finally) if finally.contains(symbol))
+            || matches!(self.catch(), Some(catch) if catch.contains(symbol))
+            || matches!(self.finally(), Some(finally) if finally.contains(symbol))
     }
 }
 
@@ -90,11 +102,11 @@ impl ToIndentedString for Try {
             self.block.to_indented_string(interner, indentation)
         );
 
-        if let Some(ref catch) = self.catch {
+        if let Some(catch) = self.catch() {
             buf.push_str(&catch.to_indented_string(interner, indentation));
         }
 
-        if let Some(ref finally) = self.finally {
+        if let Some(finally) = self.finally() {
             buf.push_str(&finally.to_indented_string(interner, indentation));
         }
         buf
@@ -114,10 +126,10 @@ impl VisitWith for Try {
         V: Visitor<'a>,
     {
         try_break!(visitor.visit_block(&self.block));
-        if let Some(catch) = &self.catch {
+        if let Some(catch) = &self.catch() {
             try_break!(visitor.visit_catch(catch));
         }
-        if let Some(finally) = &self.finally {
+        if let Some(finally) = &self.finally() {
             try_break!(visitor.visit_finally(finally));
         }
         ControlFlow::Continue(())
@@ -128,11 +140,13 @@ impl VisitWith for Try {
         V: VisitorMut<'a>,
     {
         try_break!(visitor.visit_block_mut(&mut self.block));
-        if let Some(catch) = &mut self.catch {
-            try_break!(visitor.visit_catch_mut(catch));
-        }
-        if let Some(finally) = &mut self.finally {
-            try_break!(visitor.visit_finally_mut(finally));
+        match &mut self.handler {
+            ErrorHandler::Catch(c) => try_break!(visitor.visit_catch_mut(c)),
+            ErrorHandler::Finally(f) => try_break!(visitor.visit_finally_mut(f)),
+            ErrorHandler::Full(c, f) => {
+                try_break!(visitor.visit_catch_mut(c));
+                try_break!(visitor.visit_finally_mut(f));
+            }
         }
         ControlFlow::Continue(())
     }
@@ -149,18 +163,21 @@ pub struct Catch {
 impl Catch {
     /// Creates a new catch block.
     #[inline]
+    #[must_use]
     pub fn new(parameter: Option<Binding>, block: Block) -> Self {
         Self { parameter, block }
     }
 
     /// Gets the parameter of the catch block.
     #[inline]
+    #[must_use]
     pub fn parameter(&self) -> Option<&Binding> {
         self.parameter.as_ref()
     }
 
     /// Retrieves the catch execution block.
     #[inline]
+    #[must_use]
     pub fn block(&self) -> &Block {
         &self.block
     }
@@ -231,6 +248,7 @@ pub struct Finally {
 impl Finally {
     /// Gets the finally block.
     #[inline]
+    #[must_use]
     pub fn block(&self) -> &Block {
         &self.block
     }

@@ -30,12 +30,14 @@ impl Yield {
 
     /// Returns `true` if this `Yield` statement delegates to another generator or iterable object.
     #[inline]
+    #[must_use]
     pub fn delegate(&self) -> bool {
         self.delegate
     }
 
     /// Creates a `Yield` AST Expression.
     #[inline]
+    #[must_use]
     pub fn new(expr: Option<Expression>, delegate: bool) -> Self {
         Self {
             target: expr.map(Box::new),

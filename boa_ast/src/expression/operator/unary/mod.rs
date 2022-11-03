@@ -38,6 +38,7 @@ pub struct Unary {
 
 impl Unary {
     /// Creates a new `UnaryOp` AST Expression.
+    #[must_use]
     pub fn new(op: UnaryOp, target: Expression) -> Self {
         Self {
             op,
@@ -47,12 +48,14 @@ impl Unary {
 
     /// Gets the unary operation of the Expression.
     #[inline]
+    #[must_use]
     pub fn op(&self) -> UnaryOp {
         self.op
     }
 
     /// Gets the target of this unary operator.
     #[inline]
+    #[must_use]
     pub fn target(&self) -> &Expression {
         self.target.as_ref()
     }

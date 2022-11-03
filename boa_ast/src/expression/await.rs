@@ -25,6 +25,7 @@ pub struct Await {
 impl Await {
     /// Return the target expression that should be awaited.
     #[inline]
+    #[must_use]
     pub fn target(&self) -> &Expression {
         &self.target
     }

@@ -30,6 +30,7 @@ pub struct AsyncFunction {
 impl AsyncFunction {
     /// Creates a new function expression
     #[inline]
+    #[must_use]
     pub fn new(
         name: Option<Identifier>,
         parameters: FormalParameterList,
@@ -44,18 +45,21 @@ impl AsyncFunction {
 
     /// Gets the name of the function declaration.
     #[inline]
+    #[must_use]
     pub fn name(&self) -> Option<Identifier> {
         self.name
     }
 
     /// Gets the list of parameters of the function declaration.
     #[inline]
+    #[must_use]
     pub fn parameters(&self) -> &FormalParameterList {
         &self.parameters
     }
 
     /// Gets the body of the function declaration.
     #[inline]
+    #[must_use]
     pub fn body(&self) -> &StatementList {
         &self.body
     }
@@ -69,7 +73,7 @@ impl ToIndentedString for AsyncFunction {
         }
         buf.push_str(&format!(
             "({}",
-            join_nodes(interner, &self.parameters.as_ref())
+            join_nodes(interner, self.parameters.as_ref())
         ));
         if self.body().statements().is_empty() {
             buf.push_str(") {}");

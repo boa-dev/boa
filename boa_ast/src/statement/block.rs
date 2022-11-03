@@ -31,12 +31,14 @@ pub struct Block {
 impl Block {
     /// Gets the list of statements and declarations in this block.
     #[inline]
+    #[must_use]
     pub fn statement_list(&self) -> &StatementList {
         &self.statements
     }
 
     /// Get the lexically declared names of the block.
     #[inline]
+    #[must_use]
     pub fn lexically_declared_names(&self) -> Vec<(Identifier, bool)> {
         self.statements.lexically_declared_names()
     }

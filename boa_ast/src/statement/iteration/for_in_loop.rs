@@ -26,6 +26,7 @@ pub struct ForInLoop {
 impl ForInLoop {
     /// Creates a new `ForInLoop`.
     #[inline]
+    #[must_use]
     pub fn new(initializer: IterableLoopInitializer, target: Expression, body: Statement) -> Self {
         Self {
             initializer,
@@ -36,18 +37,21 @@ impl ForInLoop {
 
     /// Gets the initializer of the for...in loop.
     #[inline]
+    #[must_use]
     pub fn initializer(&self) -> &IterableLoopInitializer {
         &self.initializer
     }
 
     /// Gets the target object of the for...in loop.
     #[inline]
+    #[must_use]
     pub fn target(&self) -> &Expression {
         &self.target
     }
 
     /// Gets the body of the for...in loop.
     #[inline]
+    #[must_use]
     pub fn body(&self) -> &Statement {
         &self.body
     }
