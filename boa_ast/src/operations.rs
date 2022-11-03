@@ -46,8 +46,7 @@ pub enum ContainsSymbol {
 
 /// Returns `true` if the node contains the given symbol.
 ///
-/// More information:
-///  - [ECMAScript specification][spec]
+/// This is equivalent to the [`Contains`][spec] syntax operation in the spec.
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-contains
 #[must_use]
@@ -55,7 +54,10 @@ pub fn contains<N>(node: &N, symbol: ContainsSymbol) -> bool
 where
     N: VisitWith,
 {
+    /// Visitor used by the function to search for a specific symbol in a node.
+    #[derive(Debug, Clone, Copy)]
     struct ContainsVisitor(ContainsSymbol);
+
     impl<'ast> Visitor<'ast> for ContainsVisitor {
         type BreakTy = ();
 
@@ -175,16 +177,12 @@ where
         }
     }
 
-    match node.visit_with(&mut ContainsVisitor(symbol)) {
-        ControlFlow::Continue(_) => false,
-        ControlFlow::Break(_) => true,
-    }
+    node.visit_with(&mut ContainsVisitor(symbol)).is_break()
 }
 
 /// Returns true if the node contains an identifier reference with name `arguments`.
 ///
-/// More information:
-///  - [ECMAScript specification][spec]
+/// This is equivalent to the [`ContainsArguments`][spec] syntax operation in the spec.
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-containsarguments
 #[must_use]
@@ -192,6 +190,8 @@ pub fn contains_arguments<N>(node: &N) -> bool
 where
     N: VisitWith,
 {
+    /// Visitor used by the function to search for an identifier with the name `arguments`.
+    #[derive(Debug, Clone, Copy)]
     struct ContainsArgsVisitor;
 
     impl<'ast> Visitor<'ast> for ContainsArgsVisitor {
@@ -241,13 +241,14 @@ where
             }
         }
     }
-    match node.visit_with(&mut ContainsArgsVisitor) {
-        ControlFlow::Continue(_) => false,
-        ControlFlow::Break(_) => true,
-    }
+    node.visit_with(&mut ContainsArgsVisitor).is_break()
 }
 
 /// Returns `true` if `method` has a super call in its parameters or body.
+///
+/// This is equivalent to the [`HasDirectSuper`][spec] syntax operation in the spec.
+///
+/// [spec]: https://tc39.es/ecma262/#sec-static-semantics-hasdirectsuper
 #[must_use]
 pub fn has_direct_super(method: &MethodDefinition) -> bool {
     match method {

@@ -225,8 +225,6 @@ impl Statement {
         }
     }
 
-    #[inline]
-    #[must_use]
     /// Abstract operation [`IsLabelledFunction`][spec].
     ///
     /// This recursively checks if this `Statement` is a labelled function, since adding
@@ -239,6 +237,8 @@ impl Statement {
     /// This should return `true` for that snippet.
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-islabelledfunction
+    #[inline]
+    #[must_use]
     pub fn is_labelled_function(&self) -> bool {
         match self {
             Self::Labelled(stmt) => match stmt.item() {
