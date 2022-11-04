@@ -143,24 +143,20 @@ fn parse_callable_declaration<R: Read, C: CallableDeclaration>(
     cursor: &mut Cursor<R>,
     interner: &mut Interner,
 ) -> Result<(Identifier, FormalParameterList, StatementList), ParseError> {
-    let next_token = cursor.peek(0, interner)?;
-    let name = if let Some(token) = next_token {
-        match token.kind() {
-            TokenKind::Punctuator(Punctuator::OpenParen) => {
-                if !c.is_default() {
-                    return Err(ParseError::unexpected(
-                        token.to_string(interner),
-                        token.span(),
-                        c.error_context(),
-                    ));
-                }
-                Sym::DEFAULT.into()
+    let next_token = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
+    let name = match next_token.kind() {
+        TokenKind::Punctuator(Punctuator::OpenParen) => {
+            if !c.is_default() {
+                return Err(ParseError::unexpected(
+                    next_token.to_string(interner),
+                    next_token.span(),
+                    c.error_context(),
+                ));
             }
-            _ => BindingIdentifier::new(c.name_allow_yield(), c.name_allow_await())
-                .parse(cursor, interner)?,
+            Sym::DEFAULT.into()
         }
-    } else {
-        return Err(ParseError::AbruptEnd);
+        _ => BindingIdentifier::new(c.name_allow_yield(), c.name_allow_await())
+            .parse(cursor, interner)?,
     };
 
     // Early Error: If BindingIdentifier is present and the source code matching BindingIdentifier is strict mode code,

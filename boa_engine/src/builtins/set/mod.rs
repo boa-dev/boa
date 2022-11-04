@@ -281,21 +281,16 @@ impl Set {
     pub(crate) fn delete(this: &JsValue, args: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         let value = args.get_or_undefined(0);
 
-        let res = if let Some(object) = this.as_object() {
-            if let Some(set) = object.borrow_mut().as_set_mut() {
-                set.delete(value)
-            } else {
-                return Err(JsNativeError::typ()
-                    .with_message("'this' is not a Set")
-                    .into());
-            }
-        } else {
-            return Err(JsNativeError::typ()
-                .with_message("'this' is not a Set")
-                .into());
-        };
+        let mut object = this
+            .as_object()
+            .map(JsObject::borrow_mut)
+            .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Set"))?;
 
-        Ok(res.into())
+        let set = object
+            .as_set_mut()
+            .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Set"))?;
+
+        Ok(set.delete(value).into())
     }
 
     /// `Set.prototype.entries( )`

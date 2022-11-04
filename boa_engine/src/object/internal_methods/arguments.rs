@@ -30,9 +30,7 @@ pub(crate) fn arguments_exotic_get_own_property(
 ) -> JsResult<Option<PropertyDescriptor>> {
     // 1. Let desc be OrdinaryGetOwnProperty(args, P).
     // 2. If desc is undefined, return desc.
-    let desc = if let Some(desc) = super::ordinary_get_own_property(obj, key, context)? {
-        desc
-    } else {
+    let Some(desc) = super::ordinary_get_own_property(obj, key, context)? else {
         return Ok(None);
     };
 

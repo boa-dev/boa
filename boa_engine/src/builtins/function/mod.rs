@@ -841,15 +841,9 @@ impl BuiltInFunctionObject {
             }
         };
 
-        let name = if let Some(name) = name {
-            if name.is_empty() {
-                "anonymous".into()
-            } else {
-                name
-            }
-        } else {
-            "anonymous".into()
-        };
+        let name = name
+            .filter(|n| !n.is_empty())
+            .unwrap_or_else(|| "anonymous".into());
 
         match function {
             Function::Native { .. } | Function::Closure { .. } | Function::Ordinary { .. } => {

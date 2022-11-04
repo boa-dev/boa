@@ -300,9 +300,7 @@ impl Array {
     /// by `Array.prototype.concat`.
     fn is_concat_spreadable(o: &JsValue, context: &mut Context) -> JsResult<bool> {
         // 1. If Type(O) is not Object, return false.
-        let o = if let Some(o) = o.as_object() {
-            o
-        } else {
+        let Some(o) = o.as_object() else {
             return Ok(false);
         };
 
@@ -461,9 +459,7 @@ impl Array {
                 let next = iterator_record.step(context)?;
 
                 // iv. If next is false, then
-                let next = if let Some(next) = next {
-                    next
-                } else {
+                let Some(next) = next else {
                     // 1. Perform ? Set(A, "length", 𝔽(k), true).
                     a.set("length", k, true, context)?;
 

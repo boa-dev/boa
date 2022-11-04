@@ -508,13 +508,9 @@ impl Date {
     ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. If Type(O) is not Object, throw a TypeError exception.
-        let o = if let Some(o) = this.as_object() {
-            o
-        } else {
-            return Err(JsNativeError::typ()
-                .with_message("Date.prototype[@@toPrimitive] called on non object")
-                .into());
-        };
+        let o = this.as_object().ok_or_else(|| {
+            JsNativeError::typ().with_message("Date.prototype[@@toPrimitive] called on non object")
+        })?;
 
         let hint = args.get_or_undefined(0);
 
@@ -908,25 +904,13 @@ impl Date {
         }
 
         // 3. Let y be ? ToNumber(year).
-        let y = args
-            .get(0)
-            .cloned()
-            .unwrap_or_default()
-            .to_number(context)?;
+        let y = args.get_or_undefined(0).to_number(context)?;
 
         // 4. If month is not present, let m be MonthFromTime(t); otherwise, let m be ? ToNumber(month).
-        let m = if let Some(m) = args.get(1) {
-            Some(m.to_number(context)?)
-        } else {
-            None
-        };
+        let m = args.get(1).map(|v| v.to_number(context)).transpose()?;
 
         // 5. If date is not present, let dt be DateFromTime(t); otherwise, let dt be ? ToNumber(date).
-        let dt = if let Some(dt) = args.get(2) {
-            Some(dt.to_number(context)?)
-        } else {
-            None
-        };
+        let dt = args.get(2).map(|v| v.to_number(context)).transpose()?;
 
         // 6. Let newDate be MakeDate(MakeDay(y, m, dt), TimeWithinDay(t)).
         t.set_components(false, Some(y), m, dt, None, None, None, None);
@@ -965,25 +949,13 @@ impl Date {
             .to_number(context)?;
 
         // 3. If min is not present, let m be MinFromTime(t); otherwise, let m be ? ToNumber(min).
-        let m = if let Some(m) = args.get(1) {
-            Some(m.to_number(context)?)
-        } else {
-            None
-        };
+        let m = args.get(1).map(|v| v.to_number(context)).transpose()?;
 
         // 4. If sec is not present, let s be SecFromTime(t); otherwise, let s be ? ToNumber(sec).
-        let sec = if let Some(sec) = args.get(2) {
-            Some(sec.to_number(context)?)
-        } else {
-            None
-        };
+        let sec = args.get(2).map(|v| v.to_number(context)).transpose()?;
 
         // 5. If ms is not present, let milli be msFromTime(t); otherwise, let milli be ? ToNumber(ms).
-        let milli = if let Some(milli) = args.get(3) {
-            Some(milli.to_number(context)?)
-        } else {
-            None
-        };
+        let milli = args.get(3).map(|v| v.to_number(context)).transpose()?;
 
         // 6. Let date be MakeDate(Day(t), MakeTime(h, m, s, milli)).
         t.set_components(false, None, None, None, Some(h), m, sec, milli);
@@ -1062,18 +1034,10 @@ impl Date {
             .to_number(context)?;
 
         // 3. If sec is not present, let s be SecFromTime(t); otherwise, let s be ? ToNumber(sec).
-        let s = if let Some(s) = args.get(1) {
-            Some(s.to_number(context)?)
-        } else {
-            None
-        };
+        let s = args.get(1).map(|v| v.to_number(context)).transpose()?;
 
         // 4. If ms is not present, let milli be msFromTime(t); otherwise, let milli be ? ToNumber(ms).
-        let milli = if let Some(milli) = args.get(2) {
-            Some(milli.to_number(context)?)
-        } else {
-            None
-        };
+        let milli = args.get(2).map(|v| v.to_number(context)).transpose()?;
 
         // 5. Let date be MakeDate(Day(t), MakeTime(HourFromTime(t), m, s, milli)).
         t.set_components(false, None, None, None, None, Some(m), s, milli);
@@ -1110,11 +1074,7 @@ impl Date {
             .to_number(context)?;
 
         // 3. If date is not present, let dt be DateFromTime(t); otherwise, let dt be ? ToNumber(date).
-        let dt = if let Some(date) = args.get(1) {
-            Some(date.to_number(context)?)
-        } else {
-            None
-        };
+        let dt = args.get(1).map(|v| v.to_number(context)).transpose()?;
 
         // 4. Let newDate be MakeDate(MakeDay(YearFromTime(t), m, dt), TimeWithinDay(t)).
         t.set_components(false, None, Some(m), dt, None, None, None, None);
@@ -1155,11 +1115,7 @@ impl Date {
             .to_number(context)?;
 
         // 3. If ms is not present, let milli be msFromTime(t); otherwise, let milli be ? ToNumber(ms).
-        let milli = if let Some(milli) = args.get(1) {
-            Some(milli.to_number(context)?)
-        } else {
-            None
-        };
+        let milli = args.get(1).map(|v| v.to_number(context)).transpose()?;
 
         // 4. Let date be MakeDate(Day(t), MakeTime(HourFromTime(t), MinFromTime(t), s, milli)).
         t.set_components(false, None, None, None, None, None, Some(s), milli);
@@ -1341,18 +1297,10 @@ impl Date {
             .to_number(context)?;
 
         // 4. If month is not present, let m be MonthFromTime(t); otherwise, let m be ? ToNumber(month).
-        let m = if let Some(m) = args.get(1) {
-            Some(m.to_number(context)?)
-        } else {
-            None
-        };
+        let m = args.get(1).map(|v| v.to_number(context)).transpose()?;
 
         // 5. If date is not present, let dt be DateFromTime(t); otherwise, let dt be ? ToNumber(date).
-        let dt = if let Some(dt) = args.get(2) {
-            Some(dt.to_number(context)?)
-        } else {
-            None
-        };
+        let dt = args.get(2).map(|v| v.to_number(context)).transpose()?;
 
         // 6. Let newDate be MakeDate(MakeDay(y, m, dt), TimeWithinDay(t)).
         t.set_components(true, Some(y), m, dt, None, None, None, None);
@@ -1395,25 +1343,13 @@ impl Date {
             .to_number(context)?;
 
         // 3. If min is not present, let m be MinFromTime(t); otherwise, let m be ? ToNumber(min).
-        let m = if let Some(m) = args.get(1) {
-            Some(m.to_number(context)?)
-        } else {
-            None
-        };
+        let m = args.get(1).map(|v| v.to_number(context)).transpose()?;
 
         // 4. If sec is not present, let s be SecFromTime(t); otherwise, let s be ? ToNumber(sec).
-        let sec = if let Some(s) = args.get(2) {
-            Some(s.to_number(context)?)
-        } else {
-            None
-        };
+        let sec = args.get(2).map(|v| v.to_number(context)).transpose()?;
 
         // 5. If ms is not present, let milli be msFromTime(t); otherwise, let milli be ? ToNumber(ms).
-        let ms = if let Some(ms) = args.get(3) {
-            Some(ms.to_number(context)?)
-        } else {
-            None
-        };
+        let ms = args.get(3).map(|v| v.to_number(context)).transpose()?;
 
         // 6. Let newDate be MakeDate(Day(t), MakeTime(h, m, s, milli)).
         t.set_components(true, None, None, None, Some(h), m, sec, ms);
@@ -1493,21 +1429,13 @@ impl Date {
 
         // 3. If sec is not present, let s be SecFromTime(t).
         // 4. Else,
-        let s = if let Some(s) = args.get(1) {
-            // a. Let s be ? ToNumber(sec).
-            Some(s.to_number(context)?)
-        } else {
-            None
-        };
+        // a. Let s be ? ToNumber(sec).
+        let s = args.get(1).map(|v| v.to_number(context)).transpose()?;
 
         // 5. If ms is not present, let milli be msFromTime(t).
         // 6. Else,
-        let milli = if let Some(ms) = args.get(2) {
-            // a. Let milli be ? ToNumber(ms).
-            Some(ms.to_number(context)?)
-        } else {
-            None
-        };
+        // a. Let milli be ? ToNumber(ms).
+        let milli = args.get(2).map(|v| v.to_number(context)).transpose()?;
 
         // 7. Let date be MakeDate(Day(t), MakeTime(HourFromTime(t), m, s, milli)).
         t.set_components(true, None, None, None, None, Some(m), s, milli);
@@ -1549,12 +1477,8 @@ impl Date {
 
         // 3. If date is not present, let dt be DateFromTime(t).
         // 4. Else,
-        let dt = if let Some(dt) = args.get(1) {
-            // a. Let dt be ? ToNumber(date).
-            Some(dt.to_number(context)?)
-        } else {
-            None
-        };
+        // a. Let dt be ? ToNumber(date).
+        let dt = args.get(1).map(|v| v.to_number(context)).transpose()?;
 
         // 5. Let newDate be MakeDate(MakeDay(YearFromTime(t), m, dt), TimeWithinDay(t)).
         t.set_components(true, None, Some(m), dt, None, None, None, None);
@@ -1596,12 +1520,8 @@ impl Date {
 
         // 3. If ms is not present, let milli be msFromTime(t).
         // 4. Else,
-        let milli = if let Some(milli) = args.get(1) {
-            // a. Let milli be ? ToNumber(ms).
-            Some(milli.to_number(context)?)
-        } else {
-            None
-        };
+        // a. Let milli be ? ToNumber(ms).
+        let milli = args.get(1).map(|v| v.to_number(context)).transpose()?;
 
         // 5. Let date be MakeDate(Day(t), MakeTime(HourFromTime(t), MinFromTime(t), s, milli)).
         t.set_components(true, None, None, None, None, None, Some(s), milli);
@@ -1841,9 +1761,7 @@ impl Date {
         // This method is implementation-defined and discouraged, so we just require the same format as the string
         // constructor.
 
-        let date = if let Some(arg) = args.get(0) {
-            arg
-        } else {
+        let Some(date) = args.get(0) else {
             return Ok(JsValue::nan());
         };
 

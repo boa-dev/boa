@@ -49,11 +49,7 @@
     nonstandard_style,
     missing_docs
 )]
-#![allow(
-    clippy::module_name_repetitions,
-    clippy::too_many_lines,
-    rustdoc::missing_doc_code_examples
-)]
+#![allow(clippy::module_name_repetitions, clippy::too_many_lines)]
 
 mod position;
 mod punctuator;

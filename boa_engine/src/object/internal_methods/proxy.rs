@@ -65,10 +65,8 @@ pub(crate) fn proxy_exotic_get_prototype_of(
         .try_data()?;
 
     // 5. Let trap be ? GetMethod(handler, "getPrototypeOf").
-    let trap = if let Some(trap) = handler.get_method("getPrototypeOf", context)? {
-        trap
-    // 6. If trap is undefined, then
-    } else {
+    let Some(trap) = handler.get_method("getPrototypeOf", context)? else {
+        // 6. If trap is undefined, then
         // a. Return ? target.[[GetPrototypeOf]]().
         return target.__get_prototype_of__(context);
     };
@@ -130,10 +128,8 @@ pub(crate) fn proxy_exotic_set_prototype_of(
         .try_data()?;
 
     // 5. Let trap be ? GetMethod(handler, "setPrototypeOf").
-    let trap = if let Some(trap) = handler.get_method("setPrototypeOf", context)? {
-        trap
-    // 6. If trap is undefined, then
-    } else {
+    let Some(trap) = handler.get_method("setPrototypeOf", context)? else {
+        // 6. If trap is undefined, then
         // a. Return ? target.[[SetPrototypeOf]](V).
         return target.__set_prototype_of__(val, context);
     };
@@ -193,10 +189,8 @@ pub(crate) fn proxy_exotic_is_extensible(obj: &JsObject, context: &mut Context) 
         .try_data()?;
 
     // 5. Let trap be ? GetMethod(handler, "isExtensible").
-    let trap = if let Some(trap) = handler.get_method("isExtensible", context)? {
-        trap
-    // 6. If trap is undefined, then
-    } else {
+    let Some(trap) = handler.get_method("isExtensible", context)? else {
+        // 6. If trap is undefined, then
         // a. Return ? IsExtensible(target).
         return target.is_extensible(context);
     };
@@ -242,10 +236,8 @@ pub(crate) fn proxy_exotic_prevent_extensions(
         .try_data()?;
 
     // 5. Let trap be ? GetMethod(handler, "preventExtensions").
-    let trap = if let Some(trap) = handler.get_method("preventExtensions", context)? {
-        trap
-    // 6. If trap is undefined, then
-    } else {
+    let Some(trap) = handler.get_method("preventExtensions", context)? else {
+        // 6. If trap is undefined, then
         // a. Return ? target.[[PreventExtensions]]().
         return target.__prevent_extensions__(context);
     };
@@ -291,10 +283,8 @@ pub(crate) fn proxy_exotic_get_own_property(
         .try_data()?;
 
     // 5. Let trap be ? GetMethod(handler, "getOwnPropertyDescriptor").
-    let trap = if let Some(trap) = handler.get_method("getOwnPropertyDescriptor", context)? {
-        trap
-    // 6. If trap is undefined, then
-    } else {
+    let Some(trap) = handler.get_method("getOwnPropertyDescriptor", context)? else {
+        // 6. If trap is undefined, then
         // a. Return ? target.[[GetOwnProperty]](P).
         return target.__get_own_property__(key, context);
     };
@@ -418,10 +408,8 @@ pub(crate) fn proxy_exotic_define_own_property(
         .try_data()?;
 
     // 5. Let trap be ? GetMethod(handler, "defineProperty").
-    let trap = if let Some(trap) = handler.get_method("defineProperty", context)? {
-        trap
-    // 6. If trap is undefined, then
-    } else {
+    let Some(trap) = handler.get_method("defineProperty", context)? else {
+        // 6. If trap is undefined, then
         // a. Return ? target.[[DefineOwnProperty]](P, Desc).
         return target.__define_own_property__(key, desc, context);
     };
@@ -532,10 +520,8 @@ pub(crate) fn proxy_exotic_has_property(
         .try_data()?;
 
     // 5. Let trap be ? GetMethod(handler, "has").
-    let trap = if let Some(trap) = handler.get_method("has", context)? {
-        trap
-    // 6. If trap is undefined, then
-    } else {
+    let Some(trap) = handler.get_method("has", context)? else {
+        // 6. If trap is undefined, then
         // a. Return ? target.[[HasProperty]](P).
         return target.has_property(key.clone(), context);
     };
@@ -601,10 +587,8 @@ pub(crate) fn proxy_exotic_get(
         .try_data()?;
 
     // 5. Let trap be ? GetMethod(handler, "get").
-    let trap = if let Some(trap) = handler.get_method("get", context)? {
-        trap
-    // 6. If trap is undefined, then
-    } else {
+    let Some(trap) = handler.get_method("get", context)? else {
+        // 6. If trap is undefined, then
         // a. Return ? target.[[Get]](P, Receiver).
         return target.__get__(key, receiver, context);
     };
@@ -673,10 +657,8 @@ pub(crate) fn proxy_exotic_set(
         .try_data()?;
 
     // 5. Let trap be ? GetMethod(handler, "set").
-    let trap = if let Some(trap) = handler.get_method("set", context)? {
-        trap
-    // 6. If trap is undefined, then
-    } else {
+    let Some(trap) = handler.get_method("set", context)? else {
+        // 6. If trap is undefined, then
         // a. Return ? target.[[Set]](P, V, Receiver).
         return target.__set__(key, value, receiver, context);
     };
@@ -757,10 +739,8 @@ pub(crate) fn proxy_exotic_delete(
         .try_data()?;
 
     // 5. Let trap be ? GetMethod(handler, "deleteProperty").
-    let trap = if let Some(trap) = handler.get_method("deleteProperty", context)? {
-        trap
-    // 6. If trap is undefined, then
-    } else {
+    let Some(trap) = handler.get_method("deleteProperty", context)? else {
+        // 6. If trap is undefined, then
         // a. Return ? target.[[Delete]](P).
         return target.__delete__(key, context);
     };
@@ -826,10 +806,8 @@ pub(crate) fn proxy_exotic_own_property_keys(
         .try_data()?;
 
     // 5. Let trap be ? GetMethod(handler, "ownKeys").
-    let trap = if let Some(trap) = handler.get_method("ownKeys", context)? {
-        trap
-    // 6. If trap is undefined, then
-    } else {
+    let Some(trap) = handler.get_method("ownKeys", context)? else {
+        // 6. If trap is undefined, then
         // a. Return ? target.[[OwnPropertyKeys]]().
         return target.__own_property_keys__(context);
     };
@@ -964,10 +942,8 @@ fn proxy_exotic_call(
         .try_data()?;
 
     // 5. Let trap be ? GetMethod(handler, "apply").
-    let trap = if let Some(trap) = handler.get_method("apply", context)? {
-        trap
-    // 6. If trap is undefined, then
-    } else {
+    let Some(trap) = handler.get_method("apply", context)? else {
+        // 6. If trap is undefined, then
         // a. Return ? Call(target, thisArgument, argumentsList).
         return target.call(this, args, context);
     };
@@ -1009,10 +985,8 @@ fn proxy_exotic_construct(
     assert!(target.is_constructor());
 
     // 6. Let trap be ? GetMethod(handler, "construct").
-    let trap = if let Some(trap) = handler.get_method("construct", context)? {
-        trap
-    // 7. If trap is undefined, then
-    } else {
+    let Some(trap) = handler.get_method("construct", context)? else {
+        // 7. If trap is undefined, then
         // a. Return ? Construct(target, argumentsList, newTarget).
         return target.construct(args, Some(new_target), context);
     };

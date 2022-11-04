@@ -502,13 +502,9 @@ impl JsObject {
         }
 
         // 4. If Type(C) is not Object, throw a TypeError exception.
-        let c = if let Some(c) = c.as_object() {
-            c
-        } else {
-            return Err(JsNativeError::typ()
-                .with_message("property 'constructor' is not an object")
-                .into());
-        };
+        let c = c.as_object().ok_or_else(|| {
+            JsNativeError::typ().with_message("property 'constructor' is not an object")
+        })?;
 
         // 5. Let S be ? Get(C, @@species).
         let s = c.get(WellKnownSymbols::species(), context)?;
@@ -801,9 +797,7 @@ impl JsValue {
         context: &mut Context,
     ) -> JsResult<bool> {
         // 1. If IsCallable(C) is false, return false.
-        let function = if let Some(function) = function.as_callable() {
-            function
-        } else {
+        let Some(function) = function.as_callable() else {
             return Ok(false);
         };
 
@@ -818,9 +812,7 @@ impl JsValue {
             );
         }
 
-        let mut object = if let Some(obj) = object.as_object() {
-            obj.clone()
-        } else {
+        let Some(mut object) = object.as_object().cloned() else {
             // 3. If Type(O) is not Object, return false.
             return Ok(false);
         };
@@ -828,14 +820,11 @@ impl JsValue {
         // 4. Let P be ? Get(C, "prototype").
         let prototype = function.get("prototype", context)?;
 
-        let prototype = if let Some(obj) = prototype.as_object() {
-            obj
-        } else {
-            // 5. If Type(P) is not Object, throw a TypeError exception.
-            return Err(JsNativeError::typ()
+        // 5. If Type(P) is not Object, throw a TypeError exception.
+        let prototype = prototype.as_object().ok_or_else(|| {
+            JsNativeError::typ()
                 .with_message("function has non-object prototype in instanceof check")
-                .into());
-        };
+        })?;
 
         // 6. Repeat,
         loop {

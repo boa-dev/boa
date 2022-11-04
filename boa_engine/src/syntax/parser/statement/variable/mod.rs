@@ -170,20 +170,15 @@ where
                 let bindings = ObjectBindingPattern::new(self.allow_yield, self.allow_await)
                     .parse(cursor, interner)?;
 
-                let init = if let Some(t) = cursor.peek(0, interner)? {
-                    if *t.kind() == TokenKind::Punctuator(Punctuator::Assign) {
-                        Some(
-                            Initializer::new(
-                                None,
-                                self.allow_in,
-                                self.allow_yield,
-                                self.allow_await,
-                            )
+                let init = if cursor
+                    .peek(0, interner)?
+                    .filter(|t| *t.kind() == TokenKind::Punctuator(Punctuator::Assign))
+                    .is_some()
+                {
+                    Some(
+                        Initializer::new(None, self.allow_in, self.allow_yield, self.allow_await)
                             .parse(cursor, interner)?,
-                        )
-                    } else {
-                        None
-                    }
+                    )
                 } else {
                     None
                 };
@@ -194,20 +189,15 @@ where
                 let bindings = ArrayBindingPattern::new(self.allow_yield, self.allow_await)
                     .parse(cursor, interner)?;
 
-                let init = if let Some(t) = cursor.peek(0, interner)? {
-                    if *t.kind() == TokenKind::Punctuator(Punctuator::Assign) {
-                        Some(
-                            Initializer::new(
-                                None,
-                                self.allow_in,
-                                self.allow_yield,
-                                self.allow_await,
-                            )
+                let init = if cursor
+                    .peek(0, interner)?
+                    .filter(|t| *t.kind() == TokenKind::Punctuator(Punctuator::Assign))
+                    .is_some()
+                {
+                    Some(
+                        Initializer::new(None, self.allow_in, self.allow_yield, self.allow_await)
                             .parse(cursor, interner)?,
-                        )
-                    } else {
-                        None
-                    }
+                    )
                 } else {
                     None
                 };
@@ -218,15 +208,15 @@ where
                 let ident = BindingIdentifier::new(self.allow_yield, self.allow_await)
                     .parse(cursor, interner)?;
 
-                let init = if let Some(t) = cursor.peek(0, interner)? {
-                    if *t.kind() == TokenKind::Punctuator(Punctuator::Assign) {
-                        Some(
-                            Initializer::new(Some(ident), true, self.allow_yield, self.allow_await)
-                                .parse(cursor, interner)?,
-                        )
-                    } else {
-                        None
-                    }
+                let init = if cursor
+                    .peek(0, interner)?
+                    .filter(|t| *t.kind() == TokenKind::Punctuator(Punctuator::Assign))
+                    .is_some()
+                {
+                    Some(
+                        Initializer::new(Some(ident), true, self.allow_yield, self.allow_await)
+                            .parse(cursor, interner)?,
+                    )
                 } else {
                     None
                 };

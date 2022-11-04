@@ -1268,23 +1268,21 @@ impl Promise {
                     return Ok(JsValue::Undefined);
                 }
 
-                let then = if let Some(resolution) = resolution.as_object() {
-                    // 9. Let then be Completion(Get(resolution, "then")).
-                    resolution.get("then", context)
-                } else {
+                let Some(then) = resolution.as_object() else {
                     // 8. If Type(resolution) is not Object, then
                     //   a. Perform FulfillPromise(promise, resolution).
                     promise
-                        .borrow_mut()
-                        .as_promise_mut()
-                        .expect("Expected promise to be a Promise")
-                        .fulfill_promise(resolution, context)?;
+                    .borrow_mut()
+                    .as_promise_mut()
+                    .expect("Expected promise to be a Promise")
+                    .fulfill_promise(resolution, context)?;
 
                     //   b. Return undefined.
                     return Ok(JsValue::Undefined);
                 };
 
-                let then_action = match then {
+                // 9. Let then be Completion(Get(resolution, "then")).
+                let then_action = match then.get("then", context) {
                     // 10. If then is an abrupt completion, then
                     Err(e) => {
                         //   a. Perform RejectPromise(promise, then.[[Value]]).
@@ -1741,9 +1739,7 @@ impl Promise {
         let promise = this;
 
         // 2. If Type(promise) is not Object, throw a TypeError exception.
-        let promise_obj = if let Some(p) = promise.as_object() {
-            p
-        } else {
+        let Some(promise_obj) = promise.as_object() else {
             return Err(JsNativeError::typ()
                 .with_message("finally called with a non-object promise")
                 .into());

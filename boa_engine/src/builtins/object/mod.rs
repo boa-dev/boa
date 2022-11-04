@@ -635,9 +635,7 @@ impl Object {
             }
         };
 
-        let obj = if let Some(obj) = o.as_object() {
-            obj
-        } else {
+        let Some(obj) = o.as_object() else {
             // 3. If Type(O) is not Object, return O.
             return Ok(o);
         };

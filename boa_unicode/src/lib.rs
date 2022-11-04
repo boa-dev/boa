@@ -63,8 +63,7 @@
     clippy::must_use_candidate,
     clippy::missing_errors_doc,
     clippy::as_conversions,
-    clippy::let_unit_value,
-    rustdoc::missing_doc_code_examples
+    clippy::let_unit_value
 )]
 
 mod tables;

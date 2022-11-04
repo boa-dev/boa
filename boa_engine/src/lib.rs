@@ -72,7 +72,6 @@
     // Ignore because `write!(string, ...)` instead of `string.push_str(&format!(...))` can fail.
     // We only use it in `ToInternedString` where performance is not an issue.
     clippy::format_push_string,
-    rustdoc::missing_doc_code_examples
 )]
 
 extern crate static_assertions as sa;
