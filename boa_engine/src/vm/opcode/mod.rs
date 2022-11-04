@@ -1130,6 +1130,13 @@ generate_impl! {
         /// Stack: **=>** func
         GetArrowFunction,
 
+        /// Get async arrow function from the pre-compiled inner functions.
+        ///
+        /// Operands: address: `u32`
+        ///
+        /// Stack: **=>** func
+        GetAsyncArrowFunction,
+
         /// Get function from the pre-compiled inner functions.
         ///
         /// Operands: address: `u32`

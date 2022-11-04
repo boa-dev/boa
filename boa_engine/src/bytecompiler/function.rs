@@ -18,6 +18,7 @@ pub(crate) struct FunctionCompiler {
     r#async: bool,
     strict: bool,
     arrow: bool,
+    has_binding_identifier: bool,
 }
 
 impl FunctionCompiler {
@@ -30,6 +31,7 @@ impl FunctionCompiler {
             r#async: false,
             strict: false,
             arrow: false,
+            has_binding_identifier: false,
         }
     }
 
@@ -73,6 +75,13 @@ impl FunctionCompiler {
         self
     }
 
+    /// Indicate if the function has a binding identifier.
+    #[inline]
+    pub(crate) fn has_binding_identifier(mut self, has_binding_identifier: bool) -> Self {
+        self.has_binding_identifier = has_binding_identifier;
+        self
+    }
+
     /// Compile a function statement list and it's parameters into bytecode.
     pub(crate) fn compile(
         mut self,
@@ -98,6 +107,14 @@ impl FunctionCompiler {
             in_async_generator: self.generator && self.r#async,
             context,
         };
+
+        if self.has_binding_identifier {
+            compiler.code_block.has_binding_identifier = true;
+            compiler.context.push_compile_time_environment(false);
+            compiler
+                .context
+                .create_immutable_binding(self.name.into(), self.strict);
+        }
 
         compiler.context.push_compile_time_environment(true);
 
@@ -185,11 +202,13 @@ impl FunctionCompiler {
         } else {
             let (num_bindings, compile_environment) =
                 compiler.context.pop_compile_time_environment();
-            compiler
-                .code_block
-                .compile_environments
-                .push(compile_environment);
+            compiler.push_compile_environment(compile_environment);
             compiler.code_block.num_bindings = num_bindings;
+        }
+
+        if self.has_binding_identifier {
+            let (_, compile_environment) = compiler.context.pop_compile_time_environment();
+            compiler.push_compile_environment(compile_environment);
         }
 
         compiler.code_block.params = parameters.clone();

@@ -729,7 +729,7 @@ where
             body_start,
         )?;
 
-        let method = MethodDefinition::Generator(Generator::new(None, params, body));
+        let method = MethodDefinition::Generator(Generator::new(None, params, body, false));
 
         if contains(&method, ContainsSymbol::Super) {
             return Err(ParseError::lex(LexError::Syntax(
@@ -843,7 +843,8 @@ where
             body_start,
         )?;
 
-        let method = MethodDefinition::AsyncGenerator(AsyncGenerator::new(None, params, body));
+        let method =
+            MethodDefinition::AsyncGenerator(AsyncGenerator::new(None, params, body, false));
 
         if contains(&method, ContainsSymbol::Super) {
             return Err(ParseError::lex(LexError::Syntax(
@@ -928,7 +929,7 @@ where
             body_start,
         )?;
 
-        let method = MethodDefinition::Async(AsyncFunction::new(None, params, body));
+        let method = MethodDefinition::Async(AsyncFunction::new(None, params, body, false));
 
         if contains(&method, ContainsSymbol::Super) {
             return Err(ParseError::lex(LexError::Syntax(

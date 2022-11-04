@@ -8,6 +8,7 @@
 //! [spec]: https://tc39.es/ecma262/#sec-assignment-operators
 
 mod arrow_function;
+mod async_arrow_function;
 mod conditional;
 mod exponentiation;
 mod r#yield;
@@ -17,6 +18,7 @@ use crate::syntax::{
     parser::{
         expression::assignment::{
             arrow_function::{ArrowFunction, ConciseBody},
+            async_arrow_function::AsyncArrowFunction,
             conditional::ConditionalExpression,
             r#yield::YieldExpression,
         },
@@ -24,6 +26,7 @@ use crate::syntax::{
         ParseResult, TokenParser,
     },
 };
+use ast::operations::{contains, ContainsSymbol};
 use boa_ast::{
     self as ast,
     expression::{
@@ -138,6 +141,37 @@ where
                     }
                 }
             }
+            //  AsyncArrowFunction[?In, ?Yield, ?Await]
+            TokenKind::Keyword((Keyword::Async, _)) => {
+                let skip_n = if cursor
+                    .peek_is_line_terminator(0, interner)?
+                    .ok_or(ParseError::AbruptEnd)?
+                {
+                    2
+                } else {
+                    1
+                };
+
+                if !cursor
+                    .peek_is_line_terminator(skip_n, interner)?
+                    .ok_or(ParseError::AbruptEnd)?
+                    && matches!(
+                        cursor
+                            .peek(1, interner)?
+                            .ok_or(ParseError::AbruptEnd)?
+                            .kind(),
+                        TokenKind::Identifier(_)
+                            | TokenKind::Keyword((Keyword::Yield | Keyword::Await, _))
+                            | TokenKind::Punctuator(Punctuator::OpenParen)
+                    )
+                {
+                    return Ok(
+                        AsyncArrowFunction::new(self.name, self.allow_in, self.allow_yield)
+                            .parse(cursor, interner)?
+                            .into(),
+                    );
+                }
+            }
             _ => {}
         }
 
@@ -174,6 +208,22 @@ where
             if parameters.has_duplicates() {
                 return Err(ParseError::lex(LexError::Syntax(
                     "Duplicate parameter name not allowed in this context".into(),
+                    position,
+                )));
+            }
+
+            // Early Error: It is a Syntax Error if ArrowParameters Contains YieldExpression is true.
+            if contains(&parameters, ContainsSymbol::YieldExpression) {
+                return Err(ParseError::lex(LexError::Syntax(
+                    "Yield expression not allowed in this context".into(),
+                    position,
+                )));
+            }
+
+            // Early Error: It is a Syntax Error if ArrowParameters Contains AwaitExpression is true.
+            if contains(&parameters, ContainsSymbol::AwaitExpression) {
+                return Err(ParseError::lex(LexError::Syntax(
+                    "Await expression not allowed in this context".into(),
                     position,
                 )));
             }

@@ -348,7 +348,7 @@ impl DeclarativeEnvironmentStack {
         panic!("global environment must exist")
     }
 
-    /// Push a declarative environment on the environments stack.
+    /// Push a declarative environment on the environments stack and return it's index.
     ///
     /// # Panics
     ///
@@ -358,7 +358,7 @@ impl DeclarativeEnvironmentStack {
         &mut self,
         num_bindings: usize,
         compile_environment: Gc<GcCell<CompileTimeEnvironment>>,
-    ) {
+    ) -> usize {
         let poisoned = self
             .stack
             .last()
@@ -366,12 +366,16 @@ impl DeclarativeEnvironmentStack {
             .poisoned
             .get();
 
+        let index = self.stack.len();
+
         self.stack.push(Gc::new(DeclarativeEnvironment {
             bindings: GcCell::new(vec![None; num_bindings]),
             compile: compile_environment,
             poisoned: Cell::new(poisoned),
             slots: None,
         }));
+
+        index
     }
 
     /// Push a function environment on the environments stack.
@@ -456,6 +460,22 @@ impl DeclarativeEnvironmentStack {
         self.stack
             .pop()
             .expect("environment stack is cannot be empty")
+    }
+
+    /// Get the most outer function environment slots.
+    ///
+    /// # Panics
+    ///
+    /// Panics if no environment exists on the stack.
+    #[inline]
+    pub(crate) fn current_function_slots(&self) -> &EnvironmentSlots {
+        for env in self.stack.iter().rev() {
+            if let Some(slots) = &env.slots {
+                return slots;
+            }
+        }
+
+        panic!("global environment must exist")
     }
 
     /// Get the most outer environment.
@@ -760,6 +780,7 @@ pub(crate) struct BindingLocator {
     binding_index: usize,
     global: bool,
     mutate_immutable: bool,
+    silent: bool,
 }
 
 impl BindingLocator {
@@ -776,6 +797,7 @@ impl BindingLocator {
             binding_index,
             global: false,
             mutate_immutable: false,
+            silent: false,
         }
     }
 
@@ -788,6 +810,7 @@ impl BindingLocator {
             binding_index: 0,
             global: true,
             mutate_immutable: false,
+            silent: false,
         }
     }
 
@@ -801,6 +824,20 @@ impl BindingLocator {
             binding_index: 0,
             global: false,
             mutate_immutable: true,
+            silent: false,
+        }
+    }
+
+    /// Creates a binding locator that indicates that any action is silently ignored.
+    #[inline]
+    pub(in crate::environments) fn silent(name: Identifier) -> Self {
+        Self {
+            name,
+            environment_index: 0,
+            binding_index: 0,
+            global: false,
+            mutate_immutable: false,
+            silent: true,
         }
     }
 
@@ -826,6 +863,12 @@ impl BindingLocator {
     #[inline]
     pub(crate) fn binding_index(&self) -> usize {
         self.binding_index
+    }
+
+    /// Returns if the binding is a silent operation.
+    #[inline]
+    pub(crate) fn is_silent(&self) -> bool {
+        self.silent
     }
 
     /// Helper method to throws an error if the binding access is illegal.

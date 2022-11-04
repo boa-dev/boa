@@ -23,6 +23,26 @@ impl Operation for GetArrowFunction {
     }
 }
 
+/// `GetAsyncArrowFunction` implements the Opcode Operation for `Opcode::GetAsyncArrowFunction`
+///
+/// Operation:
+///  - Get async arrow function from the pre-compiled inner functions.
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct GetAsyncArrowFunction;
+
+impl Operation for GetAsyncArrowFunction {
+    const NAME: &'static str = "GetAsyncArrowFunction";
+    const INSTRUCTION: &'static str = "INST - GetAsyncArrowFunction";
+
+    fn execute(context: &mut Context) -> JsResult<ShouldExit> {
+        let index = context.vm.read::<u32>();
+        let code = context.vm.frame().code.functions[index as usize].clone();
+        let function = create_function_object(code, true, true, None, context);
+        context.vm.push(function);
+        Ok(ShouldExit::False)
+    }
+}
+
 /// `GetFunction` implements the Opcode Operation for `Opcode::GetFunction`
 ///
 /// Operation:

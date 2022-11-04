@@ -28,6 +28,7 @@ fn check_generator_function_expression() {
                             Expression::from(Yield::new(Some(Literal::from(1).into()), false)),
                         ))]
                         .into(),
+                        false,
                     )
                     .into(),
                 ),
@@ -60,6 +61,7 @@ fn check_generator_function_delegate_yield_expression() {
                             Expression::from(Yield::new(Some(Literal::from(1).into()), true)),
                         ))]
                         .into(),
+                        false,
                     )
                     .into(),
                 ),

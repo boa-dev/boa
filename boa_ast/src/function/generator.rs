@@ -26,6 +26,7 @@ pub struct Generator {
     name: Option<Identifier>,
     parameters: FormalParameterList,
     body: StatementList,
+    has_binding_identifier: bool,
 }
 
 impl Generator {
@@ -36,11 +37,13 @@ impl Generator {
         name: Option<Identifier>,
         parameters: FormalParameterList,
         body: StatementList,
+        has_binding_identifier: bool,
     ) -> Self {
         Self {
             name,
             parameters,
             body,
+            has_binding_identifier,
         }
     }
 
@@ -63,6 +66,13 @@ impl Generator {
     #[must_use]
     pub fn body(&self) -> &StatementList {
         &self.body
+    }
+
+    /// Returns whether the function expression has a binding identifier.
+    #[inline]
+    #[must_use]
+    pub fn has_binding_identifier(&self) -> bool {
+        self.has_binding_identifier
     }
 }
 

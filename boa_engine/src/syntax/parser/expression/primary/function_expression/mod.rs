@@ -60,7 +60,7 @@ where
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("FunctionExpression", "Parsing");
 
-        let name = match cursor
+        let (name, has_binding_identifier) = match cursor
             .peek(0, interner)?
             .ok_or(ParseError::AbruptEnd)?
             .kind()
@@ -69,8 +69,11 @@ where
             | TokenKind::Keyword((
                 Keyword::Yield | Keyword::Await | Keyword::Async | Keyword::Of,
                 _,
-            )) => Some(BindingIdentifier::new(false, false).parse(cursor, interner)?),
-            _ => self.name,
+            )) => (
+                Some(BindingIdentifier::new(false, false).parse(cursor, interner)?),
+                true,
+            ),
+            _ => (self.name, false),
         };
 
         // Early Error: If BindingIdentifier is present and the source code matching BindingIdentifier is strict mode code,
@@ -128,7 +131,8 @@ where
             params_start_position,
         )?;
 
-        let function = Function::new(name, params, body);
+        let function =
+            Function::new_with_binding_identifier(name, params, body, has_binding_identifier);
 
         if contains(&function, ContainsSymbol::Super) {
             return Err(ParseError::lex(LexError::Syntax(

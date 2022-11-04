@@ -88,6 +88,11 @@ where
 
         let result = parse_callable_declaration(&self, cursor, interner)?;
 
-        Ok(AsyncFunction::new(Some(result.0), result.1, result.2))
+        Ok(AsyncFunction::new(
+            Some(result.0),
+            result.1,
+            result.2,
+            false,
+        ))
     }
 }

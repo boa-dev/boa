@@ -30,6 +30,7 @@ fn check_async_expression() {
                             Return::new(Some(Literal::from(1).into())),
                         ))]
                         .into(),
+                        false,
                     )
                     .into(),
                 ),
@@ -73,6 +74,7 @@ fn check_nested_async_expression() {
                                         )))
                                         .into()]
                                         .into(),
+                                        false,
                                     )
                                     .into(),
                                 ),
@@ -82,6 +84,7 @@ fn check_nested_async_expression() {
                         ))
                         .into()]
                         .into(),
+                        false,
                     )
                     .into(),
                 ),
