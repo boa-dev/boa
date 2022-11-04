@@ -62,6 +62,9 @@ pub struct CodeBlock {
     #[unsafe_ignore_trace]
     pub(crate) name: Sym,
 
+    /// Indicates if the function is an expression and has a binding identifier.
+    pub(crate) has_binding_identifier: bool,
+
     /// The number of arguments expected.
     pub(crate) length: u32,
 
@@ -123,6 +126,7 @@ impl CodeBlock {
             num_bindings: 0,
             functions: Vec::new(),
             name,
+            has_binding_identifier: false,
             length,
             strict,
             this_mode: ThisMode::Global,
@@ -230,6 +234,7 @@ impl CodeBlock {
                 format!("{operand1}, {operand2}")
             }
             Opcode::GetArrowFunction
+            | Opcode::GetAsyncArrowFunction
             | Opcode::GetFunction
             | Opcode::GetFunctionAsync
             | Opcode::GetGenerator
@@ -735,25 +740,27 @@ impl JsObject {
                     )
                 };
 
-                if code.params.has_expressions() {
-                    context.realm.environments.push_function(
-                        code.num_bindings,
-                        code.compile_environments[1].clone(),
-                        this,
-                        self.clone(),
-                        None,
-                        lexical_this_mode,
+                let compile_time_environment_index = usize::from(code.params.has_expressions());
+
+                if code.has_binding_identifier {
+                    let index = context.realm.environments.push_declarative(
+                        1,
+                        code.compile_environments[compile_time_environment_index + 1].clone(),
                     );
-                } else {
-                    context.realm.environments.push_function(
-                        code.num_bindings,
-                        code.compile_environments[0].clone(),
-                        this,
-                        self.clone(),
-                        None,
-                        lexical_this_mode,
-                    );
+                    context
+                        .realm
+                        .environments
+                        .put_value(index, 0, self.clone().into());
                 }
+
+                context.realm.environments.push_function(
+                    code.num_bindings,
+                    code.compile_environments[compile_time_environment_index].clone(),
+                    this,
+                    self.clone(),
+                    None,
+                    lexical_this_mode,
+                );
 
                 if let Some(binding) = code.arguments_binding {
                     let arguments_obj = if code.strict || !code.params.is_simple() {
@@ -795,6 +802,7 @@ impl JsObject {
 
                 let param_count = code.params.as_ref().len();
                 let has_expressions = code.params.has_expressions();
+                let has_binding_identifier = code.has_binding_identifier;
 
                 context.vm.push_frame(CallFrame {
                     code,
@@ -822,6 +830,10 @@ impl JsObject {
                 if has_expressions
                     && frame.pc > frame.code.function_environment_push_location as usize
                 {
+                    context.realm.environments.pop();
+                }
+
+                if has_binding_identifier {
                     context.realm.environments.pop();
                 }
 
@@ -859,25 +871,27 @@ impl JsObject {
                     )
                 };
 
-                if code.params.has_expressions() {
-                    context.realm.environments.push_function(
-                        code.num_bindings,
-                        code.compile_environments[1].clone(),
-                        this,
-                        self.clone(),
-                        None,
-                        lexical_this_mode,
+                let compile_time_environment_index = usize::from(code.params.has_expressions());
+
+                if code.has_binding_identifier {
+                    let index = context.realm.environments.push_declarative(
+                        1,
+                        code.compile_environments[compile_time_environment_index + 1].clone(),
                     );
-                } else {
-                    context.realm.environments.push_function(
-                        code.num_bindings,
-                        code.compile_environments[0].clone(),
-                        this,
-                        self.clone(),
-                        None,
-                        lexical_this_mode,
-                    );
+                    context
+                        .realm
+                        .environments
+                        .put_value(index, 0, self.clone().into());
                 }
+
+                context.realm.environments.push_function(
+                    code.num_bindings,
+                    code.compile_environments[compile_time_environment_index].clone(),
+                    this,
+                    self.clone(),
+                    None,
+                    lexical_this_mode,
+                );
 
                 if let Some(binding) = code.arguments_binding {
                     let arguments_obj = if code.strict || !code.params.is_simple() {
@@ -919,6 +933,7 @@ impl JsObject {
 
                 let param_count = code.params.as_ref().len();
                 let has_expressions = code.params.has_expressions();
+                let has_binding_identifier = code.has_binding_identifier;
 
                 context.vm.push_frame(CallFrame {
                     code,
@@ -949,8 +964,11 @@ impl JsObject {
                     context.realm.environments.pop();
                 }
 
-                std::mem::swap(&mut environments, &mut context.realm.environments);
+                if has_binding_identifier {
+                    context.realm.environments.pop();
+                }
 
+                std::mem::swap(&mut environments, &mut context.realm.environments);
                 Ok(promise.into())
             }
             Function::Generator {
@@ -978,25 +996,27 @@ impl JsObject {
                     )
                 };
 
-                if code.params.has_expressions() {
-                    context.realm.environments.push_function(
-                        code.num_bindings,
-                        code.compile_environments[1].clone(),
-                        this,
-                        self.clone(),
-                        None,
-                        lexical_this_mode,
+                let compile_time_environment_index = usize::from(code.params.has_expressions());
+
+                if code.has_binding_identifier {
+                    let index = context.realm.environments.push_declarative(
+                        1,
+                        code.compile_environments[compile_time_environment_index + 1].clone(),
                     );
-                } else {
-                    context.realm.environments.push_function(
-                        code.num_bindings,
-                        code.compile_environments[0].clone(),
-                        this,
-                        self.clone(),
-                        None,
-                        lexical_this_mode,
-                    );
+                    context
+                        .realm
+                        .environments
+                        .put_value(index, 0, self.clone().into());
                 }
+
+                context.realm.environments.push_function(
+                    code.num_bindings,
+                    code.compile_environments[compile_time_environment_index].clone(),
+                    this,
+                    self.clone(),
+                    None,
+                    lexical_this_mode,
+                );
 
                 if let Some(binding) = code.arguments_binding {
                     let arguments_obj = if code.strict || !code.params.is_simple() {
@@ -1115,25 +1135,27 @@ impl JsObject {
                     )
                 };
 
-                if code.params.has_expressions() {
-                    context.realm.environments.push_function(
-                        code.num_bindings,
-                        code.compile_environments[1].clone(),
-                        this,
-                        self.clone(),
-                        None,
-                        lexical_this_mode,
+                let compile_time_environment_index = usize::from(code.params.has_expressions());
+
+                if code.has_binding_identifier {
+                    let index = context.realm.environments.push_declarative(
+                        1,
+                        code.compile_environments[compile_time_environment_index + 1].clone(),
                     );
-                } else {
-                    context.realm.environments.push_function(
-                        code.num_bindings,
-                        code.compile_environments[0].clone(),
-                        this,
-                        self.clone(),
-                        None,
-                        lexical_this_mode,
-                    );
+                    context
+                        .realm
+                        .environments
+                        .put_value(index, 0, self.clone().into());
                 }
+
+                context.realm.environments.push_function(
+                    code.num_bindings,
+                    code.compile_environments[compile_time_environment_index].clone(),
+                    this,
+                    self.clone(),
+                    None,
+                    lexical_this_mode,
+                );
 
                 if let Some(binding) = code.arguments_binding {
                     let arguments_obj = if code.strict || !code.params.is_simple() {
@@ -1352,25 +1374,27 @@ impl JsObject {
 
                 let new_target = this_target.as_object().expect("must be object");
 
-                if code.params.has_expressions() {
-                    context.realm.environments.push_function(
-                        code.num_bindings,
-                        code.compile_environments[1].clone(),
-                        this.clone().map(Into::into),
-                        self.clone(),
-                        Some(new_target.clone()),
-                        false,
+                let compile_time_environment_index = usize::from(code.params.has_expressions());
+
+                if code.has_binding_identifier {
+                    let index = context.realm.environments.push_declarative(
+                        1,
+                        code.compile_environments[compile_time_environment_index + 1].clone(),
                     );
-                } else {
-                    context.realm.environments.push_function(
-                        code.num_bindings,
-                        code.compile_environments[0].clone(),
-                        this.clone().map(Into::into),
-                        self.clone(),
-                        Some(new_target.clone()),
-                        false,
-                    );
+                    context
+                        .realm
+                        .environments
+                        .put_value(index, 0, self.clone().into());
                 }
+
+                context.realm.environments.push_function(
+                    code.num_bindings,
+                    code.compile_environments[compile_time_environment_index].clone(),
+                    this.clone().map(Into::into),
+                    self.clone(),
+                    Some(new_target.clone()),
+                    false,
+                );
 
                 let mut arguments_in_parameter_names = false;
                 let mut is_simple_parameter_list = true;
@@ -1425,6 +1449,7 @@ impl JsObject {
                 }
 
                 let param_count = code.params.as_ref().len();
+                let has_binding_identifier = code.has_binding_identifier;
 
                 context.vm.push_frame(CallFrame {
                     code,
@@ -1452,6 +1477,10 @@ impl JsObject {
                 let mut environment = context.realm.environments.pop();
                 if has_parameter_expressions {
                     environment = context.realm.environments.pop();
+                }
+
+                if has_binding_identifier {
+                    context.realm.environments.pop();
                 }
 
                 std::mem::swap(&mut environments, &mut context.realm.environments);

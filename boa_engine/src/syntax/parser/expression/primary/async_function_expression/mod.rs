@@ -62,13 +62,16 @@ where
             interner,
         )?;
 
-        let name = match cursor
+        let (name, has_binding_identifier) = match cursor
             .peek(0, interner)?
             .ok_or(ParseError::AbruptEnd)?
             .kind()
         {
-            TokenKind::Punctuator(Punctuator::OpenParen) => self.name,
-            _ => Some(BindingIdentifier::new(self.allow_yield, true).parse(cursor, interner)?),
+            TokenKind::Punctuator(Punctuator::OpenParen) => (self.name, false),
+            _ => (
+                Some(BindingIdentifier::new(self.allow_yield, true).parse(cursor, interner)?),
+                true,
+            ),
         };
 
         // Early Error: If BindingIdentifier is present and the source code matching BindingIdentifier is strict mode code,
@@ -134,7 +137,7 @@ where
             params_start_position,
         )?;
 
-        let function = AsyncFunction::new(name, params, body);
+        let function = AsyncFunction::new(name, params, body, has_binding_identifier);
 
         if contains(&function, ContainsSymbol::Super) {
             return Err(ParseError::lex(LexError::Syntax(

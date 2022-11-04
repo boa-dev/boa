@@ -841,31 +841,29 @@ impl BuiltInFunctionObject {
             }
         };
 
-        match (function, name) {
-            (
-                Function::Native {
-                    function: _,
-                    constructor: _,
-                },
-                Some(name),
-            ) => Ok(js_string!(
-                utf16!("function "),
-                &name,
-                utf16!("() {{\n  [native Code]\n}}")
-            )
-            .into()),
-            (Function::Ordinary { .. }, Some(name)) if name.is_empty() => {
-                Ok(js_string!("[Function (anonymous)]").into())
+        let name = if let Some(name) = name {
+            if name.is_empty() {
+                "anonymous".into()
+            } else {
+                name
             }
-            (Function::Ordinary { .. }, Some(name)) => {
+        } else {
+            "anonymous".into()
+        };
+
+        match function {
+            Function::Native { .. } | Function::Closure { .. } | Function::Ordinary { .. } => {
                 Ok(js_string!(utf16!("[Function: "), &name, utf16!("]")).into())
             }
-            (Function::Ordinary { .. }, None) => Ok(js_string!("[Function (anonymous)]").into()),
-            (Function::Generator { .. }, Some(name)) => {
-                Ok(js_string!(utf16!("[Function*: "), &name, utf16!("]")).into())
+            Function::Async { .. } => {
+                Ok(js_string!(utf16!("[AsyncFunction: "), &name, utf16!("]")).into())
             }
-            (Function::Generator { .. }, None) => Ok(js_string!("[Function* (anonymous)]").into()),
-            _ => Ok("TODO".into()),
+            Function::Generator { .. } => {
+                Ok(js_string!(utf16!("[GeneratorFunction: "), &name, utf16!("]")).into())
+            }
+            Function::AsyncGenerator { .. } => {
+                Ok(js_string!(utf16!("[AsyncGeneratorFunction: "), &name, utf16!("]")).into())
+            }
         }
     }
 

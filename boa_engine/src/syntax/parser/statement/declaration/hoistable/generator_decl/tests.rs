@@ -15,6 +15,7 @@ fn generator_function_declaration() {
             Some(interner.get_or_intern_static("gen", utf16!("gen")).into()),
             FormalParameterList::default(),
             StatementList::default(),
+            false,
         ))
         .into()],
         interner,

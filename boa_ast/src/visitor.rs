@@ -31,8 +31,8 @@ use crate::expression::{
     Spread, SuperCall, TaggedTemplate, Yield,
 };
 use crate::function::{
-    ArrowFunction, AsyncFunction, AsyncGenerator, Class, ClassElement, FormalParameter,
-    FormalParameterList, Function, Generator,
+    ArrowFunction, AsyncArrowFunction, AsyncFunction, AsyncGenerator, Class, ClassElement,
+    FormalParameter, FormalParameterList, Function, Generator,
 };
 use crate::pattern::{
     ArrayPattern, ArrayPatternElement, ObjectPattern, ObjectPatternElement, Pattern,
@@ -119,6 +119,7 @@ pub trait Visitor<'ast>: Sized {
     define_visit!(visit_object_literal, ObjectLiteral);
     define_visit!(visit_spread, Spread);
     define_visit!(visit_arrow_function, ArrowFunction);
+    define_visit!(visit_async_arrow_function, AsyncArrowFunction);
     define_visit!(visit_template_literal, TemplateLiteral);
     define_visit!(visit_property_access, PropertyAccess);
     define_visit!(visit_new, New);
@@ -203,6 +204,7 @@ pub trait VisitorMut<'ast>: Sized {
     define_visit_mut!(visit_object_literal_mut, ObjectLiteral);
     define_visit_mut!(visit_spread_mut, Spread);
     define_visit_mut!(visit_arrow_function_mut, ArrowFunction);
+    define_visit_mut!(visit_async_arrow_function_mut, AsyncArrowFunction);
     define_visit_mut!(visit_template_literal_mut, TemplateLiteral);
     define_visit_mut!(visit_property_access_mut, PropertyAccess);
     define_visit_mut!(visit_new_mut, New);

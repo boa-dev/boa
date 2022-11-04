@@ -410,6 +410,7 @@ fn check_async_method() {
             None,
             FormalParameterList::default(),
             StatementList::default(),
+            false,
         )),
     )];
 
@@ -443,6 +444,7 @@ fn check_async_generator_method() {
             None,
             FormalParameterList::default(),
             StatementList::default(),
+            false,
         )),
     )];
 

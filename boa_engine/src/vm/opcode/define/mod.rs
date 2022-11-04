@@ -64,6 +64,9 @@ impl Operation for DefInitVar {
         let index = context.vm.read::<u32>();
         let value = context.vm.pop();
         let binding_locator = context.vm.frame().code.bindings[index as usize];
+        if binding_locator.is_silent() {
+            return Ok(ShouldExit::False);
+        }
         binding_locator.throw_mutate_immutable(context)?;
 
         if binding_locator.is_global() {

@@ -20,6 +20,7 @@ fn async_function_declaration() {
             ),
             FormalParameterList::default(),
             StatementList::default(),
+            false,
         ))
         .into()],
         interner,
@@ -40,6 +41,7 @@ fn async_function_declaration_keywords() {
             ),
             FormalParameterList::default(),
             StatementList::default(),
+            false,
         ))
         .into()],
         interner,
@@ -56,6 +58,7 @@ fn async_function_declaration_keywords() {
             ),
             FormalParameterList::default(),
             StatementList::default(),
+            false,
         ))
         .into()],
         interner,

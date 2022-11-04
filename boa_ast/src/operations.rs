@@ -9,7 +9,8 @@ use boa_interner::Sym;
 use crate::{
     expression::{access::SuperPropertyAccess, Await, Identifier, SuperCall, Yield},
     function::{
-        ArrowFunction, AsyncFunction, AsyncGenerator, Class, ClassElement, Function, Generator,
+        ArrowFunction, AsyncArrowFunction, AsyncFunction, AsyncGenerator, Class, ClassElement,
+        Function, Generator,
     },
     property::{MethodDefinition, PropertyDefinition},
     visitor::{VisitWith, Visitor},
@@ -117,6 +118,25 @@ where
         fn visit_arrow_function(
             &mut self,
             node: &'ast ArrowFunction,
+        ) -> ControlFlow<Self::BreakTy> {
+            if ![
+                ContainsSymbol::NewTarget,
+                ContainsSymbol::SuperProperty,
+                ContainsSymbol::SuperCall,
+                ContainsSymbol::Super,
+                ContainsSymbol::This,
+            ]
+            .contains(&self.0)
+            {
+                return ControlFlow::Continue(());
+            }
+
+            node.visit_with(self)
+        }
+
+        fn visit_async_arrow_function(
+            &mut self,
+            node: &'ast AsyncArrowFunction,
         ) -> ControlFlow<Self::BreakTy> {
             if ![
                 ContainsSymbol::NewTarget,

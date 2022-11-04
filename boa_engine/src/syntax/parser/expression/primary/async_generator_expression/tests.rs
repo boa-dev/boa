@@ -33,6 +33,7 @@ fn check_async_generator_expr() {
                             Return::new(Some(Literal::from(1).into())),
                         ))]
                         .into(),
+                        false,
                     )
                     .into(),
                 ),
@@ -75,6 +76,7 @@ fn check_nested_async_generator_expr() {
                                             Return::new(Some(Literal::from(1).into())),
                                         ))]
                                         .into(),
+                                        false,
                                     )
                                     .into(),
                                 ),
@@ -84,6 +86,7 @@ fn check_nested_async_generator_expr() {
                         ))
                         .into()]
                         .into(),
+                        false,
                     )
                     .into(),
                 ),

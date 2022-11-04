@@ -101,10 +101,11 @@ fn check_function_non_reserved_keyword() {
                 vec![Variable::from_identifier(
                     $interner.get_or_intern_static("add", utf16!("add")).into(),
                     Some(
-                        Function::new(
+                        Function::new_with_binding_identifier(
                             Some($interner.get_or_intern_static($keyword, utf16!($keyword)).into()),
                             FormalParameterList::default(),
                             vec![StatementListItem::Statement(Statement::Return(Return::new(Some(Literal::from(1).into()))))].into(),
+                            true,
                         )
                         .into(),
                     ),

@@ -83,6 +83,6 @@ where
 
         let result = parse_callable_declaration(&self, cursor, interner)?;
 
-        Ok(Generator::new(Some(result.0), result.1, result.2))
+        Ok(Generator::new(Some(result.0), result.1, result.2, false))
     }
 }

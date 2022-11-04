@@ -19,8 +19,8 @@ use self::{
 };
 
 use super::{
-    function::FormalParameterList,
     function::{ArrowFunction, AsyncFunction, AsyncGenerator, Class, Function, Generator},
+    function::{AsyncArrowFunction, FormalParameterList},
     Statement,
 };
 
@@ -87,6 +87,9 @@ pub enum Expression {
 
     /// See [`ArrowFunction`].
     ArrowFunction(ArrowFunction),
+
+    /// See [`AsyncArrowFunction`].
+    AsyncArrowFunction(AsyncArrowFunction),
 
     /// See [`Generator`].
     Generator(Generator),
@@ -168,6 +171,7 @@ impl Expression {
             Self::ObjectLiteral(o) => o.to_indented_string(interner, indentation),
             Self::Spread(sp) => sp.to_interned_string(interner),
             Self::Function(f) => f.to_indented_string(interner, indentation),
+            Self::AsyncArrowFunction(f) => f.to_indented_string(interner, indentation),
             Self::ArrowFunction(arrf) => arrf.to_indented_string(interner, indentation),
             Self::Class(cl) => cl.to_indented_string(interner, indentation),
             Self::Generator(gen) => gen.to_indented_string(interner, indentation),
@@ -219,6 +223,7 @@ impl VisitWith for Expression {
             Expression::Spread(sp) => visitor.visit_spread(sp),
             Expression::Function(f) => visitor.visit_function(f),
             Expression::ArrowFunction(af) => visitor.visit_arrow_function(af),
+            Expression::AsyncArrowFunction(af) => visitor.visit_async_arrow_function(af),
             Expression::Generator(g) => visitor.visit_generator(g),
             Expression::AsyncFunction(af) => visitor.visit_async_function(af),
             Expression::AsyncGenerator(ag) => visitor.visit_async_generator(ag),
@@ -256,6 +261,7 @@ impl VisitWith for Expression {
             Expression::Spread(sp) => visitor.visit_spread_mut(sp),
             Expression::Function(f) => visitor.visit_function_mut(f),
             Expression::ArrowFunction(af) => visitor.visit_arrow_function_mut(af),
+            Expression::AsyncArrowFunction(af) => visitor.visit_async_arrow_function_mut(af),
             Expression::Generator(g) => visitor.visit_generator_mut(g),
             Expression::AsyncFunction(af) => visitor.visit_async_function_mut(af),
             Expression::AsyncGenerator(ag) => visitor.visit_async_generator_mut(ag),

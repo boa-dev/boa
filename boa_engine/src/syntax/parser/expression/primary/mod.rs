@@ -332,51 +332,123 @@ where
         let mut expressions = Vec::new();
         let mut tailing_comma = None;
 
-        let close_span = loop {
-            let next = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
-            match next.kind() {
-                TokenKind::Punctuator(Punctuator::CloseParen) => {
-                    let span = next.span();
-                    cursor.next(interner).expect("token disappeared");
-                    break span;
-                }
-                TokenKind::Punctuator(Punctuator::Comma) => {
-                    let span = next.span();
-                    cursor.next(interner).expect("token disappeared");
-                    if let Some(token) = cursor.next_if(Punctuator::CloseParen, interner)? {
-                        tailing_comma = Some(span);
-                        break token.span();
+        let next = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
+        let span = match next.kind() {
+            TokenKind::Punctuator(Punctuator::CloseParen) => {
+                let span = next.span();
+                cursor.next(interner).expect("token disappeared");
+                span
+            }
+            TokenKind::Punctuator(Punctuator::Spread) => {
+                cursor.next(interner).expect("token disappeared");
+                let next = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
+                match next.kind() {
+                    TokenKind::Punctuator(Punctuator::OpenBlock) => {
+                        let bindings =
+                            ObjectBindingPattern::new(self.allow_yield, self.allow_await)
+                                .parse(cursor, interner)?;
+                        expressions.push(InnerExpression::SpreadObject(bindings));
                     }
-                }
-                TokenKind::Punctuator(Punctuator::Spread) => {
-                    cursor.next(interner).expect("token disappeared");
-                    let next = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
-                    match next.kind() {
-                        TokenKind::Punctuator(Punctuator::OpenBlock) => {
-                            let bindings =
-                                ObjectBindingPattern::new(self.allow_yield, self.allow_await)
-                                    .parse(cursor, interner)?;
-                            expressions.push(InnerExpression::SpreadObject(bindings));
-                        }
-                        TokenKind::Punctuator(Punctuator::OpenBracket) => {
-                            let bindings =
-                                ArrayBindingPattern::new(self.allow_yield, self.allow_await)
-                                    .parse(cursor, interner)?;
-                            expressions.push(InnerExpression::SpreadArray(bindings));
-                        }
-                        _ => {
-                            let binding =
-                                BindingIdentifier::new(self.allow_yield, self.allow_await)
-                                    .parse(cursor, interner)?;
-                            expressions.push(InnerExpression::SpreadBinding(binding));
-                        }
-                    }
-                }
-                _ => {
-                    let expression =
-                        Expression::new(self.name, true, self.allow_yield, self.allow_await)
+                    TokenKind::Punctuator(Punctuator::OpenBracket) => {
+                        let bindings = ArrayBindingPattern::new(self.allow_yield, self.allow_await)
                             .parse(cursor, interner)?;
-                    expressions.push(InnerExpression::Expression(expression));
+                        expressions.push(InnerExpression::SpreadArray(bindings));
+                    }
+                    _ => {
+                        let binding = BindingIdentifier::new(self.allow_yield, self.allow_await)
+                            .parse(cursor, interner)?;
+                        expressions.push(InnerExpression::SpreadBinding(binding));
+                    }
+                }
+
+                cursor
+                    .expect(
+                        Punctuator::CloseParen,
+                        "CoverParenthesizedExpressionAndArrowParameterList",
+                        interner,
+                    )?
+                    .span()
+            }
+            _ => {
+                let expression =
+                    Expression::new(self.name, true, self.allow_yield, self.allow_await)
+                        .parse(cursor, interner)?;
+                expressions.push(InnerExpression::Expression(expression));
+
+                let next = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
+                match next.kind() {
+                    TokenKind::Punctuator(Punctuator::CloseParen) => {
+                        let span = next.span();
+                        cursor.next(interner).expect("token disappeared");
+                        span
+                    }
+                    TokenKind::Punctuator(Punctuator::Comma) => {
+                        cursor.next(interner).expect("token disappeared");
+                        let next = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
+                        match next.kind() {
+                            TokenKind::Punctuator(Punctuator::CloseParen) => {
+                                let span = next.span();
+                                tailing_comma = Some(next.span());
+                                cursor.next(interner).expect("token disappeared");
+                                span
+                            }
+                            TokenKind::Punctuator(Punctuator::Spread) => {
+                                cursor.next(interner).expect("token disappeared");
+                                let next =
+                                    cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
+                                match next.kind() {
+                                    TokenKind::Punctuator(Punctuator::OpenBlock) => {
+                                        let bindings = ObjectBindingPattern::new(
+                                            self.allow_yield,
+                                            self.allow_await,
+                                        )
+                                        .parse(cursor, interner)?;
+                                        expressions.push(InnerExpression::SpreadObject(bindings));
+                                    }
+                                    TokenKind::Punctuator(Punctuator::OpenBracket) => {
+                                        let bindings = ArrayBindingPattern::new(
+                                            self.allow_yield,
+                                            self.allow_await,
+                                        )
+                                        .parse(cursor, interner)?;
+                                        expressions.push(InnerExpression::SpreadArray(bindings));
+                                    }
+                                    _ => {
+                                        let binding = BindingIdentifier::new(
+                                            self.allow_yield,
+                                            self.allow_await,
+                                        )
+                                        .parse(cursor, interner)?;
+                                        expressions.push(InnerExpression::SpreadBinding(binding));
+                                    }
+                                }
+
+                                cursor
+                                    .expect(
+                                        Punctuator::CloseParen,
+                                        "CoverParenthesizedExpressionAndArrowParameterList",
+                                        interner,
+                                    )?
+                                    .span()
+                            }
+                            _ => {
+                                return Err(ParseError::expected(
+                                    vec![")".to_owned(), "...".to_owned()],
+                                    next.kind().to_string(interner),
+                                    next.span(),
+                                    "CoverParenthesizedExpressionAndArrowParameterList",
+                                ))
+                            }
+                        }
+                    }
+                    _ => {
+                        return Err(ParseError::expected(
+                            vec![")".to_owned(), ",".to_owned()],
+                            next.kind().to_string(interner),
+                            next.span(),
+                            "CoverParenthesizedExpressionAndArrowParameterList",
+                        ))
+                    }
                 }
             }
         };
@@ -403,14 +475,14 @@ where
             if expressions.is_empty() {
                 return Err(ParseError::unexpected(
                     Punctuator::CloseParen,
-                    close_span,
+                    span,
                     "empty parenthesized expression",
                 ));
             }
             if expressions.len() != 1 {
                 return Err(ParseError::unexpected(
                     Punctuator::CloseParen,
-                    close_span,
+                    span,
                     "multiple expressions in parenthesized expression",
                 ));
             }
@@ -419,7 +491,7 @@ where
             }
             return Err(ParseError::unexpected(
                 Punctuator::CloseParen,
-                close_span,
+                span,
                 "parenthesized expression with spread expressions",
             ));
         }
