@@ -528,6 +528,13 @@ impl GcTester {
         })
     }
 
+    pub fn assert_collection_floor(floor:usize) {
+        BOA_GC.with(|current|{
+            let gc = current.borrow();
+            assert!(gc.runtime.collections > floor);
+        })
+    }
+
     pub fn assert_youth_bytes_allocated() {
         BOA_GC.with(|current| {
             let gc = current.borrow();
