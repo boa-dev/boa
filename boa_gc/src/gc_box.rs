@@ -1,5 +1,6 @@
 use crate::Trace;
 use std::cell::Cell;
+use std::mem;
 use std::ptr::{self, NonNull};
 
 // Age and Weak Flags

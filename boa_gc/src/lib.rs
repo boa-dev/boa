@@ -24,6 +24,7 @@ pub use pointers::{Gc, WeakGc, WeakPair};
 
 pub type GcPointer = NonNull<GcBox<dyn Trace>>;
 
+// TODO: Determine if thread local variables are the correct approach vs an initialized structure
 thread_local!(pub static EPHEMERON_QUEUE: StdCell<Option<Vec<GcPointer>>> = StdCell::new(None));
 thread_local!(pub static GC_DROPPING: StdCell<bool> = StdCell::new(false));
 thread_local!(static BOA_GC: StdRefCell<BoaGc> = StdRefCell::new( BoaGc {
@@ -41,12 +42,15 @@ struct GcConfig {
     youth_promo_age: u8,
 }
 
+// Setting the defaults to an arbitrary value currently.
+// 
+// TODO: Add a configure later
 impl Default for GcConfig {
     fn default() -> Self {
         Self {
-            youth_threshold: 1000,
-            youth_threshold_base: 1000,
-            adult_threshold: 5000,
+            youth_threshold: 1024,
+            youth_threshold_base: 1024,
+            adult_threshold: 4096,
             growth_ratio: 0.7,
             youth_promo_age: 3,
         }
@@ -58,7 +62,6 @@ struct GcRuntimeData {
     total_bytes_allocated: usize,
     youth_bytes: usize,
     adult_bytes: usize,
-    object_allocations: usize,
 }
 
 impl Default for GcRuntimeData {
@@ -68,7 +71,6 @@ impl Default for GcRuntimeData {
             total_bytes_allocated: 0,
             youth_bytes: 0,
             adult_bytes: 0,
-            object_allocations: 0,
         }
     }
 }
@@ -122,10 +124,10 @@ impl BoaAlloc {
             unsafe {
                 Self::manage_state(&mut *gc);
             }
-
+            
             let gc_box = GcBox::new(value);
 
-            let element_size = mem::size_of_val::<GcBox<_>>(&gc_box);
+            let element_size = mem::size_of_val::<GcBox<T>>(&gc_box);
             let element_pointer = Box::into_raw(Box::from(gc_box));
 
             unsafe {
@@ -134,7 +136,6 @@ impl BoaAlloc {
                 gc.youth_start
                     .set(Some(NonNull::new_unchecked(element_pointer)));
 
-                gc.runtime.object_allocations += 1;
                 gc.runtime.total_bytes_allocated += element_size;
                 gc.runtime.youth_bytes += element_size;
 
@@ -152,9 +153,9 @@ impl BoaAlloc {
             unsafe {
                 Self::manage_state(&mut *gc);
             }
-
+            
             let gc_box = GcBox::new(Cell::new(value));
-            let element_size = mem::size_of_val::<GcBox<Cell<_>>>(&gc_box);
+            let element_size = mem::size_of_val::<GcBox<Cell<T>>>(&gc_box);
             let element_pointer = Box::into_raw(Box::from(gc_box));
 
             unsafe {
@@ -163,7 +164,7 @@ impl BoaAlloc {
                 gc.youth_start
                     .set(Some(NonNull::new_unchecked(element_pointer)));
 
-                gc.runtime.object_allocations += 1;
+                gc.runtime.youth_bytes += element_size;
                 gc.runtime.total_bytes_allocated += element_size;
 
                 Gc::new(NonNull::new_unchecked(element_pointer))
@@ -188,7 +189,6 @@ impl BoaAlloc {
                 gc.youth_start
                     .set(Some(NonNull::new_unchecked(element_pointer)));
 
-                gc.runtime.object_allocations += 1;
                 gc.runtime.total_bytes_allocated += element_size;
 
                 WeakPair::new(NonNull::new_unchecked(element_pointer))
@@ -214,7 +214,6 @@ impl BoaAlloc {
                 gc.youth_start
                     .set(Some(NonNull::new_unchecked(element_pointer)));
 
-                gc.runtime.object_allocations += 1;
                 gc.runtime.total_bytes_allocated += element_size;
 
                 WeakGc::new(NonNull::new_unchecked(element_pointer))
@@ -288,7 +287,10 @@ impl Collector {
     pub(crate) unsafe fn run_youth_collection(gc: &mut BoaGc) {
         gc.runtime.collections += 1;
         let unreachable_nodes = Self::mark_heap(&gc.youth_start);
-        Self::finalize(unreachable_nodes);
+        
+        if !unreachable_nodes.is_empty() {
+            Self::finalize(unreachable_nodes);
+        }
         // The returned unreachable vector must be filled with nodes that are for certain dead (these will be removed during the sweep)
         let _finalized_unreachable_nodes = Self::mark_heap(&gc.youth_start);
         let promotion_candidates = Self::sweep_with_promotions(
@@ -298,7 +300,7 @@ impl Collector {
             &gc.config.youth_promo_age,
         );
         // Check if there are any candidates for promotion
-        if promotion_candidates.len() > 0 {
+        if !promotion_candidates.is_empty() {
             BoaAlloc::promote_to_medium(promotion_candidates, gc);
         }
     }
@@ -307,8 +309,15 @@ impl Collector {
         gc.runtime.collections += 1;
         let unreachable_adults = Self::mark_heap(&gc.adult_start);
         let unreachable_youths = Self::mark_heap(&gc.youth_start);
-        Self::finalize(unreachable_adults);
-        Self::finalize(unreachable_youths);
+        
+        // Check if any unreachable nodes were found and finalize
+        if !unreachable_adults.is_empty() {
+            Self::finalize(unreachable_adults);
+        }
+        if !unreachable_youths.is_empty() {
+            Self::finalize(unreachable_youths);
+        }
+
         let _final_unreachable_adults = Self::mark_heap(&gc.adult_start);
         let _final_unreachable_youths = Self::mark_heap(&gc.youth_start);
 
@@ -427,6 +436,7 @@ impl Collector {
         while let Some(node) = sweep_head.get() {
             if (*node.as_ptr()).is_marked() {
                 (*node.as_ptr()).header.unmark();
+                (*node.as_ptr()).header.inc_age();
                 if (*node.as_ptr()).header.age() >= *promotion_age {
                     sweep_head.set((*node.as_ptr()).header.next.take());
                     promotions.push(node)
@@ -457,6 +467,7 @@ impl Collector {
         while let Some(node) = sweep_head.get() {
             if (*node.as_ptr()).is_marked() {
                 (*node.as_ptr()).header.unmark();
+                (*node.as_ptr()).header.inc_age();
                 sweep_head = &(*node.as_ptr()).header.next;
             } else {
                 // Drops occur here
@@ -490,8 +501,55 @@ impl Collector {
 // A utility function that forces runs through Collector method based off the state.
 //
 // Note:
-//  - This method will not trigger a promotion between generations
 //  - This method is meant solely for testing purposes only
-pub(crate) unsafe fn force_collect() {
-    BOA_GC.with(|internal| todo!())
+//  - `force_collect` will not extend threshold
+pub fn force_collect() {
+    BOA_GC.with(|current| {
+        let mut gc = current.borrow_mut();
+
+        unsafe {
+            if gc.runtime.adult_bytes > 0 {
+                Collector::run_full_collection(&mut *gc)
+            } else {
+                Collector::run_youth_collection(&mut *gc)
+            }
+        }
+    })
+}
+
+
+pub struct GcTester;
+
+impl GcTester {
+    pub fn assert_collections(o: usize) {
+        BOA_GC.with(|current|{
+            let gc = current.borrow();
+            assert_eq!(gc.runtime.collections, o);
+        })
+    }
+
+    pub fn assert_youth_bytes_allocated() {
+        BOA_GC.with(|current| {
+            let gc = current.borrow();
+            assert!(gc.runtime.youth_bytes > 0);
+        })
+    }
+
+    pub fn assert_empty_gc() {
+        BOA_GC.with(|current| {
+            let gc = current.borrow();
+
+            assert_eq!(gc.adult_start.get().is_none(), true);
+            assert!(gc.runtime.adult_bytes == 0);
+            assert_eq!(gc.youth_start.get().is_none(), true);
+            assert!(gc.runtime.youth_bytes == 0);
+        })
+    }
+
+    pub fn assert_adult_bytes_allocated() {
+        BOA_GC.with(|current| {
+            let gc = current.borrow();
+            assert!(gc.runtime.adult_bytes > 0);
+        })
+    }
 }

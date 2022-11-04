@@ -1,10 +1,4 @@
-/// The BorrowFlag used by GC is split into 2 parts. the upper 63 or 31 bits
-/// (depending on the architecture) are used to store the number of borrowed
-/// references to the type. The low bit is used to record the rootedness of the
-/// type.
-///
-/// This means that GcCell can have, at maximum, half as many outstanding
-/// borrows as RefCell before panicking. I don't think that will be a problem.
+
 #[derive(Copy, Clone)]
 pub(crate) struct BorrowFlag(usize);
 

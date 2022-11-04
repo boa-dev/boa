@@ -27,11 +27,14 @@ pub struct Gc<T: Trace + ?Sized + 'static> {
 impl<T: Trace> Gc<T> {
     /// Constructs a new `Gc<T>` with the given value.
     pub fn new(value: NonNull<GcBox<T>>) -> Self {
+        // TODO: Determine whether it's worth keeping `set_root` approach
         unsafe {
-            Self {
+            let gc = Gc {
                 inner_ptr: Cell::new(NonNull::new_unchecked(value.as_ptr())),
                 marker: PhantomData,
-            }
+            };
+            gc.set_root();
+            gc
         }
     }
 }
