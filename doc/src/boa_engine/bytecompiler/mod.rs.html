@@ -3705,6 +3705,23 @@
 <span id="3703">3703</span>
 <span id="3704">3704</span>
 <span id="3705">3705</span>
+<span id="3706">3706</span>
+<span id="3707">3707</span>
+<span id="3708">3708</span>
+<span id="3709">3709</span>
+<span id="3710">3710</span>
+<span id="3711">3711</span>
+<span id="3712">3712</span>
+<span id="3713">3713</span>
+<span id="3714">3714</span>
+<span id="3715">3715</span>
+<span id="3716">3716</span>
+<span id="3717">3717</span>
+<span id="3718">3718</span>
+<span id="3719">3719</span>
+<span id="3720">3720</span>
+<span id="3721">3721</span>
+<span id="3722">3722</span>
 </pre><pre class="rust"><code><span class="kw">mod </span>function;
 
 <span class="kw">use crate</span>::{
@@ -3725,8 +3742,8 @@
         Call, Identifier, New, Optional, OptionalOperationKind,
     },
     function::{
-        ArrowFunction, AsyncFunction, AsyncGenerator, Class, ClassElement, FormalParameterList,
-        Function, Generator,
+        ArrowFunction, AsyncArrowFunction, AsyncFunction, AsyncGenerator, Class, ClassElement,
+        FormalParameterList, Function, Generator,
     },
     pattern::{ArrayPatternElement, ObjectPatternElement, Pattern},
     property::{MethodDefinition, PropertyDefinition, PropertyName},
@@ -3755,6 +3772,7 @@
 </span><span class="kw">enum </span>FunctionKind {
     Ordinary,
     Arrow,
+    AsyncArrow,
     Async,
     Generator,
     AsyncGenerator,
@@ -3767,20 +3785,23 @@
     name: <span class="prelude-ty">Option</span>&lt;Identifier&gt;,
     parameters: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>FormalParameterList,
     body: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>StatementList,
+    has_binding_identifier: bool,
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; FunctionSpec&lt;<span class="lifetime">&#39;a</span>&gt; {
     <span class="attribute">#[inline]
     </span><span class="kw">fn </span>is_arrow(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-        <span class="self">self</span>.kind == FunctionKind::Arrow
+        <span class="macro">matches!</span>(<span class="self">self</span>.kind, FunctionKind::Arrow | FunctionKind::AsyncArrow)
     }
+
     <span class="attribute">#[inline]
     </span><span class="kw">fn </span>is_async(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="macro">matches!</span>(
             <span class="self">self</span>.kind,
-            FunctionKind::Async | FunctionKind::AsyncGenerator
+            FunctionKind::Async | FunctionKind::AsyncGenerator | FunctionKind::AsyncArrow
         )
     }
+
     <span class="attribute">#[inline]
     </span><span class="kw">fn </span>is_generator(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="macro">matches!</span>(
@@ -3797,9 +3818,11 @@
             name: function.name(),
             parameters: function.parameters(),
             body: function.body(),
+            has_binding_identifier: function.has_binding_identifier(),
         }
     }
 }
+
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>ArrowFunction&gt; <span class="kw">for </span>FunctionSpec&lt;<span class="lifetime">&#39;a</span>&gt; {
     <span class="kw">fn </span>from(function: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>ArrowFunction) -&gt; <span class="self">Self </span>{
         FunctionSpec {
@@ -3807,9 +3830,23 @@
             name: function.name(),
             parameters: function.parameters(),
             body: function.body(),
+            has_binding_identifier: <span class="bool-val">false</span>,
         }
     }
 }
+
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>AsyncArrowFunction&gt; <span class="kw">for </span>FunctionSpec&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">fn </span>from(function: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>AsyncArrowFunction) -&gt; <span class="self">Self </span>{
+        FunctionSpec {
+            kind: FunctionKind::AsyncArrow,
+            name: function.name(),
+            parameters: function.parameters(),
+            body: function.body(),
+            has_binding_identifier: <span class="bool-val">false</span>,
+        }
+    }
+}
+
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>AsyncFunction&gt; <span class="kw">for </span>FunctionSpec&lt;<span class="lifetime">&#39;a</span>&gt; {
     <span class="kw">fn </span>from(function: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>AsyncFunction) -&gt; <span class="self">Self </span>{
         FunctionSpec {
@@ -3817,9 +3854,11 @@
             name: function.name(),
             parameters: function.parameters(),
             body: function.body(),
+            has_binding_identifier: function.has_binding_identifier(),
         }
     }
 }
+
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Generator&gt; <span class="kw">for </span>FunctionSpec&lt;<span class="lifetime">&#39;a</span>&gt; {
     <span class="kw">fn </span>from(function: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Generator) -&gt; <span class="self">Self </span>{
         FunctionSpec {
@@ -3827,9 +3866,11 @@
             name: function.name(),
             parameters: function.parameters(),
             body: function.body(),
+            has_binding_identifier: function.has_binding_identifier(),
         }
     }
 }
+
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>AsyncGenerator&gt; <span class="kw">for </span>FunctionSpec&lt;<span class="lifetime">&#39;a</span>&gt; {
     <span class="kw">fn </span>from(function: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>AsyncGenerator) -&gt; <span class="self">Self </span>{
         FunctionSpec {
@@ -3837,6 +3878,7 @@
             name: function.name(),
             parameters: function.parameters(),
             body: function.body(),
+            has_binding_identifier: function.has_binding_identifier(),
         }
     }
 }
@@ -5049,6 +5091,9 @@
             Expression::ArrowFunction(function) =&gt; {
                 <span class="self">self</span>.function(function.into(), NodeKind::Expression, use_expr)<span class="question-mark">?</span>;
             }
+            Expression::AsyncArrowFunction(function) =&gt; {
+                <span class="self">self</span>.function(function.into(), NodeKind::Expression, use_expr)<span class="question-mark">?</span>;
+            }
             Expression::Generator(function) =&gt; {
                 <span class="self">self</span>.function(function.into(), NodeKind::Expression, use_expr)<span class="question-mark">?</span>;
             }
@@ -5670,12 +5715,12 @@
             },
             IterableLoopInitializer::Const(declaration) =&gt; <span class="kw">match </span>declaration {
                 Binding::Identifier(ident) =&gt; {
-                    <span class="self">self</span>.context.create_immutable_binding(<span class="kw-2">*</span>ident);
+                    <span class="self">self</span>.context.create_immutable_binding(<span class="kw-2">*</span>ident, <span class="bool-val">true</span>);
                     <span class="self">self</span>.emit_binding(BindingOpcode::InitConst, <span class="kw-2">*</span>ident);
                 }
                 Binding::Pattern(pattern) =&gt; {
                     <span class="kw">for </span>ident <span class="kw">in </span>pattern.idents() {
-                        <span class="self">self</span>.context.create_immutable_binding(ident);
+                        <span class="self">self</span>.context.create_immutable_binding(ident, <span class="bool-val">true</span>);
                     }
                     <span class="self">self</span>.compile_declaration_pattern(pattern, BindingOpcode::InitConst)<span class="question-mark">?</span>;
                 }
@@ -5796,12 +5841,12 @@
             },
             IterableLoopInitializer::Const(declaration) =&gt; <span class="kw">match </span>declaration {
                 Binding::Identifier(ident) =&gt; {
-                    <span class="self">self</span>.context.create_immutable_binding(<span class="kw-2">*</span>ident);
+                    <span class="self">self</span>.context.create_immutable_binding(<span class="kw-2">*</span>ident, <span class="bool-val">true</span>);
                     <span class="self">self</span>.emit_binding(BindingOpcode::InitConst, <span class="kw-2">*</span>ident);
                 }
                 Binding::Pattern(pattern) =&gt; {
                     <span class="kw">for </span>ident <span class="kw">in </span>pattern.idents() {
-                        <span class="self">self</span>.context.create_immutable_binding(ident);
+                        <span class="self">self</span>.context.create_immutable_binding(ident, <span class="bool-val">true</span>);
                     }
                     <span class="self">self</span>.compile_declaration_pattern(pattern, BindingOpcode::InitConst)<span class="question-mark">?</span>;
                 }
@@ -6339,6 +6384,7 @@
             name,
             parameters,
             body,
+            has_binding_identifier,
             ..
         } = function;
 
@@ -6348,15 +6394,18 @@
             .r#async(r#async)
             .strict(<span class="self">self</span>.code_block.strict)
             .arrow(arrow)
+            .has_binding_identifier(has_binding_identifier)
             .compile(parameters, body, <span class="self">self</span>.context)<span class="question-mark">?</span>;
 
         <span class="kw">let </span>index = <span class="self">self</span>.code_block.functions.len() <span class="kw">as </span>u32;
         <span class="self">self</span>.code_block.functions.push(code);
 
-        <span class="kw">if </span>generator &amp;&amp; r#async {
+        <span class="kw">if </span>r#async &amp;&amp; generator {
             <span class="self">self</span>.emit(Opcode::GetGeneratorAsync, <span class="kw-2">&amp;</span>[index]);
         } <span class="kw">else if </span>generator {
             <span class="self">self</span>.emit(Opcode::GetGenerator, <span class="kw-2">&amp;</span>[index]);
+        } <span class="kw">else if </span>r#async &amp;&amp; arrow {
+            <span class="self">self</span>.emit(Opcode::GetAsyncArrowFunction, <span class="kw-2">&amp;</span>[index]);
         } <span class="kw">else if </span>r#async {
             <span class="self">self</span>.emit(Opcode::GetFunctionAsync, <span class="kw-2">&amp;</span>[index]);
         } <span class="kw">else if </span>arrow {
@@ -6772,14 +6821,14 @@
                             <span class="kw">if </span><span class="kw-2">*</span>ident == Sym::ARGUMENTS {
                                 has_identifier_argument = <span class="bool-val">true</span>;
                             }
-                            <span class="self">self</span>.context.create_immutable_binding(<span class="kw-2">*</span>ident);
+                            <span class="self">self</span>.context.create_immutable_binding(<span class="kw-2">*</span>ident, <span class="bool-val">true</span>);
                         }
                         Binding::Pattern(pattern) =&gt; {
                             <span class="kw">for </span>ident <span class="kw">in </span>pattern.idents() {
                                 <span class="kw">if </span>ident == Sym::ARGUMENTS {
                                     has_identifier_argument = <span class="bool-val">true</span>;
                                 }
-                                <span class="self">self</span>.context.create_immutable_binding(ident);
+                                <span class="self">self</span>.context.create_immutable_binding(ident, <span class="bool-val">true</span>);
                             }
                         }
                     }
@@ -6966,10 +7015,7 @@
             } <span class="kw">else </span>{
                 <span class="kw">let </span>(num_bindings, compile_environment) =
                     compiler.context.pop_compile_time_environment();
-                compiler
-                    .code_block
-                    .compile_environments
-                    .push(compile_environment);
+                compiler.push_compile_environment(compile_environment);
                 compiler.code_block.num_bindings = num_bindings;
                 compiler.code_block.is_class_constructor = <span class="bool-val">true</span>;
             }
@@ -6979,10 +7025,7 @@
             }
             <span class="kw">let </span>(num_bindings, compile_environment) =
                 compiler.context.pop_compile_time_environment();
-            compiler
-                .code_block
-                .compile_environments
-                .push(compile_environment);
+            compiler.push_compile_environment(compile_environment);
             compiler.code_block.num_bindings = num_bindings;
             compiler.code_block.is_class_constructor = <span class="bool-val">true</span>;
         }
@@ -7157,10 +7200,7 @@
                     }
                     <span class="kw">let </span>(num_bindings, compile_environment) =
                         field_compiler.context.pop_compile_time_environment();
-                    field_compiler
-                        .code_block
-                        .compile_environments
-                        .push(compile_environment);
+                    field_compiler.push_compile_environment(compile_environment);
                     field_compiler.code_block.num_bindings = num_bindings;
                     field_compiler.emit_opcode(Opcode::Return);
 
@@ -7191,10 +7231,7 @@
                     }
                     <span class="kw">let </span>(num_bindings, compile_environment) =
                         field_compiler.context.pop_compile_time_environment();
-                    field_compiler
-                        .code_block
-                        .compile_environments
-                        .push(compile_environment);
+                    field_compiler.push_compile_environment(compile_environment);
                     field_compiler.code_block.num_bindings = num_bindings;
                     field_compiler.emit_opcode(Opcode::Return);
 
@@ -7246,10 +7283,7 @@
                     compiler.compile_statement_list(statement_list, <span class="bool-val">false</span>, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
                     <span class="kw">let </span>(num_bindings, compile_environment) =
                         compiler.context.pop_compile_time_environment();
-                    compiler
-                        .code_block
-                        .compile_environments
-                        .push(compile_environment);
+                    compiler.push_compile_environment(compile_environment);
                     compiler.code_block.num_bindings = num_bindings;
 
                     <span class="kw">let </span>code = Gc::new(compiler.finish());

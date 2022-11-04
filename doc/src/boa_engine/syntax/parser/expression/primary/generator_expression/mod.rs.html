@@ -144,6 +144,9 @@
 <span id="142">142</span>
 <span id="143">143</span>
 <span id="144">144</span>
+<span id="145">145</span>
+<span id="146">146</span>
+<span id="147">147</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Generator expression parsing.
 //!
 //! More information:
@@ -212,13 +215,16 @@
             interner,
         )<span class="question-mark">?</span>;
 
-        <span class="kw">let </span>name = <span class="kw">match </span>cursor
+        <span class="kw">let </span>(name, has_binding_identifier) = <span class="kw">match </span>cursor
             .peek(<span class="number">0</span>, interner)<span class="question-mark">?
             </span>.ok_or(ParseError::AbruptEnd)<span class="question-mark">?
             </span>.kind()
         {
-            TokenKind::Punctuator(Punctuator::OpenParen) =&gt; <span class="self">self</span>.name,
-            <span class="kw">_ </span>=&gt; <span class="prelude-val">Some</span>(BindingIdentifier::new(<span class="bool-val">true</span>, <span class="bool-val">false</span>).parse(cursor, interner)<span class="question-mark">?</span>),
+            TokenKind::Punctuator(Punctuator::OpenParen) =&gt; (<span class="self">self</span>.name, <span class="bool-val">false</span>),
+            <span class="kw">_ </span>=&gt; (
+                <span class="prelude-val">Some</span>(BindingIdentifier::new(<span class="bool-val">true</span>, <span class="bool-val">false</span>).parse(cursor, interner)<span class="question-mark">?</span>),
+                <span class="bool-val">true</span>,
+            ),
         };
 
         <span class="comment">// Early Error: If BindingIdentifier is present and the source code matching BindingIdentifier is strict mode code,
@@ -276,7 +282,7 @@
             params_start_position,
         )<span class="question-mark">?</span>;
 
-        <span class="kw">let </span>function = Generator::new(name, params, body);
+        <span class="kw">let </span>function = Generator::new(name, params, body, has_binding_identifier);
 
         <span class="kw">if </span>contains(<span class="kw-2">&amp;</span>function, ContainsSymbol::Super) {
             <span class="kw">return </span><span class="prelude-val">Err</span>(ParseError::lex(LexError::Syntax(

@@ -77,6 +77,9 @@
 <span id="75">75</span>
 <span id="76">76</span>
 <span id="77">77</span>
+<span id="78">78</span>
+<span id="79">79</span>
+<span id="80">80</span>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     error::JsNativeError,
     vm::{opcode::Operation, ShouldExit},
@@ -98,6 +101,9 @@
         <span class="kw">let </span>index = context.vm.read::&lt;u32&gt;();
         <span class="kw">let </span>binding_locator = context.vm.frame().code.bindings[index <span class="kw">as </span>usize];
         <span class="kw">let </span>value = context.vm.pop();
+        <span class="kw">if </span>binding_locator.is_silent() {
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(ShouldExit::False);
+        }
         binding_locator.throw_mutate_immutable(context)<span class="question-mark">?</span>;
 
         <span class="kw">if </span>binding_locator.is_global() {

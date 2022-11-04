@@ -1460,6 +1460,13 @@
 <span id="1458">1458</span>
 <span id="1459">1459</span>
 <span id="1460">1460</span>
+<span id="1461">1461</span>
+<span id="1462">1462</span>
+<span id="1463">1463</span>
+<span id="1464">1464</span>
+<span id="1465">1465</span>
+<span id="1466">1466</span>
+<span id="1467">1467</span>
 </pre><pre class="rust"><code><span class="doccomment">/// The opcodes of the vm.
 </span><span class="kw">use crate</span>::{vm::ShouldExit, Context, JsResult};
 
@@ -2591,6 +2598,13 @@
         ///
         /// Stack: **=&gt;** func
         </span>GetArrowFunction,
+
+        <span class="doccomment">/// Get async arrow function from the pre-compiled inner functions.
+        ///
+        /// Operands: address: `u32`
+        ///
+        /// Stack: **=&gt;** func
+        </span>GetAsyncArrowFunction,
 
         <span class="doccomment">/// Get function from the pre-compiled inner functions.
         ///

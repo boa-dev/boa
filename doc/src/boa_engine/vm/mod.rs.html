@@ -600,7 +600,7 @@
         </span><span class="kw">let </span>promise_capability = <span class="self">self
             </span>.realm
             .environments
-            .get_this_environment()
+            .current_function_slots()
             .as_function_slots()
             .and_then(|slots| {
                 <span class="kw">let </span>slots_borrow = slots.borrow();

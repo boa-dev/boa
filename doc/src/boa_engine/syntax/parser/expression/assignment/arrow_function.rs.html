@@ -229,6 +229,24 @@
 <span id="227">227</span>
 <span id="228">228</span>
 <span id="229">229</span>
+<span id="230">230</span>
+<span id="231">231</span>
+<span id="232">232</span>
+<span id="233">233</span>
+<span id="234">234</span>
+<span id="235">235</span>
+<span id="236">236</span>
+<span id="237">237</span>
+<span id="238">238</span>
+<span id="239">239</span>
+<span id="240">240</span>
+<span id="241">241</span>
+<span id="242">242</span>
+<span id="243">243</span>
+<span id="244">244</span>
+<span id="245">245</span>
+<span id="246">246</span>
+<span id="247">247</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Arrow function parsing.
 //!
 //! More information:
@@ -253,6 +271,7 @@
     declaration::Variable,
     expression::Identifier,
     function::{FormalParameter, FormalParameterList},
+    operations::{contains, ContainsSymbol},
     statement::Return,
     Expression, Punctuator, StatementList,
 };
@@ -348,10 +367,27 @@
         cursor.set_arrow(<span class="bool-val">true</span>);
         <span class="kw">let </span>body = ConciseBody::new(<span class="self">self</span>.allow_in).parse(cursor, interner)<span class="question-mark">?</span>;
         cursor.set_arrow(arrow);
+
         <span class="comment">// Early Error: ArrowFormalParameters are UniqueFormalParameters.
         </span><span class="kw">if </span>params.has_duplicates() {
             <span class="kw">return </span><span class="prelude-val">Err</span>(ParseError::lex(LexError::Syntax(
                 <span class="string">&quot;Duplicate parameter name not allowed in this context&quot;</span>.into(),
+                params_start_position,
+            )));
+        }
+
+        <span class="comment">// Early Error: It is a Syntax Error if ArrowParameters Contains YieldExpression is true.
+        </span><span class="kw">if </span>contains(<span class="kw-2">&amp;</span>params, ContainsSymbol::YieldExpression) {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(ParseError::lex(LexError::Syntax(
+                <span class="string">&quot;Yield expression not allowed in this context&quot;</span>.into(),
+                params_start_position,
+            )));
+        }
+
+        <span class="comment">// Early Error: It is a Syntax Error if ArrowParameters Contains AwaitExpression is true.
+        </span><span class="kw">if </span>contains(<span class="kw-2">&amp;</span>params, ContainsSymbol::AwaitExpression) {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(ParseError::lex(LexError::Syntax(
+                <span class="string">&quot;Await expression not allowed in this context&quot;</span>.into(),
                 params_start_position,
             )));
         }
@@ -428,14 +464,14 @@
 
 <span class="doccomment">/// &lt;https://tc39.es/ecma262/#prod-ExpressionBody&gt;
 </span><span class="attribute">#[derive(Debug, Clone, Copy)]
-</span><span class="kw">struct </span>ExpressionBody {
+</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>ExpressionBody {
     allow_in: AllowIn,
     allow_await: AllowAwait,
 }
 
 <span class="kw">impl </span>ExpressionBody {
     <span class="doccomment">/// Creates a new `ExpressionBody` parser.
-    </span><span class="kw">fn </span>new&lt;I, A&gt;(allow_in: I, allow_await: A) -&gt; <span class="self">Self
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new&lt;I, A&gt;(allow_in: I, allow_await: A) -&gt; <span class="self">Self
     </span><span class="kw">where
         </span>I: Into&lt;AllowIn&gt;,
         A: Into&lt;AllowAwait&gt;,

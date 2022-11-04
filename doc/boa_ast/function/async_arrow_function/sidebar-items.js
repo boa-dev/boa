@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["AsyncArrowFunction","An async arrow function expression, as defined by the spec."]]};

@@ -581,6 +581,78 @@
 <span id="579">579</span>
 <span id="580">580</span>
 <span id="581">581</span>
+<span id="582">582</span>
+<span id="583">583</span>
+<span id="584">584</span>
+<span id="585">585</span>
+<span id="586">586</span>
+<span id="587">587</span>
+<span id="588">588</span>
+<span id="589">589</span>
+<span id="590">590</span>
+<span id="591">591</span>
+<span id="592">592</span>
+<span id="593">593</span>
+<span id="594">594</span>
+<span id="595">595</span>
+<span id="596">596</span>
+<span id="597">597</span>
+<span id="598">598</span>
+<span id="599">599</span>
+<span id="600">600</span>
+<span id="601">601</span>
+<span id="602">602</span>
+<span id="603">603</span>
+<span id="604">604</span>
+<span id="605">605</span>
+<span id="606">606</span>
+<span id="607">607</span>
+<span id="608">608</span>
+<span id="609">609</span>
+<span id="610">610</span>
+<span id="611">611</span>
+<span id="612">612</span>
+<span id="613">613</span>
+<span id="614">614</span>
+<span id="615">615</span>
+<span id="616">616</span>
+<span id="617">617</span>
+<span id="618">618</span>
+<span id="619">619</span>
+<span id="620">620</span>
+<span id="621">621</span>
+<span id="622">622</span>
+<span id="623">623</span>
+<span id="624">624</span>
+<span id="625">625</span>
+<span id="626">626</span>
+<span id="627">627</span>
+<span id="628">628</span>
+<span id="629">629</span>
+<span id="630">630</span>
+<span id="631">631</span>
+<span id="632">632</span>
+<span id="633">633</span>
+<span id="634">634</span>
+<span id="635">635</span>
+<span id="636">636</span>
+<span id="637">637</span>
+<span id="638">638</span>
+<span id="639">639</span>
+<span id="640">640</span>
+<span id="641">641</span>
+<span id="642">642</span>
+<span id="643">643</span>
+<span id="644">644</span>
+<span id="645">645</span>
+<span id="646">646</span>
+<span id="647">647</span>
+<span id="648">648</span>
+<span id="649">649</span>
+<span id="650">650</span>
+<span id="651">651</span>
+<span id="652">652</span>
+<span id="653">653</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Primary expression parsing.
 //!
 //! More information:
@@ -915,51 +987,123 @@
         <span class="kw">let </span><span class="kw-2">mut </span>expressions = Vec::new();
         <span class="kw">let </span><span class="kw-2">mut </span>tailing_comma = <span class="prelude-val">None</span>;
 
-        <span class="kw">let </span>close_span = <span class="kw">loop </span>{
-            <span class="kw">let </span>next = cursor.peek(<span class="number">0</span>, interner)<span class="question-mark">?</span>.ok_or(ParseError::AbruptEnd)<span class="question-mark">?</span>;
-            <span class="kw">match </span>next.kind() {
-                TokenKind::Punctuator(Punctuator::CloseParen) =&gt; {
-                    <span class="kw">let </span>span = next.span();
-                    cursor.next(interner).expect(<span class="string">&quot;token disappeared&quot;</span>);
-                    <span class="kw">break </span>span;
-                }
-                TokenKind::Punctuator(Punctuator::Comma) =&gt; {
-                    <span class="kw">let </span>span = next.span();
-                    cursor.next(interner).expect(<span class="string">&quot;token disappeared&quot;</span>);
-                    <span class="kw">if let </span><span class="prelude-val">Some</span>(token) = cursor.next_if(Punctuator::CloseParen, interner)<span class="question-mark">? </span>{
-                        tailing_comma = <span class="prelude-val">Some</span>(span);
-                        <span class="kw">break </span>token.span();
+        <span class="kw">let </span>next = cursor.peek(<span class="number">0</span>, interner)<span class="question-mark">?</span>.ok_or(ParseError::AbruptEnd)<span class="question-mark">?</span>;
+        <span class="kw">let </span>span = <span class="kw">match </span>next.kind() {
+            TokenKind::Punctuator(Punctuator::CloseParen) =&gt; {
+                <span class="kw">let </span>span = next.span();
+                cursor.next(interner).expect(<span class="string">&quot;token disappeared&quot;</span>);
+                span
+            }
+            TokenKind::Punctuator(Punctuator::Spread) =&gt; {
+                cursor.next(interner).expect(<span class="string">&quot;token disappeared&quot;</span>);
+                <span class="kw">let </span>next = cursor.peek(<span class="number">0</span>, interner)<span class="question-mark">?</span>.ok_or(ParseError::AbruptEnd)<span class="question-mark">?</span>;
+                <span class="kw">match </span>next.kind() {
+                    TokenKind::Punctuator(Punctuator::OpenBlock) =&gt; {
+                        <span class="kw">let </span>bindings =
+                            ObjectBindingPattern::new(<span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await)
+                                .parse(cursor, interner)<span class="question-mark">?</span>;
+                        expressions.push(InnerExpression::SpreadObject(bindings));
                     }
-                }
-                TokenKind::Punctuator(Punctuator::Spread) =&gt; {
-                    cursor.next(interner).expect(<span class="string">&quot;token disappeared&quot;</span>);
-                    <span class="kw">let </span>next = cursor.peek(<span class="number">0</span>, interner)<span class="question-mark">?</span>.ok_or(ParseError::AbruptEnd)<span class="question-mark">?</span>;
-                    <span class="kw">match </span>next.kind() {
-                        TokenKind::Punctuator(Punctuator::OpenBlock) =&gt; {
-                            <span class="kw">let </span>bindings =
-                                ObjectBindingPattern::new(<span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await)
-                                    .parse(cursor, interner)<span class="question-mark">?</span>;
-                            expressions.push(InnerExpression::SpreadObject(bindings));
-                        }
-                        TokenKind::Punctuator(Punctuator::OpenBracket) =&gt; {
-                            <span class="kw">let </span>bindings =
-                                ArrayBindingPattern::new(<span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await)
-                                    .parse(cursor, interner)<span class="question-mark">?</span>;
-                            expressions.push(InnerExpression::SpreadArray(bindings));
-                        }
-                        <span class="kw">_ </span>=&gt; {
-                            <span class="kw">let </span>binding =
-                                BindingIdentifier::new(<span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await)
-                                    .parse(cursor, interner)<span class="question-mark">?</span>;
-                            expressions.push(InnerExpression::SpreadBinding(binding));
-                        }
-                    }
-                }
-                <span class="kw">_ </span>=&gt; {
-                    <span class="kw">let </span>expression =
-                        Expression::new(<span class="self">self</span>.name, <span class="bool-val">true</span>, <span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await)
+                    TokenKind::Punctuator(Punctuator::OpenBracket) =&gt; {
+                        <span class="kw">let </span>bindings = ArrayBindingPattern::new(<span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await)
                             .parse(cursor, interner)<span class="question-mark">?</span>;
-                    expressions.push(InnerExpression::Expression(expression));
+                        expressions.push(InnerExpression::SpreadArray(bindings));
+                    }
+                    <span class="kw">_ </span>=&gt; {
+                        <span class="kw">let </span>binding = BindingIdentifier::new(<span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await)
+                            .parse(cursor, interner)<span class="question-mark">?</span>;
+                        expressions.push(InnerExpression::SpreadBinding(binding));
+                    }
+                }
+
+                cursor
+                    .expect(
+                        Punctuator::CloseParen,
+                        <span class="string">&quot;CoverParenthesizedExpressionAndArrowParameterList&quot;</span>,
+                        interner,
+                    )<span class="question-mark">?
+                    </span>.span()
+            }
+            <span class="kw">_ </span>=&gt; {
+                <span class="kw">let </span>expression =
+                    Expression::new(<span class="self">self</span>.name, <span class="bool-val">true</span>, <span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await)
+                        .parse(cursor, interner)<span class="question-mark">?</span>;
+                expressions.push(InnerExpression::Expression(expression));
+
+                <span class="kw">let </span>next = cursor.peek(<span class="number">0</span>, interner)<span class="question-mark">?</span>.ok_or(ParseError::AbruptEnd)<span class="question-mark">?</span>;
+                <span class="kw">match </span>next.kind() {
+                    TokenKind::Punctuator(Punctuator::CloseParen) =&gt; {
+                        <span class="kw">let </span>span = next.span();
+                        cursor.next(interner).expect(<span class="string">&quot;token disappeared&quot;</span>);
+                        span
+                    }
+                    TokenKind::Punctuator(Punctuator::Comma) =&gt; {
+                        cursor.next(interner).expect(<span class="string">&quot;token disappeared&quot;</span>);
+                        <span class="kw">let </span>next = cursor.peek(<span class="number">0</span>, interner)<span class="question-mark">?</span>.ok_or(ParseError::AbruptEnd)<span class="question-mark">?</span>;
+                        <span class="kw">match </span>next.kind() {
+                            TokenKind::Punctuator(Punctuator::CloseParen) =&gt; {
+                                <span class="kw">let </span>span = next.span();
+                                tailing_comma = <span class="prelude-val">Some</span>(next.span());
+                                cursor.next(interner).expect(<span class="string">&quot;token disappeared&quot;</span>);
+                                span
+                            }
+                            TokenKind::Punctuator(Punctuator::Spread) =&gt; {
+                                cursor.next(interner).expect(<span class="string">&quot;token disappeared&quot;</span>);
+                                <span class="kw">let </span>next =
+                                    cursor.peek(<span class="number">0</span>, interner)<span class="question-mark">?</span>.ok_or(ParseError::AbruptEnd)<span class="question-mark">?</span>;
+                                <span class="kw">match </span>next.kind() {
+                                    TokenKind::Punctuator(Punctuator::OpenBlock) =&gt; {
+                                        <span class="kw">let </span>bindings = ObjectBindingPattern::new(
+                                            <span class="self">self</span>.allow_yield,
+                                            <span class="self">self</span>.allow_await,
+                                        )
+                                        .parse(cursor, interner)<span class="question-mark">?</span>;
+                                        expressions.push(InnerExpression::SpreadObject(bindings));
+                                    }
+                                    TokenKind::Punctuator(Punctuator::OpenBracket) =&gt; {
+                                        <span class="kw">let </span>bindings = ArrayBindingPattern::new(
+                                            <span class="self">self</span>.allow_yield,
+                                            <span class="self">self</span>.allow_await,
+                                        )
+                                        .parse(cursor, interner)<span class="question-mark">?</span>;
+                                        expressions.push(InnerExpression::SpreadArray(bindings));
+                                    }
+                                    <span class="kw">_ </span>=&gt; {
+                                        <span class="kw">let </span>binding = BindingIdentifier::new(
+                                            <span class="self">self</span>.allow_yield,
+                                            <span class="self">self</span>.allow_await,
+                                        )
+                                        .parse(cursor, interner)<span class="question-mark">?</span>;
+                                        expressions.push(InnerExpression::SpreadBinding(binding));
+                                    }
+                                }
+
+                                cursor
+                                    .expect(
+                                        Punctuator::CloseParen,
+                                        <span class="string">&quot;CoverParenthesizedExpressionAndArrowParameterList&quot;</span>,
+                                        interner,
+                                    )<span class="question-mark">?
+                                    </span>.span()
+                            }
+                            <span class="kw">_ </span>=&gt; {
+                                <span class="kw">return </span><span class="prelude-val">Err</span>(ParseError::expected(
+                                    <span class="macro">vec!</span>[<span class="string">&quot;)&quot;</span>.to_owned(), <span class="string">&quot;...&quot;</span>.to_owned()],
+                                    next.kind().to_string(interner),
+                                    next.span(),
+                                    <span class="string">&quot;CoverParenthesizedExpressionAndArrowParameterList&quot;</span>,
+                                ))
+                            }
+                        }
+                    }
+                    <span class="kw">_ </span>=&gt; {
+                        <span class="kw">return </span><span class="prelude-val">Err</span>(ParseError::expected(
+                            <span class="macro">vec!</span>[<span class="string">&quot;)&quot;</span>.to_owned(), <span class="string">&quot;,&quot;</span>.to_owned()],
+                            next.kind().to_string(interner),
+                            next.span(),
+                            <span class="string">&quot;CoverParenthesizedExpressionAndArrowParameterList&quot;</span>,
+                        ))
+                    }
                 }
             }
         };
@@ -986,14 +1130,14 @@
             <span class="kw">if </span>expressions.is_empty() {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(ParseError::unexpected(
                     Punctuator::CloseParen,
-                    close_span,
+                    span,
                     <span class="string">&quot;empty parenthesized expression&quot;</span>,
                 ));
             }
             <span class="kw">if </span>expressions.len() != <span class="number">1 </span>{
                 <span class="kw">return </span><span class="prelude-val">Err</span>(ParseError::unexpected(
                     Punctuator::CloseParen,
-                    close_span,
+                    span,
                     <span class="string">&quot;multiple expressions in parenthesized expression&quot;</span>,
                 ));
             }
@@ -1002,7 +1146,7 @@
             }
             <span class="kw">return </span><span class="prelude-val">Err</span>(ParseError::unexpected(
                 Punctuator::CloseParen,
-                close_span,
+                span,
                 <span class="string">&quot;parenthesized expression with spread expressions&quot;</span>,
             ));
         }

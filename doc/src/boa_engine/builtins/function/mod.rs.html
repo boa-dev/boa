@@ -1067,8 +1067,6 @@
 <span id="1065">1065</span>
 <span id="1066">1066</span>
 <span id="1067">1067</span>
-<span id="1068">1068</span>
-<span id="1069">1069</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `Function` object as well as creates Native Functions.
 //!
 //! Objects wrap `Function`s and expose them via call/construct slots.
@@ -1912,31 +1910,29 @@
             }
         };
 
-        <span class="kw">match </span>(function, name) {
-            (
-                Function::Native {
-                    function: <span class="kw">_</span>,
-                    constructor: <span class="kw">_</span>,
-                },
-                <span class="prelude-val">Some</span>(name),
-            ) =&gt; <span class="prelude-val">Ok</span>(<span class="macro">js_string!</span>(
-                <span class="macro">utf16!</span>(<span class="string">&quot;function &quot;</span>),
-                <span class="kw-2">&amp;</span>name,
-                <span class="macro">utf16!</span>(<span class="string">&quot;() {{\n  [native Code]\n}}&quot;</span>)
-            )
-            .into()),
-            (Function::Ordinary { .. }, <span class="prelude-val">Some</span>(name)) <span class="kw">if </span>name.is_empty() =&gt; {
-                <span class="prelude-val">Ok</span>(<span class="macro">js_string!</span>(<span class="string">&quot;[Function (anonymous)]&quot;</span>).into())
+        <span class="kw">let </span>name = <span class="kw">if let </span><span class="prelude-val">Some</span>(name) = name {
+            <span class="kw">if </span>name.is_empty() {
+                <span class="string">&quot;anonymous&quot;</span>.into()
+            } <span class="kw">else </span>{
+                name
             }
-            (Function::Ordinary { .. }, <span class="prelude-val">Some</span>(name)) =&gt; {
+        } <span class="kw">else </span>{
+            <span class="string">&quot;anonymous&quot;</span>.into()
+        };
+
+        <span class="kw">match </span>function {
+            Function::Native { .. } | Function::Closure { .. } | Function::Ordinary { .. } =&gt; {
                 <span class="prelude-val">Ok</span>(<span class="macro">js_string!</span>(<span class="macro">utf16!</span>(<span class="string">&quot;[Function: &quot;</span>), <span class="kw-2">&amp;</span>name, <span class="macro">utf16!</span>(<span class="string">&quot;]&quot;</span>)).into())
             }
-            (Function::Ordinary { .. }, <span class="prelude-val">None</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="macro">js_string!</span>(<span class="string">&quot;[Function (anonymous)]&quot;</span>).into()),
-            (Function::Generator { .. }, <span class="prelude-val">Some</span>(name)) =&gt; {
-                <span class="prelude-val">Ok</span>(<span class="macro">js_string!</span>(<span class="macro">utf16!</span>(<span class="string">&quot;[Function*: &quot;</span>), <span class="kw-2">&amp;</span>name, <span class="macro">utf16!</span>(<span class="string">&quot;]&quot;</span>)).into())
+            Function::Async { .. } =&gt; {
+                <span class="prelude-val">Ok</span>(<span class="macro">js_string!</span>(<span class="macro">utf16!</span>(<span class="string">&quot;[AsyncFunction: &quot;</span>), <span class="kw-2">&amp;</span>name, <span class="macro">utf16!</span>(<span class="string">&quot;]&quot;</span>)).into())
             }
-            (Function::Generator { .. }, <span class="prelude-val">None</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="macro">js_string!</span>(<span class="string">&quot;[Function* (anonymous)]&quot;</span>).into()),
-            <span class="kw">_ </span>=&gt; <span class="prelude-val">Ok</span>(<span class="string">&quot;TODO&quot;</span>.into()),
+            Function::Generator { .. } =&gt; {
+                <span class="prelude-val">Ok</span>(<span class="macro">js_string!</span>(<span class="macro">utf16!</span>(<span class="string">&quot;[GeneratorFunction: &quot;</span>), <span class="kw-2">&amp;</span>name, <span class="macro">utf16!</span>(<span class="string">&quot;]&quot;</span>)).into())
+            }
+            Function::AsyncGenerator { .. } =&gt; {
+                <span class="prelude-val">Ok</span>(<span class="macro">js_string!</span>(<span class="macro">utf16!</span>(<span class="string">&quot;[AsyncGeneratorFunction: &quot;</span>), <span class="kw-2">&amp;</span>name, <span class="macro">utf16!</span>(<span class="string">&quot;]&quot;</span>)).into())
+            }
         }
     }
 

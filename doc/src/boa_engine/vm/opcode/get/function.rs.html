@@ -64,6 +64,26 @@
 <span id="62">62</span>
 <span id="63">63</span>
 <span id="64">64</span>
+<span id="65">65</span>
+<span id="66">66</span>
+<span id="67">67</span>
+<span id="68">68</span>
+<span id="69">69</span>
+<span id="70">70</span>
+<span id="71">71</span>
+<span id="72">72</span>
+<span id="73">73</span>
+<span id="74">74</span>
+<span id="75">75</span>
+<span id="76">76</span>
+<span id="77">77</span>
+<span id="78">78</span>
+<span id="79">79</span>
+<span id="80">80</span>
+<span id="81">81</span>
+<span id="82">82</span>
+<span id="83">83</span>
+<span id="84">84</span>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     vm::{code_block::create_function_object, opcode::Operation, ShouldExit},
     Context, JsResult,
@@ -84,6 +104,26 @@
         <span class="kw">let </span>index = context.vm.read::&lt;u32&gt;();
         <span class="kw">let </span>code = context.vm.frame().code.functions[index <span class="kw">as </span>usize].clone();
         <span class="kw">let </span>function = create_function_object(code, <span class="bool-val">false</span>, <span class="bool-val">true</span>, <span class="prelude-val">None</span>, context);
+        context.vm.push(function);
+        <span class="prelude-val">Ok</span>(ShouldExit::False)
+    }
+}
+
+<span class="doccomment">/// `GetAsyncArrowFunction` implements the Opcode Operation for `Opcode::GetAsyncArrowFunction`
+///
+/// Operation:
+///  - Get async arrow function from the pre-compiled inner functions.
+</span><span class="attribute">#[derive(Debug, Clone, Copy)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>GetAsyncArrowFunction;
+
+<span class="kw">impl </span>Operation <span class="kw">for </span>GetAsyncArrowFunction {
+    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;GetAsyncArrowFunction&quot;</span>;
+    <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - GetAsyncArrowFunction&quot;</span>;
+
+    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;ShouldExit&gt; {
+        <span class="kw">let </span>index = context.vm.read::&lt;u32&gt;();
+        <span class="kw">let </span>code = context.vm.frame().code.functions[index <span class="kw">as </span>usize].clone();
+        <span class="kw">let </span>function = create_function_object(code, <span class="bool-val">true</span>, <span class="bool-val">true</span>, <span class="prelude-val">None</span>, context);
         context.vm.push(function);
         <span class="prelude-val">Ok</span>(ShouldExit::False)
     }

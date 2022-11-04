@@ -267,6 +267,56 @@
 <span id="265">265</span>
 <span id="266">266</span>
 <span id="267">267</span>
+<span id="268">268</span>
+<span id="269">269</span>
+<span id="270">270</span>
+<span id="271">271</span>
+<span id="272">272</span>
+<span id="273">273</span>
+<span id="274">274</span>
+<span id="275">275</span>
+<span id="276">276</span>
+<span id="277">277</span>
+<span id="278">278</span>
+<span id="279">279</span>
+<span id="280">280</span>
+<span id="281">281</span>
+<span id="282">282</span>
+<span id="283">283</span>
+<span id="284">284</span>
+<span id="285">285</span>
+<span id="286">286</span>
+<span id="287">287</span>
+<span id="288">288</span>
+<span id="289">289</span>
+<span id="290">290</span>
+<span id="291">291</span>
+<span id="292">292</span>
+<span id="293">293</span>
+<span id="294">294</span>
+<span id="295">295</span>
+<span id="296">296</span>
+<span id="297">297</span>
+<span id="298">298</span>
+<span id="299">299</span>
+<span id="300">300</span>
+<span id="301">301</span>
+<span id="302">302</span>
+<span id="303">303</span>
+<span id="304">304</span>
+<span id="305">305</span>
+<span id="306">306</span>
+<span id="307">307</span>
+<span id="308">308</span>
+<span id="309">309</span>
+<span id="310">310</span>
+<span id="311">311</span>
+<span id="312">312</span>
+<span id="313">313</span>
+<span id="314">314</span>
+<span id="315">315</span>
+<span id="316">316</span>
+<span id="317">317</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Assignment operator parsing.
 //!
 //! More information:
@@ -277,6 +327,7 @@
 //! [spec]: https://tc39.es/ecma262/#sec-assignment-operators
 
 </span><span class="kw">mod </span>arrow_function;
+<span class="kw">mod </span>async_arrow_function;
 <span class="kw">mod </span>conditional;
 <span class="kw">mod </span>exponentiation;
 <span class="kw">mod </span>r#yield;
@@ -286,6 +337,7 @@
     parser::{
         expression::assignment::{
             arrow_function::{ArrowFunction, ConciseBody},
+            async_arrow_function::AsyncArrowFunction,
             conditional::ConditionalExpression,
             r#yield::YieldExpression,
         },
@@ -293,6 +345,7 @@
         ParseResult, TokenParser,
     },
 };
+<span class="kw">use </span>ast::operations::{contains, ContainsSymbol};
 <span class="kw">use </span>boa_ast::{
     <span class="self">self </span><span class="kw">as </span>ast,
     expression::{
@@ -407,6 +460,37 @@
                     }
                 }
             }
+            <span class="comment">//  AsyncArrowFunction[?In, ?Yield, ?Await]
+            </span>TokenKind::Keyword((Keyword::Async, <span class="kw">_</span>)) =&gt; {
+                <span class="kw">let </span>skip_n = <span class="kw">if </span>cursor
+                    .peek_is_line_terminator(<span class="number">0</span>, interner)<span class="question-mark">?
+                    </span>.ok_or(ParseError::AbruptEnd)<span class="question-mark">?
+                </span>{
+                    <span class="number">2
+                </span>} <span class="kw">else </span>{
+                    <span class="number">1
+                </span>};
+
+                <span class="kw">if </span>!cursor
+                    .peek_is_line_terminator(skip_n, interner)<span class="question-mark">?
+                    </span>.ok_or(ParseError::AbruptEnd)<span class="question-mark">?
+                    </span>&amp;&amp; <span class="macro">matches!</span>(
+                        cursor
+                            .peek(<span class="number">1</span>, interner)<span class="question-mark">?
+                            </span>.ok_or(ParseError::AbruptEnd)<span class="question-mark">?
+                            </span>.kind(),
+                        TokenKind::Identifier(<span class="kw">_</span>)
+                            | TokenKind::Keyword((Keyword::Yield | Keyword::Await, <span class="kw">_</span>))
+                            | TokenKind::Punctuator(Punctuator::OpenParen)
+                    )
+                {
+                    <span class="kw">return </span><span class="prelude-val">Ok</span>(
+                        AsyncArrowFunction::new(<span class="self">self</span>.name, <span class="self">self</span>.allow_in, <span class="self">self</span>.allow_yield)
+                            .parse(cursor, interner)<span class="question-mark">?
+                            </span>.into(),
+                    );
+                }
+            }
             <span class="kw">_ </span>=&gt; {}
         }
 
@@ -443,6 +527,22 @@
             </span><span class="kw">if </span>parameters.has_duplicates() {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(ParseError::lex(LexError::Syntax(
                     <span class="string">&quot;Duplicate parameter name not allowed in this context&quot;</span>.into(),
+                    position,
+                )));
+            }
+
+            <span class="comment">// Early Error: It is a Syntax Error if ArrowParameters Contains YieldExpression is true.
+            </span><span class="kw">if </span>contains(<span class="kw-2">&amp;</span>parameters, ContainsSymbol::YieldExpression) {
+                <span class="kw">return </span><span class="prelude-val">Err</span>(ParseError::lex(LexError::Syntax(
+                    <span class="string">&quot;Yield expression not allowed in this context&quot;</span>.into(),
+                    position,
+                )));
+            }
+
+            <span class="comment">// Early Error: It is a Syntax Error if ArrowParameters Contains AwaitExpression is true.
+            </span><span class="kw">if </span>contains(<span class="kw-2">&amp;</span>parameters, ContainsSymbol::AwaitExpression) {
+                <span class="kw">return </span><span class="prelude-val">Err</span>(ParseError::lex(LexError::Syntax(
+                    <span class="string">&quot;Await expression not allowed in this context&quot;</span>.into(),
                     position,
                 )));
             }

@@ -382,6 +382,11 @@
 <span id="380">380</span>
 <span id="381">381</span>
 <span id="382">382</span>
+<span id="383">383</span>
+<span id="384">384</span>
+<span id="385">385</span>
+<span id="386">386</span>
+<span id="387">387</span>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     environments::runtime::BindingLocator, property::PropertyDescriptor, Context, JsString, JsValue,
 };
@@ -398,6 +403,7 @@
     index: usize,
     mutable: bool,
     lex: bool,
+    strict: bool,
 }
 
 <span class="doccomment">/// A compile time environment maps bound identifiers to their binding positions.
@@ -495,6 +501,7 @@
                             index: binding_index,
                             mutable: <span class="bool-val">true</span>,
                             lex: !function_scope,
+                            strict: <span class="bool-val">false</span>,
                         },
                     );
                 }
@@ -515,6 +522,7 @@
                         index: binding_index,
                         mutable: <span class="bool-val">true</span>,
                         lex: !function_scope,
+                        strict: <span class="bool-val">false</span>,
                     },
                 );
             }
@@ -524,7 +532,7 @@
 
     <span class="doccomment">/// Crate an immutable binding.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>create_immutable_binding(<span class="kw-2">&amp;mut </span><span class="self">self</span>, name: Identifier) {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>create_immutable_binding(<span class="kw-2">&amp;mut </span><span class="self">self</span>, name: Identifier, strict: bool) {
         <span class="kw">let </span>binding_index = <span class="self">self</span>.bindings.len();
         <span class="self">self</span>.bindings.insert(
             name,
@@ -532,6 +540,7 @@
                 index: binding_index,
                 mutable: <span class="bool-val">false</span>,
                 lex: <span class="bool-val">true</span>,
+                strict,
             },
         );
     }
@@ -581,7 +590,8 @@
             <span class="prelude-val">Some</span>(binding) <span class="kw">if </span>binding.mutable =&gt; {
                 BindingLocator::declarative(name, <span class="self">self</span>.environment_index, binding.index)
             }
-            <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; BindingLocator::mutate_immutable(name),
+            <span class="prelude-val">Some</span>(binding) <span class="kw">if </span>binding.strict =&gt; BindingLocator::mutate_immutable(name),
+            <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; BindingLocator::silent(name),
             <span class="prelude-val">None </span>=&gt; {
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(outer) = <span class="kw-2">&amp;</span><span class="self">self</span>.outer {
                     outer.borrow().set_mutable_binding_recursive(name)
@@ -731,11 +741,11 @@
     ///
     /// Panics if the global environment does not exist.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>create_immutable_binding(<span class="kw-2">&amp;mut </span><span class="self">self</span>, name: Identifier) {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>create_immutable_binding(<span class="kw-2">&amp;mut </span><span class="self">self</span>, name: Identifier, strict: bool) {
         <span class="self">self</span>.realm
             .compile_env
             .borrow_mut()
-            .create_immutable_binding(name);
+            .create_immutable_binding(name, strict);
     }
 
     <span class="doccomment">/// Initialize an immutable binding at bytecode compile time and return it&#39;s binding locator.

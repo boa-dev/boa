@@ -112,6 +112,11 @@
 <span id="110">110</span>
 <span id="111">111</span>
 <span id="112">112</span>
+<span id="113">113</span>
+<span id="114">114</span>
+<span id="115">115</span>
+<span id="116">116</span>
+<span id="117">117</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Async Generator Declaration parsing
 //!
 //! Implements `TokenParser` for `AsyncGeneratorDeclaration`on and outputs an `AsyncGeneratorDecl`
@@ -221,7 +226,12 @@
 
         <span class="kw">let </span>result = parse_callable_declaration(<span class="kw-2">&amp;</span><span class="self">self</span>, cursor, interner)<span class="question-mark">?</span>;
 
-        <span class="prelude-val">Ok</span>(AsyncGenerator::new(<span class="prelude-val">Some</span>(result.<span class="number">0</span>), result.<span class="number">1</span>, result.<span class="number">2</span>))
+        <span class="prelude-val">Ok</span>(AsyncGenerator::new(
+            <span class="prelude-val">Some</span>(result.<span class="number">0</span>),
+            result.<span class="number">1</span>,
+            result.<span class="number">2</span>,
+            <span class="bool-val">false</span>,
+        ))
     }
 }
 </code></pre></div>

@@ -846,6 +846,49 @@
 <span id="844">844</span>
 <span id="845">845</span>
 <span id="846">846</span>
+<span id="847">847</span>
+<span id="848">848</span>
+<span id="849">849</span>
+<span id="850">850</span>
+<span id="851">851</span>
+<span id="852">852</span>
+<span id="853">853</span>
+<span id="854">854</span>
+<span id="855">855</span>
+<span id="856">856</span>
+<span id="857">857</span>
+<span id="858">858</span>
+<span id="859">859</span>
+<span id="860">860</span>
+<span id="861">861</span>
+<span id="862">862</span>
+<span id="863">863</span>
+<span id="864">864</span>
+<span id="865">865</span>
+<span id="866">866</span>
+<span id="867">867</span>
+<span id="868">868</span>
+<span id="869">869</span>
+<span id="870">870</span>
+<span id="871">871</span>
+<span id="872">872</span>
+<span id="873">873</span>
+<span id="874">874</span>
+<span id="875">875</span>
+<span id="876">876</span>
+<span id="877">877</span>
+<span id="878">878</span>
+<span id="879">879</span>
+<span id="880">880</span>
+<span id="881">881</span>
+<span id="882">882</span>
+<span id="883">883</span>
+<span id="884">884</span>
+<span id="885">885</span>
+<span id="886">886</span>
+<span id="887">887</span>
+<span id="888">888</span>
+<span id="889">889</span>
 </pre><pre class="rust"><code><span class="kw">use </span>std::cell::Cell;
 
 <span class="kw">use crate</span>::{
@@ -1196,7 +1239,7 @@
         <span class="macro">panic!</span>(<span class="string">&quot;global environment must exist&quot;</span>)
     }
 
-    <span class="doccomment">/// Push a declarative environment on the environments stack.
+    <span class="doccomment">/// Push a declarative environment on the environments stack and return it&#39;s index.
     ///
     /// # Panics
     ///
@@ -1206,7 +1249,7 @@
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         num_bindings: usize,
         compile_environment: Gc&lt;GcCell&lt;CompileTimeEnvironment&gt;&gt;,
-    ) {
+    ) -&gt; usize {
         <span class="kw">let </span>poisoned = <span class="self">self
             </span>.stack
             .last()
@@ -1214,12 +1257,16 @@
             .poisoned
             .get();
 
+        <span class="kw">let </span>index = <span class="self">self</span>.stack.len();
+
         <span class="self">self</span>.stack.push(Gc::new(DeclarativeEnvironment {
             bindings: GcCell::new(<span class="macro">vec!</span>[<span class="prelude-val">None</span>; num_bindings]),
             compile: compile_environment,
             poisoned: Cell::new(poisoned),
             slots: <span class="prelude-val">None</span>,
         }));
+
+        index
     }
 
     <span class="doccomment">/// Push a function environment on the environments stack.
@@ -1304,6 +1351,22 @@
         <span class="self">self</span>.stack
             .pop()
             .expect(<span class="string">&quot;environment stack is cannot be empty&quot;</span>)
+    }
+
+    <span class="doccomment">/// Get the most outer function environment slots.
+    ///
+    /// # Panics
+    ///
+    /// Panics if no environment exists on the stack.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>current_function_slots(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>EnvironmentSlots {
+        <span class="kw">for </span>env <span class="kw">in </span><span class="self">self</span>.stack.iter().rev() {
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(slots) = <span class="kw-2">&amp;</span>env.slots {
+                <span class="kw">return </span>slots;
+            }
+        }
+
+        <span class="macro">panic!</span>(<span class="string">&quot;global environment must exist&quot;</span>)
     }
 
     <span class="doccomment">/// Get the most outer environment.
@@ -1608,6 +1671,7 @@
     binding_index: usize,
     global: bool,
     mutate_immutable: bool,
+    silent: bool,
 }
 
 <span class="kw">impl </span>BindingLocator {
@@ -1624,6 +1688,7 @@
             binding_index,
             global: <span class="bool-val">false</span>,
             mutate_immutable: <span class="bool-val">false</span>,
+            silent: <span class="bool-val">false</span>,
         }
     }
 
@@ -1636,6 +1701,7 @@
             binding_index: <span class="number">0</span>,
             global: <span class="bool-val">true</span>,
             mutate_immutable: <span class="bool-val">false</span>,
+            silent: <span class="bool-val">false</span>,
         }
     }
 
@@ -1649,6 +1715,20 @@
             binding_index: <span class="number">0</span>,
             global: <span class="bool-val">false</span>,
             mutate_immutable: <span class="bool-val">true</span>,
+            silent: <span class="bool-val">false</span>,
+        }
+    }
+
+    <span class="doccomment">/// Creates a binding locator that indicates that any action is silently ignored.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub</span>(<span class="kw">in </span><span class="kw">crate</span>::environments) <span class="kw">fn </span>silent(name: Identifier) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            name,
+            environment_index: <span class="number">0</span>,
+            binding_index: <span class="number">0</span>,
+            global: <span class="bool-val">false</span>,
+            mutate_immutable: <span class="bool-val">false</span>,
+            silent: <span class="bool-val">true</span>,
         }
     }
 
@@ -1674,6 +1754,12 @@
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>binding_index(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
         <span class="self">self</span>.binding_index
+    }
+
+    <span class="doccomment">/// Returns if the binding is a silent operation.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_silent(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.silent
     }
 
     <span class="doccomment">/// Helper method to throws an error if the binding access is illegal.

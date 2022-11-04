@@ -93,6 +93,11 @@
 <span id="91">91</span>
 <span id="92">92</span>
 <span id="93">93</span>
+<span id="94">94</span>
+<span id="95">95</span>
+<span id="96">96</span>
+<span id="97">97</span>
+<span id="98">98</span>
 </pre><pre class="rust"><code><span class="attribute">#[cfg(test)]
 </span><span class="kw">mod </span>tests;
 
@@ -183,7 +188,12 @@
 
         <span class="kw">let </span>result = parse_callable_declaration(<span class="kw-2">&amp;</span><span class="self">self</span>, cursor, interner)<span class="question-mark">?</span>;
 
-        <span class="prelude-val">Ok</span>(AsyncFunction::new(<span class="prelude-val">Some</span>(result.<span class="number">0</span>), result.<span class="number">1</span>, result.<span class="number">2</span>))
+        <span class="prelude-val">Ok</span>(AsyncFunction::new(
+            <span class="prelude-val">Some</span>(result.<span class="number">0</span>),
+            result.<span class="number">1</span>,
+            result.<span class="number">2</span>,
+            <span class="bool-val">false</span>,
+        ))
     }
 }
 </code></pre></div>

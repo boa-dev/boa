@@ -281,6 +281,12 @@
 <span id="281">281</span>
 <span id="282">282</span>
 <span id="283">283</span>
+<span id="284">284</span>
+<span id="285">285</span>
+<span id="286">286</span>
+<span id="287">287</span>
+<span id="288">288</span>
+<span id="289">289</span>
 </pre><pre class="rust"><code><span class="doccomment">//! The [`Expression`] Parse Node, as defined by the [spec].
 //!
 //! Javascript expressions include:
@@ -302,8 +308,8 @@
 };
 
 <span class="kw">use super</span>::{
-    function::FormalParameterList,
     function::{ArrowFunction, AsyncFunction, AsyncGenerator, Class, Function, Generator},
+    function::{AsyncArrowFunction, FormalParameterList},
     Statement,
 };
 
@@ -370,6 +376,9 @@
 
     <span class="doccomment">/// See [`ArrowFunction`].
     </span>ArrowFunction(ArrowFunction),
+
+    <span class="doccomment">/// See [`AsyncArrowFunction`].
+    </span>AsyncArrowFunction(AsyncArrowFunction),
 
     <span class="doccomment">/// See [`Generator`].
     </span>Generator(Generator),
@@ -451,6 +460,7 @@
             <span class="self">Self</span>::ObjectLiteral(o) =&gt; o.to_indented_string(interner, indentation),
             <span class="self">Self</span>::Spread(sp) =&gt; sp.to_interned_string(interner),
             <span class="self">Self</span>::Function(f) =&gt; f.to_indented_string(interner, indentation),
+            <span class="self">Self</span>::AsyncArrowFunction(f) =&gt; f.to_indented_string(interner, indentation),
             <span class="self">Self</span>::ArrowFunction(arrf) =&gt; arrf.to_indented_string(interner, indentation),
             <span class="self">Self</span>::Class(cl) =&gt; cl.to_indented_string(interner, indentation),
             <span class="self">Self</span>::Generator(gen) =&gt; gen.to_indented_string(interner, indentation),
@@ -502,6 +512,7 @@
             Expression::Spread(sp) =&gt; visitor.visit_spread(sp),
             Expression::Function(f) =&gt; visitor.visit_function(f),
             Expression::ArrowFunction(af) =&gt; visitor.visit_arrow_function(af),
+            Expression::AsyncArrowFunction(af) =&gt; visitor.visit_async_arrow_function(af),
             Expression::Generator(g) =&gt; visitor.visit_generator(g),
             Expression::AsyncFunction(af) =&gt; visitor.visit_async_function(af),
             Expression::AsyncGenerator(ag) =&gt; visitor.visit_async_generator(ag),
@@ -539,6 +550,7 @@
             Expression::Spread(sp) =&gt; visitor.visit_spread_mut(sp),
             Expression::Function(f) =&gt; visitor.visit_function_mut(f),
             Expression::ArrowFunction(af) =&gt; visitor.visit_arrow_function_mut(af),
+            Expression::AsyncArrowFunction(af) =&gt; visitor.visit_async_arrow_function_mut(af),
             Expression::Generator(g) =&gt; visitor.visit_generator_mut(g),
             Expression::AsyncFunction(af) =&gt; visitor.visit_async_function_mut(af),
             Expression::AsyncGenerator(ag) =&gt; visitor.visit_async_generator_mut(ag),

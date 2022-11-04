@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["AsyncArrowFunction","Async arrow function parsing."],["AsyncConciseBody","https://tc39.es/ecma262/#prod-AsyncConciseBody"]]};

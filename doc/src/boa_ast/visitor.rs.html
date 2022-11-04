@@ -272,6 +272,8 @@
 <span id="272">272</span>
 <span id="273">273</span>
 <span id="274">274</span>
+<span id="275">275</span>
+<span id="276">276</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Javascript Abstract Syntax Tree visitors.
 //!
 //! This module contains visitors which can be used to inspect or modify AST nodes. This allows for
@@ -305,8 +307,8 @@
     Spread, SuperCall, TaggedTemplate, Yield,
 };
 <span class="kw">use </span><span class="kw">crate</span>::function::{
-    ArrowFunction, AsyncFunction, AsyncGenerator, Class, ClassElement, FormalParameter,
-    FormalParameterList, Function, Generator,
+    ArrowFunction, AsyncArrowFunction, AsyncFunction, AsyncGenerator, Class, ClassElement,
+    FormalParameter, FormalParameterList, Function, Generator,
 };
 <span class="kw">use </span><span class="kw">crate</span>::pattern::{
     ArrayPattern, ArrayPatternElement, ObjectPattern, ObjectPatternElement, Pattern,
@@ -393,6 +395,7 @@
     <span class="macro">define_visit!</span>(visit_object_literal, ObjectLiteral);
     <span class="macro">define_visit!</span>(visit_spread, Spread);
     <span class="macro">define_visit!</span>(visit_arrow_function, ArrowFunction);
+    <span class="macro">define_visit!</span>(visit_async_arrow_function, AsyncArrowFunction);
     <span class="macro">define_visit!</span>(visit_template_literal, TemplateLiteral);
     <span class="macro">define_visit!</span>(visit_property_access, PropertyAccess);
     <span class="macro">define_visit!</span>(visit_new, New);
@@ -477,6 +480,7 @@
     <span class="macro">define_visit_mut!</span>(visit_object_literal_mut, ObjectLiteral);
     <span class="macro">define_visit_mut!</span>(visit_spread_mut, Spread);
     <span class="macro">define_visit_mut!</span>(visit_arrow_function_mut, ArrowFunction);
+    <span class="macro">define_visit_mut!</span>(visit_async_arrow_function_mut, AsyncArrowFunction);
     <span class="macro">define_visit_mut!</span>(visit_template_literal_mut, TemplateLiteral);
     <span class="macro">define_visit_mut!</span>(visit_property_access_mut, PropertyAccess);
     <span class="macro">define_visit_mut!</span>(visit_new_mut, New);

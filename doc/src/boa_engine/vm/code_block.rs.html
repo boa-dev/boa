@@ -1558,6 +1558,35 @@
 <span id="1556">1556</span>
 <span id="1557">1557</span>
 <span id="1558">1558</span>
+<span id="1559">1559</span>
+<span id="1560">1560</span>
+<span id="1561">1561</span>
+<span id="1562">1562</span>
+<span id="1563">1563</span>
+<span id="1564">1564</span>
+<span id="1565">1565</span>
+<span id="1566">1566</span>
+<span id="1567">1567</span>
+<span id="1568">1568</span>
+<span id="1569">1569</span>
+<span id="1570">1570</span>
+<span id="1571">1571</span>
+<span id="1572">1572</span>
+<span id="1573">1573</span>
+<span id="1574">1574</span>
+<span id="1575">1575</span>
+<span id="1576">1576</span>
+<span id="1577">1577</span>
+<span id="1578">1578</span>
+<span id="1579">1579</span>
+<span id="1580">1580</span>
+<span id="1581">1581</span>
+<span id="1582">1582</span>
+<span id="1583">1583</span>
+<span id="1584">1584</span>
+<span id="1585">1585</span>
+<span id="1586">1586</span>
+<span id="1587">1587</span>
 </pre><pre class="rust"><code><span class="doccomment">//! `CodeBlock`
 //!
 //! This module is for the `CodeBlock` which implements a function representation in the VM
@@ -1622,6 +1651,9 @@
     </span><span class="attribute">#[unsafe_ignore_trace]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) name: Sym,
 
+    <span class="doccomment">/// Indicates if the function is an expression and has a binding identifier.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) has_binding_identifier: bool,
+
     <span class="doccomment">/// The number of arguments expected.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) length: u32,
 
@@ -1683,6 +1715,7 @@
             num_bindings: <span class="number">0</span>,
             functions: Vec::new(),
             name,
+            has_binding_identifier: <span class="bool-val">false</span>,
             length,
             strict,
             this_mode: ThisMode::Global,
@@ -1790,6 +1823,7 @@
                 <span class="macro">format!</span>(<span class="string">&quot;{operand1}, {operand2}&quot;</span>)
             }
             Opcode::GetArrowFunction
+            | Opcode::GetAsyncArrowFunction
             | Opcode::GetFunction
             | Opcode::GetFunctionAsync
             | Opcode::GetGenerator
@@ -2295,25 +2329,27 @@
                     )
                 };
 
-                <span class="kw">if </span>code.params.has_expressions() {
-                    context.realm.environments.push_function(
-                        code.num_bindings,
-                        code.compile_environments[<span class="number">1</span>].clone(),
-                        this,
-                        <span class="self">self</span>.clone(),
-                        <span class="prelude-val">None</span>,
-                        lexical_this_mode,
+                <span class="kw">let </span>compile_time_environment_index = usize::from(code.params.has_expressions());
+
+                <span class="kw">if </span>code.has_binding_identifier {
+                    <span class="kw">let </span>index = context.realm.environments.push_declarative(
+                        <span class="number">1</span>,
+                        code.compile_environments[compile_time_environment_index + <span class="number">1</span>].clone(),
                     );
-                } <span class="kw">else </span>{
-                    context.realm.environments.push_function(
-                        code.num_bindings,
-                        code.compile_environments[<span class="number">0</span>].clone(),
-                        this,
-                        <span class="self">self</span>.clone(),
-                        <span class="prelude-val">None</span>,
-                        lexical_this_mode,
-                    );
+                    context
+                        .realm
+                        .environments
+                        .put_value(index, <span class="number">0</span>, <span class="self">self</span>.clone().into());
                 }
+
+                context.realm.environments.push_function(
+                    code.num_bindings,
+                    code.compile_environments[compile_time_environment_index].clone(),
+                    this,
+                    <span class="self">self</span>.clone(),
+                    <span class="prelude-val">None</span>,
+                    lexical_this_mode,
+                );
 
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(binding) = code.arguments_binding {
                     <span class="kw">let </span>arguments_obj = <span class="kw">if </span>code.strict || !code.params.is_simple() {
@@ -2355,6 +2391,7 @@
 
                 <span class="kw">let </span>param_count = code.params.as_ref().len();
                 <span class="kw">let </span>has_expressions = code.params.has_expressions();
+                <span class="kw">let </span>has_binding_identifier = code.has_binding_identifier;
 
                 context.vm.push_frame(CallFrame {
                     code,
@@ -2382,6 +2419,10 @@
                 <span class="kw">if </span>has_expressions
                     &amp;&amp; frame.pc &gt; frame.code.function_environment_push_location <span class="kw">as </span>usize
                 {
+                    context.realm.environments.pop();
+                }
+
+                <span class="kw">if </span>has_binding_identifier {
                     context.realm.environments.pop();
                 }
 
@@ -2419,25 +2460,27 @@
                     )
                 };
 
-                <span class="kw">if </span>code.params.has_expressions() {
-                    context.realm.environments.push_function(
-                        code.num_bindings,
-                        code.compile_environments[<span class="number">1</span>].clone(),
-                        this,
-                        <span class="self">self</span>.clone(),
-                        <span class="prelude-val">None</span>,
-                        lexical_this_mode,
+                <span class="kw">let </span>compile_time_environment_index = usize::from(code.params.has_expressions());
+
+                <span class="kw">if </span>code.has_binding_identifier {
+                    <span class="kw">let </span>index = context.realm.environments.push_declarative(
+                        <span class="number">1</span>,
+                        code.compile_environments[compile_time_environment_index + <span class="number">1</span>].clone(),
                     );
-                } <span class="kw">else </span>{
-                    context.realm.environments.push_function(
-                        code.num_bindings,
-                        code.compile_environments[<span class="number">0</span>].clone(),
-                        this,
-                        <span class="self">self</span>.clone(),
-                        <span class="prelude-val">None</span>,
-                        lexical_this_mode,
-                    );
+                    context
+                        .realm
+                        .environments
+                        .put_value(index, <span class="number">0</span>, <span class="self">self</span>.clone().into());
                 }
+
+                context.realm.environments.push_function(
+                    code.num_bindings,
+                    code.compile_environments[compile_time_environment_index].clone(),
+                    this,
+                    <span class="self">self</span>.clone(),
+                    <span class="prelude-val">None</span>,
+                    lexical_this_mode,
+                );
 
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(binding) = code.arguments_binding {
                     <span class="kw">let </span>arguments_obj = <span class="kw">if </span>code.strict || !code.params.is_simple() {
@@ -2479,6 +2522,7 @@
 
                 <span class="kw">let </span>param_count = code.params.as_ref().len();
                 <span class="kw">let </span>has_expressions = code.params.has_expressions();
+                <span class="kw">let </span>has_binding_identifier = code.has_binding_identifier;
 
                 context.vm.push_frame(CallFrame {
                     code,
@@ -2509,8 +2553,11 @@
                     context.realm.environments.pop();
                 }
 
-                std::mem::swap(<span class="kw-2">&amp;mut </span>environments, <span class="kw-2">&amp;mut </span>context.realm.environments);
+                <span class="kw">if </span>has_binding_identifier {
+                    context.realm.environments.pop();
+                }
 
+                std::mem::swap(<span class="kw-2">&amp;mut </span>environments, <span class="kw-2">&amp;mut </span>context.realm.environments);
                 <span class="prelude-val">Ok</span>(promise.into())
             }
             Function::Generator {
@@ -2538,25 +2585,27 @@
                     )
                 };
 
-                <span class="kw">if </span>code.params.has_expressions() {
-                    context.realm.environments.push_function(
-                        code.num_bindings,
-                        code.compile_environments[<span class="number">1</span>].clone(),
-                        this,
-                        <span class="self">self</span>.clone(),
-                        <span class="prelude-val">None</span>,
-                        lexical_this_mode,
+                <span class="kw">let </span>compile_time_environment_index = usize::from(code.params.has_expressions());
+
+                <span class="kw">if </span>code.has_binding_identifier {
+                    <span class="kw">let </span>index = context.realm.environments.push_declarative(
+                        <span class="number">1</span>,
+                        code.compile_environments[compile_time_environment_index + <span class="number">1</span>].clone(),
                     );
-                } <span class="kw">else </span>{
-                    context.realm.environments.push_function(
-                        code.num_bindings,
-                        code.compile_environments[<span class="number">0</span>].clone(),
-                        this,
-                        <span class="self">self</span>.clone(),
-                        <span class="prelude-val">None</span>,
-                        lexical_this_mode,
-                    );
+                    context
+                        .realm
+                        .environments
+                        .put_value(index, <span class="number">0</span>, <span class="self">self</span>.clone().into());
                 }
+
+                context.realm.environments.push_function(
+                    code.num_bindings,
+                    code.compile_environments[compile_time_environment_index].clone(),
+                    this,
+                    <span class="self">self</span>.clone(),
+                    <span class="prelude-val">None</span>,
+                    lexical_this_mode,
+                );
 
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(binding) = code.arguments_binding {
                     <span class="kw">let </span>arguments_obj = <span class="kw">if </span>code.strict || !code.params.is_simple() {
@@ -2675,25 +2724,27 @@
                     )
                 };
 
-                <span class="kw">if </span>code.params.has_expressions() {
-                    context.realm.environments.push_function(
-                        code.num_bindings,
-                        code.compile_environments[<span class="number">1</span>].clone(),
-                        this,
-                        <span class="self">self</span>.clone(),
-                        <span class="prelude-val">None</span>,
-                        lexical_this_mode,
+                <span class="kw">let </span>compile_time_environment_index = usize::from(code.params.has_expressions());
+
+                <span class="kw">if </span>code.has_binding_identifier {
+                    <span class="kw">let </span>index = context.realm.environments.push_declarative(
+                        <span class="number">1</span>,
+                        code.compile_environments[compile_time_environment_index + <span class="number">1</span>].clone(),
                     );
-                } <span class="kw">else </span>{
-                    context.realm.environments.push_function(
-                        code.num_bindings,
-                        code.compile_environments[<span class="number">0</span>].clone(),
-                        this,
-                        <span class="self">self</span>.clone(),
-                        <span class="prelude-val">None</span>,
-                        lexical_this_mode,
-                    );
+                    context
+                        .realm
+                        .environments
+                        .put_value(index, <span class="number">0</span>, <span class="self">self</span>.clone().into());
                 }
+
+                context.realm.environments.push_function(
+                    code.num_bindings,
+                    code.compile_environments[compile_time_environment_index].clone(),
+                    this,
+                    <span class="self">self</span>.clone(),
+                    <span class="prelude-val">None</span>,
+                    lexical_this_mode,
+                );
 
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(binding) = code.arguments_binding {
                     <span class="kw">let </span>arguments_obj = <span class="kw">if </span>code.strict || !code.params.is_simple() {
@@ -2912,25 +2963,27 @@
 
                 <span class="kw">let </span>new_target = this_target.as_object().expect(<span class="string">&quot;must be object&quot;</span>);
 
-                <span class="kw">if </span>code.params.has_expressions() {
-                    context.realm.environments.push_function(
-                        code.num_bindings,
-                        code.compile_environments[<span class="number">1</span>].clone(),
-                        this.clone().map(Into::into),
-                        <span class="self">self</span>.clone(),
-                        <span class="prelude-val">Some</span>(new_target.clone()),
-                        <span class="bool-val">false</span>,
+                <span class="kw">let </span>compile_time_environment_index = usize::from(code.params.has_expressions());
+
+                <span class="kw">if </span>code.has_binding_identifier {
+                    <span class="kw">let </span>index = context.realm.environments.push_declarative(
+                        <span class="number">1</span>,
+                        code.compile_environments[compile_time_environment_index + <span class="number">1</span>].clone(),
                     );
-                } <span class="kw">else </span>{
-                    context.realm.environments.push_function(
-                        code.num_bindings,
-                        code.compile_environments[<span class="number">0</span>].clone(),
-                        this.clone().map(Into::into),
-                        <span class="self">self</span>.clone(),
-                        <span class="prelude-val">Some</span>(new_target.clone()),
-                        <span class="bool-val">false</span>,
-                    );
+                    context
+                        .realm
+                        .environments
+                        .put_value(index, <span class="number">0</span>, <span class="self">self</span>.clone().into());
                 }
+
+                context.realm.environments.push_function(
+                    code.num_bindings,
+                    code.compile_environments[compile_time_environment_index].clone(),
+                    this.clone().map(Into::into),
+                    <span class="self">self</span>.clone(),
+                    <span class="prelude-val">Some</span>(new_target.clone()),
+                    <span class="bool-val">false</span>,
+                );
 
                 <span class="kw">let </span><span class="kw-2">mut </span>arguments_in_parameter_names = <span class="bool-val">false</span>;
                 <span class="kw">let </span><span class="kw-2">mut </span>is_simple_parameter_list = <span class="bool-val">true</span>;
@@ -2985,6 +3038,7 @@
                 }
 
                 <span class="kw">let </span>param_count = code.params.as_ref().len();
+                <span class="kw">let </span>has_binding_identifier = code.has_binding_identifier;
 
                 context.vm.push_frame(CallFrame {
                     code,
@@ -3012,6 +3066,10 @@
                 <span class="kw">let </span><span class="kw-2">mut </span>environment = context.realm.environments.pop();
                 <span class="kw">if </span>has_parameter_expressions {
                     environment = context.realm.environments.pop();
+                }
+
+                <span class="kw">if </span>has_binding_identifier {
+                    context.realm.environments.pop();
                 }
 
                 std::mem::swap(<span class="kw-2">&amp;mut </span>environments, <span class="kw-2">&amp;mut </span>context.realm.environments);

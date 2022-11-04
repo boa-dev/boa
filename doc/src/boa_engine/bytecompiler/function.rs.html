@@ -203,6 +203,25 @@
 <span id="201">201</span>
 <span id="202">202</span>
 <span id="203">203</span>
+<span id="204">204</span>
+<span id="205">205</span>
+<span id="206">206</span>
+<span id="207">207</span>
+<span id="208">208</span>
+<span id="209">209</span>
+<span id="210">210</span>
+<span id="211">211</span>
+<span id="212">212</span>
+<span id="213">213</span>
+<span id="214">214</span>
+<span id="215">215</span>
+<span id="216">216</span>
+<span id="217">217</span>
+<span id="218">218</span>
+<span id="219">219</span>
+<span id="220">220</span>
+<span id="221">221</span>
+<span id="222">222</span>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     builtins::function::ThisMode,
     bytecompiler::ByteCompiler,
@@ -223,6 +242,7 @@
     r#async: bool,
     strict: bool,
     arrow: bool,
+    has_binding_identifier: bool,
 }
 
 <span class="kw">impl </span>FunctionCompiler {
@@ -235,6 +255,7 @@
             r#async: <span class="bool-val">false</span>,
             strict: <span class="bool-val">false</span>,
             arrow: <span class="bool-val">false</span>,
+            has_binding_identifier: <span class="bool-val">false</span>,
         }
     }
 
@@ -278,6 +299,13 @@
         <span class="self">self
     </span>}
 
+    <span class="doccomment">/// Indicate if the function has a binding identifier.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>has_binding_identifier(<span class="kw-2">mut </span><span class="self">self</span>, has_binding_identifier: bool) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.has_binding_identifier = has_binding_identifier;
+        <span class="self">self
+    </span>}
+
     <span class="doccomment">/// Compile a function statement list and it&#39;s parameters into bytecode.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>compile(
         <span class="kw-2">mut </span><span class="self">self</span>,
@@ -303,6 +331,14 @@
             in_async_generator: <span class="self">self</span>.generator &amp;&amp; <span class="self">self</span>.r#async,
             context,
         };
+
+        <span class="kw">if </span><span class="self">self</span>.has_binding_identifier {
+            compiler.code_block.has_binding_identifier = <span class="bool-val">true</span>;
+            compiler.context.push_compile_time_environment(<span class="bool-val">false</span>);
+            compiler
+                .context
+                .create_immutable_binding(<span class="self">self</span>.name.into(), <span class="self">self</span>.strict);
+        }
 
         compiler.context.push_compile_time_environment(<span class="bool-val">true</span>);
 
@@ -390,11 +426,13 @@
         } <span class="kw">else </span>{
             <span class="kw">let </span>(num_bindings, compile_environment) =
                 compiler.context.pop_compile_time_environment();
-            compiler
-                .code_block
-                .compile_environments
-                .push(compile_environment);
+            compiler.push_compile_environment(compile_environment);
             compiler.code_block.num_bindings = num_bindings;
+        }
+
+        <span class="kw">if </span><span class="self">self</span>.has_binding_identifier {
+            <span class="kw">let </span>(<span class="kw">_</span>, compile_environment) = compiler.context.pop_compile_time_environment();
+            compiler.push_compile_environment(compile_environment);
         }
 
         compiler.code_block.params = parameters.clone();

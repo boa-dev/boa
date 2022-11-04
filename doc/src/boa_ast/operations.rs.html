@@ -260,6 +260,26 @@
 <span id="260">260</span>
 <span id="261">261</span>
 <span id="262">262</span>
+<span id="263">263</span>
+<span id="264">264</span>
+<span id="265">265</span>
+<span id="266">266</span>
+<span id="267">267</span>
+<span id="268">268</span>
+<span id="269">269</span>
+<span id="270">270</span>
+<span id="271">271</span>
+<span id="272">272</span>
+<span id="273">273</span>
+<span id="274">274</span>
+<span id="275">275</span>
+<span id="276">276</span>
+<span id="277">277</span>
+<span id="278">278</span>
+<span id="279">279</span>
+<span id="280">280</span>
+<span id="281">281</span>
+<span id="282">282</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Definitions of various **Syntax-Directed Operations** used in the [spec].
 //!
 //! [spec]: https://tc39.es/ecma262/#sec-syntax-directed-operations
@@ -271,7 +291,8 @@
 <span class="kw">use crate</span>::{
     expression::{access::SuperPropertyAccess, Await, Identifier, SuperCall, Yield},
     function::{
-        ArrowFunction, AsyncFunction, AsyncGenerator, Class, ClassElement, Function, Generator,
+        ArrowFunction, AsyncArrowFunction, AsyncFunction, AsyncGenerator, Class, ClassElement,
+        Function, Generator,
     },
     property::{MethodDefinition, PropertyDefinition},
     visitor::{VisitWith, Visitor},
@@ -379,6 +400,25 @@
         <span class="kw">fn </span>visit_arrow_function(
             <span class="kw-2">&amp;mut </span><span class="self">self</span>,
             node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span>ArrowFunction,
+        ) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
+            <span class="kw">if </span>![
+                ContainsSymbol::NewTarget,
+                ContainsSymbol::SuperProperty,
+                ContainsSymbol::SuperCall,
+                ContainsSymbol::Super,
+                ContainsSymbol::This,
+            ]
+            .contains(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0</span>)
+            {
+                <span class="kw">return </span>ControlFlow::Continue(());
+            }
+
+            node.visit_with(<span class="self">self</span>)
+        }
+
+        <span class="kw">fn </span>visit_async_arrow_function(
+            <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+            node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span>AsyncArrowFunction,
         ) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
             <span class="kw">if </span>![
                 ContainsSymbol::NewTarget,

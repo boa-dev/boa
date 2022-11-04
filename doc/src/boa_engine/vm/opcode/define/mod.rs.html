@@ -140,6 +140,9 @@
 <span id="138">138</span>
 <span id="139">139</span>
 <span id="140">140</span>
+<span id="141">141</span>
+<span id="142">142</span>
+<span id="143">143</span>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     property::PropertyDescriptor,
     vm::{opcode::Operation, ShouldExit},
@@ -206,6 +209,9 @@
         <span class="kw">let </span>index = context.vm.read::&lt;u32&gt;();
         <span class="kw">let </span>value = context.vm.pop();
         <span class="kw">let </span>binding_locator = context.vm.frame().code.bindings[index <span class="kw">as </span>usize];
+        <span class="kw">if </span>binding_locator.is_silent() {
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(ShouldExit::False);
+        }
         binding_locator.throw_mutate_immutable(context)<span class="question-mark">?</span>;
 
         <span class="kw">if </span>binding_locator.is_global() {
