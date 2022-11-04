@@ -452,9 +452,7 @@ impl JsString {
     pub(crate) fn to_number(&self) -> f64 {
         // 1. Let text be ! StringToCodePoints(str).
         // 2. Let literal be ParseText(text, StringNumericLiteral).
-        let string = if let Ok(string) = self.to_std_string() {
-            string
-        } else {
+        let Ok(string) = self.to_std_string() else {
             // 3. If literal is a List of errors, return NaN.
             return f64::NAN;
         };

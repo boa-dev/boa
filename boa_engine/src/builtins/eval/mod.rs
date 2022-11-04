@@ -77,9 +77,7 @@ impl Eval {
         debug_assert!(direct || !strict);
 
         // 2. If Type(x) is not String, return x.
-        let x = if let Some(x) = x.as_string() {
-            x.clone()
-        } else {
+        let Some(x) = x.as_string() else {
             return Ok(x.clone());
         };
 

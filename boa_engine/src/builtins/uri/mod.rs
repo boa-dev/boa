@@ -253,9 +253,7 @@ where
             let cp = string.code_point_at(k);
 
             // ii. If cp.[[IsUnpairedSurrogate]] is true, throw a URIError exception.
-            let ch = if let CodePoint::Unicode(ch) = cp {
-                ch
-            } else {
+            let CodePoint::Unicode(ch) = cp else {
                 return Err(JsNativeError::uri()
                     .with_message("trying to encode an invalid string")
                     .into());
