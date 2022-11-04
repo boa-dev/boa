@@ -1,5 +1,3 @@
-use std::mem;
-
 use boa_gc::{BoaAlloc, force_collect, GcTester};
 
 #[test]
