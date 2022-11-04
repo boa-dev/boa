@@ -404,12 +404,6 @@
 <span id="402">402</span>
 <span id="403">403</span>
 <span id="404">404</span>
-<span id="405">405</span>
-<span id="406">406</span>
-<span id="407">407</span>
-<span id="408">408</span>
-<span id="409">409</span>
-<span id="410">410</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `Reflect` object.
 //!
 //! The `Reflect` global object is a built-in object that provides methods for interceptable
@@ -525,14 +519,10 @@
 
         <span class="kw">let </span>new_target = <span class="kw">if let </span><span class="prelude-val">Some</span>(new_target) = args.get(<span class="number">2</span>) {
             <span class="comment">// 3. Else if IsConstructor(newTarget) is false, throw a TypeError exception.
-            </span><span class="kw">if let </span><span class="prelude-val">Some</span>(new_target) = new_target.as_constructor() {
-                new_target
-            } <span class="kw">else </span>{
-                <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                    .with_message(<span class="string">&quot;newTarget must be a constructor&quot;</span>)
-                    .into());
-            }
-        } <span class="kw">else </span>{
+            </span>new_target.as_constructor().ok_or_else(|| {
+                JsNativeError::typ().with_message(<span class="string">&quot;newTarget must be a constructor&quot;</span>)
+            })<span class="question-mark">?
+        </span>} <span class="kw">else </span>{
             <span class="comment">// 2. If newTarget is not present, set newTarget to target.
             </span>target
         };
@@ -618,12 +608,11 @@
         <span class="comment">// 2. Let key be ? ToPropertyKey(propertyKey).
         </span><span class="kw">let </span>key = args.get_or_undefined(<span class="number">1</span>).to_property_key(context)<span class="question-mark">?</span>;
         <span class="comment">// 3. If receiver is not present, then
-        </span><span class="kw">let </span>receiver = <span class="kw">if let </span><span class="prelude-val">Some</span>(receiver) = args.get(<span class="number">2</span>).cloned() {
-            receiver
-        } <span class="kw">else </span>{
-            <span class="comment">// 3.a. Set receiver to target.
-            </span>target.clone().into()
-        };
+        // 3.a. Set receiver to target.
+        </span><span class="kw">let </span>receiver = args
+            .get(<span class="number">2</span>)
+            .cloned()
+            .unwrap_or_else(|| target.clone().into());
         <span class="comment">// 4. Return ? target.[[Get]](key, receiver).
         </span>target.__get__(<span class="kw-2">&amp;</span>key, receiver, context)
     }
@@ -781,11 +770,10 @@
             .ok_or_else(|| JsNativeError::typ().with_message(<span class="string">&quot;target must be an object&quot;</span>))<span class="question-mark">?</span>;
         <span class="kw">let </span>key = args.get_or_undefined(<span class="number">1</span>).to_property_key(context)<span class="question-mark">?</span>;
         <span class="kw">let </span>value = args.get_or_undefined(<span class="number">2</span>);
-        <span class="kw">let </span>receiver = <span class="kw">if let </span><span class="prelude-val">Some</span>(receiver) = args.get(<span class="number">3</span>).cloned() {
-            receiver
-        } <span class="kw">else </span>{
-            target.clone().into()
-        };
+        <span class="kw">let </span>receiver = args
+            .get(<span class="number">3</span>)
+            .cloned()
+            .unwrap_or_else(|| target.clone().into());
         <span class="prelude-val">Ok</span>(target
             .__set__(key, value.clone(), receiver, context)<span class="question-mark">?
             </span>.into())

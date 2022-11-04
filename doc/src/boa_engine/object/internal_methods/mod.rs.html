@@ -964,9 +964,6 @@
 <span id="962">962</span>
 <span id="963">963</span>
 <span id="964">964</span>
-<span id="965">965</span>
-<span id="966">966</span>
-<span id="967">967</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module defines the object internal methods.
 //!
 //! More information:
@@ -1763,12 +1760,9 @@
         Profiler::global().start_event(<span class="string">&quot;Object::validate_and_apply_property_descriptor&quot;</span>, <span class="string">&quot;object&quot;</span>);
     <span class="comment">// 1. Assert: If O is not undefined, then IsPropertyKey(P) is true.
 
-    </span><span class="kw">let </span><span class="kw-2">mut </span>current = <span class="kw">if let </span><span class="prelude-val">Some</span>(own) = current {
-        own
-    }
-    <span class="comment">// 2. If current is undefined, then
-    </span><span class="kw">else </span>{
-        <span class="comment">// a. If extensible is false, return false.
+    </span><span class="kw">let </span><span class="prelude-val">Some</span>(<span class="kw-2">mut </span>current) = current <span class="kw">else </span>{
+        <span class="comment">// 2. If current is undefined, then
+        // a. If extensible is false, return false.
         </span><span class="kw">if </span>!extensible {
             <span class="kw">return </span><span class="bool-val">false</span>;
         }

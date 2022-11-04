@@ -582,8 +582,6 @@
 <span id="580">580</span>
 <span id="581">581</span>
 <span id="582">582</span>
-<span id="583">583</span>
-<span id="584">584</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `Map` object.
 //!
 //! The JavaScript `Map` class is a global object that is used in the construction of maps; which
@@ -1126,17 +1124,15 @@
 
         <span class="comment">// b. If next is false, return target.
         // c. Let nextItem be ? IteratorValue(next).
-        </span><span class="kw">let </span>next_item = <span class="kw">if let </span><span class="prelude-val">Some</span>(next) = next {
-            next.value(context)<span class="question-mark">?
-        </span>} <span class="kw">else </span>{
+        </span><span class="kw">let </span><span class="prelude-val">Some</span>(next_item) = next <span class="kw">else </span>{
             <span class="kw">return </span><span class="prelude-val">Ok</span>(target.clone().into());
         };
 
-        <span class="kw">let </span>next_item = <span class="kw">if let </span><span class="prelude-val">Some</span>(obj) = next_item.as_object() {
-            obj
-        <span class="comment">// d. If Type(nextItem) is not Object, then
-        </span>} <span class="kw">else </span>{
-            <span class="comment">// i. Let error be ThrowCompletion(a newly created TypeError object).
+        <span class="kw">let </span>next_item = next_item.value(context)<span class="question-mark">?</span>;
+
+        <span class="kw">let </span><span class="prelude-val">Some</span>(next_item) = next_item.as_object() <span class="kw">else </span>{
+            <span class="comment">// d. If Type(nextItem) is not Object, then
+            // i. Let error be ThrowCompletion(a newly created TypeError object).
             </span><span class="kw">let </span>err = <span class="prelude-val">Err</span>(JsNativeError::typ()
                 .with_message(<span class="string">&quot;cannot get key and value from primitive item of `iterable`&quot;</span>)
                 .into());

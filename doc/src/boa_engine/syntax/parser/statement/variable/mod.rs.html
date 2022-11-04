@@ -227,16 +227,6 @@
 <span id="225">225</span>
 <span id="226">226</span>
 <span id="227">227</span>
-<span id="228">228</span>
-<span id="229">229</span>
-<span id="230">230</span>
-<span id="231">231</span>
-<span id="232">232</span>
-<span id="233">233</span>
-<span id="234">234</span>
-<span id="235">235</span>
-<span id="236">236</span>
-<span id="237">237</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Variable statement parsing.
 
 </span><span class="kw">use </span><span class="kw">crate</span>::syntax::{
@@ -409,20 +399,15 @@
                 <span class="kw">let </span>bindings = ObjectBindingPattern::new(<span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await)
                     .parse(cursor, interner)<span class="question-mark">?</span>;
 
-                <span class="kw">let </span>init = <span class="kw">if let </span><span class="prelude-val">Some</span>(t) = cursor.peek(<span class="number">0</span>, interner)<span class="question-mark">? </span>{
-                    <span class="kw">if </span><span class="kw-2">*</span>t.kind() == TokenKind::Punctuator(Punctuator::Assign) {
-                        <span class="prelude-val">Some</span>(
-                            Initializer::new(
-                                <span class="prelude-val">None</span>,
-                                <span class="self">self</span>.allow_in,
-                                <span class="self">self</span>.allow_yield,
-                                <span class="self">self</span>.allow_await,
-                            )
+                <span class="kw">let </span>init = <span class="kw">if </span>cursor
+                    .peek(<span class="number">0</span>, interner)<span class="question-mark">?
+                    </span>.filter(|t| <span class="kw-2">*</span>t.kind() == TokenKind::Punctuator(Punctuator::Assign))
+                    .is_some()
+                {
+                    <span class="prelude-val">Some</span>(
+                        Initializer::new(<span class="prelude-val">None</span>, <span class="self">self</span>.allow_in, <span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await)
                             .parse(cursor, interner)<span class="question-mark">?</span>,
-                        )
-                    } <span class="kw">else </span>{
-                        <span class="prelude-val">None
-                    </span>}
+                    )
                 } <span class="kw">else </span>{
                     <span class="prelude-val">None
                 </span>};
@@ -433,20 +418,15 @@
                 <span class="kw">let </span>bindings = ArrayBindingPattern::new(<span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await)
                     .parse(cursor, interner)<span class="question-mark">?</span>;
 
-                <span class="kw">let </span>init = <span class="kw">if let </span><span class="prelude-val">Some</span>(t) = cursor.peek(<span class="number">0</span>, interner)<span class="question-mark">? </span>{
-                    <span class="kw">if </span><span class="kw-2">*</span>t.kind() == TokenKind::Punctuator(Punctuator::Assign) {
-                        <span class="prelude-val">Some</span>(
-                            Initializer::new(
-                                <span class="prelude-val">None</span>,
-                                <span class="self">self</span>.allow_in,
-                                <span class="self">self</span>.allow_yield,
-                                <span class="self">self</span>.allow_await,
-                            )
+                <span class="kw">let </span>init = <span class="kw">if </span>cursor
+                    .peek(<span class="number">0</span>, interner)<span class="question-mark">?
+                    </span>.filter(|t| <span class="kw-2">*</span>t.kind() == TokenKind::Punctuator(Punctuator::Assign))
+                    .is_some()
+                {
+                    <span class="prelude-val">Some</span>(
+                        Initializer::new(<span class="prelude-val">None</span>, <span class="self">self</span>.allow_in, <span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await)
                             .parse(cursor, interner)<span class="question-mark">?</span>,
-                        )
-                    } <span class="kw">else </span>{
-                        <span class="prelude-val">None
-                    </span>}
+                    )
                 } <span class="kw">else </span>{
                     <span class="prelude-val">None
                 </span>};
@@ -457,15 +437,15 @@
                 <span class="kw">let </span>ident = BindingIdentifier::new(<span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await)
                     .parse(cursor, interner)<span class="question-mark">?</span>;
 
-                <span class="kw">let </span>init = <span class="kw">if let </span><span class="prelude-val">Some</span>(t) = cursor.peek(<span class="number">0</span>, interner)<span class="question-mark">? </span>{
-                    <span class="kw">if </span><span class="kw-2">*</span>t.kind() == TokenKind::Punctuator(Punctuator::Assign) {
-                        <span class="prelude-val">Some</span>(
-                            Initializer::new(<span class="prelude-val">Some</span>(ident), <span class="bool-val">true</span>, <span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await)
-                                .parse(cursor, interner)<span class="question-mark">?</span>,
-                        )
-                    } <span class="kw">else </span>{
-                        <span class="prelude-val">None
-                    </span>}
+                <span class="kw">let </span>init = <span class="kw">if </span>cursor
+                    .peek(<span class="number">0</span>, interner)<span class="question-mark">?
+                    </span>.filter(|t| <span class="kw-2">*</span>t.kind() == TokenKind::Punctuator(Punctuator::Assign))
+                    .is_some()
+                {
+                    <span class="prelude-val">Some</span>(
+                        Initializer::new(<span class="prelude-val">Some</span>(ident), <span class="bool-val">true</span>, <span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await)
+                            .parse(cursor, interner)<span class="question-mark">?</span>,
+                    )
                 } <span class="kw">else </span>{
                     <span class="prelude-val">None
                 </span>};

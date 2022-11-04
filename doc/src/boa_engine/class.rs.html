@@ -304,11 +304,6 @@
 <span id="302">302</span>
 <span id="303">303</span>
 <span id="304">304</span>
-<span id="305">305</span>
-<span id="306">306</span>
-<span id="307">307</span>
-<span id="308">308</span>
-<span id="309">309</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Traits and structs for implementing native classes.
 //!
 //! Native classes are implemented through the [`Class`][class-trait] trait.
@@ -424,10 +419,8 @@
                 .into());
         }
 
-        <span class="kw">let </span>class_constructor = context.global_object().clone().get(T::NAME, context)<span class="question-mark">?</span>;
-        <span class="kw">let </span>class_constructor = <span class="kw">if let </span>JsValue::Object(<span class="kw-2">ref </span>obj) = class_constructor {
-            obj
-        } <span class="kw">else </span>{
+        <span class="kw">let </span>class = context.global_object().clone().get(T::NAME, context)<span class="question-mark">?</span>;
+        <span class="kw">let </span>JsValue::Object(<span class="kw-2">ref </span>class_constructor) = class <span class="kw">else </span>{
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
                 .with_message(<span class="macro">format!</span>(
                     <span class="string">&quot;invalid constructor for native class `{}` &quot;</span>,
@@ -435,28 +428,25 @@
                 ))
                 .into());
         };
-        <span class="kw">let </span>class_prototype =
-            <span class="kw">if let </span>JsValue::Object(<span class="kw-2">ref </span>obj) = class_constructor.get(PROTOTYPE, context)<span class="question-mark">? </span>{
-                obj.clone()
-            } <span class="kw">else </span>{
-                <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                    .with_message(<span class="macro">format!</span>(
-                        <span class="string">&quot;invalid default prototype for native class `{}`&quot;</span>,
-                        T::NAME
-                    ))
-                    .into());
-            };
+
+        <span class="kw">let </span>JsValue::Object(<span class="kw-2">ref </span>class_prototype) = class_constructor.get(PROTOTYPE, context)<span class="question-mark">? </span><span class="kw">else </span>{
+            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
+                .with_message(<span class="macro">format!</span>(
+                    <span class="string">&quot;invalid default prototype for native class `{}`&quot;</span>,
+                    T::NAME
+                ))
+                .into());
+        };
 
         <span class="kw">let </span>prototype = this
             .as_object()
-            .cloned()
             .map(|obj| {
                 obj.get(PROTOTYPE, context)
                     .map(|val| val.as_object().cloned())
             })
             .transpose()<span class="question-mark">?
             </span>.flatten()
-            .unwrap_or(class_prototype);
+            .unwrap_or_else(|| class_prototype.clone());
 
         <span class="kw">let </span>native_instance = <span class="self">Self</span>::constructor(this, args, context)<span class="question-mark">?</span>;
         <span class="kw">let </span>object_instance = JsObject::from_proto_and_data(

@@ -440,10 +440,6 @@
 <span id="438">438</span>
 <span id="439">439</span>
 <span id="440">440</span>
-<span id="441">441</span>
-<span id="442">442</span>
-<span id="443">443</span>
-<span id="444">444</span>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     builtins::{
         iterable::{create_iter_result_object, IteratorRecord, IteratorResult},
@@ -679,11 +675,9 @@
         <span class="comment">// 10. IfAbruptRejectPromise(result, promiseCapability).
         </span><span class="macro">if_abrupt_reject_promise!</span>(result, promise_capability, context);
 
-        <span class="comment">// 11. If Type(result) is not Object, then
-        </span><span class="kw">let </span>result = <span class="kw">if let </span><span class="prelude-val">Some</span>(result) = result.as_object() {
-            result
-        } <span class="kw">else </span>{
-            <span class="comment">// a. Perform ! Call(promiseCapability.[[Reject]], undefined, « a newly created TypeError object »).
+        <span class="kw">let </span><span class="prelude-val">Some</span>(result) = result.as_object() <span class="kw">else </span>{
+            <span class="comment">// 11. If Type(result) is not Object, then
+            // a. Perform ! Call(promiseCapability.[[Reject]], undefined, « a newly created TypeError object »).
             </span>promise_capability
                 .reject()
                 .call(
@@ -779,11 +773,9 @@
         <span class="comment">// 10. IfAbruptRejectPromise(result, promiseCapability).
         </span><span class="macro">if_abrupt_reject_promise!</span>(result, promise_capability, context);
 
-        <span class="comment">// 11. If Type(result) is not Object, then
-        </span><span class="kw">let </span>result = <span class="kw">if let </span><span class="prelude-val">Some</span>(result) = result.as_object() {
-            result
-        } <span class="kw">else </span>{
-            <span class="comment">// a. Perform ! Call(promiseCapability.[[Reject]], undefined, « a newly created TypeError object »).
+        <span class="kw">let </span><span class="prelude-val">Some</span>(result) = result.as_object() <span class="kw">else </span>{
+            <span class="comment">// 11. If Type(result) is not Object, then
+            // a. Perform ! Call(promiseCapability.[[Reject]], undefined, « a newly created TypeError object »).
             </span>promise_capability
                 .reject()
                 .call(

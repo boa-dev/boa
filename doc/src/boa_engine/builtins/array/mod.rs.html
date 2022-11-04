@@ -2946,10 +2946,6 @@
 <span id="2944">2944</span>
 <span id="2945">2945</span>
 <span id="2946">2946</span>
-<span id="2947">2947</span>
-<span id="2948">2948</span>
-<span id="2949">2949</span>
-<span id="2950">2950</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `Array` object.
 //!
 //! The JavaScript `Array` class is a global object that is used in the construction of arrays; which are high-level, list-like objects.
@@ -3252,9 +3248,7 @@
     /// by `Array.prototype.concat`.
     </span><span class="kw">fn </span>is_concat_spreadable(o: <span class="kw-2">&amp;</span>JsValue, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;bool&gt; {
         <span class="comment">// 1. If Type(O) is not Object, return false.
-        </span><span class="kw">let </span>o = <span class="kw">if let </span><span class="prelude-val">Some</span>(o) = o.as_object() {
-            o
-        } <span class="kw">else </span>{
+        </span><span class="kw">let </span><span class="prelude-val">Some</span>(o) = o.as_object() <span class="kw">else </span>{
             <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="bool-val">false</span>);
         };
 
@@ -3413,9 +3407,7 @@
                 </span><span class="kw">let </span>next = iterator_record.step(context)<span class="question-mark">?</span>;
 
                 <span class="comment">// iv. If next is false, then
-                </span><span class="kw">let </span>next = <span class="kw">if let </span><span class="prelude-val">Some</span>(next) = next {
-                    next
-                } <span class="kw">else </span>{
+                </span><span class="kw">let </span><span class="prelude-val">Some</span>(next) = next <span class="kw">else </span>{
                     <span class="comment">// 1. Perform ? Set(A, &quot;length&quot;, 𝔽(k), true).
                     </span>a.set(<span class="string">&quot;length&quot;</span>, k, <span class="bool-val">true</span>, context)<span class="question-mark">?</span>;
 

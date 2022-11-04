@@ -1699,19 +1699,6 @@
 <span id="1697">1697</span>
 <span id="1698">1698</span>
 <span id="1699">1699</span>
-<span id="1700">1700</span>
-<span id="1701">1701</span>
-<span id="1702">1702</span>
-<span id="1703">1703</span>
-<span id="1704">1704</span>
-<span id="1705">1705</span>
-<span id="1706">1706</span>
-<span id="1707">1707</span>
-<span id="1708">1708</span>
-<span id="1709">1709</span>
-<span id="1710">1710</span>
-<span id="1711">1711</span>
-<span id="1712">1712</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `RegExp` object.
 //!
 //! The `RegExp` object is used for matching text with a pattern.
@@ -2759,13 +2746,10 @@
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let rx be the this value.
         // 2. If Type(rx) is not Object, throw a TypeError exception.
-        </span><span class="kw">let </span>rx = <span class="kw">if let </span><span class="prelude-val">Some</span>(rx) = this.as_object() {
-            rx
-        } <span class="kw">else </span>{
-            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
+        </span><span class="kw">let </span>rx = this.as_object().ok_or_else(|| {
+            JsNativeError::typ()
                 .with_message(<span class="string">&quot;RegExp.prototype.match method called on incompatible value&quot;</span>)
-                .into());
-        };
+        })<span class="question-mark">?</span>;
 
         <span class="comment">// 3. Let S be ? ToString(string).
         </span><span class="kw">let </span>arg_str = args.get_or_undefined(<span class="number">0</span>).to_string(context)<span class="question-mark">?</span>;
@@ -2949,15 +2933,11 @@
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let rx be the this value.
         // 2. If Type(rx) is not Object, throw a TypeError exception.
-        </span><span class="kw">let </span>rx = <span class="kw">if let </span><span class="prelude-val">Some</span>(rx) = this.as_object() {
-            rx
-        } <span class="kw">else </span>{
-            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(
-                    <span class="string">&quot;RegExp.prototype[Symbol.replace] method called on incompatible value&quot;</span>,
-                )
-                .into());
-        };
+        </span><span class="kw">let </span>rx = this.as_object().ok_or_else(|| {
+            JsNativeError::typ().with_message(
+                <span class="string">&quot;RegExp.prototype[Symbol.replace] method called on incompatible value&quot;</span>,
+            )
+        })<span class="question-mark">?</span>;
 
         <span class="comment">// 3. Let S be ? ToString(string).
         </span><span class="kw">let </span>arg_str = args.get_or_undefined(<span class="number">0</span>).to_string(context)<span class="question-mark">?</span>;
@@ -3171,13 +3151,10 @@
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let rx be the this value.
         // 2. If Type(rx) is not Object, throw a TypeError exception.
-        </span><span class="kw">let </span>rx = <span class="kw">if let </span><span class="prelude-val">Some</span>(rx) = this.as_object() {
-            rx
-        } <span class="kw">else </span>{
-            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
+        </span><span class="kw">let </span>rx = this.as_object().ok_or_else(|| {
+            JsNativeError::typ()
                 .with_message(<span class="string">&quot;RegExp.prototype[Symbol.search] method called on incompatible value&quot;</span>)
-                .into());
-        };
+        })<span class="question-mark">?</span>;
 
         <span class="comment">// 3. Let S be ? ToString(string).
         </span><span class="kw">let </span>arg_str = args.get_or_undefined(<span class="number">0</span>).to_string(context)<span class="question-mark">?</span>;
@@ -3229,13 +3206,10 @@
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let rx be the this value.
         // 2. If Type(rx) is not Object, throw a TypeError exception.
-        </span><span class="kw">let </span>rx = <span class="kw">if let </span><span class="prelude-val">Some</span>(rx) = this.as_object() {
-            rx
-        } <span class="kw">else </span>{
-            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
+        </span><span class="kw">let </span>rx = this.as_object().ok_or_else(|| {
+            JsNativeError::typ()
                 .with_message(<span class="string">&quot;RegExp.prototype.split method called on incompatible value&quot;</span>)
-                .into());
-        };
+        })<span class="question-mark">?</span>;
 
         <span class="comment">// 3. Let S be ? ToString(string).
         </span><span class="kw">let </span>arg_str = args.get_or_undefined(<span class="number">0</span>).to_string(context)<span class="question-mark">?</span>;

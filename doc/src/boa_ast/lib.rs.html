@@ -128,10 +128,6 @@
 <span id="128">128</span>
 <span id="129">129</span>
 <span id="130">130</span>
-<span id="131">131</span>
-<span id="132">132</span>
-<span id="133">133</span>
-<span id="134">134</span>
 </pre><pre class="rust"><code><span class="doccomment">//! The Javascript Abstract Syntax Tree.
 //!
 //! This crate contains representations of [**Parse Nodes**][grammar] as defined by the ECMAScript spec.
@@ -183,11 +179,7 @@
     nonstandard_style,
     missing_docs
 )]
-#![allow(
-    clippy::module_name_repetitions,
-    clippy::too_many_lines,
-    rustdoc::missing_doc_code_examples
-)]
+#![allow(clippy::module_name_repetitions, clippy::too_many_lines)]
 
 </span><span class="kw">mod </span>position;
 <span class="kw">mod </span>punctuator;

@@ -1036,8 +1036,6 @@
 <span id="1034">1034</span>
 <span id="1035">1035</span>
 <span id="1036">1036</span>
-<span id="1037">1037</span>
-<span id="1038">1038</span>
 </pre><pre class="rust"><code><span class="doccomment">//! A UTF-16–encoded, reference counted, immutable string.
 //!
 //! This module contains the [`JsString`] type, the [`js_string`][crate::js_string] macro and the
@@ -1492,9 +1490,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>to_number(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; f64 {
         <span class="comment">// 1. Let text be ! StringToCodePoints(str).
         // 2. Let literal be ParseText(text, StringNumericLiteral).
-        </span><span class="kw">let </span>string = <span class="kw">if let </span><span class="prelude-val">Ok</span>(string) = <span class="self">self</span>.to_std_string() {
-            string
-        } <span class="kw">else </span>{
+        </span><span class="kw">let </span><span class="prelude-val">Ok</span>(string) = <span class="self">self</span>.to_std_string() <span class="kw">else </span>{
             <span class="comment">// 3. If literal is a List of errors, return NaN.
             </span><span class="kw">return </span>f64::NAN;
         };

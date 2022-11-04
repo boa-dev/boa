@@ -844,17 +844,6 @@
 <span id="842">842</span>
 <span id="843">843</span>
 <span id="844">844</span>
-<span id="845">845</span>
-<span id="846">846</span>
-<span id="847">847</span>
-<span id="848">848</span>
-<span id="849">849</span>
-<span id="850">850</span>
-<span id="851">851</span>
-<span id="852">852</span>
-<span id="853">853</span>
-<span id="854">854</span>
-<span id="855">855</span>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     builtins::Array,
     context::intrinsics::{StandardConstructor, StandardConstructors},
@@ -1359,13 +1348,9 @@
         }
 
         <span class="comment">// 4. If Type(C) is not Object, throw a TypeError exception.
-        </span><span class="kw">let </span>c = <span class="kw">if let </span><span class="prelude-val">Some</span>(c) = c.as_object() {
-            c
-        } <span class="kw">else </span>{
-            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(<span class="string">&quot;property &#39;constructor&#39; is not an object&quot;</span>)
-                .into());
-        };
+        </span><span class="kw">let </span>c = c.as_object().ok_or_else(|| {
+            JsNativeError::typ().with_message(<span class="string">&quot;property &#39;constructor&#39; is not an object&quot;</span>)
+        })<span class="question-mark">?</span>;
 
         <span class="comment">// 5. Let S be ? Get(C, @@species).
         </span><span class="kw">let </span>s = c.get(WellKnownSymbols::species(), context)<span class="question-mark">?</span>;
@@ -1658,9 +1643,7 @@
         context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;bool&gt; {
         <span class="comment">// 1. If IsCallable(C) is false, return false.
-        </span><span class="kw">let </span>function = <span class="kw">if let </span><span class="prelude-val">Some</span>(function) = function.as_callable() {
-            function
-        } <span class="kw">else </span>{
+        </span><span class="kw">let </span><span class="prelude-val">Some</span>(function) = function.as_callable() <span class="kw">else </span>{
             <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="bool-val">false</span>);
         };
 
@@ -1675,9 +1658,7 @@
             );
         }
 
-        <span class="kw">let </span><span class="kw-2">mut </span>object = <span class="kw">if let </span><span class="prelude-val">Some</span>(obj) = object.as_object() {
-            obj.clone()
-        } <span class="kw">else </span>{
+        <span class="kw">let </span><span class="prelude-val">Some</span>(<span class="kw-2">mut </span>object) = object.as_object().cloned() <span class="kw">else </span>{
             <span class="comment">// 3. If Type(O) is not Object, return false.
             </span><span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="bool-val">false</span>);
         };
@@ -1685,14 +1666,11 @@
         <span class="comment">// 4. Let P be ? Get(C, &quot;prototype&quot;).
         </span><span class="kw">let </span>prototype = function.get(<span class="string">&quot;prototype&quot;</span>, context)<span class="question-mark">?</span>;
 
-        <span class="kw">let </span>prototype = <span class="kw">if let </span><span class="prelude-val">Some</span>(obj) = prototype.as_object() {
-            obj
-        } <span class="kw">else </span>{
-            <span class="comment">// 5. If Type(P) is not Object, throw a TypeError exception.
-            </span><span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
+        <span class="comment">// 5. If Type(P) is not Object, throw a TypeError exception.
+        </span><span class="kw">let </span>prototype = prototype.as_object().ok_or_else(|| {
+            JsNativeError::typ()
                 .with_message(<span class="string">&quot;function has non-object prototype in instanceof check&quot;</span>)
-                .into());
-        };
+        })<span class="question-mark">?</span>;
 
         <span class="comment">// 6. Repeat,
         </span><span class="kw">loop </span>{

@@ -1366,8 +1366,6 @@
 <span id="1364">1364</span>
 <span id="1365">1365</span>
 <span id="1366">1366</span>
-<span id="1367">1367</span>
-<span id="1368">1368</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `Object` object.
 //!
 //! The `Object` class represents one of JavaScript&#39;s data types.
@@ -2005,9 +2003,7 @@
             }
         };
 
-        <span class="kw">let </span>obj = <span class="kw">if let </span><span class="prelude-val">Some</span>(obj) = o.as_object() {
-            obj
-        } <span class="kw">else </span>{
+        <span class="kw">let </span><span class="prelude-val">Some</span>(obj) = o.as_object() <span class="kw">else </span>{
             <span class="comment">// 3. If Type(O) is not Object, return O.
             </span><span class="kw">return </span><span class="prelude-val">Ok</span>(o);
         };

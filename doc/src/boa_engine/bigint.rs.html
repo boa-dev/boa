@@ -451,9 +451,6 @@
 <span id="449">449</span>
 <span id="450">450</span>
 <span id="451">451</span>
-<span id="452">452</span>
-<span id="453">453</span>
-<span id="454">454</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the JavaScript bigint primitive rust type.
 
 </span><span class="kw">use crate</span>::{builtins::Number, error::JsNativeError, JsResult};
@@ -605,13 +602,10 @@
 
     <span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>pow(x: <span class="kw-2">&amp;</span><span class="self">Self</span>, y: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
-        <span class="kw">let </span>y = <span class="kw">if let </span><span class="prelude-val">Some</span>(y) = y.inner.to_biguint() {
-            y
-        } <span class="kw">else </span>{
-            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::range()
-                .with_message(<span class="string">&quot;BigInt negative exponent&quot;</span>)
-                .into());
-        };
+        <span class="kw">let </span>y = y
+            .inner
+            .to_biguint()
+            .ok_or_else(|| JsNativeError::range().with_message(<span class="string">&quot;BigInt negative exponent&quot;</span>))<span class="question-mark">?</span>;
 
         <span class="kw">let </span>num_bits = (x.inner.bits() <span class="kw">as </span>f64
             * y.to_f64().expect(<span class="string">&quot;Unable to convert from BigUInt to f64&quot;</span>))

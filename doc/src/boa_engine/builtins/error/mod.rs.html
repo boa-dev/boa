@@ -212,10 +212,6 @@
 <span id="210">210</span>
 <span id="211">211</span>
 <span id="212">212</span>
-<span id="213">213</span>
-<span id="214">214</span>
-<span id="215">215</span>
-<span id="216">216</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `Error` object.
 //!
 //! Error objects are thrown when runtime errors occur.
@@ -388,14 +384,10 @@
         context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let O be the this value.
-        </span><span class="kw">let </span>o = <span class="kw">if let </span><span class="prelude-val">Some</span>(o) = this.as_object() {
-            o
-        <span class="comment">// 2. If Type(O) is not Object, throw a TypeError exception.
-        </span>} <span class="kw">else </span>{
-            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(<span class="string">&quot;&#39;this&#39; is not an Object&quot;</span>)
-                .into());
-        };
+        // 2. If Type(O) is not Object, throw a TypeError exception.
+        </span><span class="kw">let </span>o = this
+            .as_object()
+            .ok_or_else(|| JsNativeError::typ().with_message(<span class="string">&quot;&#39;this&#39; is not an Object&quot;</span>))<span class="question-mark">?</span>;
 
         <span class="comment">// 3. Let name be ? Get(O, &quot;name&quot;).
         </span><span class="kw">let </span>name = o.get(<span class="macro">js_string!</span>(<span class="string">&quot;name&quot;</span>), context)<span class="question-mark">?</span>;

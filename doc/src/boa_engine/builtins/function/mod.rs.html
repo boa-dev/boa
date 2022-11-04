@@ -1061,12 +1061,6 @@
 <span id="1059">1059</span>
 <span id="1060">1060</span>
 <span id="1061">1061</span>
-<span id="1062">1062</span>
-<span id="1063">1063</span>
-<span id="1064">1064</span>
-<span id="1065">1065</span>
-<span id="1066">1066</span>
-<span id="1067">1067</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `Function` object as well as creates Native Functions.
 //!
 //! Objects wrap `Function`s and expose them via call/construct slots.
@@ -1910,15 +1904,9 @@
             }
         };
 
-        <span class="kw">let </span>name = <span class="kw">if let </span><span class="prelude-val">Some</span>(name) = name {
-            <span class="kw">if </span>name.is_empty() {
-                <span class="string">&quot;anonymous&quot;</span>.into()
-            } <span class="kw">else </span>{
-                name
-            }
-        } <span class="kw">else </span>{
-            <span class="string">&quot;anonymous&quot;</span>.into()
-        };
+        <span class="kw">let </span>name = name
+            .filter(|n| !n.is_empty())
+            .unwrap_or_else(|| <span class="string">&quot;anonymous&quot;</span>.into());
 
         <span class="kw">match </span>function {
             Function::Native { .. } | Function::Closure { .. } | Function::Ordinary { .. } =&gt; {

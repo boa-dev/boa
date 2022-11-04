@@ -564,9 +564,6 @@
 <span id="562">562</span>
 <span id="563">563</span>
 <span id="564">564</span>
-<span id="565">565</span>
-<span id="566">566</span>
-<span id="567">567</span>
 </pre><pre class="rust"><code><span class="kw">mod </span>async_from_sync_iterator;
 
 <span class="kw">use crate</span>::{
@@ -922,13 +919,9 @@
 
         <span class="comment">// Note: We check if iteratorRecord.[[NextMethod]] is callable here.
         // This check would happen in `Call` according to the spec, but we do not implement call for `JsValue`.
-        </span><span class="kw">let </span>next_method = <span class="kw">if let </span><span class="prelude-val">Some</span>(next_method) = <span class="self">self</span>.next_method.as_callable() {
-            next_method
-        } <span class="kw">else </span>{
-            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(<span class="string">&quot;iterable next method not a function&quot;</span>)
-                .into());
-        };
+        </span><span class="kw">let </span>next_method = <span class="self">self</span>.next_method.as_callable().ok_or_else(|| {
+            JsNativeError::typ().with_message(<span class="string">&quot;iterable next method not a function&quot;</span>)
+        })<span class="question-mark">?</span>;
 
         <span class="kw">let </span>result = <span class="kw">if let </span><span class="prelude-val">Some</span>(value) = value {
             <span class="comment">// 2. Else,
@@ -942,13 +935,14 @@
 
         <span class="comment">// 3. If Type(result) is not Object, throw a TypeError exception.
         // 4. Return result.
-        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(o) = result.as_object() {
-            <span class="prelude-val">Ok</span>(IteratorResult { object: o.clone() })
-        } <span class="kw">else </span>{
-            <span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(<span class="string">&quot;next value should be an object&quot;</span>)
-                .into())
-        }
+        </span>result
+            .as_object()
+            .map(|o| IteratorResult { object: o.clone() })
+            .ok_or_else(|| {
+                JsNativeError::typ()
+                    .with_message(<span class="string">&quot;next value should be an object&quot;</span>)
+                    .into()
+            })
     }
 
     <span class="doccomment">/// `IteratorStep ( iteratorRecord )`

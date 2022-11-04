@@ -823,26 +823,6 @@
 <span id="821">821</span>
 <span id="822">822</span>
 <span id="823">823</span>
-<span id="824">824</span>
-<span id="825">825</span>
-<span id="826">826</span>
-<span id="827">827</span>
-<span id="828">828</span>
-<span id="829">829</span>
-<span id="830">830</span>
-<span id="831">831</span>
-<span id="832">832</span>
-<span id="833">833</span>
-<span id="834">834</span>
-<span id="835">835</span>
-<span id="836">836</span>
-<span id="837">837</span>
-<span id="838">838</span>
-<span id="839">839</span>
-<span id="840">840</span>
-<span id="841">841</span>
-<span id="842">842</span>
-<span id="843">843</span>
 </pre><pre class="rust"><code><span class="attribute">#[cfg(test)]
 </span><span class="kw">mod </span>tests;
 
@@ -993,33 +973,25 @@
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[ArrayBufferData]]).
-        </span><span class="kw">let </span>obj = <span class="kw">if let </span><span class="prelude-val">Some</span>(obj) = this.as_object() {
-            obj
-        } <span class="kw">else </span>{
-            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(<span class="string">&quot;ArrayBuffer.byteLength called with non-object value&quot;</span>)
-                .into());
-        };
+        </span><span class="kw">let </span>obj = this.as_object().ok_or_else(|| {
+            JsNativeError::typ().with_message(<span class="string">&quot;ArrayBuffer.byteLength called with non-object value&quot;</span>)
+        })<span class="question-mark">?</span>;
         <span class="kw">let </span>obj = obj.borrow();
-        <span class="kw">let </span>o = <span class="kw">if let </span><span class="prelude-val">Some</span>(o) = obj.as_array_buffer() {
-            o
-        } <span class="kw">else </span>{
-            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(<span class="string">&quot;ArrayBuffer.byteLength called with invalid object&quot;</span>)
-                .into());
-        };
+        <span class="kw">let </span>buf = obj.as_array_buffer().ok_or_else(|| {
+            JsNativeError::typ().with_message(<span class="string">&quot;ArrayBuffer.byteLength called with invalid object&quot;</span>)
+        })<span class="question-mark">?</span>;
 
         <span class="comment">// TODO: Shared Array Buffer
         // 3. If IsSharedArrayBuffer(O) is true, throw a TypeError exception.
 
         // 4. If IsDetachedBuffer(O) is true, return +0𝔽.
-        </span><span class="kw">if </span><span class="self">Self</span>::is_detached_buffer(o) {
+        </span><span class="kw">if </span><span class="self">Self</span>::is_detached_buffer(buf) {
             <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="number">0</span>.into());
         }
 
         <span class="comment">// 5. Let length be O.[[ArrayBufferByteLength]].
         // 6. Return 𝔽(length).
-        </span><span class="prelude-val">Ok</span>(o.array_buffer_byte_length.into())
+        </span><span class="prelude-val">Ok</span>(buf.array_buffer_byte_length.into())
     }
 
     <span class="doccomment">/// `25.1.5.3 ArrayBuffer.prototype.slice ( start, end )`
@@ -1031,34 +1003,26 @@
     </span><span class="kw">fn </span>slice(this: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[ArrayBufferData]]).
-        </span><span class="kw">let </span>obj = <span class="kw">if let </span><span class="prelude-val">Some</span>(obj) = this.as_object() {
-            obj
-        } <span class="kw">else </span>{
-            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(<span class="string">&quot;ArrayBuffer.slice called with non-object value&quot;</span>)
-                .into());
-        };
+        </span><span class="kw">let </span>obj = this.as_object().ok_or_else(|| {
+            JsNativeError::typ().with_message(<span class="string">&quot;ArrayBuffer.slice called with non-object value&quot;</span>)
+        })<span class="question-mark">?</span>;
         <span class="kw">let </span>obj_borrow = obj.borrow();
-        <span class="kw">let </span>o = <span class="kw">if let </span><span class="prelude-val">Some</span>(o) = obj_borrow.as_array_buffer() {
-            o
-        } <span class="kw">else </span>{
-            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(<span class="string">&quot;ArrayBuffer.slice called with invalid object&quot;</span>)
-                .into());
-        };
+        <span class="kw">let </span>buf = obj_borrow.as_array_buffer().ok_or_else(|| {
+            JsNativeError::typ().with_message(<span class="string">&quot;ArrayBuffer.slice called with invalid object&quot;</span>)
+        })<span class="question-mark">?</span>;
 
         <span class="comment">// TODO: Shared Array Buffer
         // 3. If IsSharedArrayBuffer(O) is true, throw a TypeError exception.
 
         // 4. If IsDetachedBuffer(O) is true, throw a TypeError exception.
-        </span><span class="kw">if </span><span class="self">Self</span>::is_detached_buffer(o) {
+        </span><span class="kw">if </span><span class="self">Self</span>::is_detached_buffer(buf) {
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
                 .with_message(<span class="string">&quot;ArrayBuffer.slice called with detached buffer&quot;</span>)
                 .into());
         }
 
         <span class="comment">// 5. Let len be O.[[ArrayBufferByteLength]].
-        </span><span class="kw">let </span>len = o.array_buffer_byte_length <span class="kw">as </span>i64;
+        </span><span class="kw">let </span>len = buf.array_buffer_byte_length <span class="kw">as </span>i64;
 
         <span class="comment">// 6. Let relativeStart be ? ToIntegerOrInfinity(start).
         </span><span class="kw">let </span>relative_start = args.get_or_undefined(<span class="number">0</span>).to_integer_or_infinity(context)<span class="question-mark">?</span>;
@@ -1143,14 +1107,14 @@
 
             <span class="comment">// 22. NOTE: Side-effects of the above steps may have detached O.
             // 23. If IsDetachedBuffer(O) is true, throw a TypeError exception.
-            </span><span class="kw">if </span><span class="self">Self</span>::is_detached_buffer(o) {
+            </span><span class="kw">if </span><span class="self">Self</span>::is_detached_buffer(buf) {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
                     .with_message(<span class="string">&quot;ArrayBuffer detached while ArrayBuffer.slice was running&quot;</span>)
                     .into());
             }
 
             <span class="comment">// 24. Let fromBuf be O.[[ArrayBufferData]].
-            </span><span class="kw">let </span>from_buf = o
+            </span><span class="kw">let </span>from_buf = buf
                 .array_buffer_data
                 .as_ref()
                 .expect(<span class="string">&quot;ArrayBuffer cannot be detached here&quot;</span>);
@@ -1234,13 +1198,9 @@
 
         <span class="comment">// 2. If IsDetachedBuffer(srcBuffer) is true, throw a TypeError exception.
         // 3. Let srcBlock be srcBuffer.[[ArrayBufferData]].
-        </span><span class="kw">let </span>src_block = <span class="kw">if let </span><span class="prelude-val">Some</span>(b) = <span class="kw-2">&amp;</span><span class="self">self</span>.array_buffer_data {
-            b
-        } <span class="kw">else </span>{
-            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::syntax()
-                .with_message(<span class="string">&quot;Cannot clone detached array buffer&quot;</span>)
-                .into());
-        };
+        </span><span class="kw">let </span>src_block = <span class="self">self</span>.array_buffer_data.as_deref().ok_or_else(|| {
+            JsNativeError::syntax().with_message(<span class="string">&quot;Cannot clone detached array buffer&quot;</span>)
+        })<span class="question-mark">?</span>;
 
         {
             <span class="comment">// 4. Let targetBlock be targetBuffer.[[ArrayBufferData]].

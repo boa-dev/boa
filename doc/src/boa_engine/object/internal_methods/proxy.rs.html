@@ -1015,32 +1015,6 @@
 <span id="1013">1013</span>
 <span id="1014">1014</span>
 <span id="1015">1015</span>
-<span id="1016">1016</span>
-<span id="1017">1017</span>
-<span id="1018">1018</span>
-<span id="1019">1019</span>
-<span id="1020">1020</span>
-<span id="1021">1021</span>
-<span id="1022">1022</span>
-<span id="1023">1023</span>
-<span id="1024">1024</span>
-<span id="1025">1025</span>
-<span id="1026">1026</span>
-<span id="1027">1027</span>
-<span id="1028">1028</span>
-<span id="1029">1029</span>
-<span id="1030">1030</span>
-<span id="1031">1031</span>
-<span id="1032">1032</span>
-<span id="1033">1033</span>
-<span id="1034">1034</span>
-<span id="1035">1035</span>
-<span id="1036">1036</span>
-<span id="1037">1037</span>
-<span id="1038">1038</span>
-<span id="1039">1039</span>
-<span id="1040">1040</span>
-<span id="1041">1041</span>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     builtins::{array, object::Object},
     error::JsNativeError,
@@ -1108,11 +1082,9 @@
         .try_data()<span class="question-mark">?</span>;
 
     <span class="comment">// 5. Let trap be ? GetMethod(handler, &quot;getPrototypeOf&quot;).
-    </span><span class="kw">let </span>trap = <span class="kw">if let </span><span class="prelude-val">Some</span>(trap) = handler.get_method(<span class="string">&quot;getPrototypeOf&quot;</span>, context)<span class="question-mark">? </span>{
-        trap
-    <span class="comment">// 6. If trap is undefined, then
-    </span>} <span class="kw">else </span>{
-        <span class="comment">// a. Return ? target.[[GetPrototypeOf]]().
+    </span><span class="kw">let </span><span class="prelude-val">Some</span>(trap) = handler.get_method(<span class="string">&quot;getPrototypeOf&quot;</span>, context)<span class="question-mark">? </span><span class="kw">else </span>{
+        <span class="comment">// 6. If trap is undefined, then
+        // a. Return ? target.[[GetPrototypeOf]]().
         </span><span class="kw">return </span>target.__get_prototype_of__(context);
     };
 
@@ -1173,11 +1145,9 @@
         .try_data()<span class="question-mark">?</span>;
 
     <span class="comment">// 5. Let trap be ? GetMethod(handler, &quot;setPrototypeOf&quot;).
-    </span><span class="kw">let </span>trap = <span class="kw">if let </span><span class="prelude-val">Some</span>(trap) = handler.get_method(<span class="string">&quot;setPrototypeOf&quot;</span>, context)<span class="question-mark">? </span>{
-        trap
-    <span class="comment">// 6. If trap is undefined, then
-    </span>} <span class="kw">else </span>{
-        <span class="comment">// a. Return ? target.[[SetPrototypeOf]](V).
+    </span><span class="kw">let </span><span class="prelude-val">Some</span>(trap) = handler.get_method(<span class="string">&quot;setPrototypeOf&quot;</span>, context)<span class="question-mark">? </span><span class="kw">else </span>{
+        <span class="comment">// 6. If trap is undefined, then
+        // a. Return ? target.[[SetPrototypeOf]](V).
         </span><span class="kw">return </span>target.__set_prototype_of__(val, context);
     };
 
@@ -1236,11 +1206,9 @@
         .try_data()<span class="question-mark">?</span>;
 
     <span class="comment">// 5. Let trap be ? GetMethod(handler, &quot;isExtensible&quot;).
-    </span><span class="kw">let </span>trap = <span class="kw">if let </span><span class="prelude-val">Some</span>(trap) = handler.get_method(<span class="string">&quot;isExtensible&quot;</span>, context)<span class="question-mark">? </span>{
-        trap
-    <span class="comment">// 6. If trap is undefined, then
-    </span>} <span class="kw">else </span>{
-        <span class="comment">// a. Return ? IsExtensible(target).
+    </span><span class="kw">let </span><span class="prelude-val">Some</span>(trap) = handler.get_method(<span class="string">&quot;isExtensible&quot;</span>, context)<span class="question-mark">? </span><span class="kw">else </span>{
+        <span class="comment">// 6. If trap is undefined, then
+        // a. Return ? IsExtensible(target).
         </span><span class="kw">return </span>target.is_extensible(context);
     };
 
@@ -1285,11 +1253,9 @@
         .try_data()<span class="question-mark">?</span>;
 
     <span class="comment">// 5. Let trap be ? GetMethod(handler, &quot;preventExtensions&quot;).
-    </span><span class="kw">let </span>trap = <span class="kw">if let </span><span class="prelude-val">Some</span>(trap) = handler.get_method(<span class="string">&quot;preventExtensions&quot;</span>, context)<span class="question-mark">? </span>{
-        trap
-    <span class="comment">// 6. If trap is undefined, then
-    </span>} <span class="kw">else </span>{
-        <span class="comment">// a. Return ? target.[[PreventExtensions]]().
+    </span><span class="kw">let </span><span class="prelude-val">Some</span>(trap) = handler.get_method(<span class="string">&quot;preventExtensions&quot;</span>, context)<span class="question-mark">? </span><span class="kw">else </span>{
+        <span class="comment">// 6. If trap is undefined, then
+        // a. Return ? target.[[PreventExtensions]]().
         </span><span class="kw">return </span>target.__prevent_extensions__(context);
     };
 
@@ -1334,11 +1300,9 @@
         .try_data()<span class="question-mark">?</span>;
 
     <span class="comment">// 5. Let trap be ? GetMethod(handler, &quot;getOwnPropertyDescriptor&quot;).
-    </span><span class="kw">let </span>trap = <span class="kw">if let </span><span class="prelude-val">Some</span>(trap) = handler.get_method(<span class="string">&quot;getOwnPropertyDescriptor&quot;</span>, context)<span class="question-mark">? </span>{
-        trap
-    <span class="comment">// 6. If trap is undefined, then
-    </span>} <span class="kw">else </span>{
-        <span class="comment">// a. Return ? target.[[GetOwnProperty]](P).
+    </span><span class="kw">let </span><span class="prelude-val">Some</span>(trap) = handler.get_method(<span class="string">&quot;getOwnPropertyDescriptor&quot;</span>, context)<span class="question-mark">? </span><span class="kw">else </span>{
+        <span class="comment">// 6. If trap is undefined, then
+        // a. Return ? target.[[GetOwnProperty]](P).
         </span><span class="kw">return </span>target.__get_own_property__(key, context);
     };
 
@@ -1461,11 +1425,9 @@
         .try_data()<span class="question-mark">?</span>;
 
     <span class="comment">// 5. Let trap be ? GetMethod(handler, &quot;defineProperty&quot;).
-    </span><span class="kw">let </span>trap = <span class="kw">if let </span><span class="prelude-val">Some</span>(trap) = handler.get_method(<span class="string">&quot;defineProperty&quot;</span>, context)<span class="question-mark">? </span>{
-        trap
-    <span class="comment">// 6. If trap is undefined, then
-    </span>} <span class="kw">else </span>{
-        <span class="comment">// a. Return ? target.[[DefineOwnProperty]](P, Desc).
+    </span><span class="kw">let </span><span class="prelude-val">Some</span>(trap) = handler.get_method(<span class="string">&quot;defineProperty&quot;</span>, context)<span class="question-mark">? </span><span class="kw">else </span>{
+        <span class="comment">// 6. If trap is undefined, then
+        // a. Return ? target.[[DefineOwnProperty]](P, Desc).
         </span><span class="kw">return </span>target.__define_own_property__(key, desc, context);
     };
 
@@ -1575,11 +1537,9 @@
         .try_data()<span class="question-mark">?</span>;
 
     <span class="comment">// 5. Let trap be ? GetMethod(handler, &quot;has&quot;).
-    </span><span class="kw">let </span>trap = <span class="kw">if let </span><span class="prelude-val">Some</span>(trap) = handler.get_method(<span class="string">&quot;has&quot;</span>, context)<span class="question-mark">? </span>{
-        trap
-    <span class="comment">// 6. If trap is undefined, then
-    </span>} <span class="kw">else </span>{
-        <span class="comment">// a. Return ? target.[[HasProperty]](P).
+    </span><span class="kw">let </span><span class="prelude-val">Some</span>(trap) = handler.get_method(<span class="string">&quot;has&quot;</span>, context)<span class="question-mark">? </span><span class="kw">else </span>{
+        <span class="comment">// 6. If trap is undefined, then
+        // a. Return ? target.[[HasProperty]](P).
         </span><span class="kw">return </span>target.has_property(key.clone(), context);
     };
 
@@ -1644,11 +1604,9 @@
         .try_data()<span class="question-mark">?</span>;
 
     <span class="comment">// 5. Let trap be ? GetMethod(handler, &quot;get&quot;).
-    </span><span class="kw">let </span>trap = <span class="kw">if let </span><span class="prelude-val">Some</span>(trap) = handler.get_method(<span class="string">&quot;get&quot;</span>, context)<span class="question-mark">? </span>{
-        trap
-    <span class="comment">// 6. If trap is undefined, then
-    </span>} <span class="kw">else </span>{
-        <span class="comment">// a. Return ? target.[[Get]](P, Receiver).
+    </span><span class="kw">let </span><span class="prelude-val">Some</span>(trap) = handler.get_method(<span class="string">&quot;get&quot;</span>, context)<span class="question-mark">? </span><span class="kw">else </span>{
+        <span class="comment">// 6. If trap is undefined, then
+        // a. Return ? target.[[Get]](P, Receiver).
         </span><span class="kw">return </span>target.__get__(key, receiver, context);
     };
 
@@ -1716,11 +1674,9 @@
         .try_data()<span class="question-mark">?</span>;
 
     <span class="comment">// 5. Let trap be ? GetMethod(handler, &quot;set&quot;).
-    </span><span class="kw">let </span>trap = <span class="kw">if let </span><span class="prelude-val">Some</span>(trap) = handler.get_method(<span class="string">&quot;set&quot;</span>, context)<span class="question-mark">? </span>{
-        trap
-    <span class="comment">// 6. If trap is undefined, then
-    </span>} <span class="kw">else </span>{
-        <span class="comment">// a. Return ? target.[[Set]](P, V, Receiver).
+    </span><span class="kw">let </span><span class="prelude-val">Some</span>(trap) = handler.get_method(<span class="string">&quot;set&quot;</span>, context)<span class="question-mark">? </span><span class="kw">else </span>{
+        <span class="comment">// 6. If trap is undefined, then
+        // a. Return ? target.[[Set]](P, V, Receiver).
         </span><span class="kw">return </span>target.__set__(key, value, receiver, context);
     };
 
@@ -1800,11 +1756,9 @@
         .try_data()<span class="question-mark">?</span>;
 
     <span class="comment">// 5. Let trap be ? GetMethod(handler, &quot;deleteProperty&quot;).
-    </span><span class="kw">let </span>trap = <span class="kw">if let </span><span class="prelude-val">Some</span>(trap) = handler.get_method(<span class="string">&quot;deleteProperty&quot;</span>, context)<span class="question-mark">? </span>{
-        trap
-    <span class="comment">// 6. If trap is undefined, then
-    </span>} <span class="kw">else </span>{
-        <span class="comment">// a. Return ? target.[[Delete]](P).
+    </span><span class="kw">let </span><span class="prelude-val">Some</span>(trap) = handler.get_method(<span class="string">&quot;deleteProperty&quot;</span>, context)<span class="question-mark">? </span><span class="kw">else </span>{
+        <span class="comment">// 6. If trap is undefined, then
+        // a. Return ? target.[[Delete]](P).
         </span><span class="kw">return </span>target.__delete__(key, context);
     };
 
@@ -1869,11 +1823,9 @@
         .try_data()<span class="question-mark">?</span>;
 
     <span class="comment">// 5. Let trap be ? GetMethod(handler, &quot;ownKeys&quot;).
-    </span><span class="kw">let </span>trap = <span class="kw">if let </span><span class="prelude-val">Some</span>(trap) = handler.get_method(<span class="string">&quot;ownKeys&quot;</span>, context)<span class="question-mark">? </span>{
-        trap
-    <span class="comment">// 6. If trap is undefined, then
-    </span>} <span class="kw">else </span>{
-        <span class="comment">// a. Return ? target.[[OwnPropertyKeys]]().
+    </span><span class="kw">let </span><span class="prelude-val">Some</span>(trap) = handler.get_method(<span class="string">&quot;ownKeys&quot;</span>, context)<span class="question-mark">? </span><span class="kw">else </span>{
+        <span class="comment">// 6. If trap is undefined, then
+        // a. Return ? target.[[OwnPropertyKeys]]().
         </span><span class="kw">return </span>target.__own_property_keys__(context);
     };
 
@@ -2007,11 +1959,9 @@
         .try_data()<span class="question-mark">?</span>;
 
     <span class="comment">// 5. Let trap be ? GetMethod(handler, &quot;apply&quot;).
-    </span><span class="kw">let </span>trap = <span class="kw">if let </span><span class="prelude-val">Some</span>(trap) = handler.get_method(<span class="string">&quot;apply&quot;</span>, context)<span class="question-mark">? </span>{
-        trap
-    <span class="comment">// 6. If trap is undefined, then
-    </span>} <span class="kw">else </span>{
-        <span class="comment">// a. Return ? Call(target, thisArgument, argumentsList).
+    </span><span class="kw">let </span><span class="prelude-val">Some</span>(trap) = handler.get_method(<span class="string">&quot;apply&quot;</span>, context)<span class="question-mark">? </span><span class="kw">else </span>{
+        <span class="comment">// 6. If trap is undefined, then
+        // a. Return ? Call(target, thisArgument, argumentsList).
         </span><span class="kw">return </span>target.call(this, args, context);
     };
 
@@ -2052,11 +2002,9 @@
     </span><span class="macro">assert!</span>(target.is_constructor());
 
     <span class="comment">// 6. Let trap be ? GetMethod(handler, &quot;construct&quot;).
-    </span><span class="kw">let </span>trap = <span class="kw">if let </span><span class="prelude-val">Some</span>(trap) = handler.get_method(<span class="string">&quot;construct&quot;</span>, context)<span class="question-mark">? </span>{
-        trap
-    <span class="comment">// 7. If trap is undefined, then
-    </span>} <span class="kw">else </span>{
-        <span class="comment">// a. Return ? Construct(target, argumentsList, newTarget).
+    </span><span class="kw">let </span><span class="prelude-val">Some</span>(trap) = handler.get_method(<span class="string">&quot;construct&quot;</span>, context)<span class="question-mark">? </span><span class="kw">else </span>{
+        <span class="comment">// 7. If trap is undefined, then
+        // a. Return ? Construct(target, argumentsList, newTarget).
         </span><span class="kw">return </span>target.construct(args, <span class="prelude-val">Some</span>(new_target), context);
     };
 

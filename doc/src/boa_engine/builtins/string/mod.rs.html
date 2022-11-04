@@ -2308,8 +2308,6 @@
 <span id="2306">2306</span>
 <span id="2307">2307</span>
 <span id="2308">2308</span>
-<span id="2309">2309</span>
-<span id="2310">2310</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `String` object.
 //!
 //! The `String` global object is a constructor for strings or a sequence of characters.
@@ -3264,9 +3262,7 @@
 
         <span class="comment">// 8. Let position be ! StringIndexOf(string, searchString, 0).
         // 9. If position is -1, return string.
-        </span><span class="kw">let </span>position = <span class="kw">if let </span><span class="prelude-val">Some</span>(p) = this_str.index_of(<span class="kw-2">&amp;</span>search_str, <span class="number">0</span>) {
-            p
-        } <span class="kw">else </span>{
+        </span><span class="kw">let </span><span class="prelude-val">Some</span>(position) = this_str.index_of(<span class="kw-2">&amp;</span>search_str, <span class="number">0</span>) <span class="kw">else </span>{
             <span class="kw">return </span><span class="prelude-val">Ok</span>(this_str.into());
         };
 

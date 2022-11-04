@@ -496,8 +496,6 @@
 <span id="494">494</span>
 <span id="495">495</span>
 <span id="496">496</span>
-<span id="497">497</span>
-<span id="498">498</span>
 </pre><pre class="rust"><code><span class="doccomment">//! URI Handling Functions
 //!
 //! Uniform Resource Identifiers, or URIs, are Strings that identify resources (e.g. web pages or
@@ -753,9 +751,7 @@
             </span><span class="kw">let </span>cp = string.code_point_at(k);
 
             <span class="comment">// ii. If cp.[[IsUnpairedSurrogate]] is true, throw a URIError exception.
-            </span><span class="kw">let </span>ch = <span class="kw">if let </span>CodePoint::Unicode(ch) = cp {
-                ch
-            } <span class="kw">else </span>{
+            </span><span class="kw">let </span>CodePoint::Unicode(ch) = cp <span class="kw">else </span>{
                 <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::uri()
                     .with_message(<span class="string">&quot;trying to encode an invalid string&quot;</span>)
                     .into());

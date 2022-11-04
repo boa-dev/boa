@@ -72,12 +72,6 @@
 <span id="70">70</span>
 <span id="71">71</span>
 <span id="72">72</span>
-<span id="73">73</span>
-<span id="74">74</span>
-<span id="75">75</span>
-<span id="76">76</span>
-<span id="77">77</span>
-<span id="78">78</span>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     builtins::iterable::IteratorResult,
     error::JsNativeError,
@@ -103,13 +97,9 @@
             .as_boolean()
             .expect(<span class="string">&quot;iterator [[Done]] was not a boolean&quot;</span>);
         <span class="kw">let </span>next_method = context.vm.pop();
-        <span class="kw">let </span>next_method_object = <span class="kw">if let </span><span class="prelude-val">Some</span>(object) = next_method.as_callable() {
-            object
-        } <span class="kw">else </span>{
-            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(<span class="string">&quot;iterable next method not a function&quot;</span>)
-                .into());
-        };
+        <span class="kw">let </span>next_method_object = next_method.as_callable().ok_or_else(|| {
+            JsNativeError::typ().with_message(<span class="string">&quot;iterable next method not a function&quot;</span>)
+        })<span class="question-mark">?</span>;
         <span class="kw">let </span>iterator = context.vm.pop();
         <span class="kw">let </span>next_result = next_method_object.call(<span class="kw-2">&amp;</span>iterator, <span class="kw-2">&amp;</span>[], context)<span class="question-mark">?</span>;
         context.vm.push(iterator);
@@ -134,13 +124,11 @@
         <span class="kw">let </span>address = context.vm.read::&lt;u32&gt;();
 
         <span class="kw">let </span>next_result = context.vm.pop();
-        <span class="kw">let </span>next_result = <span class="kw">if let </span><span class="prelude-val">Some</span>(next_result) = next_result.as_object() {
-            IteratorResult::new(next_result.clone())
-        } <span class="kw">else </span>{
-            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(<span class="string">&quot;next value should be an object&quot;</span>)
-                .into());
-        };
+        <span class="kw">let </span>next_result = next_result
+            .as_object()
+            .cloned()
+            .map(IteratorResult::new)
+            .ok_or_else(|| JsNativeError::typ().with_message(<span class="string">&quot;next value should be an object&quot;</span>))<span class="question-mark">?</span>;
 
         <span class="kw">if </span>next_result.complete(context)<span class="question-mark">? </span>{
             context.vm.frame_mut().pc = address <span class="kw">as </span>usize;

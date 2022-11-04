@@ -225,10 +225,6 @@
 <span id="223">223</span>
 <span id="224">224</span>
 <span id="225">225</span>
-<span id="226">226</span>
-<span id="227">227</span>
-<span id="228">228</span>
-<span id="229">229</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Hoistable declaration parsing.
 //!
 //! More information:
@@ -374,24 +370,20 @@
     cursor: <span class="kw-2">&amp;mut </span>Cursor&lt;R&gt;,
     interner: <span class="kw-2">&amp;mut </span>Interner,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;(Identifier, FormalParameterList, StatementList), ParseError&gt; {
-    <span class="kw">let </span>next_token = cursor.peek(<span class="number">0</span>, interner)<span class="question-mark">?</span>;
-    <span class="kw">let </span>name = <span class="kw">if let </span><span class="prelude-val">Some</span>(token) = next_token {
-        <span class="kw">match </span>token.kind() {
-            TokenKind::Punctuator(Punctuator::OpenParen) =&gt; {
-                <span class="kw">if </span>!c.is_default() {
-                    <span class="kw">return </span><span class="prelude-val">Err</span>(ParseError::unexpected(
-                        token.to_string(interner),
-                        token.span(),
-                        c.error_context(),
-                    ));
-                }
-                Sym::DEFAULT.into()
+    <span class="kw">let </span>next_token = cursor.peek(<span class="number">0</span>, interner)<span class="question-mark">?</span>.ok_or(ParseError::AbruptEnd)<span class="question-mark">?</span>;
+    <span class="kw">let </span>name = <span class="kw">match </span>next_token.kind() {
+        TokenKind::Punctuator(Punctuator::OpenParen) =&gt; {
+            <span class="kw">if </span>!c.is_default() {
+                <span class="kw">return </span><span class="prelude-val">Err</span>(ParseError::unexpected(
+                    next_token.to_string(interner),
+                    next_token.span(),
+                    c.error_context(),
+                ));
             }
-            <span class="kw">_ </span>=&gt; BindingIdentifier::new(c.name_allow_yield(), c.name_allow_await())
-                .parse(cursor, interner)<span class="question-mark">?</span>,
+            Sym::DEFAULT.into()
         }
-    } <span class="kw">else </span>{
-        <span class="kw">return </span><span class="prelude-val">Err</span>(ParseError::AbruptEnd);
+        <span class="kw">_ </span>=&gt; BindingIdentifier::new(c.name_allow_yield(), c.name_allow_await())
+            .parse(cursor, interner)<span class="question-mark">?</span>,
     };
 
     <span class="comment">// Early Error: If BindingIdentifier is present and the source code matching BindingIdentifier is strict mode code,

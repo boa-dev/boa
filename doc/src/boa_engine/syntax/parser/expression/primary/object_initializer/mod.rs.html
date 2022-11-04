@@ -988,10 +988,6 @@
 <span id="986">986</span>
 <span id="987">987</span>
 <span id="988">988</span>
-<span id="989">989</span>
-<span id="990">990</span>
-<span id="991">991</span>
-<span id="992">992</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Object initializer parsing.
 //!
 //! More information:
@@ -1210,11 +1206,7 @@
                 <span class="kw">let </span>(class_element_name, method) =
                     AsyncMethod::new(<span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await).parse(cursor, interner)<span class="question-mark">?</span>;
 
-                <span class="kw">let </span>property_name = <span class="kw">if let </span>property::ClassElementName::PropertyName(property_name) =
-                    class_element_name
-                {
-                    property_name
-                } <span class="kw">else </span>{
+                <span class="kw">let </span>property::ClassElementName::PropertyName(property_name) = class_element_name <span class="kw">else </span>{
                     <span class="kw">return </span><span class="prelude-val">Err</span>(ParseError::general(
                         <span class="string">&quot;private identifiers not allowed in object literal&quot;</span>,
                         position,
