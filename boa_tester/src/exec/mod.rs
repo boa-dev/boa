@@ -244,22 +244,22 @@ impl Test {
                             JsNativeErrorKind::Type if error_type == ErrorType::TypeError => {}
                             _ => return (false, format!("Uncaught {e}")),
                         }
-                    } else if !e
-                        .as_opaque()
-                        .expect("try_native cannot fail if e is not opaque")
-                        .as_object()
-                        .and_then(|o| o.get("constructor", &mut context).ok())
-                        .as_ref()
-                        .and_then(JsValue::as_object)
-                        .and_then(|o| o.get("name", &mut context).ok())
-                        .as_ref()
-                        .and_then(JsValue::as_string)
-                        .map(|s| s == error_type.as_str())
-                        .unwrap_or_default()
-                    {
-                        return (false, format!("Uncaught {e}"));
-                    };
-                    (true, format!("Uncaught {e}"))
+                        (true, format!("Uncaught {e}"))
+                    } else {
+                        let passed = e
+                            .as_opaque()
+                            .expect("try_native cannot fail if e is not opaque")
+                            .as_object()
+                            .and_then(|o| o.get("constructor", &mut context).ok())
+                            .as_ref()
+                            .and_then(JsValue::as_object)
+                            .and_then(|o| o.get("name", &mut context).ok())
+                            .as_ref()
+                            .and_then(JsValue::as_string)
+                            .map(|s| s == error_type.as_str())
+                            .unwrap_or_default();
+                        (passed, format!("Uncaught {e}"))
+                    }
                 }
             });
 
