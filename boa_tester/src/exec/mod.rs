@@ -380,12 +380,13 @@ impl Test {
     }
 
     /// Registers the print function in the context.
-    fn register_print_fn(context: &mut Context, helper: AsyncResult) {
+    fn register_print_fn(context: &mut Context, async_result: AsyncResult) {
         // We use `FunctionBuilder` to define a closure with additional captures.
-        let js_function = FunctionBuilder::closure_with_captures(context, test262_print, helper)
-            .name("print")
-            .length(1)
-            .build();
+        let js_function =
+            FunctionBuilder::closure_with_captures(context, test262_print, async_result)
+                .name("print")
+                .length(1)
+                .build();
 
         context.register_global_property(
             "print",
