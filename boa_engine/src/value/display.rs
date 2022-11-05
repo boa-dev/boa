@@ -1,6 +1,9 @@
 use std::borrow::Cow;
 
-use crate::{builtins::promise::PromiseState, js_string, object::ObjectKind, JsError, JsString};
+use crate::{
+    builtins::promise::PromiseState, js_string, object::ObjectKind, property::PropertyDescriptor,
+    JsError, JsString,
+};
 
 use super::{fmt, Display, HashSet, JsValue, PropertyKey};
 
@@ -198,24 +201,36 @@ pub(crate) fn log_string_from(x: &JsValue, print_internals: bool, print_children
                     }
                 }
                 ObjectKind::Error(_) => {
-                    let name = v
+                    let name: Cow<'static, str> = v
                         .get_property(&"name".into())
-                        .and_then(|desc| {
-                            desc.value()
-                                .and_then(JsValue::as_string)
-                                .map(JsString::to_std_string_escaped)
-                        })
-                        .unwrap_or_else(|| "<error>".into());
+                        .as_ref()
+                        .and_then(PropertyDescriptor::value)
+                        .map_or_else(
+                            || "<error>".into(),
+                            |v| {
+                                v.as_string()
+                                    .map_or_else(
+                                        || v.display().to_string(),
+                                        JsString::to_std_string_escaped,
+                                    )
+                                    .into()
+                            },
+                        );
                     let message = v
                         .get_property(&"message".into())
-                        .and_then(|desc| {
-                            desc.value()
-                                .and_then(JsValue::as_string)
-                                .map(JsString::to_std_string_escaped)
+                        .as_ref()
+                        .and_then(PropertyDescriptor::value)
+                        .map(|v| {
+                            v.as_string().map_or_else(
+                                || v.display().to_string(),
+                                JsString::to_std_string_escaped,
+                            )
                         })
                         .unwrap_or_default();
-                    if message.is_empty() {
-                        name
+                    if name.is_empty() {
+                        message
+                    } else if message.is_empty() {
+                        name.to_string()
                     } else {
                         format!("{name}: {message}")
                     }
