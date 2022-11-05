@@ -6,6 +6,7 @@ keywords = ["javascript", "js", "garbage", "memory"]
 edition = "2021"
 
 [lib]
+name = "boa_gc_macros"
 proc-macro = true
 
 [dependencies]

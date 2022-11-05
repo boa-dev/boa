@@ -103,6 +103,7 @@ impl GcBoxHeader {
     }
 }
 
+// NOTE: [repr(C)] is most likely unneeded here, but will keep it for now
 /// The GcBox represents a box on `BoaGc`'s heap. The GcBox's creation and allocation is handled
 /// by the allocator
 #[repr(C)]

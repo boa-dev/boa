@@ -1,5 +1,5 @@
 use crate::{prelude::JsObject, Context, JsResult, JsValue};
-use gc::{Finalize, Trace};
+use boa_gc::{Finalize, Trace};
 
 /// `JobCallback` records
 ///

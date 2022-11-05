@@ -1,25 +1,18 @@
 //! Garbage collector for the Boa JavaScript engine.
-
 use std::cell::{Cell as StdCell, RefCell as StdRefCell};
 use std::mem;
 use std::ptr::NonNull;
 
-pub use boa_gc_macros::{Finalize, Trace};
-
-/// `gc_derive` is a general derive prelude import
-pub mod derive_prelude {
-    pub use crate::GcPointer;
-    pub use boa_gc_macros::{Finalize, Trace};
-}
-
 mod gc_box;
 mod internals;
-pub mod pointers;
+mod pointers;
 pub mod trace;
+
+pub use boa_gc_macros::{Trace, Finalize};
 
 pub use crate::trace::{Finalize, Trace};
 pub(crate) use gc_box::GcBox;
-pub use internals::{Ephemeron, GcCell as Cell, GcCellRef as CellRef};
+pub use internals::{Ephemeron, GcCell as Cell, GcCellRef as Ref, GcCellRefMut as RefMut};
 pub use pointers::{Gc, WeakGc, WeakPair};
 
 pub type GcPointer = NonNull<GcBox<dyn Trace>>;

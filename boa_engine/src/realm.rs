@@ -8,7 +8,7 @@ use crate::{
     environments::{CompileTimeEnvironment, DeclarativeEnvironmentStack},
     object::{GlobalPropertyMap, JsObject, JsPrototype, ObjectData, PropertyMap},
 };
-use boa_gc::{Cell, Gc};
+use boa_gc::{BoaAlloc, Cell, Gc};
 use boa_profiler::Profiler;
 
 /// Representation of a Realm.
@@ -33,7 +33,7 @@ impl Realm {
         // Allow identification of the global object easily
         let global_object = JsObject::from_proto_and_data(None, ObjectData::global());
 
-        let global_compile_environment = Gc::new(Cell::new(CompileTimeEnvironment::new_global()));
+        let global_compile_environment = BoaAlloc::new_cell(CompileTimeEnvironment::new_global());
 
         Self {
             global_object,

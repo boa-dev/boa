@@ -24,7 +24,7 @@ use crate::{
     Context, JsResult, JsString, JsValue,
 };
 use boa_ast::{expression::Identifier, function::FormalParameterList};
-use boa_gc::{Cell, Finalize, Gc, Trace};
+use boa_gc::{BoaAlloc, Cell, Finalize, Gc, Trace};
 use boa_interner::{Interner, Sym, ToInternedString};
 use boa_profiler::Profiler;
 use std::{collections::VecDeque, convert::TryInto, mem::size_of};
@@ -1098,11 +1098,11 @@ impl JsObject {
                     prototype,
                     ObjectData::generator(Generator {
                         state: GeneratorState::SuspendedStart,
-                        context: Some(Gc::new(Cell::new(GeneratorContext {
+                        context: Some(BoaAlloc::new_cell(GeneratorContext {
                             environments,
                             call_frame,
                             stack,
-                        }))),
+                        })),
                     }),
                 );
 
@@ -1241,11 +1241,11 @@ impl JsObject {
                     prototype,
                     ObjectData::async_generator(AsyncGenerator {
                         state: AsyncGeneratorState::SuspendedStart,
-                        context: Some(Gc::new(Cell::new(GeneratorContext {
+                        context: Some(BoaAlloc::new_cell(GeneratorContext {
                             environments,
                             call_frame,
                             stack,
-                        }))),
+                        })),
                         queue: VecDeque::new(),
                     }),
                 );

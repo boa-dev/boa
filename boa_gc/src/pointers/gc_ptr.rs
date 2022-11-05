@@ -7,6 +7,7 @@ use std::ops::Deref;
 use std::ptr::{self, NonNull};
 use std::rc::Rc;
 
+use crate::BoaAlloc;
 use crate::gc_box::GcBox;
 use crate::{
     finalizer_safe,
@@ -168,6 +169,13 @@ impl<T: Trace + ?Sized> Drop for Gc<T> {
                 self.inner().unroot_inner();
             }
         }
+    }
+}
+
+impl<T: Trace + Default> Default for Gc<T> {
+    #[inline]
+    fn default() -> Self {
+        BoaAlloc::new(Default::default())
     }
 }
 

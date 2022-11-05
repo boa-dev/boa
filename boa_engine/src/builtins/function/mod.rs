@@ -34,7 +34,7 @@ use boa_ast::{
     operations::{bound_names, contains, lexically_declared_names, ContainsSymbol},
     StatementList,
 };
-use boa_gc::{self, custom_trace, Finalize, Gc, Trace};
+use boa_gc::{self, custom_trace, Finalize, Gc, Trace, BoaAlloc};
 use boa_interner::Sym;
 use boa_parser::Parser;
 use boa_profiler::Profiler;
@@ -186,7 +186,7 @@ impl Captures {
     where
         T: NativeObject,
     {
-        Self(Gc::new(boa_gc::Cell::new(Box::new(captures))))
+        Self(BoaAlloc::new_cell(Box::new(captures)))
     }
 
     /// Casts `Captures` to `Any`

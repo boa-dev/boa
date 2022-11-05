@@ -25,7 +25,7 @@ use crate::{
 };
 
 use boa_ast::StatementList;
-use boa_gc::Gc;
+use boa_gc::{Gc, BoaAlloc};
 use boa_interner::{Interner, Sym};
 use boa_parser::{Error as ParseError, Parser};
 use boa_profiler::Profiler;
@@ -473,7 +473,7 @@ impl Context {
         let mut compiler = ByteCompiler::new(Sym::MAIN, statement_list.strict(), self);
         compiler.create_decls(statement_list, false);
         compiler.compile_statement_list(statement_list, true, false)?;
-        Ok(Gc::new(compiler.finish()))
+        Ok(BoaAlloc::new(compiler.finish()))
     }
 
     /// Compile the AST into a `CodeBlock` with an additional declarative environment.
@@ -486,7 +486,7 @@ impl Context {
         let _timer = Profiler::global().start_event("Compilation", "Main");
         let mut compiler = ByteCompiler::new(Sym::MAIN, statement_list.strict(), self);
         compiler.compile_statement_list_with_new_declarative(statement_list, true, strict)?;
-        Ok(Gc::new(compiler.finish()))
+        Ok(BoaAlloc::new(compiler.finish()))
     }
 
     /// Call the VM with a `CodeBlock` and return the result.

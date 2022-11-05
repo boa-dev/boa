@@ -10,7 +10,7 @@ use crate::{
     value::PreferredType,
     Context, JsResult, JsValue,
 };
-use boa_gc::{self, Finalize, Gc, Trace};
+use boa_gc::{self, BoaAlloc, Finalize, Gc, Trace};
 use rustc_hash::FxHashMap;
 use std::{
     cell::RefCell,
@@ -37,7 +37,7 @@ impl JsObject {
     #[inline]
     fn from_object(object: Object) -> Self {
         Self {
-            inner: Gc::new(boa_gc::Cell::new(object)),
+            inner: BoaAlloc::new_cell(object),
         }
     }
 
