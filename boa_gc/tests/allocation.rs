@@ -2,7 +2,7 @@ use boa_gc::{force_collect, BoaAlloc, GcTester};
 
 #[test]
 fn gc_basic_cell_allocation() {
-    let gc_cell = BoaAlloc::new_cell(16 as u16);
+    let gc_cell = BoaAlloc::new_cell(16_u16);
 
     force_collect();
     GcTester::assert_collections(1);
@@ -12,7 +12,7 @@ fn gc_basic_cell_allocation() {
 
 #[test]
 fn gc_basic_pointer_alloc() {
-    let gc = BoaAlloc::new(16 as u8);
+    let gc = BoaAlloc::new(16_u8);
 
     force_collect();
     GcTester::assert_collections(1);

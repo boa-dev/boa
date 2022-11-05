@@ -12,7 +12,7 @@ use boa_engine::{
     builtins::JsArgs, object::FunctionBuilder, property::Attribute, Context, JsNativeErrorKind,
     JsResult, JsValue,
 };
-use boa_gc::{Cell, Finalize, Gc, Trace};
+use boa_gc::{BoaAlloc, Cell, Finalize, Gc, Trace};
 use boa_parser::Parser;
 use colored::Colorize;
 use rayon::prelude::*;
@@ -406,7 +406,7 @@ struct AsyncResult {
 impl Default for AsyncResult {
     fn default() -> Self {
         Self {
-            inner: Gc::new(Cell::new(Ok(()))),
+            inner: BoaAlloc::new_cell(Ok(())),
         }
     }
 }
