@@ -406,47 +406,6 @@
 <span id="404">404</span>
 <span id="405">405</span>
 <span id="406">406</span>
-<span id="407">407</span>
-<span id="408">408</span>
-<span id="409">409</span>
-<span id="410">410</span>
-<span id="411">411</span>
-<span id="412">412</span>
-<span id="413">413</span>
-<span id="414">414</span>
-<span id="415">415</span>
-<span id="416">416</span>
-<span id="417">417</span>
-<span id="418">418</span>
-<span id="419">419</span>
-<span id="420">420</span>
-<span id="421">421</span>
-<span id="422">422</span>
-<span id="423">423</span>
-<span id="424">424</span>
-<span id="425">425</span>
-<span id="426">426</span>
-<span id="427">427</span>
-<span id="428">428</span>
-<span id="429">429</span>
-<span id="430">430</span>
-<span id="431">431</span>
-<span id="432">432</span>
-<span id="433">433</span>
-<span id="434">434</span>
-<span id="435">435</span>
-<span id="436">436</span>
-<span id="437">437</span>
-<span id="438">438</span>
-<span id="439">439</span>
-<span id="440">440</span>
-<span id="441">441</span>
-<span id="442">442</span>
-<span id="443">443</span>
-<span id="444">444</span>
-<span id="445">445</span>
-<span id="446">446</span>
-<span id="447">447</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa parser implementation.
 
 </span><span class="kw">mod </span>cursor;
@@ -469,10 +428,10 @@
             function::{FormalParameters, FunctionStatementList},
         },
     },
-    Context, JsString,
+    Context,
 };
 <span class="kw">use </span>boa_interner::Interner;
-<span class="kw">use </span>rustc_hash::{FxHashMap, FxHashSet};
+<span class="kw">use </span>rustc_hash::FxHashSet;
 <span class="kw">use </span>std::io::Read;
 
 <span class="kw">pub use </span><span class="self">self</span>::error::{ParseError, ParseResult};
@@ -480,7 +439,10 @@
 <span class="kw">use </span>boa_ast::{
     expression::Identifier,
     function::FormalParameterList,
-    operations::{contains, contains_arguments, ContainsSymbol},
+    operations::{
+        contains, contains_arguments, top_level_lexically_declared_names,
+        top_level_var_declared_names, ContainsSymbol,
+    },
     Position, StatementList,
 };
 
@@ -755,59 +717,20 @@
 
                 <span class="comment">// It is a Syntax Error if the LexicallyDeclaredNames of ScriptBody contains any duplicate entries.
                 // It is a Syntax Error if any element of the LexicallyDeclaredNames of ScriptBody also occurs in the VarDeclaredNames of ScriptBody.
-                </span><span class="kw">let </span><span class="kw-2">mut </span>var_declared_names = FxHashSet::default();
-                statement_list.var_declared_names(<span class="kw-2">&amp;mut </span>var_declared_names);
-                <span class="kw">let </span>lexically_declared_names = statement_list.lexically_declared_names();
-                <span class="kw">let </span><span class="kw-2">mut </span>lexically_declared_names_map: FxHashMap&lt;Identifier, bool&gt; =
-                    FxHashMap::default();
-                <span class="kw">for </span>(name, is_function_declaration) <span class="kw">in </span><span class="kw-2">&amp;</span>lexically_declared_names {
-                    <span class="kw">if let </span><span class="prelude-val">Some</span>(existing_is_function_declaration) =
-                        lexically_declared_names_map.get(name)
-                    {
-                        <span class="kw">if </span>!(<span class="kw-2">*</span>is_function_declaration &amp;&amp; <span class="kw-2">*</span>existing_is_function_declaration) {
-                            <span class="kw">return </span><span class="prelude-val">Err</span>(ParseError::general(
-                                <span class="string">&quot;lexical name declared multiple times&quot;</span>,
-                                Position::new(<span class="number">1</span>, <span class="number">1</span>),
-                            ));
-                        }
-                    }
-                    lexically_declared_names_map.insert(<span class="kw-2">*</span>name, <span class="kw-2">*</span>is_function_declaration);
-
-                    <span class="kw">if </span>!is_function_declaration &amp;&amp; var_declared_names.contains(name) {
-                        <span class="kw">return </span><span class="prelude-val">Err</span>(ParseError::general(
-                            <span class="string">&quot;lexical name declared in var names&quot;</span>,
-                            Position::new(<span class="number">1</span>, <span class="number">1</span>),
-                        ));
-                    }
-                    <span class="kw">if </span>context.has_binding(<span class="kw-2">*</span>name) {
+                </span><span class="kw">let </span><span class="kw-2">mut </span>lexical_names = FxHashSet::default();
+                <span class="kw">for </span>name <span class="kw">in </span>top_level_lexically_declared_names(<span class="kw-2">&amp;</span>statement_list) {
+                    <span class="kw">if </span>!lexical_names.insert(name) {
                         <span class="kw">return </span><span class="prelude-val">Err</span>(ParseError::general(
                             <span class="string">&quot;lexical name declared multiple times&quot;</span>,
                             Position::new(<span class="number">1</span>, <span class="number">1</span>),
                         ));
                     }
-                    <span class="kw">if </span>!is_function_declaration {
-                        <span class="kw">let </span>name_str = context.interner().resolve_expect(name.sym());
-                        <span class="kw">let </span>desc = context
-                            .realm
-                            .global_property_map
-                            .string_property_map()
-                            .get(<span class="kw-2">&amp;</span>name_str.into_common::&lt;JsString&gt;(<span class="bool-val">false</span>));
-                        <span class="kw">let </span>non_configurable_binding_exists = <span class="kw">match </span>desc {
-                            <span class="prelude-val">Some</span>(desc) =&gt; !<span class="macro">matches!</span>(desc.configurable(), <span class="prelude-val">Some</span>(<span class="bool-val">true</span>)),
-                            <span class="prelude-val">None </span>=&gt; <span class="bool-val">false</span>,
-                        };
-                        <span class="kw">if </span>non_configurable_binding_exists {
-                            <span class="kw">return </span><span class="prelude-val">Err</span>(ParseError::general(
-                                <span class="string">&quot;lexical name declared in var names&quot;</span>,
-                                Position::new(<span class="number">1</span>, <span class="number">1</span>),
-                            ));
-                        }
-                    }
                 }
-                <span class="kw">for </span>name <span class="kw">in </span>var_declared_names {
-                    <span class="kw">if </span>context.has_binding(name) {
+
+                <span class="kw">for </span>name <span class="kw">in </span>top_level_var_declared_names(<span class="kw-2">&amp;</span>statement_list) {
+                    <span class="kw">if </span>lexical_names.contains(<span class="kw-2">&amp;</span>name) {
                         <span class="kw">return </span><span class="prelude-val">Err</span>(ParseError::general(
-                            <span class="string">&quot;lexical name declared in var names&quot;</span>,
+                            <span class="string">&quot;lexical name declared multiple times&quot;</span>,
                             Position::new(<span class="number">1</span>, <span class="number">1</span>),
                         ));
                     }
@@ -849,26 +772,23 @@
             .parse(cursor, interner)<span class="question-mark">?</span>;
 
         <span class="kw">if </span>!<span class="self">self</span>.direct_eval {
-            <span class="kw">for </span>node <span class="kw">in </span>body.statements() {
-                <span class="comment">// It is a Syntax Error if StatementList Contains super unless the source text containing super is eval
-                // code that is being processed by a direct eval.
-                // Additional early error rules for super within direct eval are defined in 19.2.1.1.
-                </span><span class="kw">if </span>contains(node, ContainsSymbol::Super) {
-                    <span class="kw">return </span><span class="prelude-val">Err</span>(ParseError::general(
-                        <span class="string">&quot;invalid super usage&quot;</span>,
-                        Position::new(<span class="number">1</span>, <span class="number">1</span>),
-                    ));
-                }
-
-                <span class="comment">// It is a Syntax Error if StatementList Contains NewTarget unless the source text containing NewTarget
-                // is eval code that is being processed by a direct eval.
-                // Additional early error rules for NewTarget in direct eval are defined in 19.2.1.1.
-                </span><span class="kw">if </span>contains(node, ContainsSymbol::NewTarget) {
-                    <span class="kw">return </span><span class="prelude-val">Err</span>(ParseError::general(
-                        <span class="string">&quot;invalid new.target usage&quot;</span>,
-                        Position::new(<span class="number">1</span>, <span class="number">1</span>),
-                    ));
-                }
+            <span class="comment">// It is a Syntax Error if StatementList Contains super unless the source text containing super is eval
+            // code that is being processed by a direct eval.
+            // Additional early error rules for super within direct eval are defined in 19.2.1.1.
+            </span><span class="kw">if </span>contains(<span class="kw-2">&amp;</span>body, ContainsSymbol::Super) {
+                <span class="kw">return </span><span class="prelude-val">Err</span>(ParseError::general(
+                    <span class="string">&quot;invalid super usage&quot;</span>,
+                    Position::new(<span class="number">1</span>, <span class="number">1</span>),
+                ));
+            }
+            <span class="comment">// It is a Syntax Error if StatementList Contains NewTarget unless the source text containing NewTarget
+            // is eval code that is being processed by a direct eval.
+            // Additional early error rules for NewTarget in direct eval are defined in 19.2.1.1.
+            </span><span class="kw">if </span>contains(<span class="kw-2">&amp;</span>body, ContainsSymbol::NewTarget) {
+                <span class="kw">return </span><span class="prelude-val">Err</span>(ParseError::general(
+                    <span class="string">&quot;invalid new.target usage&quot;</span>,
+                    Position::new(<span class="number">1</span>, <span class="number">1</span>),
+                ));
             }
         }
 
@@ -878,18 +798,16 @@
 
 <span class="doccomment">/// Helper to check if any parameter names are declared in the given list.
 </span><span class="kw">fn </span>name_in_lexically_declared_names(
-    parameter_list: <span class="kw-2">&amp;</span>FormalParameterList,
-    names: <span class="kw-2">&amp;</span>[Identifier],
+    bound_names: <span class="kw-2">&amp;</span>[Identifier],
+    lexical_names: <span class="kw-2">&amp;</span>[Identifier],
     position: Position,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;(), ParseError&gt; {
-    <span class="kw">for </span>parameter <span class="kw">in </span>parameter_list.as_ref() {
-        <span class="kw">for </span>name <span class="kw">in </span><span class="kw-2">&amp;</span>parameter.names() {
-            <span class="kw">if </span>names.contains(name) {
-                <span class="kw">return </span><span class="prelude-val">Err</span>(ParseError::General {
-                    message: <span class="string">&quot;formal parameter declared in lexically declared names&quot;</span>,
-                    position,
-                });
-            }
+    <span class="kw">for </span>name <span class="kw">in </span>bound_names {
+        <span class="kw">if </span>lexical_names.contains(name) {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(ParseError::General {
+                message: <span class="string">&quot;formal parameter declared in lexically declared names&quot;</span>,
+                position,
+            });
         }
     }
     <span class="prelude-val">Ok</span>(())

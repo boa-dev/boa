@@ -220,15 +220,6 @@
 <span id="218">218</span>
 <span id="219">219</span>
 <span id="220">220</span>
-<span id="221">221</span>
-<span id="222">222</span>
-<span id="223">223</span>
-<span id="224">224</span>
-<span id="225">225</span>
-<span id="226">226</span>
-<span id="227">227</span>
-<span id="228">228</span>
-<span id="229">229</span>
 </pre><pre class="rust"><code><span class="attribute">#[cfg(test)]
 </span><span class="kw">mod </span>tests;
 
@@ -239,12 +230,11 @@
         Cursor, ParseError, ParseResult, TokenParser,
     },
 };
-<span class="kw">use </span>boa_ast::{
-    <span class="self">self </span><span class="kw">as </span>ast, expression::Identifier, statement, statement::Switch, Keyword, Punctuator,
-};
+<span class="kw">use </span>ast::operations::{lexically_declared_names_legacy, var_declared_names};
+<span class="kw">use </span>boa_ast::{<span class="self">self </span><span class="kw">as </span>ast, statement, statement::Switch, Keyword, Punctuator};
 <span class="kw">use </span>boa_interner::Interner;
 <span class="kw">use </span>boa_profiler::Profiler;
-<span class="kw">use </span>rustc_hash::{FxHashMap, FxHashSet};
+<span class="kw">use </span>rustc_hash::FxHashMap;
 <span class="kw">use </span>std::io::Read;
 
 <span class="doccomment">/// The possible `TokenKind` which indicate the end of a case statement.
@@ -301,11 +291,48 @@
 
         cursor.expect(Punctuator::CloseParen, <span class="string">&quot;switch statement&quot;</span>, interner)<span class="question-mark">?</span>;
 
+        <span class="kw">let </span>position = cursor
+            .peek(<span class="number">0</span>, interner)<span class="question-mark">?
+            </span>.ok_or(ParseError::AbruptEnd)<span class="question-mark">?
+            </span>.span()
+            .start();
+
         <span class="kw">let </span>(cases, default) =
             CaseBlock::new(<span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await, <span class="self">self</span>.allow_return)
                 .parse(cursor, interner)<span class="question-mark">?</span>;
 
-        <span class="prelude-val">Ok</span>(Switch::new(condition, cases, default))
+        <span class="kw">let </span>switch = Switch::new(condition, cases, default);
+
+        <span class="comment">// It is a Syntax Error if the LexicallyDeclaredNames of CaseBlock contains any duplicate
+        // entries, unless the source text matched by this production is not strict mode code and the
+        // duplicate entries are only bound by FunctionDeclarations.
+        </span><span class="kw">let </span><span class="kw-2">mut </span>lexical_names = FxHashMap::default();
+        <span class="kw">for </span>(name, is_fn) <span class="kw">in </span>lexically_declared_names_legacy(<span class="kw-2">&amp;</span>switch) {
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(is_fn_previous) = lexical_names.insert(name, is_fn) {
+                <span class="kw">match </span>(cursor.strict_mode(), is_fn, is_fn_previous) {
+                    (<span class="bool-val">false</span>, <span class="bool-val">true</span>, <span class="bool-val">true</span>) =&gt; {}
+                    <span class="kw">_ </span>=&gt; {
+                        <span class="kw">return </span><span class="prelude-val">Err</span>(ParseError::general(
+                            <span class="string">&quot;lexical name declared multiple times&quot;</span>,
+                            position,
+                        ));
+                    }
+                }
+            }
+        }
+
+        <span class="comment">// It is a Syntax Error if any element of the LexicallyDeclaredNames of CaseBlock also occurs
+        // in the VarDeclaredNames of CaseBlock.
+        </span><span class="kw">for </span>name <span class="kw">in </span>var_declared_names(<span class="kw-2">&amp;</span>switch) {
+            <span class="kw">if </span>lexical_names.contains_key(<span class="kw-2">&amp;</span>name) {
+                <span class="kw">return </span><span class="prelude-val">Err</span>(ParseError::general(
+                    <span class="string">&quot;lexical name declared in var declared names&quot;</span>,
+                    position,
+                ));
+            }
+        }
+
+        <span class="prelude-val">Ok</span>(switch)
     }
 }
 
@@ -350,11 +377,6 @@
         <span class="kw">let </span><span class="kw-2">mut </span>cases = Vec::new();
         <span class="kw">let </span><span class="kw-2">mut </span>default = <span class="prelude-val">None</span>;
 
-        <span class="kw">let </span>position = cursor
-            .peek(<span class="number">0</span>, interner)<span class="question-mark">?
-            </span>.ok_or(ParseError::AbruptEnd)<span class="question-mark">?
-            </span>.span()
-            .start();
         <span class="kw">loop </span>{
             <span class="kw">let </span>token = cursor.next(interner)<span class="question-mark">?</span>.ok_or(ParseError::AbruptEnd)<span class="question-mark">?</span>;
             <span class="kw">match </span>token.kind() {
@@ -412,46 +434,6 @@
                         <span class="string">&quot;switch case block&quot;</span>,
                     ))
                 }
-            }
-        }
-
-        <span class="comment">// It is a Syntax Error if the LexicallyDeclaredNames of CaseBlock contains any duplicate entries.
-        // It is a Syntax Error if any element of the LexicallyDeclaredNames of CaseBlock also occurs in the VarDeclaredNames of CaseBlock.
-        </span><span class="kw">let </span><span class="kw-2">mut </span>lexically_declared_names = Vec::new();
-        <span class="kw">let </span><span class="kw-2">mut </span>var_declared_names = FxHashSet::default();
-        <span class="kw">for </span>case <span class="kw">in </span><span class="kw-2">&amp;</span>cases {
-            lexically_declared_names.extend(case.body().lexically_declared_names());
-
-            case.body().var_declared_names(<span class="kw-2">&amp;mut </span>var_declared_names);
-        }
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(default_clause) = <span class="kw-2">&amp;</span>default {
-            lexically_declared_names.extend(default_clause.lexically_declared_names());
-
-            default_clause.var_declared_names(<span class="kw-2">&amp;mut </span>var_declared_names);
-        }
-
-        <span class="kw">let </span><span class="kw-2">mut </span>lexically_declared_names_map: FxHashMap&lt;Identifier, bool&gt; = FxHashMap::default();
-        <span class="kw">for </span>(name, is_function_declaration) <span class="kw">in </span><span class="kw-2">&amp;</span>lexically_declared_names {
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(existing_is_function_declaration) = lexically_declared_names_map.get(name) {
-                <span class="kw">if </span>!(!cursor.strict_mode()
-                    &amp;&amp; <span class="kw-2">*</span>is_function_declaration
-                    &amp;&amp; <span class="kw-2">*</span>existing_is_function_declaration)
-                {
-                    <span class="kw">return </span><span class="prelude-val">Err</span>(ParseError::general(
-                        <span class="string">&quot;lexical name declared multiple times&quot;</span>,
-                        position,
-                    ));
-                }
-            }
-            lexically_declared_names_map.insert(<span class="kw-2">*</span>name, <span class="kw-2">*</span>is_function_declaration);
-        }
-
-        <span class="kw">for </span>(name, <span class="kw">_</span>) <span class="kw">in </span><span class="kw-2">&amp;</span>lexically_declared_names {
-            <span class="kw">if </span>var_declared_names.contains(name) {
-                <span class="kw">return </span><span class="prelude-val">Err</span>(ParseError::general(
-                    <span class="string">&quot;lexical name declared in var declared names&quot;</span>,
-                    position,
-                ));
             }
         }
 

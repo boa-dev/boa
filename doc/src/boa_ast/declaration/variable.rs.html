@@ -382,22 +382,6 @@
 <span id="382">382</span>
 <span id="383">383</span>
 <span id="384">384</span>
-<span id="385">385</span>
-<span id="386">386</span>
-<span id="387">387</span>
-<span id="388">388</span>
-<span id="389">389</span>
-<span id="390">390</span>
-<span id="391">391</span>
-<span id="392">392</span>
-<span id="393">393</span>
-<span id="394">394</span>
-<span id="395">395</span>
-<span id="396">396</span>
-<span id="397">397</span>
-<span id="398">398</span>
-<span id="399">399</span>
-<span id="400">400</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Variable related declarations.
 
 </span><span class="kw">use </span>core::ops::ControlFlow;
@@ -699,12 +683,6 @@
     </span><span class="kw">pub fn </span>init(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Expression&gt; {
         <span class="self">self</span>.init.as_ref()
     }
-
-    <span class="doccomment">/// Gets the list of declared identifiers.
-    </span><span class="attribute">#[must_use]
-    </span><span class="kw">pub fn </span>idents(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;Identifier&gt; {
-        <span class="self">self</span>.binding.idents()
-    }
 }
 
 <span class="kw">impl </span>VisitWith <span class="kw">for </span>Variable {
@@ -755,16 +733,6 @@
 <span class="kw">impl </span>From&lt;Pattern&gt; <span class="kw">for </span>Binding {
     <span class="kw">fn </span>from(pat: Pattern) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::Pattern(pat)
-    }
-}
-
-<span class="kw">impl </span>Binding {
-    <span class="doccomment">/// Gets the list of declared identifiers.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>idents(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;Identifier&gt; {
-        <span class="kw">match </span><span class="self">self </span>{
-            Binding::Identifier(id) =&gt; <span class="macro">vec!</span>[<span class="kw-2">*</span>id],
-            Binding::Pattern(<span class="kw-2">ref </span>pat) =&gt; pat.idents(),
-        }
     }
 }
 

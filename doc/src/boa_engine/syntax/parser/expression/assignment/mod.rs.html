@@ -345,7 +345,7 @@
         ParseResult, TokenParser,
     },
 };
-<span class="kw">use </span>ast::operations::{contains, ContainsSymbol};
+<span class="kw">use </span>ast::operations::{bound_names, contains, top_level_lexically_declared_names, ContainsSymbol};
 <span class="kw">use </span>boa_ast::{
     <span class="self">self </span><span class="kw">as </span>ast,
     expression::{
@@ -561,8 +561,8 @@
             // also occurs in the LexicallyDeclaredNames of ConciseBody.
             // https://tc39.es/ecma262/#sec-arrow-function-definitions-static-semantics-early-errors
             </span>name_in_lexically_declared_names(
-                <span class="kw-2">&amp;</span>parameters,
-                <span class="kw-2">&amp;</span>body.lexically_declared_names_top_level(),
+                <span class="kw-2">&amp;</span>bound_names(<span class="kw-2">&amp;</span>parameters),
+                <span class="kw-2">&amp;</span>top_level_lexically_declared_names(<span class="kw-2">&amp;</span>body),
                 position,
             )<span class="question-mark">?</span>;
 

@@ -782,106 +782,6 @@
 <span id="782">782</span>
 <span id="783">783</span>
 <span id="784">784</span>
-<span id="785">785</span>
-<span id="786">786</span>
-<span id="787">787</span>
-<span id="788">788</span>
-<span id="789">789</span>
-<span id="790">790</span>
-<span id="791">791</span>
-<span id="792">792</span>
-<span id="793">793</span>
-<span id="794">794</span>
-<span id="795">795</span>
-<span id="796">796</span>
-<span id="797">797</span>
-<span id="798">798</span>
-<span id="799">799</span>
-<span id="800">800</span>
-<span id="801">801</span>
-<span id="802">802</span>
-<span id="803">803</span>
-<span id="804">804</span>
-<span id="805">805</span>
-<span id="806">806</span>
-<span id="807">807</span>
-<span id="808">808</span>
-<span id="809">809</span>
-<span id="810">810</span>
-<span id="811">811</span>
-<span id="812">812</span>
-<span id="813">813</span>
-<span id="814">814</span>
-<span id="815">815</span>
-<span id="816">816</span>
-<span id="817">817</span>
-<span id="818">818</span>
-<span id="819">819</span>
-<span id="820">820</span>
-<span id="821">821</span>
-<span id="822">822</span>
-<span id="823">823</span>
-<span id="824">824</span>
-<span id="825">825</span>
-<span id="826">826</span>
-<span id="827">827</span>
-<span id="828">828</span>
-<span id="829">829</span>
-<span id="830">830</span>
-<span id="831">831</span>
-<span id="832">832</span>
-<span id="833">833</span>
-<span id="834">834</span>
-<span id="835">835</span>
-<span id="836">836</span>
-<span id="837">837</span>
-<span id="838">838</span>
-<span id="839">839</span>
-<span id="840">840</span>
-<span id="841">841</span>
-<span id="842">842</span>
-<span id="843">843</span>
-<span id="844">844</span>
-<span id="845">845</span>
-<span id="846">846</span>
-<span id="847">847</span>
-<span id="848">848</span>
-<span id="849">849</span>
-<span id="850">850</span>
-<span id="851">851</span>
-<span id="852">852</span>
-<span id="853">853</span>
-<span id="854">854</span>
-<span id="855">855</span>
-<span id="856">856</span>
-<span id="857">857</span>
-<span id="858">858</span>
-<span id="859">859</span>
-<span id="860">860</span>
-<span id="861">861</span>
-<span id="862">862</span>
-<span id="863">863</span>
-<span id="864">864</span>
-<span id="865">865</span>
-<span id="866">866</span>
-<span id="867">867</span>
-<span id="868">868</span>
-<span id="869">869</span>
-<span id="870">870</span>
-<span id="871">871</span>
-<span id="872">872</span>
-<span id="873">873</span>
-<span id="874">874</span>
-<span id="875">875</span>
-<span id="876">876</span>
-<span id="877">877</span>
-<span id="878">878</span>
-<span id="879">879</span>
-<span id="880">880</span>
-<span id="881">881</span>
-<span id="882">882</span>
-<span id="883">883</span>
-<span id="884">884</span>
 </pre><pre class="rust"><code><span class="doccomment">//! A pattern binding or assignment node.
 //!
 //! A [`Pattern`] Corresponds to the [`BindingPattern`][spec1] and the [`AssignmentPattern`][spec2]
@@ -956,20 +856,6 @@
         <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self </span>{
             Pattern::Object(o) =&gt; o.to_interned_string(interner),
             Pattern::Array(a) =&gt; a.to_interned_string(interner),
-        }
-    }
-}
-
-<span class="kw">impl </span>Pattern {
-    <span class="doccomment">/// Gets the list of identifiers in the pattern.
-    ///
-    /// A single pattern may have 0 to n identifiers.
-    </span><span class="attribute">#[inline]
-    #[must_use]
-    </span><span class="kw">pub fn </span>idents(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;Identifier&gt; {
-        <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self </span>{
-            Pattern::Object(pattern) =&gt; pattern.idents(),
-            Pattern::Array(pattern) =&gt; pattern.idents(),
         }
     }
 }
@@ -1050,16 +936,6 @@
     </span><span class="kw">pub fn </span>bindings(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[ObjectPatternElement] {
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0
     </span>}
-
-    <span class="doccomment">/// Gets the list of identifiers declared by the object binding pattern.
-    </span><span class="attribute">#[inline]
-    #[must_use]
-    </span><span class="kw">pub fn </span>idents(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;Identifier&gt; {
-        <span class="self">self</span>.<span class="number">0
-            </span>.iter()
-            .flat_map(ObjectPatternElement::idents)
-            .collect()
-    }
 
     <span class="doccomment">/// Returns true if the object binding pattern has a rest element.
     </span><span class="attribute">#[inline]
@@ -1147,15 +1023,6 @@
     </span><span class="kw">pub fn </span>bindings(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[ArrayPatternElement] {
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0
     </span>}
-
-    <span class="doccomment">/// Gets the list of identifiers declared by the array binding pattern.
-    </span><span class="attribute">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>idents(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;Identifier&gt; {
-        <span class="self">self</span>.<span class="number">0
-            </span>.iter()
-            .flat_map(ArrayPatternElement::idents)
-            .collect()
-    }
 }
 
 <span class="kw">impl </span>VisitWith <span class="kw">for </span>ArrayPattern {
@@ -1278,26 +1145,6 @@
     },
 }
 
-<span class="kw">impl </span>ObjectPatternElement {
-    <span class="doccomment">/// Gets the list of identifiers declared by the object binding pattern.
-    </span><span class="attribute">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>idents(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;Identifier&gt; {
-        <span class="kw">match </span><span class="self">self </span>{
-            <span class="self">Self</span>::SingleName { ident, .. } | <span class="self">Self</span>::RestProperty { ident, .. } =&gt; {
-                <span class="macro">vec!</span>[<span class="kw-2">*</span>ident]
-            }
-            <span class="self">Self</span>::AssignmentPropertyAccess {
-                name: PropertyName::Literal(lit),
-                ..
-            } =&gt; {
-                <span class="macro">vec!</span>[(<span class="kw-2">*</span>lit).into()]
-            }
-            <span class="self">Self</span>::Pattern { pattern, .. } =&gt; pattern.idents(),
-            <span class="kw">_ </span>=&gt; Vec::new(),
-        }
-    }
-}
-
 <span class="kw">impl </span>ToInternedString <span class="kw">for </span>ObjectPatternElement {
     <span class="kw">fn </span>to_interned_string(<span class="kw-2">&amp;</span><span class="self">self</span>, interner: <span class="kw-2">&amp;</span>Interner) -&gt; String {
         <span class="kw">match </span><span class="self">self </span>{
@@ -1414,16 +1261,7 @@
                     ControlFlow::Continue(())
                 }
             }
-            ObjectPatternElement::RestProperty {
-                ident,
-                excluded_keys,
-            } =&gt; {
-                <span class="macro">try_break!</span>(visitor.visit_identifier(ident));
-                <span class="kw">for </span>key <span class="kw">in </span>excluded_keys {
-                    <span class="macro">try_break!</span>(visitor.visit_identifier(key));
-                }
-                ControlFlow::Continue(())
-            }
+            ObjectPatternElement::RestProperty { ident, .. } =&gt; visitor.visit_identifier(ident),
             ObjectPatternElement::AssignmentPropertyAccess {
                 name,
                 access,
@@ -1437,15 +1275,8 @@
                     ControlFlow::Continue(())
                 }
             }
-            ObjectPatternElement::AssignmentRestPropertyAccess {
-                access,
-                excluded_keys,
-            } =&gt; {
-                <span class="macro">try_break!</span>(visitor.visit_property_access(access));
-                <span class="kw">for </span>key <span class="kw">in </span>excluded_keys {
-                    <span class="macro">try_break!</span>(visitor.visit_identifier(key));
-                }
-                ControlFlow::Continue(())
+            ObjectPatternElement::AssignmentRestPropertyAccess { access, .. } =&gt; {
+                visitor.visit_property_access(access)
             }
             ObjectPatternElement::Pattern {
                 name,
@@ -1481,16 +1312,7 @@
                     ControlFlow::Continue(())
                 }
             }
-            ObjectPatternElement::RestProperty {
-                ident,
-                excluded_keys,
-            } =&gt; {
-                <span class="macro">try_break!</span>(visitor.visit_identifier_mut(ident));
-                <span class="kw">for </span>key <span class="kw">in </span>excluded_keys {
-                    <span class="macro">try_break!</span>(visitor.visit_identifier_mut(key));
-                }
-                ControlFlow::Continue(())
-            }
+            ObjectPatternElement::RestProperty { ident, .. } =&gt; visitor.visit_identifier_mut(ident),
             ObjectPatternElement::AssignmentPropertyAccess {
                 name,
                 access,
@@ -1504,15 +1326,8 @@
                     ControlFlow::Continue(())
                 }
             }
-            ObjectPatternElement::AssignmentRestPropertyAccess {
-                access,
-                excluded_keys,
-            } =&gt; {
-                <span class="macro">try_break!</span>(visitor.visit_property_access_mut(access));
-                <span class="kw">for </span>key <span class="kw">in </span>excluded_keys {
-                    <span class="macro">try_break!</span>(visitor.visit_identifier_mut(key));
-                }
-                ControlFlow::Continue(())
+            ObjectPatternElement::AssignmentRestPropertyAccess { access, .. } =&gt; {
+                visitor.visit_property_access_mut(access)
             }
             ObjectPatternElement::Pattern {
                 name,
@@ -1628,21 +1443,6 @@
         <span class="doccomment">/// The pattern where the unassigned index elements will be stored.
         </span>pattern: Pattern,
     },
-}
-
-<span class="kw">impl </span>ArrayPatternElement {
-    <span class="doccomment">/// Gets the list of identifiers in the array pattern element.
-    </span><span class="attribute">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>idents(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;Identifier&gt; {
-        <span class="kw">match </span><span class="self">self </span>{
-            <span class="self">Self</span>::SingleName { ident, .. } =&gt; {
-                <span class="macro">vec!</span>[<span class="kw-2">*</span>ident]
-            }
-            <span class="self">Self</span>::Pattern { pattern, .. } | <span class="self">Self</span>::PatternRest { pattern } =&gt; pattern.idents(),
-            <span class="self">Self</span>::SingleNameRest { ident } =&gt; <span class="macro">vec!</span>[<span class="kw-2">*</span>ident],
-            <span class="kw">_ </span>=&gt; Vec::new(),
-        }
-    }
 }
 
 <span class="kw">impl </span>ToInternedString <span class="kw">for </span>ArrayPatternElement {

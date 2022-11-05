@@ -1054,13 +1054,6 @@
 <span id="1052">1052</span>
 <span id="1053">1053</span>
 <span id="1054">1054</span>
-<span id="1055">1055</span>
-<span id="1056">1056</span>
-<span id="1057">1057</span>
-<span id="1058">1058</span>
-<span id="1059">1059</span>
-<span id="1060">1060</span>
-<span id="1061">1061</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `Function` object as well as creates Native Functions.
 //!
 //! Objects wrap `Function`s and expose them via call/construct slots.
@@ -1095,7 +1088,7 @@
 };
 <span class="kw">use </span>boa_ast::{
     function::FormalParameterList,
-    operations::{contains, ContainsSymbol},
+    operations::{bound_names, contains, lexically_declared_names, ContainsSymbol},
     StatementList,
 };
 <span class="kw">use </span>boa_gc::{<span class="self">self</span>, custom_trace, Finalize, Gc, Trace};
@@ -1636,13 +1629,11 @@
             <span class="comment">// Early Error: If BindingIdentifier is present and the source text matched by BindingIdentifier is strict mode code,
             // it is a Syntax Error if the StringValue of BindingIdentifier is &quot;eval&quot; or &quot;arguments&quot;.
             </span><span class="kw">if </span>body.strict() {
-                <span class="kw">for </span>parameter <span class="kw">in </span>parameters.as_ref() {
-                    <span class="kw">for </span>name <span class="kw">in </span>parameter.names() {
-                        <span class="kw">if </span>name == Sym::ARGUMENTS || name == Sym::EVAL {
-                            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::syntax()
-                                .with_message(<span class="string">&quot; Unexpected &#39;eval&#39; or &#39;arguments&#39; in strict mode&quot;</span>)
-                                .into());
-                        }
+                <span class="kw">for </span>name <span class="kw">in </span>bound_names(<span class="kw-2">&amp;</span>parameters) {
+                    <span class="kw">if </span>name == Sym::ARGUMENTS || name == Sym::EVAL {
+                        <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::syntax()
+                            .with_message(<span class="string">&quot; Unexpected &#39;eval&#39; or &#39;arguments&#39; in strict mode&quot;</span>)
+                            .into());
                     }
                 }
             }
@@ -1669,20 +1660,15 @@
             // also occurs in the LexicallyDeclaredNames of FunctionBody.
             // https://tc39.es/ecma262/#sec-function-definitions-static-semantics-early-errors
             </span>{
-                <span class="kw">let </span>lexically_declared_names = body.lexically_declared_names();
-                <span class="kw">for </span>param <span class="kw">in </span>parameters.as_ref() {
-                    <span class="kw">for </span>param_name <span class="kw">in </span>param.names() {
-                        <span class="kw">if </span>lexically_declared_names
-                            .iter()
-                            .any(|(name, <span class="kw">_</span>)| <span class="kw-2">*</span>name == param_name)
-                        {
-                            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::syntax()
-                                .with_message(<span class="macro">format!</span>(
-                                    <span class="string">&quot;Redeclaration of formal parameter `{}`&quot;</span>,
-                                    context.interner().resolve_expect(param_name.sym())
-                                ))
-                                .into());
-                        }
+                <span class="kw">let </span>lexically_declared_names = lexically_declared_names(<span class="kw-2">&amp;</span>body);
+                <span class="kw">for </span>name <span class="kw">in </span>bound_names(<span class="kw-2">&amp;</span>parameters) {
+                    <span class="kw">if </span>lexically_declared_names.contains(<span class="kw-2">&amp;</span>name) {
+                        <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::syntax()
+                            .with_message(<span class="macro">format!</span>(
+                                <span class="string">&quot;Redeclaration of formal parameter `{}`&quot;</span>,
+                                context.interner().resolve_expect(name.sym())
+                            ))
+                            .into());
                     }
                 }
             }

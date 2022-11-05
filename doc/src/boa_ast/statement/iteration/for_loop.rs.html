@@ -258,33 +258,10 @@
 <span id="258">258</span>
 <span id="259">259</span>
 <span id="260">260</span>
-<span id="261">261</span>
-<span id="262">262</span>
-<span id="263">263</span>
-<span id="264">264</span>
-<span id="265">265</span>
-<span id="266">266</span>
-<span id="267">267</span>
-<span id="268">268</span>
-<span id="269">269</span>
-<span id="270">270</span>
-<span id="271">271</span>
-<span id="272">272</span>
-<span id="273">273</span>
-<span id="274">274</span>
-<span id="275">275</span>
-<span id="276">276</span>
-<span id="277">277</span>
-<span id="278">278</span>
-<span id="279">279</span>
-<span id="280">280</span>
-<span id="281">281</span>
-<span id="282">282</span>
 </pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::try_break;
 <span class="kw">use </span><span class="kw">crate</span>::visitor::{VisitWith, Visitor, VisitorMut};
 <span class="kw">use crate</span>::{
-    declaration::{LexicalDeclaration, VarDeclaration, Variable},
-    expression::Identifier,
+    declaration::{LexicalDeclaration, VarDeclaration},
     statement::Statement,
     Expression,
 };
@@ -485,27 +462,6 @@
     </span>Var(VarDeclaration),
     <span class="doccomment">/// A lexical declaration initializer.
     </span>Lexical(LexicalDeclaration),
-}
-
-<span class="kw">impl </span>ForLoopInitializer {
-    <span class="doccomment">/// Return the bound names of a for loop initializer.
-    ///
-    /// More information:
-    ///  - [ECMAScript specification][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-boundnames
-    </span><span class="attribute">#[must_use]
-    </span><span class="kw">pub fn </span>bound_names(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;Identifier&gt; {
-        <span class="kw">match </span><span class="self">self </span>{
-            ForLoopInitializer::Lexical(lex) =&gt; lex
-                .variable_list()
-                .as_ref()
-                .iter()
-                .flat_map(Variable::idents)
-                .collect(),
-            <span class="kw">_ </span>=&gt; Vec::new(),
-        }
-    }
 }
 
 <span class="kw">impl </span>ToInternedString <span class="kw">for </span>ForLoopInitializer {

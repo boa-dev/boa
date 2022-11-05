@@ -174,6 +174,13 @@
 <span id="172">172</span>
 <span id="173">173</span>
 <span id="174">174</span>
+<span id="175">175</span>
+<span id="176">176</span>
+<span id="177">177</span>
+<span id="178">178</span>
+<span id="179">179</span>
+<span id="180">180</span>
+<span id="181">181</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `eval` function.
 //!
 //! The `eval()` function evaluates JavaScript code represented as a string.
@@ -193,9 +200,9 @@
     property::Attribute,
     Context, JsResult, JsValue,
 };
+<span class="kw">use </span>boa_ast::operations::top_level_var_declared_names;
 <span class="kw">use </span>boa_gc::Gc;
 <span class="kw">use </span>boa_profiler::Profiler;
-<span class="kw">use </span>rustc_hash::FxHashSet;
 
 <span class="attribute">#[derive(Debug, Clone, Copy)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Eval;
@@ -244,9 +251,26 @@
         <span class="kw-2">mut </span>strict: bool,
         context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
-        <span class="kw">enum </span>EnvStackAction {
+        <span class="doccomment">/// Possible actions that can be executed after exiting this function to restore the environment to its
+        /// original state.
+        </span><span class="attribute">#[derive(Debug)]
+        </span><span class="kw">enum </span>EnvStackAction {
             Truncate(usize),
             Restore(Vec&lt;Gc&lt;DeclarativeEnvironment&gt;&gt;),
+        }
+
+        <span class="doccomment">/// Restores the environment after calling `eval` or after throwing an error.
+        </span><span class="kw">fn </span>restore_environment(context: <span class="kw-2">&amp;mut </span>Context, action: EnvStackAction) {
+            <span class="kw">match </span>action {
+                EnvStackAction::Truncate(size) =&gt; {
+                    context.realm.environments.truncate(size);
+                }
+                EnvStackAction::Restore(envs) =&gt; {
+                    <span class="comment">// Pop all environments created during the eval execution and restore the original stack.
+                    </span>context.realm.environments.truncate(<span class="number">1</span>);
+                    context.realm.environments.extend(envs);
+                }
+            }
         }
 
         <span class="comment">// 1. Assert: If direct is false, then strictCaller is also false.
@@ -305,13 +329,12 @@
         // environment for all eval calls.
         </span><span class="kw">if </span>!strict {
             <span class="comment">// Error if any var declaration in the eval code already exists as a let/const declaration in the current running environment.
-            </span><span class="kw">let </span><span class="kw-2">mut </span>vars = FxHashSet::default();
-            body.var_declared_names(<span class="kw-2">&amp;mut </span>vars);
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(name) = context
+            </span><span class="kw">if let </span><span class="prelude-val">Some</span>(name) = context
                 .realm
                 .environments
-                .has_lex_binding_until_function_environment(<span class="kw-2">&amp;</span>vars)
+                .has_lex_binding_until_function_environment(<span class="kw-2">&amp;</span>top_level_var_declared_names(<span class="kw-2">&amp;</span>body))
             {
+                restore_environment(context, action);
                 <span class="kw">let </span>name = context.interner().resolve_expect(name.sym());
                 <span class="kw">let </span>msg = <span class="macro">format!</span>(<span class="string">&quot;variable declaration {name} in eval function already exists as a lexical variable&quot;</span>);
                 <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::syntax().with_message(msg).into());
@@ -334,16 +357,7 @@
         }
         <span class="kw">let </span>result = context.execute(code_block);
 
-        <span class="kw">match </span>action {
-            EnvStackAction::Truncate(size) =&gt; {
-                context.realm.environments.truncate(size);
-            }
-            EnvStackAction::Restore(envs) =&gt; {
-                <span class="comment">// Pop all environments created during the eval execution and restore the original stack.
-                </span>context.realm.environments.truncate(<span class="number">1</span>);
-                context.realm.environments.extend(envs);
-            }
-        }
+        restore_environment(context, action);
 
         result
     }

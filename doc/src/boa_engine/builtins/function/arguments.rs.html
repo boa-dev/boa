@@ -292,8 +292,6 @@
 <span id="290">290</span>
 <span id="291">291</span>
 <span id="292">292</span>
-<span id="293">293</span>
-<span id="294">294</span>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     environments::DeclarativeEnvironment,
     object::{JsObject, ObjectData},
@@ -301,7 +299,7 @@
     symbol::{<span class="self">self</span>, WellKnownSymbols},
     Context, JsValue,
 };
-<span class="kw">use </span>boa_ast::function::FormalParameterList;
+<span class="kw">use </span>boa_ast::{function::FormalParameterList, operations::bound_names};
 <span class="kw">use </span>boa_gc::{Finalize, Gc, Trace};
 <span class="kw">use </span>rustc_hash::FxHashMap;
 
@@ -495,18 +493,16 @@
 
         </span><span class="kw">let </span><span class="kw-2">mut </span>bindings = FxHashMap::default();
         <span class="kw">let </span><span class="kw-2">mut </span>property_index = <span class="number">0</span>;
-        <span class="lifetime">&#39;outer</span>: <span class="kw">for </span>formal <span class="kw">in </span>formals.as_ref() {
-            <span class="kw">for </span>name <span class="kw">in </span>formal.names() {
-                <span class="kw">if </span>property_index &gt;= len {
-                    <span class="kw">break </span><span class="lifetime">&#39;outer</span>;
-                }
-                <span class="kw">let </span>binding_index = bindings.len() + <span class="number">1</span>;
-                <span class="kw">let </span>entry = bindings
-                    .entry(name)
-                    .or_insert((binding_index, property_index));
-                entry.<span class="number">1 </span>= property_index;
-                property_index += <span class="number">1</span>;
+        <span class="kw">for </span>name <span class="kw">in </span>bound_names(formals) {
+            <span class="kw">if </span>property_index &gt;= len {
+                <span class="kw">break</span>;
             }
+            <span class="kw">let </span>binding_index = bindings.len() + <span class="number">1</span>;
+            <span class="kw">let </span>entry = bindings
+                .entry(name)
+                .or_insert((binding_index, property_index));
+            entry.<span class="number">1 </span>= property_index;
+            property_index += <span class="number">1</span>;
         }
 
         <span class="kw">let </span><span class="kw-2">mut </span>map = ParameterMap {

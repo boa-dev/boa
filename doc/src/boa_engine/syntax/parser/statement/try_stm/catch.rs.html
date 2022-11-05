@@ -190,22 +190,6 @@
 <span id="188">188</span>
 <span id="189">189</span>
 <span id="190">190</span>
-<span id="191">191</span>
-<span id="192">192</span>
-<span id="193">193</span>
-<span id="194">194</span>
-<span id="195">195</span>
-<span id="196">196</span>
-<span id="197">197</span>
-<span id="198">198</span>
-<span id="199">199</span>
-<span id="200">200</span>
-<span id="201">201</span>
-<span id="202">202</span>
-<span id="203">203</span>
-<span id="204">204</span>
-<span id="205">205</span>
-<span id="206">206</span>
 </pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::syntax::{
     lexer::TokenKind,
     parser::{
@@ -213,7 +197,11 @@
         AllowAwait, AllowReturn, AllowYield, Cursor, ParseError, ParseResult, TokenParser,
     },
 };
-<span class="kw">use </span>boa_ast::{declaration::Binding, statement, Keyword, Punctuator};
+<span class="kw">use </span>boa_ast::{
+    declaration::Binding,
+    operations::{bound_names, lexically_declared_names, var_declared_names},
+    statement, Keyword, Punctuator,
+};
 <span class="kw">use </span>boa_interner::Interner;
 <span class="kw">use </span>boa_profiler::Profiler;
 <span class="kw">use </span>rustc_hash::FxHashSet;
@@ -276,17 +264,21 @@
 
         <span class="comment">// It is a Syntax Error if BoundNames of CatchParameter contains any duplicate elements.
         // https://tc39.es/ecma262/#sec-try-statement-static-semantics-early-errors
-        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(Binding::Pattern(pattern)) = <span class="kw-2">&amp;</span>catch_param {
-            <span class="kw">let </span><span class="kw-2">mut </span>set = FxHashSet::default();
-            <span class="kw">for </span>ident <span class="kw">in </span>pattern.idents() {
-                <span class="kw">if </span>!set.insert(ident) {
-                    <span class="kw">return </span><span class="prelude-val">Err</span>(ParseError::general(
-                        <span class="string">&quot;duplicate catch parameter identifier&quot;</span>,
-                        position,
-                    ));
+        </span><span class="kw">let </span>bound_names: <span class="prelude-ty">Option</span>&lt;FxHashSet&lt;<span class="kw">_</span>&gt;&gt; = catch_param
+            .as_ref()
+            .map(|binding| {
+                <span class="kw">let </span><span class="kw-2">mut </span>set = FxHashSet::default();
+                <span class="kw">for </span>ident <span class="kw">in </span>bound_names(binding) {
+                    <span class="kw">if </span>!set.insert(ident) {
+                        <span class="kw">return </span><span class="prelude-val">Err</span>(ParseError::general(
+                            <span class="string">&quot;duplicate catch parameter identifier&quot;</span>,
+                            position,
+                        ));
+                    }
                 }
-            }
-        }
+                <span class="prelude-val">Ok</span>(set)
+            })
+            .transpose()<span class="question-mark">?</span>;
 
         <span class="kw">let </span>position = cursor
             .peek(<span class="number">0</span>, interner)<span class="question-mark">?
@@ -300,41 +292,18 @@
         // It is a Syntax Error if any element of the BoundNames of CatchParameter also occurs in the VarDeclaredNames of Block unless CatchParameter is CatchParameter : BindingIdentifier .
         // https://tc39.es/ecma262/#sec-try-statement-static-semantics-early-errors
         // https://tc39.es/ecma262/#sec-variablestatements-in-catch-blocks
-        </span><span class="kw">let </span>lexically_declared_names = catch_block.lexically_declared_names();
-        <span class="kw">match </span><span class="kw-2">&amp;</span>catch_param {
-            <span class="prelude-val">Some</span>(Binding::Identifier(ident)) =&gt; {
-                <span class="kw">if </span>lexically_declared_names.contains(<span class="kw-2">&amp;</span>(<span class="kw-2">*</span>ident, <span class="bool-val">false</span>)) {
-                    <span class="kw">return </span><span class="prelude-val">Err</span>(ParseError::general(
-                        <span class="string">&quot;catch parameter identifier declared in catch body&quot;</span>,
-                        position,
-                    ));
-                }
-                <span class="kw">if </span>lexically_declared_names.contains(<span class="kw-2">&amp;</span>(<span class="kw-2">*</span>ident, <span class="bool-val">true</span>)) {
+        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(bound_names) = bound_names {
+            <span class="kw">for </span>name <span class="kw">in </span>lexically_declared_names(<span class="kw-2">&amp;</span>catch_block) {
+                <span class="kw">if </span>bound_names.contains(<span class="kw-2">&amp;</span>name) {
                     <span class="kw">return </span><span class="prelude-val">Err</span>(ParseError::general(
                         <span class="string">&quot;catch parameter identifier declared in catch body&quot;</span>,
                         position,
                     ));
                 }
             }
-            <span class="prelude-val">Some</span>(Binding::Pattern(pattern)) =&gt; {
-                <span class="kw">let </span><span class="kw-2">mut </span>var_declared_names = FxHashSet::default();
-                <span class="kw">for </span>node <span class="kw">in </span>catch_block.statement_list().statements() {
-                    node.var_declared_names(<span class="kw-2">&amp;mut </span>var_declared_names);
-                }
-                <span class="kw">for </span>ident <span class="kw">in </span>pattern.idents() {
-                    <span class="kw">if </span>lexically_declared_names.contains(<span class="kw-2">&amp;</span>(ident, <span class="bool-val">false</span>)) {
-                        <span class="kw">return </span><span class="prelude-val">Err</span>(ParseError::general(
-                            <span class="string">&quot;catch parameter identifier declared in catch body&quot;</span>,
-                            position,
-                        ));
-                    }
-                    <span class="kw">if </span>lexically_declared_names.contains(<span class="kw-2">&amp;</span>(ident, <span class="bool-val">true</span>)) {
-                        <span class="kw">return </span><span class="prelude-val">Err</span>(ParseError::general(
-                            <span class="string">&quot;catch parameter identifier declared in catch body&quot;</span>,
-                            position,
-                        ));
-                    }
-                    <span class="kw">if </span>var_declared_names.contains(<span class="kw-2">&amp;</span>ident) {
+            <span class="kw">if </span>!<span class="macro">matches!</span>(<span class="kw-2">&amp;</span>catch_param, <span class="prelude-val">Some</span>(Binding::Identifier(<span class="kw">_</span>))) {
+                <span class="kw">for </span>name <span class="kw">in </span>var_declared_names(<span class="kw-2">&amp;</span>catch_block) {
+                    <span class="kw">if </span>bound_names.contains(<span class="kw-2">&amp;</span>name) {
                         <span class="kw">return </span><span class="prelude-val">Err</span>(ParseError::general(
                             <span class="string">&quot;catch parameter identifier declared in catch body&quot;</span>,
                             position,
@@ -342,7 +311,6 @@
                     }
                 }
             }
-            <span class="kw">_ </span>=&gt; {}
         }
 
         <span class="kw">let </span>catch_node = statement::Catch::new(catch_param, catch_block);

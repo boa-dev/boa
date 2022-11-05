@@ -1575,18 +1575,6 @@
 <span id="1573">1573</span>
 <span id="1574">1574</span>
 <span id="1575">1575</span>
-<span id="1576">1576</span>
-<span id="1577">1577</span>
-<span id="1578">1578</span>
-<span id="1579">1579</span>
-<span id="1580">1580</span>
-<span id="1581">1581</span>
-<span id="1582">1582</span>
-<span id="1583">1583</span>
-<span id="1584">1584</span>
-<span id="1585">1585</span>
-<span id="1586">1586</span>
-<span id="1587">1587</span>
 </pre><pre class="rust"><code><span class="doccomment">//! `CodeBlock`
 //!
 //! This module is for the `CodeBlock` which implements a function representation in the VM
@@ -2985,19 +2973,7 @@
                     <span class="bool-val">false</span>,
                 );
 
-                <span class="kw">let </span><span class="kw-2">mut </span>arguments_in_parameter_names = <span class="bool-val">false</span>;
-                <span class="kw">let </span><span class="kw-2">mut </span>is_simple_parameter_list = <span class="bool-val">true</span>;
-                <span class="kw">let </span><span class="kw-2">mut </span>has_parameter_expressions = <span class="bool-val">false</span>;
-
-                <span class="kw">for </span>param <span class="kw">in </span>code.params.as_ref().iter() {
-                    has_parameter_expressions = has_parameter_expressions || param.init().is_some();
-                    arguments_in_parameter_names = arguments_in_parameter_names
-                        || param.names().contains(<span class="kw-2">&amp;</span>Sym::ARGUMENTS.into());
-                    is_simple_parameter_list = is_simple_parameter_list
-                        &amp;&amp; !param.is_rest_param()
-                        &amp;&amp; param.is_identifier()
-                        &amp;&amp; param.init().is_none();
-                }
+                <span class="kw">let </span>has_expressions = code.params.has_expressions();
 
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(binding) = code.arguments_binding {
                     <span class="kw">let </span>arguments_obj = <span class="kw">if </span>code.strict || !code.params.is_simple() {
@@ -3064,7 +3040,7 @@
                 context.vm.pop_frame();
 
                 <span class="kw">let </span><span class="kw-2">mut </span>environment = context.realm.environments.pop();
-                <span class="kw">if </span>has_parameter_expressions {
+                <span class="kw">if </span>has_expressions {
                     environment = context.realm.environments.pop();
                 }
 

@@ -95,24 +95,6 @@
 <span id="95">95</span>
 <span id="96">96</span>
 <span id="97">97</span>
-<span id="98">98</span>
-<span id="99">99</span>
-<span id="100">100</span>
-<span id="101">101</span>
-<span id="102">102</span>
-<span id="103">103</span>
-<span id="104">104</span>
-<span id="105">105</span>
-<span id="106">106</span>
-<span id="107">107</span>
-<span id="108">108</span>
-<span id="109">109</span>
-<span id="110">110</span>
-<span id="111">111</span>
-<span id="112">112</span>
-<span id="113">113</span>
-<span id="114">114</span>
-<span id="115">115</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Iteration nodes
 
 </span><span class="kw">mod </span>r#break;
@@ -164,24 +146,6 @@
     </span>Const(Binding),
     <span class="doccomment">/// A pattern with already declared variables.
     </span>Pattern(Pattern),
-}
-
-<span class="kw">impl </span>IterableLoopInitializer {
-    <span class="doccomment">/// Return the bound names of a for loop initializer.
-    ///
-    /// The returned list may contain duplicates.
-    ///
-    /// More information:
-    ///  - [ECMAScript specification][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-boundnames
-    </span><span class="attribute">#[must_use]
-    </span><span class="kw">pub fn </span>bound_names(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;Identifier&gt; {
-        <span class="kw">match </span><span class="self">self </span>{
-            <span class="self">Self</span>::Let(binding) | <span class="self">Self</span>::Const(binding) =&gt; binding.idents(),
-            <span class="kw">_ </span>=&gt; Vec::new(),
-        }
-    }
 }
 
 <span class="kw">impl </span>ToInternedString <span class="kw">for </span>IterableLoopInitializer {

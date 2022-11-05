@@ -222,13 +222,17 @@
 <span id="220">220</span>
 <span id="221">221</span>
 <span id="222">222</span>
+<span id="223">223</span>
+<span id="224">224</span>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     builtins::function::ThisMode,
     bytecompiler::ByteCompiler,
     vm::{BindingOpcode, CodeBlock, Opcode},
     Context, JsResult,
 };
-<span class="kw">use </span>boa_ast::{declaration::Binding, function::FormalParameterList, StatementList};
+<span class="kw">use </span>boa_ast::{
+    declaration::Binding, function::FormalParameterList, operations::bound_names, StatementList,
+};
 <span class="kw">use </span>boa_gc::Gc;
 <span class="kw">use </span>boa_interner::Sym;
 <span class="kw">use </span>rustc_hash::FxHashMap;
@@ -377,7 +381,7 @@
                     compiler.emit_binding(BindingOpcode::InitArg, <span class="kw-2">*</span>ident);
                 }
                 Binding::Pattern(pattern) =&gt; {
-                    <span class="kw">for </span>ident <span class="kw">in </span>pattern.idents() {
+                    <span class="kw">for </span>ident <span class="kw">in </span>bound_names(pattern) {
                         compiler.context.create_mutable_binding(ident, <span class="bool-val">false</span>, <span class="bool-val">false</span>);
                     }
                     <span class="comment">// TODO: throw custom error if ident is in init

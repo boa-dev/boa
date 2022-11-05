@@ -128,6 +128,8 @@
 <span id="126">126</span>
 <span id="127">127</span>
 <span id="128">128</span>
+<span id="129">129</span>
+<span id="130">130</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Block statement parsing.
 //!
 //! More information:
@@ -145,10 +147,13 @@
     lexer::TokenKind,
     parser::{AllowAwait, AllowReturn, AllowYield, Cursor, ParseError, ParseResult, TokenParser},
 };
-<span class="kw">use </span>boa_ast::{expression::Identifier, statement, Punctuator};
+<span class="kw">use </span>boa_ast::{
+    operations::{lexically_declared_names_legacy, var_declared_names},
+    statement, Punctuator,
+};
 <span class="kw">use </span>boa_interner::Interner;
 <span class="kw">use </span>boa_profiler::Profiler;
-<span class="kw">use </span>rustc_hash::{FxHashMap, FxHashSet};
+<span class="kw">use </span>rustc_hash::FxHashMap;
 <span class="kw">use </span>std::io::Read;
 
 <span class="doccomment">/// The possible `TokenKind` which indicate the end of a block statement.
@@ -223,29 +228,28 @@
         .map(statement::Block::from)<span class="question-mark">?</span>;
         cursor.expect(Punctuator::CloseBlock, <span class="string">&quot;block&quot;</span>, interner)<span class="question-mark">?</span>;
 
-        <span class="kw">let </span>lexically_declared_names = statement_list.lexically_declared_names();
-        <span class="kw">let </span><span class="kw-2">mut </span>lexically_declared_names_map: FxHashMap&lt;Identifier, bool&gt; = FxHashMap::default();
-        <span class="kw">for </span>(name, is_function_declaration) <span class="kw">in </span><span class="kw-2">&amp;</span>lexically_declared_names {
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(existing_is_function_declaration) = lexically_declared_names_map.get(name) {
-                <span class="kw">if </span>!(!cursor.strict_mode()
-                    &amp;&amp; <span class="kw-2">*</span>is_function_declaration
-                    &amp;&amp; <span class="kw-2">*</span>existing_is_function_declaration)
-                {
-                    <span class="kw">return </span><span class="prelude-val">Err</span>(ParseError::general(
-                        <span class="string">&quot;lexical name declared multiple times&quot;</span>,
-                        position,
-                    ));
+        <span class="comment">// It is a Syntax Error if the LexicallyDeclaredNames of StatementList contains any duplicate
+        // entries, unless the source text matched by this production is not strict mode code and the
+        // duplicate entries are only bound by FunctionDeclarations.
+        </span><span class="kw">let </span><span class="kw-2">mut </span>lexical_names = FxHashMap::default();
+        <span class="kw">for </span>(name, is_fn) <span class="kw">in </span>lexically_declared_names_legacy(<span class="kw-2">&amp;</span>statement_list) {
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(is_fn_previous) = lexical_names.insert(name, is_fn) {
+                <span class="kw">match </span>(cursor.strict_mode(), is_fn, is_fn_previous) {
+                    (<span class="bool-val">false</span>, <span class="bool-val">true</span>, <span class="bool-val">true</span>) =&gt; {}
+                    <span class="kw">_ </span>=&gt; {
+                        <span class="kw">return </span><span class="prelude-val">Err</span>(ParseError::general(
+                            <span class="string">&quot;lexical name declared multiple times&quot;</span>,
+                            position,
+                        ));
+                    }
                 }
             }
-            lexically_declared_names_map.insert(<span class="kw-2">*</span>name, <span class="kw-2">*</span>is_function_declaration);
         }
 
-        <span class="kw">let </span><span class="kw-2">mut </span>var_declared_names = FxHashSet::default();
-        <span class="kw">for </span>node <span class="kw">in </span>statement_list.statement_list().statements() {
-            node.var_declared_names(<span class="kw-2">&amp;mut </span>var_declared_names);
-        }
-        <span class="kw">for </span>(lex_name, <span class="kw">_</span>) <span class="kw">in </span><span class="kw-2">&amp;</span>lexically_declared_names {
-            <span class="kw">if </span>var_declared_names.contains(lex_name) {
+        <span class="comment">// It is a Syntax Error if any element of the LexicallyDeclaredNames of StatementList also
+        // occurs in the VarDeclaredNames of StatementList.
+        </span><span class="kw">for </span>name <span class="kw">in </span>var_declared_names(<span class="kw-2">&amp;</span>statement_list) {
+            <span class="kw">if </span>lexical_names.contains_key(<span class="kw-2">&amp;</span>name) {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(ParseError::general(
                     <span class="string">&quot;lexical name declared in var names&quot;</span>,
                     position,

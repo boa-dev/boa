@@ -3722,6 +3722,7 @@
 <span id="3720">3720</span>
 <span id="3721">3721</span>
 <span id="3722">3722</span>
+<span id="3723">3723</span>
 </pre><pre class="rust"><code><span class="kw">mod </span>function;
 
 <span class="kw">use crate</span>::{
@@ -3745,6 +3746,7 @@
         ArrowFunction, AsyncArrowFunction, AsyncFunction, AsyncGenerator, Class, ClassElement,
         FormalParameterList, Function, Generator,
     },
+    operations::bound_names,
     pattern::{ArrayPatternElement, ObjectPatternElement, Pattern},
     property::{MethodDefinition, PropertyDefinition, PropertyName},
     statement::{
@@ -5644,7 +5646,7 @@
         label: <span class="prelude-ty">Option</span>&lt;Sym&gt;,
         configurable_globals: bool,
     ) -&gt; JsResult&lt;()&gt; {
-        <span class="kw">let </span>init_bound_names = for_in_loop.initializer().bound_names();
+        <span class="kw">let </span>init_bound_names = bound_names(for_in_loop.initializer());
         <span class="kw">if </span>init_bound_names.is_empty() {
             <span class="self">self</span>.compile_expr(for_in_loop.target(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
         } <span class="kw">else </span>{
@@ -5695,7 +5697,7 @@
                     <span class="self">self</span>.emit_binding(BindingOpcode::InitVar, <span class="kw-2">*</span>ident);
                 }
                 Binding::Pattern(pattern) =&gt; {
-                    <span class="kw">for </span>ident <span class="kw">in </span>pattern.idents() {
+                    <span class="kw">for </span>ident <span class="kw">in </span>bound_names(pattern) {
                         <span class="self">self</span>.context.create_mutable_binding(ident, <span class="bool-val">true</span>, <span class="bool-val">false</span>);
                     }
                     <span class="self">self</span>.compile_declaration_pattern(pattern, BindingOpcode::InitVar)<span class="question-mark">?</span>;
@@ -5707,7 +5709,7 @@
                     <span class="self">self</span>.emit_binding(BindingOpcode::InitLet, <span class="kw-2">*</span>ident);
                 }
                 Binding::Pattern(pattern) =&gt; {
-                    <span class="kw">for </span>ident <span class="kw">in </span>pattern.idents() {
+                    <span class="kw">for </span>ident <span class="kw">in </span>bound_names(pattern) {
                         <span class="self">self</span>.context.create_mutable_binding(ident, <span class="bool-val">false</span>, <span class="bool-val">false</span>);
                     }
                     <span class="self">self</span>.compile_declaration_pattern(pattern, BindingOpcode::InitLet)<span class="question-mark">?</span>;
@@ -5719,14 +5721,14 @@
                     <span class="self">self</span>.emit_binding(BindingOpcode::InitConst, <span class="kw-2">*</span>ident);
                 }
                 Binding::Pattern(pattern) =&gt; {
-                    <span class="kw">for </span>ident <span class="kw">in </span>pattern.idents() {
+                    <span class="kw">for </span>ident <span class="kw">in </span>bound_names(pattern) {
                         <span class="self">self</span>.context.create_immutable_binding(ident, <span class="bool-val">true</span>);
                     }
                     <span class="self">self</span>.compile_declaration_pattern(pattern, BindingOpcode::InitConst)<span class="question-mark">?</span>;
                 }
             },
             IterableLoopInitializer::Pattern(pattern) =&gt; {
-                <span class="kw">for </span>ident <span class="kw">in </span>pattern.idents() {
+                <span class="kw">for </span>ident <span class="kw">in </span>bound_names(pattern) {
                     <span class="self">self</span>.context.create_mutable_binding(ident, <span class="bool-val">true</span>, <span class="bool-val">true</span>);
                 }
                 <span class="self">self</span>.compile_declaration_pattern(pattern, BindingOpcode::InitVar)<span class="question-mark">?</span>;
@@ -5759,7 +5761,7 @@
         label: <span class="prelude-ty">Option</span>&lt;Sym&gt;,
         configurable_globals: bool,
     ) -&gt; JsResult&lt;()&gt; {
-        <span class="kw">let </span>init_bound_names = for_of_loop.init().bound_names();
+        <span class="kw">let </span>init_bound_names = bound_names(for_of_loop.initializer());
         <span class="kw">if </span>init_bound_names.is_empty() {
             <span class="self">self</span>.compile_expr(for_of_loop.iterable(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
         } <span class="kw">else </span>{
@@ -5801,7 +5803,7 @@
             <span class="self">self</span>.emit_opcode_with_operand(Opcode::ForInLoopNext)
         };
 
-        <span class="kw">match </span>for_of_loop.init() {
+        <span class="kw">match </span>for_of_loop.initializer() {
             IterableLoopInitializer::Identifier(<span class="kw-2">ref </span>ident) =&gt; {
                 <span class="self">self</span>.context.create_mutable_binding(<span class="kw-2">*</span>ident, <span class="bool-val">true</span>, <span class="bool-val">true</span>);
                 <span class="kw">let </span>binding = <span class="self">self</span>.context.set_mutable_binding(<span class="kw-2">*</span>ident);
@@ -5821,7 +5823,7 @@
                     <span class="self">self</span>.emit_binding(BindingOpcode::InitVar, <span class="kw-2">*</span>ident);
                 }
                 Binding::Pattern(pattern) =&gt; {
-                    <span class="kw">for </span>ident <span class="kw">in </span>pattern.idents() {
+                    <span class="kw">for </span>ident <span class="kw">in </span>bound_names(pattern) {
                         <span class="self">self</span>.context.create_mutable_binding(ident, <span class="bool-val">true</span>, <span class="bool-val">false</span>);
                     }
                     <span class="self">self</span>.compile_declaration_pattern(pattern, BindingOpcode::InitVar)<span class="question-mark">?</span>;
@@ -5833,7 +5835,7 @@
                     <span class="self">self</span>.emit_binding(BindingOpcode::InitLet, <span class="kw-2">*</span>ident);
                 }
                 Binding::Pattern(pattern) =&gt; {
-                    <span class="kw">for </span>ident <span class="kw">in </span>pattern.idents() {
+                    <span class="kw">for </span>ident <span class="kw">in </span>bound_names(pattern) {
                         <span class="self">self</span>.context.create_mutable_binding(ident, <span class="bool-val">false</span>, <span class="bool-val">false</span>);
                     }
                     <span class="self">self</span>.compile_declaration_pattern(pattern, BindingOpcode::InitLet)<span class="question-mark">?</span>;
@@ -5845,14 +5847,14 @@
                     <span class="self">self</span>.emit_binding(BindingOpcode::InitConst, <span class="kw-2">*</span>ident);
                 }
                 Binding::Pattern(pattern) =&gt; {
-                    <span class="kw">for </span>ident <span class="kw">in </span>pattern.idents() {
+                    <span class="kw">for </span>ident <span class="kw">in </span>bound_names(pattern) {
                         <span class="self">self</span>.context.create_immutable_binding(ident, <span class="bool-val">true</span>);
                     }
                     <span class="self">self</span>.compile_declaration_pattern(pattern, BindingOpcode::InitConst)<span class="question-mark">?</span>;
                 }
             },
             IterableLoopInitializer::Pattern(pattern) =&gt; {
-                <span class="kw">for </span>ident <span class="kw">in </span>pattern.idents() {
+                <span class="kw">for </span>ident <span class="kw">in </span>bound_names(pattern) {
                     <span class="self">self</span>.context.create_mutable_binding(ident, <span class="bool-val">true</span>, <span class="bool-val">true</span>);
                 }
                 <span class="self">self</span>.compile_declaration_pattern(pattern, BindingOpcode::InitVar)<span class="question-mark">?</span>;
@@ -6290,7 +6292,7 @@
                                 <span class="self">self</span>.emit_binding(BindingOpcode::InitLet, <span class="kw-2">*</span>ident);
                             }
                             Binding::Pattern(pattern) =&gt; {
-                                <span class="kw">for </span>ident <span class="kw">in </span>pattern.idents() {
+                                <span class="kw">for </span>ident <span class="kw">in </span>bound_names(pattern) {
                                     <span class="self">self</span>.context.create_mutable_binding(ident, <span class="bool-val">false</span>, <span class="bool-val">false</span>);
                                 }
                                 <span class="self">self</span>.compile_declaration_pattern(pattern, BindingOpcode::InitLet)<span class="question-mark">?</span>;
@@ -6776,7 +6778,7 @@
                         .create_mutable_binding(<span class="kw-2">*</span>ident, <span class="bool-val">true</span>, configurable_globals);
                 }
                 Binding::Pattern(pattern) =&gt; {
-                    <span class="kw">for </span>ident <span class="kw">in </span>pattern.idents() {
+                    <span class="kw">for </span>ident <span class="kw">in </span>bound_names(pattern) {
                         <span class="kw">if </span>ident == Sym::ARGUMENTS {
                             has_identifier_argument = <span class="bool-val">true</span>;
                         }
@@ -6803,7 +6805,7 @@
                             <span class="self">self</span>.context.create_mutable_binding(<span class="kw-2">*</span>ident, <span class="bool-val">false</span>, <span class="bool-val">false</span>);
                         }
                         Binding::Pattern(pattern) =&gt; {
-                            <span class="kw">for </span>ident <span class="kw">in </span>pattern.idents() {
+                            <span class="kw">for </span>ident <span class="kw">in </span>bound_names(pattern) {
                                 <span class="kw">if </span>ident == Sym::ARGUMENTS {
                                     has_identifier_argument = <span class="bool-val">true</span>;
                                 }
@@ -6824,7 +6826,7 @@
                             <span class="self">self</span>.context.create_immutable_binding(<span class="kw-2">*</span>ident, <span class="bool-val">true</span>);
                         }
                         Binding::Pattern(pattern) =&gt; {
-                            <span class="kw">for </span>ident <span class="kw">in </span>pattern.idents() {
+                            <span class="kw">for </span>ident <span class="kw">in </span>bound_names(pattern) {
                                 <span class="kw">if </span>ident == Sym::ARGUMENTS {
                                     has_identifier_argument = <span class="bool-val">true</span>;
                                 }
@@ -6982,7 +6984,7 @@
                         compiler.emit_binding(BindingOpcode::InitArg, <span class="kw-2">*</span>ident);
                     }
                     Binding::Pattern(pattern) =&gt; {
-                        <span class="kw">for </span>ident <span class="kw">in </span>pattern.idents() {
+                        <span class="kw">for </span>ident <span class="kw">in </span>bound_names(pattern) {
                             compiler.context.create_mutable_binding(ident, <span class="bool-val">false</span>, <span class="bool-val">false</span>);
                         }
                         compiler.compile_declaration_pattern(pattern, BindingOpcode::InitArg)<span class="question-mark">?</span>;

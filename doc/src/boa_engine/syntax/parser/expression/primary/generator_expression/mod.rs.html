@@ -170,7 +170,7 @@
 <span class="kw">use </span>boa_ast::{
     expression::Identifier,
     function::Generator,
-    operations::{contains, ContainsSymbol},
+    operations::{bound_names, contains, top_level_lexically_declared_names, ContainsSymbol},
     Position, Punctuator,
 };
 <span class="kw">use </span>boa_interner::{Interner, Sym};
@@ -277,8 +277,8 @@
         // also occurs in the LexicallyDeclaredNames of FunctionBody.
         // https://tc39.es/ecma262/#sec-function-definitions-static-semantics-early-errors
         </span>name_in_lexically_declared_names(
-            <span class="kw-2">&amp;</span>params,
-            <span class="kw-2">&amp;</span>body.lexically_declared_names_top_level(),
+            <span class="kw-2">&amp;</span>bound_names(<span class="kw-2">&amp;</span>params),
+            <span class="kw-2">&amp;</span>top_level_lexically_declared_names(<span class="kw-2">&amp;</span>body),
             params_start_position,
         )<span class="question-mark">?</span>;
 

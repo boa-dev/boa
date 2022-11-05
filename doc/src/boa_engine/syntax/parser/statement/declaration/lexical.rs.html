@@ -348,6 +348,7 @@
 <span id="346">346</span>
 <span id="347">347</span>
 <span id="348">348</span>
+<span id="349">349</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Lexical declaration parsing.
 //!
 //! This parses `let` and `const` declarations.
@@ -366,6 +367,7 @@
         AllowAwait, AllowIn, AllowYield, ParseError, ParseResult, TokenParser,
     },
 };
+<span class="kw">use </span>ast::operations::bound_names;
 <span class="kw">use </span>boa_ast::{<span class="self">self </span><span class="kw">as </span>ast, declaration::Variable, pattern::Pattern, Keyword, Punctuator};
 <span class="kw">use </span>boa_interner::{Interner, Sym};
 <span class="kw">use </span>boa_profiler::Profiler;
@@ -626,7 +628,7 @@
 
                 <span class="kw">let </span>declaration = Pattern::Object(bindings.into());
 
-                <span class="kw">if </span>declaration.idents().contains(<span class="kw-2">&amp;</span>Sym::LET.into()) {
+                <span class="kw">if </span>bound_names(<span class="kw-2">&amp;</span>declaration).contains(<span class="kw-2">&amp;</span>Sym::LET.into()) {
                     <span class="kw">return </span><span class="prelude-val">Err</span>(ParseError::lex(LexError::Syntax(
                         <span class="string">&quot;&#39;let&#39; is disallowed as a lexically bound name&quot;</span>.into(),
                         position,
@@ -654,7 +656,7 @@
 
                 <span class="kw">let </span>declaration = Pattern::Array(bindings.into());
 
-                <span class="kw">if </span>declaration.idents().contains(<span class="kw-2">&amp;</span>Sym::LET.into()) {
+                <span class="kw">if </span>bound_names(<span class="kw-2">&amp;</span>declaration).contains(<span class="kw-2">&amp;</span>Sym::LET.into()) {
                     <span class="kw">return </span><span class="prelude-val">Err</span>(ParseError::lex(LexError::Syntax(
                         <span class="string">&quot;&#39;let&#39; is disallowed as a lexically bound name&quot;</span>.into(),
                         position,
