@@ -5,7 +5,11 @@ use crate::syntax::{
         AllowAwait, AllowReturn, AllowYield, Cursor, ParseError, ParseResult, TokenParser,
     },
 };
-use boa_ast::{declaration::Binding, statement, Keyword, Punctuator};
+use boa_ast::{
+    declaration::Binding,
+    operations::{bound_names, lexically_declared_names, var_declared_names},
+    statement, Keyword, Punctuator,
+};
 use boa_interner::Interner;
 use boa_profiler::Profiler;
 use rustc_hash::FxHashSet;
@@ -68,17 +72,21 @@ where
 
         // It is a Syntax Error if BoundNames of CatchParameter contains any duplicate elements.
         // https://tc39.es/ecma262/#sec-try-statement-static-semantics-early-errors
-        if let Some(Binding::Pattern(pattern)) = &catch_param {
-            let mut set = FxHashSet::default();
-            for ident in pattern.idents() {
-                if !set.insert(ident) {
-                    return Err(ParseError::general(
-                        "duplicate catch parameter identifier",
-                        position,
-                    ));
+        let bound_names: Option<FxHashSet<_>> = catch_param
+            .as_ref()
+            .map(|binding| {
+                let mut set = FxHashSet::default();
+                for ident in bound_names(binding) {
+                    if !set.insert(ident) {
+                        return Err(ParseError::general(
+                            "duplicate catch parameter identifier",
+                            position,
+                        ));
+                    }
                 }
-            }
-        }
+                Ok(set)
+            })
+            .transpose()?;
 
         let position = cursor
             .peek(0, interner)?
@@ -92,41 +100,18 @@ where
         // It is a Syntax Error if any element of the BoundNames of CatchParameter also occurs in the VarDeclaredNames of Block unless CatchParameter is CatchParameter : BindingIdentifier .
         // https://tc39.es/ecma262/#sec-try-statement-static-semantics-early-errors
         // https://tc39.es/ecma262/#sec-variablestatements-in-catch-blocks
-        let lexically_declared_names = catch_block.lexically_declared_names();
-        match &catch_param {
-            Some(Binding::Identifier(ident)) => {
-                if lexically_declared_names.contains(&(*ident, false)) {
-                    return Err(ParseError::general(
-                        "catch parameter identifier declared in catch body",
-                        position,
-                    ));
-                }
-                if lexically_declared_names.contains(&(*ident, true)) {
+        if let Some(bound_names) = bound_names {
+            for name in lexically_declared_names(&catch_block) {
+                if bound_names.contains(&name) {
                     return Err(ParseError::general(
                         "catch parameter identifier declared in catch body",
                         position,
                     ));
                 }
             }
-            Some(Binding::Pattern(pattern)) => {
-                let mut var_declared_names = FxHashSet::default();
-                for node in catch_block.statement_list().statements() {
-                    node.var_declared_names(&mut var_declared_names);
-                }
-                for ident in pattern.idents() {
-                    if lexically_declared_names.contains(&(ident, false)) {
-                        return Err(ParseError::general(
-                            "catch parameter identifier declared in catch body",
-                            position,
-                        ));
-                    }
-                    if lexically_declared_names.contains(&(ident, true)) {
-                        return Err(ParseError::general(
-                            "catch parameter identifier declared in catch body",
-                            position,
-                        ));
-                    }
-                    if var_declared_names.contains(&ident) {
+            if !matches!(&catch_param, Some(Binding::Identifier(_))) {
+                for name in var_declared_names(&catch_block) {
+                    if bound_names.contains(&name) {
                         return Err(ParseError::general(
                             "catch parameter identifier declared in catch body",
                             position,
@@ -134,7 +119,6 @@ where
                     }
                 }
             }
-            _ => {}
         }
 
         let catch_node = statement::Catch::new(catch_param, catch_block);

@@ -20,10 +20,10 @@ use crate::{
             function::{FormalParameters, FunctionStatementList},
         },
     },
-    Context, JsString,
+    Context,
 };
 use boa_interner::Interner;
-use rustc_hash::{FxHashMap, FxHashSet};
+use rustc_hash::FxHashSet;
 use std::io::Read;
 
 pub use self::error::{ParseError, ParseResult};
@@ -31,7 +31,10 @@ pub use self::error::{ParseError, ParseResult};
 use boa_ast::{
     expression::Identifier,
     function::FormalParameterList,
-    operations::{contains, contains_arguments, ContainsSymbol},
+    operations::{
+        contains, contains_arguments, top_level_lexically_declared_names,
+        top_level_var_declared_names, ContainsSymbol,
+    },
     Position, StatementList,
 };
 
@@ -306,59 +309,20 @@ impl Script {
 
                 // It is a Syntax Error if the LexicallyDeclaredNames of ScriptBody contains any duplicate entries.
                 // It is a Syntax Error if any element of the LexicallyDeclaredNames of ScriptBody also occurs in the VarDeclaredNames of ScriptBody.
-                let mut var_declared_names = FxHashSet::default();
-                statement_list.var_declared_names(&mut var_declared_names);
-                let lexically_declared_names = statement_list.lexically_declared_names();
-                let mut lexically_declared_names_map: FxHashMap<Identifier, bool> =
-                    FxHashMap::default();
-                for (name, is_function_declaration) in &lexically_declared_names {
-                    if let Some(existing_is_function_declaration) =
-                        lexically_declared_names_map.get(name)
-                    {
-                        if !(*is_function_declaration && *existing_is_function_declaration) {
-                            return Err(ParseError::general(
-                                "lexical name declared multiple times",
-                                Position::new(1, 1),
-                            ));
-                        }
-                    }
-                    lexically_declared_names_map.insert(*name, *is_function_declaration);
-
-                    if !is_function_declaration && var_declared_names.contains(name) {
-                        return Err(ParseError::general(
-                            "lexical name declared in var names",
-                            Position::new(1, 1),
-                        ));
-                    }
-                    if context.has_binding(*name) {
+                let mut lexical_names = FxHashSet::default();
+                for name in top_level_lexically_declared_names(&statement_list) {
+                    if !lexical_names.insert(name) {
                         return Err(ParseError::general(
                             "lexical name declared multiple times",
                             Position::new(1, 1),
                         ));
                     }
-                    if !is_function_declaration {
-                        let name_str = context.interner().resolve_expect(name.sym());
-                        let desc = context
-                            .realm
-                            .global_property_map
-                            .string_property_map()
-                            .get(&name_str.into_common::<JsString>(false));
-                        let non_configurable_binding_exists = match desc {
-                            Some(desc) => !matches!(desc.configurable(), Some(true)),
-                            None => false,
-                        };
-                        if non_configurable_binding_exists {
-                            return Err(ParseError::general(
-                                "lexical name declared in var names",
-                                Position::new(1, 1),
-                            ));
-                        }
-                    }
                 }
-                for name in var_declared_names {
-                    if context.has_binding(name) {
+
+                for name in top_level_var_declared_names(&statement_list) {
+                    if lexical_names.contains(&name) {
                         return Err(ParseError::general(
-                            "lexical name declared in var names",
+                            "lexical name declared multiple times",
                             Position::new(1, 1),
                         ));
                     }
@@ -400,26 +364,23 @@ where
             .parse(cursor, interner)?;
 
         if !self.direct_eval {
-            for node in body.statements() {
-                // It is a Syntax Error if StatementList Contains super unless the source text containing super is eval
-                // code that is being processed by a direct eval.
-                // Additional early error rules for super within direct eval are defined in 19.2.1.1.
-                if contains(node, ContainsSymbol::Super) {
-                    return Err(ParseError::general(
-                        "invalid super usage",
-                        Position::new(1, 1),
-                    ));
-                }
-
-                // It is a Syntax Error if StatementList Contains NewTarget unless the source text containing NewTarget
-                // is eval code that is being processed by a direct eval.
-                // Additional early error rules for NewTarget in direct eval are defined in 19.2.1.1.
-                if contains(node, ContainsSymbol::NewTarget) {
-                    return Err(ParseError::general(
-                        "invalid new.target usage",
-                        Position::new(1, 1),
-                    ));
-                }
+            // It is a Syntax Error if StatementList Contains super unless the source text containing super is eval
+            // code that is being processed by a direct eval.
+            // Additional early error rules for super within direct eval are defined in 19.2.1.1.
+            if contains(&body, ContainsSymbol::Super) {
+                return Err(ParseError::general(
+                    "invalid super usage",
+                    Position::new(1, 1),
+                ));
+            }
+            // It is a Syntax Error if StatementList Contains NewTarget unless the source text containing NewTarget
+            // is eval code that is being processed by a direct eval.
+            // Additional early error rules for NewTarget in direct eval are defined in 19.2.1.1.
+            if contains(&body, ContainsSymbol::NewTarget) {
+                return Err(ParseError::general(
+                    "invalid new.target usage",
+                    Position::new(1, 1),
+                ));
             }
         }
 
@@ -429,18 +390,16 @@ where
 
 /// Helper to check if any parameter names are declared in the given list.
 fn name_in_lexically_declared_names(
-    parameter_list: &FormalParameterList,
-    names: &[Identifier],
+    bound_names: &[Identifier],
+    lexical_names: &[Identifier],
     position: Position,
 ) -> Result<(), ParseError> {
-    for parameter in parameter_list.as_ref() {
-        for name in &parameter.names() {
-            if names.contains(name) {
-                return Err(ParseError::General {
-                    message: "formal parameter declared in lexically declared names",
-                    position,
-                });
-            }
+    for name in bound_names {
+        if lexical_names.contains(name) {
+            return Err(ParseError::General {
+                message: "formal parameter declared in lexically declared names",
+                position,
+            });
         }
     }
     Ok(())

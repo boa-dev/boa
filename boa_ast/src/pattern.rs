@@ -76,20 +76,6 @@ impl ToInternedString for Pattern {
     }
 }
 
-impl Pattern {
-    /// Gets the list of identifiers in the pattern.
-    ///
-    /// A single pattern may have 0 to n identifiers.
-    #[inline]
-    #[must_use]
-    pub fn idents(&self) -> Vec<Identifier> {
-        match &self {
-            Pattern::Object(pattern) => pattern.idents(),
-            Pattern::Array(pattern) => pattern.idents(),
-        }
-    }
-}
-
 impl VisitWith for Pattern {
     fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
@@ -165,16 +151,6 @@ impl ObjectPattern {
     #[must_use]
     pub fn bindings(&self) -> &[ObjectPatternElement] {
         &self.0
-    }
-
-    /// Gets the list of identifiers declared by the object binding pattern.
-    #[inline]
-    #[must_use]
-    pub fn idents(&self) -> Vec<Identifier> {
-        self.0
-            .iter()
-            .flat_map(ObjectPatternElement::idents)
-            .collect()
     }
 
     /// Returns true if the object binding pattern has a rest element.
@@ -262,15 +238,6 @@ impl ArrayPattern {
     #[must_use]
     pub fn bindings(&self) -> &[ArrayPatternElement] {
         &self.0
-    }
-
-    /// Gets the list of identifiers declared by the array binding pattern.
-    #[inline]
-    pub(crate) fn idents(&self) -> Vec<Identifier> {
-        self.0
-            .iter()
-            .flat_map(ArrayPatternElement::idents)
-            .collect()
     }
 }
 
@@ -394,26 +361,6 @@ pub enum ObjectPatternElement {
     },
 }
 
-impl ObjectPatternElement {
-    /// Gets the list of identifiers declared by the object binding pattern.
-    #[inline]
-    pub(crate) fn idents(&self) -> Vec<Identifier> {
-        match self {
-            Self::SingleName { ident, .. } | Self::RestProperty { ident, .. } => {
-                vec![*ident]
-            }
-            Self::AssignmentPropertyAccess {
-                name: PropertyName::Literal(lit),
-                ..
-            } => {
-                vec![(*lit).into()]
-            }
-            Self::Pattern { pattern, .. } => pattern.idents(),
-            _ => Vec::new(),
-        }
-    }
-}
-
 impl ToInternedString for ObjectPatternElement {
     fn to_interned_string(&self, interner: &Interner) -> String {
         match self {
@@ -530,16 +477,7 @@ impl VisitWith for ObjectPatternElement {
                     ControlFlow::Continue(())
                 }
             }
-            ObjectPatternElement::RestProperty {
-                ident,
-                excluded_keys,
-            } => {
-                try_break!(visitor.visit_identifier(ident));
-                for key in excluded_keys {
-                    try_break!(visitor.visit_identifier(key));
-                }
-                ControlFlow::Continue(())
-            }
+            ObjectPatternElement::RestProperty { ident, .. } => visitor.visit_identifier(ident),
             ObjectPatternElement::AssignmentPropertyAccess {
                 name,
                 access,
@@ -553,15 +491,8 @@ impl VisitWith for ObjectPatternElement {
                     ControlFlow::Continue(())
                 }
             }
-            ObjectPatternElement::AssignmentRestPropertyAccess {
-                access,
-                excluded_keys,
-            } => {
-                try_break!(visitor.visit_property_access(access));
-                for key in excluded_keys {
-                    try_break!(visitor.visit_identifier(key));
-                }
-                ControlFlow::Continue(())
+            ObjectPatternElement::AssignmentRestPropertyAccess { access, .. } => {
+                visitor.visit_property_access(access)
             }
             ObjectPatternElement::Pattern {
                 name,
@@ -597,16 +528,7 @@ impl VisitWith for ObjectPatternElement {
                     ControlFlow::Continue(())
                 }
             }
-            ObjectPatternElement::RestProperty {
-                ident,
-                excluded_keys,
-            } => {
-                try_break!(visitor.visit_identifier_mut(ident));
-                for key in excluded_keys {
-                    try_break!(visitor.visit_identifier_mut(key));
-                }
-                ControlFlow::Continue(())
-            }
+            ObjectPatternElement::RestProperty { ident, .. } => visitor.visit_identifier_mut(ident),
             ObjectPatternElement::AssignmentPropertyAccess {
                 name,
                 access,
@@ -620,15 +542,8 @@ impl VisitWith for ObjectPatternElement {
                     ControlFlow::Continue(())
                 }
             }
-            ObjectPatternElement::AssignmentRestPropertyAccess {
-                access,
-                excluded_keys,
-            } => {
-                try_break!(visitor.visit_property_access_mut(access));
-                for key in excluded_keys {
-                    try_break!(visitor.visit_identifier_mut(key));
-                }
-                ControlFlow::Continue(())
+            ObjectPatternElement::AssignmentRestPropertyAccess { access, .. } => {
+                visitor.visit_property_access_mut(access)
             }
             ObjectPatternElement::Pattern {
                 name,
@@ -744,21 +659,6 @@ pub enum ArrayPatternElement {
         /// The pattern where the unassigned index elements will be stored.
         pattern: Pattern,
     },
-}
-
-impl ArrayPatternElement {
-    /// Gets the list of identifiers in the array pattern element.
-    #[inline]
-    pub(crate) fn idents(&self) -> Vec<Identifier> {
-        match self {
-            Self::SingleName { ident, .. } => {
-                vec![*ident]
-            }
-            Self::Pattern { pattern, .. } | Self::PatternRest { pattern } => pattern.idents(),
-            Self::SingleNameRest { ident } => vec![*ident],
-            _ => Vec::new(),
-        }
-    }
 }
 
 impl ToInternedString for ArrayPatternElement {

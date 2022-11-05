@@ -244,3 +244,9 @@ fn do_while_spaces() {
 fn reject_const_no_init_for_loop() {
     check_invalid("for (const h;;);");
 }
+
+/// Checks rejection of for await .. in loops
+#[test]
+fn reject_for_await_in_loop() {
+    check_invalid("for await (x in [1,2,3]);");
+}

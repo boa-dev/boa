@@ -1972,7 +1972,7 @@ impl<'b> ByteCompiler<'b> {
                     self.emit_binding(BindingOpcode::InitVar, *ident);
                 }
                 Binding::Pattern(pattern) => {
-                    for ident in pattern.idents() {
+                    for ident in bound_names(pattern) {
                         self.context.create_mutable_binding(ident, true, false);
                     }
                     self.compile_declaration_pattern(pattern, BindingOpcode::InitVar)?;
@@ -1984,7 +1984,7 @@ impl<'b> ByteCompiler<'b> {
                     self.emit_binding(BindingOpcode::InitLet, *ident);
                 }
                 Binding::Pattern(pattern) => {
-                    for ident in pattern.idents() {
+                    for ident in bound_names(pattern) {
                         self.context.create_mutable_binding(ident, false, false);
                     }
                     self.compile_declaration_pattern(pattern, BindingOpcode::InitLet)?;
@@ -1996,14 +1996,14 @@ impl<'b> ByteCompiler<'b> {
                     self.emit_binding(BindingOpcode::InitConst, *ident);
                 }
                 Binding::Pattern(pattern) => {
-                    for ident in pattern.idents() {
+                    for ident in bound_names(pattern) {
                         self.context.create_immutable_binding(ident, true);
                     }
                     self.compile_declaration_pattern(pattern, BindingOpcode::InitConst)?;
                 }
             },
             IterableLoopInitializer::Pattern(pattern) => {
-                for ident in pattern.idents() {
+                for ident in bound_names(pattern) {
                     self.context.create_mutable_binding(ident, true, true);
                 }
                 self.compile_declaration_pattern(pattern, BindingOpcode::InitVar)?;
@@ -2098,7 +2098,7 @@ impl<'b> ByteCompiler<'b> {
                     self.emit_binding(BindingOpcode::InitVar, *ident);
                 }
                 Binding::Pattern(pattern) => {
-                    for ident in pattern.idents() {
+                    for ident in bound_names(pattern) {
                         self.context.create_mutable_binding(ident, true, false);
                     }
                     self.compile_declaration_pattern(pattern, BindingOpcode::InitVar)?;
@@ -2110,7 +2110,7 @@ impl<'b> ByteCompiler<'b> {
                     self.emit_binding(BindingOpcode::InitLet, *ident);
                 }
                 Binding::Pattern(pattern) => {
-                    for ident in pattern.idents() {
+                    for ident in bound_names(pattern) {
                         self.context.create_mutable_binding(ident, false, false);
                     }
                     self.compile_declaration_pattern(pattern, BindingOpcode::InitLet)?;
@@ -2122,14 +2122,14 @@ impl<'b> ByteCompiler<'b> {
                     self.emit_binding(BindingOpcode::InitConst, *ident);
                 }
                 Binding::Pattern(pattern) => {
-                    for ident in pattern.idents() {
+                    for ident in bound_names(pattern) {
                         self.context.create_immutable_binding(ident, true);
                     }
                     self.compile_declaration_pattern(pattern, BindingOpcode::InitConst)?;
                 }
             },
             IterableLoopInitializer::Pattern(pattern) => {
-                for ident in pattern.idents() {
+                for ident in bound_names(pattern) {
                     self.context.create_mutable_binding(ident, true, true);
                 }
                 self.compile_declaration_pattern(pattern, BindingOpcode::InitVar)?;
@@ -2567,7 +2567,7 @@ impl<'b> ByteCompiler<'b> {
                                 self.emit_binding(BindingOpcode::InitLet, *ident);
                             }
                             Binding::Pattern(pattern) => {
-                                for ident in pattern.idents() {
+                                for ident in bound_names(pattern) {
                                     self.context.create_mutable_binding(ident, false, false);
                                 }
                                 self.compile_declaration_pattern(pattern, BindingOpcode::InitLet)?;
@@ -3053,7 +3053,7 @@ impl<'b> ByteCompiler<'b> {
                         .create_mutable_binding(*ident, true, configurable_globals);
                 }
                 Binding::Pattern(pattern) => {
-                    for ident in pattern.idents() {
+                    for ident in bound_names(pattern) {
                         if ident == Sym::ARGUMENTS {
                             has_identifier_argument = true;
                         }
@@ -3080,7 +3080,7 @@ impl<'b> ByteCompiler<'b> {
                             self.context.create_mutable_binding(*ident, false, false);
                         }
                         Binding::Pattern(pattern) => {
-                            for ident in pattern.idents() {
+                            for ident in bound_names(pattern) {
                                 if ident == Sym::ARGUMENTS {
                                     has_identifier_argument = true;
                                 }
@@ -3101,7 +3101,7 @@ impl<'b> ByteCompiler<'b> {
                             self.context.create_immutable_binding(*ident, true);
                         }
                         Binding::Pattern(pattern) => {
-                            for ident in pattern.idents() {
+                            for ident in bound_names(pattern) {
                                 if ident == Sym::ARGUMENTS {
                                     has_identifier_argument = true;
                                 }
@@ -3259,7 +3259,7 @@ impl<'b> ByteCompiler<'b> {
                         compiler.emit_binding(BindingOpcode::InitArg, *ident);
                     }
                     Binding::Pattern(pattern) => {
-                        for ident in pattern.idents() {
+                        for ident in bound_names(pattern) {
                             compiler.context.create_mutable_binding(ident, false, false);
                         }
                         compiler.compile_declaration_pattern(pattern, BindingOpcode::InitArg)?;

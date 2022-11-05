@@ -13,6 +13,7 @@ use crate::syntax::{
         AllowAwait, AllowDefault, AllowYield, Cursor, ParseError, ParseResult, TokenParser,
     },
 };
+use ast::operations::{lexically_declared_names, var_declared_names};
 use boa_ast::{
     self as ast,
     expression::Identifier,
@@ -637,30 +638,18 @@ where
                         StatementList::new(false, true, false, &FUNCTION_BREAK_TOKENS)
                             .parse(cursor, interner)?;
 
-                    let lexically_declared_names = statement_list.lexically_declared_names();
-                    let mut lexically_declared_names_map: FxHashMap<Identifier, bool> =
-                        FxHashMap::default();
-                    for (name, is_function_declaration) in &lexically_declared_names {
-                        if let Some(existing_is_function_declaration) =
-                            lexically_declared_names_map.get(name)
-                        {
-                            if !(!cursor.strict_mode()
-                                && *is_function_declaration
-                                && *existing_is_function_declaration)
-                            {
-                                return Err(ParseError::general(
-                                    "lexical name declared multiple times",
-                                    position,
-                                ));
-                            }
+                    let mut lexical_names = FxHashSet::default();
+                    for name in &lexically_declared_names(&statement_list) {
+                        if !lexical_names.insert(*name) {
+                            return Err(ParseError::general(
+                                "lexical name declared multiple times",
+                                position,
+                            ));
                         }
-                        lexically_declared_names_map.insert(*name, *is_function_declaration);
                     }
 
-                    let mut var_declared_names = FxHashSet::default();
-                    statement_list.var_declared_names(&mut var_declared_names);
-                    for (lex_name, _) in &lexically_declared_names {
-                        if var_declared_names.contains(lex_name) {
+                    for name in var_declared_names(&statement_list) {
+                        if lexical_names.contains(&name) {
                             return Err(ParseError::general(
                                 "lexical name declared in var names",
                                 position,

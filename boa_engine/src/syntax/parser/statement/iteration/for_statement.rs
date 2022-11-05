@@ -16,7 +16,7 @@ use crate::syntax::{
         AllowAwait, AllowReturn, AllowYield, Cursor, ParseError, ParseResult, TokenParser,
     },
 };
-use ast::operations::bound_names;
+use ast::operations::{bound_names, var_declared_names};
 use boa_ast::{
     self as ast,
     statement::{
@@ -157,7 +157,14 @@ where
                     position,
                 ));
             }
-            (Some(init), TokenKind::Keyword((Keyword::In, false))) => {
+            (Some(_), TokenKind::Keyword((Keyword::In, false))) if r#await => {
+                return Err(ParseError::general(
+                    "`await` can only be used in a `for await .. of` loop",
+                    position,
+                ));
+            }
+            (Some(init), TokenKind::Keyword((kw @ (Keyword::In | Keyword::Of), false))) => {
+                let kw = *kw;
                 let init =
                     initializer_to_iterable_loop_initializer(init, position, cursor.strict_mode())?;
 
@@ -165,7 +172,7 @@ where
                 let expr = Expression::new(None, true, self.allow_yield, self.allow_await)
                     .parse(cursor, interner)?;
 
-                cursor.expect(Punctuator::CloseParen, "for in statement", interner)?;
+                cursor.expect(Punctuator::CloseParen, "for in/of statement", interner)?;
 
                 let position = cursor
                     .peek(0, interner)?
@@ -181,87 +188,42 @@ where
                     return Err(ParseError::wrong_labelled_function_declaration(position));
                 }
 
-                // It is a Syntax Error if the BoundNames of ForDeclaration contains "let".
-                // It is a Syntax Error if any element of the BoundNames of ForDeclaration also occurs in the VarDeclaredNames of Statement.
-                // It is a Syntax Error if the BoundNames of ForDeclaration contains any duplicate entries.
-                let mut vars = FxHashSet::default();
-                body.var_declared_names(&mut vars);
-                let mut names = FxHashSet::default();
-                for name in bound_names(&init) {
-                    if name == Sym::LET {
-                        return Err(ParseError::general(
-                            "Cannot use 'let' as a lexically bound name",
-                            position,
-                        ));
-                    }
-                    if vars.contains(&name) {
-                        return Err(ParseError::general(
-                            "For loop initializer declared in loop body",
-                            position,
-                        ));
-                    }
-                    if !names.insert(name) {
-                        return Err(ParseError::general(
-                            "For loop initializer cannot contain duplicate identifiers",
-                            position,
-                        ));
-                    }
-                }
-
-                return Ok(ForInLoop::new(init, expr, body).into());
-            }
-            (Some(init), TokenKind::Keyword((Keyword::Of, false))) => {
-                let init =
-                    initializer_to_iterable_loop_initializer(init, position, cursor.strict_mode())?;
-
-                let _next = cursor.next(interner)?;
-                let iterable = Expression::new(None, true, self.allow_yield, self.allow_await)
-                    .parse(cursor, interner)?;
-
-                cursor.expect(Punctuator::CloseParen, "for of statement", interner)?;
-
-                let position = cursor
-                    .peek(0, interner)?
-                    .ok_or(ParseError::AbruptEnd)?
-                    .span()
-                    .start();
-
-                let body = Statement::new(self.allow_yield, self.allow_await, self.allow_return)
-                    .parse(cursor, interner)?;
-
-                // Early Error: It is a Syntax Error if IsLabelledFunction(Statement) is true.
-                if body.is_labelled_function() {
-                    return Err(ParseError::wrong_labelled_function_declaration(position));
-                }
-
-                // It is a Syntax Error if the BoundNames of ForDeclaration contains "let".
-                // It is a Syntax Error if any element of the BoundNames of ForDeclaration also occurs in the VarDeclaredNames of Statement.
-                // It is a Syntax Error if the BoundNames of ForDeclaration contains any duplicate entries.
-                let mut vars = FxHashSet::default();
-                body.var_declared_names(&mut vars);
-                let mut names = FxHashSet::default();
-                for name in bound_names(&init) {
-                    if name == Sym::LET {
-                        return Err(ParseError::general(
-                            "Cannot use 'let' as a lexically bound name",
-                            position,
-                        ));
-                    }
-                    if vars.contains(&name) {
-                        return Err(ParseError::general(
-                            "For loop initializer declared in loop body",
-                            position,
-                        ));
-                    }
-                    if !names.insert(name) {
-                        return Err(ParseError::general(
-                            "For loop initializer cannot contain duplicate identifiers",
-                            position,
-                        ));
+                // Checks are only applicable to lexical bindings.
+                if matches!(
+                    &init,
+                    IterableLoopInitializer::Const(_) | IterableLoopInitializer::Let(_)
+                ) {
+                    // It is a Syntax Error if the BoundNames of ForDeclaration contains "let".
+                    // It is a Syntax Error if any element of the BoundNames of ForDeclaration also occurs in the VarDeclaredNames of Statement.
+                    // It is a Syntax Error if the BoundNames of ForDeclaration contains any duplicate entries.
+                    let vars = var_declared_names(&body);
+                    let mut names = FxHashSet::default();
+                    for name in bound_names(&init) {
+                        if name == Sym::LET {
+                            return Err(ParseError::general(
+                                "Cannot use 'let' as a lexically bound name",
+                                position,
+                            ));
+                        }
+                        if vars.contains(&name) {
+                            return Err(ParseError::general(
+                                "For loop initializer declared in loop body",
+                                position,
+                            ));
+                        }
+                        if !names.insert(name) {
+                            return Err(ParseError::general(
+                                "For loop initializer cannot contain duplicate identifiers",
+                                position,
+                            ));
+                        }
                     }
                 }
-
-                return Ok(ForOfLoop::new(init, iterable, body, r#await).into());
+                return Ok(if kw == Keyword::In {
+                    ForInLoop::new(init, expr, body).into()
+                } else {
+                    ForOfLoop::new(init, expr, body, r#await).into()
+                });
             }
             (init, _) => init,
         };
@@ -320,10 +282,10 @@ where
 
         // Early Error: It is a Syntax Error if any element of the BoundNames of
         // LexicalDeclaration also occurs in the VarDeclaredNames of Statement.
-        let mut vars = FxHashSet::default();
-        body.var_declared_names(&mut vars);
-        if let Some(ref init) = init {
-            for name in bound_names(init) {
+        // Note: only applies to lexical bindings.
+        if let Some(ForLoopInitializer::Lexical(ref decl)) = init {
+            let vars = var_declared_names(&body);
+            for name in bound_names(decl) {
                 if vars.contains(&name) {
                     return Err(ParseError::general(
                         "For loop initializer declared in loop body",

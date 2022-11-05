@@ -32,7 +32,7 @@ use crate::syntax::{
 use boa_ast::{
     expression::Identifier,
     function::FormalParameterList,
-    operations::{contains, ContainsSymbol},
+    operations::{bound_names, contains, top_level_lexically_declared_names, ContainsSymbol},
     Declaration, Keyword, Position, Punctuator, StatementList,
 };
 use boa_interner::{Interner, Sym};
@@ -209,8 +209,8 @@ fn parse_callable_declaration<R: Read, C: CallableDeclaration>(
     // also occurs in the LexicallyDeclaredNames of FunctionBody.
     // https://tc39.es/ecma262/#sec-function-definitions-static-semantics-early-errors
     name_in_lexically_declared_names(
-        &params,
-        &body.lexically_declared_names_top_level(),
+        &bound_names(&params),
+        &top_level_lexically_declared_names(&body),
         params_start_position,
     )?;
 

@@ -16,6 +16,7 @@ use crate::syntax::{
         AllowAwait, AllowIn, AllowYield, ParseError, ParseResult, TokenParser,
     },
 };
+use ast::operations::bound_names;
 use boa_ast::{self as ast, declaration::Variable, pattern::Pattern, Keyword, Punctuator};
 use boa_interner::{Interner, Sym};
 use boa_profiler::Profiler;
@@ -276,7 +277,7 @@ where
 
                 let declaration = Pattern::Object(bindings.into());
 
-                if declaration.idents().contains(&Sym::LET.into()) {
+                if bound_names(&declaration).contains(&Sym::LET.into()) {
                     return Err(ParseError::lex(LexError::Syntax(
                         "'let' is disallowed as a lexically bound name".into(),
                         position,
@@ -304,7 +305,7 @@ where
 
                 let declaration = Pattern::Array(bindings.into());
 
-                if declaration.idents().contains(&Sym::LET.into()) {
+                if bound_names(&declaration).contains(&Sym::LET.into()) {
                     return Err(ParseError::lex(LexError::Syntax(
                         "'let' is disallowed as a lexically bound name".into(),
                         position,

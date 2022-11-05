@@ -25,7 +25,9 @@ use boa_ast::{
         Identifier,
     },
     function::{AsyncFunction, AsyncGenerator, FormalParameterList, Function, Generator},
-    operations::{contains, has_direct_super, ContainsSymbol},
+    operations::{
+        bound_names, contains, has_direct_super, top_level_lexically_declared_names, ContainsSymbol,
+    },
     property::{self, MethodDefinition},
     Expression, Keyword, Punctuator,
 };
@@ -443,24 +445,13 @@ where
                     )));
                 }
 
-                // It is a Syntax Error if any element of the BoundNames of FormalParameters also occurs in the LexicallyDeclaredNames of FunctionBody.
-                let lexically_declared_names = body.lexically_declared_names();
-                for parameter in params.as_ref() {
-                    for name in &parameter.names() {
-                        if lexically_declared_names.contains(&(*name, false)) {
-                            return Err(ParseError::general(
-                                "formal parameter declared in lexically declared names",
-                                params_start_position,
-                            ));
-                        }
-                        if lexically_declared_names.contains(&(*name, true)) {
-                            return Err(ParseError::general(
-                                "formal parameter declared in lexically declared names",
-                                params_start_position,
-                            ));
-                        }
-                    }
-                }
+                // It is a Syntax Error if any element of the BoundNames of FormalParameters also occurs in the
+                // LexicallyDeclaredNames of FunctionBody.
+                name_in_lexically_declared_names(
+                    &bound_names(&params),
+                    &top_level_lexically_declared_names(&body),
+                    params_start_position,
+                )?;
 
                 let method = MethodDefinition::Ordinary(Function::new(None, params, body));
 
@@ -691,6 +682,12 @@ where
         let class_element_name =
             ClassElementName::new(self.allow_yield, self.allow_await).parse(cursor, interner)?;
 
+        let params_start_position = cursor
+            .peek(0, interner)?
+            .ok_or(ParseError::AbruptEnd)?
+            .span()
+            .start();
+
         let params = UniqueFormalParameters::new(true, false).parse(cursor, interner)?;
 
         let body_start = cursor
@@ -720,9 +717,9 @@ where
         // Early Error: It is a Syntax Error if any element of the BoundNames of UniqueFormalParameters also
         // occurs in the LexicallyDeclaredNames of GeneratorBody.
         name_in_lexically_declared_names(
-            &params,
-            &body.lexically_declared_names_top_level(),
-            body_start,
+            &bound_names(&params),
+            &top_level_lexically_declared_names(&body),
+            params_start_position,
         )?;
 
         let method = MethodDefinition::Generator(Generator::new(None, params, body, false));
@@ -834,9 +831,9 @@ where
         // Early Error: It is a Syntax Error if any element of the BoundNames of UniqueFormalParameters also
         // occurs in the LexicallyDeclaredNames of GeneratorBody.
         name_in_lexically_declared_names(
-            &params,
-            &body.lexically_declared_names_top_level(),
-            body_start,
+            &bound_names(&params),
+            &top_level_lexically_declared_names(&body),
+            params_start_position,
         )?;
 
         let method =
@@ -891,6 +888,12 @@ where
         let class_element_name =
             ClassElementName::new(self.allow_yield, self.allow_await).parse(cursor, interner)?;
 
+        let params_start_position = cursor
+            .peek(0, interner)?
+            .ok_or(ParseError::AbruptEnd)?
+            .span()
+            .start();
+
         let params = UniqueFormalParameters::new(false, true).parse(cursor, interner)?;
 
         let body_start = cursor
@@ -920,9 +923,9 @@ where
         // Early Error: It is a Syntax Error if any element of the BoundNames of UniqueFormalParameters also
         // occurs in the LexicallyDeclaredNames of GeneratorBody.
         name_in_lexically_declared_names(
-            &params,
-            &body.lexically_declared_names_top_level(),
-            body_start,
+            &bound_names(&params),
+            &top_level_lexically_declared_names(&body),
+            params_start_position,
         )?;
 
         let method = MethodDefinition::Async(AsyncFunction::new(None, params, body, false));

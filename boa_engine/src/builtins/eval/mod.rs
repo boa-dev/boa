@@ -17,9 +17,9 @@ use crate::{
     property::Attribute,
     Context, JsResult, JsValue,
 };
+use boa_ast::operations::top_level_var_declared_names;
 use boa_gc::Gc;
 use boa_profiler::Profiler;
-use rustc_hash::FxHashSet;
 
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct Eval;
@@ -68,9 +68,25 @@ impl Eval {
         mut strict: bool,
         context: &mut Context,
     ) -> JsResult<JsValue> {
+        /// Possible actions that can be executed after exiting this function to restore the environment to its
+        /// original state.
         enum EnvStackAction {
             Truncate(usize),
             Restore(Vec<Gc<DeclarativeEnvironment>>),
+        }
+
+        /// Restores the environment after calling `eval` or after throwing an error.
+        fn restore_environment(context: &mut Context, action: EnvStackAction) {
+            match action {
+                EnvStackAction::Truncate(size) => {
+                    context.realm.environments.truncate(size);
+                }
+                EnvStackAction::Restore(envs) => {
+                    // Pop all environments created during the eval execution and restore the original stack.
+                    context.realm.environments.truncate(1);
+                    context.realm.environments.extend(envs);
+                }
+            }
         }
 
         // 1. Assert: If direct is false, then strictCaller is also false.
@@ -129,13 +145,12 @@ impl Eval {
         // environment for all eval calls.
         if !strict {
             // Error if any var declaration in the eval code already exists as a let/const declaration in the current running environment.
-            let mut vars = FxHashSet::default();
-            body.var_declared_names(&mut vars);
             if let Some(name) = context
                 .realm
                 .environments
-                .has_lex_binding_until_function_environment(&vars)
+                .has_lex_binding_until_function_environment(&top_level_var_declared_names(&body))
             {
+                restore_environment(context, action);
                 let name = context.interner().resolve_expect(name.sym());
                 let msg = format!("variable declaration {name} in eval function already exists as a lexical variable");
                 return Err(JsNativeError::syntax().with_message(msg).into());
@@ -158,16 +173,7 @@ impl Eval {
         }
         let result = context.execute(code_block);
 
-        match action {
-            EnvStackAction::Truncate(size) => {
-                context.realm.environments.truncate(size);
-            }
-            EnvStackAction::Restore(envs) => {
-                // Pop all environments created during the eval execution and restore the original stack.
-                context.realm.environments.truncate(1);
-                context.realm.environments.extend(envs);
-            }
-        }
+        restore_environment(context, action);
 
         result
     }

@@ -21,7 +21,7 @@ use crate::syntax::{
 use boa_ast::{
     expression::Identifier,
     function::Function,
-    operations::{contains, ContainsSymbol},
+    operations::{bound_names, contains, top_level_lexically_declared_names, ContainsSymbol},
     Keyword, Position, Punctuator,
 };
 use boa_interner::{Interner, Sym};
@@ -126,8 +126,8 @@ where
         // also occurs in the LexicallyDeclaredNames of FunctionBody.
         // https://tc39.es/ecma262/#sec-function-definitions-static-semantics-early-errors
         name_in_lexically_declared_names(
-            &params,
-            &body.lexically_declared_names_top_level(),
+            &bound_names(&params),
+            &top_level_lexically_declared_names(&body),
             params_start_position,
         )?;
 

@@ -18,7 +18,7 @@ use crate::syntax::{
     },
 };
 use ast::{
-    operations::{contains, ContainsSymbol},
+    operations::{bound_names, contains, top_level_lexically_declared_names, ContainsSymbol},
     Keyword,
 };
 use boa_ast::{
@@ -144,8 +144,8 @@ where
         // Early Error: It is a Syntax Error if any element of the BoundNames of CoverCallExpressionAndAsyncArrowHead
         // also occurs in the LexicallyDeclaredNames of AsyncConciseBody.
         name_in_lexically_declared_names(
-            &params,
-            &body.lexically_declared_names_top_level(),
+            &bound_names(&params),
+            &top_level_lexically_declared_names(&body),
             params_start_position,
         )?;
 
