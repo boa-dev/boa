@@ -45,11 +45,7 @@ impl<K: Trace + ?Sized, V: Trace + ?Sized> Ephemeron<K, V> {
     #[inline]
     fn inner_key_ptr(&self) -> Option<*mut GcBox<K>> {
         assert!(finalizer_safe());
-        if let Some(key_node) = self.key.get() {
-            Some(key_node.as_ptr())
-        } else {
-            None
-        }
+        self.key.get().map(|key_node| key_node.as_ptr())
     }
 
     #[inline]

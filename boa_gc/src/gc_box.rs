@@ -31,7 +31,7 @@ impl GcBoxHeader {
     #[inline]
     pub fn new_weak() -> Self {
         // Set weak_flag
-        let cycle_age = 0_u8 | WEAK_MASK;
+        let cycle_age = WEAK_MASK;
         GcBoxHeader {
             roots: Cell::new(0),
             cycle_age: Cell::new(cycle_age),
@@ -46,7 +46,7 @@ impl GcBoxHeader {
 
     #[inline]
     pub fn roots(&self) -> usize {
-        &self.roots.get() & ROOTS_MASK
+        self.roots.get() & ROOTS_MASK
     }
 
     #[inline]
@@ -83,7 +83,7 @@ impl GcBoxHeader {
 
     #[inline]
     pub fn age(&self) -> u8 {
-        &self.cycle_age.get() & AGE_MASK
+        self.cycle_age.get() & AGE_MASK
     }
 
     #[inline]

@@ -156,7 +156,7 @@ impl<T: Trace + ?Sized> Deref for Gc<T> {
 
     #[inline]
     fn deref(&self) -> &T {
-        &self.inner().value()
+        self.inner().value()
     }
 }
 

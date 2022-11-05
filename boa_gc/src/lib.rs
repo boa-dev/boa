@@ -1,4 +1,18 @@
 //! Garbage collector for the Boa JavaScript engine.
+//! 
+
+
+#![allow(
+    clippy::let_unit_value,
+    clippy::should_implement_trait,
+    clippy::match_like_matches_macro,
+    clippy::new_ret_no_self,
+    // Putting the below on the allow list for now, but these should eventually be addressed
+    clippy::missing_safety_doc,
+    clippy::explicit_auto_deref,
+    clippy::borrow_deref_ref,
+)]
+
 use boa_profiler::Profiler;
 use std::cell::{Cell as StdCell, RefCell as StdRefCell};
 use std::mem;
@@ -51,22 +65,12 @@ impl Default for GcConfig {
     }
 }
 
+#[derive(Default)]
 struct GcRuntimeData {
     collections: usize,
     total_bytes_allocated: usize,
     youth_bytes: usize,
     adult_bytes: usize,
-}
-
-impl Default for GcRuntimeData {
-    fn default() -> Self {
-        Self {
-            collections: 0,
-            total_bytes_allocated: 0,
-            youth_bytes: 0,
-            adult_bytes: 0,
-        }
-    }
 }
 
 struct BoaGc {
@@ -117,7 +121,7 @@ impl BoaAlloc {
             let mut gc = st.borrow_mut();
 
             unsafe {
-                Self::manage_state(&mut *gc);
+                Self::manage_state(&mut gc);
             }
 
             let gc_box = GcBox::new(value);
@@ -147,7 +151,7 @@ impl BoaAlloc {
             // Manage state preps the internal state for allocation and
             // triggers a collection if the state dictates it.
             unsafe {
-                Self::manage_state(&mut *gc);
+                Self::manage_state(&mut gc);
             }
 
             let gc_box = GcBox::new(Cell::new(value));
@@ -174,7 +178,7 @@ impl BoaAlloc {
             let mut gc = internals.borrow_mut();
 
             unsafe {
-                Self::manage_state(&mut *gc);
+                Self::manage_state(&mut gc);
                 let ephem = Ephemeron::new_pair(key, value);
                 let gc_box = GcBox::new_weak(ephem);
 
@@ -199,7 +203,7 @@ impl BoaAlloc {
             let mut gc = state.borrow_mut();
 
             unsafe {
-                Self::manage_state(&mut *gc);
+                Self::manage_state(&mut gc);
 
                 let ephemeron = Ephemeron::new(value);
                 let gc_box = GcBox::new_weak(ephemeron);
