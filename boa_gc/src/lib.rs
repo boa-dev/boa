@@ -506,6 +506,9 @@ impl Collector {
             // Drops every node
             let unmarked_node = Box::from_raw(node.as_ptr());
             sweep_head.set(unmarked_node.header.next.take());
+
+            // Need to stay consistent when it comes to `mem::forget` approach vs. Drop in place
+            mem::forget(unmarked_node)
         }
     }
 }

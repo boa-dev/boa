@@ -7,7 +7,7 @@ fn generational_promo_one() {
     let mut storage = Vec::new();
 
     // Super basic loop that loads bytes and force collections
-    for i in 0..200 as usize {
+    for i in 0..15000 as usize {
         let gc = BoaAlloc::new(i);
         storage.push(gc);
     }

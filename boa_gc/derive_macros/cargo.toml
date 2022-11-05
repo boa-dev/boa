@@ -2,7 +2,7 @@
 name = "boa_gc_macros"
 version = "0.16.0"
 description = "Garbage collector for the Boa JavaScript engine."
-keywords = ["javascript", "js", "garbage", "memory"]
+keywords = ["javascript", "js", "garbage", "memory", "derive"]
 edition = "2021"
 
 [lib]
