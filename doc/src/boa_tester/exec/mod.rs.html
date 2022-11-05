@@ -429,9 +429,6 @@
 <span id="427">427</span>
 <span id="428">428</span>
 <span id="429">429</span>
-<span id="430">430</span>
-<span id="431">431</span>
-<span id="432">432</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Execution module for the test runner.
 
 </span><span class="kw">mod </span>js262;
@@ -449,7 +446,6 @@
 <span class="kw">use </span>boa_gc::{Cell, Finalize, Gc, Trace};
 <span class="kw">use </span>colored::Colorize;
 <span class="kw">use </span>rayon::prelude::<span class="kw-2">*</span>;
-<span class="kw">use </span>std::panic;
 
 <span class="kw">impl </span>TestSuite {
     <span class="doccomment">/// Runs the test suite.
@@ -603,27 +599,26 @@
                         error_type: <span class="kw">_</span>,
                     }
                 )) {
-            <span class="kw">let </span>res = panic::catch_unwind(|| <span class="kw">match </span><span class="self">self</span>.expected_outcome {
+            <span class="kw">let </span>res = std::panic::catch_unwind(|| <span class="kw">match </span><span class="self">self</span>.expected_outcome {
                 Outcome::Positive =&gt; {
                     <span class="kw">let </span><span class="kw-2">mut </span>context = Context::default();
+                    <span class="kw">let </span>async_result = AsyncResult::default();
 
-                    <span class="kw">let </span>callback_obj = CallbackObject::default();
-                    <span class="comment">// TODO: timeout
-                    </span><span class="kw">match </span><span class="self">self</span>.set_up_env(harness, <span class="kw-2">&amp;mut </span>context, callback_obj.clone()) {
-                        <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; {
-                            <span class="kw">let </span>res = context.eval(<span class="kw-2">&amp;</span>test_content);
-
-                            <span class="kw">let </span>passed = res.is_ok()
-                                &amp;&amp; <span class="macro">matches!</span>(<span class="kw-2">*</span>callback_obj.result.borrow(), <span class="prelude-val">Some</span>(<span class="bool-val">true</span>) | <span class="prelude-val">None</span>);
-                            <span class="kw">let </span>text = <span class="kw">match </span>res {
-                                <span class="prelude-val">Ok</span>(val) =&gt; val.display().to_string(),
-                                <span class="prelude-val">Err</span>(e) =&gt; <span class="macro">format!</span>(<span class="string">&quot;Uncaught {e}&quot;</span>,),
-                            };
-
-                            (passed, text)
-                        }
-                        <span class="prelude-val">Err</span>(e) =&gt; (<span class="bool-val">false</span>, e),
+                    <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = <span class="self">self</span>.set_up_env(harness, <span class="kw-2">&amp;mut </span>context, async_result.clone()) {
+                        <span class="kw">return </span>(<span class="bool-val">false</span>, e);
                     }
+
+                    <span class="comment">// TODO: timeout
+                    </span><span class="kw">let </span>value = <span class="kw">match </span>context.eval(<span class="kw-2">&amp;</span>test_content) {
+                        <span class="prelude-val">Ok</span>(v) =&gt; v,
+                        <span class="prelude-val">Err</span>(e) =&gt; <span class="kw">return </span>(<span class="bool-val">false</span>, <span class="macro">format!</span>(<span class="string">&quot;Uncaught {e}&quot;</span>)),
+                    };
+
+                    <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = async_result.inner.borrow().as_ref() {
+                        <span class="kw">return </span>(<span class="bool-val">false</span>, <span class="macro">format!</span>(<span class="string">&quot;Uncaught {e}&quot;</span>));
+                    }
+
+                    (<span class="bool-val">true</span>, value.display().to_string())
                 }
                 Outcome::Negative {
                     phase: Phase::Parse | Phase::Early,
@@ -654,57 +649,47 @@
                     error_type,
                 } =&gt; {
                     <span class="kw">let </span><span class="kw-2">mut </span>context = Context::default();
-                    <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = Parser::new(test_content.as_bytes()).parse_all(<span class="kw-2">&amp;mut </span>context) {
-                        (<span class="bool-val">false</span>, <span class="macro">format!</span>(<span class="string">&quot;Uncaught {e}&quot;</span>))
-                    } <span class="kw">else </span>{
-                        <span class="comment">// TODO: timeout
-                        </span><span class="kw">match </span><span class="self">self</span>.set_up_env(harness, <span class="kw-2">&amp;mut </span>context, CallbackObject::default()) {
-                            <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="kw">match </span>context.eval(<span class="kw-2">&amp;</span>test_content) {
-                                <span class="prelude-val">Ok</span>(res) =&gt; (<span class="bool-val">false</span>, res.display().to_string()),
-                                <span class="prelude-val">Err</span>(e) =&gt; {
-                                    <span class="kw">let </span>passed = <span class="kw">if let </span><span class="prelude-val">Ok</span>(e) = e.try_native(<span class="kw-2">&amp;mut </span>context) {
-                                        <span class="kw">match </span><span class="kw-2">&amp;</span>e.kind {
-                                            JsNativeErrorKind::Syntax
-                                                <span class="kw">if </span>error_type == ErrorType::SyntaxError =&gt;
-                                            {
-                                                <span class="bool-val">true
-                                            </span>}
-                                            JsNativeErrorKind::Reference
-                                                <span class="kw">if </span>error_type == ErrorType::ReferenceError =&gt;
-                                            {
-                                                <span class="bool-val">true
-                                            </span>}
-                                            JsNativeErrorKind::Range
-                                                <span class="kw">if </span>error_type == ErrorType::RangeError =&gt;
-                                            {
-                                                <span class="bool-val">true
-                                            </span>}
-                                            JsNativeErrorKind::Type
-                                                <span class="kw">if </span>error_type == ErrorType::TypeError =&gt;
-                                            {
-                                                <span class="bool-val">true
-                                            </span>}
-                                            <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
-                                        }
-                                    } <span class="kw">else </span>{
-                                        e.as_opaque()
-                                            .expect(<span class="string">&quot;try_native cannot fail if e is not opaque&quot;</span>)
-                                            .as_object()
-                                            .and_then(|o| o.get(<span class="string">&quot;constructor&quot;</span>, <span class="kw-2">&amp;mut </span>context).ok())
-                                            .as_ref()
-                                            .and_then(JsValue::as_object)
-                                            .and_then(|o| o.get(<span class="string">&quot;name&quot;</span>, <span class="kw-2">&amp;mut </span>context).ok())
-                                            .as_ref()
-                                            .and_then(JsValue::as_string)
-                                            .map(|s| s == error_type.as_str())
-                                            .unwrap_or_default()
-                                    };
+                    <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = <span class="self">self</span>.set_up_env(harness, <span class="kw-2">&amp;mut </span>context, AsyncResult::default()) {
+                        <span class="kw">return </span>(<span class="bool-val">false</span>, e);
+                    }
+                    <span class="kw">let </span>code = <span class="kw">match </span>Parser::new(test_content.as_bytes())
+                        .parse_all(<span class="kw-2">&amp;mut </span>context)
+                        .map_err(Into::into)
+                        .and_then(|stmts| context.compile(<span class="kw-2">&amp;</span>stmts))
+                    {
+                        <span class="prelude-val">Ok</span>(code) =&gt; code,
+                        <span class="prelude-val">Err</span>(e) =&gt; <span class="kw">return </span>(<span class="bool-val">false</span>, <span class="macro">format!</span>(<span class="string">&quot;Uncaught {e}&quot;</span>)),
+                    };
 
-                                    (passed, <span class="macro">format!</span>(<span class="string">&quot;Uncaught {e}&quot;</span>))
-                                }
-                            },
-                            <span class="prelude-val">Err</span>(e) =&gt; (<span class="bool-val">false</span>, e),
+                    <span class="comment">// TODO: timeout
+                    </span><span class="kw">let </span>e = <span class="kw">match </span>context.execute(code) {
+                        <span class="prelude-val">Ok</span>(res) =&gt; <span class="kw">return </span>(<span class="bool-val">false</span>, res.display().to_string()),
+                        <span class="prelude-val">Err</span>(e) =&gt; e,
+                    };
+                    <span class="kw">if let </span><span class="prelude-val">Ok</span>(e) = e.try_native(<span class="kw-2">&amp;mut </span>context) {
+                        <span class="kw">match </span><span class="kw-2">&amp;</span>e.kind {
+                            JsNativeErrorKind::Syntax <span class="kw">if </span>error_type == ErrorType::SyntaxError =&gt; {}
+                            JsNativeErrorKind::Reference
+                                <span class="kw">if </span>error_type == ErrorType::ReferenceError =&gt; {}
+                            JsNativeErrorKind::Range <span class="kw">if </span>error_type == ErrorType::RangeError =&gt; {}
+                            JsNativeErrorKind::Type <span class="kw">if </span>error_type == ErrorType::TypeError =&gt; {}
+                            <span class="kw">_ </span>=&gt; <span class="kw">return </span>(<span class="bool-val">false</span>, <span class="macro">format!</span>(<span class="string">&quot;Uncaught {e}&quot;</span>)),
                         }
+                        (<span class="bool-val">true</span>, <span class="macro">format!</span>(<span class="string">&quot;Uncaught {e}&quot;</span>))
+                    } <span class="kw">else </span>{
+                        <span class="kw">let </span>passed = e
+                            .as_opaque()
+                            .expect(<span class="string">&quot;try_native cannot fail if e is not opaque&quot;</span>)
+                            .as_object()
+                            .and_then(|o| o.get(<span class="string">&quot;constructor&quot;</span>, <span class="kw-2">&amp;mut </span>context).ok())
+                            .as_ref()
+                            .and_then(JsValue::as_object)
+                            .and_then(|o| o.get(<span class="string">&quot;name&quot;</span>, <span class="kw-2">&amp;mut </span>context).ok())
+                            .as_ref()
+                            .and_then(JsValue::as_string)
+                            .map(|s| s == error_type.as_str())
+                            .unwrap_or_default();
+                        (passed, <span class="macro">format!</span>(<span class="string">&quot;Uncaught {e}&quot;</span>))
                     }
                 }
             });
@@ -742,7 +727,7 @@
                     <span class="kw">if </span><span class="macro">matches!</span>(result, (TestOutcomeResult::Passed, <span class="kw">_</span>)) {
                         <span class="string">&quot;.&quot;</span>.green()
                     } <span class="kw">else </span>{
-                        <span class="string">&quot;.&quot;</span>.red()
+                        <span class="string">&quot;F&quot;</span>.red()
                     }
                 );
             }
@@ -757,7 +742,7 @@
                     <span class="string">&quot;Ignored&quot;</span>.yellow()
                 );
             } <span class="kw">else </span>{
-                <span class="macro">print!</span>(<span class="string">&quot;{}&quot;</span>, <span class="string">&quot;.&quot;</span>.yellow());
+                <span class="macro">print!</span>(<span class="string">&quot;{}&quot;</span>, <span class="string">&quot;-&quot;</span>.yellow());
             }
             (TestOutcomeResult::Ignored, String::new())
         };
@@ -785,10 +770,10 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         harness: <span class="kw-2">&amp;</span>Harness,
         context: <span class="kw-2">&amp;mut </span>Context,
-        callback_obj: CallbackObject,
+        async_result: AsyncResult,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), String&gt; {
         <span class="comment">// Register the print() function.
-        </span><span class="self">Self</span>::register_print_fn(context, callback_obj);
+        </span><span class="self">Self</span>::register_print_fn(context, async_result);
 
         <span class="comment">// add the $262 object.
         </span><span class="kw">let </span>_js262 = js262::init(context);
@@ -826,10 +811,10 @@
     }
 
     <span class="doccomment">/// Registers the print function in the context.
-    </span><span class="kw">fn </span>register_print_fn(context: <span class="kw-2">&amp;mut </span>Context, callback_object: CallbackObject) {
+    </span><span class="kw">fn </span>register_print_fn(context: <span class="kw-2">&amp;mut </span>Context, async_result: AsyncResult) {
         <span class="comment">// We use `FunctionBuilder` to define a closure with additional captures.
         </span><span class="kw">let </span>js_function =
-            FunctionBuilder::closure_with_captures(context, test262_print, callback_object)
+            FunctionBuilder::closure_with_captures(context, test262_print, async_result)
                 .name(<span class="string">&quot;print&quot;</span>)
                 .length(<span class="number">1</span>)
                 .build();
@@ -843,9 +828,17 @@
 }
 
 <span class="doccomment">/// Object which includes the result of the async operation.
-</span><span class="attribute">#[derive(Debug, Clone, Default, Trace, Finalize)]
-</span><span class="kw">struct </span>CallbackObject {
-    result: Gc&lt;Cell&lt;<span class="prelude-ty">Option</span>&lt;bool&gt;&gt;&gt;,
+</span><span class="attribute">#[derive(Debug, Clone, Trace, Finalize)]
+</span><span class="kw">struct </span>AsyncResult {
+    inner: Gc&lt;Cell&lt;<span class="prelude-ty">Result</span>&lt;(), String&gt;&gt;&gt;,
+}
+
+<span class="kw">impl </span>Default <span class="kw">for </span>AsyncResult {
+    <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            inner: Gc::new(Cell::new(<span class="prelude-val">Ok</span>(()))),
+        }
+    }
 }
 
 <span class="doccomment">/// `print()` function required by the test262 suite.
@@ -853,14 +846,15 @@
 </span><span class="kw">fn </span>test262_print(
     _this: <span class="kw-2">&amp;</span>JsValue,
     args: <span class="kw-2">&amp;</span>[JsValue],
-    captures: <span class="kw-2">&amp;mut </span>CallbackObject,
-    _context: <span class="kw-2">&amp;mut </span>Context,
+    async_result: <span class="kw-2">&amp;mut </span>AsyncResult,
+    context: <span class="kw-2">&amp;mut </span>Context,
 ) -&gt; JsResult&lt;JsValue&gt; {
-    <span class="kw">if let </span><span class="prelude-val">Some</span>(message) = args.get_or_undefined(<span class="number">0</span>).as_string() {
-        <span class="kw-2">*</span>captures.result.borrow_mut() =
-            <span class="prelude-val">Some</span>(message.to_std_string_escaped() == <span class="string">&quot;Test262:AsyncTestComplete&quot;</span>);
-    } <span class="kw">else </span>{
-        <span class="kw-2">*</span>captures.result.borrow_mut() = <span class="prelude-val">Some</span>(<span class="bool-val">false</span>);
+    <span class="kw">let </span>message = args
+        .get_or_undefined(<span class="number">0</span>)
+        .to_string(context)<span class="question-mark">?
+        </span>.to_std_string_escaped();
+    <span class="kw">if </span>message != <span class="string">&quot;Test262:AsyncTestComplete&quot; </span>{
+        <span class="kw-2">*</span>async_result.inner.borrow_mut() = <span class="prelude-val">Err</span>(message);
     }
     <span class="prelude-val">Ok</span>(JsValue::undefined())
 }
