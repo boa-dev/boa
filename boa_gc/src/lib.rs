@@ -452,10 +452,6 @@ impl Collector {
                 *heap_bytes -= unallocated_bytes;
                 *total_bytes -= unallocated_bytes;
                 sweep_head.set(unmarked_node.header.next.take());
-                // We have now finalized and taken care of the below node. We now forget the node
-                // to remove the node without calling the destructor on Gc<T> or any other value
-                // since calling core::ptr::drop_in_place will trigger `Gc::drop`, which accesses `Gc::inner()`
-                mem::forget(unmarked_node)
             }
         }
 
@@ -483,10 +479,6 @@ impl Collector {
                 *bytes_allocated -= unallocated_bytes;
                 *total_allocated -= unallocated_bytes;
                 sweep_head.set(unmarked_node.header.next.take());
-                // We have now finalized and taken care of the below node. We now forget the node
-                // to remove the node without calling the destructor on Gc<T> or any other value
-                // since calling core::ptr::drop_in_place will trigger `Gc::drop`, which accesses `Gc::inner()`
-                mem::forget(unmarked_node)
             }
         }
     }
@@ -506,7 +498,6 @@ impl Collector {
             let unmarked_node = Box::from_raw(node.as_ptr());
             sweep_head.set(unmarked_node.header.next.take());
 
-            // Need to stay consistent when it comes to `mem::forget` approach vs. Drop in place
             mem::forget(unmarked_node)
         }
     }

@@ -63,7 +63,10 @@ impl GcBoxHeader {
 
     #[inline]
     pub fn dec_roots(&self) {
-        self.roots.set(self.roots.get() - 1) // no underflow check
+        // Underflow check as a stop gap for current issue when dropping
+        if self.roots.get() > 0 {
+            self.roots.set(self.roots.get() - 1) 
+        }
     }
 
     #[inline]

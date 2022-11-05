@@ -8,9 +8,8 @@ use std::ptr::{self, NonNull};
 use std::rc::Rc;
 
 use crate::gc_box::GcBox;
-use crate::BoaAlloc;
+use crate::{BoaAlloc, finalizer_safe};
 use crate::{
-    finalizer_safe,
     trace::{Finalize, Trace},
 };
 
@@ -164,7 +163,7 @@ impl<T: Trace + ?Sized> Drop for Gc<T> {
     #[inline]
     fn drop(&mut self) {
         // If this pointer was a root, we should unroot it.
-        if self.rooted() {
+        if self.rooted() & finalizer_safe() {
             unsafe {
                 self.inner().unroot_inner();
             }
