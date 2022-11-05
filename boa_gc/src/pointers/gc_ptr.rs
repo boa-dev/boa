@@ -8,10 +8,8 @@ use std::ptr::{self, NonNull};
 use std::rc::Rc;
 
 use crate::gc_box::GcBox;
-use crate::{BoaAlloc, finalizer_safe};
-use crate::{
-    trace::{Finalize, Trace},
-};
+use crate::trace::{Finalize, Trace};
+use crate::{finalizer_safe, BoaAlloc};
 
 pub(crate) unsafe fn set_data_ptr<T: ?Sized, U>(mut ptr: *mut T, data: *mut U) -> *mut T {
     ptr::write(&mut ptr as *mut _ as *mut *mut u8, data as *mut u8);
