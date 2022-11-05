@@ -4,7 +4,9 @@ use crate::{
     vm::{BindingOpcode, CodeBlock, Opcode},
     Context, JsResult,
 };
-use boa_ast::{declaration::Binding, function::FormalParameterList, StatementList};
+use boa_ast::{
+    declaration::Binding, function::FormalParameterList, operations::bound_names, StatementList,
+};
 use boa_gc::Gc;
 use boa_interner::Sym;
 use rustc_hash::FxHashMap;
@@ -153,7 +155,7 @@ impl FunctionCompiler {
                     compiler.emit_binding(BindingOpcode::InitArg, *ident);
                 }
                 Binding::Pattern(pattern) => {
-                    for ident in pattern.idents() {
+                    for ident in bound_names(pattern) {
                         compiler.context.create_mutable_binding(ident, false, false);
                     }
                     // TODO: throw custom error if ident is in init

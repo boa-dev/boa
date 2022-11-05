@@ -1396,19 +1396,7 @@ impl JsObject {
                     false,
                 );
 
-                let mut arguments_in_parameter_names = false;
-                let mut is_simple_parameter_list = true;
-                let mut has_parameter_expressions = false;
-
-                for param in code.params.as_ref().iter() {
-                    has_parameter_expressions = has_parameter_expressions || param.init().is_some();
-                    arguments_in_parameter_names = arguments_in_parameter_names
-                        || param.names().contains(&Sym::ARGUMENTS.into());
-                    is_simple_parameter_list = is_simple_parameter_list
-                        && !param.is_rest_param()
-                        && param.is_identifier()
-                        && param.init().is_none();
-                }
+                let has_expressions = code.params.has_expressions();
 
                 if let Some(binding) = code.arguments_binding {
                     let arguments_obj = if code.strict || !code.params.is_simple() {
@@ -1475,7 +1463,7 @@ impl JsObject {
                 context.vm.pop_frame();
 
                 let mut environment = context.realm.environments.pop();
-                if has_parameter_expressions {
+                if has_expressions {
                     environment = context.realm.environments.pop();
                 }
 

@@ -17,6 +17,7 @@ use crate::syntax::{
         name_in_lexically_declared_names, AllowAwait, AllowIn, AllowYield, Cursor, TokenParser,
     },
 };
+use ast::operations::{bound_names, top_level_lexically_declared_names};
 use boa_ast::{
     self as ast,
     declaration::Variable,
@@ -150,14 +151,14 @@ where
                 "Illegal 'use strict' directive in function with non-simple parameter list".into(),
                 params_start_position,
             )));
-        }
+        };
 
         // It is a Syntax Error if any element of the BoundNames of ArrowParameters
         // also occurs in the LexicallyDeclaredNames of ConciseBody.
         // https://tc39.es/ecma262/#sec-arrow-function-definitions-static-semantics-early-errors
         name_in_lexically_declared_names(
-            &params,
-            &body.lexically_declared_names_top_level(),
+            &bound_names(&params),
+            &top_level_lexically_declared_names(&body),
             params_start_position,
         )?;
 

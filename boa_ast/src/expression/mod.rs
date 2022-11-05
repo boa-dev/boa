@@ -152,7 +152,7 @@ pub enum Expression {
     /// A FormalParameterList.
     ///
     /// This is only used in the parser itself.
-    /// It is not a valid AST node.
+    /// It is not a valid expression node.
     #[doc(hidden)]
     FormalParameterList(FormalParameterList),
 }

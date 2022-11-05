@@ -51,24 +51,6 @@ pub enum IterableLoopInitializer {
     Pattern(Pattern),
 }
 
-impl IterableLoopInitializer {
-    /// Return the bound names of a for loop initializer.
-    ///
-    /// The returned list may contain duplicates.
-    ///
-    /// More information:
-    ///  - [ECMAScript specification][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-boundnames
-    #[must_use]
-    pub fn bound_names(&self) -> Vec<Identifier> {
-        match self {
-            Self::Let(binding) | Self::Const(binding) => binding.idents(),
-            _ => Vec::new(),
-        }
-    }
-}
-
 impl ToInternedString for IterableLoopInitializer {
     fn to_interned_string(&self, interner: &Interner) -> String {
         let (binding, pre) = match self {

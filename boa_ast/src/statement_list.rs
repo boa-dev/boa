@@ -1,15 +1,14 @@
 //! Statement list node.
 
-use super::{declaration::Binding, Declaration};
+use super::Declaration;
 use crate::{
-    expression::Identifier,
     statement::Statement,
     try_break,
     visitor::{VisitWith, Visitor, VisitorMut},
 };
 use boa_interner::{Interner, ToIndentedString};
 use core::ops::ControlFlow;
-use rustc_hash::FxHashSet;
+
 use std::cmp::Ordering;
 
 /// An item inside a [`StatementList`] Parse Node, as defined by the [spec].
@@ -40,15 +39,6 @@ impl StatementListItem {
             (Self::Declaration(Declaration::Function(_)), _) => Ordering::Less,
 
             (_, _) => Ordering::Equal,
-        }
-    }
-
-    /// Gets the var declared names of this `StatementListItem`.
-    #[inline]
-    pub fn var_declared_names(&self, vars: &mut FxHashSet<Identifier>) {
-        match self {
-            StatementListItem::Statement(stmt) => stmt.var_declared_names(vars),
-            StatementListItem::Declaration(_) => {}
         }
     }
 }
@@ -150,80 +140,6 @@ impl StatementList {
     #[inline]
     pub fn set_strict(&mut self, strict: bool) {
         self.strict = strict;
-    }
-
-    /// Returns the var declared names of a `StatementList`.
-    #[inline]
-    pub fn var_declared_names(&self, vars: &mut FxHashSet<Identifier>) {
-        for stmt in &*self.statements {
-            stmt.var_declared_names(vars);
-        }
-    }
-
-    /// Returns the lexically declared names of a `StatementList`.
-    ///
-    /// The returned list may contain duplicates.
-    ///
-    /// If a declared name originates from a function declaration it is flagged as `true` in the returned list.
-    ///
-    /// More information:
-    ///  - [ECMAScript specification][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-lexicallydeclarednames
-    #[must_use]
-    pub fn lexically_declared_names(&self) -> Vec<(Identifier, bool)> {
-        let mut names = Vec::new();
-
-        for node in self.statements() {
-            match node {
-                StatementListItem::Statement(_) => {}
-                StatementListItem::Declaration(decl) => {
-                    names.extend(decl.lexically_declared_names());
-                }
-            }
-        }
-
-        names
-    }
-
-    /// Return the top level lexically declared names of a `StatementList`.
-    ///
-    /// The returned list may contain duplicates.
-    ///
-    /// More information:
-    ///  - [ECMAScript specification][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-toplevellexicallydeclarednames
-    #[must_use]
-    pub fn lexically_declared_names_top_level(&self) -> Vec<Identifier> {
-        let mut names = Vec::new();
-
-        for node in self.statements() {
-            if let StatementListItem::Declaration(decl) = node {
-                match decl {
-                    Declaration::Class(decl) => {
-                        if let Some(name) = decl.name() {
-                            names.push(name);
-                        }
-                    }
-                    Declaration::Lexical(list) => {
-                        for variable in list.variable_list().as_ref() {
-                            match variable.binding() {
-                                Binding::Identifier(ident) => {
-                                    names.push(*ident);
-                                }
-                                Binding::Pattern(pattern) => {
-                                    names.extend(pattern.idents());
-                                }
-                            }
-                        }
-                    }
-                    _ => {}
-                }
-            }
-        }
-
-        names
     }
 }
 

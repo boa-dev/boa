@@ -32,7 +32,7 @@ use crate::{
 };
 use boa_ast::{
     function::FormalParameterList,
-    operations::{contains, ContainsSymbol},
+    operations::{bound_names, contains, lexically_declared_names, ContainsSymbol},
     StatementList,
 };
 use boa_gc::{self, custom_trace, Finalize, Gc, Trace};
@@ -573,13 +573,11 @@ impl BuiltInFunctionObject {
             // Early Error: If BindingIdentifier is present and the source text matched by BindingIdentifier is strict mode code,
             // it is a Syntax Error if the StringValue of BindingIdentifier is "eval" or "arguments".
             if body.strict() {
-                for parameter in parameters.as_ref() {
-                    for name in parameter.names() {
-                        if name == Sym::ARGUMENTS || name == Sym::EVAL {
-                            return Err(JsNativeError::syntax()
-                                .with_message(" Unexpected 'eval' or 'arguments' in strict mode")
-                                .into());
-                        }
+                for name in bound_names(&parameters) {
+                    if name == Sym::ARGUMENTS || name == Sym::EVAL {
+                        return Err(JsNativeError::syntax()
+                            .with_message(" Unexpected 'eval' or 'arguments' in strict mode")
+                            .into());
                     }
                 }
             }
@@ -606,20 +604,15 @@ impl BuiltInFunctionObject {
             // also occurs in the LexicallyDeclaredNames of FunctionBody.
             // https://tc39.es/ecma262/#sec-function-definitions-static-semantics-early-errors
             {
-                let lexically_declared_names = body.lexically_declared_names();
-                for param in parameters.as_ref() {
-                    for param_name in param.names() {
-                        if lexically_declared_names
-                            .iter()
-                            .any(|(name, _)| *name == param_name)
-                        {
-                            return Err(JsNativeError::syntax()
-                                .with_message(format!(
-                                    "Redeclaration of formal parameter `{}`",
-                                    context.interner().resolve_expect(param_name.sym())
-                                ))
-                                .into());
-                        }
+                let lexically_declared_names = lexically_declared_names(&body);
+                for name in bound_names(&parameters) {
+                    if lexically_declared_names.contains(&name) {
+                        return Err(JsNativeError::syntax()
+                            .with_message(format!(
+                                "Redeclaration of formal parameter `{}`",
+                                context.interner().resolve_expect(name.sym())
+                            ))
+                            .into());
                     }
                 }
             }

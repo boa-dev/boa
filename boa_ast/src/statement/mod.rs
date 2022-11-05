@@ -17,7 +17,6 @@ mod r#try;
 
 pub mod iteration;
 
-use self::iteration::{ForLoopInitializer, IterableLoopInitializer};
 pub use self::{
     block::Block,
     iteration::{Break, Continue, DoWhileLoop, ForInLoop, ForLoop, ForOfLoop, WhileLoop},
@@ -32,12 +31,8 @@ use core::ops::ControlFlow;
 
 use crate::visitor::{VisitWith, Visitor, VisitorMut};
 use boa_interner::{Interner, ToIndentedString, ToInternedString};
-use rustc_hash::FxHashSet;
 
-use super::{
-    declaration::{Binding, VarDeclaration},
-    expression::{Expression, Identifier},
-};
+use super::{declaration::VarDeclaration, expression::Expression};
 
 /// The `Statement` Parse Node.
 ///
@@ -136,93 +131,6 @@ impl Statement {
         };
         s.push(';');
         s
-    }
-
-    /// Gets the var declared names of this `Statement`.
-    pub fn var_declared_names(&self, vars: &mut FxHashSet<Identifier>) {
-        match self {
-            Self::Var(VarDeclaration(list)) => {
-                for decl in list.as_ref() {
-                    vars.extend(decl.idents());
-                }
-            }
-            Self::Block(block) => {
-                for node in block.statement_list().statements() {
-                    node.var_declared_names(vars);
-                }
-            }
-            Self::If(if_statement) => {
-                if_statement.body().var_declared_names(vars);
-                if let Some(node) = if_statement.else_node() {
-                    node.var_declared_names(vars);
-                }
-            }
-            Self::DoWhileLoop(do_while_loop) => {
-                do_while_loop.body().var_declared_names(vars);
-            }
-            Self::WhileLoop(while_loop) => {
-                while_loop.body().var_declared_names(vars);
-            }
-            Self::ForLoop(for_loop) => {
-                if let Some(ForLoopInitializer::Var(VarDeclaration(list))) = for_loop.init() {
-                    for variable in list.as_ref() {
-                        match variable.binding() {
-                            Binding::Identifier(ident) => {
-                                vars.insert(*ident);
-                            }
-                            Binding::Pattern(pattern) => {
-                                for ident in pattern.idents() {
-                                    vars.insert(ident);
-                                }
-                            }
-                        }
-                    }
-                }
-                for_loop.body().var_declared_names(vars);
-            }
-            Self::ForInLoop(for_in_loop) => {
-                if let IterableLoopInitializer::Var(bind) = for_in_loop.initializer() {
-                    vars.extend(bind.idents());
-                }
-                for_in_loop.body().var_declared_names(vars);
-            }
-            Self::ForOfLoop(for_of_loop) => {
-                if let IterableLoopInitializer::Var(bind) = for_of_loop.init() {
-                    vars.extend(bind.idents());
-                }
-                for_of_loop.body().var_declared_names(vars);
-            }
-            Self::Switch(switch) => {
-                for case in switch.cases() {
-                    for node in case.body().statements() {
-                        node.var_declared_names(vars);
-                    }
-                }
-                if let Some(stmts) = switch.default() {
-                    stmts.var_declared_names(vars);
-                }
-            }
-            Self::Try(try_statement) => {
-                for node in try_statement.block().statement_list().statements() {
-                    node.var_declared_names(vars);
-                }
-                if let Some(catch) = try_statement.catch() {
-                    for node in catch.block().statement_list().statements() {
-                        node.var_declared_names(vars);
-                    }
-                }
-                if let Some(finally) = try_statement.finally() {
-                    for node in finally.block().statement_list().statements() {
-                        node.var_declared_names(vars);
-                    }
-                }
-            }
-            Self::Labelled(labelled) => match labelled.item() {
-                LabelledItem::Function(_) => {}
-                LabelledItem::Statement(stmt) => stmt.var_declared_names(vars),
-            },
-            _ => {}
-        }
     }
 
     /// Abstract operation [`IsLabelledFunction`][spec].

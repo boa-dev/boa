@@ -26,7 +26,7 @@ use crate::syntax::{
         ParseResult, TokenParser,
     },
 };
-use ast::operations::{contains, ContainsSymbol};
+use ast::operations::{bound_names, contains, top_level_lexically_declared_names, ContainsSymbol};
 use boa_ast::{
     self as ast,
     expression::{
@@ -242,8 +242,8 @@ where
             // also occurs in the LexicallyDeclaredNames of ConciseBody.
             // https://tc39.es/ecma262/#sec-arrow-function-definitions-static-semantics-early-errors
             name_in_lexically_declared_names(
-                &parameters,
-                &body.lexically_declared_names_top_level(),
+                &bound_names(&parameters),
+                &top_level_lexically_declared_names(&body),
                 position,
             )?;
 

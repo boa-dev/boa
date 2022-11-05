@@ -15,10 +15,13 @@ use crate::syntax::{
     lexer::TokenKind,
     parser::{AllowAwait, AllowReturn, AllowYield, Cursor, ParseError, ParseResult, TokenParser},
 };
-use boa_ast::{expression::Identifier, statement, Punctuator};
+use boa_ast::{
+    operations::{lexically_declared_names_legacy, var_declared_names},
+    statement, Punctuator,
+};
 use boa_interner::Interner;
 use boa_profiler::Profiler;
-use rustc_hash::{FxHashMap, FxHashSet};
+use rustc_hash::FxHashMap;
 use std::io::Read;
 
 /// The possible `TokenKind` which indicate the end of a block statement.
@@ -93,29 +96,28 @@ where
         .map(statement::Block::from)?;
         cursor.expect(Punctuator::CloseBlock, "block", interner)?;
 
-        let lexically_declared_names = statement_list.lexically_declared_names();
-        let mut lexically_declared_names_map: FxHashMap<Identifier, bool> = FxHashMap::default();
-        for (name, is_function_declaration) in &lexically_declared_names {
-            if let Some(existing_is_function_declaration) = lexically_declared_names_map.get(name) {
-                if !(!cursor.strict_mode()
-                    && *is_function_declaration
-                    && *existing_is_function_declaration)
-                {
-                    return Err(ParseError::general(
-                        "lexical name declared multiple times",
-                        position,
-                    ));
+        // It is a Syntax Error if the LexicallyDeclaredNames of StatementList contains any duplicate
+        // entries, unless the source text matched by this production is not strict mode code and the
+        // duplicate entries are only bound by FunctionDeclarations.
+        let mut lexical_names = FxHashMap::default();
+        for (name, is_fn) in lexically_declared_names_legacy(&statement_list) {
+            if let Some(is_fn_previous) = lexical_names.insert(name, is_fn) {
+                match (cursor.strict_mode(), is_fn, is_fn_previous) {
+                    (false, true, true) => {}
+                    _ => {
+                        return Err(ParseError::general(
+                            "lexical name declared multiple times",
+                            position,
+                        ));
+                    }
                 }
             }
-            lexically_declared_names_map.insert(*name, *is_function_declaration);
         }
 
-        let mut var_declared_names = FxHashSet::default();
-        for node in statement_list.statement_list().statements() {
-            node.var_declared_names(&mut var_declared_names);
-        }
-        for (lex_name, _) in &lexically_declared_names {
-            if var_declared_names.contains(lex_name) {
+        // It is a Syntax Error if any element of the LexicallyDeclaredNames of StatementList also
+        // occurs in the VarDeclaredNames of StatementList.
+        for name in var_declared_names(&statement_list) {
+            if lexical_names.contains_key(&name) {
                 return Err(ParseError::general(
                     "lexical name declared in var names",
                     position,

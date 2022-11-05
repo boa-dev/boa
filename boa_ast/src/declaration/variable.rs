@@ -299,12 +299,6 @@ impl Variable {
     pub fn init(&self) -> Option<&Expression> {
         self.init.as_ref()
     }
-
-    /// Gets the list of declared identifiers.
-    #[must_use]
-    pub fn idents(&self) -> Vec<Identifier> {
-        self.binding.idents()
-    }
 }
 
 impl VisitWith for Variable {
@@ -355,16 +349,6 @@ impl From<Identifier> for Binding {
 impl From<Pattern> for Binding {
     fn from(pat: Pattern) -> Self {
         Self::Pattern(pat)
-    }
-}
-
-impl Binding {
-    /// Gets the list of declared identifiers.
-    pub(crate) fn idents(&self) -> Vec<Identifier> {
-        match self {
-            Binding::Identifier(id) => vec![*id],
-            Binding::Pattern(ref pat) => pat.idents(),
-        }
     }
 }
 

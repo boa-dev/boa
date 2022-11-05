@@ -1,7 +1,7 @@
 use crate::{
     declaration::{Binding, Variable},
-    expression::{Expression, Identifier},
-    pattern::Pattern,
+    expression::Expression,
+    operations::bound_names,
     try_break,
     visitor::{VisitWith, Visitor, VisitorMut},
 };
@@ -40,7 +40,7 @@ impl FormalParameterList {
         let mut names = FxHashSet::default();
 
         for parameter in &parameters {
-            let parameter_names = parameter.names();
+            let parameter_names = bound_names(parameter);
 
             for name in parameter_names {
                 if name == Sym::ARGUMENTS {
@@ -224,19 +224,6 @@ impl FormalParameter {
         }
     }
 
-    /// Gets the name of the formal parameter.
-    #[must_use]
-    pub fn names(&self) -> Vec<Identifier> {
-        match self.variable.binding() {
-            Binding::Identifier(ident) => vec![*ident],
-            Binding::Pattern(pattern) => match pattern {
-                Pattern::Object(object_pattern) => object_pattern.idents(),
-
-                Pattern::Array(array_pattern) => array_pattern.idents(),
-            },
-        }
-    }
-
     /// Gets the variable of the formal parameter
     #[must_use]
     pub fn variable(&self) -> &Variable {
@@ -255,7 +242,7 @@ impl FormalParameter {
         self.is_rest_param
     }
 
-    /// Returns `true` if the parameter is a simple [`Identifier`].
+    /// Returns `true` if the parameter is an identifier.
     #[must_use]
     pub fn is_identifier(&self) -> bool {
         matches!(&self.variable.binding(), Binding::Identifier(_))
