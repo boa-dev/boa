@@ -34,7 +34,7 @@ use boa_ast::{
     operations::{bound_names, contains, lexically_declared_names, ContainsSymbol},
     StatementList,
 };
-use boa_gc::{self, custom_trace, Finalize, Gc, Trace, BoaAlloc};
+use boa_gc::{self, custom_trace, BoaAlloc, Finalize, Gc, Trace};
 use boa_interner::Sym;
 use boa_parser::Parser;
 use boa_profiler::Profiler;

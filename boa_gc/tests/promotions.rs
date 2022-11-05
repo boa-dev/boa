@@ -1,8 +1,6 @@
-
 // Let's get weird and age some heap values
 
-use boa_gc::{BoaAlloc, force_collect, GcTester};
-
+use boa_gc::{force_collect, BoaAlloc, GcTester};
 
 #[test]
 fn generational_promo_one() {
@@ -31,7 +29,7 @@ fn generational_promo_two() {
         }
     }
     GcTester::assert_collection_floor(3);
-    
+
     GcTester::assert_adult_bytes_allocated();
     GcTester::assert_youth_bytes_allocated();
 }

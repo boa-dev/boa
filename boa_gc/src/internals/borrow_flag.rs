@@ -1,4 +1,3 @@
-
 #[derive(Copy, Clone)]
 pub(crate) struct BorrowFlag(usize);
 

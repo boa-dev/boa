@@ -1,4 +1,5 @@
 //! Garbage collector for the Boa JavaScript engine.
+use boa_profiler::Profiler;
 use std::cell::{Cell as StdCell, RefCell as StdRefCell};
 use std::mem;
 use std::ptr::NonNull;
@@ -8,7 +9,7 @@ mod internals;
 mod pointers;
 pub mod trace;
 
-pub use boa_gc_macros::{Trace, Finalize};
+pub use boa_gc_macros::{Finalize, Trace};
 
 pub use crate::trace::{Finalize, Trace};
 pub(crate) use gc_box::GcBox;
@@ -36,14 +37,14 @@ struct GcConfig {
 }
 
 // Setting the defaults to an arbitrary value currently.
-// 
+//
 // TODO: Add a configure later
 impl Default for GcConfig {
     fn default() -> Self {
         Self {
-            youth_threshold: 1024,
-            youth_threshold_base: 1024,
-            adult_threshold: 4096,
+            youth_threshold: 4096,
+            youth_threshold_base: 4096,
+            adult_threshold: 16384,
             growth_ratio: 0.7,
             youth_promo_age: 3,
         }
@@ -111,13 +112,14 @@ pub struct BoaAlloc;
 
 impl BoaAlloc {
     pub fn new<T: Trace>(value: T) -> Gc<T> {
+        let _timer = Profiler::global().start_event("New Pointer", "BoaAlloc");
         BOA_GC.with(|st| {
             let mut gc = st.borrow_mut();
 
             unsafe {
                 Self::manage_state(&mut *gc);
             }
-            
+
             let gc_box = GcBox::new(value);
 
             let element_size = mem::size_of_val::<GcBox<T>>(&gc_box);
@@ -138,6 +140,7 @@ impl BoaAlloc {
     }
 
     pub fn new_cell<T: Trace>(value: T) -> Gc<Cell<T>> {
+        let _timer = Profiler::global().start_event("New Cell", "BoaAlloc");
         BOA_GC.with(|st| {
             let mut gc = st.borrow_mut();
 
@@ -146,7 +149,7 @@ impl BoaAlloc {
             unsafe {
                 Self::manage_state(&mut *gc);
             }
-            
+
             let gc_box = GcBox::new(Cell::new(value));
             let element_size = mem::size_of_val::<GcBox<Cell<T>>>(&gc_box);
             let element_pointer = Box::into_raw(Box::from(gc_box));
@@ -166,6 +169,7 @@ impl BoaAlloc {
     }
 
     pub fn new_weak_pair<K: Trace, V: Trace>(key: NonNull<GcBox<K>>, value: V) -> WeakPair<K, V> {
+        let _timer = Profiler::global().start_event("New Weak Pair", "BoaAlloc");
         BOA_GC.with(|internals| {
             let mut gc = internals.borrow_mut();
 
@@ -190,6 +194,7 @@ impl BoaAlloc {
     }
 
     pub fn new_weak_ref<T: Trace>(value: NonNull<GcBox<T>>) -> WeakGc<T> {
+        let _timer = Profiler::global().start_event("New Weak Pointer", "BoaAlloc");
         BOA_GC.with(|state| {
             let mut gc = state.borrow_mut();
 
@@ -220,6 +225,7 @@ impl BoaAlloc {
         promotions: Vec<NonNull<GcBox<dyn Trace>>>,
         gc: &mut BoaGc,
     ) {
+        let _timer = Profiler::global().start_event("Gc Promoting", "gc");
         for node in promotions {
             (*node.as_ptr()).set_header_pointer(gc.adult_start.take());
             let allocation_bytes = mem::size_of_val::<GcBox<_>>(&(*node.as_ptr()));
@@ -239,25 +245,23 @@ impl BoaAlloc {
                 gc.config.adult_threshold =
                     (gc.runtime.adult_bytes as f64 / gc.config.growth_ratio) as usize
             }
-        } else {
+        } else if gc.runtime.youth_bytes > gc.config.youth_threshold {
+            Collector::run_youth_collection(gc);
+
+            // If we are constrained on the top of the stack,
+            // increase the size of capacity, so a garbage collection
+            // isn't triggered on every allocation
             if gc.runtime.youth_bytes > gc.config.youth_threshold {
-                Collector::run_youth_collection(gc);
+                gc.config.youth_threshold =
+                    (gc.runtime.youth_bytes as f64 / gc.config.growth_ratio) as usize
+            }
 
-                // If we are constrained on the top of the stack,
-                // increase the size of capacity, so a garbage collection
-                // isn't triggered on every allocation
-                if gc.runtime.youth_bytes > gc.config.youth_threshold {
-                    gc.config.youth_threshold =
-                        (gc.runtime.youth_bytes as f64 / gc.config.growth_ratio) as usize
-                }
-
-                // The young object threshold should only be raised in cases of high laod. It
-                // should retract back to base when the load lessens
-                if gc.runtime.youth_bytes < gc.config.youth_threshold_base
-                    && gc.config.youth_threshold != gc.config.youth_threshold_base
-                {
-                    gc.config.youth_threshold = gc.config.youth_threshold_base
-                }
+            // The young object threshold should only be raised in cases of high laod. It
+            // should retract back to base when the load lessens
+            if gc.runtime.youth_bytes < gc.config.youth_threshold_base
+                && gc.config.youth_threshold != gc.config.youth_threshold_base
+            {
+                gc.config.youth_threshold = gc.config.youth_threshold_base
             }
         }
     }
@@ -278,9 +282,10 @@ pub struct Collector;
 
 impl Collector {
     pub(crate) unsafe fn run_youth_collection(gc: &mut BoaGc) {
+        let _timer = Profiler::global().start_event("Gc Youth Collection", "gc");
         gc.runtime.collections += 1;
         let unreachable_nodes = Self::mark_heap(&gc.youth_start);
-        
+
         if !unreachable_nodes.is_empty() {
             Self::finalize(unreachable_nodes);
         }
@@ -299,10 +304,11 @@ impl Collector {
     }
 
     pub(crate) unsafe fn run_full_collection(gc: &mut BoaGc) {
+        let _timer = Profiler::global().start_event("Gc Full Collection", "gc");
         gc.runtime.collections += 1;
         let unreachable_adults = Self::mark_heap(&gc.adult_start);
         let unreachable_youths = Self::mark_heap(&gc.youth_start);
-        
+
         // Check if any unreachable nodes were found and finalize
         if !unreachable_adults.is_empty() {
             Self::finalize(unreachable_adults);
@@ -330,6 +336,7 @@ impl Collector {
     pub(crate) unsafe fn mark_heap(
         head: &StdCell<Option<NonNull<GcBox<dyn Trace>>>>,
     ) -> Vec<NonNull<GcBox<dyn Trace>>> {
+        let _timer = Profiler::global().start_event("Gc Marking", "gc");
         // Walk the list, tracing and marking the nodes
         let mut finalize = Vec::new();
         let mut ephemeron_queue = Vec::new();
@@ -337,12 +344,10 @@ impl Collector {
         while let Some(node) = mark_head.get() {
             if (*node.as_ptr()).header.is_ephemeron() {
                 ephemeron_queue.push(node);
+            } else if (*node.as_ptr()).header.roots() > 0 {
+                (*node.as_ptr()).trace_inner();
             } else {
-                if (*node.as_ptr()).header.roots() > 0 {
-                    (*node.as_ptr()).trace_inner();
-                } else {
-                    finalize.push(node)
-                }
+                finalize.push(node)
             }
             mark_head = &(*node.as_ptr()).header.next;
         }
@@ -406,6 +411,7 @@ impl Collector {
     }
 
     unsafe fn finalize(finalize_vec: Vec<NonNull<GcBox<dyn Trace>>>) {
+        let _timer = Profiler::global().start_event("Gc Finalization", "gc");
         for node in finalize_vec {
             // We double check that the unreachable nodes are actually unreachable
             // prior to finalization as they could have been marked by a different
@@ -422,6 +428,7 @@ impl Collector {
         total_bytes: &mut usize,
         promotion_age: &u8,
     ) -> Vec<NonNull<GcBox<dyn Trace>>> {
+        let _timer = Profiler::global().start_event("Gc Sweeping", "gc");
         let _guard = DropGuard::new();
 
         let mut promotions = Vec::new();
@@ -443,6 +450,10 @@ impl Collector {
                 *heap_bytes -= unallocated_bytes;
                 *total_bytes -= unallocated_bytes;
                 sweep_head.set(unmarked_node.header.next.take());
+                // We have now finalized and taken care of the below node. We now forget the node
+                // to remove the node without calling the destructor on Gc<T> or any other value
+                // since calling core::ptr::drop_in_place will trigger `Gc::drop`, which accesses `Gc::inner()`
+                mem::forget(unmarked_node)
             }
         }
 
@@ -454,6 +465,7 @@ impl Collector {
         bytes_allocated: &mut usize,
         total_allocated: &mut usize,
     ) {
+        let _timer = Profiler::global().start_event("Gc Sweeping", "gc");
         let _guard = DropGuard::new();
 
         let mut sweep_head = heap_start;
@@ -469,6 +481,10 @@ impl Collector {
                 *bytes_allocated -= unallocated_bytes;
                 *total_allocated -= unallocated_bytes;
                 sweep_head.set(unmarked_node.header.next.take());
+                // We have now finalized and taken care of the below node. We now forget the node
+                // to remove the node without calling the destructor on Gc<T> or any other value
+                // since calling core::ptr::drop_in_place will trigger `Gc::drop`, which accesses `Gc::inner()`
+                mem::forget(unmarked_node)
             }
         }
     }
@@ -510,19 +526,18 @@ pub fn force_collect() {
     })
 }
 
-
 pub struct GcTester;
 
 impl GcTester {
     pub fn assert_collections(o: usize) {
-        BOA_GC.with(|current|{
+        BOA_GC.with(|current| {
             let gc = current.borrow();
             assert_eq!(gc.runtime.collections, o);
         })
     }
 
-    pub fn assert_collection_floor(floor:usize) {
-        BOA_GC.with(|current|{
+    pub fn assert_collection_floor(floor: usize) {
+        BOA_GC.with(|current| {
             let gc = current.borrow();
             assert!(gc.runtime.collections > floor);
         })
@@ -539,9 +554,9 @@ impl GcTester {
         BOA_GC.with(|current| {
             let gc = current.borrow();
 
-            assert_eq!(gc.adult_start.get().is_none(), true);
+            assert!(gc.adult_start.get().is_none());
             assert!(gc.runtime.adult_bytes == 0);
-            assert_eq!(gc.youth_start.get().is_none(), true);
+            assert!(gc.youth_start.get().is_none());
             assert!(gc.runtime.youth_bytes == 0);
         })
     }

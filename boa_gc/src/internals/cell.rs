@@ -1,14 +1,12 @@
 //! A garbage collected cell implementation
 use std::cell::{Cell, UnsafeCell};
-use std::hash::Hash;
 use std::cmp::Ordering;
 use std::fmt::{self, Debug, Display};
+use std::hash::Hash;
 use std::ops::{Deref, DerefMut};
 
 use crate::{
-    internals::{
-        borrow_flag::{BorrowFlag, BorrowState, BORROWFLAG_INIT},
-    },
+    internals::borrow_flag::{BorrowFlag, BorrowState, BORROWFLAG_INIT},
     trace::{Finalize, Trace},
 };
 
@@ -198,7 +196,6 @@ unsafe impl<T: Trace + ?Sized> Trace for GcCell<T> {
         }
     }
 }
-
 
 /// A wrapper type for an immutably borrowed value from a `GcCell<T>`.
 pub struct GcCellRef<'a, T: ?Sized + 'static> {

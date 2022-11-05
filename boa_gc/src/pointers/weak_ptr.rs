@@ -26,7 +26,7 @@ impl<T: Trace + ?Sized> WeakGc<T> {
     fn inner_ptr(&self) -> *mut GcBox<Ephemeron<T, ()>> {
         assert!(finalizer_safe());
 
-        unsafe { self.inner_ptr.get().as_ptr() }
+        self.inner_ptr.get().as_ptr()
     }
 
     #[inline]

@@ -26,7 +26,7 @@ impl<K: Trace + ?Sized, V: Trace> WeakPair<K, V> {
     fn inner_ptr(&self) -> *mut GcBox<Ephemeron<K, V>> {
         assert!(finalizer_safe());
 
-        unsafe { self.inner_ptr.get().as_ptr() }
+        self.inner_ptr.get().as_ptr()
     }
 
     #[inline]
@@ -45,7 +45,7 @@ impl<K: Trace + ?Sized, V: Trace> WeakPair<K, V> {
     }
 }
 
-impl<K: Trace, V:Trace> Finalize for WeakPair<K, V> {}
+impl<K: Trace, V: Trace> Finalize for WeakPair<K, V> {}
 
 unsafe impl<K: Trace, V: Trace> Trace for WeakPair<K, V> {
     #[inline]

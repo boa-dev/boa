@@ -7,8 +7,8 @@ use std::ops::Deref;
 use std::ptr::{self, NonNull};
 use std::rc::Rc;
 
-use crate::BoaAlloc;
 use crate::gc_box::GcBox;
+use crate::BoaAlloc;
 use crate::{
     finalizer_safe,
     trace::{Finalize, Trace},
@@ -77,8 +77,8 @@ impl<T: Trace + ?Sized> Gc<T> {
 
     #[inline]
     fn inner_ptr(&self) -> *mut GcBox<T> {
+        // Note: Initial `finalizer_safe` was asserted here. Needs to be determined whether this was the best practice
         assert!(finalizer_safe());
-
         unsafe { clear_root_bit(self.inner_ptr.get()).as_ptr() }
     }
 

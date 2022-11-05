@@ -7,7 +7,7 @@ use crate::{
 use boa_ast::{
     declaration::Binding, function::FormalParameterList, operations::bound_names, StatementList,
 };
-use boa_gc::{Gc, BoaAlloc};
+use boa_gc::{BoaAlloc, Gc};
 use boa_interner::Sym;
 use rustc_hash::FxHashMap;
 

@@ -25,8 +25,8 @@ impl<K: Trace, V: Trace> Ephemeron<K, V> {
     pub unsafe fn new_pair(key: NonNull<GcBox<K>>, value: V) -> Self {
         let ptr = NonNull::new_unchecked(key.as_ptr());
 
-        Ephemeron { 
-            key: Cell::new(Some(ptr)), 
+        Ephemeron {
+            key: Cell::new(Some(ptr)),
             value,
         }
     }

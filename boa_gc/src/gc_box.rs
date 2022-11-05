@@ -1,6 +1,5 @@
 use crate::Trace;
 use std::cell::Cell;
-use std::mem;
 use std::ptr::{self, NonNull};
 
 // Age and Weak Flags
@@ -163,11 +162,6 @@ impl<T: Trace + ?Sized> GcBox<T> {
     /// Roots prevent the `GcBox` from being destroyed by the garbage collector.
     pub(crate) unsafe fn unroot_inner(&self) {
         self.header.dec_roots();
-    }
-
-    /// Returns a pointer to the `GcBox`'s value, without dereferencing it.
-    pub(crate) fn value_ptr(this: *const GcBox<T>) -> *const T {
-        unsafe { ptr::addr_of!((*this).value) }
     }
 
     /// Returns a reference to the `GcBox`'s value.

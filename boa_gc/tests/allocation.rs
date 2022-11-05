@@ -1,4 +1,4 @@
-use boa_gc::{BoaAlloc, force_collect, GcTester};
+use boa_gc::{force_collect, BoaAlloc, GcTester};
 
 #[test]
 fn gc_basic_cell_allocation() {

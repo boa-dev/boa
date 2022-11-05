@@ -30,7 +30,7 @@ use boa_ast::{
     },
     Declaration, Expression, Statement, StatementList, StatementListItem,
 };
-use boa_gc::{Gc, BoaAlloc};
+use boa_gc::{BoaAlloc, Gc};
 use boa_interner::{Interner, Sym};
 use rustc_hash::FxHashMap;
 use std::mem::size_of;

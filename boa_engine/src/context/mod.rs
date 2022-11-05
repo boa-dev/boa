@@ -25,7 +25,7 @@ use crate::{
 };
 
 use boa_ast::StatementList;
-use boa_gc::{Gc, BoaAlloc};
+use boa_gc::{BoaAlloc, Gc};
 use boa_interner::{Interner, Sym};
 use boa_parser::{Error as ParseError, Parser};
 use boa_profiler::Profiler;
