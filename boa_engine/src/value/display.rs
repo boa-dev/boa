@@ -1,4 +1,6 @@
-use crate::{js_string, object::ObjectKind, property::PropertyDescriptor};
+use std::borrow::Cow;
+
+use crate::{builtins::promise::PromiseState, js_string, object::ObjectKind, JsError, JsString};
 
 use super::{fmt, Display, HashSet, JsValue, PropertyKey};
 
@@ -195,6 +197,42 @@ pub(crate) fn log_string_from(x: &JsValue, print_internals: bool, print_children
                         format!("Set({size})")
                     }
                 }
+                ObjectKind::Error(_) => {
+                    let name = v
+                        .get_property(&"name".into())
+                        .and_then(|desc| {
+                            desc.value()
+                                .and_then(JsValue::as_string)
+                                .map(JsString::to_std_string_escaped)
+                        })
+                        .unwrap_or_else(|| "<error>".into());
+                    let message = v
+                        .get_property(&"message".into())
+                        .and_then(|desc| {
+                            desc.value()
+                                .and_then(JsValue::as_string)
+                                .map(JsString::to_std_string_escaped)
+                        })
+                        .unwrap_or_default();
+                    if message.is_empty() {
+                        name
+                    } else {
+                        format!("{name}: {message}")
+                    }
+                }
+                ObjectKind::Promise(ref promise) => {
+                    format!(
+                        "Promise {{ {} }}",
+                        match promise.state() {
+                            PromiseState::Pending => Cow::Borrowed("<pending>"),
+                            PromiseState::Fulfilled(val) => Cow::Owned(val.display().to_string()),
+                            PromiseState::Rejected(reason) => Cow::Owned(format!(
+                                "<rejected> {}",
+                                JsError::from_opaque(reason.clone())
+                            )),
+                        }
+                    )
+                }
                 _ => display_obj(x, print_internals),
             }
         }
@@ -254,26 +292,6 @@ pub(crate) fn display_obj(v: &JsValue, print_internals: bool) -> String {
     // We keep track of which objects we have encountered by keeping their
     // in-memory address in this set
     let mut encounters = HashSet::new();
-
-    if let JsValue::Object(object) = v {
-        if object.borrow().is_error() {
-            let name = v
-                .get_property("name")
-                .as_ref()
-                .and_then(PropertyDescriptor::value)
-                .unwrap_or(&JsValue::Undefined)
-                .display()
-                .to_string();
-            let message = v
-                .get_property("message")
-                .as_ref()
-                .and_then(PropertyDescriptor::value)
-                .unwrap_or(&JsValue::Undefined)
-                .display()
-                .to_string();
-            return format!("{name}: {message}");
-        }
-    }
 
     display_obj_internal(v, &mut encounters, 4, print_internals)
 }

@@ -58,17 +58,15 @@ macro_rules! if_abrupt_reject_promise {
 
 pub(crate) use if_abrupt_reject_promise;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-enum PromiseState {
+#[derive(Debug, Clone, Trace, Finalize)]
+pub(crate) enum PromiseState {
     Pending,
-    Fulfilled,
-    Rejected,
+    Fulfilled(JsValue),
+    Rejected(JsValue),
 }
 
 #[derive(Debug, Clone, Trace, Finalize)]
 pub struct Promise {
-    promise_result: Option<JsValue>,
-    #[unsafe_ignore_trace]
     promise_state: PromiseState,
     promise_fulfill_reactions: Vec<ReactionRecord>,
     promise_reject_reactions: Vec<ReactionRecord>,
@@ -277,6 +275,11 @@ struct ResolvingFunctionsRecord {
 impl Promise {
     const LENGTH: usize = 1;
 
+    /// Gets the current state of the promise.
+    pub(crate) fn state(&self) -> &PromiseState {
+        &self.promise_state
+    }
+
     /// `Promise ( executor )`
     ///
     /// More information:
@@ -311,7 +314,6 @@ impl Promise {
         let promise = JsObject::from_proto_and_data(
             promise,
             ObjectData::promise(Self {
-                promise_result: None,
                 // 4. Set promise.[[PromiseState]] to pending.
                 promise_state: PromiseState::Pending,
                 // 5. Set promise.[[PromiseFulfillReactions]] to a new empty List.
@@ -1406,9 +1408,8 @@ impl Promise {
     /// [spec]: https://tc39.es/ecma262/#sec-fulfillpromise
     pub fn fulfill_promise(&mut self, value: &JsValue, context: &mut Context) -> JsResult<()> {
         // 1. Assert: The value of promise.[[PromiseState]] is pending.
-        assert_eq!(
-            self.promise_state,
-            PromiseState::Pending,
+        assert!(
+            matches!(self.promise_state, PromiseState::Pending),
             "promise was not pending"
         );
 
@@ -1419,17 +1420,15 @@ impl Promise {
         Self::trigger_promise_reactions(reactions, value, context);
         // reordering this statement does not affect the semantics
 
-        // 3. Set promise.[[PromiseResult]] to value.
-        self.promise_result = Some(value.clone());
-
         // 4. Set promise.[[PromiseFulfillReactions]] to undefined.
         self.promise_fulfill_reactions = Vec::new();
 
         // 5. Set promise.[[PromiseRejectReactions]] to undefined.
         self.promise_reject_reactions = Vec::new();
 
+        // 3. Set promise.[[PromiseResult]] to value.
         // 6. Set promise.[[PromiseState]] to fulfilled.
-        self.promise_state = PromiseState::Fulfilled;
+        self.promise_state = PromiseState::Fulfilled(value.clone());
 
         // 8. Return unused.
         Ok(())
@@ -1446,9 +1445,8 @@ impl Promise {
     /// [spec]: https://tc39.es/ecma262/#sec-rejectpromise
     pub fn reject_promise(&mut self, reason: &JsValue, context: &mut Context) {
         // 1. Assert: The value of promise.[[PromiseState]] is pending.
-        assert_eq!(
-            self.promise_state,
-            PromiseState::Pending,
+        assert!(
+            matches!(self.promise_state, PromiseState::Pending),
             "Expected promise.[[PromiseState]] to be pending"
         );
 
@@ -1459,17 +1457,15 @@ impl Promise {
         Self::trigger_promise_reactions(reactions, reason, context);
         // reordering this statement does not affect the semantics
 
-        // 3. Set promise.[[PromiseResult]] to reason.
-        self.promise_result = Some(reason.clone());
-
         // 4. Set promise.[[PromiseFulfillReactions]] to undefined.
         self.promise_fulfill_reactions = Vec::new();
 
         // 5. Set promise.[[PromiseRejectReactions]] to undefined.
         self.promise_reject_reactions = Vec::new();
 
+        // 3. Set promise.[[PromiseResult]] to reason.
         // 6. Set promise.[[PromiseState]] to rejected.
-        self.promise_state = PromiseState::Rejected;
+        self.promise_state = PromiseState::Rejected(reason.clone());
 
         // 7. If promise.[[PromiseIsHandled]] is false, perform HostPromiseRejectionTracker(promise, "reject").
         if !self.promise_is_handled {
@@ -1969,16 +1965,11 @@ impl Promise {
             }
 
             // 10. Else if promise.[[PromiseState]] is fulfilled, then
-            PromiseState::Fulfilled => {
-                //   a. Let value be promise.[[PromiseResult]].
-                let value = self
-                    .promise_result
-                    .clone()
-                    .expect("promise.[[PromiseResult]] cannot be empty");
-
+            //   a. Let value be promise.[[PromiseResult]].
+            PromiseState::Fulfilled(ref value) => {
                 //   b. Let fulfillJob be NewPromiseReactionJob(fulfillReaction, value).
                 let fulfill_job =
-                    PromiseJob::new_promise_reaction_job(fulfill_reaction, value, context);
+                    PromiseJob::new_promise_reaction_job(fulfill_reaction, value.clone(), context);
 
                 //   c. Perform HostEnqueuePromiseJob(fulfillJob.[[Job]], fulfillJob.[[Realm]]).
                 context.host_enqueue_promise_job(fulfill_job);
@@ -1986,13 +1977,8 @@ impl Promise {
 
             // 11. Else,
             //   a. Assert: The value of promise.[[PromiseState]] is rejected.
-            PromiseState::Rejected => {
-                //   b. Let reason be promise.[[PromiseResult]].
-                let reason = self
-                    .promise_result
-                    .clone()
-                    .expect("promise.[[PromiseResult]] cannot be empty");
-
+            //   b. Let reason be promise.[[PromiseResult]].
+            PromiseState::Rejected(ref reason) => {
                 //   c. If promise.[[PromiseIsHandled]] is false, perform HostPromiseRejectionTracker(promise, "handle").
                 if !self.promise_is_handled {
                     // HostPromiseRejectionTracker(promise, "handle")
@@ -2001,7 +1987,7 @@ impl Promise {
 
                 //   d. Let rejectJob be NewPromiseReactionJob(rejectReaction, reason).
                 let reject_job =
-                    PromiseJob::new_promise_reaction_job(reject_reaction, reason, context);
+                    PromiseJob::new_promise_reaction_job(reject_reaction, reason.clone(), context);
 
                 //   e. Perform HostEnqueuePromiseJob(rejectJob.[[Job]], rejectJob.[[Realm]]).
                 context.host_enqueue_promise_job(reject_job);

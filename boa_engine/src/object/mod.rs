@@ -192,9 +192,9 @@ pub enum ObjectKind {
     Arguments(Arguments),
     NativeObject(Box<dyn NativeObject>),
     IntegerIndexed(IntegerIndexed),
+    Promise(Promise),
     #[cfg(feature = "intl")]
     DateTimeFormat(Box<DateTimeFormat>),
-    Promise(Promise),
 }
 
 unsafe impl Trace for ObjectKind {
