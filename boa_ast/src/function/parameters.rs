@@ -242,7 +242,7 @@ impl FormalParameter {
         self.is_rest_param
     }
 
-    /// Returns `true` if the parameter is a simple [`Identifier`].
+    /// Returns `true` if the parameter is an identifier.
     #[must_use]
     pub fn is_identifier(&self) -> bool {
         matches!(&self.variable.binding(), Binding::Identifier(_))
