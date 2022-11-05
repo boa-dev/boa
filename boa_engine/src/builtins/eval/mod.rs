@@ -70,6 +70,7 @@ impl Eval {
     ) -> JsResult<JsValue> {
         /// Possible actions that can be executed after exiting this function to restore the environment to its
         /// original state.
+        #[derive(Debug)]
         enum EnvStackAction {
             Truncate(usize),
             Restore(Vec<Gc<DeclarativeEnvironment>>),

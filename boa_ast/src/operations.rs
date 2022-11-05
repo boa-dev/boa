@@ -66,22 +66,27 @@ where
     impl<'ast> Visitor<'ast> for ContainsVisitor {
         type BreakTy = ();
 
+        #[inline]
         fn visit_function(&mut self, _: &'ast Function) -> ControlFlow<Self::BreakTy> {
             ControlFlow::Continue(())
         }
 
+        #[inline]
         fn visit_async_function(&mut self, _: &'ast AsyncFunction) -> ControlFlow<Self::BreakTy> {
             ControlFlow::Continue(())
         }
 
+        #[inline]
         fn visit_generator(&mut self, _: &'ast Generator) -> ControlFlow<Self::BreakTy> {
             ControlFlow::Continue(())
         }
 
+        #[inline]
         fn visit_async_generator(&mut self, _: &'ast AsyncGenerator) -> ControlFlow<Self::BreakTy> {
             ControlFlow::Continue(())
         }
 
+        #[inline]
         fn visit_class(&mut self, node: &'ast Class) -> ControlFlow<Self::BreakTy> {
             if !node.elements().is_empty() && self.0 == ContainsSymbol::ClassBody {
                 return ControlFlow::Break(());
@@ -95,6 +100,7 @@ where
         }
 
         // `ComputedPropertyContains`: https://tc39.es/ecma262/#sec-static-semantics-computedpropertycontains
+        #[inline]
         fn visit_class_element(&mut self, node: &'ast ClassElement) -> ControlFlow<Self::BreakTy> {
             match node {
                 ClassElement::MethodDefinition(name, _)
@@ -105,6 +111,7 @@ where
             }
         }
 
+        #[inline]
         fn visit_property_definition(
             &mut self,
             node: &'ast PropertyDefinition,
@@ -119,6 +126,7 @@ where
             node.visit_with(self)
         }
 
+        #[inline]
         fn visit_arrow_function(
             &mut self,
             node: &'ast ArrowFunction,
@@ -138,6 +146,7 @@ where
             node.visit_with(self)
         }
 
+        #[inline]
         fn visit_async_arrow_function(
             &mut self,
             node: &'ast AsyncArrowFunction,
@@ -157,6 +166,7 @@ where
             node.visit_with(self)
         }
 
+        #[inline]
         fn visit_super_property_access(
             &mut self,
             node: &'ast SuperPropertyAccess,
@@ -167,6 +177,7 @@ where
             node.visit_with(self)
         }
 
+        #[inline]
         fn visit_super_call(&mut self, node: &'ast SuperCall) -> ControlFlow<Self::BreakTy> {
             if [ContainsSymbol::SuperCall, ContainsSymbol::Super].contains(&self.0) {
                 return ControlFlow::Break(());
@@ -174,6 +185,7 @@ where
             node.visit_with(self)
         }
 
+        #[inline]
         fn visit_yield(&mut self, node: &'ast Yield) -> ControlFlow<Self::BreakTy> {
             if self.0 == ContainsSymbol::YieldExpression {
                 return ControlFlow::Break(());
@@ -182,6 +194,7 @@ where
             node.visit_with(self)
         }
 
+        #[inline]
         fn visit_await(&mut self, node: &'ast Await) -> ControlFlow<Self::BreakTy> {
             if self.0 == ContainsSymbol::AwaitExpression {
                 return ControlFlow::Break(());
@@ -190,6 +203,7 @@ where
             node.visit_with(self)
         }
 
+        #[inline]
         fn visit_expression(&mut self, node: &'ast Expression) -> ControlFlow<Self::BreakTy> {
             if node == &Expression::This && self.0 == ContainsSymbol::This {
                 return ControlFlow::Break(());
@@ -221,6 +235,7 @@ where
     impl<'ast> Visitor<'ast> for ContainsArgsVisitor {
         type BreakTy = ();
 
+        #[inline]
         fn visit_identifier(&mut self, node: &'ast Identifier) -> ControlFlow<Self::BreakTy> {
             if node.sym() == Sym::ARGUMENTS {
                 ControlFlow::Break(())
@@ -229,22 +244,27 @@ where
             }
         }
 
+        #[inline]
         fn visit_function(&mut self, _: &'ast Function) -> ControlFlow<Self::BreakTy> {
             ControlFlow::Continue(())
         }
 
+        #[inline]
         fn visit_async_function(&mut self, _: &'ast AsyncFunction) -> ControlFlow<Self::BreakTy> {
             ControlFlow::Continue(())
         }
 
+        #[inline]
         fn visit_generator(&mut self, _: &'ast Generator) -> ControlFlow<Self::BreakTy> {
             ControlFlow::Continue(())
         }
 
+        #[inline]
         fn visit_async_generator(&mut self, _: &'ast AsyncGenerator) -> ControlFlow<Self::BreakTy> {
             ControlFlow::Continue(())
         }
 
+        #[inline]
         fn visit_class_element(&mut self, node: &'ast ClassElement) -> ControlFlow<Self::BreakTy> {
             match node {
                 ClassElement::MethodDefinition(name, _)
@@ -254,6 +274,7 @@ where
             node.visit_with(self)
         }
 
+        #[inline]
         fn visit_property_definition(
             &mut self,
             node: &'ast PropertyDefinition,
@@ -291,18 +312,21 @@ trait IdentList {
 }
 
 impl IdentList for Vec<Identifier> {
+    #[inline]
     fn add(&mut self, value: Identifier, _function: bool) {
         self.push(value);
     }
 }
 
 impl IdentList for Vec<(Identifier, bool)> {
+    #[inline]
     fn add(&mut self, value: Identifier, function: bool) {
         self.push((value, function));
     }
 }
 
 impl IdentList for FxHashSet<Identifier> {
+    #[inline]
     fn add(&mut self, value: Identifier, _function: bool) {
         self.insert(value);
     }
@@ -315,38 +339,45 @@ struct BoundNamesVisitor<'a, T: IdentList>(&'a mut T);
 impl<'ast, T: IdentList> Visitor<'ast> for BoundNamesVisitor<'_, T> {
     type BreakTy = Infallible;
 
+    #[inline]
     fn visit_identifier(&mut self, node: &'ast Identifier) -> ControlFlow<Self::BreakTy> {
         self.0.add(*node, false);
         ControlFlow::Continue(())
     }
+    #[inline]
     fn visit_expression(&mut self, _: &'ast Expression) -> ControlFlow<Self::BreakTy> {
         ControlFlow::Continue(())
     }
     // TODO: add "*default" for module default functions without name
+    #[inline]
     fn visit_function(&mut self, node: &'ast Function) -> ControlFlow<Self::BreakTy> {
         if let Some(ident) = node.name() {
             self.0.add(ident, true);
         }
         ControlFlow::Continue(())
     }
+    #[inline]
     fn visit_generator(&mut self, node: &'ast Generator) -> ControlFlow<Self::BreakTy> {
         if let Some(ident) = node.name() {
             self.0.add(ident, false);
         }
         ControlFlow::Continue(())
     }
+    #[inline]
     fn visit_async_function(&mut self, node: &'ast AsyncFunction) -> ControlFlow<Self::BreakTy> {
         if let Some(ident) = node.name() {
             self.0.add(ident, false);
         }
         ControlFlow::Continue(())
     }
+    #[inline]
     fn visit_async_generator(&mut self, node: &'ast AsyncGenerator) -> ControlFlow<Self::BreakTy> {
         if let Some(ident) = node.name() {
             self.0.add(ident, false);
         }
         ControlFlow::Continue(())
     }
+    #[inline]
     fn visit_class(&mut self, node: &'ast Class) -> ControlFlow<Self::BreakTy> {
         if let Some(ident) = node.name() {
             self.0.add(ident, false);
@@ -377,44 +408,54 @@ struct LexicallyDeclaredNamesVisitor<'a, T: IdentList>(&'a mut T);
 
 impl<'ast, T: IdentList> Visitor<'ast> for LexicallyDeclaredNamesVisitor<'_, T> {
     type BreakTy = Infallible;
+    #[inline]
     fn visit_expression(&mut self, _: &'ast Expression) -> ControlFlow<Self::BreakTy> {
         ControlFlow::Continue(())
     }
+    #[inline]
     fn visit_statement(&mut self, node: &'ast Statement) -> ControlFlow<Self::BreakTy> {
         if let Statement::Labelled(labelled) = node {
             return self.visit_labelled(labelled);
         }
         ControlFlow::Continue(())
     }
+    #[inline]
     fn visit_declaration(&mut self, node: &'ast Declaration) -> ControlFlow<Self::BreakTy> {
         BoundNamesVisitor(self.0).visit_declaration(node)
     }
+    #[inline]
     fn visit_labelled_item(&mut self, node: &'ast LabelledItem) -> ControlFlow<Self::BreakTy> {
         match node {
             LabelledItem::Function(f) => BoundNamesVisitor(self.0).visit_function(f),
             LabelledItem::Statement(_) => ControlFlow::Continue(()),
         }
     }
+    #[inline]
     fn visit_function(&mut self, node: &'ast Function) -> ControlFlow<Self::BreakTy> {
         top_level_lexicals(node.body(), self.0);
         ControlFlow::Continue(())
     }
+    #[inline]
     fn visit_async_function(&mut self, node: &'ast AsyncFunction) -> ControlFlow<Self::BreakTy> {
         top_level_lexicals(node.body(), self.0);
         ControlFlow::Continue(())
     }
+    #[inline]
     fn visit_generator(&mut self, node: &'ast Generator) -> ControlFlow<Self::BreakTy> {
         top_level_lexicals(node.body(), self.0);
         ControlFlow::Continue(())
     }
+    #[inline]
     fn visit_async_generator(&mut self, node: &'ast AsyncGenerator) -> ControlFlow<Self::BreakTy> {
         top_level_lexicals(node.body(), self.0);
         ControlFlow::Continue(())
     }
+    #[inline]
     fn visit_arrow_function(&mut self, node: &'ast ArrowFunction) -> ControlFlow<Self::BreakTy> {
         top_level_lexicals(node.body(), self.0);
         ControlFlow::Continue(())
     }
+    #[inline]
     fn visit_async_arrow_function(
         &mut self,
         node: &'ast AsyncArrowFunction,
@@ -422,6 +463,7 @@ impl<'ast, T: IdentList> Visitor<'ast> for LexicallyDeclaredNamesVisitor<'_, T> 
         top_level_lexicals(node.body(), self.0);
         ControlFlow::Continue(())
     }
+    #[inline]
     fn visit_class_element(&mut self, node: &'ast ClassElement) -> ControlFlow<Self::BreakTy> {
         if let ClassElement::StaticBlock(stmts) = node {
             top_level_lexicals(stmts, self.0);
@@ -472,41 +514,51 @@ struct VarDeclaredNamesVisitor<'a>(&'a mut FxHashSet<Identifier>);
 
 impl<'ast> Visitor<'ast> for VarDeclaredNamesVisitor<'_> {
     type BreakTy = Infallible;
+    #[inline]
     fn visit_expression(&mut self, _: &'ast Expression) -> ControlFlow<Self::BreakTy> {
         ControlFlow::Continue(())
     }
+    #[inline]
     fn visit_declaration(&mut self, _: &'ast Declaration) -> ControlFlow<Self::BreakTy> {
         ControlFlow::Continue(())
     }
+    #[inline]
     fn visit_var_declaration(&mut self, node: &'ast VarDeclaration) -> ControlFlow<Self::BreakTy> {
         BoundNamesVisitor(self.0).visit_var_declaration(node)
     }
+    #[inline]
     fn visit_labelled_item(&mut self, node: &'ast LabelledItem) -> ControlFlow<Self::BreakTy> {
         match node {
             LabelledItem::Function(_) => ControlFlow::Continue(()),
             LabelledItem::Statement(stmt) => stmt.visit_with(self),
         }
     }
+    #[inline]
     fn visit_function(&mut self, node: &'ast Function) -> ControlFlow<Self::BreakTy> {
         top_level_vars(node.body(), self.0);
         ControlFlow::Continue(())
     }
+    #[inline]
     fn visit_async_function(&mut self, node: &'ast AsyncFunction) -> ControlFlow<Self::BreakTy> {
         top_level_vars(node.body(), self.0);
         ControlFlow::Continue(())
     }
+    #[inline]
     fn visit_generator(&mut self, node: &'ast Generator) -> ControlFlow<Self::BreakTy> {
         top_level_vars(node.body(), self.0);
         ControlFlow::Continue(())
     }
+    #[inline]
     fn visit_async_generator(&mut self, node: &'ast AsyncGenerator) -> ControlFlow<Self::BreakTy> {
         top_level_vars(node.body(), self.0);
         ControlFlow::Continue(())
     }
+    #[inline]
     fn visit_arrow_function(&mut self, node: &'ast ArrowFunction) -> ControlFlow<Self::BreakTy> {
         top_level_vars(node.body(), self.0);
         ControlFlow::Continue(())
     }
+    #[inline]
     fn visit_async_arrow_function(
         &mut self,
         node: &'ast AsyncArrowFunction,
@@ -514,6 +566,7 @@ impl<'ast> Visitor<'ast> for VarDeclaredNamesVisitor<'_> {
         top_level_vars(node.body(), self.0);
         ControlFlow::Continue(())
     }
+    #[inline]
     fn visit_class_element(&mut self, node: &'ast ClassElement) -> ControlFlow<Self::BreakTy> {
         if let ClassElement::StaticBlock(stmts) = node {
             top_level_vars(stmts, self.0);
