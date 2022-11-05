@@ -55,6 +55,7 @@ pub enum ContainsSymbol {
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-contains
 #[must_use]
+#[inline]
 pub fn contains<N>(node: &N, symbol: ContainsSymbol) -> bool
 where
     N: VisitWith,
@@ -295,6 +296,7 @@ where
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-hasdirectsuper
 #[must_use]
+#[inline]
 pub fn has_direct_super(method: &MethodDefinition) -> bool {
     match method {
         MethodDefinition::Get(f) | MethodDefinition::Set(f) | MethodDefinition::Ordinary(f) => {
@@ -392,6 +394,7 @@ impl<'ast, T: IdentList> Visitor<'ast> for BoundNamesVisitor<'_, T> {
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-boundnames
 #[must_use]
+#[inline]
 pub fn bound_names<'a, N>(node: &'a N) -> Vec<Identifier>
 where
     &'a N: Into<NodeRef<'a>>,
@@ -482,6 +485,7 @@ impl<'ast, T: IdentList> Visitor<'ast> for LexicallyDeclaredNamesVisitor<'_, T> 
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-lexicallydeclarednames
 #[must_use]
+#[inline]
 pub fn lexically_declared_names<'a, N>(node: &'a N) -> Vec<Identifier>
 where
     &'a N: Into<NodeRef<'a>>,
@@ -499,6 +503,7 @@ where
 /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-lexicallydeclarednames
 /// [changes]: https://tc39.es/ecma262/#sec-block-duplicates-allowed-static-semantics
 #[must_use]
+#[inline]
 pub fn lexically_declared_names_legacy<'a, N>(node: &'a N) -> Vec<(Identifier, bool)>
 where
     &'a N: Into<NodeRef<'a>>,
@@ -585,6 +590,7 @@ impl<'ast> Visitor<'ast> for VarDeclaredNamesVisitor<'_> {
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-vardeclarednames
 #[must_use]
+#[inline]
 pub fn var_declared_names<'a, N>(node: &'a N) -> FxHashSet<Identifier>
 where
     &'a N: Into<NodeRef<'a>>,
@@ -595,6 +601,7 @@ where
 }
 
 /// Utility function that collects the top level lexicals of a statement list into `names`.
+#[inline]
 fn top_level_lexicals<T: IdentList>(stmts: &StatementList, names: &mut T) {
     for stmt in stmts.statements() {
         if let StatementListItem::Declaration(decl) = stmt {
@@ -623,6 +630,7 @@ fn top_level_lexicals<T: IdentList>(stmts: &StatementList, names: &mut T) {
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-toplevellexicallydeclarednames
 #[must_use]
+#[inline]
 pub fn top_level_lexically_declared_names(stmts: &StatementList) -> Vec<Identifier> {
     let mut names = Vec::new();
     top_level_lexicals(stmts, &mut names);
@@ -630,6 +638,7 @@ pub fn top_level_lexically_declared_names(stmts: &StatementList) -> Vec<Identifi
 }
 
 /// Utility function that collects the top level vars of a statement list into `names`.
+#[inline]
 fn top_level_vars(stmts: &StatementList, names: &mut FxHashSet<Identifier>) {
     for stmt in stmts.statements() {
         match stmt {
@@ -678,6 +687,7 @@ fn top_level_vars(stmts: &StatementList, names: &mut FxHashSet<Identifier>) {
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-toplevelvardeclarednames
 #[must_use]
+#[inline]
 pub fn top_level_var_declared_names(stmts: &StatementList) -> FxHashSet<Identifier> {
     let mut names = FxHashSet::default();
     top_level_vars(stmts, &mut names);
