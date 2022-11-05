@@ -1,5 +1,12 @@
-//! Syntactical analysis, such as Parsing and Lexing.
-// syntax module has a lot of acronyms
+//! Parser targeting the latest [ECMAScript language specification][spec].
+//!
+//! This crate contains implementations of a [`Lexer`] and a [`Parser`] for the **ECMAScript**
+//! language. The [lexical grammar][lex] and the [syntactic grammar][grammar] being targeted are
+//! fully defined in the specification. See the links provided for more information.
+//!
+//! [spec]: https://tc39.es/ecma262
+//! [lex]: https://tc39.es/ecma262/#sec-ecmascript-language-lexical-grammar
+//! [grammar]: https://tc39.es/ecma262/#sec-ecmascript-language-expressions
 
 #![cfg_attr(not(test), forbid(clippy::unwrap_used))]
 #![warn(

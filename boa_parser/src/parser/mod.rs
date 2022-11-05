@@ -53,6 +53,7 @@ where
 struct AllowYield(bool);
 
 impl From<bool> for AllowYield {
+    #[inline]
     fn from(allow: bool) -> Self {
         Self(allow)
     }
@@ -63,6 +64,7 @@ impl From<bool> for AllowYield {
 struct AllowAwait(bool);
 
 impl From<bool> for AllowAwait {
+    #[inline]
     fn from(allow: bool) -> Self {
         Self(allow)
     }
@@ -73,6 +75,7 @@ impl From<bool> for AllowAwait {
 struct AllowIn(bool);
 
 impl From<bool> for AllowIn {
+    #[inline]
     fn from(allow: bool) -> Self {
         Self(allow)
     }
@@ -83,6 +86,7 @@ impl From<bool> for AllowIn {
 struct AllowReturn(bool);
 
 impl From<bool> for AllowReturn {
+    #[inline]
     fn from(allow: bool) -> Self {
         Self(allow)
     }
@@ -93,11 +97,21 @@ impl From<bool> for AllowReturn {
 struct AllowDefault(bool);
 
 impl From<bool> for AllowDefault {
+    #[inline]
     fn from(allow: bool) -> Self {
         Self(allow)
     }
 }
 
+/// Parser for the ECMAScript language.
+///
+/// This parser implementation tries to be conformant to the most recent
+/// [ECMAScript language specification], and it also implements some legacy features like
+/// [labelled functions][label] or [duplicated block-level function definitions][block].
+///
+/// [spec]: https://tc39.es/ecma262/#sec-ecmascript-language-source-code
+/// [label]: https://tc39.es/ecma262/#sec-labelled-function-declarations
+/// [block]: https://tc39.es/ecma262/#sec-block-duplicates-allowed-static-semantics
 #[derive(Debug)]
 pub struct Parser<R> {
     /// Cursor of the parser, pointing to the lexer and used to get tokens for the parser.
@@ -106,6 +120,7 @@ pub struct Parser<R> {
 
 impl<R> Parser<R> {
     /// Create a new `Parser` with a reader as the input to parse.
+    #[inline]
     pub fn new(reader: R) -> Self
     where
         R: Read,
@@ -116,6 +131,7 @@ impl<R> Parser<R> {
     }
 
     /// Set the parser strict mode to true.
+    #[inline]
     pub fn set_strict(&mut self)
     where
         R: Read,
@@ -131,6 +147,7 @@ impl<R> Parser<R> {
     /// Will return `Err` on any parsing error, including invalid reads of the bytes being parsed.
     ///
     /// [spec]: https://tc39.es/ecma262/#prod-Script
+    #[inline]
     pub fn parse_all(&mut self, interner: &mut Interner) -> ParseResult<StatementList>
     where
         R: Read,
@@ -147,6 +164,7 @@ impl<R> Parser<R> {
     /// Will return `Err` on any parsing error, including invalid reads of the bytes being parsed.
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-performeval
+    #[inline]
     pub fn parse_eval(
         &mut self,
         direct: bool,
@@ -155,12 +173,6 @@ impl<R> Parser<R> {
     where
         R: Read,
     {
-        // 5. Perform ? HostEnsureCanCompileStrings(evalRealm).
-        // 11. Perform the following substeps in an implementation-defined order, possibly interleaving parsing and error detection:
-        //     a. Let script be ParseText(StringToCodePoints(x), Script).
-        //     b. If script is a List of errors, throw a SyntaxError exception.
-        //     c. If script Contains ScriptBody is false, return undefined.
-        //     d. Let body be the ScriptBody of script.
         Script::new(direct).parse(&mut self.cursor, interner)
     }
 
@@ -171,6 +183,7 @@ impl<R> Parser<R> {
     /// Will return `Err` on any parsing error, including invalid reads of the bytes being parsed.
     ///
     /// [spec]: https://tc39.es/ecma262/#prod-FunctionBody
+    #[inline]
     pub fn parse_function_body(
         &mut self,
         interner: &mut Interner,
@@ -190,6 +203,7 @@ impl<R> Parser<R> {
     /// Will return `Err` on any parsing error, including invalid reads of the bytes being parsed.
     ///
     /// [spec]: https://tc39.es/ecma262/#prod-FormalParameterList
+    #[inline]
     pub fn parse_formal_parameters(
         &mut self,
         interner: &mut Interner,
@@ -216,6 +230,7 @@ pub struct Script {
 
 impl Script {
     /// Create a new `Script` parser.
+    #[inline]
     fn new(direct_eval: bool) -> Self {
         Self { direct_eval }
     }
@@ -290,6 +305,7 @@ pub struct ScriptBody {
 
 impl ScriptBody {
     /// Create a new `ScriptBody` parser.
+    #[inline]
     fn new(direct_eval: bool) -> Self {
         Self { direct_eval }
     }
@@ -328,6 +344,7 @@ where
 }
 
 /// Helper to check if any parameter names are declared in the given list.
+#[inline]
 fn name_in_lexically_declared_names(
     bound_names: &[Identifier],
     lexical_names: &[Identifier],

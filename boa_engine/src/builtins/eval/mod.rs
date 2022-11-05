@@ -71,14 +71,15 @@ impl Eval {
         mut strict: bool,
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        #[derive(Debug, Default)]
-        #[allow(clippy::struct_excessive_bools)]
-        /// Flags used to throw early errors on invalid `eval` calls.
-        struct Flags {
-            in_function: bool,
-            in_method: bool,
-            in_derived_constructor: bool,
-            in_class_field_initializer: bool,
+        bitflags::bitflags! {
+            /// Flags used to throw early errors on invalid `eval` calls.
+            #[derive(Default)]
+            struct Flags: u8 {
+                const IN_FUNCTION = 0b0001;
+                const IN_METHOD = 0b0010;
+                const IN_DERIVED_CONSTRUCTOR = 0b0100;
+                const IN_CLASS_FIELD_INITIALIZER = 0b1000;
+            }
         }
 
         /// Possible actions that can be executed after exiting this function to restore the environment to its
@@ -143,41 +144,51 @@ impl Eval {
                 let function_env = function_env.borrow();
                 // i. Let F be thisEnvRec.[[FunctionObject]].
                 let function_object = function_env.function_object().borrow();
-                Flags {
-                    // ii. Set inFunction to true.
-                    in_function: true,
-                    // iii. Set inMethod to thisEnvRec.HasSuperBinding().
-                    in_method: function_env.has_super_binding(),
-                    // iv. If F.[[ConstructorKind]] is derived, set inDerivedConstructor to true.
-                    in_derived_constructor: function_object
-                        .as_function()
-                        .expect("must be function object")
-                        .is_derived_constructor(),
-                    // TODO:
-                    // v. Let classFieldInitializerName be F.[[ClassFieldInitializerName]].
-                    // vi. If classFieldInitializerName is not empty, set inClassFieldInitializer to true.
-                    in_class_field_initializer: false,
+
+                // ii. Set inFunction to true.
+                let mut flags = Flags::IN_FUNCTION;
+
+                // iii. Set inMethod to thisEnvRec.HasSuperBinding().
+                if function_env.has_super_binding() {
+                    flags |= Flags::IN_METHOD;
                 }
+
+                // iv. If F.[[ConstructorKind]] is derived, set inDerivedConstructor to true.
+                if function_object
+                    .as_function()
+                    .expect("must be function object")
+                    .is_derived_constructor()
+                {
+                    flags |= Flags::IN_DERIVED_CONSTRUCTOR;
+                }
+
+                // TODO:
+                // v. Let classFieldInitializerName be F.[[ClassFieldInitializerName]].
+                // vi. If classFieldInitializerName is not empty, set inClassFieldInitializer to true.
+
+                flags
             }
             _ => Flags::default(),
         };
 
-        if !flags.in_function && contains(&body, ContainsSymbol::NewTarget) {
+        if !flags.contains(Flags::IN_FUNCTION) && contains(&body, ContainsSymbol::NewTarget) {
             return Err(JsNativeError::syntax()
                 .with_message("invalid `new.target` expression inside eval")
                 .into());
         }
-        if !flags.in_method && contains(&body, ContainsSymbol::SuperProperty) {
+        if !flags.contains(Flags::IN_METHOD) && contains(&body, ContainsSymbol::SuperProperty) {
             return Err(JsNativeError::syntax()
                 .with_message("invalid `super` reference inside eval")
                 .into());
         }
-        if !flags.in_derived_constructor && contains(&body, ContainsSymbol::SuperCall) {
+        if !flags.contains(Flags::IN_DERIVED_CONSTRUCTOR)
+            && contains(&body, ContainsSymbol::SuperCall)
+        {
             return Err(JsNativeError::syntax()
                 .with_message("invalid `super` call inside eval")
                 .into());
         }
-        if flags.in_class_field_initializer && contains_arguments(&body) {
+        if flags.contains(Flags::IN_CLASS_FIELD_INITIALIZER) && contains_arguments(&body) {
             return Err(JsNativeError::syntax()
                 .with_message("invalid `arguments` reference inside eval")
                 .into());
