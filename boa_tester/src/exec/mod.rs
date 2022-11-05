@@ -15,7 +15,6 @@ use boa_engine::{
 use boa_gc::{Cell, Finalize, Gc, Trace};
 use colored::Colorize;
 use rayon::prelude::*;
-use std::panic;
 
 impl TestSuite {
     /// Runs the test suite.
@@ -169,27 +168,26 @@ impl Test {
                         error_type: _,
                     }
                 )) {
-            let res = panic::catch_unwind(|| match self.expected_outcome {
+            let res = std::panic::catch_unwind(|| match self.expected_outcome {
                 Outcome::Positive => {
                     let mut context = Context::default();
+                    let async_result = AsyncResult::default();
 
-                    let callback_obj = CallbackObject::default();
-                    // TODO: timeout
-                    match self.set_up_env(harness, &mut context, callback_obj.clone()) {
-                        Ok(_) => {
-                            let res = context.eval(&test_content);
-
-                            let passed = res.is_ok()
-                                && matches!(*callback_obj.result.borrow(), Some(true) | None);
-                            let text = match res {
-                                Ok(val) => val.display().to_string(),
-                                Err(e) => format!("Uncaught {e}",),
-                            };
-
-                            (passed, text)
-                        }
-                        Err(e) => (false, e),
+                    if let Err(e) = self.set_up_env(harness, &mut context, async_result.clone()) {
+                        return (false, e);
                     }
+
+                    // TODO: timeout
+                    let value = match context.eval(&test_content) {
+                        Ok(v) => v,
+                        Err(e) => return (false, format!("Uncaught {e}")),
+                    };
+
+                    if let Err(e) = async_result.inner.borrow().as_ref() {
+                        return (false, format!("Uncaught {e}"));
+                    }
+
+                    (true, value.display().to_string())
                 }
                 Outcome::Negative {
                     phase: Phase::Parse | Phase::Early,
@@ -220,58 +218,48 @@ impl Test {
                     error_type,
                 } => {
                     let mut context = Context::default();
-                    if let Err(e) = Parser::new(test_content.as_bytes()).parse_all(&mut context) {
-                        (false, format!("Uncaught {e}"))
-                    } else {
-                        // TODO: timeout
-                        match self.set_up_env(harness, &mut context, CallbackObject::default()) {
-                            Ok(_) => match context.eval(&test_content) {
-                                Ok(res) => (false, res.display().to_string()),
-                                Err(e) => {
-                                    let passed = if let Ok(e) = e.try_native(&mut context) {
-                                        match &e.kind {
-                                            JsNativeErrorKind::Syntax
-                                                if error_type == ErrorType::SyntaxError =>
-                                            {
-                                                true
-                                            }
-                                            JsNativeErrorKind::Reference
-                                                if error_type == ErrorType::ReferenceError =>
-                                            {
-                                                true
-                                            }
-                                            JsNativeErrorKind::Range
-                                                if error_type == ErrorType::RangeError =>
-                                            {
-                                                true
-                                            }
-                                            JsNativeErrorKind::Type
-                                                if error_type == ErrorType::TypeError =>
-                                            {
-                                                true
-                                            }
-                                            _ => false,
-                                        }
-                                    } else {
-                                        e.as_opaque()
-                                            .expect("try_native cannot fail if e is not opaque")
-                                            .as_object()
-                                            .and_then(|o| o.get("constructor", &mut context).ok())
-                                            .as_ref()
-                                            .and_then(JsValue::as_object)
-                                            .and_then(|o| o.get("name", &mut context).ok())
-                                            .as_ref()
-                                            .and_then(JsValue::as_string)
-                                            .map(|s| s == error_type.as_str())
-                                            .unwrap_or_default()
-                                    };
-
-                                    (passed, format!("Uncaught {e}"))
-                                }
-                            },
-                            Err(e) => (false, e),
-                        }
+                    if let Err(e) = self.set_up_env(harness, &mut context, AsyncResult::default()) {
+                        return (false, e);
                     }
+                    let code = match Parser::new(test_content.as_bytes())
+                        .parse_all(&mut context)
+                        .map_err(Into::into)
+                        .and_then(|stmts| context.compile(&stmts))
+                    {
+                        Ok(code) => code,
+                        Err(e) => return (false, format!("Uncaught {e}")),
+                    };
+
+                    // TODO: timeout
+                    let e = match context.execute(code) {
+                        Ok(res) => return (false, res.display().to_string()),
+                        Err(e) => e,
+                    };
+                    if let Ok(e) = e.try_native(&mut context) {
+                        match &e.kind {
+                            JsNativeErrorKind::Syntax if error_type == ErrorType::SyntaxError => {}
+                            JsNativeErrorKind::Reference
+                                if error_type == ErrorType::ReferenceError => {}
+                            JsNativeErrorKind::Range if error_type == ErrorType::RangeError => {}
+                            JsNativeErrorKind::Type if error_type == ErrorType::TypeError => {}
+                            _ => return (false, format!("Uncaught {e}")),
+                        }
+                    } else if !e
+                        .as_opaque()
+                        .expect("try_native cannot fail if e is not opaque")
+                        .as_object()
+                        .and_then(|o| o.get("constructor", &mut context).ok())
+                        .as_ref()
+                        .and_then(JsValue::as_object)
+                        .and_then(|o| o.get("name", &mut context).ok())
+                        .as_ref()
+                        .and_then(JsValue::as_string)
+                        .map(|s| s == error_type.as_str())
+                        .unwrap_or_default()
+                    {
+                        return (false, format!("Uncaught {e}"));
+                    };
+                    (true, format!("Uncaught {e}"))
                 }
             });
 
@@ -308,7 +296,7 @@ impl Test {
                     if matches!(result, (TestOutcomeResult::Passed, _)) {
                         ".".green()
                     } else {
-                        ".".red()
+                        "F".red()
                     }
                 );
             }
@@ -323,7 +311,7 @@ impl Test {
                     "Ignored".yellow()
                 );
             } else {
-                print!("{}", ".".yellow());
+                print!("{}", "-".yellow());
             }
             (TestOutcomeResult::Ignored, String::new())
         };
@@ -351,10 +339,10 @@ impl Test {
         &self,
         harness: &Harness,
         context: &mut Context,
-        callback_obj: CallbackObject,
+        async_result: AsyncResult,
     ) -> Result<(), String> {
         // Register the print() function.
-        Self::register_print_fn(context, callback_obj);
+        Self::register_print_fn(context, async_result);
 
         // add the $262 object.
         let _js262 = js262::init(context);
@@ -392,13 +380,12 @@ impl Test {
     }
 
     /// Registers the print function in the context.
-    fn register_print_fn(context: &mut Context, callback_object: CallbackObject) {
+    fn register_print_fn(context: &mut Context, helper: AsyncResult) {
         // We use `FunctionBuilder` to define a closure with additional captures.
-        let js_function =
-            FunctionBuilder::closure_with_captures(context, test262_print, callback_object)
-                .name("print")
-                .length(1)
-                .build();
+        let js_function = FunctionBuilder::closure_with_captures(context, test262_print, helper)
+            .name("print")
+            .length(1)
+            .build();
 
         context.register_global_property(
             "print",
@@ -409,9 +396,17 @@ impl Test {
 }
 
 /// Object which includes the result of the async operation.
-#[derive(Debug, Clone, Default, Trace, Finalize)]
-struct CallbackObject {
-    result: Gc<Cell<Option<bool>>>,
+#[derive(Debug, Clone, Trace, Finalize)]
+struct AsyncResult {
+    inner: Gc<Cell<Result<(), String>>>,
+}
+
+impl Default for AsyncResult {
+    fn default() -> Self {
+        Self {
+            inner: Gc::new(Cell::new(Ok(()))),
+        }
+    }
 }
 
 /// `print()` function required by the test262 suite.
@@ -419,14 +414,15 @@ struct CallbackObject {
 fn test262_print(
     _this: &JsValue,
     args: &[JsValue],
-    captures: &mut CallbackObject,
-    _context: &mut Context,
+    async_result: &mut AsyncResult,
+    context: &mut Context,
 ) -> JsResult<JsValue> {
-    if let Some(message) = args.get_or_undefined(0).as_string() {
-        *captures.result.borrow_mut() =
-            Some(message.to_std_string_escaped() == "Test262:AsyncTestComplete");
-    } else {
-        *captures.result.borrow_mut() = Some(false);
+    let message = args
+        .get_or_undefined(0)
+        .to_string(context)?
+        .to_std_string_escaped();
+    if message != "Test262:AsyncTestComplete" {
+        *async_result.inner.borrow_mut() = Err(message);
     }
     Ok(JsValue::undefined())
 }

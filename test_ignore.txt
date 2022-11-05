@@ -13,6 +13,7 @@ feature:Atomics
 feature:dynamic_import
 feature:decorators
 feature:array-grouping
+feature:IsHTMLDDA
 
 // Non-implemented Intl features
 feature:intl-normative-optional
