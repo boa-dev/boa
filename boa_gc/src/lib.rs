@@ -1,5 +1,4 @@
 //! Garbage collector for the Boa JavaScript engine.
-//!
 
 #![allow(
     clippy::let_unit_value,
