@@ -74,6 +74,7 @@ dependencies = [
  "boa_ast",
  "boa_engine",
  "boa_interner",
+ "boa_parser",
  "clap 4.0.18",
  "colored",
  "jemallocator",
@@ -93,6 +94,7 @@ dependencies = [
  "boa_gc",
  "boa_interner",
  "boa_macros",
+ "boa_parser",
  "boa_profiler",
  "boa_unicode",
  "chrono",
@@ -135,6 +137,7 @@ dependencies = [
  "boa_engine",
  "boa_gc",
  "boa_interner",
+ "boa_parser",
  "gc",
 ]
 
@@ -168,6 +171,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "boa_parser"
+version = "0.16.0"
+dependencies = [
+ "bitflags",
+ "boa_ast",
+ "boa_interner",
+ "boa_macros",
+ "boa_profiler",
+ "boa_unicode",
+ "fast-float",
+ "num-bigint",
+ "num-traits",
+ "rustc-hash",
+]
+
+[[package]]
 name = "boa_profiler"
 version = "0.16.0"
 dependencies = [
@@ -184,6 +203,7 @@ dependencies = [
  "boa_engine",
  "boa_gc",
  "boa_interner",
+ "boa_parser",
  "clap 4.0.18",
  "colored",
  "fxhash",

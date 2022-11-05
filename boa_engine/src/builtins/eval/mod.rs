@@ -15,10 +15,13 @@ use crate::{
     error::JsNativeError,
     object::FunctionBuilder,
     property::Attribute,
-    Context, JsResult, JsValue,
+    Context, JsResult, JsString, JsValue,
 };
-use boa_ast::operations::top_level_var_declared_names;
+use boa_ast::operations::{
+    contains, contains_arguments, top_level_var_declared_names, ContainsSymbol,
+};
 use boa_gc::Gc;
+use boa_parser::Parser;
 use boa_profiler::Profiler;
 
 #[derive(Debug, Clone, Copy)]
@@ -68,6 +71,16 @@ impl Eval {
         mut strict: bool,
         context: &mut Context,
     ) -> JsResult<JsValue> {
+        #[derive(Debug, Default)]
+        #[allow(clippy::struct_excessive_bools)]
+        /// Flags used to throw early errors on invalid `eval` calls.
+        struct Flags {
+            in_function: bool,
+            in_method: bool,
+            in_derived_constructor: bool,
+            in_class_field_initializer: bool,
+        }
+
         /// Possible actions that can be executed after exiting this function to restore the environment to its
         /// original state.
         #[derive(Debug)]
@@ -94,18 +107,81 @@ impl Eval {
         debug_assert!(direct || !strict);
 
         // 2. If Type(x) is not String, return x.
-        let Some(x) = x.as_string() else {
+        // TODO: rework parser to take an iterator of `u32` unicode codepoints
+        let Some(x) = x.as_string().map(JsString::to_std_string_escaped) else {
             return Ok(x.clone());
         };
 
         // Because of implementation details the following code differs from the spec.
-        // TODO: rework parser to take an iterator of `u32` unicode codepoints
 
-        // Parse the script body and handle early errors (6 - 11)
-        let body = match context.parse_eval(x.to_std_string_escaped().as_bytes(), direct, strict) {
-            Ok(body) => body,
-            Err(e) => return Err(JsNativeError::syntax().with_message(e.to_string()).into()),
+        // 5. Perform ? HostEnsureCanCompileStrings(evalRealm).
+        let mut parser = Parser::new(x.as_bytes());
+        if strict {
+            parser.set_strict();
+        }
+        // 11. Perform the following substeps in an implementation-defined order, possibly interleaving parsing and error detection:
+        //     a. Let script be ParseText(StringToCodePoints(x), Script).
+        //     b. If script is a List of errors, throw a SyntaxError exception.
+        //     c. If script Contains ScriptBody is false, return undefined.
+        //     d. Let body be the ScriptBody of script.
+        let body = parser.parse_eval(direct, context.interner_mut())?;
+
+        // 6. Let inFunction be false.
+        // 7. Let inMethod be false.
+        // 8. Let inDerivedConstructor be false.
+        // 9. Let inClassFieldInitializer be false.
+        // a. Let thisEnvRec be GetThisEnvironment().
+        let flags = match context
+            .realm
+            .environments
+            .get_this_environment()
+            .as_function_slots()
+        {
+            // 10. If direct is true, then
+            //     b. If thisEnvRec is a Function Environment Record, then
+            Some(function_env) if direct => {
+                let function_env = function_env.borrow();
+                // i. Let F be thisEnvRec.[[FunctionObject]].
+                let function_object = function_env.function_object().borrow();
+                Flags {
+                    // ii. Set inFunction to true.
+                    in_function: true,
+                    // iii. Set inMethod to thisEnvRec.HasSuperBinding().
+                    in_method: function_env.has_super_binding(),
+                    // iv. If F.[[ConstructorKind]] is derived, set inDerivedConstructor to true.
+                    in_derived_constructor: function_object
+                        .as_function()
+                        .expect("must be function object")
+                        .is_derived_constructor(),
+                    // TODO:
+                    // v. Let classFieldInitializerName be F.[[ClassFieldInitializerName]].
+                    // vi. If classFieldInitializerName is not empty, set inClassFieldInitializer to true.
+                    in_class_field_initializer: false,
+                }
+            }
+            _ => Flags::default(),
         };
+
+        if !flags.in_function && contains(&body, ContainsSymbol::NewTarget) {
+            return Err(JsNativeError::syntax()
+                .with_message("invalid `new.target` expression inside eval")
+                .into());
+        }
+        if !flags.in_method && contains(&body, ContainsSymbol::SuperProperty) {
+            return Err(JsNativeError::syntax()
+                .with_message("invalid `super` reference inside eval")
+                .into());
+        }
+        if !flags.in_derived_constructor && contains(&body, ContainsSymbol::SuperCall) {
+            return Err(JsNativeError::syntax()
+                .with_message("invalid `super` call inside eval")
+                .into());
+        }
+        if flags.in_class_field_initializer && contains_arguments(&body) {
+            return Err(JsNativeError::syntax()
+                .with_message("invalid `arguments` reference inside eval")
+                .into());
+        }
 
         strict |= body.strict();
 

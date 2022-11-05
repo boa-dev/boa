@@ -15,6 +15,7 @@ rust-version.workspace = true
 boa_engine = { workspace = true, features = ["deser", "console"] }
 boa_ast = { workspace = true, features = ["serde"]}
 boa_interner.workspace = true
+boa_parser.workspace = true
 rustyline = "10.0.0"
 rustyline-derive = "0.7.0"
 clap = { version = "4.0.18", features = ["derive"] }

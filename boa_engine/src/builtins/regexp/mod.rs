@@ -25,10 +25,10 @@ use crate::{
     property::{Attribute, PropertyDescriptorBuilder},
     string::{utf16, CodePoint},
     symbol::WellKnownSymbols,
-    syntax::lexer::regex::RegExpFlags,
     value::JsValue,
     Context, JsResult, JsString,
 };
+use boa_parser::lexer::regex::RegExpFlags;
 use boa_profiler::Profiler;
 use regress::Regex;
 use std::str::FromStr;

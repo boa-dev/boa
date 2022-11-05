@@ -89,7 +89,6 @@ pub mod property;
 pub mod realm;
 pub mod string;
 pub mod symbol;
-pub mod syntax;
 pub mod value;
 pub mod vm;
 

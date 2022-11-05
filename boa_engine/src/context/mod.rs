@@ -20,7 +20,6 @@ use crate::{
     object::{FunctionBuilder, GlobalPropertyMap, JsObject, ObjectData},
     property::{Attribute, PropertyDescriptor, PropertyKey},
     realm::Realm,
-    syntax::{parser::ParseError, Parser},
     vm::{CallFrame, CodeBlock, FinallyReturn, GeneratorResumeKind, Vm},
     JsResult, JsString, JsValue,
 };
@@ -28,6 +27,7 @@ use crate::{
 use boa_ast::StatementList;
 use boa_gc::Gc;
 use boa_interner::{Interner, Sym};
+use boa_parser::{Error as ParseError, Parser};
 use boa_profiler::Profiler;
 
 #[cfg(feature = "intl")]
@@ -162,24 +162,7 @@ impl Context {
         S: AsRef<[u8]>,
     {
         let mut parser = Parser::new(src.as_ref());
-        parser.parse_all(self)
-    }
-
-    /// Parse the given source text with eval specific handling.
-    pub(crate) fn parse_eval<S>(
-        &mut self,
-        src: S,
-        direct: bool,
-        strict: bool,
-    ) -> Result<StatementList, ParseError>
-    where
-        S: AsRef<[u8]>,
-    {
-        let mut parser = Parser::new(src.as_ref());
-        if strict {
-            parser.set_strict();
-        }
-        parser.parse_eval(direct, self)
+        parser.parse_all(&mut self.interner)
     }
 
     /// `Call ( F, V [ , argumentsList ] )`
@@ -471,7 +454,7 @@ impl Context {
     {
         let main_timer = Profiler::global().start_event("Evaluation", "Main");
 
-        let statement_list = Parser::new(src.as_ref()).parse_all(self)?;
+        let statement_list = Parser::new(src.as_ref()).parse_all(&mut self.interner)?;
 
         let code_block = self.compile(&statement_list)?;
         let result = self.execute(code_block);
