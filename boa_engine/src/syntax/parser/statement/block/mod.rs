@@ -13,7 +13,9 @@ mod tests;
 use super::StatementList;
 use crate::syntax::{
     lexer::TokenKind,
-    parser::{AllowAwait, AllowReturn, AllowYield, Cursor, ParseError, ParseResult, TokenParser},
+    parser::{
+        AllowAwait, AllowReturn, AllowYield, Cursor, OrAbrupt, ParseError, ParseResult, TokenParser,
+    },
 };
 use boa_ast::{
     operations::{lexically_declared_names_legacy, var_declared_names},
@@ -77,15 +79,11 @@ where
         cursor.expect(Punctuator::OpenBlock, "block", interner)?;
         if let Some(tk) = cursor.peek(0, interner)? {
             if tk.kind() == &TokenKind::Punctuator(Punctuator::CloseBlock) {
-                cursor.next(interner)?.expect("} token vanished");
+                cursor.advance(interner);
                 return Ok(statement::Block::from(vec![]));
             }
         }
-        let position = cursor
-            .peek(0, interner)?
-            .ok_or(ParseError::AbruptEnd)?
-            .span()
-            .start();
+        let position = cursor.peek(0, interner).or_abrupt()?.span().start();
         let statement_list = StatementList::new(
             self.allow_yield,
             self.allow_await,

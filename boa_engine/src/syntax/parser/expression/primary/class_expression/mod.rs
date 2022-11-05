@@ -2,7 +2,7 @@ use crate::syntax::{
     lexer::TokenKind,
     parser::{
         expression::BindingIdentifier, statement::ClassTail, AllowAwait, AllowYield, Cursor,
-        ParseError, ParseResult, TokenParser,
+        OrAbrupt, ParseError, ParseResult, TokenParser,
     },
 };
 use boa_ast::{expression::Identifier, function::Class, Keyword};
@@ -50,7 +50,7 @@ where
         let strict = cursor.strict_mode();
         cursor.set_strict_mode(true);
 
-        let token = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
+        let token = cursor.peek(0, interner).or_abrupt()?;
         let name = match token.kind() {
             TokenKind::Identifier(_) | TokenKind::Keyword((Keyword::Yield | Keyword::Await, _)) => {
                 BindingIdentifier::new(self.allow_yield, self.allow_await)

@@ -8,7 +8,9 @@ use self::{catch::Catch, finally::Finally};
 use super::block::Block;
 use crate::syntax::{
     lexer::TokenKind,
-    parser::{AllowAwait, AllowReturn, AllowYield, Cursor, ParseError, ParseResult, TokenParser},
+    parser::{
+        AllowAwait, AllowReturn, AllowYield, Cursor, OrAbrupt, ParseError, ParseResult, TokenParser,
+    },
 };
 use boa_ast::{
     statement::{ErrorHandler, Try},
@@ -63,7 +65,7 @@ where
         let try_clause = Block::new(self.allow_yield, self.allow_await, self.allow_return)
             .parse(cursor, interner)?;
 
-        let next_token = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
+        let next_token = cursor.peek(0, interner).or_abrupt()?;
         match next_token.kind() {
             TokenKind::Keyword((Keyword::Catch | Keyword::Finally, true)) => {
                 return Err(ParseError::general(

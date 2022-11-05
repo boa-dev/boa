@@ -15,7 +15,7 @@ use crate::syntax::{
     parser::{
         expression::BindingIdentifier,
         function::{FormalParameters, FunctionBody},
-        name_in_lexically_declared_names, Cursor, ParseError, ParseResult, TokenParser,
+        name_in_lexically_declared_names, Cursor, OrAbrupt, ParseError, ParseResult, TokenParser,
     },
 };
 use boa_ast::{
@@ -71,11 +71,7 @@ where
             interner,
         )?;
 
-        let (name, has_binding_identifier) = match cursor
-            .peek(0, interner)?
-            .ok_or(ParseError::AbruptEnd)?
-            .kind()
-        {
+        let (name, has_binding_identifier) = match cursor.peek(0, interner).or_abrupt()?.kind() {
             TokenKind::Punctuator(Punctuator::OpenParen) => (self.name, false),
             _ => (
                 Some(BindingIdentifier::new(true, true).parse(cursor, interner)?),

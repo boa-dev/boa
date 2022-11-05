@@ -2,7 +2,8 @@ use crate::syntax::{
     lexer::TokenKind,
     parser::{
         statement::{block::Block, ArrayBindingPattern, BindingIdentifier, ObjectBindingPattern},
-        AllowAwait, AllowReturn, AllowYield, Cursor, ParseError, ParseResult, TokenParser,
+        AllowAwait, AllowReturn, AllowYield, Cursor, OrAbrupt, ParseError, ParseResult,
+        TokenParser,
     },
 };
 use boa_ast::{
@@ -55,11 +56,7 @@ where
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("Catch", "Parsing");
         cursor.expect((Keyword::Catch, false), "try statement", interner)?;
-        let position = cursor
-            .peek(0, interner)?
-            .ok_or(ParseError::AbruptEnd)?
-            .span()
-            .start();
+        let position = cursor.peek(0, interner).or_abrupt()?.span().start();
         let catch_param = if cursor.next_if(Punctuator::OpenParen, interner)?.is_some() {
             let catch_param =
                 CatchParameter::new(self.allow_yield, self.allow_await).parse(cursor, interner)?;
@@ -88,11 +85,7 @@ where
             })
             .transpose()?;
 
-        let position = cursor
-            .peek(0, interner)?
-            .ok_or(ParseError::AbruptEnd)?
-            .span()
-            .start();
+        let position = cursor.peek(0, interner).or_abrupt()?.span().start();
         let catch_block = Block::new(self.allow_yield, self.allow_await, self.allow_return)
             .parse(cursor, interner)?;
 
@@ -161,7 +154,7 @@ where
     type Output = Binding;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        let token = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
+        let token = cursor.peek(0, interner).or_abrupt()?;
 
         match token.kind() {
             TokenKind::Punctuator(Punctuator::OpenBlock) => {

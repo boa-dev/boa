@@ -10,7 +10,8 @@ use crate::syntax::{
         },
         function::{FormalParameters, FunctionBody, UniqueFormalParameters, FUNCTION_BREAK_TOKENS},
         statement::StatementList,
-        AllowAwait, AllowDefault, AllowYield, Cursor, ParseError, ParseResult, TokenParser,
+        AllowAwait, AllowDefault, AllowYield, Cursor, OrAbrupt, ParseError, ParseResult,
+        TokenParser,
     },
 };
 use ast::operations::{lexically_declared_names, var_declared_names};
@@ -68,7 +69,7 @@ where
         let strict = cursor.strict_mode();
         cursor.set_strict_mode(true);
 
-        let token = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
+        let token = cursor.peek(0, interner).or_abrupt()?;
         let name = match token.kind() {
             TokenKind::Identifier(_) | TokenKind::Keyword((Keyword::Yield | Keyword::Await, _)) => {
                 BindingIdentifier::new(self.allow_yield, self.allow_await)
@@ -130,7 +131,7 @@ where
     type Output = Class;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        let token = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
+        let token = cursor.peek(0, interner).or_abrupt()?;
         let super_ref = match token.kind() {
             TokenKind::Keyword((Keyword::Extends, true)) => {
                 return Err(ParseError::general(
@@ -149,22 +150,15 @@ where
         // Temporarily disable strict mode because "strict" may be parsed as a keyword.
         let strict = cursor.strict_mode();
         cursor.set_strict_mode(false);
-        let is_close_block = cursor
-            .peek(0, interner)?
-            .ok_or(ParseError::AbruptEnd)?
-            .kind()
+        let is_close_block = cursor.peek(0, interner).or_abrupt()?.kind()
             == &TokenKind::Punctuator(Punctuator::CloseBlock);
         cursor.set_strict_mode(strict);
 
         if is_close_block {
-            cursor.next(interner).expect("token disappeared");
+            cursor.advance(interner);
             Ok(Class::new(Some(self.name), super_ref, None, Box::default()))
         } else {
-            let body_start = cursor
-                .peek(0, interner)?
-                .ok_or(ParseError::AbruptEnd)?
-                .span()
-                .start();
+            let body_start = cursor.peek(0, interner).or_abrupt()?.span().start();
             let (constructor, elements) =
                 ClassBody::new(self.name, self.allow_yield, self.allow_await)
                     .parse(cursor, interner)?;
@@ -290,7 +284,7 @@ where
         let strict = cursor.strict_mode();
         cursor.set_strict_mode(false);
         loop {
-            let token = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
+            let token = cursor.peek(0, interner).or_abrupt()?;
             let position = token.span().start();
             match token.kind() {
                 TokenKind::Punctuator(Punctuator::CloseBlock) => break,
@@ -550,14 +544,14 @@ where
     type Output = (Option<Function>, Option<function::ClassElement>);
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        let token = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
+        let token = cursor.peek(0, interner).or_abrupt()?;
         let r#static = match token.kind() {
             TokenKind::Punctuator(Punctuator::Semicolon) => {
-                cursor.next(interner).expect("token disappeared");
+                cursor.advance(interner);
                 return Ok((None, None));
             }
             TokenKind::Identifier(Sym::STATIC) => {
-                let token = cursor.peek(1, interner)?.ok_or(ParseError::AbruptEnd)?;
+                let token = cursor.peek(1, interner).or_abrupt()?;
                 match token.kind() {
                     TokenKind::Identifier(_)
                     | TokenKind::StringLiteral(_)
@@ -569,7 +563,7 @@ where
                         Punctuator::OpenBracket | Punctuator::Mul | Punctuator::OpenBlock,
                     ) => {
                         // this "static" is a keyword.
-                        cursor.next(interner).expect("token disappeared");
+                        cursor.advance(interner);
                         true
                     }
                     _ => false,
@@ -579,10 +573,7 @@ where
         };
 
         let is_keyword = !matches!(
-            cursor
-                .peek(1, interner)?
-                .ok_or(ParseError::AbruptEnd)?
-                .kind(),
+            cursor.peek(1, interner).or_abrupt()?.kind(),
             TokenKind::Punctuator(
                 Punctuator::Assign
                     | Punctuator::CloseBlock
@@ -591,11 +582,11 @@ where
             )
         );
 
-        let token = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
+        let token = cursor.peek(0, interner).or_abrupt()?;
         let position = token.span().start();
         let element = match token.kind() {
             TokenKind::Identifier(Sym::CONSTRUCTOR) if !r#static => {
-                cursor.next(interner).expect("token disappeared");
+                cursor.advance(interner);
                 let strict = cursor.strict_mode();
                 cursor.set_strict_mode(true);
 
@@ -620,7 +611,7 @@ where
                 return Ok((Some(Function::new(Some(self.name), parameters, body)), None));
             }
             TokenKind::Punctuator(Punctuator::OpenBlock) if r#static => {
-                cursor.next(interner).expect("token disappeared");
+                cursor.advance(interner);
                 let statement_list = if cursor
                     .next_if(TokenKind::Punctuator(Punctuator::CloseBlock), interner)?
                     .is_some()
@@ -629,11 +620,7 @@ where
                 } else {
                     let strict = cursor.strict_mode();
                     cursor.set_strict_mode(true);
-                    let position = cursor
-                        .peek(0, interner)?
-                        .ok_or(ParseError::AbruptEnd)?
-                        .span()
-                        .start();
+                    let position = cursor.peek(0, interner).or_abrupt()?.span().start();
                     let statement_list =
                         StatementList::new(false, true, false, &FUNCTION_BREAK_TOKENS)
                             .parse(cursor, interner)?;
@@ -668,7 +655,7 @@ where
                 function::ClassElement::StaticBlock(statement_list)
             }
             TokenKind::Punctuator(Punctuator::Mul) => {
-                let token = cursor.peek(1, interner)?.ok_or(ParseError::AbruptEnd)?;
+                let token = cursor.peek(1, interner).or_abrupt()?;
                 let name_position = token.span().start();
                 if let TokenKind::Identifier(Sym::CONSTRUCTOR) = token.kind() {
                     return Err(ParseError::general(
@@ -717,12 +704,12 @@ where
                 ));
             }
             TokenKind::Keyword((Keyword::Async, false)) if is_keyword => {
-                cursor.next(interner).expect("token disappeared");
+                cursor.advance(interner);
                 cursor.peek_expect_no_lineterminator(0, "Async object methods", interner)?;
-                let token = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
+                let token = cursor.peek(0, interner).or_abrupt()?;
                 match token.kind() {
                     TokenKind::Punctuator(Punctuator::Mul) => {
-                        let token = cursor.peek(1, interner)?.ok_or(ParseError::AbruptEnd)?;
+                        let token = cursor.peek(1, interner).or_abrupt()?;
                         let name_position = token.span().start();
                         match token.kind() {
                             TokenKind::Identifier(Sym::CONSTRUCTOR)
@@ -820,8 +807,8 @@ where
                 }
             }
             TokenKind::Identifier(Sym::GET) if is_keyword => {
-                cursor.next(interner).expect("token disappeared");
-                let token = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
+                cursor.advance(interner);
+                let token = cursor.peek(0, interner).or_abrupt()?;
                 match token.kind() {
                     TokenKind::PrivateIdentifier(Sym::CONSTRUCTOR) => {
                         return Err(ParseError::general(
@@ -831,7 +818,7 @@ where
                     }
                     TokenKind::PrivateIdentifier(name) => {
                         let name = *name;
-                        cursor.next(interner).expect("token disappeared");
+                        cursor.advance(interner);
                         let strict = cursor.strict_mode();
                         cursor.set_strict_mode(true);
                         let params =
@@ -941,8 +928,8 @@ where
                 }
             }
             TokenKind::Identifier(Sym::SET) if is_keyword => {
-                cursor.next(interner).expect("token disappeared");
-                let token = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
+                cursor.advance(interner);
+                let token = cursor.peek(0, interner).or_abrupt()?;
                 match token.kind() {
                     TokenKind::PrivateIdentifier(Sym::CONSTRUCTOR) => {
                         return Err(ParseError::general(
@@ -952,7 +939,7 @@ where
                     }
                     TokenKind::PrivateIdentifier(name) => {
                         let name = *name;
-                        cursor.next(interner).expect("token disappeared");
+                        cursor.advance(interner);
                         let strict = cursor.strict_mode();
                         cursor.set_strict_mode(true);
                         let params =
@@ -1066,11 +1053,11 @@ where
             }
             TokenKind::PrivateIdentifier(name) => {
                 let name = *name;
-                cursor.next(interner).expect("token disappeared");
-                let token = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
+                cursor.advance(interner);
+                let token = cursor.peek(0, interner).or_abrupt()?;
                 match token.kind() {
                     TokenKind::Punctuator(Punctuator::Assign) => {
-                        cursor.next(interner).expect("token disappeared");
+                        cursor.advance(interner);
                         let strict = cursor.strict_mode();
                         cursor.set_strict_mode(true);
                         let rhs = AssignmentExpression::new(
@@ -1141,7 +1128,7 @@ where
                 let name_position = token.span().start();
                 let name = PropertyName::new(self.allow_yield, self.allow_await)
                     .parse(cursor, interner)?;
-                let token = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
+                let token = cursor.peek(0, interner).or_abrupt()?;
                 match token.kind() {
                     TokenKind::Punctuator(Punctuator::Assign) => {
                         if let Some(name) = name.prop_name() {
@@ -1159,7 +1146,7 @@ where
                                 ));
                             }
                         }
-                        cursor.next(interner).expect("token disappeared");
+                        cursor.advance(interner);
                         let strict = cursor.strict_mode();
                         cursor.set_strict_mode(true);
                         let rhs = AssignmentExpression::new(

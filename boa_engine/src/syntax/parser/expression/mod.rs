@@ -23,10 +23,9 @@ use crate::syntax::{
     lexer::{InputElement, TokenKind},
     parser::{
         expression::assignment::ExponentiationExpression, AllowAwait, AllowIn, AllowYield, Cursor,
-        ParseError, ParseResult, TokenParser,
+        OrAbrupt, ParseError, ParseResult, TokenParser,
     },
 };
-
 use boa_ast::{
     self as ast,
     expression::{
@@ -43,6 +42,7 @@ use boa_profiler::Profiler;
 use std::io::Read;
 
 pub(super) use self::{assignment::AssignmentExpression, primary::Initializer};
+
 pub(in crate::syntax::parser) use {
     identifiers::{BindingIdentifier, LabelIdentifier},
     left_hand_side::LeftHandSideExpression,
@@ -88,7 +88,7 @@ macro_rules! expression {
                 while let Some(tok) = cursor.peek(0, interner)? {
                     match *tok.kind() {
                         TokenKind::Punctuator(op) if $( op == $op )||* => {
-                            let _next = cursor.next(interner).expect("token disappeared");
+                            cursor.advance(interner);
                             lhs = Binary::new(
                                 op.as_binary_op().expect("Could not get binary operation."),
                                 lhs,
@@ -159,25 +159,19 @@ where
         while let Some(tok) = cursor.peek(0, interner)? {
             match *tok.kind() {
                 TokenKind::Punctuator(Punctuator::Comma) => {
-                    if cursor
-                        .peek(1, interner)?
-                        .ok_or(ParseError::AbruptEnd)?
-                        .kind()
+                    if cursor.peek(1, interner).or_abrupt()?.kind()
                         == &TokenKind::Punctuator(Punctuator::CloseParen)
                     {
                         return Ok(lhs);
                     }
 
-                    if cursor
-                        .peek(1, interner)?
-                        .ok_or(ParseError::AbruptEnd)?
-                        .kind()
+                    if cursor.peek(1, interner).or_abrupt()?.kind()
                         == &TokenKind::Punctuator(Punctuator::Spread)
                     {
                         return Ok(lhs);
                     }
 
-                    let _next = cursor.next(interner).expect("token disappeared");
+                    cursor.advance(interner);
 
                     lhs = Binary::new(
                         Punctuator::Comma
@@ -291,7 +285,7 @@ where
                             "logical expression (cannot use '??' without parentheses within '||' or '&&')",
                         ));
                     }
-                    let _next = cursor.next(interner)?.expect("'&&' expected");
+                    cursor.advance(interner);
                     previous = PreviousExpr::Logical;
                     let rhs = BitwiseORExpression::new(
                         self.name,
@@ -312,7 +306,7 @@ where
                             "logical expression (cannot use '??' without parentheses within '||' or '&&')",
                         ));
                     }
-                    let _next = cursor.next(interner)?.expect("'||' expected");
+                    cursor.advance(interner);
                     previous = PreviousExpr::Logical;
                     let rhs = Self::with_previous(
                         self.name,
@@ -334,7 +328,7 @@ where
                             "cannot use '??' unparenthesized within '||' or '&&'",
                         ));
                     }
-                    let _next = cursor.next(interner)?.expect("'??' expected");
+                    cursor.advance(interner);
                     previous = PreviousExpr::Coalesce;
                     let rhs = BitwiseORExpression::new(
                         self.name,
@@ -580,7 +574,7 @@ where
                         || op == Punctuator::LessThanOrEq
                         || op == Punctuator::GreaterThanOrEq =>
                 {
-                    let _next = cursor.next(interner).expect("token disappeared");
+                    cursor.advance(interner);
                     lhs = Binary::new(
                         op.as_binary_op().expect("Could not get binary operation."),
                         lhs,
@@ -599,7 +593,7 @@ where
                     if op == Keyword::InstanceOf
                         || (op == Keyword::In && self.allow_in == AllowIn(true)) =>
                 {
-                    let _next = cursor.next(interner).expect("token disappeared");
+                    cursor.advance(interner);
                     lhs = Binary::new(
                         op.as_binary_op().expect("Could not get binary operation."),
                         lhs,
@@ -742,7 +736,7 @@ expression!(
 );
 
 /// Returns an error if `arguments` or `eval` are used as identifier in strict mode.
-fn check_strict_arguments_or_eval(ident: Identifier, position: Position) -> Result<(), ParseError> {
+fn check_strict_arguments_or_eval(ident: Identifier, position: Position) -> ParseResult<()> {
     match ident.sym() {
         Sym::ARGUMENTS => Err(ParseError::general(
             "unexpected identifier 'arguments' in strict mode",

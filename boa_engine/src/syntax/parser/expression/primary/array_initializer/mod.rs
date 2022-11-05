@@ -13,8 +13,8 @@ mod tests;
 use crate::syntax::{
     lexer::TokenKind,
     parser::{
-        expression::AssignmentExpression, AllowAwait, AllowYield, Cursor, ParseError, ParseResult,
-        TokenParser,
+        expression::AssignmentExpression, AllowAwait, AllowYield, Cursor, OrAbrupt, ParseError,
+        ParseResult, TokenParser,
     },
 };
 use boa_ast::{
@@ -67,17 +67,17 @@ where
         let mut last_spread = false;
 
         loop {
-            let token = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
+            let token = cursor.peek(0, interner).or_abrupt()?;
             match token.kind() {
                 TokenKind::Punctuator(Punctuator::CloseBracket) => {
-                    cursor.next(interner).expect("token disappeared");
+                    cursor.advance(interner);
                     break;
                 }
                 TokenKind::Punctuator(Punctuator::Comma) if next_comma => {
-                    cursor.next(interner).expect("token disappeared");
+                    cursor.advance(interner);
 
                     if last_spread {
-                        let token = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
+                        let token = cursor.peek(0, interner).or_abrupt()?;
                         if token.kind() == &TokenKind::Punctuator(Punctuator::CloseBracket) {
                             has_trailing_comma_spread = true;
                         }
@@ -86,7 +86,7 @@ where
                     next_comma = false;
                 }
                 TokenKind::Punctuator(Punctuator::Comma) => {
-                    cursor.next(interner).expect("token disappeared");
+                    cursor.advance(interner);
                     elements.push(None);
                 }
                 TokenKind::Punctuator(Punctuator::Spread) if next_comma => {
@@ -97,7 +97,7 @@ where
                     ));
                 }
                 TokenKind::Punctuator(Punctuator::Spread) => {
-                    cursor.next(interner).expect("token disappeared");
+                    cursor.advance(interner);
                     let node =
                         AssignmentExpression::new(None, true, self.allow_yield, self.allow_await)
                             .parse(cursor, interner)?;

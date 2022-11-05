@@ -9,7 +9,7 @@ use super::{check_strict_arguments_or_eval, left_hand_side::LeftHandSideExpressi
 use crate::syntax::{
     lexer::{Error as LexError, TokenKind},
     parser::{
-        expression::unary::UnaryExpression, AllowAwait, AllowYield, Cursor, ParseError,
+        expression::unary::UnaryExpression, AllowAwait, AllowYield, Cursor, OrAbrupt, ParseError,
         ParseResult, TokenParser,
     },
 };
@@ -62,7 +62,7 @@ where
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("UpdateExpression", "Parsing");
 
-        let tok = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
+        let tok = cursor.peek(0, interner).or_abrupt()?;
         let position = tok.span().start();
         match tok.kind() {
             TokenKind::Punctuator(Punctuator::Inc) => {

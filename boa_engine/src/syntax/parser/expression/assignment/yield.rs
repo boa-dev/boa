@@ -10,7 +10,7 @@
 use super::AssignmentExpression;
 use crate::syntax::{
     lexer::TokenKind,
-    parser::{AllowAwait, AllowIn, Cursor, ParseError, ParseResult, TokenParser},
+    parser::{AllowAwait, AllowIn, Cursor, OrAbrupt, ParseResult, TokenParser},
 };
 use boa_ast::{expression::Yield, Expression, Keyword, Punctuator};
 use boa_interner::Interner;
@@ -67,10 +67,10 @@ where
             return Ok(Yield::new(None, false).into());
         }
 
-        let token = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
+        let token = cursor.peek(0, interner).or_abrupt()?;
         match token.kind() {
             TokenKind::Punctuator(Punctuator::Mul) => {
-                cursor.next(interner)?.expect("token disappeared");
+                cursor.advance(interner);
                 let expr = AssignmentExpression::new(None, self.allow_in, true, self.allow_await)
                     .parse(cursor, interner)?;
                 Ok(Yield::new(Some(expr), true).into())

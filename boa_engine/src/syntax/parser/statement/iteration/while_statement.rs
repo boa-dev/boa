@@ -1,6 +1,6 @@
 use crate::syntax::parser::{
     expression::Expression, statement::Statement, AllowAwait, AllowReturn, AllowYield, Cursor,
-    ParseError, ParseResult, TokenParser,
+    OrAbrupt, ParseError, ParseResult, TokenParser,
 };
 use boa_ast::{statement::WhileLoop, Keyword, Punctuator};
 use boa_interner::Interner;
@@ -59,11 +59,7 @@ where
 
         cursor.expect(Punctuator::CloseParen, "while statement", interner)?;
 
-        let position = cursor
-            .peek(0, interner)?
-            .ok_or(ParseError::AbruptEnd)?
-            .span()
-            .start();
+        let position = cursor.peek(0, interner).or_abrupt()?.span().start();
 
         let body = Statement::new(self.allow_yield, self.allow_await, self.allow_return)
             .parse(cursor, interner)?;

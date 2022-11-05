@@ -37,8 +37,8 @@ use self::{
     variable::VariableStatement,
 };
 use super::{
-    expression::PropertyName, AllowAwait, AllowReturn, AllowYield, Cursor, ParseError, ParseResult,
-    TokenParser,
+    expression::PropertyName, AllowAwait, AllowReturn, AllowYield, Cursor, OrAbrupt, ParseError,
+    ParseResult, TokenParser,
 };
 use crate::syntax::{
     lexer::{Error as LexError, InputElement, Token, TokenKind},
@@ -114,7 +114,7 @@ where
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("Statement", "Parsing");
         // TODO: add BreakableStatement and divide Whiles, fors and so on to another place.
-        let tok = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
+        let tok = cursor.peek(0, interner).or_abrupt()?;
 
         match tok.kind() {
             TokenKind::Keyword((Keyword::If, _)) => {
@@ -187,7 +187,7 @@ where
             }
             TokenKind::Punctuator(Punctuator::Semicolon) => {
                 // parse the EmptyStatement
-                cursor.next(interner).expect("semicolon disappeared");
+                cursor.advance(interner);
                 Ok(ast::Statement::Empty)
             }
             TokenKind::Identifier(_) => {
@@ -336,7 +336,7 @@ where
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("StatementListItem", "Parsing");
-        let tok = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
+        let tok = cursor.peek(0, interner).or_abrupt()?;
 
         match *tok.kind() {
             TokenKind::Keyword((
@@ -409,12 +409,9 @@ where
         let mut property_names = Vec::new();
 
         loop {
-            let next_token_is_colon = *cursor
-                .peek(1, interner)?
-                .ok_or(ParseError::AbruptEnd)?
-                .kind()
+            let next_token_is_colon = *cursor.peek(1, interner).or_abrupt()?.kind()
                 == TokenKind::Punctuator(Punctuator::Colon);
-            let token = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
+            let token = cursor.peek(0, interner).or_abrupt()?;
             match token.kind() {
                 TokenKind::Punctuator(Punctuator::CloseBlock) => {
                     cursor.expect(
@@ -655,11 +652,7 @@ where
         let mut last_elision_or_first = true;
 
         loop {
-            match cursor
-                .peek(0, interner)?
-                .ok_or(ParseError::AbruptEnd)?
-                .kind()
-            {
+            match cursor.peek(0, interner).or_abrupt()?.kind() {
                 TokenKind::Punctuator(Punctuator::CloseBracket) => {
                     cursor.expect(
                         TokenKind::Punctuator(Punctuator::CloseBracket),
@@ -688,11 +681,7 @@ where
                         interner,
                     )?;
 
-                    match cursor
-                        .peek(0, interner)?
-                        .ok_or(ParseError::AbruptEnd)?
-                        .kind()
-                    {
+                    match cursor.peek(0, interner).or_abrupt()?.kind() {
                         TokenKind::Punctuator(Punctuator::OpenBlock) => {
                             let bindings =
                                 ObjectBindingPattern::new(self.allow_yield, self.allow_await)
@@ -732,11 +721,7 @@ where
                     let bindings = ObjectBindingPattern::new(self.allow_yield, self.allow_await)
                         .parse(cursor, interner)?;
 
-                    match cursor
-                        .peek(0, interner)?
-                        .ok_or(ParseError::AbruptEnd)?
-                        .kind()
-                    {
+                    match cursor.peek(0, interner).or_abrupt()?.kind() {
                         TokenKind::Punctuator(Punctuator::Assign) => {
                             let default_init =
                                 Initializer::new(None, true, self.allow_yield, self.allow_await)
@@ -760,11 +745,7 @@ where
                     let bindings =
                         Self::new(self.allow_yield, self.allow_await).parse(cursor, interner)?;
 
-                    match cursor
-                        .peek(0, interner)?
-                        .ok_or(ParseError::AbruptEnd)?
-                        .kind()
-                    {
+                    match cursor.peek(0, interner).or_abrupt()?.kind() {
                         TokenKind::Punctuator(Punctuator::Assign) => {
                             let default_init =
                                 Initializer::new(None, true, self.allow_yield, self.allow_await)
@@ -787,11 +768,7 @@ where
 
                     let ident = BindingIdentifier::new(self.allow_yield, self.allow_await)
                         .parse(cursor, interner)?;
-                    match cursor
-                        .peek(0, interner)?
-                        .ok_or(ParseError::AbruptEnd)?
-                        .kind()
-                    {
+                    match cursor.peek(0, interner).or_abrupt()?.kind() {
                         TokenKind::Punctuator(Punctuator::Assign) => {
                             let default_init = Initializer::new(
                                 Some(ident),

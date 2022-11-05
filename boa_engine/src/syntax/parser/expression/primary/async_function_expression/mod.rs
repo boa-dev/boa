@@ -6,7 +6,8 @@ use crate::syntax::{
     parser::{
         expression::BindingIdentifier,
         function::{FormalParameters, FunctionBody},
-        name_in_lexically_declared_names, AllowYield, Cursor, ParseError, ParseResult, TokenParser,
+        name_in_lexically_declared_names, AllowYield, Cursor, OrAbrupt, ParseError, ParseResult,
+        TokenParser,
     },
 };
 use boa_ast::{
@@ -62,11 +63,7 @@ where
             interner,
         )?;
 
-        let (name, has_binding_identifier) = match cursor
-            .peek(0, interner)?
-            .ok_or(ParseError::AbruptEnd)?
-            .kind()
-        {
+        let (name, has_binding_identifier) = match cursor.peek(0, interner).or_abrupt()?.kind() {
             TokenKind::Punctuator(Punctuator::OpenParen) => (self.name, false),
             _ => (
                 Some(BindingIdentifier::new(self.allow_yield, true).parse(cursor, interner)?),

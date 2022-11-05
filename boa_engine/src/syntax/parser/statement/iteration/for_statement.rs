@@ -13,7 +13,8 @@ use crate::syntax::{
         expression::Expression,
         statement::declaration::LexicalDeclaration,
         statement::{variable::VariableDeclarationList, Statement},
-        AllowAwait, AllowReturn, AllowYield, Cursor, ParseError, ParseResult, TokenParser,
+        AllowAwait, AllowReturn, AllowYield, Cursor, OrAbrupt, ParseError, ParseResult,
+        TokenParser,
     },
 };
 use ast::operations::{bound_names, var_declared_names};
@@ -77,7 +78,7 @@ where
 
         let mut r#await = false;
 
-        let next = cursor.next(interner)?.ok_or(ParseError::AbruptEnd)?;
+        let next = cursor.next(interner).or_abrupt()?;
         let init_position = match next.kind() {
             TokenKind::Punctuator(Punctuator::OpenParen) => next.span().end(),
             TokenKind::Keyword((Keyword::Await, _)) if !self.allow_await.0 => {
@@ -103,13 +104,9 @@ where
             }
         };
 
-        let init = match cursor
-            .peek(0, interner)?
-            .ok_or(ParseError::AbruptEnd)?
-            .kind()
-        {
+        let init = match cursor.peek(0, interner).or_abrupt()?.kind() {
             TokenKind::Keyword((Keyword::Var, _)) => {
-                let _next = cursor.next(interner)?;
+                cursor.advance(interner);
                 Some(
                     VariableDeclarationList::new(false, self.allow_yield, self.allow_await)
                         .parse(cursor, interner)?
@@ -122,11 +119,7 @@ where
                     .into(),
             ),
             TokenKind::Keyword((Keyword::Async, false)) => {
-                match cursor
-                    .peek(1, interner)?
-                    .ok_or(ParseError::AbruptEnd)?
-                    .kind()
-                {
+                match cursor.peek(1, interner).or_abrupt()?.kind() {
                     TokenKind::Keyword((Keyword::Of, _)) => {
                         return Err(ParseError::lex(LexError::Syntax(
                             "invalid left-hand side expression 'async' of a for-of loop".into(),
@@ -148,7 +141,7 @@ where
             ),
         };
 
-        let token = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
+        let token = cursor.peek(0, interner).or_abrupt()?;
         let position = token.span().start();
         let init = match (init, token.kind()) {
             (Some(_), TokenKind::Keyword((Keyword::In | Keyword::Of, true))) => {
@@ -168,17 +161,13 @@ where
                 let init =
                     initializer_to_iterable_loop_initializer(init, position, cursor.strict_mode())?;
 
-                let _next = cursor.next(interner)?;
+                cursor.advance(interner);
                 let expr = Expression::new(None, true, self.allow_yield, self.allow_await)
                     .parse(cursor, interner)?;
 
                 cursor.expect(Punctuator::CloseParen, "for in/of statement", interner)?;
 
-                let position = cursor
-                    .peek(0, interner)?
-                    .ok_or(ParseError::AbruptEnd)?
-                    .span()
-                    .start();
+                let position = cursor.peek(0, interner).or_abrupt()?.span().start();
 
                 let body = Statement::new(self.allow_yield, self.allow_await, self.allow_return)
                     .parse(cursor, interner)?;
@@ -266,11 +255,7 @@ where
             Some(step)
         };
 
-        let position = cursor
-            .peek(0, interner)?
-            .ok_or(ParseError::AbruptEnd)?
-            .span()
-            .start();
+        let position = cursor.peek(0, interner).or_abrupt()?.span().start();
 
         let body = Statement::new(self.allow_yield, self.allow_await, self.allow_return)
             .parse(cursor, interner)?;
@@ -304,7 +289,7 @@ fn initializer_to_iterable_loop_initializer(
     initializer: ForLoopInitializer,
     position: Position,
     strict: bool,
-) -> Result<IterableLoopInitializer, ParseError> {
+) -> ParseResult<IterableLoopInitializer> {
     match initializer {
         ForLoopInitializer::Expression(expr) => match expr {
             ast::Expression::Identifier(ident)

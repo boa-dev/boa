@@ -9,8 +9,8 @@ use boa_profiler::Profiler;
 use crate::syntax::{
     lexer::{Token, TokenKind},
     parser::{
-        cursor::Cursor, expression::Expression, AllowAwait, AllowYield, ParseError, ParseResult,
-        TokenParser,
+        cursor::Cursor, expression::Expression, AllowAwait, AllowYield, OrAbrupt, ParseError,
+        ParseResult, TokenParser,
     },
 };
 
@@ -105,13 +105,13 @@ where
         while let Some(token) = cursor.peek(0, interner)? {
             let shorted = match token.kind() {
                 TokenKind::Punctuator(Punctuator::Optional) => {
-                    cursor.next(interner).expect("token disappeared");
+                    cursor.advance(interner);
                     true
                 }
                 TokenKind::Punctuator(Punctuator::OpenParen | Punctuator::OpenBracket) => false,
                 TokenKind::Punctuator(Punctuator::Dot) => {
-                    cursor.next(interner).expect("token disappeared");
-                    let field = cursor.next(interner)?.ok_or(ParseError::AbruptEnd)?;
+                    cursor.advance(interner);
+                    let field = cursor.next(interner).or_abrupt()?;
 
                     let item = parse_const_access(cursor, &field, interner)?;
 
@@ -127,7 +127,7 @@ where
                 _ => break,
             };
 
-            let token = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
+            let token = cursor.peek(0, interner).or_abrupt()?;
 
             let item = match token.kind() {
                 TokenKind::Punctuator(Punctuator::OpenParen) => {

@@ -101,7 +101,7 @@ where
         cursor.set_goal(InputElement::TemplateTail);
 
         let mut lhs = if is_super_call(cursor, interner)? {
-            cursor.next(interner).expect("token disappeared");
+            cursor.advance(interner);
             let args =
                 Arguments::new(self.allow_yield, self.allow_await).parse(cursor, interner)?;
             SuperCall::new(args).into()

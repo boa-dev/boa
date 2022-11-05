@@ -11,7 +11,7 @@ use crate::syntax::{
     lexer::TokenKind,
     parser::{
         expression::Expression, statement::Statement, AllowAwait, AllowReturn, AllowYield, Cursor,
-        ParseError, ParseResult, TokenParser,
+        OrAbrupt, ParseError, ParseResult, TokenParser,
     },
 };
 use boa_ast::{statement::DoWhileLoop, Keyword, Punctuator};
@@ -65,11 +65,7 @@ where
 
         cursor.expect((Keyword::Do, false), "do while statement", interner)?;
 
-        let position = cursor
-            .peek(0, interner)?
-            .ok_or(ParseError::AbruptEnd)?
-            .span()
-            .start();
+        let position = cursor.peek(0, interner).or_abrupt()?.span().start();
 
         let body = Statement::new(self.allow_yield, self.allow_await, self.allow_return)
             .parse(cursor, interner)?;
@@ -79,7 +75,7 @@ where
             return Err(ParseError::wrong_labelled_function_declaration(position));
         }
 
-        let next_token = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
+        let next_token = cursor.peek(0, interner).or_abrupt()?;
         match next_token.kind() {
             TokenKind::Keyword((Keyword::While, true)) => {
                 return Err(ParseError::general(
@@ -112,7 +108,7 @@ where
         // https://tc39.es/ecma262/#sec-automatic-semicolon-insertion
         if let Some(tok) = cursor.peek(0, interner)? {
             if let TokenKind::Punctuator(Punctuator::Semicolon) = *tok.kind() {
-                cursor.next(interner)?;
+                cursor.advance(interner);
             }
         }
 

@@ -34,7 +34,7 @@ use crate::syntax::{
             BindingIdentifier, Expression,
         },
         statement::{ArrayBindingPattern, ObjectBindingPattern},
-        AllowAwait, AllowYield, Cursor, ParseError, ParseResult, TokenParser,
+        AllowAwait, AllowYield, Cursor, OrAbrupt, ParseError, ParseResult, TokenParser,
     },
 };
 use boa_ast::{
@@ -98,7 +98,7 @@ where
 
         // TODO: tok currently consumes the token instead of peeking, so the token
         // isn't passed and consumed by parsers according to spec (EX: GeneratorExpression)
-        let tok = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
+        let tok = cursor.peek(0, interner).or_abrupt()?;
         let tok_position = tok.span().start();
 
         match tok.kind() {
@@ -107,12 +107,12 @@ where
                 tok_position,
             )),
             TokenKind::Keyword((Keyword::This, false)) => {
-                cursor.next(interner).expect("token disappeared");
+                cursor.advance(interner);
                 Ok(ast::Expression::This)
             }
             TokenKind::Keyword((Keyword::Function, _)) => {
-                cursor.next(interner).expect("token disappeared");
-                let next_token = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
+                cursor.advance(interner);
+                let next_token = cursor.peek(0, interner).or_abrupt()?;
                 if next_token.kind() == &TokenKind::Punctuator(Punctuator::Mul) {
                     GeneratorExpression::new(self.name)
                         .parse(cursor, interner)
@@ -124,7 +124,7 @@ where
                 }
             }
             TokenKind::Keyword((Keyword::Class, _)) => {
-                cursor.next(interner).expect("token disappeared");
+                cursor.advance(interner);
                 ClassExpression::new(self.name, self.allow_yield, self.allow_await)
                     .parse(cursor, interner)
                     .map(Into::into)
@@ -139,7 +139,7 @@ where
                         ))
                     }
                     Some(TokenKind::Keyword((Keyword::Function, _))) => {
-                        cursor.next(interner).expect("token disappeared");
+                        cursor.advance(interner);
                         match cursor.peek(1, interner)?.map(Token::kind) {
                             Some(TokenKind::Punctuator(Punctuator::Mul)) => {
                                 AsyncGeneratorExpression::new(self.name)
@@ -157,7 +157,7 @@ where
                 }
             }
             TokenKind::Punctuator(Punctuator::OpenParen) => {
-                cursor.next(interner).expect("token disappeared");
+                cursor.advance(interner);
                 cursor.set_goal(InputElement::RegExp);
                 let expr = CoverParenthesizedExpressionAndArrowParameterList::new(
                     self.name,
@@ -168,14 +168,14 @@ where
                 Ok(expr)
             }
             TokenKind::Punctuator(Punctuator::OpenBracket) => {
-                cursor.next(interner).expect("token disappeared");
+                cursor.advance(interner);
                 cursor.set_goal(InputElement::RegExp);
                 ArrayLiteral::new(self.allow_yield, self.allow_await)
                     .parse(cursor, interner)
                     .map(Into::into)
             }
             TokenKind::Punctuator(Punctuator::OpenBlock) => {
-                cursor.next(interner).expect("token disappeared");
+                cursor.advance(interner);
                 cursor.set_goal(InputElement::RegExp);
                 ObjectLiteral::new(self.allow_yield, self.allow_await)
                     .parse(cursor, interner)
@@ -183,11 +183,11 @@ where
             }
             TokenKind::BooleanLiteral(boolean) => {
                 let node = Literal::from(*boolean).into();
-                cursor.next(interner).expect("token disappeared");
+                cursor.advance(interner);
                 Ok(node)
             }
             TokenKind::NullLiteral => {
-                cursor.next(interner).expect("token disappeared");
+                cursor.advance(interner);
                 Ok(Literal::Null.into())
             }
             TokenKind::Identifier(_)
@@ -199,7 +199,7 @@ where
                 .map(Into::into),
             TokenKind::StringLiteral(lit) => {
                 let node = Literal::from(*lit).into();
-                cursor.next(interner).expect("token disappeared");
+                cursor.advance(interner);
                 Ok(node)
             }
             TokenKind::TemplateNoSubstitution(template_string) => {
@@ -209,22 +209,22 @@ where
                         .map_err(ParseError::lex)?,
                 )
                 .into();
-                cursor.next(interner).expect("token disappeared");
+                cursor.advance(interner);
                 Ok(node)
             }
             TokenKind::NumericLiteral(Numeric::Integer(num)) => {
                 let node = Literal::from(*num).into();
-                cursor.next(interner).expect("token disappeared");
+                cursor.advance(interner);
                 Ok(node)
             }
             TokenKind::NumericLiteral(Numeric::Rational(num)) => {
                 let node = Literal::from(*num).into();
-                cursor.next(interner).expect("token disappeared");
+                cursor.advance(interner);
                 Ok(node)
             }
             TokenKind::NumericLiteral(Numeric::BigInt(num)) => {
                 let node = Literal::from(num.clone()).into();
-                cursor.next(interner).expect("token disappeared");
+                cursor.advance(interner);
                 Ok(node)
             }
             TokenKind::RegularExpressionLiteral(body, flags) => {
@@ -232,12 +232,12 @@ where
                     Identifier::new(Sym::REGEXP).into(),
                     vec![Literal::from(*body).into(), Literal::from(*flags).into()].into(),
                 )));
-                cursor.next(interner).expect("token disappeared");
+                cursor.advance(interner);
                 Ok(node)
             }
             TokenKind::Punctuator(Punctuator::Div) => {
                 let position = tok.span().start();
-                cursor.next(interner).expect("token disappeared");
+                cursor.advance(interner);
                 let tok = cursor.lex_regex(position, interner)?;
 
                 if let TokenKind::RegularExpressionLiteral(body, flags) = *tok.kind() {
@@ -263,7 +263,7 @@ where
                         .to_owned_cooked(interner)
                         .map_err(ParseError::lex)?,
                 );
-                cursor.next(interner).expect("token disappeared");
+                cursor.advance(interner);
                 parser.parse(cursor, interner).map(Into::into)
             }
             _ => Err(ParseError::unexpected(
@@ -324,24 +324,21 @@ where
             "Parsing",
         );
 
-        let start_span = cursor
-            .peek(0, interner)?
-            .ok_or(ParseError::AbruptEnd)?
-            .span();
+        let start_span = cursor.peek(0, interner).or_abrupt()?.span();
 
         let mut expressions = Vec::new();
         let mut tailing_comma = None;
 
-        let next = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
+        let next = cursor.peek(0, interner).or_abrupt()?;
         let span = match next.kind() {
             TokenKind::Punctuator(Punctuator::CloseParen) => {
                 let span = next.span();
-                cursor.next(interner).expect("token disappeared");
+                cursor.advance(interner);
                 span
             }
             TokenKind::Punctuator(Punctuator::Spread) => {
-                cursor.next(interner).expect("token disappeared");
-                let next = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
+                cursor.advance(interner);
+                let next = cursor.peek(0, interner).or_abrupt()?;
                 match next.kind() {
                     TokenKind::Punctuator(Punctuator::OpenBlock) => {
                         let bindings =
@@ -375,27 +372,26 @@ where
                         .parse(cursor, interner)?;
                 expressions.push(InnerExpression::Expression(expression));
 
-                let next = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
+                let next = cursor.peek(0, interner).or_abrupt()?;
                 match next.kind() {
                     TokenKind::Punctuator(Punctuator::CloseParen) => {
                         let span = next.span();
-                        cursor.next(interner).expect("token disappeared");
+                        cursor.advance(interner);
                         span
                     }
                     TokenKind::Punctuator(Punctuator::Comma) => {
-                        cursor.next(interner).expect("token disappeared");
-                        let next = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
+                        cursor.advance(interner);
+                        let next = cursor.peek(0, interner).or_abrupt()?;
                         match next.kind() {
                             TokenKind::Punctuator(Punctuator::CloseParen) => {
                                 let span = next.span();
                                 tailing_comma = Some(next.span());
-                                cursor.next(interner).expect("token disappeared");
+                                cursor.advance(interner);
                                 span
                             }
                             TokenKind::Punctuator(Punctuator::Spread) => {
-                                cursor.next(interner).expect("token disappeared");
-                                let next =
-                                    cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
+                                cursor.advance(interner);
+                                let next = cursor.peek(0, interner).or_abrupt()?;
                                 match next.kind() {
                                     TokenKind::Punctuator(Punctuator::OpenBlock) => {
                                         let bindings = ObjectBindingPattern::new(
@@ -456,9 +452,7 @@ where
         let is_arrow = if let Some(TokenKind::Punctuator(Punctuator::Arrow)) =
             cursor.peek(0, interner)?.map(Token::kind)
         {
-            !cursor
-                .peek_is_line_terminator(0, interner)?
-                .ok_or(ParseError::AbruptEnd)?
+            !cursor.peek_is_line_terminator(0, interner).or_abrupt()?
         } else {
             false
         };
@@ -557,7 +551,7 @@ fn expression_to_formal_parameters(
     parameters: &mut Vec<FormalParameter>,
     strict: bool,
     span: Span,
-) -> Result<(), ParseError> {
+) -> ParseResult<()> {
     match node {
         ast::Expression::Identifier(identifier) if strict && *identifier == Sym::EVAL => {
             return Err(ParseError::general(

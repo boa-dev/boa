@@ -12,7 +12,7 @@ use crate::syntax::{
     lexer::TokenKind,
     parser::{
         expression::{left_hand_side::template::TaggedTemplateLiteral, Expression},
-        AllowAwait, AllowYield, Cursor, ParseError, ParseResult, TokenParser,
+        AllowAwait, AllowYield, Cursor, OrAbrupt, ParseError, ParseResult, TokenParser,
     },
 };
 use boa_ast::{
@@ -68,7 +68,7 @@ where
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("CallExpression", "Parsing");
 
-        let token = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
+        let token = cursor.peek(0, interner).or_abrupt()?;
 
         let mut lhs = if token.kind() == &TokenKind::Punctuator(Punctuator::OpenParen) {
             let args =
@@ -93,9 +93,9 @@ where
                     lhs = ast::Expression::from(Call::new(lhs, args));
                 }
                 TokenKind::Punctuator(Punctuator::Dot) => {
-                    cursor.next(interner)?.ok_or(ParseError::AbruptEnd)?; // We move the parser forward.
+                    cursor.advance(interner);
 
-                    let access = match cursor.next(interner)?.ok_or(ParseError::AbruptEnd)?.kind() {
+                    let access = match cursor.next(interner).or_abrupt()?.kind() {
                         TokenKind::Identifier(name) => SimplePropertyAccess::new(lhs, *name).into(),
                         TokenKind::Keyword((kw, _)) => {
                             SimplePropertyAccess::new(lhs, kw.to_sym(interner)).into()
@@ -124,7 +124,7 @@ where
                     lhs = ast::Expression::PropertyAccess(access);
                 }
                 TokenKind::Punctuator(Punctuator::OpenBracket) => {
-                    let _next = cursor.next(interner)?.ok_or(ParseError::AbruptEnd)?; // We move the parser.
+                    cursor.advance(interner);
                     let idx = Expression::new(None, true, self.allow_yield, self.allow_await)
                         .parse(cursor, interner)?;
                     cursor.expect(Punctuator::CloseBracket, "call expression", interner)?;

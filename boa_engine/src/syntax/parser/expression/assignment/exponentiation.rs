@@ -7,12 +7,11 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Arithmetic_Operators#Exponentiation
 //! [spec]: https://tc39.es/ecma262/#sec-exp-operator
 
-use super::ParseError;
 use crate::syntax::{
     lexer::TokenKind,
     parser::{
         expression::{unary::UnaryExpression, update::UpdateExpression},
-        AllowAwait, AllowYield, Cursor, ParseResult, TokenParser,
+        AllowAwait, AllowYield, Cursor, OrAbrupt, ParseResult, TokenParser,
     },
 };
 use boa_ast::{
@@ -70,7 +69,7 @@ where
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("ExponentiationExpression", "Parsing");
 
-        let next = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
+        let next = cursor.peek(0, interner).or_abrupt()?;
         match next.kind() {
             TokenKind::Keyword((Keyword::Delete | Keyword::Void | Keyword::TypeOf, _))
             | TokenKind::Punctuator(
@@ -90,7 +89,7 @@ where
             .parse(cursor, interner)?;
         if let Some(tok) = cursor.peek(0, interner)? {
             if let TokenKind::Punctuator(Punctuator::Exp) = tok.kind() {
-                cursor.next(interner)?.expect("** token vanished"); // Consume the token.
+                cursor.advance(interner);
                 return Ok(Binary::new(
                     ArithmeticOp::Exp.into(),
                     lhs,

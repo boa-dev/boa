@@ -29,7 +29,7 @@ use boa_macros::utf16;
 use boa_profiler::Profiler;
 use std::io::Read;
 
-use super::ParseResult;
+use super::{OrAbrupt, ParseResult};
 
 /// Formal parameters parsing.
 ///
@@ -71,7 +71,7 @@ where
 
         let mut params = Vec::new();
 
-        let next_token = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
+        let next_token = cursor.peek(0, interner).or_abrupt()?;
         if next_token.kind() == &TokenKind::Punctuator(Punctuator::CloseParen) {
             return Ok(FormalParameterList::default());
         }
@@ -99,10 +99,7 @@ where
 
             params.push(next_param);
 
-            if cursor
-                .peek(0, interner)?
-                .ok_or(ParseError::AbruptEnd)?
-                .kind()
+            if cursor.peek(0, interner).or_abrupt()?.kind()
                 == &TokenKind::Punctuator(Punctuator::CloseParen)
             {
                 break;
@@ -118,10 +115,7 @@ where
             }
 
             cursor.expect(Punctuator::Comma, "parameter list", interner)?;
-            if cursor
-                .peek(0, interner)?
-                .ok_or(ParseError::AbruptEnd)?
-                .kind()
+            if cursor.peek(0, interner).or_abrupt()?.kind()
                 == &TokenKind::Punctuator(Punctuator::CloseParen)
             {
                 break;
@@ -353,10 +347,7 @@ where
                 TokenKind::Punctuator(Punctuator::OpenBlock) => {
                     let bindings = ObjectBindingPattern::new(self.allow_yield, self.allow_await)
                         .parse(cursor, interner)?;
-                    let init = if *cursor
-                        .peek(0, interner)?
-                        .ok_or(ParseError::AbruptEnd)?
-                        .kind()
+                    let init = if *cursor.peek(0, interner).or_abrupt()?.kind()
                         == TokenKind::Punctuator(Punctuator::Assign)
                     {
                         Some(
@@ -372,10 +363,7 @@ where
                 TokenKind::Punctuator(Punctuator::OpenBracket) => {
                     let bindings = ArrayBindingPattern::new(self.allow_yield, self.allow_await)
                         .parse(cursor, interner)?;
-                    let init = if *cursor
-                        .peek(0, interner)?
-                        .ok_or(ParseError::AbruptEnd)?
-                        .kind()
+                    let init = if *cursor.peek(0, interner).or_abrupt()?.kind()
                         == TokenKind::Punctuator(Punctuator::Assign)
                     {
                         Some(
@@ -391,10 +379,7 @@ where
                 _ => {
                     let ident = BindingIdentifier::new(self.allow_yield, self.allow_await)
                         .parse(cursor, interner)?;
-                    let init = if *cursor
-                        .peek(0, interner)?
-                        .ok_or(ParseError::AbruptEnd)?
-                        .kind()
+                    let init = if *cursor.peek(0, interner).or_abrupt()?.kind()
                         == TokenKind::Punctuator(Punctuator::Assign)
                     {
                         Some(
