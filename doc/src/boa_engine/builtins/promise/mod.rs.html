@@ -2077,20 +2077,6 @@
 <span id="2075">2075</span>
 <span id="2076">2076</span>
 <span id="2077">2077</span>
-<span id="2078">2078</span>
-<span id="2079">2079</span>
-<span id="2080">2080</span>
-<span id="2081">2081</span>
-<span id="2082">2082</span>
-<span id="2083">2083</span>
-<span id="2084">2084</span>
-<span id="2085">2085</span>
-<span id="2086">2086</span>
-<span id="2087">2087</span>
-<span id="2088">2088</span>
-<span id="2089">2089</span>
-<span id="2090">2090</span>
-<span id="2091">2091</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `Promise` object.
 
 </span><span class="attribute">#[cfg(test)]
@@ -2151,18 +2137,16 @@
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>if_abrupt_reject_promise;
 
-<span class="attribute">#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-</span><span class="kw">enum </span>PromiseState {
+<span class="attribute">#[derive(Debug, Clone, Trace, Finalize)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum </span>PromiseState {
     Pending,
-    Fulfilled,
-    Rejected,
+    Fulfilled(JsValue),
+    Rejected(JsValue),
 }
 
 <span class="attribute">#[derive(Debug, Clone, Trace, Finalize)]
 </span><span class="kw">pub struct </span>Promise {
-    promise_result: <span class="prelude-ty">Option</span>&lt;JsValue&gt;,
-    <span class="attribute">#[unsafe_ignore_trace]
-    </span>promise_state: PromiseState,
+    promise_state: PromiseState,
     promise_fulfill_reactions: Vec&lt;ReactionRecord&gt;,
     promise_reject_reactions: Vec&lt;ReactionRecord&gt;,
     promise_is_handled: bool,
@@ -2370,6 +2354,11 @@
 <span class="kw">impl </span>Promise {
     <span class="kw">const </span>LENGTH: usize = <span class="number">1</span>;
 
+    <span class="doccomment">/// Gets the current state of the promise.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>state(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>PromiseState {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.promise_state
+    }
+
     <span class="doccomment">/// `Promise ( executor )`
     ///
     /// More information:
@@ -2404,7 +2393,6 @@
         <span class="kw">let </span>promise = JsObject::from_proto_and_data(
             promise,
             ObjectData::promise(<span class="self">Self </span>{
-                promise_result: <span class="prelude-val">None</span>,
                 <span class="comment">// 4. Set promise.[[PromiseState]] to pending.
                 </span>promise_state: PromiseState::Pending,
                 <span class="comment">// 5. Set promise.[[PromiseFulfillReactions]] to a new empty List.
@@ -3499,9 +3487,8 @@
     /// [spec]: https://tc39.es/ecma262/#sec-fulfillpromise
     </span><span class="kw">pub fn </span>fulfill_promise(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>JsValue, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;()&gt; {
         <span class="comment">// 1. Assert: The value of promise.[[PromiseState]] is pending.
-        </span><span class="macro">assert_eq!</span>(
-            <span class="self">self</span>.promise_state,
-            PromiseState::Pending,
+        </span><span class="macro">assert!</span>(
+            <span class="macro">matches!</span>(<span class="self">self</span>.promise_state, PromiseState::Pending),
             <span class="string">&quot;promise was not pending&quot;
         </span>);
 
@@ -3512,17 +3499,15 @@
         </span><span class="self">Self</span>::trigger_promise_reactions(reactions, value, context);
         <span class="comment">// reordering this statement does not affect the semantics
 
-        // 3. Set promise.[[PromiseResult]] to value.
-        </span><span class="self">self</span>.promise_result = <span class="prelude-val">Some</span>(value.clone());
-
-        <span class="comment">// 4. Set promise.[[PromiseFulfillReactions]] to undefined.
+        // 4. Set promise.[[PromiseFulfillReactions]] to undefined.
         </span><span class="self">self</span>.promise_fulfill_reactions = Vec::new();
 
         <span class="comment">// 5. Set promise.[[PromiseRejectReactions]] to undefined.
         </span><span class="self">self</span>.promise_reject_reactions = Vec::new();
 
-        <span class="comment">// 6. Set promise.[[PromiseState]] to fulfilled.
-        </span><span class="self">self</span>.promise_state = PromiseState::Fulfilled;
+        <span class="comment">// 3. Set promise.[[PromiseResult]] to value.
+        // 6. Set promise.[[PromiseState]] to fulfilled.
+        </span><span class="self">self</span>.promise_state = PromiseState::Fulfilled(value.clone());
 
         <span class="comment">// 8. Return unused.
         </span><span class="prelude-val">Ok</span>(())
@@ -3539,9 +3524,8 @@
     /// [spec]: https://tc39.es/ecma262/#sec-rejectpromise
     </span><span class="kw">pub fn </span>reject_promise(<span class="kw-2">&amp;mut </span><span class="self">self</span>, reason: <span class="kw-2">&amp;</span>JsValue, context: <span class="kw-2">&amp;mut </span>Context) {
         <span class="comment">// 1. Assert: The value of promise.[[PromiseState]] is pending.
-        </span><span class="macro">assert_eq!</span>(
-            <span class="self">self</span>.promise_state,
-            PromiseState::Pending,
+        </span><span class="macro">assert!</span>(
+            <span class="macro">matches!</span>(<span class="self">self</span>.promise_state, PromiseState::Pending),
             <span class="string">&quot;Expected promise.[[PromiseState]] to be pending&quot;
         </span>);
 
@@ -3552,17 +3536,15 @@
         </span><span class="self">Self</span>::trigger_promise_reactions(reactions, reason, context);
         <span class="comment">// reordering this statement does not affect the semantics
 
-        // 3. Set promise.[[PromiseResult]] to reason.
-        </span><span class="self">self</span>.promise_result = <span class="prelude-val">Some</span>(reason.clone());
-
-        <span class="comment">// 4. Set promise.[[PromiseFulfillReactions]] to undefined.
+        // 4. Set promise.[[PromiseFulfillReactions]] to undefined.
         </span><span class="self">self</span>.promise_fulfill_reactions = Vec::new();
 
         <span class="comment">// 5. Set promise.[[PromiseRejectReactions]] to undefined.
         </span><span class="self">self</span>.promise_reject_reactions = Vec::new();
 
-        <span class="comment">// 6. Set promise.[[PromiseState]] to rejected.
-        </span><span class="self">self</span>.promise_state = PromiseState::Rejected;
+        <span class="comment">// 3. Set promise.[[PromiseResult]] to reason.
+        // 6. Set promise.[[PromiseState]] to rejected.
+        </span><span class="self">self</span>.promise_state = PromiseState::Rejected(reason.clone());
 
         <span class="comment">// 7. If promise.[[PromiseIsHandled]] is false, perform HostPromiseRejectionTracker(promise, &quot;reject&quot;).
         </span><span class="kw">if </span>!<span class="self">self</span>.promise_is_handled {
@@ -4062,16 +4044,11 @@
             }
 
             <span class="comment">// 10. Else if promise.[[PromiseState]] is fulfilled, then
-            </span>PromiseState::Fulfilled =&gt; {
-                <span class="comment">//   a. Let value be promise.[[PromiseResult]].
-                </span><span class="kw">let </span>value = <span class="self">self
-                    </span>.promise_result
-                    .clone()
-                    .expect(<span class="string">&quot;promise.[[PromiseResult]] cannot be empty&quot;</span>);
-
+            //   a. Let value be promise.[[PromiseResult]].
+            </span>PromiseState::Fulfilled(<span class="kw-2">ref </span>value) =&gt; {
                 <span class="comment">//   b. Let fulfillJob be NewPromiseReactionJob(fulfillReaction, value).
                 </span><span class="kw">let </span>fulfill_job =
-                    PromiseJob::new_promise_reaction_job(fulfill_reaction, value, context);
+                    PromiseJob::new_promise_reaction_job(fulfill_reaction, value.clone(), context);
 
                 <span class="comment">//   c. Perform HostEnqueuePromiseJob(fulfillJob.[[Job]], fulfillJob.[[Realm]]).
                 </span>context.host_enqueue_promise_job(fulfill_job);
@@ -4079,13 +4056,8 @@
 
             <span class="comment">// 11. Else,
             //   a. Assert: The value of promise.[[PromiseState]] is rejected.
-            </span>PromiseState::Rejected =&gt; {
-                <span class="comment">//   b. Let reason be promise.[[PromiseResult]].
-                </span><span class="kw">let </span>reason = <span class="self">self
-                    </span>.promise_result
-                    .clone()
-                    .expect(<span class="string">&quot;promise.[[PromiseResult]] cannot be empty&quot;</span>);
-
+            //   b. Let reason be promise.[[PromiseResult]].
+            </span>PromiseState::Rejected(<span class="kw-2">ref </span>reason) =&gt; {
                 <span class="comment">//   c. If promise.[[PromiseIsHandled]] is false, perform HostPromiseRejectionTracker(promise, &quot;handle&quot;).
                 </span><span class="kw">if </span>!<span class="self">self</span>.promise_is_handled {
                     <span class="comment">// HostPromiseRejectionTracker(promise, &quot;handle&quot;)
@@ -4094,7 +4066,7 @@
 
                 <span class="comment">//   d. Let rejectJob be NewPromiseReactionJob(rejectReaction, reason).
                 </span><span class="kw">let </span>reject_job =
-                    PromiseJob::new_promise_reaction_job(reject_reaction, reason, context);
+                    PromiseJob::new_promise_reaction_job(reject_reaction, reason.clone(), context);
 
                 <span class="comment">//   e. Perform HostEnqueuePromiseJob(rejectJob.[[Job]], rejectJob.[[Realm]]).
                 </span>context.host_enqueue_promise_job(reject_job);

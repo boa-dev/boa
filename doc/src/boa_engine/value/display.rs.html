@@ -313,7 +313,45 @@
 <span id="311">311</span>
 <span id="312">312</span>
 <span id="313">313</span>
-</pre><pre class="rust"><code><span class="kw">use crate</span>::{js_string, object::ObjectKind, property::PropertyDescriptor};
+<span id="314">314</span>
+<span id="315">315</span>
+<span id="316">316</span>
+<span id="317">317</span>
+<span id="318">318</span>
+<span id="319">319</span>
+<span id="320">320</span>
+<span id="321">321</span>
+<span id="322">322</span>
+<span id="323">323</span>
+<span id="324">324</span>
+<span id="325">325</span>
+<span id="326">326</span>
+<span id="327">327</span>
+<span id="328">328</span>
+<span id="329">329</span>
+<span id="330">330</span>
+<span id="331">331</span>
+<span id="332">332</span>
+<span id="333">333</span>
+<span id="334">334</span>
+<span id="335">335</span>
+<span id="336">336</span>
+<span id="337">337</span>
+<span id="338">338</span>
+<span id="339">339</span>
+<span id="340">340</span>
+<span id="341">341</span>
+<span id="342">342</span>
+<span id="343">343</span>
+<span id="344">344</span>
+<span id="345">345</span>
+<span id="346">346</span>
+</pre><pre class="rust"><code><span class="kw">use </span>std::borrow::Cow;
+
+<span class="kw">use crate</span>::{
+    builtins::promise::PromiseState, js_string, object::ObjectKind, property::PropertyDescriptor,
+    JsError, JsString,
+};
 
 <span class="kw">use super</span>::{fmt, Display, HashSet, JsValue, PropertyKey};
 
@@ -510,6 +548,54 @@
                         <span class="macro">format!</span>(<span class="string">&quot;Set({size})&quot;</span>)
                     }
                 }
+                ObjectKind::Error(<span class="kw">_</span>) =&gt; {
+                    <span class="kw">let </span>name: Cow&lt;<span class="lifetime">&#39;static</span>, str&gt; = v
+                        .get_property(<span class="kw-2">&amp;</span><span class="string">&quot;name&quot;</span>.into())
+                        .as_ref()
+                        .and_then(PropertyDescriptor::value)
+                        .map_or_else(
+                            || <span class="string">&quot;&lt;error&gt;&quot;</span>.into(),
+                            |v| {
+                                v.as_string()
+                                    .map_or_else(
+                                        || v.display().to_string(),
+                                        JsString::to_std_string_escaped,
+                                    )
+                                    .into()
+                            },
+                        );
+                    <span class="kw">let </span>message = v
+                        .get_property(<span class="kw-2">&amp;</span><span class="string">&quot;message&quot;</span>.into())
+                        .as_ref()
+                        .and_then(PropertyDescriptor::value)
+                        .map(|v| {
+                            v.as_string().map_or_else(
+                                || v.display().to_string(),
+                                JsString::to_std_string_escaped,
+                            )
+                        })
+                        .unwrap_or_default();
+                    <span class="kw">if </span>name.is_empty() {
+                        message
+                    } <span class="kw">else if </span>message.is_empty() {
+                        name.to_string()
+                    } <span class="kw">else </span>{
+                        <span class="macro">format!</span>(<span class="string">&quot;{name}: {message}&quot;</span>)
+                    }
+                }
+                ObjectKind::Promise(<span class="kw-2">ref </span>promise) =&gt; {
+                    <span class="macro">format!</span>(
+                        <span class="string">&quot;Promise {{ {} }}&quot;</span>,
+                        <span class="kw">match </span>promise.state() {
+                            PromiseState::Pending =&gt; Cow::Borrowed(<span class="string">&quot;&lt;pending&gt;&quot;</span>),
+                            PromiseState::Fulfilled(val) =&gt; Cow::Owned(val.display().to_string()),
+                            PromiseState::Rejected(reason) =&gt; Cow::Owned(<span class="macro">format!</span>(
+                                <span class="string">&quot;&lt;rejected&gt; {}&quot;</span>,
+                                JsError::from_opaque(reason.clone())
+                            )),
+                        }
+                    )
+                }
                 <span class="kw">_ </span>=&gt; display_obj(x, print_internals),
             }
         }
@@ -569,26 +655,6 @@
     <span class="comment">// We keep track of which objects we have encountered by keeping their
     // in-memory address in this set
     </span><span class="kw">let </span><span class="kw-2">mut </span>encounters = HashSet::new();
-
-    <span class="kw">if let </span>JsValue::Object(object) = v {
-        <span class="kw">if </span>object.borrow().is_error() {
-            <span class="kw">let </span>name = v
-                .get_property(<span class="string">&quot;name&quot;</span>)
-                .as_ref()
-                .and_then(PropertyDescriptor::value)
-                .unwrap_or(<span class="kw-2">&amp;</span>JsValue::Undefined)
-                .display()
-                .to_string();
-            <span class="kw">let </span>message = v
-                .get_property(<span class="string">&quot;message&quot;</span>)
-                .as_ref()
-                .and_then(PropertyDescriptor::value)
-                .unwrap_or(<span class="kw-2">&amp;</span>JsValue::Undefined)
-                .display()
-                .to_string();
-            <span class="kw">return </span><span class="macro">format!</span>(<span class="string">&quot;{name}: {message}&quot;</span>);
-        }
-    }
 
     display_obj_internal(v, <span class="kw-2">&amp;mut </span>encounters, <span class="number">4</span>, print_internals)
 }

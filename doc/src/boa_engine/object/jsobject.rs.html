@@ -865,6 +865,19 @@
 <span id="863">863</span>
 <span id="864">864</span>
 <span id="865">865</span>
+<span id="866">866</span>
+<span id="867">867</span>
+<span id="868">868</span>
+<span id="869">869</span>
+<span id="870">870</span>
+<span id="871">871</span>
+<span id="872">872</span>
+<span id="873">873</span>
+<span id="874">874</span>
+<span id="875">875</span>
+<span id="876">876</span>
+<span id="877">877</span>
+<span id="878">878</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the `JsObject` structure.
 //!
 //! The `JsObject` is a garbage collected Object.
@@ -1531,6 +1544,19 @@ Cannot both specify accessors and a value or writable attribute&quot;</span>,
         <span class="comment">// 7. Return target.
         </span><span class="prelude-val">Ok</span>(())
     }
+
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_property(<span class="kw-2">&amp;</span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>PropertyKey) -&gt; <span class="prelude-ty">Option</span>&lt;PropertyDescriptor&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>obj = <span class="prelude-val">Some</span>(<span class="self">self</span>.clone());
+
+        <span class="kw">while let </span><span class="prelude-val">Some</span>(o) = obj {
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(v) = o.borrow().properties.get(key) {
+                <span class="kw">return </span><span class="prelude-val">Some</span>(v);
+            }
+            obj = o.borrow().prototype().clone();
+        }
+        <span class="prelude-val">None
+    </span>}
 
     <span class="doccomment">/// Helper function for property insertion.
     </span><span class="attribute">#[inline]
