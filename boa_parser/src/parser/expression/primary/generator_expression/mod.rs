@@ -130,6 +130,14 @@ where
             params_start_position,
         )?;
 
+        // It is a Syntax Error if FormalParameters Contains YieldExpression is true.
+        if contains(&params, ContainsSymbol::YieldExpression) {
+            return Err(Error::lex(LexError::Syntax(
+                "generator expression cannot contain yield expression in parameters".into(),
+                params_start_position,
+            )));
+        }
+
         let function = Generator::new(name, params, body, has_binding_identifier);
 
         if contains(&function, ContainsSymbol::Super) {

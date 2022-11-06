@@ -939,7 +939,6 @@ impl ToStringEscaped for [u16] {
 mod tests {
     use super::utf16;
     use super::{JsString, JsStringPtrKind};
-    use std::mem::size_of;
 
     impl JsString {
         /// Gets the number of `JsString`s which point to this allocation.
