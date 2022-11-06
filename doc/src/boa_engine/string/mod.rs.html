@@ -1036,6 +1036,50 @@
 <span id="1034">1034</span>
 <span id="1035">1035</span>
 <span id="1036">1036</span>
+<span id="1037">1037</span>
+<span id="1038">1038</span>
+<span id="1039">1039</span>
+<span id="1040">1040</span>
+<span id="1041">1041</span>
+<span id="1042">1042</span>
+<span id="1043">1043</span>
+<span id="1044">1044</span>
+<span id="1045">1045</span>
+<span id="1046">1046</span>
+<span id="1047">1047</span>
+<span id="1048">1048</span>
+<span id="1049">1049</span>
+<span id="1050">1050</span>
+<span id="1051">1051</span>
+<span id="1052">1052</span>
+<span id="1053">1053</span>
+<span id="1054">1054</span>
+<span id="1055">1055</span>
+<span id="1056">1056</span>
+<span id="1057">1057</span>
+<span id="1058">1058</span>
+<span id="1059">1059</span>
+<span id="1060">1060</span>
+<span id="1061">1061</span>
+<span id="1062">1062</span>
+<span id="1063">1063</span>
+<span id="1064">1064</span>
+<span id="1065">1065</span>
+<span id="1066">1066</span>
+<span id="1067">1067</span>
+<span id="1068">1068</span>
+<span id="1069">1069</span>
+<span id="1070">1070</span>
+<span id="1071">1071</span>
+<span id="1072">1072</span>
+<span id="1073">1073</span>
+<span id="1074">1074</span>
+<span id="1075">1075</span>
+<span id="1076">1076</span>
+<span id="1077">1077</span>
+<span id="1078">1078</span>
+<span id="1079">1079</span>
+<span id="1080">1080</span>
 </pre><pre class="rust"><code><span class="doccomment">//! A UTF-16–encoded, reference counted, immutable string.
 //!
 //! This module contains the [`JsString`] type, the [`js_string`][crate::js_string] macro and the
@@ -1076,6 +1120,10 @@
 };
 
 <span class="kw">use </span><span class="self">self</span>::common::{COMMON_STRINGS, COMMON_STRINGS_CACHE, MAX_COMMON_STRING_LENGTH};
+
+<span class="kw">fn </span>alloc_overflow() -&gt; ! {
+    <span class="macro">panic!</span>(<span class="string">&quot;detected overflow during string allocation&quot;</span>)
+}
 
 <span class="doccomment">/// Utility macro to create a [`JsString`].
 ///
@@ -1209,6 +1257,8 @@
     </span>data: [u16; <span class="number">0</span>],
 }
 
+<span class="kw">const </span>DATA_OFFSET: usize = std::mem::size_of::&lt;RawJsString&gt;();
+
 <span class="doccomment">/// This struct uses a technique called tagged pointer to benefit from the fact that newly allocated
 /// pointers are always word aligned on 64-bits platforms, making it impossible to have a LSB equal
 /// to 1. More details about this technique on the article of Wikipedia about [tagged pointers][tagged_wp].
@@ -1292,11 +1342,11 @@
     }
 }
 
-<span class="doccomment">/// Enum representing either a reference to a heap allocated [`RawJsString`] or a static reference to
+<span class="doccomment">/// Enum representing either a pointer to a heap allocated [`RawJsString`] or a static reference to
 /// a [`\[u16\]`][slice] inside [`COMMON_STRINGS`].
-</span><span class="kw">enum </span>JsStringPtrKind&lt;<span class="lifetime">&#39;a</span>&gt; {
+</span><span class="kw">enum </span>JsStringPtrKind {
     <span class="comment">// A string allocated on the heap.
-    </span>Heap(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>RawJsString),
+    </span>Heap(NonNull&lt;RawJsString&gt;),
     <span class="comment">// A static string slice.
     </span>Static(<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[u16]),
 }
@@ -1319,6 +1369,9 @@
     ptr: TaggedJsString,
 }
 
+<span class="comment">// JsString should always be pointer sized.
+</span><span class="macro">sa::assert_eq_size!</span>(JsString, <span class="kw-2">*const </span>());
+
 <span class="comment">// Safety: `JsString` does not contain any objects which needs to be traced, so this is safe.
 </span><span class="kw">unsafe impl </span>Trace <span class="kw">for </span>JsString {
     <span class="macro">unsafe_empty_trace!</span>();
@@ -1338,14 +1391,19 @@
     <span class="doccomment">/// Creates a new [`JsString`] from the concatenation of every element of
     /// `strings`.
     </span><span class="kw">pub fn </span>concat_array(strings: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>[u16]]) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span>full_count = strings.iter().fold(<span class="number">0</span>, |len, s| len + s.len());
+        <span class="kw">let </span><span class="kw-2">mut </span>full_count = <span class="number">0usize</span>;
+        <span class="kw">for </span><span class="kw-2">&amp;</span>string <span class="kw">in </span>strings {
+            <span class="kw">let </span><span class="prelude-val">Some</span>(sum) = full_count.checked_add(string.len()) <span class="kw">else </span>{
+                alloc_overflow()
+            };
+            full_count = sum;
+        }
 
         <span class="kw">let </span>ptr = <span class="self">Self</span>::allocate_inner(full_count);
 
         <span class="kw">let </span>string = {
-            <span class="comment">// SAFETY:
-            // `ptr` being a `NonNull` ensures that a dereference of its underlying pointer is always valid.
-            </span><span class="kw">let </span><span class="kw-2">mut </span>data = <span class="kw">unsafe </span>{ (<span class="kw-2">*</span>ptr.as_ptr()).data.as_mut_ptr() };
+            <span class="comment">// SAFETY: `allocate_inner` guarantees that `ptr` is a valid pointer.
+            </span><span class="kw">let </span><span class="kw-2">mut </span>data = <span class="kw">unsafe </span>{ ptr.as_ptr().cast::&lt;u8&gt;().add(DATA_OFFSET).cast() };
             <span class="kw">for </span>string <span class="kw">in </span>strings {
                 <span class="kw">let </span>count = string.len();
                 <span class="comment">// SAFETY:
@@ -1561,25 +1619,45 @@
     <span class="doccomment">/// Returns the inner pointer data, unwrapping its tagged data if the pointer contains a static
     /// index for [`COMMON_STRINGS`].
     </span><span class="attribute">#[inline]
-    </span><span class="kw">fn </span>ptr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsStringPtrKind&lt;<span class="lifetime">&#39;_</span>&gt; {
+    </span><span class="kw">fn </span>ptr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsStringPtrKind {
         <span class="comment">// Check the first bit to 1.
         </span><span class="kw">if </span><span class="self">self</span>.ptr.is_static() {
             <span class="comment">// Safety: We already checked.
             </span>JsStringPtrKind::Static(<span class="kw">unsafe </span>{ <span class="self">self</span>.ptr.get_static_unchecked() })
         } <span class="kw">else </span>{
             <span class="comment">// Safety: We already checked.
-            </span>JsStringPtrKind::Heap(<span class="kw">unsafe </span>{ <span class="self">self</span>.ptr.get_heap_unchecked().as_mut() })
+            </span>JsStringPtrKind::Heap(<span class="kw">unsafe </span>{ <span class="self">self</span>.ptr.get_heap_unchecked() })
+        }
+    }
+
+    <span class="doccomment">/// Allocates a new [`RawJsString`] with an internal capacity of `str_len` chars.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `try_allocate_inner` returns `Err`.
+    </span><span class="kw">fn </span>allocate_inner(str_len: usize) -&gt; NonNull&lt;RawJsString&gt; {
+        <span class="kw">match </span><span class="self">Self</span>::try_allocate_inner(str_len) {
+            <span class="prelude-val">Ok</span>(v) =&gt; v,
+            <span class="prelude-val">Err</span>(<span class="prelude-val">None</span>) =&gt; alloc_overflow(),
+            <span class="prelude-val">Err</span>(<span class="prelude-val">Some</span>(layout)) =&gt; std::alloc::handle_alloc_error(layout),
         }
     }
 
     <span class="comment">// This is marked as safe because it is always valid to call this function to request any number
     // of `u16`, since this function ought to fail on an OOM error.
     </span><span class="doccomment">/// Allocates a new [`RawJsString`] with an internal capacity of `str_len` chars.
-    </span><span class="kw">fn </span>allocate_inner(str_len: usize) -&gt; NonNull&lt;RawJsString&gt; {
+    ///
+    /// # Errors
+    ///
+    /// Returns `Err(None)` on integer overflows `usize::MAX`.
+    /// Returns `Err(Some(Layout))` on allocation error.
+    </span><span class="kw">fn </span>try_allocate_inner(str_len: usize) -&gt; <span class="prelude-ty">Result</span>&lt;NonNull&lt;RawJsString&gt;, <span class="prelude-ty">Option</span>&lt;Layout&gt;&gt; {
         <span class="kw">let </span>(layout, offset) = Layout::array::&lt;u16&gt;(str_len)
             .and_then(|arr| Layout::new::&lt;RawJsString&gt;().extend(arr))
             .map(|(layout, offset)| (layout.pad_to_align(), offset))
-            .expect(<span class="string">&quot;failed to create memory layout&quot;</span>);
+            .map_err(|<span class="kw">_</span>| <span class="prelude-val">None</span>)<span class="question-mark">?</span>;
+
+        <span class="macro">debug_assert_eq!</span>(offset, DATA_OFFSET);
 
         <span class="comment">// SAFETY:
         // The layout size of `RawJsString` is never zero, since it has to store
@@ -1589,7 +1667,7 @@
         <span class="comment">// We need to verify that the pointer returned by `alloc` is not null, otherwise
         // we should abort, since an allocation error is pretty unrecoverable for us
         // right now.
-        </span><span class="kw">let </span>inner = NonNull::new(inner).unwrap_or_else(|| std::alloc::handle_alloc_error(layout));
+        </span><span class="kw">let </span>inner = NonNull::new(inner).ok_or(<span class="prelude-val">Some</span>(layout))<span class="question-mark">?</span>;
 
         <span class="comment">// SAFETY:
         // `NonNull` verified for us that the pointer returned by `alloc` is valid,
@@ -1618,13 +1696,16 @@
             }
         });
 
-        inner
+        <span class="prelude-val">Ok</span>(inner)
     }
 
     <span class="doccomment">/// Creates a new [`JsString`] from `data`, without checking if the string is in the interner.
-    </span><span class="kw">fn </span>from_slice_skip_interning(data: <span class="kw-2">&amp;</span>[u16]) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span>count = data.len();
+    </span><span class="kw">fn </span>from_slice_skip_interning(string: <span class="kw-2">&amp;</span>[u16]) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>count = string.len();
         <span class="kw">let </span>ptr = <span class="self">Self</span>::allocate_inner(count);
+
+        <span class="comment">// SAFETY: `allocate_inner` guarantees that `ptr` is a valid pointer.
+        </span><span class="kw">let </span>data = <span class="kw">unsafe </span>{ ptr.as_ptr().cast::&lt;u8&gt;().add(DATA_OFFSET) };
         <span class="comment">// SAFETY:
         // - We read `count = data.len()` elements from `data`, which is within the bounds of the slice.
         // - `allocate_inner` must allocate at least `count` elements, which allows us to safely
@@ -1634,7 +1715,7 @@
         // - `allocate_inner` must return a valid pointer to newly allocated memory, meaning `ptr`
         //   and `data` should never overlap.
         </span><span class="kw">unsafe </span>{
-            ptr::copy_nonoverlapping(data.as_ptr(), (<span class="kw-2">*</span>ptr.as_ptr()).data.as_mut_ptr(), count);
+            ptr::copy_nonoverlapping(string.as_ptr(), data.cast(), count);
         }
         <span class="self">Self </span>{
             <span class="comment">// Safety: We already know it&#39;s a valid heap pointer.
@@ -1659,6 +1740,8 @@
     <span class="attribute">#[inline]
     </span><span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
         <span class="kw">if let </span>JsStringPtrKind::Heap(inner) = <span class="self">self</span>.ptr() {
+            <span class="comment">// SAFETY: The reference count of `JsString` guarantees that `raw` is always valid.
+            </span><span class="kw">let </span>inner = <span class="kw">unsafe </span>{ <span class="kw-2">&amp;mut *</span>inner.as_ptr() };
             inner.refcount.set(inner.refcount.get() + <span class="number">1</span>);
         }
         <span class="self">Self </span>{ ptr: <span class="self">self</span>.ptr }
@@ -1683,7 +1766,9 @@
 <span class="kw">impl </span>Drop <span class="kw">for </span>JsString {
     <span class="attribute">#[inline]
     </span><span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="kw">if let </span>JsStringPtrKind::Heap(inner) = <span class="self">self</span>.ptr() {
+        <span class="kw">if let </span>JsStringPtrKind::Heap(raw) = <span class="self">self</span>.ptr() {
+            <span class="comment">// SAFETY: The reference count of `JsString` guarantees that `raw` is always valid.
+            </span><span class="kw">let </span>inner = <span class="kw">unsafe </span>{ <span class="kw-2">&amp;mut *</span>raw.as_ptr() };
             inner.refcount.set(inner.refcount.get() - <span class="number">1</span>);
             <span class="kw">if </span>inner.refcount.get() == <span class="number">0 </span>{
                 <span class="comment">// SAFETY:
@@ -1701,7 +1786,7 @@
                 // If refcount is 0 and we call drop, that means this is the last `JsString` which
                 // points to this memory allocation, so deallocating it is safe.
                 </span><span class="kw">unsafe </span>{
-                    dealloc((inner <span class="kw">as </span><span class="kw-2">*mut </span>RawJsString).cast(), layout);
+                    dealloc(raw.as_ptr().cast(), layout);
                 }
             }
         }
@@ -1737,7 +1822,12 @@
                 //
                 // - The lifetime of `&amp;Self::Target` is shorter than the lifetime of `self`, as seen
                 //   by its signature, so this doesn&#39;t outlive `self`.
-                </span><span class="kw">unsafe </span>{ std::slice::from_raw_parts(h.data.as_ptr(), h.len) }
+                </span><span class="kw">unsafe </span>{
+                    std::slice::from_raw_parts(
+                        h.as_ptr().cast::&lt;u8&gt;().add(DATA_OFFSET).cast(),
+                        h.as_ref().len,
+                    )
+                }
             }
             JsStringPtrKind::Static(s) =&gt; s,
         }
@@ -1938,7 +2028,11 @@
         </span><span class="attribute">#[inline]
         </span><span class="kw">fn </span>refcount(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
             <span class="kw">match </span><span class="self">self</span>.ptr() {
-                JsStringPtrKind::Heap(inner) =&gt; <span class="prelude-val">Some</span>(inner.refcount.get()),
+                JsStringPtrKind::Heap(inner) =&gt; {
+                    <span class="comment">// SAFETY: The reference count of `JsString` guarantees that `inner` is always valid.
+                    </span><span class="kw">let </span>inner = <span class="kw">unsafe </span>{ inner.as_ref() };
+                    <span class="prelude-val">Some</span>(inner.refcount.get())
+                }
                 JsStringPtrKind::Static(_inner) =&gt; <span class="prelude-val">None</span>,
             }
         }
@@ -1948,12 +2042,6 @@
     </span><span class="kw">fn </span>empty() {
         <span class="kw">let </span>s = <span class="macro">js_string!</span>();
         <span class="macro">assert_eq!</span>(<span class="kw-2">*</span>s, <span class="string">&quot;&quot;</span>.encode_utf16().collect::&lt;Vec&lt;u16&gt;&gt;());
-    }
-
-    <span class="attribute">#[test]
-    </span><span class="kw">fn </span>pointer_size() {
-        <span class="macro">assert_eq!</span>(size_of::&lt;JsString&gt;(), size_of::&lt;<span class="kw-2">*const </span>()&gt;());
-        <span class="macro">assert_eq!</span>(size_of::&lt;<span class="prelude-ty">Option</span>&lt;JsString&gt;&gt;(), size_of::&lt;<span class="kw-2">*const </span>()&gt;());
     }
 
     <span class="attribute">#[test]
