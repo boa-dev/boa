@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["MemberExpression","Parses a member expression."]]};

@@ -1082,7 +1082,6 @@
     property::{Attribute, PropertyDescriptor, PropertyKey},
     string::utf16,
     symbol::WellKnownSymbols,
-    syntax::Parser,
     value::IntegerOrInfinity,
     Context, JsResult, JsString, JsValue,
 };
@@ -1093,6 +1092,7 @@
 };
 <span class="kw">use </span>boa_gc::{<span class="self">self</span>, custom_trace, Finalize, Gc, Trace};
 <span class="kw">use </span>boa_interner::Sym;
+<span class="kw">use </span>boa_parser::Parser;
 <span class="kw">use </span>boa_profiler::Profiler;
 <span class="kw">use </span>dyn_clone::DynClone;
 <span class="kw">use </span>std::{

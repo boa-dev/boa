@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["ClassExpression","Class expression parsing."]]};

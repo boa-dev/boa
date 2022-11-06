@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["VariableDeclaration","Reads an individual variable declaration."],["VariableDeclarationList","Variable declaration list parsing."],["VariableStatement","Variable statement parsing."]]};

@@ -643,23 +643,6 @@
 <span id="641">641</span>
 <span id="642">642</span>
 <span id="643">643</span>
-<span id="644">644</span>
-<span id="645">645</span>
-<span id="646">646</span>
-<span id="647">647</span>
-<span id="648">648</span>
-<span id="649">649</span>
-<span id="650">650</span>
-<span id="651">651</span>
-<span id="652">652</span>
-<span id="653">653</span>
-<span id="654">654</span>
-<span id="655">655</span>
-<span id="656">656</span>
-<span id="657">657</span>
-<span id="658">658</span>
-<span id="659">659</span>
-<span id="660">660</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Javascript context.
 
 </span><span class="kw">pub mod </span>intrinsics;
@@ -682,7 +665,6 @@
     object::{FunctionBuilder, GlobalPropertyMap, JsObject, ObjectData},
     property::{Attribute, PropertyDescriptor, PropertyKey},
     realm::Realm,
-    syntax::{parser::ParseError, Parser},
     vm::{CallFrame, CodeBlock, FinallyReturn, GeneratorResumeKind, Vm},
     JsResult, JsString, JsValue,
 };
@@ -690,6 +672,7 @@
 <span class="kw">use </span>boa_ast::StatementList;
 <span class="kw">use </span>boa_gc::Gc;
 <span class="kw">use </span>boa_interner::{Interner, Sym};
+<span class="kw">use </span>boa_parser::{Error <span class="kw">as </span>ParseError, Parser};
 <span class="kw">use </span>boa_profiler::Profiler;
 
 <span class="attribute">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
@@ -824,24 +807,7 @@
         </span>S: AsRef&lt;[u8]&gt;,
     {
         <span class="kw">let </span><span class="kw-2">mut </span>parser = Parser::new(src.as_ref());
-        parser.parse_all(<span class="self">self</span>)
-    }
-
-    <span class="doccomment">/// Parse the given source text with eval specific handling.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>parse_eval&lt;S&gt;(
-        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        src: S,
-        direct: bool,
-        strict: bool,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;StatementList, ParseError&gt;
-    <span class="kw">where
-        </span>S: AsRef&lt;[u8]&gt;,
-    {
-        <span class="kw">let </span><span class="kw-2">mut </span>parser = Parser::new(src.as_ref());
-        <span class="kw">if </span>strict {
-            parser.set_strict();
-        }
-        parser.parse_eval(direct, <span class="self">self</span>)
+        parser.parse_all(<span class="kw-2">&amp;mut </span><span class="self">self</span>.interner)
     }
 
     <span class="doccomment">/// `Call ( F, V [ , argumentsList ] )`
@@ -1133,7 +1099,7 @@
     {
         <span class="kw">let </span>main_timer = Profiler::global().start_event(<span class="string">&quot;Evaluation&quot;</span>, <span class="string">&quot;Main&quot;</span>);
 
-        <span class="kw">let </span>statement_list = Parser::new(src.as_ref()).parse_all(<span class="self">self</span>)<span class="question-mark">?</span>;
+        <span class="kw">let </span>statement_list = Parser::new(src.as_ref()).parse_all(<span class="kw-2">&amp;mut </span><span class="self">self</span>.interner)<span class="question-mark">?</span>;
 
         <span class="kw">let </span>code_block = <span class="self">self</span>.compile(<span class="kw-2">&amp;</span>statement_list)<span class="question-mark">?</span>;
         <span class="kw">let </span>result = <span class="self">self</span>.execute(code_block);

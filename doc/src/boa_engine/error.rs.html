@@ -766,7 +766,6 @@
 <span id="764">764</span>
 <span id="765">765</span>
 <span id="766">766</span>
-<span id="767">767</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Error-related types and conversions.
 
 </span><span class="kw">use crate</span>::{
@@ -774,7 +773,6 @@
     object::JsObject,
     object::ObjectData,
     property::PropertyDescriptor,
-    syntax::parser,
     Context, JsString, JsValue,
 };
 <span class="kw">use </span>boa_gc::{Finalize, Trace};
@@ -1089,8 +1087,8 @@
     }
 }
 
-<span class="kw">impl </span>From&lt;parser::ParseError&gt; <span class="kw">for </span>JsError {
-    <span class="kw">fn </span>from(err: parser::ParseError) -&gt; <span class="self">Self </span>{
+<span class="kw">impl </span>From&lt;boa_parser::Error&gt; <span class="kw">for </span>JsError {
+    <span class="kw">fn </span>from(err: boa_parser::Error) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::from(JsNativeError::from(err))
     }
 }
@@ -1424,8 +1422,8 @@
     }
 }
 
-<span class="kw">impl </span>From&lt;parser::ParseError&gt; <span class="kw">for </span>JsNativeError {
-    <span class="kw">fn </span>from(err: parser::ParseError) -&gt; <span class="self">Self </span>{
+<span class="kw">impl </span>From&lt;boa_parser::Error&gt; <span class="kw">for </span>JsNativeError {
+    <span class="kw">fn </span>from(err: boa_parser::Error) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::syntax().with_message(err.to_string())
     }
 }

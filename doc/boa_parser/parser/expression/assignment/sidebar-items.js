@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"mod":[["arrow_function","Arrow function parsing."],["async_arrow_function","Async arrow function parsing."],["conditional","Conditional operator parsing."],["exponentiation","Exponentiation operator parsing."],["yield","`YieldExpression` parsing."]],"struct":[["AssignmentExpression","Assignment expression parsing."]]};

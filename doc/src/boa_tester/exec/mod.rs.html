@@ -429,6 +429,7 @@
 <span id="427">427</span>
 <span id="428">428</span>
 <span id="429">429</span>
+<span id="430">430</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Execution module for the test runner.
 
 </span><span class="kw">mod </span>js262;
@@ -440,10 +441,11 @@
     TestSuite, IGNORED,
 };
 <span class="kw">use </span>boa_engine::{
-    builtins::JsArgs, object::FunctionBuilder, property::Attribute, syntax::Parser, Context,
-    JsNativeErrorKind, JsResult, JsValue,
+    builtins::JsArgs, object::FunctionBuilder, property::Attribute, Context, JsNativeErrorKind,
+    JsResult, JsValue,
 };
 <span class="kw">use </span>boa_gc::{Cell, Finalize, Gc, Trace};
+<span class="kw">use </span>boa_parser::Parser;
 <span class="kw">use </span>colored::Colorize;
 <span class="kw">use </span>rayon::prelude::<span class="kw-2">*</span>;
 
@@ -653,7 +655,7 @@
                         <span class="kw">return </span>(<span class="bool-val">false</span>, e);
                     }
                     <span class="kw">let </span>code = <span class="kw">match </span>Parser::new(test_content.as_bytes())
-                        .parse_all(<span class="kw-2">&amp;mut </span>context)
+                        .parse_all(context.interner_mut())
                         .map_err(Into::into)
                         .and_then(|stmts| context.compile(<span class="kw-2">&amp;</span>stmts))
                     {

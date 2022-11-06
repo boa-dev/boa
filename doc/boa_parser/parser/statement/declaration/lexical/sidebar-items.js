@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["BindingList","Parses a binding list."],["LexicalBinding","Lexical binding parsing."],["LexicalDeclaration","Parses a lexical declaration."]]};

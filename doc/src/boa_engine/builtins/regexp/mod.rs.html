@@ -1726,10 +1726,10 @@
     property::{Attribute, PropertyDescriptorBuilder},
     string::{utf16, CodePoint},
     symbol::WellKnownSymbols,
-    syntax::lexer::regex::RegExpFlags,
     value::JsValue,
     Context, JsResult, JsString,
 };
+<span class="kw">use </span>boa_parser::lexer::regex::RegExpFlags;
 <span class="kw">use </span>boa_profiler::Profiler;
 <span class="kw">use </span>regress::Regex;
 <span class="kw">use </span>std::str::FromStr;

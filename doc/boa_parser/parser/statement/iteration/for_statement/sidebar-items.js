@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":[["initializer_to_iterable_loop_initializer",""]],"struct":[["ForStatement","For statement parsing"]]};
