@@ -119,7 +119,6 @@ impl BoaAlloc {
             unsafe {
                 Self::manage_state(&mut gc);
 
-                value.unroot();
                 let gc_box = GcBox::new(value);
 
                 let element_size = mem::size_of_val::<GcBox<T>>(&gc_box);
@@ -127,6 +126,8 @@ impl BoaAlloc {
 
                 let old_start = gc.youth_start.take();
                 (*element_pointer).set_header_pointer(old_start);
+                (*element_pointer).value().unroot();
+
                 gc.youth_start
                     .set(Some(NonNull::new_unchecked(element_pointer)));
 
@@ -149,7 +150,6 @@ impl BoaAlloc {
                 Self::manage_state(&mut gc);
 
                 let new_cell = Cell::new(value);
-                new_cell.unroot();
 
                 let gc_box = GcBox::new(new_cell);
                 let element_size = mem::size_of_val::<GcBox<Cell<T>>>(&gc_box);
@@ -157,6 +157,7 @@ impl BoaAlloc {
 
                 let old_start = gc.youth_start.take();
                 (*element_pointer).set_header_pointer(old_start);
+                (*element_pointer).value().unroot();
                 gc.youth_start
                     .set(Some(NonNull::new_unchecked(element_pointer)));
 
@@ -221,15 +222,14 @@ impl BoaAlloc {
 
     // Possibility here for `new_weak` that takes any value and creates a new WeakGc
 
-    pub(crate) unsafe fn promote_to_medium(promotions: Vec<Box<GcBox<dyn Trace>>>, gc: &mut BoaGc) {
+    pub(crate) unsafe fn promote_to_medium(promotions: Vec<NonNull<GcBox<dyn Trace>>>, gc: &mut BoaGc) {
         let _timer = Profiler::global().start_event("Gc Promoting", "gc");
         for node in promotions {
-            node.set_header_pointer(gc.adult_start.take());
-            let allocation_bytes = mem::size_of_val::<_>(&node);
+            (*node.as_ptr()).set_header_pointer(gc.adult_start.take());
+            let allocation_bytes = mem::size_of_val::<GcBox<_>>(&(*node.as_ptr()));
             gc.runtime.youth_bytes -= allocation_bytes;
             gc.runtime.adult_bytes += allocation_bytes;
-            gc.adult_start
-                .set(Some(NonNull::new_unchecked(Box::into_raw(node))));
+            gc.adult_start.set(Some(node));
         }
     }
 
@@ -409,7 +409,7 @@ impl Collector {
         heap_bytes: &mut usize,
         total_bytes: &mut usize,
         promotion_age: &u8,
-    ) -> Vec<Box<GcBox<dyn Trace>>> {
+    ) -> Vec<NonNull<GcBox<dyn Trace>>> {
         let _timer = Profiler::global().start_event("Gc Sweeping", "gc");
         let _guard = DropGuard::new();
 
@@ -420,9 +420,8 @@ impl Collector {
                 (*node.as_ptr()).header.unmark();
                 (*node.as_ptr()).header.inc_age();
                 if (*node.as_ptr()).header.age() >= *promotion_age {
-                    let promotion = Box::from_raw(node.as_ptr());
-                    sweep_head.set(promotion.header.next.take());
-                    promotions.push(promotion)
+                    sweep_head.set((*node.as_ptr()).header.next.take());
+                    promotions.push(node)
                 } else {
                     sweep_head = &(*node.as_ptr()).header.next;
                 }

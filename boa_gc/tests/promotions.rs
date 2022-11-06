@@ -25,7 +25,7 @@ fn generational_promo_two() {
     for i in 0..2000_usize {
         let gc = BoaAlloc::new(i);
         if i % 10 == 0 {
-            storage.push(gc.clone())
+            storage.push(gc)
         }
     }
     GcTester::assert_collection_floor(3);
