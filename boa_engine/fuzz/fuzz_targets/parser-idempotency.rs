@@ -6,9 +6,13 @@ use crate::common::FuzzData;
 use boa_engine::syntax::Parser;
 use boa_interner::ToInternedString;
 use libfuzzer_sys::fuzz_target;
+use libfuzzer_sys::Corpus;
 use std::error::Error;
 use std::io::Cursor;
 
+/// Fuzzer test harness. This function accepts the arbitrary AST and performs the fuzzing operation.
+///
+/// See [README.md](../README.md) for details on the design of this fuzzer.
 fn do_fuzz(mut data: FuzzData) -> Result<(), Box<dyn Error>> {
     let original = data.ast.to_interned_string(data.context.interner());
 
@@ -24,7 +28,9 @@ fn do_fuzz(mut data: FuzzData) -> Result<(), Box<dyn Error>> {
         assert_eq!(
             before,
             after_first,
-            "The number of interned symbols changed; a new string was read.\nBefore:\n{:#?}\nAfter:\n{:#?}",
+            "The number of interned symbols changed; a new string was read.\nBefore:\n{}\nAfter:\n{}\nBefore (AST):\n{:#?}\nAfter (AST):\n{:#?}",
+            original,
+            first_interned,
             data.ast,
             first
         );
@@ -34,11 +40,14 @@ fn do_fuzz(mut data: FuzzData) -> Result<(), Box<dyn Error>> {
         let second = parser
             .parse_all(&mut data.context)
             .expect("Could not parse the first-pass interned copy.");
+        let second_interned = second.to_interned_string(data.context.interner());
         let after_second = data.context.interner().len();
         assert_eq!(
             after_first,
             after_second,
-            "The number of interned symbols changed; a new string was read.\nBefore:\n{:#?}\nAfter:\n{:#?}",
+            "The number of interned symbols changed; a new string was read.\nBefore:\n{}\nAfter:\n{}\nBefore (AST):\n{:#?}\nAfter (AST):\n{:#?}",
+            first_interned,
+            second_interned,
             first,
             second
         );
@@ -48,12 +57,18 @@ fn do_fuzz(mut data: FuzzData) -> Result<(), Box<dyn Error>> {
             "Expected the same AST after two intern passes, but found dissimilar.\nOriginal:\n{}\nFirst:\n{}\nSecond:\n{}",
             original,
             first_interned,
-            second.to_interned_string(data.context.interner())
+            second_interned,
         );
     }
     Ok(())
 }
 
-fuzz_target!(|data: FuzzData| {
-    let _ = do_fuzz(data);
+// Fuzz harness wrapper to expose it to libfuzzer (and thus cargo-fuzz)
+// See: https://rust-fuzz.github.io/book/cargo-fuzz.html
+fuzz_target!(|data: FuzzData| -> Corpus {
+    if do_fuzz(data).is_ok() {
+        Corpus::Keep
+    } else {
+        Corpus::Reject
+    }
 });

@@ -9,6 +9,8 @@ use libfuzzer_sys::arbitrary::{Arbitrary, Unstructured};
 use std::fmt::{Debug, Formatter};
 use std::ops::ControlFlow;
 
+/// Context for performing fuzzing. This structure contains both the generated AST as well as the
+/// context used to resolve the symbols therein.
 pub struct FuzzData {
     pub context: Context,
     pub ast: StatementList,
