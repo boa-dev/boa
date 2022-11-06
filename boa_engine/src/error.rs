@@ -632,9 +632,9 @@ impl JsNativeError {
             JsNativeErrorKind::Uri => (constructors.uri_error().prototype(), ErrorKind::Uri),
             #[cfg(feature = "fuzz")]
             JsNativeErrorKind::NoInstructionsRemain => {
-                // we can propagate out from try/catch since the catch block will also perform some
-                // operation
-                (constructors.error().prototype(), ErrorKind::Error)
+                unreachable!(
+                    "The NoInstructionsRemain native error cannot be converted to an opaque type."
+                )
             }
         };
 
