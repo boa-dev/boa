@@ -287,6 +287,9 @@ pub struct JsString {
     ptr: TaggedJsString,
 }
 
+// JsString should always be pointer sized.
+sa::assert_eq_size!(JsString, *const ());
+
 // Safety: `JsString` does not contain any objects which needs to be traced, so this is safe.
 unsafe impl Trace for JsString {
     unsafe_empty_trace!();
@@ -944,6 +947,7 @@ mod tests {
         fn refcount(&self) -> Option<usize> {
             match self.ptr() {
                 JsStringPtrKind::Heap(inner) => {
+                    // SAFETY: The reference count of `JsString` guarantees that `inner` is always valid.
                     let inner = unsafe { inner.as_ref() };
                     Some(inner.refcount.get())
                 }
@@ -956,12 +960,6 @@ mod tests {
     fn empty() {
         let s = js_string!();
         assert_eq!(*s, "".encode_utf16().collect::<Vec<u16>>());
-    }
-
-    #[test]
-    fn pointer_size() {
-        assert_eq!(size_of::<JsString>(), size_of::<*const ()>());
-        assert_eq!(size_of::<Option<JsString>>(), size_of::<*const ()>());
     }
 
     #[test]
