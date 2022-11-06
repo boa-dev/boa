@@ -222,7 +222,10 @@ impl BoaAlloc {
 
     // Possibility here for `new_weak` that takes any value and creates a new WeakGc
 
-    pub(crate) unsafe fn promote_to_medium(promotions: Vec<NonNull<GcBox<dyn Trace>>>, gc: &mut BoaGc) {
+    pub(crate) unsafe fn promote_to_medium(
+        promotions: Vec<NonNull<GcBox<dyn Trace>>>,
+        gc: &mut BoaGc,
+    ) {
         let _timer = Profiler::global().start_event("Gc Promoting", "gc");
         for node in promotions {
             (*node.as_ptr()).set_header_pointer(gc.adult_start.take());
