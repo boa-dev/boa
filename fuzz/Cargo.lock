@@ -53,6 +53,7 @@ dependencies = [
  "boa_gc",
  "boa_interner",
  "boa_macros",
+ "boa_parser",
  "boa_profiler",
  "boa_unicode",
  "chrono",
@@ -84,6 +85,7 @@ dependencies = [
  "boa_ast",
  "boa_engine",
  "boa_interner",
+ "boa_parser",
  "libfuzzer-sys",
 ]
 
@@ -113,6 +115,22 @@ version = "0.16.0"
 dependencies = [
  "quote",
  "syn",
+]
+
+[[package]]
+name = "boa_parser"
+version = "0.16.0"
+dependencies = [
+ "bitflags",
+ "boa_ast",
+ "boa_interner",
+ "boa_macros",
+ "boa_profiler",
+ "boa_unicode",
+ "fast-float",
+ "num-bigint",
+ "num-traits",
+ "rustc-hash",
 ]
 
 [[package]]

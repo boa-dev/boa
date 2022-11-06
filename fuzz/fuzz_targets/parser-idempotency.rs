@@ -3,8 +3,8 @@
 mod common;
 
 use crate::common::FuzzData;
-use boa_engine::syntax::Parser;
 use boa_interner::ToInternedString;
+use boa_parser::Parser;
 use libfuzzer_sys::fuzz_target;
 use libfuzzer_sys::Corpus;
 use std::error::Error;
@@ -21,7 +21,7 @@ fn do_fuzz(mut data: FuzzData) -> Result<(), Box<dyn Error>> {
     let before = data.context.interner().len();
     // For a variety of reasons, we may not actually produce valid code here (e.g., nameless function).
     // Fail fast and only make the next checks if we were valid.
-    if let Ok(first) = parser.parse_all(&mut data.context) {
+    if let Ok(first) = parser.parse_all(data.context.interner_mut()) {
         let after_first = data.context.interner().len();
         let first_interned = first.to_interned_string(data.context.interner());
 
@@ -38,7 +38,7 @@ fn do_fuzz(mut data: FuzzData) -> Result<(), Box<dyn Error>> {
 
         // Now, we most assuredly should produce valid code. It has already gone through a first pass.
         let second = parser
-            .parse_all(&mut data.context)
+            .parse_all(data.context.interner_mut())
             .expect("Could not parse the first-pass interned copy.");
         let second_interned = second.to_interned_string(data.context.interner());
         let after_second = data.context.interner().len();
