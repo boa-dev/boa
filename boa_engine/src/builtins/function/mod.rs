@@ -26,7 +26,6 @@ use crate::{
     property::{Attribute, PropertyDescriptor, PropertyKey},
     string::utf16,
     symbol::WellKnownSymbols,
-    syntax::Parser,
     value::IntegerOrInfinity,
     Context, JsResult, JsString, JsValue,
 };
@@ -37,6 +36,7 @@ use boa_ast::{
 };
 use boa_gc::{self, custom_trace, Finalize, Gc, Trace};
 use boa_interner::Sym;
+use boa_parser::Parser;
 use boa_profiler::Profiler;
 use dyn_clone::DynClone;
 use std::{

@@ -9,10 +9,11 @@ use super::{
     TestSuite, IGNORED,
 };
 use boa_engine::{
-    builtins::JsArgs, object::FunctionBuilder, property::Attribute, syntax::Parser, Context,
-    JsNativeErrorKind, JsResult, JsValue,
+    builtins::JsArgs, object::FunctionBuilder, property::Attribute, Context, JsNativeErrorKind,
+    JsResult, JsValue,
 };
 use boa_gc::{Cell, Finalize, Gc, Trace};
+use boa_parser::Parser;
 use colored::Colorize;
 use rayon::prelude::*;
 
@@ -222,7 +223,7 @@ impl Test {
                         return (false, e);
                     }
                     let code = match Parser::new(test_content.as_bytes())
-                        .parse_all(&mut context)
+                        .parse_all(context.interner_mut())
                         .map_err(Into::into)
                         .and_then(|stmts| context.compile(&stmts))
                     {

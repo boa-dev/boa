@@ -144,11 +144,9 @@ fn parse_tokens<S>(src: S, context: &mut Context) -> Result<StatementList, Strin
 where
     S: AsRef<[u8]>,
 {
-    use boa_engine::syntax::parser::Parser;
-
     let src_bytes = src.as_ref();
-    Parser::new(src_bytes)
-        .parse_all(context)
+    boa_parser::Parser::new(src_bytes)
+        .parse_all(context.interner_mut())
         .map_err(|e| format!("ParsingError: {e}"))
 }
 
