@@ -28,6 +28,7 @@ use crate::{
 ///
 /// See the [module level documentation][self] for more information.
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "fuzz", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct Assign {
     op: AssignOp,
@@ -110,6 +111,7 @@ impl VisitWith for Assign {
 ///
 /// [spec]: hhttps://tc39.es/ecma262/#prod-LeftHandSideExpression
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "fuzz", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 pub enum AssignTarget {
     /// A simple identifier, such as `a`.

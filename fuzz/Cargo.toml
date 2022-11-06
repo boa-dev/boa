@@ -1,0 +1,29 @@
+[package]
+name = "boa_fuzz"
+version = "0.0.0"
+publish = false
+edition = "2021"
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+libfuzzer-sys = "0.4"
+
+boa_ast = { path = "../boa_ast", features = ["fuzz"] }
+boa_engine = { path = "../boa_engine", features = ["fuzz"] }
+boa_interner = { path = "../boa_interner", features = ["fuzz"] }
+boa_parser = { path = "../boa_parser" }
+
+# Prevent this from interfering with workspaces
+[workspace]
+members = ["."]
+
+[profile.release]
+debug = 1
+
+[[bin]]
+name = "parser-idempotency"
+path = "fuzz_targets/parser-idempotency.rs"
+test = false
+doc = false

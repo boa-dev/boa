@@ -22,6 +22,7 @@ use super::Function;
 /// [spec]: https://tc39.es/ecma262/#sec-class-definitions
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Classes
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "fuzz", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct Class {
     name: Option<Identifier>,
@@ -406,6 +407,7 @@ impl VisitWith for Class {
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-ClassElement
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "fuzz", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 pub enum ClassElement {
     /// A method definition, including `get` and `set` accessors.

@@ -43,6 +43,7 @@ pub const RESERVED_IDENTIFIERS_STRICT: [Sym; 9] = [
     derive(serde::Serialize, serde::Deserialize),
     serde(transparent)
 )]
+#[cfg_attr(feature = "fuzz", derive(arbitrary::Arbitrary))]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 #[repr(transparent)]
 pub struct Identifier {

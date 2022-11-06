@@ -51,6 +51,7 @@ pub mod operator;
 ///
 /// See the [module level documentation][self] for more information.
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "fuzz", derive(arbitrary::Arbitrary))]
 #[derive(Debug, Clone, PartialEq)]
 pub enum Expression {
     /// The JavaScript `this` keyword refers to the object it belongs to.

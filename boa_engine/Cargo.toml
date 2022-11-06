@@ -24,6 +24,8 @@ intl = [
     "dep:sys-locale"
 ]
 
+fuzz = ["boa_ast/fuzz", "boa_interner/fuzz"]
+
 # Enable Boa's WHATWG console object implementation.
 console = []
 

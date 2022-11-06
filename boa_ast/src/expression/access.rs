@@ -24,6 +24,7 @@ use core::ops::ControlFlow;
 ///
 /// See the [module level documentation][self] for more information.
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "fuzz", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 pub enum PropertyAccessField {
     /// A constant property field, such as `x.prop`.
@@ -72,6 +73,7 @@ impl VisitWith for PropertyAccessField {
 ///
 /// See the [module level documentation][self] for more information.
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "fuzz", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 pub enum PropertyAccess {
     /// A simple property access (`x.prop`).
@@ -126,6 +128,7 @@ impl VisitWith for PropertyAccess {
 
 /// A simple property access, where the target object is an [`Expression`].
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "fuzz", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct SimplePropertyAccess {
     target: Box<Expression>,
@@ -209,6 +212,7 @@ impl VisitWith for SimplePropertyAccess {
 /// [spec]: https://tc39.es/ecma262/#prod-MemberExpression
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Classes/Private_class_fields
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "fuzz", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct PrivatePropertyAccess {
     target: Box<Expression>,
@@ -285,6 +289,7 @@ impl VisitWith for PrivatePropertyAccess {
 /// [spec]: https://tc39.es/ecma262/#prod-SuperProperty
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/super
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "fuzz", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct SuperPropertyAccess {
     field: PropertyAccessField,
