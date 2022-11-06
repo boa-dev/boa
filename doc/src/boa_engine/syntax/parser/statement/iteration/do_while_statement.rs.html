@@ -117,10 +117,6 @@
 <span id="115">115</span>
 <span id="116">116</span>
 <span id="117">117</span>
-<span id="118">118</span>
-<span id="119">119</span>
-<span id="120">120</span>
-<span id="121">121</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Do-while statement parsing.
 //!
 //! More information:
@@ -134,7 +130,7 @@
     lexer::TokenKind,
     parser::{
         expression::Expression, statement::Statement, AllowAwait, AllowReturn, AllowYield, Cursor,
-        ParseError, ParseResult, TokenParser,
+        OrAbrupt, ParseError, ParseResult, TokenParser,
     },
 };
 <span class="kw">use </span>boa_ast::{statement::DoWhileLoop, Keyword, Punctuator};
@@ -188,11 +184,7 @@
 
         cursor.expect((Keyword::Do, <span class="bool-val">false</span>), <span class="string">&quot;do while statement&quot;</span>, interner)<span class="question-mark">?</span>;
 
-        <span class="kw">let </span>position = cursor
-            .peek(<span class="number">0</span>, interner)<span class="question-mark">?
-            </span>.ok_or(ParseError::AbruptEnd)<span class="question-mark">?
-            </span>.span()
-            .start();
+        <span class="kw">let </span>position = cursor.peek(<span class="number">0</span>, interner).or_abrupt()<span class="question-mark">?</span>.span().start();
 
         <span class="kw">let </span>body = Statement::new(<span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await, <span class="self">self</span>.allow_return)
             .parse(cursor, interner)<span class="question-mark">?</span>;
@@ -202,7 +194,7 @@
             <span class="kw">return </span><span class="prelude-val">Err</span>(ParseError::wrong_labelled_function_declaration(position));
         }
 
-        <span class="kw">let </span>next_token = cursor.peek(<span class="number">0</span>, interner)<span class="question-mark">?</span>.ok_or(ParseError::AbruptEnd)<span class="question-mark">?</span>;
+        <span class="kw">let </span>next_token = cursor.peek(<span class="number">0</span>, interner).or_abrupt()<span class="question-mark">?</span>;
         <span class="kw">match </span>next_token.kind() {
             TokenKind::Keyword((Keyword::While, <span class="bool-val">true</span>)) =&gt; {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(ParseError::general(
@@ -235,7 +227,7 @@
         // https://tc39.es/ecma262/#sec-automatic-semicolon-insertion
         </span><span class="kw">if let </span><span class="prelude-val">Some</span>(tok) = cursor.peek(<span class="number">0</span>, interner)<span class="question-mark">? </span>{
             <span class="kw">if let </span>TokenKind::Punctuator(Punctuator::Semicolon) = <span class="kw-2">*</span>tok.kind() {
-                cursor.next(interner)<span class="question-mark">?</span>;
+                cursor.advance(interner);
             }
         }
 

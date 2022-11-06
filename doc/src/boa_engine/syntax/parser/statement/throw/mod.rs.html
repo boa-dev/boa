@@ -119,7 +119,7 @@
             .parse(cursor, interner)<span class="question-mark">?</span>;
         <span class="kw">if let </span><span class="prelude-val">Some</span>(tok) = cursor.peek(<span class="number">0</span>, interner)<span class="question-mark">? </span>{
             <span class="kw">if </span>tok.kind() == <span class="kw-2">&amp;</span>TokenKind::Punctuator(Punctuator::Semicolon) {
-                <span class="kw">let </span>_next = cursor.next(interner).expect(<span class="string">&quot;token disappeared&quot;</span>);
+                cursor.advance(interner);
             }
         }
 

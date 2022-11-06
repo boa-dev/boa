@@ -101,8 +101,8 @@
 </pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::syntax::{
     lexer::TokenKind,
     parser::{
-        cursor::Cursor, expression::Expression, AllowAwait, AllowYield, ParseError, ParseResult,
-        TokenParser,
+        cursor::Cursor, expression::Expression, AllowAwait, AllowYield, OrAbrupt, ParseError,
+        ParseResult, TokenParser,
     },
 };
 <span class="kw">use </span>boa_ast::{<span class="self">self </span><span class="kw">as </span>ast, expression::TaggedTemplate, Position, Punctuator};
@@ -158,7 +158,7 @@
         <span class="kw">let </span><span class="kw-2">mut </span>cookeds = Vec::new();
         <span class="kw">let </span><span class="kw-2">mut </span>exprs = Vec::new();
 
-        <span class="kw">let </span><span class="kw-2">mut </span>token = cursor.next(interner)<span class="question-mark">?</span>.ok_or(ParseError::AbruptEnd)<span class="question-mark">?</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>token = cursor.next(interner).or_abrupt()<span class="question-mark">?</span>;
 
         <span class="kw">loop </span>{
             <span class="kw">match </span>token.kind() {

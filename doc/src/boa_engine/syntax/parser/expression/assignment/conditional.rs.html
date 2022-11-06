@@ -182,8 +182,8 @@
 
         <span class="kw">if let </span><span class="prelude-val">Some</span>(tok) = cursor.peek(<span class="number">0</span>, interner)<span class="question-mark">? </span>{
             <span class="kw">if </span>tok.kind() == <span class="kw-2">&amp;</span>TokenKind::Punctuator(Punctuator::Question) {
-                cursor.next(interner)<span class="question-mark">?</span>.expect(<span class="string">&quot;? character vanished&quot;</span>); <span class="comment">// Consume the token.
-                </span><span class="kw">let </span>then_clause =
+                cursor.advance(interner);
+                <span class="kw">let </span>then_clause =
                     AssignmentExpression::new(<span class="prelude-val">None</span>, <span class="bool-val">true</span>, <span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await)
                         .parse(cursor, interner)<span class="question-mark">?</span>;
                 cursor.expect(Punctuator::Colon, <span class="string">&quot;conditional expression&quot;</span>, interner)<span class="question-mark">?</span>;

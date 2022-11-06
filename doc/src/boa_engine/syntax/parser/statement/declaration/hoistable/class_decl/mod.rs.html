@@ -1277,19 +1277,6 @@
 <span id="1275">1275</span>
 <span id="1276">1276</span>
 <span id="1277">1277</span>
-<span id="1278">1278</span>
-<span id="1279">1279</span>
-<span id="1280">1280</span>
-<span id="1281">1281</span>
-<span id="1282">1282</span>
-<span id="1283">1283</span>
-<span id="1284">1284</span>
-<span id="1285">1285</span>
-<span id="1286">1286</span>
-<span id="1287">1287</span>
-<span id="1288">1288</span>
-<span id="1289">1289</span>
-<span id="1290">1290</span>
 </pre><pre class="rust"><code><span class="attribute">#[cfg(test)]
 </span><span class="kw">mod </span>tests;
 
@@ -1302,7 +1289,8 @@
         },
         function::{FormalParameters, FunctionBody, UniqueFormalParameters, FUNCTION_BREAK_TOKENS},
         statement::StatementList,
-        AllowAwait, AllowDefault, AllowYield, Cursor, ParseError, ParseResult, TokenParser,
+        AllowAwait, AllowDefault, AllowYield, Cursor, OrAbrupt, ParseError, ParseResult,
+        TokenParser,
     },
 };
 <span class="kw">use </span>ast::operations::{lexically_declared_names, var_declared_names};
@@ -1360,7 +1348,7 @@
         <span class="kw">let </span>strict = cursor.strict_mode();
         cursor.set_strict_mode(<span class="bool-val">true</span>);
 
-        <span class="kw">let </span>token = cursor.peek(<span class="number">0</span>, interner)<span class="question-mark">?</span>.ok_or(ParseError::AbruptEnd)<span class="question-mark">?</span>;
+        <span class="kw">let </span>token = cursor.peek(<span class="number">0</span>, interner).or_abrupt()<span class="question-mark">?</span>;
         <span class="kw">let </span>name = <span class="kw">match </span>token.kind() {
             TokenKind::Identifier(<span class="kw">_</span>) | TokenKind::Keyword((Keyword::Yield | Keyword::Await, <span class="kw">_</span>)) =&gt; {
                 BindingIdentifier::new(<span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await)
@@ -1422,7 +1410,7 @@
     <span class="kw">type </span>Output = Class;
 
     <span class="kw">fn </span>parse(<span class="self">self</span>, cursor: <span class="kw-2">&amp;mut </span>Cursor&lt;R&gt;, interner: <span class="kw-2">&amp;mut </span>Interner) -&gt; ParseResult&lt;<span class="self">Self</span>::Output&gt; {
-        <span class="kw">let </span>token = cursor.peek(<span class="number">0</span>, interner)<span class="question-mark">?</span>.ok_or(ParseError::AbruptEnd)<span class="question-mark">?</span>;
+        <span class="kw">let </span>token = cursor.peek(<span class="number">0</span>, interner).or_abrupt()<span class="question-mark">?</span>;
         <span class="kw">let </span>super_ref = <span class="kw">match </span>token.kind() {
             TokenKind::Keyword((Keyword::Extends, <span class="bool-val">true</span>)) =&gt; {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(ParseError::general(
@@ -1441,22 +1429,15 @@
         <span class="comment">// Temporarily disable strict mode because &quot;strict&quot; may be parsed as a keyword.
         </span><span class="kw">let </span>strict = cursor.strict_mode();
         cursor.set_strict_mode(<span class="bool-val">false</span>);
-        <span class="kw">let </span>is_close_block = cursor
-            .peek(<span class="number">0</span>, interner)<span class="question-mark">?
-            </span>.ok_or(ParseError::AbruptEnd)<span class="question-mark">?
-            </span>.kind()
+        <span class="kw">let </span>is_close_block = cursor.peek(<span class="number">0</span>, interner).or_abrupt()<span class="question-mark">?</span>.kind()
             == <span class="kw-2">&amp;</span>TokenKind::Punctuator(Punctuator::CloseBlock);
         cursor.set_strict_mode(strict);
 
         <span class="kw">if </span>is_close_block {
-            cursor.next(interner).expect(<span class="string">&quot;token disappeared&quot;</span>);
+            cursor.advance(interner);
             <span class="prelude-val">Ok</span>(Class::new(<span class="prelude-val">Some</span>(<span class="self">self</span>.name), super_ref, <span class="prelude-val">None</span>, Box::default()))
         } <span class="kw">else </span>{
-            <span class="kw">let </span>body_start = cursor
-                .peek(<span class="number">0</span>, interner)<span class="question-mark">?
-                </span>.ok_or(ParseError::AbruptEnd)<span class="question-mark">?
-                </span>.span()
-                .start();
+            <span class="kw">let </span>body_start = cursor.peek(<span class="number">0</span>, interner).or_abrupt()<span class="question-mark">?</span>.span().start();
             <span class="kw">let </span>(constructor, elements) =
                 ClassBody::new(<span class="self">self</span>.name, <span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await)
                     .parse(cursor, interner)<span class="question-mark">?</span>;
@@ -1582,7 +1563,7 @@
         </span><span class="kw">let </span>strict = cursor.strict_mode();
         cursor.set_strict_mode(<span class="bool-val">false</span>);
         <span class="kw">loop </span>{
-            <span class="kw">let </span>token = cursor.peek(<span class="number">0</span>, interner)<span class="question-mark">?</span>.ok_or(ParseError::AbruptEnd)<span class="question-mark">?</span>;
+            <span class="kw">let </span>token = cursor.peek(<span class="number">0</span>, interner).or_abrupt()<span class="question-mark">?</span>;
             <span class="kw">let </span>position = token.span().start();
             <span class="kw">match </span>token.kind() {
                 TokenKind::Punctuator(Punctuator::CloseBlock) =&gt; <span class="kw">break</span>,
@@ -1842,14 +1823,14 @@
     <span class="kw">type </span>Output = (<span class="prelude-ty">Option</span>&lt;Function&gt;, <span class="prelude-ty">Option</span>&lt;function::ClassElement&gt;);
 
     <span class="kw">fn </span>parse(<span class="self">self</span>, cursor: <span class="kw-2">&amp;mut </span>Cursor&lt;R&gt;, interner: <span class="kw-2">&amp;mut </span>Interner) -&gt; ParseResult&lt;<span class="self">Self</span>::Output&gt; {
-        <span class="kw">let </span>token = cursor.peek(<span class="number">0</span>, interner)<span class="question-mark">?</span>.ok_or(ParseError::AbruptEnd)<span class="question-mark">?</span>;
+        <span class="kw">let </span>token = cursor.peek(<span class="number">0</span>, interner).or_abrupt()<span class="question-mark">?</span>;
         <span class="kw">let </span>r#static = <span class="kw">match </span>token.kind() {
             TokenKind::Punctuator(Punctuator::Semicolon) =&gt; {
-                cursor.next(interner).expect(<span class="string">&quot;token disappeared&quot;</span>);
+                cursor.advance(interner);
                 <span class="kw">return </span><span class="prelude-val">Ok</span>((<span class="prelude-val">None</span>, <span class="prelude-val">None</span>));
             }
             TokenKind::Identifier(Sym::STATIC) =&gt; {
-                <span class="kw">let </span>token = cursor.peek(<span class="number">1</span>, interner)<span class="question-mark">?</span>.ok_or(ParseError::AbruptEnd)<span class="question-mark">?</span>;
+                <span class="kw">let </span>token = cursor.peek(<span class="number">1</span>, interner).or_abrupt()<span class="question-mark">?</span>;
                 <span class="kw">match </span>token.kind() {
                     TokenKind::Identifier(<span class="kw">_</span>)
                     | TokenKind::StringLiteral(<span class="kw">_</span>)
@@ -1861,7 +1842,7 @@
                         Punctuator::OpenBracket | Punctuator::Mul | Punctuator::OpenBlock,
                     ) =&gt; {
                         <span class="comment">// this &quot;static&quot; is a keyword.
-                        </span>cursor.next(interner).expect(<span class="string">&quot;token disappeared&quot;</span>);
+                        </span>cursor.advance(interner);
                         <span class="bool-val">true
                     </span>}
                     <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
@@ -1871,10 +1852,7 @@
         };
 
         <span class="kw">let </span>is_keyword = !<span class="macro">matches!</span>(
-            cursor
-                .peek(<span class="number">1</span>, interner)<span class="question-mark">?
-                </span>.ok_or(ParseError::AbruptEnd)<span class="question-mark">?
-                </span>.kind(),
+            cursor.peek(<span class="number">1</span>, interner).or_abrupt()<span class="question-mark">?</span>.kind(),
             TokenKind::Punctuator(
                 Punctuator::Assign
                     | Punctuator::CloseBlock
@@ -1883,11 +1861,11 @@
             )
         );
 
-        <span class="kw">let </span>token = cursor.peek(<span class="number">0</span>, interner)<span class="question-mark">?</span>.ok_or(ParseError::AbruptEnd)<span class="question-mark">?</span>;
+        <span class="kw">let </span>token = cursor.peek(<span class="number">0</span>, interner).or_abrupt()<span class="question-mark">?</span>;
         <span class="kw">let </span>position = token.span().start();
         <span class="kw">let </span>element = <span class="kw">match </span>token.kind() {
             TokenKind::Identifier(Sym::CONSTRUCTOR) <span class="kw">if </span>!r#static =&gt; {
-                cursor.next(interner).expect(<span class="string">&quot;token disappeared&quot;</span>);
+                cursor.advance(interner);
                 <span class="kw">let </span>strict = cursor.strict_mode();
                 cursor.set_strict_mode(<span class="bool-val">true</span>);
 
@@ -1912,7 +1890,7 @@
                 <span class="kw">return </span><span class="prelude-val">Ok</span>((<span class="prelude-val">Some</span>(Function::new(<span class="prelude-val">Some</span>(<span class="self">self</span>.name), parameters, body)), <span class="prelude-val">None</span>));
             }
             TokenKind::Punctuator(Punctuator::OpenBlock) <span class="kw">if </span>r#static =&gt; {
-                cursor.next(interner).expect(<span class="string">&quot;token disappeared&quot;</span>);
+                cursor.advance(interner);
                 <span class="kw">let </span>statement_list = <span class="kw">if </span>cursor
                     .next_if(TokenKind::Punctuator(Punctuator::CloseBlock), interner)<span class="question-mark">?
                     </span>.is_some()
@@ -1921,11 +1899,7 @@
                 } <span class="kw">else </span>{
                     <span class="kw">let </span>strict = cursor.strict_mode();
                     cursor.set_strict_mode(<span class="bool-val">true</span>);
-                    <span class="kw">let </span>position = cursor
-                        .peek(<span class="number">0</span>, interner)<span class="question-mark">?
-                        </span>.ok_or(ParseError::AbruptEnd)<span class="question-mark">?
-                        </span>.span()
-                        .start();
+                    <span class="kw">let </span>position = cursor.peek(<span class="number">0</span>, interner).or_abrupt()<span class="question-mark">?</span>.span().start();
                     <span class="kw">let </span>statement_list =
                         StatementList::new(<span class="bool-val">false</span>, <span class="bool-val">true</span>, <span class="bool-val">false</span>, <span class="kw-2">&amp;</span>FUNCTION_BREAK_TOKENS)
                             .parse(cursor, interner)<span class="question-mark">?</span>;
@@ -1960,7 +1934,7 @@
                 function::ClassElement::StaticBlock(statement_list)
             }
             TokenKind::Punctuator(Punctuator::Mul) =&gt; {
-                <span class="kw">let </span>token = cursor.peek(<span class="number">1</span>, interner)<span class="question-mark">?</span>.ok_or(ParseError::AbruptEnd)<span class="question-mark">?</span>;
+                <span class="kw">let </span>token = cursor.peek(<span class="number">1</span>, interner).or_abrupt()<span class="question-mark">?</span>;
                 <span class="kw">let </span>name_position = token.span().start();
                 <span class="kw">if let </span>TokenKind::Identifier(Sym::CONSTRUCTOR) = token.kind() {
                     <span class="kw">return </span><span class="prelude-val">Err</span>(ParseError::general(
@@ -2009,12 +1983,12 @@
                 ));
             }
             TokenKind::Keyword((Keyword::Async, <span class="bool-val">false</span>)) <span class="kw">if </span>is_keyword =&gt; {
-                cursor.next(interner).expect(<span class="string">&quot;token disappeared&quot;</span>);
+                cursor.advance(interner);
                 cursor.peek_expect_no_lineterminator(<span class="number">0</span>, <span class="string">&quot;Async object methods&quot;</span>, interner)<span class="question-mark">?</span>;
-                <span class="kw">let </span>token = cursor.peek(<span class="number">0</span>, interner)<span class="question-mark">?</span>.ok_or(ParseError::AbruptEnd)<span class="question-mark">?</span>;
+                <span class="kw">let </span>token = cursor.peek(<span class="number">0</span>, interner).or_abrupt()<span class="question-mark">?</span>;
                 <span class="kw">match </span>token.kind() {
                     TokenKind::Punctuator(Punctuator::Mul) =&gt; {
-                        <span class="kw">let </span>token = cursor.peek(<span class="number">1</span>, interner)<span class="question-mark">?</span>.ok_or(ParseError::AbruptEnd)<span class="question-mark">?</span>;
+                        <span class="kw">let </span>token = cursor.peek(<span class="number">1</span>, interner).or_abrupt()<span class="question-mark">?</span>;
                         <span class="kw">let </span>name_position = token.span().start();
                         <span class="kw">match </span>token.kind() {
                             TokenKind::Identifier(Sym::CONSTRUCTOR)
@@ -2112,8 +2086,8 @@
                 }
             }
             TokenKind::Identifier(Sym::GET) <span class="kw">if </span>is_keyword =&gt; {
-                cursor.next(interner).expect(<span class="string">&quot;token disappeared&quot;</span>);
-                <span class="kw">let </span>token = cursor.peek(<span class="number">0</span>, interner)<span class="question-mark">?</span>.ok_or(ParseError::AbruptEnd)<span class="question-mark">?</span>;
+                cursor.advance(interner);
+                <span class="kw">let </span>token = cursor.peek(<span class="number">0</span>, interner).or_abrupt()<span class="question-mark">?</span>;
                 <span class="kw">match </span>token.kind() {
                     TokenKind::PrivateIdentifier(Sym::CONSTRUCTOR) =&gt; {
                         <span class="kw">return </span><span class="prelude-val">Err</span>(ParseError::general(
@@ -2123,7 +2097,7 @@
                     }
                     TokenKind::PrivateIdentifier(name) =&gt; {
                         <span class="kw">let </span>name = <span class="kw-2">*</span>name;
-                        cursor.next(interner).expect(<span class="string">&quot;token disappeared&quot;</span>);
+                        cursor.advance(interner);
                         <span class="kw">let </span>strict = cursor.strict_mode();
                         cursor.set_strict_mode(<span class="bool-val">true</span>);
                         <span class="kw">let </span>params =
@@ -2233,8 +2207,8 @@
                 }
             }
             TokenKind::Identifier(Sym::SET) <span class="kw">if </span>is_keyword =&gt; {
-                cursor.next(interner).expect(<span class="string">&quot;token disappeared&quot;</span>);
-                <span class="kw">let </span>token = cursor.peek(<span class="number">0</span>, interner)<span class="question-mark">?</span>.ok_or(ParseError::AbruptEnd)<span class="question-mark">?</span>;
+                cursor.advance(interner);
+                <span class="kw">let </span>token = cursor.peek(<span class="number">0</span>, interner).or_abrupt()<span class="question-mark">?</span>;
                 <span class="kw">match </span>token.kind() {
                     TokenKind::PrivateIdentifier(Sym::CONSTRUCTOR) =&gt; {
                         <span class="kw">return </span><span class="prelude-val">Err</span>(ParseError::general(
@@ -2244,7 +2218,7 @@
                     }
                     TokenKind::PrivateIdentifier(name) =&gt; {
                         <span class="kw">let </span>name = <span class="kw-2">*</span>name;
-                        cursor.next(interner).expect(<span class="string">&quot;token disappeared&quot;</span>);
+                        cursor.advance(interner);
                         <span class="kw">let </span>strict = cursor.strict_mode();
                         cursor.set_strict_mode(<span class="bool-val">true</span>);
                         <span class="kw">let </span>params =
@@ -2358,11 +2332,11 @@
             }
             TokenKind::PrivateIdentifier(name) =&gt; {
                 <span class="kw">let </span>name = <span class="kw-2">*</span>name;
-                cursor.next(interner).expect(<span class="string">&quot;token disappeared&quot;</span>);
-                <span class="kw">let </span>token = cursor.peek(<span class="number">0</span>, interner)<span class="question-mark">?</span>.ok_or(ParseError::AbruptEnd)<span class="question-mark">?</span>;
+                cursor.advance(interner);
+                <span class="kw">let </span>token = cursor.peek(<span class="number">0</span>, interner).or_abrupt()<span class="question-mark">?</span>;
                 <span class="kw">match </span>token.kind() {
                     TokenKind::Punctuator(Punctuator::Assign) =&gt; {
-                        cursor.next(interner).expect(<span class="string">&quot;token disappeared&quot;</span>);
+                        cursor.advance(interner);
                         <span class="kw">let </span>strict = cursor.strict_mode();
                         cursor.set_strict_mode(<span class="bool-val">true</span>);
                         <span class="kw">let </span>rhs = AssignmentExpression::new(
@@ -2433,7 +2407,7 @@
                 <span class="kw">let </span>name_position = token.span().start();
                 <span class="kw">let </span>name = PropertyName::new(<span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await)
                     .parse(cursor, interner)<span class="question-mark">?</span>;
-                <span class="kw">let </span>token = cursor.peek(<span class="number">0</span>, interner)<span class="question-mark">?</span>.ok_or(ParseError::AbruptEnd)<span class="question-mark">?</span>;
+                <span class="kw">let </span>token = cursor.peek(<span class="number">0</span>, interner).or_abrupt()<span class="question-mark">?</span>;
                 <span class="kw">match </span>token.kind() {
                     TokenKind::Punctuator(Punctuator::Assign) =&gt; {
                         <span class="kw">if let </span><span class="prelude-val">Some</span>(name) = name.prop_name() {
@@ -2451,7 +2425,7 @@
                                 ));
                             }
                         }
-                        cursor.next(interner).expect(<span class="string">&quot;token disappeared&quot;</span>);
+                        cursor.advance(interner);
                         <span class="kw">let </span>strict = cursor.strict_mode();
                         cursor.set_strict_mode(<span class="bool-val">true</span>);
                         <span class="kw">let </span>rhs = AssignmentExpression::new(

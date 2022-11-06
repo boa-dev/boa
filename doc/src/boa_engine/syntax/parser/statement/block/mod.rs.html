@@ -128,8 +128,6 @@
 <span id="126">126</span>
 <span id="127">127</span>
 <span id="128">128</span>
-<span id="129">129</span>
-<span id="130">130</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Block statement parsing.
 //!
 //! More information:
@@ -145,7 +143,9 @@
 <span class="kw">use </span><span class="kw">super</span>::StatementList;
 <span class="kw">use </span><span class="kw">crate</span>::syntax::{
     lexer::TokenKind,
-    parser::{AllowAwait, AllowReturn, AllowYield, Cursor, ParseError, ParseResult, TokenParser},
+    parser::{
+        AllowAwait, AllowReturn, AllowYield, Cursor, OrAbrupt, ParseError, ParseResult, TokenParser,
+    },
 };
 <span class="kw">use </span>boa_ast::{
     operations::{lexically_declared_names_legacy, var_declared_names},
@@ -209,15 +209,11 @@
         cursor.expect(Punctuator::OpenBlock, <span class="string">&quot;block&quot;</span>, interner)<span class="question-mark">?</span>;
         <span class="kw">if let </span><span class="prelude-val">Some</span>(tk) = cursor.peek(<span class="number">0</span>, interner)<span class="question-mark">? </span>{
             <span class="kw">if </span>tk.kind() == <span class="kw-2">&amp;</span>TokenKind::Punctuator(Punctuator::CloseBlock) {
-                cursor.next(interner)<span class="question-mark">?</span>.expect(<span class="string">&quot;} token vanished&quot;</span>);
+                cursor.advance(interner);
                 <span class="kw">return </span><span class="prelude-val">Ok</span>(statement::Block::from(<span class="macro">vec!</span>[]));
             }
         }
-        <span class="kw">let </span>position = cursor
-            .peek(<span class="number">0</span>, interner)<span class="question-mark">?
-            </span>.ok_or(ParseError::AbruptEnd)<span class="question-mark">?
-            </span>.span()
-            .start();
+        <span class="kw">let </span>position = cursor.peek(<span class="number">0</span>, interner).or_abrupt()<span class="question-mark">?</span>.span().start();
         <span class="kw">let </span>statement_list = StatementList::new(
             <span class="self">self</span>.allow_yield,
             <span class="self">self</span>.allow_await,

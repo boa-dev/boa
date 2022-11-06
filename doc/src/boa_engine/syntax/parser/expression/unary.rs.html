@@ -135,10 +135,6 @@
 <span id="133">133</span>
 <span id="134">134</span>
 <span id="135">135</span>
-<span id="136">136</span>
-<span id="137">137</span>
-<span id="138">138</span>
-<span id="139">139</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Unary operator parsing.
 //!
 //! More information:
@@ -152,7 +148,7 @@
     lexer::{Error <span class="kw">as </span>LexError, TokenKind},
     parser::{
         expression::{await_expr::AwaitExpression, update::UpdateExpression},
-        AllowAwait, AllowYield, Cursor, ParseError, ParseResult, TokenParser,
+        AllowAwait, AllowYield, Cursor, OrAbrupt, ParseError, ParseResult, TokenParser,
     },
 };
 <span class="kw">use </span>boa_ast::{
@@ -207,19 +203,15 @@
     <span class="kw">fn </span>parse(<span class="self">self</span>, cursor: <span class="kw-2">&amp;mut </span>Cursor&lt;R&gt;, interner: <span class="kw-2">&amp;mut </span>Interner) -&gt; ParseResult&lt;<span class="self">Self</span>::Output&gt; {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;UnaryExpression&quot;</span>, <span class="string">&quot;Parsing&quot;</span>);
 
-        <span class="kw">let </span>tok = cursor.peek(<span class="number">0</span>, interner)<span class="question-mark">?</span>.ok_or(ParseError::AbruptEnd)<span class="question-mark">?</span>;
+        <span class="kw">let </span>tok = cursor.peek(<span class="number">0</span>, interner).or_abrupt()<span class="question-mark">?</span>;
         <span class="kw">let </span>token_start = tok.span().start();
         <span class="kw">match </span>tok.kind() {
             TokenKind::Keyword((Keyword::Delete | Keyword::Void | Keyword::TypeOf, <span class="bool-val">true</span>)) =&gt; <span class="prelude-val">Err</span>(
                 ParseError::general(<span class="string">&quot;Keyword must not contain escaped characters&quot;</span>, token_start),
             ),
             TokenKind::Keyword((Keyword::Delete, <span class="bool-val">false</span>)) =&gt; {
-                cursor.next(interner)<span class="question-mark">?</span>.expect(<span class="string">&quot;Delete keyword vanished&quot;</span>);
-                <span class="kw">let </span>position = cursor
-                    .peek(<span class="number">0</span>, interner)<span class="question-mark">?
-                    </span>.ok_or(ParseError::AbruptEnd)<span class="question-mark">?
-                    </span>.span()
-                    .start();
+                cursor.advance(interner);
+                <span class="kw">let </span>position = cursor.peek(<span class="number">0</span>, interner).or_abrupt()<span class="question-mark">?</span>.span().start();
                 <span class="kw">let </span>val = <span class="self">self</span>.parse(cursor, interner)<span class="question-mark">?</span>;
 
                 <span class="kw">match </span>val {
@@ -241,28 +233,28 @@
                 <span class="prelude-val">Ok</span>(Unary::new(UnaryOp::Delete, val).into())
             }
             TokenKind::Keyword((Keyword::Void, <span class="bool-val">false</span>)) =&gt; {
-                cursor.next(interner)<span class="question-mark">?</span>.expect(<span class="string">&quot;Void keyword vanished&quot;</span>); <span class="comment">// Consume the token.
-                </span><span class="prelude-val">Ok</span>(Unary::new(UnaryOp::Void, <span class="self">self</span>.parse(cursor, interner)<span class="question-mark">?</span>).into())
+                cursor.advance(interner);
+                <span class="prelude-val">Ok</span>(Unary::new(UnaryOp::Void, <span class="self">self</span>.parse(cursor, interner)<span class="question-mark">?</span>).into())
             }
             TokenKind::Keyword((Keyword::TypeOf, <span class="bool-val">false</span>)) =&gt; {
-                cursor.next(interner)<span class="question-mark">?</span>.expect(<span class="string">&quot;TypeOf keyword vanished&quot;</span>); <span class="comment">// Consume the token.
-                </span><span class="prelude-val">Ok</span>(Unary::new(UnaryOp::TypeOf, <span class="self">self</span>.parse(cursor, interner)<span class="question-mark">?</span>).into())
+                cursor.advance(interner);
+                <span class="prelude-val">Ok</span>(Unary::new(UnaryOp::TypeOf, <span class="self">self</span>.parse(cursor, interner)<span class="question-mark">?</span>).into())
             }
             TokenKind::Punctuator(Punctuator::Add) =&gt; {
-                cursor.next(interner)<span class="question-mark">?</span>.expect(<span class="string">&quot;+ token vanished&quot;</span>); <span class="comment">// Consume the token.
-                </span><span class="prelude-val">Ok</span>(Unary::new(UnaryOp::Plus, <span class="self">self</span>.parse(cursor, interner)<span class="question-mark">?</span>).into())
+                cursor.advance(interner);
+                <span class="prelude-val">Ok</span>(Unary::new(UnaryOp::Plus, <span class="self">self</span>.parse(cursor, interner)<span class="question-mark">?</span>).into())
             }
             TokenKind::Punctuator(Punctuator::Sub) =&gt; {
-                cursor.next(interner)<span class="question-mark">?</span>.expect(<span class="string">&quot;- token vanished&quot;</span>); <span class="comment">// Consume the token.
-                </span><span class="prelude-val">Ok</span>(Unary::new(UnaryOp::Minus, <span class="self">self</span>.parse(cursor, interner)<span class="question-mark">?</span>).into())
+                cursor.advance(interner);
+                <span class="prelude-val">Ok</span>(Unary::new(UnaryOp::Minus, <span class="self">self</span>.parse(cursor, interner)<span class="question-mark">?</span>).into())
             }
             TokenKind::Punctuator(Punctuator::Neg) =&gt; {
-                cursor.next(interner)<span class="question-mark">?</span>.expect(<span class="string">&quot;~ token vanished&quot;</span>); <span class="comment">// Consume the token.
-                </span><span class="prelude-val">Ok</span>(Unary::new(UnaryOp::Tilde, <span class="self">self</span>.parse(cursor, interner)<span class="question-mark">?</span>).into())
+                cursor.advance(interner);
+                <span class="prelude-val">Ok</span>(Unary::new(UnaryOp::Tilde, <span class="self">self</span>.parse(cursor, interner)<span class="question-mark">?</span>).into())
             }
             TokenKind::Punctuator(Punctuator::Not) =&gt; {
-                cursor.next(interner)<span class="question-mark">?</span>.expect(<span class="string">&quot;! token vanished&quot;</span>); <span class="comment">// Consume the token.
-                </span><span class="prelude-val">Ok</span>(Unary::new(UnaryOp::Not, <span class="self">self</span>.parse(cursor, interner)<span class="question-mark">?</span>).into())
+                cursor.advance(interner);
+                <span class="prelude-val">Ok</span>(Unary::new(UnaryOp::Not, <span class="self">self</span>.parse(cursor, interner)<span class="question-mark">?</span>).into())
             }
             TokenKind::Keyword((Keyword::Await, <span class="bool-val">true</span>)) <span class="kw">if </span><span class="self">self</span>.allow_await.<span class="number">0 </span>=&gt; {
                 <span class="prelude-val">Err</span>(ParseError::general(

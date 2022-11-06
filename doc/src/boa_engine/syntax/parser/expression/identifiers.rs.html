@@ -233,6 +233,8 @@
 <span id="231">231</span>
 <span id="232">232</span>
 <span id="233">233</span>
+<span id="234">234</span>
+<span id="235">235</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Identifiers parsing.
 //!
 //! More information:
@@ -242,7 +244,9 @@
 
 </span><span class="kw">use </span><span class="kw">crate</span>::syntax::{
     lexer::{Error <span class="kw">as </span>LexError, TokenKind},
-    parser::{cursor::Cursor, AllowAwait, AllowYield, ParseError, ParseResult, TokenParser},
+    parser::{
+        cursor::Cursor, AllowAwait, AllowYield, OrAbrupt, ParseError, ParseResult, TokenParser,
+    },
 };
 <span class="kw">use </span>boa_ast::{expression::Identifier, Keyword};
 <span class="kw">use </span>boa_interner::{Interner, Sym};
@@ -296,7 +300,7 @@
     <span class="kw">fn </span>parse(<span class="self">self</span>, cursor: <span class="kw-2">&amp;mut </span>Cursor&lt;R&gt;, interner: <span class="kw-2">&amp;mut </span>Interner) -&gt; ParseResult&lt;<span class="self">Self</span>::Output&gt; {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;IdentifierReference&quot;</span>, <span class="string">&quot;Parsing&quot;</span>);
 
-        <span class="kw">let </span>token = cursor.next(interner)<span class="question-mark">?</span>.ok_or(ParseError::AbruptEnd)<span class="question-mark">?</span>;
+        <span class="kw">let </span>token = cursor.next(interner).or_abrupt()<span class="question-mark">?</span>;
 
         <span class="kw">match </span>token.kind() {
             TokenKind::Identifier(ident)
@@ -388,7 +392,7 @@
     </span><span class="kw">fn </span>parse(<span class="self">self</span>, cursor: <span class="kw-2">&amp;mut </span>Cursor&lt;R&gt;, interner: <span class="kw-2">&amp;mut </span>Interner) -&gt; ParseResult&lt;<span class="self">Self</span>::Output&gt; {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;BindingIdentifier&quot;</span>, <span class="string">&quot;Parsing&quot;</span>);
 
-        <span class="kw">let </span>next_token = cursor.next(interner)<span class="question-mark">?</span>.ok_or(ParseError::AbruptEnd)<span class="question-mark">?</span>;
+        <span class="kw">let </span>next_token = cursor.next(interner).or_abrupt()<span class="question-mark">?</span>;
 
         <span class="kw">match </span>next_token.kind() {
             TokenKind::Identifier(Sym::ARGUMENTS) <span class="kw">if </span>cursor.strict_mode() =&gt; {

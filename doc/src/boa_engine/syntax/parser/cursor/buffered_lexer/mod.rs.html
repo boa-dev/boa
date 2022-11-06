@@ -257,7 +257,7 @@
 <span id="255">255</span>
 </pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::syntax::{
     lexer::{InputElement, Lexer, Token, TokenKind},
-    parser::error::ParseError,
+    parser::{error::ParseError, ParseResult},
 };
 <span class="kw">use </span>boa_ast::Position;
 <span class="kw">use </span>boa_interner::Interner;
@@ -340,7 +340,7 @@
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         start: Position,
         interner: <span class="kw-2">&amp;mut </span>Interner,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;Token, ParseError&gt; {
+    ) -&gt; ParseResult&lt;Token&gt; {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;cursor::lex_regex()&quot;</span>, <span class="string">&quot;Parsing&quot;</span>);
         <span class="self">self</span>.set_goal(InputElement::RegExp);
         <span class="self">self</span>.lexer
@@ -354,7 +354,7 @@
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         start: Position,
         interner: <span class="kw-2">&amp;mut </span>Interner,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;Token, ParseError&gt; {
+    ) -&gt; ParseResult&lt;Token&gt; {
         <span class="self">self</span>.lexer
             .lex_template(start, interner)
             .map_err(ParseError::from)
@@ -373,7 +373,7 @@
     <span class="doccomment">/// Fills the peeking buffer with the next token.
     ///
     /// It will not fill two line terminators one after the other.
-    </span><span class="kw">fn </span>fill(<span class="kw-2">&amp;mut </span><span class="self">self</span>, interner: <span class="kw-2">&amp;mut </span>Interner) -&gt; <span class="prelude-ty">Result</span>&lt;(), ParseError&gt; {
+    </span><span class="kw">fn </span>fill(<span class="kw-2">&amp;mut </span><span class="self">self</span>, interner: <span class="kw-2">&amp;mut </span>Interner) -&gt; ParseResult&lt;()&gt; {
         <span class="macro">debug_assert!</span>(
             <span class="self">self</span>.write_index &lt; PEEK_BUF_SIZE,
             <span class="string">&quot;write index went out of bounds&quot;
@@ -423,12 +423,12 @@
     ///
     /// This follows iterator semantics in that a `peek(0, false)` followed by a `next(false)` will
     /// return the same value. Note that because a `peek(n, false)` may return a line terminator a
-    </span><span class="comment">// subsequent `next(true)` may not return the same value.
+    /// subsequent `next(true)` may not return the same value.
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>next(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         skip_line_terminators: bool,
         interner: <span class="kw-2">&amp;mut </span>Interner,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;Token&gt;, ParseError&gt; {
+    ) -&gt; ParseResult&lt;<span class="prelude-ty">Option</span>&lt;Token&gt;&gt; {
         <span class="kw">if </span><span class="self">self</span>.read_index == <span class="self">self</span>.write_index {
             <span class="self">self</span>.fill(interner)<span class="question-mark">?</span>;
         }
@@ -474,7 +474,7 @@
         skip_n: usize,
         skip_line_terminators: bool,
         interner: <span class="kw-2">&amp;mut </span>Interner,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Token&gt;, ParseError&gt; {
+    ) -&gt; ParseResult&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Token&gt;&gt; {
         <span class="macro">assert!</span>(
             skip_n &lt;= MAX_PEEK_SKIP,
             <span class="string">&quot;you cannot skip more than {} elements&quot;</span>,

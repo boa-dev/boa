@@ -246,7 +246,7 @@
         expression::{
             left_hand_side::template::TaggedTemplateLiteral, primary::PrimaryExpression, Expression,
         },
-        AllowAwait, AllowYield, Cursor, ParseError, ParseResult, TokenParser,
+        AllowAwait, AllowYield, Cursor, OrAbrupt, ParseError, ParseResult, TokenParser,
     },
 };
 <span class="kw">use </span>boa_ast::{
@@ -303,7 +303,7 @@
 
         cursor.set_goal(InputElement::RegExp);
 
-        <span class="kw">let </span>token = cursor.peek(<span class="number">0</span>, interner)<span class="question-mark">?</span>.ok_or(ParseError::AbruptEnd)<span class="question-mark">?</span>;
+        <span class="kw">let </span>token = cursor.peek(<span class="number">0</span>, interner).or_abrupt()<span class="question-mark">?</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>lhs = <span class="kw">match </span>token.kind() {
             TokenKind::Keyword((Keyword::New | Keyword::Super, <span class="bool-val">true</span>)) =&gt; {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(ParseError::general(
@@ -312,10 +312,10 @@
                 ));
             }
             TokenKind::Keyword((Keyword::New, <span class="bool-val">false</span>)) =&gt; {
-                cursor.next(interner).expect(<span class="string">&quot;token disappeared&quot;</span>);
+                cursor.advance(interner);
 
                 <span class="kw">if </span>cursor.next_if(Punctuator::Dot, interner)<span class="question-mark">?</span>.is_some() {
-                    <span class="kw">let </span>token = cursor.next(interner)<span class="question-mark">?</span>.ok_or(ParseError::AbruptEnd)<span class="question-mark">?</span>;
+                    <span class="kw">let </span>token = cursor.next(interner).or_abrupt()<span class="question-mark">?</span>;
                     <span class="kw">match </span>token.kind() {
                         TokenKind::Identifier(Sym::TARGET) =&gt; {
                             <span class="kw">return </span><span class="prelude-val">Ok</span>(ast::Expression::NewTarget)
@@ -342,11 +342,11 @@
                 ast::Expression::from(New::from(call_node))
             }
             TokenKind::Keyword((Keyword::Super, <span class="kw">_</span>)) =&gt; {
-                cursor.next(interner).expect(<span class="string">&quot;token disappeared&quot;</span>);
-                <span class="kw">let </span>token = cursor.next(interner)<span class="question-mark">?</span>.ok_or(ParseError::AbruptEnd)<span class="question-mark">?</span>;
+                cursor.advance(interner);
+                <span class="kw">let </span>token = cursor.next(interner).or_abrupt()<span class="question-mark">?</span>;
                 <span class="kw">match </span>token.kind() {
                     TokenKind::Punctuator(Punctuator::Dot) =&gt; {
-                        <span class="kw">let </span>token = cursor.next(interner)<span class="question-mark">?</span>.ok_or(ParseError::AbruptEnd)<span class="question-mark">?</span>;
+                        <span class="kw">let </span>token = cursor.next(interner).or_abrupt()<span class="question-mark">?</span>;
                         <span class="kw">let </span>field = <span class="kw">match </span>token.kind() {
                             TokenKind::Identifier(name) =&gt; {
                                 SuperPropertyAccess::new(PropertyAccessField::from(<span class="kw-2">*</span>name))
@@ -407,7 +407,7 @@
                         .next(interner)<span class="question-mark">?
                         </span>.expect(<span class="string">&quot;dot punctuator token disappeared&quot;</span>); <span class="comment">// We move the parser forward.
 
-                    </span><span class="kw">let </span>token = cursor.next(interner)<span class="question-mark">?</span>.ok_or(ParseError::AbruptEnd)<span class="question-mark">?</span>;
+                    </span><span class="kw">let </span>token = cursor.next(interner).or_abrupt()<span class="question-mark">?</span>;
 
                     <span class="kw">let </span>access = <span class="kw">match </span>token.kind() {
                         TokenKind::Identifier(name) =&gt; SimplePropertyAccess::new(lhs, <span class="kw-2">*</span>name).into(),

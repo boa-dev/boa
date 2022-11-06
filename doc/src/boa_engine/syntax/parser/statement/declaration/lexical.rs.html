@@ -364,7 +364,7 @@
         cursor::{Cursor, SemicolonResult},
         expression::Initializer,
         statement::{ArrayBindingPattern, BindingIdentifier, ObjectBindingPattern},
-        AllowAwait, AllowIn, AllowYield, ParseError, ParseResult, TokenParser,
+        AllowAwait, AllowIn, AllowYield, OrAbrupt, ParseError, ParseResult, TokenParser,
     },
 };
 <span class="kw">use </span>ast::operations::bound_names;
@@ -417,7 +417,7 @@
 
     <span class="kw">fn </span>parse(<span class="self">self</span>, cursor: <span class="kw-2">&amp;mut </span>Cursor&lt;R&gt;, interner: <span class="kw-2">&amp;mut </span>Interner) -&gt; ParseResult&lt;<span class="self">Self</span>::Output&gt; {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;LexicalDeclaration&quot;</span>, <span class="string">&quot;Parsing&quot;</span>);
-        <span class="kw">let </span>tok = cursor.next(interner)<span class="question-mark">?</span>.ok_or(ParseError::AbruptEnd)<span class="question-mark">?</span>;
+        <span class="kw">let </span>tok = cursor.next(interner).or_abrupt()<span class="question-mark">?</span>;
 
         <span class="kw">match </span>tok.kind() {
             TokenKind::Keyword((Keyword::Const | Keyword::Let, <span class="bool-val">true</span>)) =&gt; <span class="prelude-val">Err</span>(ParseError::general(
@@ -510,7 +510,7 @@
                 <span class="kw">if </span>init_is_some || <span class="self">self</span>.loop_init {
                     decls.push(decl);
                 } <span class="kw">else </span>{
-                    <span class="kw">let </span>next = cursor.next(interner)<span class="question-mark">?</span>.ok_or(ParseError::AbruptEnd)<span class="question-mark">?</span>;
+                    <span class="kw">let </span>next = cursor.next(interner).or_abrupt()<span class="question-mark">?</span>;
                     <span class="kw">return </span><span class="prelude-val">Err</span>(ParseError::general(
                         <span class="string">&quot;Expected initializer for const declaration&quot;</span>,
                         next.span().start(),
@@ -541,11 +541,11 @@
                     <span class="kw">if </span>tk.kind() == <span class="kw-2">&amp;</span>TokenKind::Punctuator(Punctuator::Comma) =&gt;
                 {
                     <span class="comment">// We discard the comma
-                    </span><span class="kw">let </span>_comma = cursor.next(interner)<span class="question-mark">?</span>;
+                    </span>cursor.advance(interner);
                 }
                 SemicolonResult::NotFound(<span class="kw">_</span>) <span class="kw">if </span><span class="self">self</span>.loop_init =&gt; <span class="kw">break</span>,
                 SemicolonResult::NotFound(<span class="kw">_</span>) =&gt; {
-                    <span class="kw">let </span>next = cursor.next(interner)<span class="question-mark">?</span>.ok_or(ParseError::AbruptEnd)<span class="question-mark">?</span>;
+                    <span class="kw">let </span>next = cursor.next(interner).or_abrupt()<span class="question-mark">?</span>;
                     <span class="kw">return </span><span class="prelude-val">Err</span>(ParseError::expected(
                         [<span class="string">&quot;;&quot;</span>.to_owned(), <span class="string">&quot;line terminator&quot;</span>.to_owned()],
                         next.to_string(interner),
@@ -605,7 +605,7 @@
     <span class="kw">fn </span>parse(<span class="self">self</span>, cursor: <span class="kw-2">&amp;mut </span>Cursor&lt;R&gt;, interner: <span class="kw-2">&amp;mut </span>Interner) -&gt; ParseResult&lt;<span class="self">Self</span>::Output&gt; {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;LexicalBinding&quot;</span>, <span class="string">&quot;Parsing&quot;</span>);
 
-        <span class="kw">let </span>peek_token = cursor.peek(<span class="number">0</span>, interner)<span class="question-mark">?</span>.ok_or(ParseError::AbruptEnd)<span class="question-mark">?</span>;
+        <span class="kw">let </span>peek_token = cursor.peek(<span class="number">0</span>, interner).or_abrupt()<span class="question-mark">?</span>;
         <span class="kw">let </span>position = peek_token.span().start();
 
         <span class="kw">match </span>peek_token.kind() {

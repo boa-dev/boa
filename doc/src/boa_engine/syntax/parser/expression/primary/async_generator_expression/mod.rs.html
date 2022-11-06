@@ -179,10 +179,6 @@
 <span id="177">177</span>
 <span id="178">178</span>
 <span id="179">179</span>
-<span id="180">180</span>
-<span id="181">181</span>
-<span id="182">182</span>
-<span id="183">183</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Async Generator Expression Parser
 //!
 //! Implements `TokenParser` fo`AsyncGeneratorExpression`on and outputs
@@ -200,7 +196,7 @@
     parser::{
         expression::BindingIdentifier,
         function::{FormalParameters, FunctionBody},
-        name_in_lexically_declared_names, Cursor, ParseError, ParseResult, TokenParser,
+        name_in_lexically_declared_names, Cursor, OrAbrupt, ParseError, ParseResult, TokenParser,
     },
 };
 <span class="kw">use </span>boa_ast::{
@@ -256,11 +252,7 @@
             interner,
         )<span class="question-mark">?</span>;
 
-        <span class="kw">let </span>(name, has_binding_identifier) = <span class="kw">match </span>cursor
-            .peek(<span class="number">0</span>, interner)<span class="question-mark">?
-            </span>.ok_or(ParseError::AbruptEnd)<span class="question-mark">?
-            </span>.kind()
-        {
+        <span class="kw">let </span>(name, has_binding_identifier) = <span class="kw">match </span>cursor.peek(<span class="number">0</span>, interner).or_abrupt()<span class="question-mark">?</span>.kind() {
             TokenKind::Punctuator(Punctuator::OpenParen) =&gt; (<span class="self">self</span>.name, <span class="bool-val">false</span>),
             <span class="kw">_ </span>=&gt; (
                 <span class="prelude-val">Some</span>(BindingIdentifier::new(<span class="bool-val">true</span>, <span class="bool-val">true</span>).parse(cursor, interner)<span class="question-mark">?</span>),

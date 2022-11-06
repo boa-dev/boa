@@ -105,7 +105,7 @@
 </pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::syntax::{
     lexer::TokenKind,
     parser::{
-        expression::Expression, AllowAwait, AllowYield, Cursor, ParseError, ParseResult,
+        expression::Expression, AllowAwait, AllowYield, Cursor, OrAbrupt, ParseError, ParseResult,
         TokenParser,
     },
 };
@@ -149,7 +149,7 @@
     <span class="kw">fn </span>parse(<span class="self">self</span>, cursor: <span class="kw-2">&amp;mut </span>Cursor&lt;R&gt;, interner: <span class="kw-2">&amp;mut </span>Interner) -&gt; ParseResult&lt;<span class="self">Self</span>::Output&gt; {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;ExpressionStatement&quot;</span>, <span class="string">&quot;Parsing&quot;</span>);
 
-        <span class="kw">let </span>next_token = cursor.peek(<span class="number">0</span>, interner)<span class="question-mark">?</span>.ok_or(ParseError::AbruptEnd)<span class="question-mark">?</span>;
+        <span class="kw">let </span>next_token = cursor.peek(<span class="number">0</span>, interner).or_abrupt()<span class="question-mark">?</span>;
         <span class="kw">match </span>next_token.kind() {
             TokenKind::Keyword((
                 Keyword::Function | Keyword::Class | Keyword::Async | Keyword::Let,
@@ -167,7 +167,7 @@
                 ));
             }
             TokenKind::Keyword((Keyword::Async, <span class="bool-val">false</span>)) =&gt; {
-                <span class="kw">let </span>next_token = cursor.peek(<span class="number">1</span>, interner)<span class="question-mark">?</span>.ok_or(ParseError::AbruptEnd)<span class="question-mark">?</span>;
+                <span class="kw">let </span>next_token = cursor.peek(<span class="number">1</span>, interner).or_abrupt()<span class="question-mark">?</span>;
                 <span class="kw">match </span>next_token.kind() {
                     TokenKind::Keyword((Keyword::Function, <span class="bool-val">true</span>)) =&gt; {
                         <span class="kw">return </span><span class="prelude-val">Err</span>(ParseError::general(
@@ -185,7 +185,7 @@
                 }
             }
             TokenKind::Keyword((Keyword::Let, <span class="bool-val">false</span>)) =&gt; {
-                <span class="kw">let </span>next_token = cursor.peek(<span class="number">1</span>, interner)<span class="question-mark">?</span>.ok_or(ParseError::AbruptEnd)<span class="question-mark">?</span>;
+                <span class="kw">let </span>next_token = cursor.peek(<span class="number">1</span>, interner).or_abrupt()<span class="question-mark">?</span>;
                 <span class="kw">if </span>next_token.kind() == <span class="kw-2">&amp;</span>TokenKind::Punctuator(Punctuator::OpenBracket) {
                     <span class="kw">return </span><span class="prelude-val">Err</span>(ParseError::general(
                         <span class="string">&quot;expected statement&quot;</span>,

@@ -124,7 +124,7 @@
         <span class="kw">if let </span>SemicolonResult::Found(tok) = cursor.peek_semicolon(interner)<span class="question-mark">? </span>{
             <span class="kw">match </span>tok {
                 <span class="prelude-val">Some</span>(tok) <span class="kw">if </span>tok.kind() == <span class="kw-2">&amp;</span>TokenKind::Punctuator(Punctuator::Semicolon) =&gt; {
-                    <span class="kw">let </span>_next = cursor.next(interner)<span class="question-mark">?</span>;
+                    cursor.advance(interner);
                 }
                 <span class="kw">_ </span>=&gt; {}
             }

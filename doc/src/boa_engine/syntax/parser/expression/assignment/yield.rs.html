@@ -130,7 +130,7 @@
 </span><span class="kw">use </span><span class="kw">super</span>::AssignmentExpression;
 <span class="kw">use </span><span class="kw">crate</span>::syntax::{
     lexer::TokenKind,
-    parser::{AllowAwait, AllowIn, Cursor, ParseError, ParseResult, TokenParser},
+    parser::{AllowAwait, AllowIn, Cursor, OrAbrupt, ParseResult, TokenParser},
 };
 <span class="kw">use </span>boa_ast::{expression::Yield, Expression, Keyword, Punctuator};
 <span class="kw">use </span>boa_interner::Interner;
@@ -187,10 +187,10 @@
             <span class="kw">return </span><span class="prelude-val">Ok</span>(Yield::new(<span class="prelude-val">None</span>, <span class="bool-val">false</span>).into());
         }
 
-        <span class="kw">let </span>token = cursor.peek(<span class="number">0</span>, interner)<span class="question-mark">?</span>.ok_or(ParseError::AbruptEnd)<span class="question-mark">?</span>;
+        <span class="kw">let </span>token = cursor.peek(<span class="number">0</span>, interner).or_abrupt()<span class="question-mark">?</span>;
         <span class="kw">match </span>token.kind() {
             TokenKind::Punctuator(Punctuator::Mul) =&gt; {
-                cursor.next(interner)<span class="question-mark">?</span>.expect(<span class="string">&quot;token disappeared&quot;</span>);
+                cursor.advance(interner);
                 <span class="kw">let </span>expr = AssignmentExpression::new(<span class="prelude-val">None</span>, <span class="self">self</span>.allow_in, <span class="bool-val">true</span>, <span class="self">self</span>.allow_await)
                     .parse(cursor, interner)<span class="question-mark">?</span>;
                 <span class="prelude-val">Ok</span>(Yield::new(<span class="prelude-val">Some</span>(expr), <span class="bool-val">true</span>).into())

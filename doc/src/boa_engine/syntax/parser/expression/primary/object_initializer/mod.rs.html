@@ -952,45 +952,6 @@
 <span id="950">950</span>
 <span id="951">951</span>
 <span id="952">952</span>
-<span id="953">953</span>
-<span id="954">954</span>
-<span id="955">955</span>
-<span id="956">956</span>
-<span id="957">957</span>
-<span id="958">958</span>
-<span id="959">959</span>
-<span id="960">960</span>
-<span id="961">961</span>
-<span id="962">962</span>
-<span id="963">963</span>
-<span id="964">964</span>
-<span id="965">965</span>
-<span id="966">966</span>
-<span id="967">967</span>
-<span id="968">968</span>
-<span id="969">969</span>
-<span id="970">970</span>
-<span id="971">971</span>
-<span id="972">972</span>
-<span id="973">973</span>
-<span id="974">974</span>
-<span id="975">975</span>
-<span id="976">976</span>
-<span id="977">977</span>
-<span id="978">978</span>
-<span id="979">979</span>
-<span id="980">980</span>
-<span id="981">981</span>
-<span id="982">982</span>
-<span id="983">983</span>
-<span id="984">984</span>
-<span id="985">985</span>
-<span id="986">986</span>
-<span id="987">987</span>
-<span id="988">988</span>
-<span id="989">989</span>
-<span id="990">990</span>
-<span id="991">991</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Object initializer parsing.
 //!
 //! More information:
@@ -1008,8 +969,8 @@
     parser::{
         expression::{identifiers::IdentifierReference, AssignmentExpression},
         function::{FormalParameter, FormalParameters, FunctionBody, UniqueFormalParameters},
-        name_in_lexically_declared_names, AllowAwait, AllowIn, AllowYield, Cursor, ParseError,
-        ParseResult, TokenParser,
+        name_in_lexically_declared_names, AllowAwait, AllowIn, AllowYield, Cursor, OrAbrupt,
+        ParseError, ParseResult, TokenParser,
     },
 };
 <span class="kw">use </span>boa_ast::{
@@ -1082,7 +1043,7 @@
             }
 
             <span class="kw">if </span>cursor.next_if(Punctuator::Comma, interner)<span class="question-mark">?</span>.is_none() {
-                <span class="kw">let </span>next_token = cursor.next(interner)<span class="question-mark">?</span>.ok_or(ParseError::AbruptEnd)<span class="question-mark">?</span>;
+                <span class="kw">let </span>next_token = cursor.next(interner).or_abrupt()<span class="question-mark">?</span>;
                 <span class="kw">return </span><span class="prelude-val">Err</span>(ParseError::expected(
                     [<span class="string">&quot;,&quot;</span>.to_owned(), <span class="string">&quot;}&quot;</span>.to_owned()],
                     next_token.to_string(interner),
@@ -1131,11 +1092,7 @@
     <span class="kw">fn </span>parse(<span class="self">self</span>, cursor: <span class="kw-2">&amp;mut </span>Cursor&lt;R&gt;, interner: <span class="kw-2">&amp;mut </span>Interner) -&gt; ParseResult&lt;<span class="self">Self</span>::Output&gt; {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;PropertyDefinition&quot;</span>, <span class="string">&quot;Parsing&quot;</span>);
 
-        <span class="kw">match </span>cursor
-            .peek(<span class="number">1</span>, interner)<span class="question-mark">?
-            </span>.ok_or(ParseError::AbruptEnd)<span class="question-mark">?
-            </span>.kind()
-        {
+        <span class="kw">match </span>cursor.peek(<span class="number">1</span>, interner).or_abrupt()<span class="question-mark">?</span>.kind() {
             TokenKind::Punctuator(Punctuator::CloseBlock | Punctuator::Comma) =&gt; {
                 <span class="kw">let </span>ident = IdentifierReference::new(<span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await)
                     .parse(cursor, interner)<span class="question-mark">?</span>;
@@ -1160,13 +1117,10 @@
 
         <span class="comment">//Async [AsyncMethod, AsyncGeneratorMethod] object methods
         </span><span class="kw">let </span>is_keyword = !<span class="macro">matches!</span>(
-            cursor
-                .peek(<span class="number">1</span>, interner)<span class="question-mark">?
-                </span>.ok_or(ParseError::AbruptEnd)<span class="question-mark">?
-                </span>.kind(),
+            cursor.peek(<span class="number">1</span>, interner).or_abrupt()<span class="question-mark">?</span>.kind(),
             TokenKind::Punctuator(Punctuator::OpenParen | Punctuator::Colon)
         );
-        <span class="kw">let </span>token = cursor.peek(<span class="number">0</span>, interner)<span class="question-mark">?</span>.ok_or(ParseError::AbruptEnd)<span class="question-mark">?</span>;
+        <span class="kw">let </span>token = cursor.peek(<span class="number">0</span>, interner).or_abrupt()<span class="question-mark">?</span>;
         <span class="kw">match </span>token.kind() {
             TokenKind::Keyword((Keyword::Async, <span class="bool-val">true</span>)) <span class="kw">if </span>is_keyword =&gt; {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(ParseError::general(
@@ -1175,10 +1129,10 @@
                 ));
             }
             TokenKind::Keyword((Keyword::Async, <span class="bool-val">false</span>)) <span class="kw">if </span>is_keyword =&gt; {
-                cursor.next(interner)<span class="question-mark">?</span>.expect(<span class="string">&quot;token disappeared&quot;</span>);
+                cursor.advance(interner);
                 cursor.peek_expect_no_lineterminator(<span class="number">0</span>, <span class="string">&quot;Async object methods&quot;</span>, interner)<span class="question-mark">?</span>;
 
-                <span class="kw">let </span>token = cursor.peek(<span class="number">0</span>, interner)<span class="question-mark">?</span>.ok_or(ParseError::AbruptEnd)<span class="question-mark">?</span>;
+                <span class="kw">let </span>token = cursor.peek(<span class="number">0</span>, interner).or_abrupt()<span class="question-mark">?</span>;
                 <span class="kw">let </span>position = token.span().start();
 
                 <span class="kw">if let </span>TokenKind::Punctuator(Punctuator::Mul) = token.kind() {
@@ -1231,17 +1185,8 @@
             <span class="kw">_ </span>=&gt; {}
         }
 
-        <span class="kw">if </span>cursor
-            .peek(<span class="number">0</span>, interner)<span class="question-mark">?
-            </span>.ok_or(ParseError::AbruptEnd)<span class="question-mark">?
-            </span>.kind()
-            == <span class="kw-2">&amp;</span>TokenKind::Punctuator(Punctuator::Mul)
-        {
-            <span class="kw">let </span>position = cursor
-                .peek(<span class="number">0</span>, interner)<span class="question-mark">?
-                </span>.ok_or(ParseError::AbruptEnd)<span class="question-mark">?
-                </span>.span()
-                .start();
+        <span class="kw">if </span>cursor.peek(<span class="number">0</span>, interner).or_abrupt()<span class="question-mark">?</span>.kind() == <span class="kw-2">&amp;</span>TokenKind::Punctuator(Punctuator::Mul) {
+            <span class="kw">let </span>position = cursor.peek(<span class="number">0</span>, interner).or_abrupt()<span class="question-mark">?</span>.span().start();
             <span class="kw">let </span>(class_element_name, method) =
                 GeneratorMethod::new(<span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await).parse(cursor, interner)<span class="question-mark">?</span>;
 
@@ -1276,20 +1221,13 @@
             <span class="kw">return </span><span class="prelude-val">Ok</span>(property::PropertyDefinition::Property(property_name, value));
         }
 
-        <span class="kw">let </span>ordinary_method = cursor
-            .peek(<span class="number">0</span>, interner)<span class="question-mark">?
-            </span>.ok_or(ParseError::AbruptEnd)<span class="question-mark">?
-            </span>.kind()
+        <span class="kw">let </span>ordinary_method = cursor.peek(<span class="number">0</span>, interner).or_abrupt()<span class="question-mark">?</span>.kind()
             == <span class="kw-2">&amp;</span>TokenKind::Punctuator(Punctuator::OpenParen);
 
         <span class="kw">match </span>property_name {
             <span class="comment">// MethodDefinition[?Yield, ?Await] -&gt; get ClassElementName[?Yield, ?Await] ( ) { FunctionBody[~Yield, ~Await] }
             </span>property::PropertyName::Literal(str) <span class="kw">if </span>str == Sym::GET &amp;&amp; !ordinary_method =&gt; {
-                <span class="kw">let </span>position = cursor
-                    .peek(<span class="number">0</span>, interner)<span class="question-mark">?
-                    </span>.ok_or(ParseError::AbruptEnd)<span class="question-mark">?
-                    </span>.span()
-                    .start();
+                <span class="kw">let </span>position = cursor.peek(<span class="number">0</span>, interner).or_abrupt()<span class="question-mark">?</span>.span().start();
 
                 property_name = PropertyName::new(<span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await)
                     .parse(cursor, interner)<span class="question-mark">?</span>;
@@ -1500,10 +1438,10 @@
     <span class="kw">fn </span>parse(<span class="self">self</span>, cursor: <span class="kw-2">&amp;mut </span>Cursor&lt;R&gt;, interner: <span class="kw-2">&amp;mut </span>Interner) -&gt; ParseResult&lt;<span class="self">Self</span>::Output&gt; {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;PropertyName&quot;</span>, <span class="string">&quot;Parsing&quot;</span>);
 
-        <span class="kw">let </span>token = cursor.peek(<span class="number">0</span>, interner)<span class="question-mark">?</span>.ok_or(ParseError::AbruptEnd)<span class="question-mark">?</span>;
+        <span class="kw">let </span>token = cursor.peek(<span class="number">0</span>, interner).or_abrupt()<span class="question-mark">?</span>;
         <span class="kw">let </span>name = <span class="kw">match </span>token.kind() {
             TokenKind::Punctuator(Punctuator::OpenBracket) =&gt; {
-                cursor.next(interner).expect(<span class="string">&quot;token disappeared&quot;</span>);
+                cursor.advance(interner);
                 <span class="kw">let </span>node =
                     AssignmentExpression::new(<span class="prelude-val">None</span>, <span class="bool-val">false</span>, <span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await)
                         .parse(cursor, interner)<span class="question-mark">?</span>;
@@ -1527,7 +1465,7 @@
             },
             <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(ParseError::AbruptEnd),
         };
-        cursor.next(interner).expect(<span class="string">&quot;token disappeared&quot;</span>);
+        cursor.advance(interner);
         <span class="prelude-val">Ok</span>(name)
     }
 }
@@ -1567,14 +1505,10 @@
     <span class="kw">fn </span>parse(<span class="self">self</span>, cursor: <span class="kw-2">&amp;mut </span>Cursor&lt;R&gt;, interner: <span class="kw-2">&amp;mut </span>Interner) -&gt; ParseResult&lt;<span class="self">Self</span>::Output&gt; {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;ClassElementName&quot;</span>, <span class="string">&quot;Parsing&quot;</span>);
 
-        <span class="kw">match </span>cursor
-            .peek(<span class="number">0</span>, interner)<span class="question-mark">?
-            </span>.ok_or(ParseError::AbruptEnd)<span class="question-mark">?
-            </span>.kind()
-        {
+        <span class="kw">match </span>cursor.peek(<span class="number">0</span>, interner).or_abrupt()<span class="question-mark">?</span>.kind() {
             TokenKind::PrivateIdentifier(ident) =&gt; {
                 <span class="kw">let </span>ident = <span class="kw-2">*</span>ident;
-                cursor.next(interner).expect(<span class="string">&quot;token disappeared&quot;</span>);
+                cursor.advance(interner);
                 <span class="prelude-val">Ok</span>(property::ClassElementName::PrivateIdentifier(ident))
             }
             <span class="kw">_ </span>=&gt; <span class="prelude-val">Ok</span>(property::ClassElementName::PropertyName(
@@ -1675,11 +1609,7 @@
         <span class="kw">let </span>class_element_name =
             ClassElementName::new(<span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await).parse(cursor, interner)<span class="question-mark">?</span>;
 
-        <span class="kw">let </span>params_start_position = cursor
-            .peek(<span class="number">0</span>, interner)<span class="question-mark">?
-            </span>.ok_or(ParseError::AbruptEnd)<span class="question-mark">?
-            </span>.span()
-            .start();
+        <span class="kw">let </span>params_start_position = cursor.peek(<span class="number">0</span>, interner).or_abrupt()<span class="question-mark">?</span>.span().start();
 
         <span class="kw">let </span>params = UniqueFormalParameters::new(<span class="bool-val">true</span>, <span class="bool-val">false</span>).parse(cursor, interner)<span class="question-mark">?</span>;
 
@@ -1771,11 +1701,7 @@
         <span class="kw">let </span>name =
             ClassElementName::new(<span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await).parse(cursor, interner)<span class="question-mark">?</span>;
 
-        <span class="kw">let </span>params_start_position = cursor
-            .peek(<span class="number">0</span>, interner)<span class="question-mark">?
-            </span>.ok_or(ParseError::AbruptEnd)<span class="question-mark">?
-            </span>.span()
-            .start();
+        <span class="kw">let </span>params_start_position = cursor.peek(<span class="number">0</span>, interner).or_abrupt()<span class="question-mark">?</span>.span().start();
 
         <span class="kw">let </span>params = UniqueFormalParameters::new(<span class="bool-val">true</span>, <span class="bool-val">true</span>).parse(cursor, interner)<span class="question-mark">?</span>;
 
@@ -1881,11 +1807,7 @@
         <span class="kw">let </span>class_element_name =
             ClassElementName::new(<span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await).parse(cursor, interner)<span class="question-mark">?</span>;
 
-        <span class="kw">let </span>params_start_position = cursor
-            .peek(<span class="number">0</span>, interner)<span class="question-mark">?
-            </span>.ok_or(ParseError::AbruptEnd)<span class="question-mark">?
-            </span>.span()
-            .start();
+        <span class="kw">let </span>params_start_position = cursor.peek(<span class="number">0</span>, interner).or_abrupt()<span class="question-mark">?</span>.span().start();
 
         <span class="kw">let </span>params = UniqueFormalParameters::new(<span class="bool-val">false</span>, <span class="bool-val">true</span>).parse(cursor, interner)<span class="question-mark">?</span>;
 

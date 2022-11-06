@@ -152,8 +152,8 @@
 <span class="kw">use </span><span class="kw">crate</span>::syntax::{
     lexer::TokenKind,
     parser::{
-        expression::AssignmentExpression, AllowAwait, AllowYield, Cursor, ParseError, ParseResult,
-        TokenParser,
+        expression::AssignmentExpression, AllowAwait, AllowYield, Cursor, OrAbrupt, ParseError,
+        ParseResult, TokenParser,
     },
 };
 <span class="kw">use </span>boa_ast::{
@@ -206,17 +206,17 @@
         <span class="kw">let </span><span class="kw-2">mut </span>last_spread = <span class="bool-val">false</span>;
 
         <span class="kw">loop </span>{
-            <span class="kw">let </span>token = cursor.peek(<span class="number">0</span>, interner)<span class="question-mark">?</span>.ok_or(ParseError::AbruptEnd)<span class="question-mark">?</span>;
+            <span class="kw">let </span>token = cursor.peek(<span class="number">0</span>, interner).or_abrupt()<span class="question-mark">?</span>;
             <span class="kw">match </span>token.kind() {
                 TokenKind::Punctuator(Punctuator::CloseBracket) =&gt; {
-                    cursor.next(interner).expect(<span class="string">&quot;token disappeared&quot;</span>);
+                    cursor.advance(interner);
                     <span class="kw">break</span>;
                 }
                 TokenKind::Punctuator(Punctuator::Comma) <span class="kw">if </span>next_comma =&gt; {
-                    cursor.next(interner).expect(<span class="string">&quot;token disappeared&quot;</span>);
+                    cursor.advance(interner);
 
                     <span class="kw">if </span>last_spread {
-                        <span class="kw">let </span>token = cursor.peek(<span class="number">0</span>, interner)<span class="question-mark">?</span>.ok_or(ParseError::AbruptEnd)<span class="question-mark">?</span>;
+                        <span class="kw">let </span>token = cursor.peek(<span class="number">0</span>, interner).or_abrupt()<span class="question-mark">?</span>;
                         <span class="kw">if </span>token.kind() == <span class="kw-2">&amp;</span>TokenKind::Punctuator(Punctuator::CloseBracket) {
                             has_trailing_comma_spread = <span class="bool-val">true</span>;
                         }
@@ -225,7 +225,7 @@
                     next_comma = <span class="bool-val">false</span>;
                 }
                 TokenKind::Punctuator(Punctuator::Comma) =&gt; {
-                    cursor.next(interner).expect(<span class="string">&quot;token disappeared&quot;</span>);
+                    cursor.advance(interner);
                     elements.push(<span class="prelude-val">None</span>);
                 }
                 TokenKind::Punctuator(Punctuator::Spread) <span class="kw">if </span>next_comma =&gt; {
@@ -236,7 +236,7 @@
                     ));
                 }
                 TokenKind::Punctuator(Punctuator::Spread) =&gt; {
-                    cursor.next(interner).expect(<span class="string">&quot;token disappeared&quot;</span>);
+                    cursor.advance(interner);
                     <span class="kw">let </span>node =
                         AssignmentExpression::new(<span class="prelude-val">None</span>, <span class="bool-val">true</span>, <span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await)
                             .parse(cursor, interner)<span class="question-mark">?</span>;

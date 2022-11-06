@@ -299,24 +299,6 @@
 <span id="297">297</span>
 <span id="298">298</span>
 <span id="299">299</span>
-<span id="300">300</span>
-<span id="301">301</span>
-<span id="302">302</span>
-<span id="303">303</span>
-<span id="304">304</span>
-<span id="305">305</span>
-<span id="306">306</span>
-<span id="307">307</span>
-<span id="308">308</span>
-<span id="309">309</span>
-<span id="310">310</span>
-<span id="311">311</span>
-<span id="312">312</span>
-<span id="313">313</span>
-<span id="314">314</span>
-<span id="315">315</span>
-<span id="316">316</span>
-<span id="317">317</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Assignment operator parsing.
 //!
 //! More information:
@@ -341,17 +323,16 @@
             conditional::ConditionalExpression,
             r#yield::YieldExpression,
         },
-        name_in_lexically_declared_names, AllowAwait, AllowIn, AllowYield, Cursor, ParseError,
-        ParseResult, TokenParser,
+        name_in_lexically_declared_names, AllowAwait, AllowIn, AllowYield, Cursor, OrAbrupt,
+        ParseError, ParseResult, TokenParser,
     },
 };
-<span class="kw">use </span>ast::operations::{bound_names, contains, top_level_lexically_declared_names, ContainsSymbol};
 <span class="kw">use </span>boa_ast::{
-    <span class="self">self </span><span class="kw">as </span>ast,
     expression::{
         operator::assign::{Assign, AssignOp, AssignTarget},
         Identifier,
     },
+    operations::{bound_names, contains, top_level_lexically_declared_names, ContainsSymbol},
     Expression, Keyword, Punctuator,
 };
 <span class="kw">use </span>boa_interner::Interner;
@@ -421,11 +402,7 @@
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;AssignmentExpression&quot;</span>, <span class="string">&quot;Parsing&quot;</span>);
         cursor.set_goal(InputElement::RegExp);
 
-        <span class="kw">match </span>cursor
-            .peek(<span class="number">0</span>, interner)<span class="question-mark">?
-            </span>.ok_or(ParseError::AbruptEnd)<span class="question-mark">?
-            </span>.kind()
-        {
+        <span class="kw">match </span>cursor.peek(<span class="number">0</span>, interner).or_abrupt()<span class="question-mark">?</span>.kind() {
             <span class="comment">// [+Yield]YieldExpression[?In, ?Await]
             </span>TokenKind::Keyword((Keyword::Yield, <span class="kw">_</span>)) <span class="kw">if </span><span class="self">self</span>.allow_yield.<span class="number">0 </span>=&gt; {
                 <span class="kw">return </span>YieldExpression::new(<span class="self">self</span>.allow_in, <span class="self">self</span>.allow_await)
@@ -437,10 +414,7 @@
 
                 <span class="comment">// Because we already peeked the identifier token, there may be a line terminator before the identifier token.
                 // In that case we have to skip an additional token on the next peek.
-                </span><span class="kw">let </span>skip_n = <span class="kw">if </span>cursor
-                    .peek_is_line_terminator(<span class="number">0</span>, interner)<span class="question-mark">?
-                    </span>.ok_or(ParseError::AbruptEnd)<span class="question-mark">?
-                </span>{
+                </span><span class="kw">let </span>skip_n = <span class="kw">if </span>cursor.peek_is_line_terminator(<span class="number">0</span>, interner).or_abrupt()<span class="question-mark">? </span>{
                     <span class="number">2
                 </span>} <span class="kw">else </span>{
                     <span class="number">1
@@ -462,23 +436,17 @@
             }
             <span class="comment">//  AsyncArrowFunction[?In, ?Yield, ?Await]
             </span>TokenKind::Keyword((Keyword::Async, <span class="kw">_</span>)) =&gt; {
-                <span class="kw">let </span>skip_n = <span class="kw">if </span>cursor
-                    .peek_is_line_terminator(<span class="number">0</span>, interner)<span class="question-mark">?
-                    </span>.ok_or(ParseError::AbruptEnd)<span class="question-mark">?
-                </span>{
+                <span class="kw">let </span>skip_n = <span class="kw">if </span>cursor.peek_is_line_terminator(<span class="number">0</span>, interner).or_abrupt()<span class="question-mark">? </span>{
                     <span class="number">2
                 </span>} <span class="kw">else </span>{
                     <span class="number">1
                 </span>};
 
                 <span class="kw">if </span>!cursor
-                    .peek_is_line_terminator(skip_n, interner)<span class="question-mark">?
-                    </span>.ok_or(ParseError::AbruptEnd)<span class="question-mark">?
+                    .peek_is_line_terminator(skip_n, interner)
+                    .or_abrupt()<span class="question-mark">?
                     </span>&amp;&amp; <span class="macro">matches!</span>(
-                        cursor
-                            .peek(<span class="number">1</span>, interner)<span class="question-mark">?
-                            </span>.ok_or(ParseError::AbruptEnd)<span class="question-mark">?
-                            </span>.kind(),
+                        cursor.peek(<span class="number">1</span>, interner).or_abrupt()<span class="question-mark">?</span>.kind(),
                         TokenKind::Identifier(<span class="kw">_</span>)
                             | TokenKind::Keyword((Keyword::Yield | Keyword::Await, <span class="kw">_</span>))
                             | TokenKind::Punctuator(Punctuator::OpenParen)
@@ -496,11 +464,7 @@
 
         cursor.set_goal(InputElement::Div);
 
-        <span class="kw">let </span>position = cursor
-            .peek(<span class="number">0</span>, interner)<span class="question-mark">?
-            </span>.ok_or(ParseError::AbruptEnd)<span class="question-mark">?
-            </span>.span()
-            .start();
+        <span class="kw">let </span>position = cursor.peek(<span class="number">0</span>, interner).or_abrupt()<span class="question-mark">?</span>.span().start();
         <span class="kw">let </span><span class="kw-2">mut </span>lhs = ConditionalExpression::new(
             <span class="self">self</span>.name,
             <span class="self">self</span>.allow_in,
@@ -566,7 +530,7 @@
                 position,
             )<span class="question-mark">?</span>;
 
-            <span class="kw">return </span><span class="prelude-val">Ok</span>(ast::function::ArrowFunction::new(<span class="self">self</span>.name, parameters, body).into());
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(boa_ast::function::ArrowFunction::new(<span class="self">self</span>.name, parameters, body).into());
         }
 
         <span class="comment">// Review if we are trying to assign to an invalid left hand side expression.
@@ -579,7 +543,7 @@
                         }
                     }
 
-                    cursor.next(interner)<span class="question-mark">?</span>.expect(<span class="string">&quot;= token vanished&quot;</span>);
+                    cursor.advance(interner);
                     cursor.set_goal(InputElement::RegExp);
 
                     <span class="kw">if let </span><span class="prelude-val">Some</span>(target) =
@@ -604,7 +568,7 @@
                         }
                     }
 
-                    cursor.next(interner)<span class="question-mark">?</span>.expect(<span class="string">&quot;token vanished&quot;</span>);
+                    cursor.advance(interner);
                     <span class="kw">if let </span><span class="prelude-val">Some</span>(target) =
                         AssignTarget::from_expression(<span class="kw-2">&amp;</span>lhs, cursor.strict_mode(), <span class="bool-val">false</span>)
                     {

@@ -148,9 +148,6 @@
 <span id="146">146</span>
 <span id="147">147</span>
 <span id="148">148</span>
-<span id="149">149</span>
-<span id="150">150</span>
-<span id="151">151</span>
 </pre><pre class="rust"><code><span class="attribute">#[cfg(test)]
 </span><span class="kw">mod </span>tests;
 
@@ -159,7 +156,8 @@
     parser::{
         expression::BindingIdentifier,
         function::{FormalParameters, FunctionBody},
-        name_in_lexically_declared_names, AllowYield, Cursor, ParseError, ParseResult, TokenParser,
+        name_in_lexically_declared_names, AllowYield, Cursor, OrAbrupt, ParseError, ParseResult,
+        TokenParser,
     },
 };
 <span class="kw">use </span>boa_ast::{
@@ -215,11 +213,7 @@
             interner,
         )<span class="question-mark">?</span>;
 
-        <span class="kw">let </span>(name, has_binding_identifier) = <span class="kw">match </span>cursor
-            .peek(<span class="number">0</span>, interner)<span class="question-mark">?
-            </span>.ok_or(ParseError::AbruptEnd)<span class="question-mark">?
-            </span>.kind()
-        {
+        <span class="kw">let </span>(name, has_binding_identifier) = <span class="kw">match </span>cursor.peek(<span class="number">0</span>, interner).or_abrupt()<span class="question-mark">?</span>.kind() {
             TokenKind::Punctuator(Punctuator::OpenParen) =&gt; (<span class="self">self</span>.name, <span class="bool-val">false</span>),
             <span class="kw">_ </span>=&gt; (
                 <span class="prelude-val">Some</span>(BindingIdentifier::new(<span class="self">self</span>.allow_yield, <span class="bool-val">true</span>).parse(cursor, interner)<span class="question-mark">?</span>),

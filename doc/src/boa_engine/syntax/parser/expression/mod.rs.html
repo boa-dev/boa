@@ -751,12 +751,6 @@
 <span id="749">749</span>
 <span id="750">750</span>
 <span id="751">751</span>
-<span id="752">752</span>
-<span id="753">753</span>
-<span id="754">754</span>
-<span id="755">755</span>
-<span id="756">756</span>
-<span id="757">757</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Expression parsing.
 //!
 //! More information:
@@ -782,10 +776,9 @@
     lexer::{InputElement, TokenKind},
     parser::{
         expression::assignment::ExponentiationExpression, AllowAwait, AllowIn, AllowYield, Cursor,
-        ParseError, ParseResult, TokenParser,
+        OrAbrupt, ParseError, ParseResult, TokenParser,
     },
 };
-
 <span class="kw">use </span>boa_ast::{
     <span class="self">self </span><span class="kw">as </span>ast,
     expression::{
@@ -802,6 +795,7 @@
 <span class="kw">use </span>std::io::Read;
 
 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">use </span><span class="self">self</span>::{assignment::AssignmentExpression, primary::Initializer};
+
 <span class="kw">pub</span>(<span class="kw">in </span><span class="kw">crate</span>::syntax::parser) <span class="kw">use </span>{
     identifiers::{BindingIdentifier, LabelIdentifier},
     left_hand_side::LeftHandSideExpression,
@@ -847,7 +841,7 @@
                 <span class="kw">while let </span><span class="prelude-val">Some</span>(tok) = cursor.peek(<span class="number">0</span>, interner)<span class="question-mark">? </span>{
                     <span class="kw">match </span><span class="kw-2">*</span>tok.kind() {
                         TokenKind::Punctuator(op) <span class="kw">if </span>$( op == <span class="macro-nonterminal">$op </span>)||* =&gt; {
-                            <span class="kw">let </span>_next = cursor.next(interner).expect(<span class="string">&quot;token disappeared&quot;</span>);
+                            cursor.advance(interner);
                             lhs = Binary::new(
                                 op.as_binary_op().expect(<span class="string">&quot;Could not get binary operation.&quot;</span>),
                                 lhs,
@@ -918,25 +912,19 @@
         <span class="kw">while let </span><span class="prelude-val">Some</span>(tok) = cursor.peek(<span class="number">0</span>, interner)<span class="question-mark">? </span>{
             <span class="kw">match </span><span class="kw-2">*</span>tok.kind() {
                 TokenKind::Punctuator(Punctuator::Comma) =&gt; {
-                    <span class="kw">if </span>cursor
-                        .peek(<span class="number">1</span>, interner)<span class="question-mark">?
-                        </span>.ok_or(ParseError::AbruptEnd)<span class="question-mark">?
-                        </span>.kind()
+                    <span class="kw">if </span>cursor.peek(<span class="number">1</span>, interner).or_abrupt()<span class="question-mark">?</span>.kind()
                         == <span class="kw-2">&amp;</span>TokenKind::Punctuator(Punctuator::CloseParen)
                     {
                         <span class="kw">return </span><span class="prelude-val">Ok</span>(lhs);
                     }
 
-                    <span class="kw">if </span>cursor
-                        .peek(<span class="number">1</span>, interner)<span class="question-mark">?
-                        </span>.ok_or(ParseError::AbruptEnd)<span class="question-mark">?
-                        </span>.kind()
+                    <span class="kw">if </span>cursor.peek(<span class="number">1</span>, interner).or_abrupt()<span class="question-mark">?</span>.kind()
                         == <span class="kw-2">&amp;</span>TokenKind::Punctuator(Punctuator::Spread)
                     {
                         <span class="kw">return </span><span class="prelude-val">Ok</span>(lhs);
                     }
 
-                    <span class="kw">let </span>_next = cursor.next(interner).expect(<span class="string">&quot;token disappeared&quot;</span>);
+                    cursor.advance(interner);
 
                     lhs = Binary::new(
                         Punctuator::Comma
@@ -1050,7 +1038,7 @@
                             <span class="string">&quot;logical expression (cannot use &#39;??&#39; without parentheses within &#39;||&#39; or &#39;&amp;&amp;&#39;)&quot;</span>,
                         ));
                     }
-                    <span class="kw">let </span>_next = cursor.next(interner)<span class="question-mark">?</span>.expect(<span class="string">&quot;&#39;&amp;&amp;&#39; expected&quot;</span>);
+                    cursor.advance(interner);
                     previous = PreviousExpr::Logical;
                     <span class="kw">let </span>rhs = BitwiseORExpression::new(
                         <span class="self">self</span>.name,
@@ -1071,7 +1059,7 @@
                             <span class="string">&quot;logical expression (cannot use &#39;??&#39; without parentheses within &#39;||&#39; or &#39;&amp;&amp;&#39;)&quot;</span>,
                         ));
                     }
-                    <span class="kw">let </span>_next = cursor.next(interner)<span class="question-mark">?</span>.expect(<span class="string">&quot;&#39;||&#39; expected&quot;</span>);
+                    cursor.advance(interner);
                     previous = PreviousExpr::Logical;
                     <span class="kw">let </span>rhs = <span class="self">Self</span>::with_previous(
                         <span class="self">self</span>.name,
@@ -1093,7 +1081,7 @@
                             <span class="string">&quot;cannot use &#39;??&#39; unparenthesized within &#39;||&#39; or &#39;&amp;&amp;&#39;&quot;</span>,
                         ));
                     }
-                    <span class="kw">let </span>_next = cursor.next(interner)<span class="question-mark">?</span>.expect(<span class="string">&quot;&#39;??&#39; expected&quot;</span>);
+                    cursor.advance(interner);
                     previous = PreviousExpr::Coalesce;
                     <span class="kw">let </span>rhs = BitwiseORExpression::new(
                         <span class="self">self</span>.name,
@@ -1339,7 +1327,7 @@
                         || op == Punctuator::LessThanOrEq
                         || op == Punctuator::GreaterThanOrEq =&gt;
                 {
-                    <span class="kw">let </span>_next = cursor.next(interner).expect(<span class="string">&quot;token disappeared&quot;</span>);
+                    cursor.advance(interner);
                     lhs = Binary::new(
                         op.as_binary_op().expect(<span class="string">&quot;Could not get binary operation.&quot;</span>),
                         lhs,
@@ -1358,7 +1346,7 @@
                     <span class="kw">if </span>op == Keyword::InstanceOf
                         || (op == Keyword::In &amp;&amp; <span class="self">self</span>.allow_in == AllowIn(<span class="bool-val">true</span>)) =&gt;
                 {
-                    <span class="kw">let </span>_next = cursor.next(interner).expect(<span class="string">&quot;token disappeared&quot;</span>);
+                    cursor.advance(interner);
                     lhs = Binary::new(
                         op.as_binary_op().expect(<span class="string">&quot;Could not get binary operation.&quot;</span>),
                         lhs,
@@ -1501,7 +1489,7 @@
 );
 
 <span class="doccomment">/// Returns an error if `arguments` or `eval` are used as identifier in strict mode.
-</span><span class="kw">fn </span>check_strict_arguments_or_eval(ident: Identifier, position: Position) -&gt; <span class="prelude-ty">Result</span>&lt;(), ParseError&gt; {
+</span><span class="kw">fn </span>check_strict_arguments_or_eval(ident: Identifier, position: Position) -&gt; ParseResult&lt;()&gt; {
     <span class="kw">match </span>ident.sym() {
         Sym::ARGUMENTS =&gt; <span class="prelude-val">Err</span>(ParseError::general(
             <span class="string">&quot;unexpected identifier &#39;arguments&#39; in strict mode&quot;</span>,

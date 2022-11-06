@@ -235,7 +235,7 @@
         cursor::Cursor,
         expression::Initializer,
         statement::{ArrayBindingPattern, BindingIdentifier, ObjectBindingPattern},
-        AllowAwait, AllowIn, AllowYield, ParseError, ParseResult, TokenParser,
+        AllowAwait, AllowIn, AllowYield, OrAbrupt, ParseResult, TokenParser,
     },
 };
 <span class="kw">use </span>boa_ast::{
@@ -392,7 +392,7 @@
     <span class="kw">type </span>Output = Variable;
 
     <span class="kw">fn </span>parse(<span class="self">self</span>, cursor: <span class="kw-2">&amp;mut </span>Cursor&lt;R&gt;, interner: <span class="kw-2">&amp;mut </span>Interner) -&gt; ParseResult&lt;<span class="self">Self</span>::Output&gt; {
-        <span class="kw">let </span>peek_token = cursor.peek(<span class="number">0</span>, interner)<span class="question-mark">?</span>.ok_or(ParseError::AbruptEnd)<span class="question-mark">?</span>;
+        <span class="kw">let </span>peek_token = cursor.peek(<span class="number">0</span>, interner).or_abrupt()<span class="question-mark">?</span>;
 
         <span class="kw">match </span>peek_token.kind() {
             TokenKind::Punctuator(Punctuator::OpenBlock) =&gt; {

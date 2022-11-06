@@ -300,10 +300,31 @@
 <span id="298">298</span>
 <span id="299">299</span>
 <span id="300">300</span>
+<span id="301">301</span>
+<span id="302">302</span>
+<span id="303">303</span>
+<span id="304">304</span>
+<span id="305">305</span>
+<span id="306">306</span>
+<span id="307">307</span>
+<span id="308">308</span>
+<span id="309">309</span>
+<span id="310">310</span>
+<span id="311">311</span>
+<span id="312">312</span>
+<span id="313">313</span>
+<span id="314">314</span>
+<span id="315">315</span>
+<span id="316">316</span>
+<span id="317">317</span>
+<span id="318">318</span>
+<span id="319">319</span>
+<span id="320">320</span>
+<span id="321">321</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Cursor implementation for the parser.
 </span><span class="kw">mod </span>buffered_lexer;
 
-<span class="kw">use super</span>::{statement::PrivateElement, ParseError};
+<span class="kw">use super</span>::{statement::PrivateElement, OrAbrupt, ParseError, ParseResult};
 <span class="kw">use </span><span class="kw">crate</span>::syntax::lexer::{InputElement, Lexer, Token, TokenKind};
 <span class="kw">use </span>boa_ast::{Position, Punctuator};
 <span class="kw">use </span>boa_interner::{Interner, Sym};
@@ -356,7 +377,7 @@
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         start: Position,
         interner: <span class="kw-2">&amp;mut </span>Interner,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;Token, ParseError&gt; {
+    ) -&gt; ParseResult&lt;Token&gt; {
         <span class="self">self</span>.buffered_lexer.lex_regex(start, interner)
     }
 
@@ -365,35 +386,55 @@
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         start: Position,
         interner: <span class="kw-2">&amp;mut </span>Interner,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;Token, ParseError&gt; {
+    ) -&gt; ParseResult&lt;Token&gt; {
         <span class="self">self</span>.buffered_lexer.lex_template(start, interner)
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>, interner: <span class="kw-2">&amp;mut </span>Interner) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;Token&gt;, ParseError&gt; {
+    <span class="doccomment">/// Advances the cursor and returns the next token.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>, interner: <span class="kw-2">&amp;mut </span>Interner) -&gt; ParseResult&lt;<span class="prelude-ty">Option</span>&lt;Token&gt;&gt; {
         <span class="self">self</span>.buffered_lexer.next(<span class="bool-val">true</span>, interner)
     }
 
-    <span class="attribute">#[inline]
+    <span class="doccomment">/// Advances the cursor without returning the next token.
+    ///
+    /// # Panics
+    ///
+    /// This function will panic if there is no further token in the cursor.
+    </span><span class="attribute">#[inline]
+    #[track_caller]
+    #[allow(clippy::let_underscore_drop)]
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>advance(<span class="kw-2">&amp;mut </span><span class="self">self</span>, interner: <span class="kw-2">&amp;mut </span>Interner) {
+        <span class="kw">let _ </span>= <span class="self">self
+            </span>.next(interner)
+            .expect(<span class="string">&quot;tried to advance cursor, but the buffer was empty&quot;</span>);
+    }
+
+    <span class="doccomment">/// Peeks a future token, without consuming it or advancing the cursor.
+    ///
+    /// You can skip some tokens with the `skip_n` option.
+    </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>peek(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         skip_n: usize,
         interner: <span class="kw-2">&amp;mut </span>Interner,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Token&gt;, ParseError&gt; {
+    ) -&gt; ParseResult&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Token&gt;&gt; {
         <span class="self">self</span>.buffered_lexer.peek(skip_n, <span class="bool-val">true</span>, interner)
     }
 
-    <span class="attribute">#[inline]
+    <span class="doccomment">/// Gets the current strict mode for the cursor.
+    </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>strict_mode(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.buffered_lexer.strict_mode()
     }
 
-    <span class="attribute">#[inline]
+    <span class="doccomment">/// Sets the strict mode to strict or non-strict.
+    </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>set_strict_mode(<span class="kw-2">&amp;mut </span><span class="self">self</span>, strict_mode: bool) {
         <span class="self">self</span>.buffered_lexer.set_strict_mode(strict_mode);
     }
 
-    <span class="doccomment">/// Returns if the cursor is currently in a arrow function declaration.
+    <span class="doccomment">/// Returns if the cursor is currently in an arrow function declaration.
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>arrow(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.arrow
@@ -418,7 +459,7 @@
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         identifier: Sym,
         position: Position,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), ParseError&gt; {
+    ) -&gt; ParseResult&lt;()&gt; {
         <span class="kw">if let </span><span class="prelude-val">Some</span>(env) = <span class="self">self</span>.private_environments_stack.last_mut() {
             env.entry(identifier).or_insert(position);
             <span class="prelude-val">Ok</span>(())
@@ -438,7 +479,7 @@
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>pop_private_environment(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         identifiers: <span class="kw-2">&amp;</span>FxHashMap&lt;Sym, PrivateElement&gt;,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), ParseError&gt; {
+    ) -&gt; ParseResult&lt;()&gt; {
         <span class="kw">let </span>last = <span class="self">self
             </span>.private_environments_stack
             .pop()
@@ -465,11 +506,11 @@
         kind: K,
         context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
         interner: <span class="kw-2">&amp;mut </span>Interner,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;Token, ParseError&gt;
+    ) -&gt; ParseResult&lt;Token&gt;
     <span class="kw">where
         </span>K: Into&lt;TokenKind&gt;,
     {
-        <span class="kw">let </span>next_token = <span class="self">self</span>.next(interner)<span class="question-mark">?</span>.ok_or(ParseError::AbruptEnd)<span class="question-mark">?</span>;
+        <span class="kw">let </span>next_token = <span class="self">self</span>.next(interner).or_abrupt()<span class="question-mark">?</span>;
         <span class="kw">let </span>kind = kind.into();
 
         <span class="kw">if </span>next_token.kind() == <span class="kw-2">&amp;</span>kind {
@@ -493,7 +534,7 @@
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>peek_semicolon(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         interner: <span class="kw-2">&amp;mut </span>Interner,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;SemicolonResult&lt;<span class="lifetime">&#39;_</span>&gt;, ParseError&gt; {
+    ) -&gt; ParseResult&lt;SemicolonResult&lt;<span class="lifetime">&#39;_</span>&gt;&gt; {
         <span class="kw">match </span><span class="self">self</span>.buffered_lexer.peek(<span class="number">0</span>, <span class="bool-val">false</span>, interner)<span class="question-mark">? </span>{
             <span class="prelude-val">Some</span>(tk) =&gt; <span class="kw">match </span>tk.kind() {
                 TokenKind::Punctuator(Punctuator::Semicolon | Punctuator::CloseBlock)
@@ -514,7 +555,7 @@
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
         interner: <span class="kw-2">&amp;mut </span>Interner,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), ParseError&gt; {
+    ) -&gt; ParseResult&lt;()&gt; {
         <span class="kw">match </span><span class="self">self</span>.peek_semicolon(interner)<span class="question-mark">? </span>{
             SemicolonResult::Found(<span class="prelude-val">Some</span>(tk)) =&gt; <span class="kw">match </span><span class="kw-2">*</span>tk.kind() {
                 TokenKind::Punctuator(Punctuator::Semicolon) | TokenKind::LineTerminator =&gt; {
@@ -545,19 +586,20 @@
         skip_n: usize,
         context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
         interner: <span class="kw-2">&amp;mut </span>Interner,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span>Token, ParseError&gt; {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(t) = <span class="self">self</span>.buffered_lexer.peek(skip_n, <span class="bool-val">false</span>, interner)<span class="question-mark">? </span>{
-            <span class="kw">if </span>t.kind() == <span class="kw-2">&amp;</span>TokenKind::LineTerminator {
-                <span class="prelude-val">Err</span>(ParseError::unexpected(
-                    t.to_string(interner),
-                    t.span(),
-                    context,
-                ))
-            } <span class="kw">else </span>{
-                <span class="prelude-val">Ok</span>(t)
-            }
+    ) -&gt; ParseResult&lt;<span class="kw-2">&amp;</span>Token&gt; {
+        <span class="kw">let </span>tok = <span class="self">self
+            </span>.buffered_lexer
+            .peek(skip_n, <span class="bool-val">false</span>, interner)
+            .or_abrupt()<span class="question-mark">?</span>;
+
+        <span class="kw">if </span>tok.kind() == <span class="kw-2">&amp;</span>TokenKind::LineTerminator {
+            <span class="prelude-val">Err</span>(ParseError::unexpected(
+                tok.to_string(interner),
+                tok.span(),
+                context,
+            ))
         } <span class="kw">else </span>{
-            <span class="prelude-val">Err</span>(ParseError::AbruptEnd)
+            <span class="prelude-val">Ok</span>(tok)
         }
     }
 
@@ -567,7 +609,7 @@
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         skip_n: usize,
         interner: <span class="kw-2">&amp;mut </span>Interner,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;bool&gt;, ParseError&gt; {
+    ) -&gt; ParseResult&lt;<span class="prelude-ty">Option</span>&lt;bool&gt;&gt; {
         <span class="kw">if let </span><span class="prelude-val">Some</span>(t) = <span class="self">self</span>.buffered_lexer.peek(skip_n, <span class="bool-val">false</span>, interner)<span class="question-mark">? </span>{
             <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(t.kind() == <span class="kw-2">&amp;</span>TokenKind::LineTerminator))
         } <span class="kw">else </span>{
@@ -585,7 +627,7 @@
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         kind: K,
         interner: <span class="kw-2">&amp;mut </span>Interner,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;Token&gt;, ParseError&gt;
+    ) -&gt; ParseResult&lt;<span class="prelude-ty">Option</span>&lt;Token&gt;&gt;
     <span class="kw">where
         </span>K: Into&lt;TokenKind&gt;,
     {

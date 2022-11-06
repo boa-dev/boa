@@ -122,6 +122,8 @@
 <span id="120">120</span>
 <span id="121">121</span>
 <span id="122">122</span>
+<span id="123">123</span>
+<span id="124">124</span>
 </pre><pre class="rust"><code><span class="kw">mod </span>catch;
 <span class="kw">mod </span>finally;
 
@@ -132,7 +134,9 @@
 <span class="kw">use </span><span class="kw">super</span>::block::Block;
 <span class="kw">use </span><span class="kw">crate</span>::syntax::{
     lexer::TokenKind,
-    parser::{AllowAwait, AllowReturn, AllowYield, Cursor, ParseError, ParseResult, TokenParser},
+    parser::{
+        AllowAwait, AllowReturn, AllowYield, Cursor, OrAbrupt, ParseError, ParseResult, TokenParser,
+    },
 };
 <span class="kw">use </span>boa_ast::{
     statement::{ErrorHandler, Try},
@@ -187,7 +191,7 @@
         <span class="kw">let </span>try_clause = Block::new(<span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await, <span class="self">self</span>.allow_return)
             .parse(cursor, interner)<span class="question-mark">?</span>;
 
-        <span class="kw">let </span>next_token = cursor.peek(<span class="number">0</span>, interner)<span class="question-mark">?</span>.ok_or(ParseError::AbruptEnd)<span class="question-mark">?</span>;
+        <span class="kw">let </span>next_token = cursor.peek(<span class="number">0</span>, interner).or_abrupt()<span class="question-mark">?</span>;
         <span class="kw">match </span>next_token.kind() {
             TokenKind::Keyword((Keyword::Catch | Keyword::Finally, <span class="bool-val">true</span>)) =&gt; {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(ParseError::general(

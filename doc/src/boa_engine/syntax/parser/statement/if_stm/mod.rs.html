@@ -167,7 +167,7 @@
     lexer::TokenKind,
     parser::{
         expression::Expression, statement::declaration::FunctionDeclaration, AllowAwait,
-        AllowReturn, AllowYield, Cursor, ParseError, ParseResult, TokenParser,
+        AllowReturn, AllowYield, Cursor, OrAbrupt, ParseError, ParseResult, TokenParser,
     },
 };
 <span class="kw">use </span>boa_ast::{
@@ -234,7 +234,7 @@
             .end();
 
         <span class="kw">let </span>strict = cursor.strict_mode();
-        <span class="kw">let </span>token = cursor.peek(<span class="number">0</span>, interner)<span class="question-mark">?</span>.ok_or(ParseError::AbruptEnd)<span class="question-mark">?</span>;
+        <span class="kw">let </span>token = cursor.peek(<span class="number">0</span>, interner).or_abrupt()<span class="question-mark">?</span>;
         <span class="kw">let </span>then_node = <span class="kw">match </span>token.kind() {
             TokenKind::Keyword((Keyword::Function, <span class="kw">_</span>)) =&gt; {
                 <span class="comment">// FunctionDeclarations in IfStatement Statement Clauses
@@ -270,10 +270,10 @@
                     ));
                 }
                 TokenKind::Keyword((Keyword::Else, <span class="bool-val">false</span>)) =&gt; {
-                    cursor.next(interner)<span class="question-mark">?</span>.expect(<span class="string">&quot;token disappeared&quot;</span>);
+                    cursor.advance(interner);
 
                     <span class="kw">let </span>strict = cursor.strict_mode();
-                    <span class="kw">let </span>token = cursor.peek(<span class="number">0</span>, interner)<span class="question-mark">?</span>.ok_or(ParseError::AbruptEnd)<span class="question-mark">?</span>;
+                    <span class="kw">let </span>token = cursor.peek(<span class="number">0</span>, interner).or_abrupt()<span class="question-mark">?</span>;
                     <span class="kw">let </span>position = token.span().start();
                     <span class="kw">let </span>stmt = <span class="kw">match </span>token.kind() {
                         TokenKind::Keyword((Keyword::Function, <span class="kw">_</span>)) =&gt; {

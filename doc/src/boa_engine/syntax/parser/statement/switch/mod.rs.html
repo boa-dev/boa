@@ -216,10 +216,6 @@
 <span id="214">214</span>
 <span id="215">215</span>
 <span id="216">216</span>
-<span id="217">217</span>
-<span id="218">218</span>
-<span id="219">219</span>
-<span id="220">220</span>
 </pre><pre class="rust"><code><span class="attribute">#[cfg(test)]
 </span><span class="kw">mod </span>tests;
 
@@ -227,7 +223,7 @@
     lexer::TokenKind,
     parser::{
         expression::Expression, statement::StatementList, AllowAwait, AllowReturn, AllowYield,
-        Cursor, ParseError, ParseResult, TokenParser,
+        Cursor, OrAbrupt, ParseError, ParseResult, TokenParser,
     },
 };
 <span class="kw">use </span>ast::operations::{lexically_declared_names_legacy, var_declared_names};
@@ -291,11 +287,7 @@
 
         cursor.expect(Punctuator::CloseParen, <span class="string">&quot;switch statement&quot;</span>, interner)<span class="question-mark">?</span>;
 
-        <span class="kw">let </span>position = cursor
-            .peek(<span class="number">0</span>, interner)<span class="question-mark">?
-            </span>.ok_or(ParseError::AbruptEnd)<span class="question-mark">?
-            </span>.span()
-            .start();
+        <span class="kw">let </span>position = cursor.peek(<span class="number">0</span>, interner).or_abrupt()<span class="question-mark">?</span>.span().start();
 
         <span class="kw">let </span>(cases, default) =
             CaseBlock::new(<span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await, <span class="self">self</span>.allow_return)
@@ -378,7 +370,7 @@
         <span class="kw">let </span><span class="kw-2">mut </span>default = <span class="prelude-val">None</span>;
 
         <span class="kw">loop </span>{
-            <span class="kw">let </span>token = cursor.next(interner)<span class="question-mark">?</span>.ok_or(ParseError::AbruptEnd)<span class="question-mark">?</span>;
+            <span class="kw">let </span>token = cursor.next(interner).or_abrupt()<span class="question-mark">?</span>;
             <span class="kw">match </span>token.kind() {
                 TokenKind::Keyword((Keyword::Case | Keyword::Default, <span class="bool-val">true</span>)) =&gt; {
                     <span class="kw">return </span><span class="prelude-val">Err</span>(ParseError::general(

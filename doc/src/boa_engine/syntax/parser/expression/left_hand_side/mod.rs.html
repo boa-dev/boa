@@ -233,7 +233,7 @@
         cursor.set_goal(InputElement::TemplateTail);
 
         <span class="kw">let </span><span class="kw-2">mut </span>lhs = <span class="kw">if </span>is_super_call(cursor, interner)<span class="question-mark">? </span>{
-            cursor.next(interner).expect(<span class="string">&quot;token disappeared&quot;</span>);
+            cursor.advance(interner);
             <span class="kw">let </span>args =
                 Arguments::new(<span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await).parse(cursor, interner)<span class="question-mark">?</span>;
             SuperCall::new(args).into()

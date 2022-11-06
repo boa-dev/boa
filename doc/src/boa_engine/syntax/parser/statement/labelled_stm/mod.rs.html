@@ -93,7 +93,7 @@
         error::ParseError,
         expression::LabelIdentifier,
         statement::{AllowAwait, AllowReturn, Statement},
-        AllowYield, ParseResult, TokenParser,
+        AllowYield, OrAbrupt, ParseResult, TokenParser,
     },
 };
 <span class="kw">use </span>boa_ast::{<span class="self">self </span><span class="kw">as </span>ast, Keyword, Punctuator};
@@ -149,7 +149,7 @@
         cursor.expect(Punctuator::Colon, <span class="string">&quot;Labelled Statement&quot;</span>, interner)<span class="question-mark">?</span>;
 
         <span class="kw">let </span>strict = cursor.strict_mode();
-        <span class="kw">let </span>next_token = cursor.peek(<span class="number">0</span>, interner)<span class="question-mark">?</span>.ok_or(ParseError::AbruptEnd)<span class="question-mark">?</span>;
+        <span class="kw">let </span>next_token = cursor.peek(<span class="number">0</span>, interner).or_abrupt()<span class="question-mark">?</span>;
 
         <span class="kw">let </span>labelled_item = <span class="kw">match </span>next_token.kind() {
             <span class="comment">// Early Error: It is a Syntax Error if any strict mode source code matches this rule.

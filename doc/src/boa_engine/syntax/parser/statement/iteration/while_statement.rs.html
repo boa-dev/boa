@@ -74,13 +74,9 @@
 <span id="72">72</span>
 <span id="73">73</span>
 <span id="74">74</span>
-<span id="75">75</span>
-<span id="76">76</span>
-<span id="77">77</span>
-<span id="78">78</span>
 </pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::syntax::parser::{
     expression::Expression, statement::Statement, AllowAwait, AllowReturn, AllowYield, Cursor,
-    ParseError, ParseResult, TokenParser,
+    OrAbrupt, ParseError, ParseResult, TokenParser,
 };
 <span class="kw">use </span>boa_ast::{statement::WhileLoop, Keyword, Punctuator};
 <span class="kw">use </span>boa_interner::Interner;
@@ -139,11 +135,7 @@
 
         cursor.expect(Punctuator::CloseParen, <span class="string">&quot;while statement&quot;</span>, interner)<span class="question-mark">?</span>;
 
-        <span class="kw">let </span>position = cursor
-            .peek(<span class="number">0</span>, interner)<span class="question-mark">?
-            </span>.ok_or(ParseError::AbruptEnd)<span class="question-mark">?
-            </span>.span()
-            .start();
+        <span class="kw">let </span>position = cursor.peek(<span class="number">0</span>, interner).or_abrupt()<span class="question-mark">?</span>.span().start();
 
         <span class="kw">let </span>body = Statement::new(<span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await, <span class="self">self</span>.allow_return)
             .parse(cursor, interner)<span class="question-mark">?</span>;

@@ -225,6 +225,7 @@
 <span id="223">223</span>
 <span id="224">224</span>
 <span id="225">225</span>
+<span id="226">226</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Hoistable declaration parsing.
 //!
 //! More information:
@@ -253,7 +254,8 @@
         function::{FormalParameters, FunctionBody},
         name_in_lexically_declared_names,
         statement::LexError,
-        AllowAwait, AllowDefault, AllowYield, Cursor, ParseError, ParseResult, TokenParser,
+        AllowAwait, AllowDefault, AllowYield, Cursor, OrAbrupt, ParseError, ParseResult,
+        TokenParser,
     },
 };
 <span class="kw">use </span>boa_ast::{
@@ -305,7 +307,7 @@
 
     <span class="kw">fn </span>parse(<span class="self">self</span>, cursor: <span class="kw-2">&amp;mut </span>Cursor&lt;R&gt;, interner: <span class="kw-2">&amp;mut </span>Interner) -&gt; ParseResult&lt;<span class="self">Self</span>::Output&gt; {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;HoistableDeclaration&quot;</span>, <span class="string">&quot;Parsing&quot;</span>);
-        <span class="kw">let </span>tok = cursor.peek(<span class="number">0</span>, interner)<span class="question-mark">?</span>.ok_or(ParseError::AbruptEnd)<span class="question-mark">?</span>;
+        <span class="kw">let </span>tok = cursor.peek(<span class="number">0</span>, interner).or_abrupt()<span class="question-mark">?</span>;
 
         <span class="kw">match </span>tok.kind() {
             TokenKind::Keyword((Keyword::Function | Keyword::Async | Keyword::Class, <span class="bool-val">true</span>)) =&gt; {
@@ -315,7 +317,7 @@
                 ))
             }
             TokenKind::Keyword((Keyword::Function, <span class="bool-val">false</span>)) =&gt; {
-                <span class="kw">let </span>next_token = cursor.peek(<span class="number">1</span>, interner)<span class="question-mark">?</span>.ok_or(ParseError::AbruptEnd)<span class="question-mark">?</span>;
+                <span class="kw">let </span>next_token = cursor.peek(<span class="number">1</span>, interner).or_abrupt()<span class="question-mark">?</span>;
                 <span class="kw">if let </span>TokenKind::Punctuator(Punctuator::Mul) = next_token.kind() {
                     GeneratorDeclaration::new(<span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await, <span class="self">self</span>.is_default)
                         .parse(cursor, interner)
@@ -327,7 +329,7 @@
                 }
             }
             TokenKind::Keyword((Keyword::Async, <span class="bool-val">false</span>)) =&gt; {
-                <span class="kw">let </span>next_token = cursor.peek(<span class="number">2</span>, interner)<span class="question-mark">?</span>.ok_or(ParseError::AbruptEnd)<span class="question-mark">?</span>;
+                <span class="kw">let </span>next_token = cursor.peek(<span class="number">2</span>, interner).or_abrupt()<span class="question-mark">?</span>;
                 <span class="kw">if let </span>TokenKind::Punctuator(Punctuator::Mul) = next_token.kind() {
                     AsyncGeneratorDeclaration::new(
                         <span class="self">self</span>.allow_yield,
@@ -369,8 +371,8 @@
     c: <span class="kw-2">&amp;</span>C,
     cursor: <span class="kw-2">&amp;mut </span>Cursor&lt;R&gt;,
     interner: <span class="kw-2">&amp;mut </span>Interner,
-) -&gt; <span class="prelude-ty">Result</span>&lt;(Identifier, FormalParameterList, StatementList), ParseError&gt; {
-    <span class="kw">let </span>next_token = cursor.peek(<span class="number">0</span>, interner)<span class="question-mark">?</span>.ok_or(ParseError::AbruptEnd)<span class="question-mark">?</span>;
+) -&gt; ParseResult&lt;(Identifier, FormalParameterList, StatementList)&gt; {
+    <span class="kw">let </span>next_token = cursor.peek(<span class="number">0</span>, interner).or_abrupt()<span class="question-mark">?</span>;
     <span class="kw">let </span>name = <span class="kw">match </span>next_token.kind() {
         TokenKind::Punctuator(Punctuator::OpenParen) =&gt; {
             <span class="kw">if </span>!c.is_default() {

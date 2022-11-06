@@ -647,12 +647,6 @@
 <span id="645">645</span>
 <span id="646">646</span>
 <span id="647">647</span>
-<span id="648">648</span>
-<span id="649">649</span>
-<span id="650">650</span>
-<span id="651">651</span>
-<span id="652">652</span>
-<span id="653">653</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Primary expression parsing.
 //!
 //! More information:
@@ -689,7 +683,7 @@
             BindingIdentifier, Expression,
         },
         statement::{ArrayBindingPattern, ObjectBindingPattern},
-        AllowAwait, AllowYield, Cursor, ParseError, ParseResult, TokenParser,
+        AllowAwait, AllowYield, Cursor, OrAbrupt, ParseError, ParseResult, TokenParser,
     },
 };
 <span class="kw">use </span>boa_ast::{
@@ -753,7 +747,7 @@
 
         <span class="comment">// TODO: tok currently consumes the token instead of peeking, so the token
         // isn&#39;t passed and consumed by parsers according to spec (EX: GeneratorExpression)
-        </span><span class="kw">let </span>tok = cursor.peek(<span class="number">0</span>, interner)<span class="question-mark">?</span>.ok_or(ParseError::AbruptEnd)<span class="question-mark">?</span>;
+        </span><span class="kw">let </span>tok = cursor.peek(<span class="number">0</span>, interner).or_abrupt()<span class="question-mark">?</span>;
         <span class="kw">let </span>tok_position = tok.span().start();
 
         <span class="kw">match </span>tok.kind() {
@@ -762,12 +756,12 @@
                 tok_position,
             )),
             TokenKind::Keyword((Keyword::This, <span class="bool-val">false</span>)) =&gt; {
-                cursor.next(interner).expect(<span class="string">&quot;token disappeared&quot;</span>);
+                cursor.advance(interner);
                 <span class="prelude-val">Ok</span>(ast::Expression::This)
             }
             TokenKind::Keyword((Keyword::Function, <span class="kw">_</span>)) =&gt; {
-                cursor.next(interner).expect(<span class="string">&quot;token disappeared&quot;</span>);
-                <span class="kw">let </span>next_token = cursor.peek(<span class="number">0</span>, interner)<span class="question-mark">?</span>.ok_or(ParseError::AbruptEnd)<span class="question-mark">?</span>;
+                cursor.advance(interner);
+                <span class="kw">let </span>next_token = cursor.peek(<span class="number">0</span>, interner).or_abrupt()<span class="question-mark">?</span>;
                 <span class="kw">if </span>next_token.kind() == <span class="kw-2">&amp;</span>TokenKind::Punctuator(Punctuator::Mul) {
                     GeneratorExpression::new(<span class="self">self</span>.name)
                         .parse(cursor, interner)
@@ -779,7 +773,7 @@
                 }
             }
             TokenKind::Keyword((Keyword::Class, <span class="kw">_</span>)) =&gt; {
-                cursor.next(interner).expect(<span class="string">&quot;token disappeared&quot;</span>);
+                cursor.advance(interner);
                 ClassExpression::new(<span class="self">self</span>.name, <span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await)
                     .parse(cursor, interner)
                     .map(Into::into)
@@ -794,7 +788,7 @@
                         ))
                     }
                     <span class="prelude-val">Some</span>(TokenKind::Keyword((Keyword::Function, <span class="kw">_</span>))) =&gt; {
-                        cursor.next(interner).expect(<span class="string">&quot;token disappeared&quot;</span>);
+                        cursor.advance(interner);
                         <span class="kw">match </span>cursor.peek(<span class="number">1</span>, interner)<span class="question-mark">?</span>.map(Token::kind) {
                             <span class="prelude-val">Some</span>(TokenKind::Punctuator(Punctuator::Mul)) =&gt; {
                                 AsyncGeneratorExpression::new(<span class="self">self</span>.name)
@@ -812,7 +806,7 @@
                 }
             }
             TokenKind::Punctuator(Punctuator::OpenParen) =&gt; {
-                cursor.next(interner).expect(<span class="string">&quot;token disappeared&quot;</span>);
+                cursor.advance(interner);
                 cursor.set_goal(InputElement::RegExp);
                 <span class="kw">let </span>expr = CoverParenthesizedExpressionAndArrowParameterList::new(
                     <span class="self">self</span>.name,
@@ -823,14 +817,14 @@
                 <span class="prelude-val">Ok</span>(expr)
             }
             TokenKind::Punctuator(Punctuator::OpenBracket) =&gt; {
-                cursor.next(interner).expect(<span class="string">&quot;token disappeared&quot;</span>);
+                cursor.advance(interner);
                 cursor.set_goal(InputElement::RegExp);
                 ArrayLiteral::new(<span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await)
                     .parse(cursor, interner)
                     .map(Into::into)
             }
             TokenKind::Punctuator(Punctuator::OpenBlock) =&gt; {
-                cursor.next(interner).expect(<span class="string">&quot;token disappeared&quot;</span>);
+                cursor.advance(interner);
                 cursor.set_goal(InputElement::RegExp);
                 ObjectLiteral::new(<span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await)
                     .parse(cursor, interner)
@@ -838,11 +832,11 @@
             }
             TokenKind::BooleanLiteral(boolean) =&gt; {
                 <span class="kw">let </span>node = Literal::from(<span class="kw-2">*</span>boolean).into();
-                cursor.next(interner).expect(<span class="string">&quot;token disappeared&quot;</span>);
+                cursor.advance(interner);
                 <span class="prelude-val">Ok</span>(node)
             }
             TokenKind::NullLiteral =&gt; {
-                cursor.next(interner).expect(<span class="string">&quot;token disappeared&quot;</span>);
+                cursor.advance(interner);
                 <span class="prelude-val">Ok</span>(Literal::Null.into())
             }
             TokenKind::Identifier(<span class="kw">_</span>)
@@ -854,7 +848,7 @@
                 .map(Into::into),
             TokenKind::StringLiteral(lit) =&gt; {
                 <span class="kw">let </span>node = Literal::from(<span class="kw-2">*</span>lit).into();
-                cursor.next(interner).expect(<span class="string">&quot;token disappeared&quot;</span>);
+                cursor.advance(interner);
                 <span class="prelude-val">Ok</span>(node)
             }
             TokenKind::TemplateNoSubstitution(template_string) =&gt; {
@@ -864,22 +858,22 @@
                         .map_err(ParseError::lex)<span class="question-mark">?</span>,
                 )
                 .into();
-                cursor.next(interner).expect(<span class="string">&quot;token disappeared&quot;</span>);
+                cursor.advance(interner);
                 <span class="prelude-val">Ok</span>(node)
             }
             TokenKind::NumericLiteral(Numeric::Integer(num)) =&gt; {
                 <span class="kw">let </span>node = Literal::from(<span class="kw-2">*</span>num).into();
-                cursor.next(interner).expect(<span class="string">&quot;token disappeared&quot;</span>);
+                cursor.advance(interner);
                 <span class="prelude-val">Ok</span>(node)
             }
             TokenKind::NumericLiteral(Numeric::Rational(num)) =&gt; {
                 <span class="kw">let </span>node = Literal::from(<span class="kw-2">*</span>num).into();
-                cursor.next(interner).expect(<span class="string">&quot;token disappeared&quot;</span>);
+                cursor.advance(interner);
                 <span class="prelude-val">Ok</span>(node)
             }
             TokenKind::NumericLiteral(Numeric::BigInt(num)) =&gt; {
                 <span class="kw">let </span>node = Literal::from(num.clone()).into();
-                cursor.next(interner).expect(<span class="string">&quot;token disappeared&quot;</span>);
+                cursor.advance(interner);
                 <span class="prelude-val">Ok</span>(node)
             }
             TokenKind::RegularExpressionLiteral(body, flags) =&gt; {
@@ -887,12 +881,12 @@
                     Identifier::new(Sym::REGEXP).into(),
                     <span class="macro">vec!</span>[Literal::from(<span class="kw-2">*</span>body).into(), Literal::from(<span class="kw-2">*</span>flags).into()].into(),
                 )));
-                cursor.next(interner).expect(<span class="string">&quot;token disappeared&quot;</span>);
+                cursor.advance(interner);
                 <span class="prelude-val">Ok</span>(node)
             }
             TokenKind::Punctuator(Punctuator::Div) =&gt; {
                 <span class="kw">let </span>position = tok.span().start();
-                cursor.next(interner).expect(<span class="string">&quot;token disappeared&quot;</span>);
+                cursor.advance(interner);
                 <span class="kw">let </span>tok = cursor.lex_regex(position, interner)<span class="question-mark">?</span>;
 
                 <span class="kw">if let </span>TokenKind::RegularExpressionLiteral(body, flags) = <span class="kw-2">*</span>tok.kind() {
@@ -918,7 +912,7 @@
                         .to_owned_cooked(interner)
                         .map_err(ParseError::lex)<span class="question-mark">?</span>,
                 );
-                cursor.next(interner).expect(<span class="string">&quot;token disappeared&quot;</span>);
+                cursor.advance(interner);
                 parser.parse(cursor, interner).map(Into::into)
             }
             <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(ParseError::unexpected(
@@ -979,24 +973,21 @@
             <span class="string">&quot;Parsing&quot;</span>,
         );
 
-        <span class="kw">let </span>start_span = cursor
-            .peek(<span class="number">0</span>, interner)<span class="question-mark">?
-            </span>.ok_or(ParseError::AbruptEnd)<span class="question-mark">?
-            </span>.span();
+        <span class="kw">let </span>start_span = cursor.peek(<span class="number">0</span>, interner).or_abrupt()<span class="question-mark">?</span>.span();
 
         <span class="kw">let </span><span class="kw-2">mut </span>expressions = Vec::new();
         <span class="kw">let </span><span class="kw-2">mut </span>tailing_comma = <span class="prelude-val">None</span>;
 
-        <span class="kw">let </span>next = cursor.peek(<span class="number">0</span>, interner)<span class="question-mark">?</span>.ok_or(ParseError::AbruptEnd)<span class="question-mark">?</span>;
+        <span class="kw">let </span>next = cursor.peek(<span class="number">0</span>, interner).or_abrupt()<span class="question-mark">?</span>;
         <span class="kw">let </span>span = <span class="kw">match </span>next.kind() {
             TokenKind::Punctuator(Punctuator::CloseParen) =&gt; {
                 <span class="kw">let </span>span = next.span();
-                cursor.next(interner).expect(<span class="string">&quot;token disappeared&quot;</span>);
+                cursor.advance(interner);
                 span
             }
             TokenKind::Punctuator(Punctuator::Spread) =&gt; {
-                cursor.next(interner).expect(<span class="string">&quot;token disappeared&quot;</span>);
-                <span class="kw">let </span>next = cursor.peek(<span class="number">0</span>, interner)<span class="question-mark">?</span>.ok_or(ParseError::AbruptEnd)<span class="question-mark">?</span>;
+                cursor.advance(interner);
+                <span class="kw">let </span>next = cursor.peek(<span class="number">0</span>, interner).or_abrupt()<span class="question-mark">?</span>;
                 <span class="kw">match </span>next.kind() {
                     TokenKind::Punctuator(Punctuator::OpenBlock) =&gt; {
                         <span class="kw">let </span>bindings =
@@ -1030,27 +1021,26 @@
                         .parse(cursor, interner)<span class="question-mark">?</span>;
                 expressions.push(InnerExpression::Expression(expression));
 
-                <span class="kw">let </span>next = cursor.peek(<span class="number">0</span>, interner)<span class="question-mark">?</span>.ok_or(ParseError::AbruptEnd)<span class="question-mark">?</span>;
+                <span class="kw">let </span>next = cursor.peek(<span class="number">0</span>, interner).or_abrupt()<span class="question-mark">?</span>;
                 <span class="kw">match </span>next.kind() {
                     TokenKind::Punctuator(Punctuator::CloseParen) =&gt; {
                         <span class="kw">let </span>span = next.span();
-                        cursor.next(interner).expect(<span class="string">&quot;token disappeared&quot;</span>);
+                        cursor.advance(interner);
                         span
                     }
                     TokenKind::Punctuator(Punctuator::Comma) =&gt; {
-                        cursor.next(interner).expect(<span class="string">&quot;token disappeared&quot;</span>);
-                        <span class="kw">let </span>next = cursor.peek(<span class="number">0</span>, interner)<span class="question-mark">?</span>.ok_or(ParseError::AbruptEnd)<span class="question-mark">?</span>;
+                        cursor.advance(interner);
+                        <span class="kw">let </span>next = cursor.peek(<span class="number">0</span>, interner).or_abrupt()<span class="question-mark">?</span>;
                         <span class="kw">match </span>next.kind() {
                             TokenKind::Punctuator(Punctuator::CloseParen) =&gt; {
                                 <span class="kw">let </span>span = next.span();
                                 tailing_comma = <span class="prelude-val">Some</span>(next.span());
-                                cursor.next(interner).expect(<span class="string">&quot;token disappeared&quot;</span>);
+                                cursor.advance(interner);
                                 span
                             }
                             TokenKind::Punctuator(Punctuator::Spread) =&gt; {
-                                cursor.next(interner).expect(<span class="string">&quot;token disappeared&quot;</span>);
-                                <span class="kw">let </span>next =
-                                    cursor.peek(<span class="number">0</span>, interner)<span class="question-mark">?</span>.ok_or(ParseError::AbruptEnd)<span class="question-mark">?</span>;
+                                cursor.advance(interner);
+                                <span class="kw">let </span>next = cursor.peek(<span class="number">0</span>, interner).or_abrupt()<span class="question-mark">?</span>;
                                 <span class="kw">match </span>next.kind() {
                                     TokenKind::Punctuator(Punctuator::OpenBlock) =&gt; {
                                         <span class="kw">let </span>bindings = ObjectBindingPattern::new(
@@ -1111,9 +1101,7 @@
         <span class="kw">let </span>is_arrow = <span class="kw">if let </span><span class="prelude-val">Some</span>(TokenKind::Punctuator(Punctuator::Arrow)) =
             cursor.peek(<span class="number">0</span>, interner)<span class="question-mark">?</span>.map(Token::kind)
         {
-            !cursor
-                .peek_is_line_terminator(<span class="number">0</span>, interner)<span class="question-mark">?
-                </span>.ok_or(ParseError::AbruptEnd)<span class="question-mark">?
+            !cursor.peek_is_line_terminator(<span class="number">0</span>, interner).or_abrupt()<span class="question-mark">?
         </span>} <span class="kw">else </span>{
             <span class="bool-val">false
         </span>};
@@ -1212,7 +1200,7 @@
     parameters: <span class="kw-2">&amp;mut </span>Vec&lt;FormalParameter&gt;,
     strict: bool,
     span: Span,
-) -&gt; <span class="prelude-ty">Result</span>&lt;(), ParseError&gt; {
+) -&gt; ParseResult&lt;()&gt; {
     <span class="kw">match </span>node {
         ast::Expression::Identifier(identifier) <span class="kw">if </span>strict &amp;&amp; <span class="kw-2">*</span>identifier == Sym::EVAL =&gt; {
             <span class="kw">return </span><span class="prelude-val">Err</span>(ParseError::general(

@@ -205,6 +205,8 @@
 <span id="203">203</span>
 <span id="204">204</span>
 <span id="205">205</span>
+<span id="206">206</span>
+<span id="207">207</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Error and result implementation for the parser.
 
 </span><span class="kw">use </span><span class="kw">crate</span>::syntax::lexer::Error <span class="kw">as </span>LexError;
@@ -219,14 +221,16 @@
     <span class="kw">fn </span>context(<span class="self">self</span>, context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str) -&gt; <span class="self">Self</span>;
 }
 
-<span class="kw">impl</span>&lt;T&gt; ErrorContext <span class="kw">for </span><span class="prelude-ty">Result</span>&lt;T, ParseError&gt; {
-    <span class="kw">fn </span>context(<span class="self">self</span>, context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str) -&gt; <span class="self">Self </span>{
+<span class="kw">impl</span>&lt;T&gt; ErrorContext <span class="kw">for </span>ParseResult&lt;T&gt; {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>context(<span class="self">self</span>, context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.map_err(|e| e.context(context))
     }
 }
 
 <span class="kw">impl </span>From&lt;LexError&gt; <span class="kw">for </span>ParseError {
-    <span class="kw">fn </span>from(e: LexError) -&gt; <span class="self">Self </span>{
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(e: LexError) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::lex(e)
     }
 }

@@ -163,7 +163,7 @@
     lexer::TokenKind,
     parser::{
         expression::{left_hand_side::template::TaggedTemplateLiteral, Expression},
-        AllowAwait, AllowYield, Cursor, ParseError, ParseResult, TokenParser,
+        AllowAwait, AllowYield, Cursor, OrAbrupt, ParseError, ParseResult, TokenParser,
     },
 };
 <span class="kw">use </span>boa_ast::{
@@ -219,7 +219,7 @@
     <span class="kw">fn </span>parse(<span class="self">self</span>, cursor: <span class="kw-2">&amp;mut </span>Cursor&lt;R&gt;, interner: <span class="kw-2">&amp;mut </span>Interner) -&gt; ParseResult&lt;<span class="self">Self</span>::Output&gt; {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;CallExpression&quot;</span>, <span class="string">&quot;Parsing&quot;</span>);
 
-        <span class="kw">let </span>token = cursor.peek(<span class="number">0</span>, interner)<span class="question-mark">?</span>.ok_or(ParseError::AbruptEnd)<span class="question-mark">?</span>;
+        <span class="kw">let </span>token = cursor.peek(<span class="number">0</span>, interner).or_abrupt()<span class="question-mark">?</span>;
 
         <span class="kw">let </span><span class="kw-2">mut </span>lhs = <span class="kw">if </span>token.kind() == <span class="kw-2">&amp;</span>TokenKind::Punctuator(Punctuator::OpenParen) {
             <span class="kw">let </span>args =
@@ -244,9 +244,9 @@
                     lhs = ast::Expression::from(Call::new(lhs, args));
                 }
                 TokenKind::Punctuator(Punctuator::Dot) =&gt; {
-                    cursor.next(interner)<span class="question-mark">?</span>.ok_or(ParseError::AbruptEnd)<span class="question-mark">?</span>; <span class="comment">// We move the parser forward.
+                    cursor.advance(interner);
 
-                    </span><span class="kw">let </span>access = <span class="kw">match </span>cursor.next(interner)<span class="question-mark">?</span>.ok_or(ParseError::AbruptEnd)<span class="question-mark">?</span>.kind() {
+                    <span class="kw">let </span>access = <span class="kw">match </span>cursor.next(interner).or_abrupt()<span class="question-mark">?</span>.kind() {
                         TokenKind::Identifier(name) =&gt; SimplePropertyAccess::new(lhs, <span class="kw-2">*</span>name).into(),
                         TokenKind::Keyword((kw, <span class="kw">_</span>)) =&gt; {
                             SimplePropertyAccess::new(lhs, kw.to_sym(interner)).into()
@@ -275,8 +275,8 @@
                     lhs = ast::Expression::PropertyAccess(access);
                 }
                 TokenKind::Punctuator(Punctuator::OpenBracket) =&gt; {
-                    <span class="kw">let </span>_next = cursor.next(interner)<span class="question-mark">?</span>.ok_or(ParseError::AbruptEnd)<span class="question-mark">?</span>; <span class="comment">// We move the parser.
-                    </span><span class="kw">let </span>idx = Expression::new(<span class="prelude-val">None</span>, <span class="bool-val">true</span>, <span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await)
+                    cursor.advance(interner);
+                    <span class="kw">let </span>idx = Expression::new(<span class="prelude-val">None</span>, <span class="bool-val">true</span>, <span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await)
                         .parse(cursor, interner)<span class="question-mark">?</span>;
                     cursor.expect(Punctuator::CloseBracket, <span class="string">&quot;call expression&quot;</span>, interner)<span class="question-mark">?</span>;
                     lhs =

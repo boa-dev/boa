@@ -142,10 +142,6 @@
 <span id="140">140</span>
 <span id="141">141</span>
 <span id="142">142</span>
-<span id="143">143</span>
-<span id="144">144</span>
-<span id="145">145</span>
-<span id="146">146</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Function expression parsing.
 //!
 //! More information:
@@ -163,7 +159,7 @@
     parser::{
         expression::BindingIdentifier,
         function::{FormalParameters, FunctionBody},
-        name_in_lexically_declared_names, Cursor, ParseError, ParseResult, TokenParser,
+        name_in_lexically_declared_names, Cursor, OrAbrupt, ParseError, ParseResult, TokenParser,
     },
 };
 <span class="kw">use </span>boa_ast::{
@@ -208,11 +204,7 @@
     <span class="kw">fn </span>parse(<span class="self">self</span>, cursor: <span class="kw-2">&amp;mut </span>Cursor&lt;R&gt;, interner: <span class="kw-2">&amp;mut </span>Interner) -&gt; ParseResult&lt;<span class="self">Self</span>::Output&gt; {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;FunctionExpression&quot;</span>, <span class="string">&quot;Parsing&quot;</span>);
 
-        <span class="kw">let </span>(name, has_binding_identifier) = <span class="kw">match </span>cursor
-            .peek(<span class="number">0</span>, interner)<span class="question-mark">?
-            </span>.ok_or(ParseError::AbruptEnd)<span class="question-mark">?
-            </span>.kind()
-        {
+        <span class="kw">let </span>(name, has_binding_identifier) = <span class="kw">match </span>cursor.peek(<span class="number">0</span>, interner).or_abrupt()<span class="question-mark">?</span>.kind() {
             TokenKind::Identifier(<span class="kw">_</span>)
             | TokenKind::Keyword((
                 Keyword::Yield | Keyword::Await | Keyword::Async | Keyword::Of,
