@@ -2,12 +2,12 @@
 
 This directory contains fuzzers which can be used to automatically identify faults present in Boa. All the fuzzers in
 this directory are [grammar-aware](https://www.fuzzingbook.org/html/Grammars.html) (based on
-[Arbitrary](https://docs.rs/arbitrary/latest/arbitrary/)) and coverage-guided. See [common.rs](fuzz_targets/common.rs)
+[Arbitrary](https://docs.rs/arbitrary/latest/arbitrary/)) and coverage-guided. See [common.rs](fuzz/fuzz_targets/common.rs)
 for implementation specifics.
 
 ## Parser Fuzzer
 
-The parser fuzzer, located in [parser-idempotency.rs](fuzz_targets/parser-idempotency.rs), identifies
+The parser fuzzer, located in [parser-idempotency.rs](fuzz/fuzz_targets/parser-idempotency.rs), identifies
 correctness issues in both the parser and the AST-to-source conversion process (e.g., via `to_interned_string`) by
 searching for inputs which are not idempotent over parsing and conversion back to source. It does this by doing the
 following:

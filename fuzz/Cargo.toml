@@ -11,20 +11,20 @@ cargo-fuzz = true
 libfuzzer-sys = "0.4"
 
 [dependencies.boa_ast]
-path = "../../boa_ast"
+path = "../boa_ast"
 features = ["fuzzer-not-safe-for-production"]
 
 [dependencies.boa_engine]
-path = ".."
+path = "../boa_engine"
 features = ["fuzzer-not-safe-for-production"]
 
 [dependencies.boa_interner]
-path = "../../boa_interner"
+path = "../boa_interner"
 features = ["fuzzer-not-safe-for-production"]
 
 # Prevent this from interfering with workspaces
 [workspace]
-members = ["."]
+members = [""]
 
 [profile.release]
 debug = 1
