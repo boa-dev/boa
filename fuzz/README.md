@@ -5,6 +5,17 @@ this directory are [grammar-aware](https://www.fuzzingbook.org/html/Grammars.htm
 [Arbitrary](https://docs.rs/arbitrary/latest/arbitrary/)) and coverage-guided. See [common.rs](fuzz/fuzz_targets/common.rs)
 for implementation specifics.
 
+You can run any fuzzer you wish with the following command (replacing `your-fuzzer` with a fuzzer availble in
+fuzz_targets, e.g. `parser-idempotency`):
+
+```bash
+cargo fuzz run -s none your-fuzzer
+```
+
+Note that you may wish to use a different sanitizer option (`-s`) according to what kind of issue you're looking for.
+Refer to the [cargo-fuzz book](https://rust-fuzz.github.io/book/cargo-fuzz.html) for details on how to select a
+sanitizer and other flags.
+
 ## Parser Fuzzer
 
 The parser fuzzer, located in [parser-idempotency.rs](fuzz/fuzz_targets/parser-idempotency.rs), identifies
