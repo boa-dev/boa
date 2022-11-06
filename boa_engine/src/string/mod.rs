@@ -39,6 +39,10 @@ use std::{
 
 use self::common::{COMMON_STRINGS, COMMON_STRINGS_CACHE, MAX_COMMON_STRING_LENGTH};
 
+fn alloc_overflow() -> ! {
+    panic!("detected overflow during string allocation")
+}
+
 /// Utility macro to create a [`JsString`].
 ///
 /// # Examples
@@ -171,6 +175,8 @@ struct RawJsString {
     data: [u16; 0],
 }
 
+const DATA_OFFSET: usize = std::mem::size_of::<RawJsString>();
+
 /// This struct uses a technique called tagged pointer to benefit from the fact that newly allocated
 /// pointers are always word aligned on 64-bits platforms, making it impossible to have a LSB equal
 /// to 1. More details about this technique on the article of Wikipedia about [tagged pointers][tagged_wp].
@@ -254,11 +260,11 @@ impl TaggedJsString {
     }
 }
 
-/// Enum representing either a reference to a heap allocated [`RawJsString`] or a static reference to
+/// Enum representing either a pointer to a heap allocated [`RawJsString`] or a static reference to
 /// a [`\[u16\]`][slice] inside [`COMMON_STRINGS`].
-enum JsStringPtrKind<'a> {
+enum JsStringPtrKind {
     // A string allocated on the heap.
-    Heap(&'a mut RawJsString),
+    Heap(NonNull<RawJsString>),
     // A static string slice.
     Static(&'static [u16]),
 }
@@ -281,6 +287,9 @@ pub struct JsString {
     ptr: TaggedJsString,
 }
 
+// JsString should always be pointer sized.
+sa::assert_eq_size!(JsString, *const ());
+
 // Safety: `JsString` does not contain any objects which needs to be traced, so this is safe.
 unsafe impl Trace for JsString {
     unsafe_empty_trace!();
@@ -300,14 +309,19 @@ impl JsString {
     /// Creates a new [`JsString`] from the concatenation of every element of
     /// `strings`.
     pub fn concat_array(strings: &[&[u16]]) -> Self {
-        let full_count = strings.iter().fold(0, |len, s| len + s.len());
+        let mut full_count = 0usize;
+        for &string in strings {
+            let Some(sum) = full_count.checked_add(string.len()) else {
+                alloc_overflow()
+            };
+            full_count = sum;
+        }
 
         let ptr = Self::allocate_inner(full_count);
 
         let string = {
-            // SAFETY:
-            // `ptr` being a `NonNull` ensures that a dereference of its underlying pointer is always valid.
-            let mut data = unsafe { (*ptr.as_ptr()).data.as_mut_ptr() };
+            // SAFETY: `allocate_inner` guarantees that `ptr` is a valid pointer.
+            let mut data = unsafe { ptr.as_ptr().cast::<u8>().add(DATA_OFFSET).cast() };
             for string in strings {
                 let count = string.len();
                 // SAFETY:
@@ -523,25 +537,45 @@ impl JsString {
     /// Returns the inner pointer data, unwrapping its tagged data if the pointer contains a static
     /// index for [`COMMON_STRINGS`].
     #[inline]
-    fn ptr(&self) -> JsStringPtrKind<'_> {
+    fn ptr(&self) -> JsStringPtrKind {
         // Check the first bit to 1.
         if self.ptr.is_static() {
             // Safety: We already checked.
             JsStringPtrKind::Static(unsafe { self.ptr.get_static_unchecked() })
         } else {
             // Safety: We already checked.
-            JsStringPtrKind::Heap(unsafe { self.ptr.get_heap_unchecked().as_mut() })
+            JsStringPtrKind::Heap(unsafe { self.ptr.get_heap_unchecked() })
+        }
+    }
+
+    /// Allocates a new [`RawJsString`] with an internal capacity of `str_len` chars.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `try_allocate_inner` returns `Err`.
+    fn allocate_inner(str_len: usize) -> NonNull<RawJsString> {
+        match Self::try_allocate_inner(str_len) {
+            Ok(v) => v,
+            Err(None) => alloc_overflow(),
+            Err(Some(layout)) => std::alloc::handle_alloc_error(layout),
         }
     }
 
     // This is marked as safe because it is always valid to call this function to request any number
     // of `u16`, since this function ought to fail on an OOM error.
     /// Allocates a new [`RawJsString`] with an internal capacity of `str_len` chars.
-    fn allocate_inner(str_len: usize) -> NonNull<RawJsString> {
+    ///
+    /// # Errors
+    ///
+    /// Returns `Err(None)` on integer overflows `usize::MAX`.
+    /// Returns `Err(Some(Layout))` on allocation error.
+    fn try_allocate_inner(str_len: usize) -> Result<NonNull<RawJsString>, Option<Layout>> {
         let (layout, offset) = Layout::array::<u16>(str_len)
             .and_then(|arr| Layout::new::<RawJsString>().extend(arr))
             .map(|(layout, offset)| (layout.pad_to_align(), offset))
-            .expect("failed to create memory layout");
+            .map_err(|_| None)?;
+
+        debug_assert_eq!(offset, DATA_OFFSET);
 
         // SAFETY:
         // The layout size of `RawJsString` is never zero, since it has to store
@@ -551,7 +585,7 @@ impl JsString {
         // We need to verify that the pointer returned by `alloc` is not null, otherwise
         // we should abort, since an allocation error is pretty unrecoverable for us
         // right now.
-        let inner = NonNull::new(inner).unwrap_or_else(|| std::alloc::handle_alloc_error(layout));
+        let inner = NonNull::new(inner).ok_or(Some(layout))?;
 
         // SAFETY:
         // `NonNull` verified for us that the pointer returned by `alloc` is valid,
@@ -580,13 +614,16 @@ impl JsString {
             }
         });
 
-        inner
+        Ok(inner)
     }
 
     /// Creates a new [`JsString`] from `data`, without checking if the string is in the interner.
-    fn from_slice_skip_interning(data: &[u16]) -> Self {
-        let count = data.len();
+    fn from_slice_skip_interning(string: &[u16]) -> Self {
+        let count = string.len();
         let ptr = Self::allocate_inner(count);
+
+        // SAFETY: `allocate_inner` guarantees that `ptr` is a valid pointer.
+        let data = unsafe { ptr.as_ptr().cast::<u8>().add(DATA_OFFSET) };
         // SAFETY:
         // - We read `count = data.len()` elements from `data`, which is within the bounds of the slice.
         // - `allocate_inner` must allocate at least `count` elements, which allows us to safely
@@ -596,7 +633,7 @@ impl JsString {
         // - `allocate_inner` must return a valid pointer to newly allocated memory, meaning `ptr`
         //   and `data` should never overlap.
         unsafe {
-            ptr::copy_nonoverlapping(data.as_ptr(), (*ptr.as_ptr()).data.as_mut_ptr(), count);
+            ptr::copy_nonoverlapping(string.as_ptr(), data.cast(), count);
         }
         Self {
             // Safety: We already know it's a valid heap pointer.
@@ -621,6 +658,8 @@ impl Clone for JsString {
     #[inline]
     fn clone(&self) -> Self {
         if let JsStringPtrKind::Heap(inner) = self.ptr() {
+            // SAFETY: The reference count of `JsString` guarantees that `raw` is always valid.
+            let inner = unsafe { &mut *inner.as_ptr() };
             inner.refcount.set(inner.refcount.get() + 1);
         }
         Self { ptr: self.ptr }
@@ -645,7 +684,9 @@ impl Default for JsString {
 impl Drop for JsString {
     #[inline]
     fn drop(&mut self) {
-        if let JsStringPtrKind::Heap(inner) = self.ptr() {
+        if let JsStringPtrKind::Heap(raw) = self.ptr() {
+            // SAFETY: The reference count of `JsString` guarantees that `raw` is always valid.
+            let inner = unsafe { &mut *raw.as_ptr() };
             inner.refcount.set(inner.refcount.get() - 1);
             if inner.refcount.get() == 0 {
                 // SAFETY:
@@ -663,7 +704,7 @@ impl Drop for JsString {
                 // If refcount is 0 and we call drop, that means this is the last `JsString` which
                 // points to this memory allocation, so deallocating it is safe.
                 unsafe {
-                    dealloc((inner as *mut RawJsString).cast(), layout);
+                    dealloc(raw.as_ptr().cast(), layout);
                 }
             }
         }
@@ -699,7 +740,12 @@ impl Deref for JsString {
                 //
                 // - The lifetime of `&Self::Target` is shorter than the lifetime of `self`, as seen
                 //   by its signature, so this doesn't outlive `self`.
-                unsafe { std::slice::from_raw_parts(h.data.as_ptr(), h.len) }
+                unsafe {
+                    std::slice::from_raw_parts(
+                        h.as_ptr().cast::<u8>().add(DATA_OFFSET).cast(),
+                        h.as_ref().len,
+                    )
+                }
             }
             JsStringPtrKind::Static(s) => s,
         }
@@ -900,7 +946,11 @@ mod tests {
         #[inline]
         fn refcount(&self) -> Option<usize> {
             match self.ptr() {
-                JsStringPtrKind::Heap(inner) => Some(inner.refcount.get()),
+                JsStringPtrKind::Heap(inner) => {
+                    // SAFETY: The reference count of `JsString` guarantees that `inner` is always valid.
+                    let inner = unsafe { inner.as_ref() };
+                    Some(inner.refcount.get())
+                }
                 JsStringPtrKind::Static(_inner) => None,
             }
         }
@@ -910,12 +960,6 @@ mod tests {
     fn empty() {
         let s = js_string!();
         assert_eq!(*s, "".encode_utf16().collect::<Vec<u16>>());
-    }
-
-    #[test]
-    fn pointer_size() {
-        assert_eq!(size_of::<JsString>(), size_of::<*const ()>());
-        assert_eq!(size_of::<Option<JsString>>(), size_of::<*const ()>());
     }
 
     #[test]
