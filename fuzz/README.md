@@ -35,3 +35,16 @@ following:
      information, as the inputs parsed between the two should be the same.
 
 In this way, this fuzzer can identify correctness issues present in the parser.
+
+## VM Fuzzer
+
+The VM fuzzer, located in [vm-implied.rs](fuzz_targets/vm-implied.rs), identifies crash cases in the VM. It does so by
+generating an arbitrary AST, converting it to source code (to remove invalid inputs), then executing that source code.
+Because we are not comparing against any invariants other than "does it crash", this fuzzer will only discover faults
+which cause the VM to terminate unexpectedly, e.g. as a result of a panic. It will not discover logic errors present in
+the VM.
+
+To ensure that the VM does not attempt to execute an infinite loop, Boa is restricted to a finite number of instructions
+before the VM is terminated. If a program takes more than a second or so to execute, it likely indicates an issue in the
+VM (as we expect the fuzzer to execute only a certain amount of instructions, which should take significantly less
+time).

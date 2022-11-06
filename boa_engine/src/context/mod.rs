@@ -97,6 +97,10 @@ pub struct Context {
     #[cfg(feature = "intl")]
     icu: icu::Icu,
 
+    /// Number of instructions remaining before a forced exit
+    #[cfg(feature = "fuzz")]
+    pub(crate) insns_remaining: usize,
+
     pub(crate) vm: Vm,
 
     pub(crate) promise_job_queue: VecDeque<JobCallback>,
@@ -593,6 +597,8 @@ pub struct ContextBuilder {
     interner: Option<Interner>,
     #[cfg(feature = "intl")]
     icu: Option<icu::Icu>,
+    #[cfg(feature = "fuzz")]
+    insns_remaining: usize,
 }
 
 impl ContextBuilder {
@@ -613,6 +619,15 @@ impl ContextBuilder {
     pub fn icu_provider(mut self, provider: Box<dyn icu::BoaProvider>) -> Result<Self, DataError> {
         self.icu = Some(icu::Icu::new(provider)?);
         Ok(self)
+    }
+
+    /// Specifies the number of instructions remaining to the [`Context`].
+    ///
+    /// This function is only available if the `fuzz` feature is enabled.
+    #[cfg(feature = "fuzz")]
+    pub fn insns_remaining(mut self, insns_remaining: usize) -> Self {
+        self.insns_remaining = insns_remaining;
+        self
     }
 
     /// Creates a new [`ContextBuilder`] with a default empty [`Interner`]
@@ -643,6 +658,8 @@ impl ContextBuilder {
                 icu::Icu::new(Box::new(icu_testdata::get_provider()))
                     .expect("Failed to initialize default icu data.")
             }),
+            #[cfg(feature = "fuzz")]
+            insns_remaining: self.insns_remaining,
             promise_job_queue: VecDeque::new(),
         };
 

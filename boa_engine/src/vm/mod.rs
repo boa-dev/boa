@@ -5,7 +5,7 @@
 use crate::{
     builtins::async_generator::{AsyncGenerator, AsyncGeneratorState},
     vm::{call_frame::CatchAddresses, code_block::Readable},
-    Context, JsResult, JsValue,
+    Context, JsError, JsNativeError, JsResult, JsValue,
 };
 use boa_interner::ToInternedString;
 use boa_profiler::Profiler;
@@ -112,6 +112,13 @@ pub(crate) enum ReturnType {
 
 impl Context {
     fn execute_instruction(&mut self) -> JsResult<ShouldExit> {
+        #[cfg(feature = "fuzz")]
+        if self.insns_remaining == 0 {
+            return Err(JsError::from_native(JsNativeError::no_instructions_remain()));
+        } else {
+            self.insns_remaining -= 1;
+        }
+
         let opcode: Opcode = {
             let _timer = Profiler::global().start_event("Opcode retrieval", "vm");
             let opcode = self.vm.frame().code.code[self.vm.frame().pc]
