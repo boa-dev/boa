@@ -42,7 +42,6 @@ thread_local!(static BOA_GC: StdRefCell<BoaGc> = StdRefCell::new( BoaGc {
 
 struct GcConfig {
     youth_threshold: usize,
-    youth_threshold_base: usize,
     adult_threshold: usize,
     growth_ratio: f64,
     youth_promo_age: u8,
@@ -55,9 +54,8 @@ impl Default for GcConfig {
     fn default() -> Self {
         Self {
             youth_threshold: 4096,
-            youth_threshold_base: 4096,
             adult_threshold: 16384,
-            growth_ratio: 0.7,
+            growth_ratio: 0.8,
             youth_promo_age: 3,
         }
     }
@@ -120,14 +118,13 @@ impl BoaAlloc {
 
             unsafe {
                 Self::manage_state(&mut gc);
-            }
 
-            let gc_box = GcBox::new(value);
+                value.unroot();
+                let gc_box = GcBox::new(value);
 
-            let element_size = mem::size_of_val::<GcBox<T>>(&gc_box);
-            let element_pointer = Box::into_raw(Box::from(gc_box));
+                let element_size = mem::size_of_val::<GcBox<T>>(&gc_box);
+                let element_pointer = Box::into_raw(Box::from(gc_box));
 
-            unsafe {
                 let old_start = gc.youth_start.take();
                 (*element_pointer).set_header_pointer(old_start);
                 gc.youth_start
@@ -150,13 +147,14 @@ impl BoaAlloc {
             // triggers a collection if the state dictates it.
             unsafe {
                 Self::manage_state(&mut gc);
-            }
 
-            let gc_box = GcBox::new(Cell::new(value));
-            let element_size = mem::size_of_val::<GcBox<Cell<T>>>(&gc_box);
-            let element_pointer = Box::into_raw(Box::from(gc_box));
+                let new_cell = Cell::new(value);
+                new_cell.unroot();
 
-            unsafe {
+                let gc_box = GcBox::new(new_cell);
+                let element_size = mem::size_of_val::<GcBox<Cell<T>>>(&gc_box);
+                let element_pointer = Box::into_raw(Box::from(gc_box));
+
                 let old_start = gc.youth_start.take();
                 (*element_pointer).set_header_pointer(old_start);
                 gc.youth_start
@@ -223,17 +221,15 @@ impl BoaAlloc {
 
     // Possibility here for `new_weak` that takes any value and creates a new WeakGc
 
-    pub(crate) unsafe fn promote_to_medium(
-        promotions: Vec<NonNull<GcBox<dyn Trace>>>,
-        gc: &mut BoaGc,
-    ) {
+    pub(crate) unsafe fn promote_to_medium(promotions: Vec<Box<GcBox<dyn Trace>>>, gc: &mut BoaGc) {
         let _timer = Profiler::global().start_event("Gc Promoting", "gc");
         for node in promotions {
-            (*node.as_ptr()).set_header_pointer(gc.adult_start.take());
-            let allocation_bytes = mem::size_of_val::<GcBox<_>>(&(*node.as_ptr()));
+            node.set_header_pointer(gc.adult_start.take());
+            let allocation_bytes = mem::size_of_val::<_>(&node);
             gc.runtime.youth_bytes -= allocation_bytes;
             gc.runtime.adult_bytes += allocation_bytes;
-            gc.adult_start.set(Some(node));
+            gc.adult_start
+                .set(Some(NonNull::new_unchecked(Box::into_raw(node))));
         }
     }
 
@@ -249,22 +245,6 @@ impl BoaAlloc {
             }
         } else if gc.runtime.youth_bytes > gc.config.youth_threshold {
             Collector::run_youth_collection(gc);
-
-            // If we are constrained on the top of the stack,
-            // increase the size of capacity, so a garbage collection
-            // isn't triggered on every allocation
-            if gc.runtime.youth_bytes > gc.config.youth_threshold {
-                gc.config.youth_threshold =
-                    (gc.runtime.youth_bytes as f64 / gc.config.growth_ratio) as usize
-            }
-
-            // The young object threshold should only be raised in cases of high laod. It
-            // should retract back to base when the load lessens
-            if gc.runtime.youth_bytes < gc.config.youth_threshold_base
-                && gc.config.youth_threshold != gc.config.youth_threshold_base
-            {
-                gc.config.youth_threshold = gc.config.youth_threshold_base
-            }
         }
     }
 }
@@ -429,7 +409,7 @@ impl Collector {
         heap_bytes: &mut usize,
         total_bytes: &mut usize,
         promotion_age: &u8,
-    ) -> Vec<NonNull<GcBox<dyn Trace>>> {
+    ) -> Vec<Box<GcBox<dyn Trace>>> {
         let _timer = Profiler::global().start_event("Gc Sweeping", "gc");
         let _guard = DropGuard::new();
 
@@ -440,8 +420,9 @@ impl Collector {
                 (*node.as_ptr()).header.unmark();
                 (*node.as_ptr()).header.inc_age();
                 if (*node.as_ptr()).header.age() >= *promotion_age {
-                    sweep_head.set((*node.as_ptr()).header.next.take());
-                    promotions.push(node)
+                    let promotion = Box::from_raw(node.as_ptr());
+                    sweep_head.set(promotion.header.next.take());
+                    promotions.push(promotion)
                 } else {
                     sweep_head = &(*node.as_ptr()).header.next;
                 }
@@ -491,14 +472,13 @@ impl Collector {
 
     unsafe fn drop_heap(heap_start: &StdCell<Option<NonNull<GcBox<dyn Trace>>>>) {
         // Not initializing a dropguard since this should only be invoked when BOA_GC is being dropped.
+        let _guard = DropGuard::new();
 
         let sweep_head = heap_start;
         while let Some(node) = sweep_head.get() {
             // Drops every node
             let unmarked_node = Box::from_raw(node.as_ptr());
             sweep_head.set(unmarked_node.header.next.take());
-
-            mem::forget(unmarked_node)
         }
     }
 }

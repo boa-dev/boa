@@ -161,7 +161,7 @@ impl<T: Trace + ?Sized> Drop for Gc<T> {
     #[inline]
     fn drop(&mut self) {
         // If this pointer was a root, we should unroot it.
-        if self.rooted() & finalizer_safe() {
+        if self.rooted() {
             unsafe {
                 self.inner().unroot_inner();
             }
