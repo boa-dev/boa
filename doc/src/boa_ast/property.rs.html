@@ -356,6 +356,9 @@
 <span id="356">356</span>
 <span id="357">357</span>
 <span id="358">358</span>
+<span id="359">359</span>
+<span id="360">360</span>
+<span id="361">361</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Property definition related types, used in object literals and class definitions.
 
 </span><span class="kw">use </span><span class="kw">crate</span>::try_break;
@@ -383,6 +386,7 @@
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Glossary/property/JavaScript
 </span><span class="comment">// TODO: Support all features: https://tc39.es/ecma262/#prod-PropertyDefinition
 </span><span class="attribute">#[cfg_attr(feature = <span class="string">&quot;serde&quot;</span>, derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = <span class="string">&quot;fuzz&quot;</span>, derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 </span><span class="kw">pub enum </span>PropertyDefinition {
     <span class="doccomment">/// Puts a variable into an object.
@@ -495,6 +499,7 @@
 /// [spec]: https://tc39.es/ecma262/#prod-MethodDefinition
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/Method_definitions
 </span><span class="attribute">#[cfg_attr(feature = <span class="string">&quot;serde&quot;</span>, derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = <span class="string">&quot;fuzz&quot;</span>, derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 </span><span class="kw">pub enum </span>MethodDefinition {
     <span class="doccomment">/// The `get` syntax binds an object property to a function that will be called when that property is looked up.
@@ -606,6 +611,7 @@
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-PropertyName
 </span><span class="attribute">#[cfg_attr(feature = <span class="string">&quot;serde&quot;</span>, derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = <span class="string">&quot;fuzz&quot;</span>, derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 </span><span class="kw">pub enum </span>PropertyName {
     <span class="doccomment">/// A `Literal` property name can be either an identifier, a string or a numeric literal.

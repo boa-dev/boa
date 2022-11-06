@@ -505,6 +505,8 @@
 <span id="505">505</span>
 <span id="506">506</span>
 <span id="507">507</span>
+<span id="508">508</span>
+<span id="509">509</span>
 </pre><pre class="rust"><code><span class="kw">use </span>core::ops::ControlFlow;
 <span class="kw">use </span>std::borrow::Cow;
 
@@ -529,6 +531,7 @@
 /// [spec]: https://tc39.es/ecma262/#sec-class-definitions
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Classes
 </span><span class="attribute">#[cfg_attr(feature = <span class="string">&quot;serde&quot;</span>, derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = <span class="string">&quot;fuzz&quot;</span>, derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 </span><span class="kw">pub struct </span>Class {
     name: <span class="prelude-ty">Option</span>&lt;Identifier&gt;,
@@ -913,6 +916,7 @@
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-ClassElement
 </span><span class="attribute">#[cfg_attr(feature = <span class="string">&quot;serde&quot;</span>, derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = <span class="string">&quot;fuzz&quot;</span>, derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 </span><span class="kw">pub enum </span>ClassElement {
     <span class="doccomment">/// A method definition, including `get` and `set` accessors.

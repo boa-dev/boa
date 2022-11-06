@@ -782,6 +782,11 @@
 <span id="782">782</span>
 <span id="783">783</span>
 <span id="784">784</span>
+<span id="785">785</span>
+<span id="786">786</span>
+<span id="787">787</span>
+<span id="788">788</span>
+<span id="789">789</span>
 </pre><pre class="rust"><code><span class="doccomment">//! A pattern binding or assignment node.
 //!
 //! A [`Pattern`] Corresponds to the [`BindingPattern`][spec1] and the [`AssignmentPattern`][spec2]
@@ -820,6 +825,7 @@
 ///
 /// See the [module level documentation][self] for more information.
 </span><span class="attribute">#[cfg_attr(feature = <span class="string">&quot;serde&quot;</span>, derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = <span class="string">&quot;fuzz&quot;</span>, derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 </span><span class="kw">pub enum </span>Pattern {
     <span class="doccomment">/// An object pattern (`let {a, b, c} = object`).
@@ -892,6 +898,7 @@
 /// [spec1]: https://tc39.es/ecma262/#prod-ObjectBindingPattern
 /// [spec2]: https://tc39.es/ecma262/#prod-ObjectAssignmentPattern
 </span><span class="attribute">#[cfg_attr(feature = <span class="string">&quot;serde&quot;</span>, derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = <span class="string">&quot;fuzz&quot;</span>, derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 </span><span class="kw">pub struct </span>ObjectPattern(Box&lt;[ObjectPatternElement]&gt;);
 
@@ -980,6 +987,7 @@
 /// [spec1]: https://tc39.es/ecma262/#prod-ArrayBindingPattern
 /// [spec2]: https://tc39.es/ecma262/#prod-ArrayAssignmentPattern
 </span><span class="attribute">#[cfg_attr(feature = <span class="string">&quot;serde&quot;</span>, derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = <span class="string">&quot;fuzz&quot;</span>, derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 </span><span class="kw">pub struct </span>ArrayPattern(Box&lt;[ArrayPatternElement]&gt;);
 
@@ -1054,6 +1062,7 @@
 /// [spec1]: https://tc39.es/ecma262/#prod-BindingProperty
 /// [spec2]: https://tc39.es/ecma262/#prod-AssignmentProperty
 </span><span class="attribute">#[cfg_attr(feature = <span class="string">&quot;serde&quot;</span>, derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = <span class="string">&quot;fuzz&quot;</span>, derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 </span><span class="kw">pub enum </span>ObjectPatternElement {
     <span class="doccomment">/// SingleName represents one of the following properties:
@@ -1353,6 +1362,7 @@
 /// [spec1]: https://tc39.es/ecma262/#prod-BindingElement
 /// [spec2]: https://tc39.es/ecma262/#prod-AssignmentElement
 </span><span class="attribute">#[cfg_attr(feature = <span class="string">&quot;serde&quot;</span>, derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = <span class="string">&quot;fuzz&quot;</span>, derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 </span><span class="kw">pub enum </span>ArrayPatternElement {
     <span class="doccomment">/// Elision represents the elision of an item in the array binding pattern.

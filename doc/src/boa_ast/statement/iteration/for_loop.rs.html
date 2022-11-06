@@ -258,6 +258,9 @@
 <span id="258">258</span>
 <span id="259">259</span>
 <span id="260">260</span>
+<span id="261">261</span>
+<span id="262">262</span>
+<span id="263">263</span>
 </pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::try_break;
 <span class="kw">use </span><span class="kw">crate</span>::visitor::{VisitWith, Visitor, VisitorMut};
 <span class="kw">use crate</span>::{
@@ -279,6 +282,7 @@
 /// [spec]: https://tc39.es/ecma262/#prod-ForDeclaration
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/for
 </span><span class="attribute">#[cfg_attr(feature = <span class="string">&quot;serde&quot;</span>, derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = <span class="string">&quot;fuzz&quot;</span>, derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 </span><span class="kw">pub struct </span>ForLoop {
     <span class="attribute">#[cfg_attr(feature = <span class="string">&quot;serde&quot;</span>, serde(flatten))]
@@ -395,6 +399,7 @@
 
 <span class="doccomment">/// Inner structure to avoid multiple indirections in the heap.
 </span><span class="attribute">#[cfg_attr(feature = <span class="string">&quot;serde&quot;</span>, derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = <span class="string">&quot;fuzz&quot;</span>, derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 </span><span class="kw">struct </span>InnerForLoop {
     init: <span class="prelude-ty">Option</span>&lt;ForLoopInitializer&gt;,
@@ -454,6 +459,7 @@
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-ForStatement
 </span><span class="attribute">#[cfg_attr(feature = <span class="string">&quot;serde&quot;</span>, derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = <span class="string">&quot;fuzz&quot;</span>, derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 </span><span class="kw">pub enum </span>ForLoopInitializer {
     <span class="doccomment">/// An expression initializer.

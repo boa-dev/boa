@@ -287,6 +287,7 @@
 <span id="287">287</span>
 <span id="288">288</span>
 <span id="289">289</span>
+<span id="290">290</span>
 </pre><pre class="rust"><code><span class="doccomment">//! The [`Expression`] Parse Node, as defined by the [spec].
 //!
 //! Javascript expressions include:
@@ -340,6 +341,7 @@
 ///
 /// See the [module level documentation][self] for more information.
 </span><span class="attribute">#[cfg_attr(feature = <span class="string">&quot;serde&quot;</span>, derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = <span class="string">&quot;fuzz&quot;</span>, derive(arbitrary::Arbitrary))]
 #[derive(Debug, Clone, PartialEq)]
 </span><span class="kw">pub enum </span>Expression {
     <span class="doccomment">/// The JavaScript `this` keyword refers to the object it belongs to.

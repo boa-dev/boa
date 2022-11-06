@@ -382,6 +382,11 @@
 <span id="382">382</span>
 <span id="383">383</span>
 <span id="384">384</span>
+<span id="385">385</span>
+<span id="386">386</span>
+<span id="387">387</span>
+<span id="388">388</span>
+<span id="389">389</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Variable related declarations.
 
 </span><span class="kw">use </span>core::ops::ControlFlow;
@@ -429,6 +434,7 @@
 /// [varstmt]: https://tc39.es/ecma262/#prod-VariableStatement
 /// [hoisting]: https://developer.mozilla.org/en-US/docs/Glossary/Hoisting
 </span><span class="attribute">#[cfg_attr(feature = <span class="string">&quot;serde&quot;</span>, derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = <span class="string">&quot;fuzz&quot;</span>, derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 </span><span class="kw">pub struct </span>VarDeclaration(<span class="kw">pub </span>VariableList);
 
@@ -465,6 +471,7 @@
 ///
 /// [lexical declaration]: https://tc39.es/ecma262/#sec-let-and-const-declarations
 </span><span class="attribute">#[cfg_attr(feature = <span class="string">&quot;serde&quot;</span>, derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = <span class="string">&quot;fuzz&quot;</span>, derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 </span><span class="kw">pub enum </span>LexicalDeclaration {
     <span class="doccomment">/// A &lt;code&gt;[const]&lt;/code&gt; variable creates a constant whose scope can be either global or local
@@ -544,6 +551,7 @@
 
 <span class="doccomment">/// List of variables in a variable declaration.
 </span><span class="attribute">#[cfg_attr(feature = <span class="string">&quot;serde&quot;</span>, derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = <span class="string">&quot;fuzz&quot;</span>, derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 </span><span class="kw">pub struct </span>VariableList {
     list: Box&lt;[Variable]&gt;,
@@ -634,6 +642,7 @@
 /// [spec2]: https://tc39.es/ecma262/#prod-VariableDeclaration
 /// [spec3]:  https://tc39.es/ecma262/#sec-declarations-and-the-variable-statement
 </span><span class="attribute">#[cfg_attr(feature = <span class="string">&quot;serde&quot;</span>, derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = <span class="string">&quot;fuzz&quot;</span>, derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 </span><span class="kw">pub struct </span>Variable {
     binding: Binding,
@@ -716,6 +725,7 @@
 ///
 /// [spec]:  https://tc39.es/ecma262/#sec-declarations-and-the-variable-statement
 </span><span class="attribute">#[cfg_attr(feature = <span class="string">&quot;serde&quot;</span>, derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = <span class="string">&quot;fuzz&quot;</span>, derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 </span><span class="kw">pub enum </span>Binding {
     <span class="doccomment">/// A single identifier binding.

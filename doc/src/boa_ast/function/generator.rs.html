@@ -129,6 +129,7 @@
 <span id="129">129</span>
 <span id="130">130</span>
 <span id="131">131</span>
+<span id="132">132</span>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     block_to_string,
     expression::{Expression, Identifier},
@@ -152,6 +153,7 @@
 /// [spec]: https://tc39.es/ecma262/#sec-generator-function-definitions
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function*
 </span><span class="attribute">#[cfg_attr(feature = <span class="string">&quot;serde&quot;</span>, derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = <span class="string">&quot;fuzz&quot;</span>, derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 </span><span class="kw">pub struct </span>Generator {
     name: <span class="prelude-ty">Option</span>&lt;Identifier&gt;,

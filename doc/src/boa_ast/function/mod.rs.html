@@ -181,6 +181,7 @@
 <span id="181">181</span>
 <span id="182">182</span>
 <span id="183">183</span>
+<span id="184">184</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Functions and classes nodes, as defined by the [spec].
 //!
 //! [Functions][func] are mainly subprograms that can be called by external code to execute a sequence of
@@ -240,6 +241,7 @@
 /// [spec]: https://tc39.es/ecma262/#sec-function-definitions
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions
 </span><span class="attribute">#[cfg_attr(feature = <span class="string">&quot;serde&quot;</span>, derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = <span class="string">&quot;fuzz&quot;</span>, derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 </span><span class="kw">pub struct </span>Function {
     name: <span class="prelude-ty">Option</span>&lt;Identifier&gt;,

@@ -196,6 +196,7 @@
 <span id="194">194</span>
 <span id="195">195</span>
 <span id="196">196</span>
+<span id="197">197</span>
 </pre><pre class="rust"><code><span class="kw">use </span>boa_macros::utf16;
 <span class="kw">use </span>indexmap::IndexSet;
 <span class="kw">use </span>once_cell::sync::Lazy;
@@ -211,6 +212,7 @@
 </span><span class="attribute">#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[cfg_attr(feature = <span class="string">&quot;serde&quot;</span>, derive(Serialize, Deserialize))]
 #[cfg_attr(feature = <span class="string">&quot;serde&quot;</span>, serde(transparent))]
+#[cfg_attr(feature = <span class="string">&quot;fuzz&quot;</span>, derive(arbitrary::Arbitrary))]
 #[allow(clippy::unsafe_derive_deserialize)]
 </span><span class="kw">pub struct </span>Sym {
     value: NonZeroUsize,
@@ -325,7 +327,7 @@
 
     <span class="doccomment">/// Returns the internal value of the [`Sym`]
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">const fn </span>get(<span class="self">self</span>) -&gt; usize {
+    </span><span class="kw">pub const fn </span>get(<span class="self">self</span>) -&gt; usize {
         <span class="self">self</span>.value.get()
     }
 }

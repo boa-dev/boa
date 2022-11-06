@@ -147,6 +147,8 @@
 <span id="147">147</span>
 <span id="148">148</span>
 <span id="149">149</span>
+<span id="150">150</span>
+<span id="151">151</span>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     function::Function,
     try_break,
@@ -166,6 +168,7 @@
 /// [spec]: https://tc39.es/ecma262/#prod-LabelledItem
 /// [label-fn]: https://tc39.es/ecma262/#sec-labelled-function-declarations
 </span><span class="attribute">#[cfg_attr(feature = <span class="string">&quot;serde&quot;</span>, derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = <span class="string">&quot;fuzz&quot;</span>, derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 </span><span class="kw">pub enum </span>LabelledItem {
     <span class="doccomment">/// A labelled [`Function`].
@@ -230,6 +233,7 @@
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-labelled-statements
 </span><span class="attribute">#[cfg_attr(feature = <span class="string">&quot;serde&quot;</span>, derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = <span class="string">&quot;fuzz&quot;</span>, derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 </span><span class="kw">pub struct </span>Labelled {
     item: Box&lt;LabelledItem&gt;,
