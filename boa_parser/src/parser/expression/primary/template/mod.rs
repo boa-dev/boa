@@ -9,10 +9,8 @@
 
 use crate::{
     lexer::TokenKind,
-    parser::{
-        expression::Expression, AllowAwait, AllowYield, Cursor, ParseResult, TokenParser,
-    },
-    Error
+    parser::{expression::Expression, AllowAwait, AllowYield, Cursor, ParseResult, TokenParser},
+    Error,
 };
 use boa_ast::{
     expression::literal::{self, TemplateElement},

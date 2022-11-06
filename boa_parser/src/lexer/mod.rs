@@ -239,13 +239,8 @@ impl<R> Lexer<R> {
                     Span::new(start, self.cursor.pos()),
                 )),
                 '.' => {
-                    if self.cursor.peek()?.map(|c| (b'0'..=b'9').contains(&c)) == Some(true) {
-                        NumberLiteral::new(
-                            next_ch
-                                .try_into()
-                                .expect("an ascii char must not fail to convert"),
-                        )
-                        .lex(&mut self.cursor, start, interner)
+                    if self.cursor.peek()?.as_ref().map(u8::is_ascii_digit) == Some(true) {
+                        NumberLiteral::new(b'.').lex(&mut self.cursor, start, interner)
                     } else {
                         SpreadLiteral::new().lex(&mut self.cursor, start, interner)
                     }
@@ -280,13 +275,9 @@ impl<R> Lexer<R> {
                 )),
                 '#' => PrivateIdentifier::new().lex(&mut self.cursor, start, interner),
                 '/' => self.lex_slash_token(start, interner),
+                #[allow(clippy::cast_possible_truncation)]
                 '=' | '*' | '+' | '-' | '%' | '|' | '&' | '^' | '<' | '>' | '!' | '~' | '?' => {
-                    Operator::new(
-                        next_ch
-                            .try_into()
-                            .expect("an ascii char must not fail to convert"),
-                    )
-                    .lex(&mut self.cursor, start, interner)
+                    Operator::new(next_ch as u8).lex(&mut self.cursor, start, interner)
                 }
                 '\\' if self.cursor.peek()? == Some(b'u') => {
                     Identifier::new(c).lex(&mut self.cursor, start, interner)
@@ -294,12 +285,10 @@ impl<R> Lexer<R> {
                 _ if Identifier::is_identifier_start(c as u32) => {
                     Identifier::new(c).lex(&mut self.cursor, start, interner)
                 }
-                _ if c.is_ascii_digit() => NumberLiteral::new(
-                    next_ch
-                        .try_into()
-                        .expect("an ascii char must not fail to convert"),
-                )
-                .lex(&mut self.cursor, start, interner),
+                #[allow(clippy::cast_possible_truncation)]
+                _ if c.is_ascii_digit() => {
+                    NumberLiteral::new(next_ch as u8).lex(&mut self.cursor, start, interner)
+                }
                 _ => {
                     let details = format!(
                         "unexpected '{c}' at line {}, column {}",
