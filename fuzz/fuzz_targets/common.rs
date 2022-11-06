@@ -2,8 +2,7 @@ use boa_ast::{
     visitor::{VisitWith, VisitorMut},
     Expression, StatementList,
 };
-use boa_engine::context::Context;
-use boa_interner::Sym;
+use boa_interner::{Interner, Sym};
 use libfuzzer_sys::arbitrary;
 use libfuzzer_sys::arbitrary::{Arbitrary, Unstructured};
 use std::fmt::{Debug, Formatter};
@@ -12,16 +11,16 @@ use std::ops::ControlFlow;
 /// Context for performing fuzzing. This structure contains both the generated AST as well as the
 /// context used to resolve the symbols therein.
 pub struct FuzzData {
-    pub context: Context,
+    pub interner: Interner,
     pub ast: StatementList,
 }
 
 impl<'a> Arbitrary<'a> for FuzzData {
     fn arbitrary(u: &mut Unstructured<'a>) -> arbitrary::Result<Self> {
-        let mut context = Context::default();
+        let mut interner = Interner::with_capacity(8);
         let mut syms_available = Vec::with_capacity(8);
         for c in 'a'..='h' {
-            syms_available.push(context.interner_mut().get_or_intern(&*String::from(c)));
+            syms_available.push(interner.get_or_intern(&*String::from(c)));
         }
 
         let mut ast = StatementList::arbitrary(u)?;
@@ -61,7 +60,7 @@ impl<'a> Arbitrary<'a> for FuzzData {
         if let ControlFlow::Break(e) = replacer.visit_statement_list_mut(&mut ast) {
             Err(e)
         } else {
-            Ok(Self { context, ast })
+            Ok(Self { interner, ast })
         }
     }
 }
