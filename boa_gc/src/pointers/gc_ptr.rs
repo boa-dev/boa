@@ -25,7 +25,6 @@ pub struct Gc<T: Trace + ?Sized + 'static> {
 impl<T: Trace> Gc<T> {
     /// Constructs a new `Gc<T>` with the given value.
     pub fn new(value: NonNull<GcBox<T>>) -> Self {
-        // TODO: Determine whether it's worth keeping `set_root` approach
         unsafe {
             let gc = Gc {
                 inner_ptr: Cell::new(NonNull::new_unchecked(value.as_ptr())),
@@ -74,7 +73,6 @@ impl<T: Trace + ?Sized> Gc<T> {
 
     #[inline]
     fn inner_ptr(&self) -> *mut GcBox<T> {
-        // Note: Initial `finalizer_safe` was asserted here. Needs to be determined whether this was the best practice
         assert!(finalizer_safe());
         unsafe { clear_root_bit(self.inner_ptr.get()).as_ptr() }
     }
@@ -106,7 +104,6 @@ unsafe impl<T: Trace + ?Sized> Trace for Gc<T> {
     #[inline]
     unsafe fn root(&self) {
         assert!(!self.rooted(), "Can't double-root a Gc<T>");
-
         // Try to get inner before modifying our state. Inner may be
         // inaccessible due to this method being invoked during the sweeping
         // phase, and we don't want to modify our state before panicking.
@@ -118,7 +115,6 @@ unsafe impl<T: Trace + ?Sized> Trace for Gc<T> {
     #[inline]
     unsafe fn unroot(&self) {
         assert!(self.rooted(), "Can't double-unroot a Gc<T>");
-
         // Try to get inner before modifying our state. Inner may be
         // inaccessible due to this method being invoked during the sweeping
         // phase, and we don't want to modify our state before panicking.
@@ -165,7 +161,7 @@ impl<T: Trace + ?Sized> Drop for Gc<T> {
             unsafe {
                 self.inner().unroot_inner();
             }
-        }
+        } 
     }
 }
 

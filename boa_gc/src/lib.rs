@@ -44,7 +44,6 @@ struct GcConfig {
     youth_threshold: usize,
     adult_threshold: usize,
     growth_ratio: f64,
-    youth_promo_age: u8,
 }
 
 // Setting the defaults to an arbitrary value currently.
@@ -54,9 +53,8 @@ impl Default for GcConfig {
     fn default() -> Self {
         Self {
             youth_threshold: 4096,
-            adult_threshold: 16384,
+            adult_threshold: 1024,
             growth_ratio: 0.8,
-            youth_promo_age: 3,
         }
     }
 }
@@ -124,15 +122,15 @@ impl BoaAlloc {
                 let element_size = mem::size_of_val::<GcBox<T>>(&gc_box);
                 let element_pointer = Box::into_raw(Box::from(gc_box));
 
-                let old_start = gc.youth_start.take();
+                let old_start = gc.adult_start.take();
                 (*element_pointer).set_header_pointer(old_start);
                 (*element_pointer).value().unroot();
 
-                gc.youth_start
+                gc.adult_start
                     .set(Some(NonNull::new_unchecked(element_pointer)));
 
                 gc.runtime.total_bytes_allocated += element_size;
-                gc.runtime.youth_bytes += element_size;
+                gc.runtime.adult_bytes += element_size;
 
                 Gc::new(NonNull::new_unchecked(element_pointer))
             }
@@ -155,13 +153,14 @@ impl BoaAlloc {
                 let element_size = mem::size_of_val::<GcBox<Cell<T>>>(&gc_box);
                 let element_pointer = Box::into_raw(Box::from(gc_box));
 
-                let old_start = gc.youth_start.take();
+                let old_start = gc.adult_start.take();
                 (*element_pointer).set_header_pointer(old_start);
                 (*element_pointer).value().unroot();
-                gc.youth_start
+
+                gc.adult_start
                     .set(Some(NonNull::new_unchecked(element_pointer)));
 
-                gc.runtime.youth_bytes += element_size;
+                gc.runtime.adult_bytes += element_size;
                 gc.runtime.total_bytes_allocated += element_size;
 
                 Gc::new(NonNull::new_unchecked(element_pointer))
@@ -184,6 +183,8 @@ impl BoaAlloc {
 
                 let old_start = gc.youth_start.take();
                 (*element_pointer).set_header_pointer(old_start);
+                (*element_pointer).value().unroot();
+
                 gc.youth_start
                     .set(Some(NonNull::new_unchecked(element_pointer)));
 
@@ -210,6 +211,8 @@ impl BoaAlloc {
 
                 let old_start = gc.youth_start.take();
                 (*element_pointer).set_header_pointer(old_start);
+                (*element_pointer).value().unroot();
+
                 gc.youth_start
                     .set(Some(NonNull::new_unchecked(element_pointer)));
 
@@ -247,7 +250,7 @@ impl BoaAlloc {
                     (gc.runtime.adult_bytes as f64 / gc.config.growth_ratio) as usize
             }
         } else if gc.runtime.youth_bytes > gc.config.youth_threshold {
-            Collector::run_youth_collection(gc);
+            //Collector::run_youth_collection(gc);
         }
     }
 }
@@ -270,17 +273,18 @@ impl Collector {
         let _timer = Profiler::global().start_event("Gc Youth Collection", "gc");
         gc.runtime.collections += 1;
         let unreachable_nodes = Self::mark_heap(&gc.youth_start);
+        let _adults = Self::mark_heap(&gc.adult_start);
 
         if !unreachable_nodes.is_empty() {
             Self::finalize(unreachable_nodes);
         }
         // The returned unreachable vector must be filled with nodes that are for certain dead (these will be removed during the sweep)
-        let _finalized_unreachable_nodes = Self::mark_heap(&gc.youth_start);
+        let finalized_unreachable_nodes = Self::mark_heap(&gc.youth_start);
+        println!("yc: {}", finalized_unreachable_nodes.len());
         let promotion_candidates = Self::sweep_with_promotions(
             &gc.youth_start,
             &mut gc.runtime.youth_bytes,
             &mut gc.runtime.total_bytes_allocated,
-            &gc.config.youth_promo_age,
         );
         // Check if there are any candidates for promotion
         if !promotion_candidates.is_empty() {
@@ -292,28 +296,18 @@ impl Collector {
         let _timer = Profiler::global().start_event("Gc Full Collection", "gc");
         gc.runtime.collections += 1;
         let unreachable_adults = Self::mark_heap(&gc.adult_start);
-        let unreachable_youths = Self::mark_heap(&gc.youth_start);
 
         // Check if any unreachable nodes were found and finalize
         if !unreachable_adults.is_empty() {
             Self::finalize(unreachable_adults);
         }
-        if !unreachable_youths.is_empty() {
-            Self::finalize(unreachable_youths);
-        }
 
         let _final_unreachable_adults = Self::mark_heap(&gc.adult_start);
-        let _final_unreachable_youths = Self::mark_heap(&gc.youth_start);
 
         // Sweep both without promoting any values
         Self::sweep(
             &gc.adult_start,
             &mut gc.runtime.adult_bytes,
-            &mut gc.runtime.total_bytes_allocated,
-        );
-        Self::sweep(
-            &gc.youth_start,
-            &mut gc.runtime.youth_bytes,
             &mut gc.runtime.total_bytes_allocated,
         );
     }
@@ -411,7 +405,6 @@ impl Collector {
         heap_start: &StdCell<Option<NonNull<GcBox<dyn Trace>>>>,
         heap_bytes: &mut usize,
         total_bytes: &mut usize,
-        promotion_age: &u8,
     ) -> Vec<NonNull<GcBox<dyn Trace>>> {
         let _timer = Profiler::global().start_event("Gc Sweeping", "gc");
         let _guard = DropGuard::new();
@@ -422,7 +415,7 @@ impl Collector {
             if (*node.as_ptr()).is_marked() {
                 (*node.as_ptr()).header.unmark();
                 (*node.as_ptr()).header.inc_age();
-                if (*node.as_ptr()).header.age() >= *promotion_age {
+                if (*node.as_ptr()).header.age() >= 3 {
                     sweep_head.set((*node.as_ptr()).header.next.take());
                     promotions.push(node)
                 } else {

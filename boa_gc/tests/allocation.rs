@@ -6,7 +6,7 @@ fn gc_basic_cell_allocation() {
 
     force_collect();
     GcTester::assert_collections(1);
-    GcTester::assert_youth_bytes_allocated();
+    GcTester::assert_adult_bytes_allocated();
     assert_eq!(*gc_cell.borrow_mut(), 16);
 }
 
@@ -16,7 +16,7 @@ fn gc_basic_pointer_alloc() {
 
     force_collect();
     GcTester::assert_collections(1);
-    GcTester::assert_youth_bytes_allocated();
+    GcTester::assert_adult_bytes_allocated();
     assert_eq!(*gc, 16);
 
     drop(gc);

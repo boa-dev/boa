@@ -2,6 +2,7 @@
 
 use boa_gc::{force_collect, BoaAlloc, GcTester};
 
+#[ignore]
 #[test]
 fn generational_promo_one() {
     let mut storage = Vec::new();
@@ -19,6 +20,7 @@ fn generational_promo_one() {
     GcTester::assert_empty_gc()
 }
 
+#[ignore]
 #[test]
 fn generational_promo_two() {
     let mut storage = Vec::new();
