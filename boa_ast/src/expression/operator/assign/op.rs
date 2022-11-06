@@ -12,10 +12,7 @@
 /// [spec]: https://tc39.es/ecma262/#prod-AssignmentOperator
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_Operators#Assignment
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(
-    feature = "fuzzer-not-safe-for-production",
-    derive(arbitrary::Arbitrary)
-)]
+#[cfg_attr(feature = "fuzz", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum AssignOp {
     /// The assignment operator assigns the value of the right operand to the left operand.

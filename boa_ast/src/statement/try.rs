@@ -23,10 +23,7 @@ use core::ops::ControlFlow;
 /// [spec]: https://tc39.es/ecma262/#prod-TryStatement
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/try...catch
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(
-    feature = "fuzzer-not-safe-for-production",
-    derive(arbitrary::Arbitrary)
-)]
+#[cfg_attr(feature = "fuzz", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct Try {
     block: Block,
@@ -35,10 +32,7 @@ pub struct Try {
 
 /// The type of error handler in a [`Try`] statement.
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(
-    feature = "fuzzer-not-safe-for-production",
-    derive(arbitrary::Arbitrary)
-)]
+#[cfg_attr(feature = "fuzz", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 pub enum ErrorHandler {
     /// A [`Catch`] error handler.
@@ -145,10 +139,7 @@ impl VisitWith for Try {
 
 /// Catch block.
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(
-    feature = "fuzzer-not-safe-for-production",
-    derive(arbitrary::Arbitrary)
-)]
+#[cfg_attr(feature = "fuzz", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct Catch {
     parameter: Option<Binding>,
@@ -217,10 +208,7 @@ impl VisitWith for Catch {
 
 /// Finally block.
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(
-    feature = "fuzzer-not-safe-for-production",
-    derive(arbitrary::Arbitrary)
-)]
+#[cfg_attr(feature = "fuzz", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct Finally {
     block: Block,

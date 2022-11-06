@@ -21,10 +21,7 @@ use super::Expression;
 /// [spec]: https://tc39.es/ecma262/#prod-NewExpression
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/new
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(
-    feature = "fuzzer-not-safe-for-production",
-    derive(arbitrary::Arbitrary)
-)]
+#[cfg_attr(feature = "fuzz", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct New {
     call: Call,

@@ -1,5 +1,5 @@
 [package]
-name = "boa_engine-fuzz"
+name = "boa_fuzz"
 version = "0.0.0"
 publish = false
 edition = "2021"
@@ -10,21 +10,13 @@ cargo-fuzz = true
 [dependencies]
 libfuzzer-sys = "0.4"
 
-[dependencies.boa_ast]
-path = "../boa_ast"
-features = ["fuzzer-not-safe-for-production"]
-
-[dependencies.boa_engine]
-path = "../boa_engine"
-features = ["fuzzer-not-safe-for-production"]
-
-[dependencies.boa_interner]
-path = "../boa_interner"
-features = ["fuzzer-not-safe-for-production"]
+boa_ast = { path = "../boa_ast", features = ["fuzz"] }
+boa_engine = { path = "../boa_engine", features = ["fuzz"] }
+boa_interner = { path = "../boa_interner", features = ["fuzz"] }
 
 # Prevent this from interfering with workspaces
 [workspace]
-members = [""]
+members = ["."]
 
 [profile.release]
 debug = 1

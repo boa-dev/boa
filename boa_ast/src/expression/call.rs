@@ -21,10 +21,7 @@ use super::Expression;
 /// [spec]: https://tc39.es/ecma262/#prod-CallExpression
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Functions#Calling_functions
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(
-    feature = "fuzzer-not-safe-for-production",
-    derive(arbitrary::Arbitrary)
-)]
+#[cfg_attr(feature = "fuzz", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct Call {
     function: Box<Expression>,
@@ -108,10 +105,7 @@ impl VisitWith for Call {
 /// [spec]: https://tc39.es/ecma262/#prod-SuperCall
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/super
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(
-    feature = "fuzzer-not-safe-for-production",
-    derive(arbitrary::Arbitrary)
-)]
+#[cfg_attr(feature = "fuzz", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct SuperCall {
     args: Box<[Expression]>,

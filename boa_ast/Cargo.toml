@@ -13,7 +13,7 @@ rust-version.workspace = true
 [features]
 serde = ["boa_interner/serde", "dep:serde"]
 
-fuzzer-not-safe-for-production = ["arbitrary", "boa_interner/fuzzer-not-safe-for-production", "num-bigint/arbitrary"]
+fuzz = ["arbitrary", "boa_interner/fuzz", "num-bigint/arbitrary"]
 
 [dependencies]
 boa_interner.workspace = true

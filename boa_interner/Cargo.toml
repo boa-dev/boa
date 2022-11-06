@@ -11,7 +11,7 @@ repository.workspace = true
 rust-version.workspace = true
 
 [features]
-fuzzer-not-safe-for-production = ["arbitrary"]
+fuzz = ["arbitrary"]
 
 [dependencies]
 boa_macros.workspace = true

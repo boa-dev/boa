@@ -166,7 +166,7 @@ impl VisitWith for FormalParameterList {
     }
 }
 
-#[cfg(feature = "fuzzer-not-safe-for-production")]
+#[cfg(feature = "fuzz")]
 impl<'a> arbitrary::Arbitrary<'a> for FormalParameterList {
     fn arbitrary(u: &mut arbitrary::Unstructured<'a>) -> arbitrary::Result<Self> {
         let params: Vec<FormalParameter> = u.arbitrary()?;
@@ -214,10 +214,7 @@ impl Default for FormalParameterListFlags {
 /// [spec]: https://tc39.es/ecma262/#prod-FormalParameter
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Errors/Missing_formal_parameter
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(
-    feature = "fuzzer-not-safe-for-production",
-    derive(arbitrary::Arbitrary)
-)]
+#[cfg_attr(feature = "fuzz", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct FormalParameter {
     variable: Variable,

@@ -21,10 +21,7 @@ use crate::{
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals
 /// [spec]: https://tc39.es/ecma262/#sec-template-literals
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(
-    feature = "fuzzer-not-safe-for-production",
-    derive(arbitrary::Arbitrary)
-)]
+#[cfg_attr(feature = "fuzz", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct TemplateLiteral {
     elements: Box<[TemplateElement]>,
@@ -44,10 +41,7 @@ impl From<TemplateLiteral> for Expression {
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-template-literals
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(
-    feature = "fuzzer-not-safe-for-production",
-    derive(arbitrary::Arbitrary)
-)]
+#[cfg_attr(feature = "fuzz", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 pub enum TemplateElement {
     /// A simple string.
