@@ -133,7 +133,7 @@ impl<R> Parser<R> {
     /// The resulting `StatementList` can be compiled into boa bytecode and executed in the boa vm.
     ///
     /// [spec]: https://tc39.es/ecma262/#prod-Script
-    pub fn parse_all(&mut self, context: &mut Context) -> Result<StatementList, ParseError>
+    pub fn parse_all(&mut self, context: &mut Context) -> ParseResult<StatementList>
     where
         R: Read,
     {
@@ -149,7 +149,7 @@ impl<R> Parser<R> {
         &mut self,
         direct: bool,
         context: &mut Context,
-    ) -> Result<StatementList, ParseError>
+    ) -> ParseResult<StatementList>
     where
         R: Read,
     {
@@ -241,7 +241,7 @@ impl<R> Parser<R> {
         interner: &mut Interner,
         allow_yield: bool,
         allow_await: bool,
-    ) -> Result<StatementList, ParseError>
+    ) -> ParseResult<StatementList>
     where
         R: Read,
     {
@@ -256,7 +256,7 @@ impl<R> Parser<R> {
         interner: &mut Interner,
         allow_yield: bool,
         allow_await: bool,
-    ) -> Result<FormalParameterList, ParseError>
+    ) -> ParseResult<FormalParameterList>
     where
         R: Read,
     {
@@ -285,7 +285,7 @@ impl Script {
         self,
         cursor: &mut Cursor<R>,
         context: &mut Context,
-    ) -> Result<StatementList, ParseError> {
+    ) -> ParseResult<StatementList> {
         let mut strict = cursor.strict_mode();
         match cursor.peek(0, context.interner_mut())? {
             Some(tok) => {
@@ -393,7 +393,7 @@ fn name_in_lexically_declared_names(
     bound_names: &[Identifier],
     lexical_names: &[Identifier],
     position: Position,
-) -> Result<(), ParseError> {
+) -> ParseResult<()> {
     for name in bound_names {
         if lexical_names.contains(name) {
             return Err(ParseError::General {
@@ -403,4 +403,17 @@ fn name_in_lexically_declared_names(
         }
     }
     Ok(())
+}
+
+/// Trait to reduce boilerplate in the parser.
+trait OrAbrupt<T> {
+    /// Will convert an `Ok(None)` to a [`ParseError::AbruptEnd`] or return the inner type if not.
+    fn or_abrupt(self) -> ParseResult<T>;
+}
+
+impl<T> OrAbrupt<T> for ParseResult<Option<T>> {
+    #[inline]
+    fn or_abrupt(self) -> ParseResult<T> {
+        self?.ok_or(ParseError::AbruptEnd)
+    }
 }

@@ -14,7 +14,7 @@ use crate::syntax::{
         error::{ErrorContext, ParseError, ParseResult},
         expression::BindingIdentifier,
         function::{FormalParameters, FunctionBody},
-        name_in_lexically_declared_names, AllowIn, AllowYield, Cursor, TokenParser,
+        name_in_lexically_declared_names, AllowIn, AllowYield, Cursor, OrAbrupt, TokenParser,
     },
 };
 use ast::{
@@ -76,7 +76,7 @@ where
         cursor.expect((Keyword::Async, false), "async arrow function", interner)?;
         cursor.peek_expect_no_lineterminator(0, "async arrow function", interner)?;
 
-        let next_token = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
+        let next_token = cursor.peek(0, interner).or_abrupt()?;
         let (params, params_start_position) = if let TokenKind::Punctuator(Punctuator::OpenParen) =
             &next_token.kind()
         {
@@ -180,13 +180,9 @@ where
     type Output = StatementList;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        match cursor
-            .peek(0, interner)?
-            .ok_or(ParseError::AbruptEnd)?
-            .kind()
-        {
+        match cursor.peek(0, interner).or_abrupt()?.kind() {
             TokenKind::Punctuator(Punctuator::OpenBlock) => {
-                cursor.next(interner)?;
+                cursor.advance(interner);
                 let body = FunctionBody::new(false, true).parse(cursor, interner)?;
                 cursor.expect(Punctuator::CloseBlock, "async arrow function", interner)?;
                 Ok(body)

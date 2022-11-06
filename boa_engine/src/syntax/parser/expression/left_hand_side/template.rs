@@ -1,8 +1,8 @@
 use crate::syntax::{
     lexer::TokenKind,
     parser::{
-        cursor::Cursor, expression::Expression, AllowAwait, AllowYield, ParseError, ParseResult,
-        TokenParser,
+        cursor::Cursor, expression::Expression, AllowAwait, AllowYield, OrAbrupt, ParseError,
+        ParseResult, TokenParser,
     },
 };
 use boa_ast::{self as ast, expression::TaggedTemplate, Position, Punctuator};
@@ -58,7 +58,7 @@ where
         let mut cookeds = Vec::new();
         let mut exprs = Vec::new();
 
-        let mut token = cursor.next(interner)?.ok_or(ParseError::AbruptEnd)?;
+        let mut token = cursor.next(interner).or_abrupt()?;
 
         loop {
             match token.kind() {

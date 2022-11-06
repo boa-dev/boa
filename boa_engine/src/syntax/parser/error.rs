@@ -12,13 +12,15 @@ pub(crate) trait ErrorContext {
     fn context(self, context: &'static str) -> Self;
 }
 
-impl<T> ErrorContext for Result<T, ParseError> {
+impl<T> ErrorContext for ParseResult<T> {
+    #[inline]
     fn context(self, context: &'static str) -> Self {
         self.map_err(|e| e.context(context))
     }
 }
 
 impl From<LexError> for ParseError {
+    #[inline]
     fn from(e: LexError) -> Self {
         Self::lex(e)
     }

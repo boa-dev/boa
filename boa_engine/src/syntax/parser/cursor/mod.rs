@@ -1,7 +1,7 @@
 //! Cursor implementation for the parser.
 mod buffered_lexer;
 
-use super::{statement::PrivateElement, ParseError};
+use super::{statement::PrivateElement, OrAbrupt, ParseError, ParseResult};
 use crate::syntax::lexer::{InputElement, Lexer, Token, TokenKind};
 use boa_ast::{Position, Punctuator};
 use boa_interner::{Interner, Sym};
@@ -54,7 +54,7 @@ where
         &mut self,
         start: Position,
         interner: &mut Interner,
-    ) -> Result<Token, ParseError> {
+    ) -> ParseResult<Token> {
         self.buffered_lexer.lex_regex(start, interner)
     }
 
@@ -63,35 +63,55 @@ where
         &mut self,
         start: Position,
         interner: &mut Interner,
-    ) -> Result<Token, ParseError> {
+    ) -> ParseResult<Token> {
         self.buffered_lexer.lex_template(start, interner)
     }
 
+    /// Advances the cursor and returns the next token.
     #[inline]
-    pub(super) fn next(&mut self, interner: &mut Interner) -> Result<Option<Token>, ParseError> {
+    pub(super) fn next(&mut self, interner: &mut Interner) -> ParseResult<Option<Token>> {
         self.buffered_lexer.next(true, interner)
     }
 
+    /// Advances the cursor without returning the next token.
+    ///
+    /// # Panics
+    ///
+    /// This function will panic if there is no further token in the cursor.
+    #[inline]
+    #[track_caller]
+    #[allow(clippy::let_underscore_drop)]
+    pub(super) fn advance(&mut self, interner: &mut Interner) {
+        let _ = self
+            .next(interner)
+            .expect("tried to advance cursor, but the buffer was empty");
+    }
+
+    /// Peeks a future token, without consuming it or advancing the cursor.
+    ///
+    /// You can skip some tokens with the `skip_n` option.
     #[inline]
     pub(super) fn peek(
         &mut self,
         skip_n: usize,
         interner: &mut Interner,
-    ) -> Result<Option<&Token>, ParseError> {
+    ) -> ParseResult<Option<&Token>> {
         self.buffered_lexer.peek(skip_n, true, interner)
     }
 
+    /// Gets the current strict mode for the cursor.
     #[inline]
     pub(super) fn strict_mode(&self) -> bool {
         self.buffered_lexer.strict_mode()
     }
 
+    /// Sets the strict mode to strict or non-strict.
     #[inline]
     pub(super) fn set_strict_mode(&mut self, strict_mode: bool) {
         self.buffered_lexer.set_strict_mode(strict_mode);
     }
 
-    /// Returns if the cursor is currently in a arrow function declaration.
+    /// Returns if the cursor is currently in an arrow function declaration.
     #[inline]
     pub(super) fn arrow(&self) -> bool {
         self.arrow
@@ -116,7 +136,7 @@ where
         &mut self,
         identifier: Sym,
         position: Position,
-    ) -> Result<(), ParseError> {
+    ) -> ParseResult<()> {
         if let Some(env) = self.private_environments_stack.last_mut() {
             env.entry(identifier).or_insert(position);
             Ok(())
@@ -136,7 +156,7 @@ where
     pub(super) fn pop_private_environment(
         &mut self,
         identifiers: &FxHashMap<Sym, PrivateElement>,
-    ) -> Result<(), ParseError> {
+    ) -> ParseResult<()> {
         let last = self
             .private_environments_stack
             .pop()
@@ -163,11 +183,11 @@ where
         kind: K,
         context: &'static str,
         interner: &mut Interner,
-    ) -> Result<Token, ParseError>
+    ) -> ParseResult<Token>
     where
         K: Into<TokenKind>,
     {
-        let next_token = self.next(interner)?.ok_or(ParseError::AbruptEnd)?;
+        let next_token = self.next(interner).or_abrupt()?;
         let kind = kind.into();
 
         if next_token.kind() == &kind {
@@ -191,7 +211,7 @@ where
     pub(super) fn peek_semicolon(
         &mut self,
         interner: &mut Interner,
-    ) -> Result<SemicolonResult<'_>, ParseError> {
+    ) -> ParseResult<SemicolonResult<'_>> {
         match self.buffered_lexer.peek(0, false, interner)? {
             Some(tk) => match tk.kind() {
                 TokenKind::Punctuator(Punctuator::Semicolon | Punctuator::CloseBlock)
@@ -212,7 +232,7 @@ where
         &mut self,
         context: &'static str,
         interner: &mut Interner,
-    ) -> Result<(), ParseError> {
+    ) -> ParseResult<()> {
         match self.peek_semicolon(interner)? {
             SemicolonResult::Found(Some(tk)) => match *tk.kind() {
                 TokenKind::Punctuator(Punctuator::Semicolon) | TokenKind::LineTerminator => {
@@ -243,19 +263,20 @@ where
         skip_n: usize,
         context: &'static str,
         interner: &mut Interner,
-    ) -> Result<&Token, ParseError> {
-        if let Some(t) = self.buffered_lexer.peek(skip_n, false, interner)? {
-            if t.kind() == &TokenKind::LineTerminator {
-                Err(ParseError::unexpected(
-                    t.to_string(interner),
-                    t.span(),
-                    context,
-                ))
-            } else {
-                Ok(t)
-            }
+    ) -> ParseResult<&Token> {
+        let tok = self
+            .buffered_lexer
+            .peek(skip_n, false, interner)
+            .or_abrupt()?;
+
+        if tok.kind() == &TokenKind::LineTerminator {
+            Err(ParseError::unexpected(
+                tok.to_string(interner),
+                tok.span(),
+                context,
+            ))
         } else {
-            Err(ParseError::AbruptEnd)
+            Ok(tok)
         }
     }
 
@@ -265,7 +286,7 @@ where
         &mut self,
         skip_n: usize,
         interner: &mut Interner,
-    ) -> Result<Option<bool>, ParseError> {
+    ) -> ParseResult<Option<bool>> {
         if let Some(t) = self.buffered_lexer.peek(skip_n, false, interner)? {
             Ok(Some(t.kind() == &TokenKind::LineTerminator))
         } else {
@@ -283,7 +304,7 @@ where
         &mut self,
         kind: K,
         interner: &mut Interner,
-    ) -> Result<Option<Token>, ParseError>
+    ) -> ParseResult<Option<Token>>
     where
         K: Into<TokenKind>,
     {

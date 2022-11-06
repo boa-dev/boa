@@ -54,7 +54,7 @@ where
             .parse(cursor, interner)?;
         if let Some(tok) = cursor.peek(0, interner)? {
             if tok.kind() == &TokenKind::Punctuator(Punctuator::Semicolon) {
-                let _next = cursor.next(interner).expect("token disappeared");
+                cursor.advance(interner);
             }
         }
 

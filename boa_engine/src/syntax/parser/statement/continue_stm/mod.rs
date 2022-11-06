@@ -64,11 +64,11 @@ where
         let label = if let SemicolonResult::Found(tok) = cursor.peek_semicolon(interner)? {
             if let Some(token) = tok {
                 if token.kind() == &TokenKind::Punctuator(Punctuator::Semicolon) {
-                    cursor.next(interner)?;
+                    cursor.advance(interner);
                 } else if token.kind() == &TokenKind::LineTerminator {
                     if let Some(token) = cursor.peek(0, interner)? {
                         if token.kind() == &TokenKind::Punctuator(Punctuator::Semicolon) {
-                            cursor.next(interner)?;
+                            cursor.advance(interner);
                         }
                     }
                 }

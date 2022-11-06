@@ -26,7 +26,8 @@ use crate::syntax::{
         function::{FormalParameters, FunctionBody},
         name_in_lexically_declared_names,
         statement::LexError,
-        AllowAwait, AllowDefault, AllowYield, Cursor, ParseError, ParseResult, TokenParser,
+        AllowAwait, AllowDefault, AllowYield, Cursor, OrAbrupt, ParseError, ParseResult,
+        TokenParser,
     },
 };
 use boa_ast::{
@@ -78,7 +79,7 @@ where
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("HoistableDeclaration", "Parsing");
-        let tok = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
+        let tok = cursor.peek(0, interner).or_abrupt()?;
 
         match tok.kind() {
             TokenKind::Keyword((Keyword::Function | Keyword::Async | Keyword::Class, true)) => {
@@ -88,7 +89,7 @@ where
                 ))
             }
             TokenKind::Keyword((Keyword::Function, false)) => {
-                let next_token = cursor.peek(1, interner)?.ok_or(ParseError::AbruptEnd)?;
+                let next_token = cursor.peek(1, interner).or_abrupt()?;
                 if let TokenKind::Punctuator(Punctuator::Mul) = next_token.kind() {
                     GeneratorDeclaration::new(self.allow_yield, self.allow_await, self.is_default)
                         .parse(cursor, interner)
@@ -100,7 +101,7 @@ where
                 }
             }
             TokenKind::Keyword((Keyword::Async, false)) => {
-                let next_token = cursor.peek(2, interner)?.ok_or(ParseError::AbruptEnd)?;
+                let next_token = cursor.peek(2, interner).or_abrupt()?;
                 if let TokenKind::Punctuator(Punctuator::Mul) = next_token.kind() {
                     AsyncGeneratorDeclaration::new(
                         self.allow_yield,
@@ -142,8 +143,8 @@ fn parse_callable_declaration<R: Read, C: CallableDeclaration>(
     c: &C,
     cursor: &mut Cursor<R>,
     interner: &mut Interner,
-) -> Result<(Identifier, FormalParameterList, StatementList), ParseError> {
-    let next_token = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
+) -> ParseResult<(Identifier, FormalParameterList, StatementList)> {
+    let next_token = cursor.peek(0, interner).or_abrupt()?;
     let name = match next_token.kind() {
         TokenKind::Punctuator(Punctuator::OpenParen) => {
             if !c.is_default() {

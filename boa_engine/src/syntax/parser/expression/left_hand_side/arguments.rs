@@ -10,8 +10,8 @@
 use crate::syntax::{
     lexer::{InputElement, TokenKind},
     parser::{
-        expression::AssignmentExpression, AllowAwait, AllowYield, Cursor, ParseError, ParseResult,
-        TokenParser,
+        expression::AssignmentExpression, AllowAwait, AllowYield, Cursor, OrAbrupt, ParseError,
+        ParseResult, TokenParser,
     },
 };
 use boa_ast::{expression::Spread, Expression, Punctuator};
@@ -60,11 +60,11 @@ where
         let mut args = Vec::new();
         loop {
             cursor.set_goal(InputElement::RegExp);
-            let next_token = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
+            let next_token = cursor.peek(0, interner).or_abrupt()?;
 
             match next_token.kind() {
                 TokenKind::Punctuator(Punctuator::CloseParen) => {
-                    cursor.next(interner)?.expect(") token vanished"); // Consume the token.
+                    cursor.advance(interner);
                     break;
                 }
                 TokenKind::Punctuator(Punctuator::Comma) => {

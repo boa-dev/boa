@@ -12,7 +12,7 @@ use crate::syntax::{
         expression::{
             left_hand_side::template::TaggedTemplateLiteral, primary::PrimaryExpression, Expression,
         },
-        AllowAwait, AllowYield, Cursor, ParseError, ParseResult, TokenParser,
+        AllowAwait, AllowYield, Cursor, OrAbrupt, ParseError, ParseResult, TokenParser,
     },
 };
 use boa_ast::{
@@ -69,7 +69,7 @@ where
 
         cursor.set_goal(InputElement::RegExp);
 
-        let token = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
+        let token = cursor.peek(0, interner).or_abrupt()?;
         let mut lhs = match token.kind() {
             TokenKind::Keyword((Keyword::New | Keyword::Super, true)) => {
                 return Err(ParseError::general(
@@ -78,10 +78,10 @@ where
                 ));
             }
             TokenKind::Keyword((Keyword::New, false)) => {
-                cursor.next(interner).expect("token disappeared");
+                cursor.advance(interner);
 
                 if cursor.next_if(Punctuator::Dot, interner)?.is_some() {
-                    let token = cursor.next(interner)?.ok_or(ParseError::AbruptEnd)?;
+                    let token = cursor.next(interner).or_abrupt()?;
                     match token.kind() {
                         TokenKind::Identifier(Sym::TARGET) => {
                             return Ok(ast::Expression::NewTarget)
@@ -108,11 +108,11 @@ where
                 ast::Expression::from(New::from(call_node))
             }
             TokenKind::Keyword((Keyword::Super, _)) => {
-                cursor.next(interner).expect("token disappeared");
-                let token = cursor.next(interner)?.ok_or(ParseError::AbruptEnd)?;
+                cursor.advance(interner);
+                let token = cursor.next(interner).or_abrupt()?;
                 match token.kind() {
                     TokenKind::Punctuator(Punctuator::Dot) => {
-                        let token = cursor.next(interner)?.ok_or(ParseError::AbruptEnd)?;
+                        let token = cursor.next(interner).or_abrupt()?;
                         let field = match token.kind() {
                             TokenKind::Identifier(name) => {
                                 SuperPropertyAccess::new(PropertyAccessField::from(*name))
@@ -173,7 +173,7 @@ where
                         .next(interner)?
                         .expect("dot punctuator token disappeared"); // We move the parser forward.
 
-                    let token = cursor.next(interner)?.ok_or(ParseError::AbruptEnd)?;
+                    let token = cursor.next(interner).or_abrupt()?;
 
                     let access = match token.kind() {
                         TokenKind::Identifier(name) => SimplePropertyAccess::new(lhs, *name).into(),

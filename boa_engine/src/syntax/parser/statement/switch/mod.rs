@@ -5,7 +5,7 @@ use crate::syntax::{
     lexer::TokenKind,
     parser::{
         expression::Expression, statement::StatementList, AllowAwait, AllowReturn, AllowYield,
-        Cursor, ParseError, ParseResult, TokenParser,
+        Cursor, OrAbrupt, ParseError, ParseResult, TokenParser,
     },
 };
 use ast::operations::{lexically_declared_names_legacy, var_declared_names};
@@ -69,11 +69,7 @@ where
 
         cursor.expect(Punctuator::CloseParen, "switch statement", interner)?;
 
-        let position = cursor
-            .peek(0, interner)?
-            .ok_or(ParseError::AbruptEnd)?
-            .span()
-            .start();
+        let position = cursor.peek(0, interner).or_abrupt()?.span().start();
 
         let (cases, default) =
             CaseBlock::new(self.allow_yield, self.allow_await, self.allow_return)
@@ -156,7 +152,7 @@ where
         let mut default = None;
 
         loop {
-            let token = cursor.next(interner)?.ok_or(ParseError::AbruptEnd)?;
+            let token = cursor.next(interner).or_abrupt()?;
             match token.kind() {
                 TokenKind::Keyword((Keyword::Case | Keyword::Default, true)) => {
                     return Err(ParseError::general(

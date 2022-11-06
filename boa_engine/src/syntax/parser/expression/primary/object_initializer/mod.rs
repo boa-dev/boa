@@ -15,8 +15,8 @@ use crate::syntax::{
     parser::{
         expression::{identifiers::IdentifierReference, AssignmentExpression},
         function::{FormalParameter, FormalParameters, FunctionBody, UniqueFormalParameters},
-        name_in_lexically_declared_names, AllowAwait, AllowIn, AllowYield, Cursor, ParseError,
-        ParseResult, TokenParser,
+        name_in_lexically_declared_names, AllowAwait, AllowIn, AllowYield, Cursor, OrAbrupt,
+        ParseError, ParseResult, TokenParser,
     },
 };
 use boa_ast::{
@@ -89,7 +89,7 @@ where
             }
 
             if cursor.next_if(Punctuator::Comma, interner)?.is_none() {
-                let next_token = cursor.next(interner)?.ok_or(ParseError::AbruptEnd)?;
+                let next_token = cursor.next(interner).or_abrupt()?;
                 return Err(ParseError::expected(
                     [",".to_owned(), "}".to_owned()],
                     next_token.to_string(interner),
@@ -138,11 +138,7 @@ where
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("PropertyDefinition", "Parsing");
 
-        match cursor
-            .peek(1, interner)?
-            .ok_or(ParseError::AbruptEnd)?
-            .kind()
-        {
+        match cursor.peek(1, interner).or_abrupt()?.kind() {
             TokenKind::Punctuator(Punctuator::CloseBlock | Punctuator::Comma) => {
                 let ident = IdentifierReference::new(self.allow_yield, self.allow_await)
                     .parse(cursor, interner)?;
@@ -167,13 +163,10 @@ where
 
         //Async [AsyncMethod, AsyncGeneratorMethod] object methods
         let is_keyword = !matches!(
-            cursor
-                .peek(1, interner)?
-                .ok_or(ParseError::AbruptEnd)?
-                .kind(),
+            cursor.peek(1, interner).or_abrupt()?.kind(),
             TokenKind::Punctuator(Punctuator::OpenParen | Punctuator::Colon)
         );
-        let token = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
+        let token = cursor.peek(0, interner).or_abrupt()?;
         match token.kind() {
             TokenKind::Keyword((Keyword::Async, true)) if is_keyword => {
                 return Err(ParseError::general(
@@ -182,10 +175,10 @@ where
                 ));
             }
             TokenKind::Keyword((Keyword::Async, false)) if is_keyword => {
-                cursor.next(interner)?.expect("token disappeared");
+                cursor.advance(interner);
                 cursor.peek_expect_no_lineterminator(0, "Async object methods", interner)?;
 
-                let token = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
+                let token = cursor.peek(0, interner).or_abrupt()?;
                 let position = token.span().start();
 
                 if let TokenKind::Punctuator(Punctuator::Mul) = token.kind() {
@@ -238,17 +231,8 @@ where
             _ => {}
         }
 
-        if cursor
-            .peek(0, interner)?
-            .ok_or(ParseError::AbruptEnd)?
-            .kind()
-            == &TokenKind::Punctuator(Punctuator::Mul)
-        {
-            let position = cursor
-                .peek(0, interner)?
-                .ok_or(ParseError::AbruptEnd)?
-                .span()
-                .start();
+        if cursor.peek(0, interner).or_abrupt()?.kind() == &TokenKind::Punctuator(Punctuator::Mul) {
+            let position = cursor.peek(0, interner).or_abrupt()?.span().start();
             let (class_element_name, method) =
                 GeneratorMethod::new(self.allow_yield, self.allow_await).parse(cursor, interner)?;
 
@@ -283,20 +267,13 @@ where
             return Ok(property::PropertyDefinition::Property(property_name, value));
         }
 
-        let ordinary_method = cursor
-            .peek(0, interner)?
-            .ok_or(ParseError::AbruptEnd)?
-            .kind()
+        let ordinary_method = cursor.peek(0, interner).or_abrupt()?.kind()
             == &TokenKind::Punctuator(Punctuator::OpenParen);
 
         match property_name {
             // MethodDefinition[?Yield, ?Await] -> get ClassElementName[?Yield, ?Await] ( ) { FunctionBody[~Yield, ~Await] }
             property::PropertyName::Literal(str) if str == Sym::GET && !ordinary_method => {
-                let position = cursor
-                    .peek(0, interner)?
-                    .ok_or(ParseError::AbruptEnd)?
-                    .span()
-                    .start();
+                let position = cursor.peek(0, interner).or_abrupt()?.span().start();
 
                 property_name = PropertyName::new(self.allow_yield, self.allow_await)
                     .parse(cursor, interner)?;
@@ -507,10 +484,10 @@ where
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("PropertyName", "Parsing");
 
-        let token = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
+        let token = cursor.peek(0, interner).or_abrupt()?;
         let name = match token.kind() {
             TokenKind::Punctuator(Punctuator::OpenBracket) => {
-                cursor.next(interner).expect("token disappeared");
+                cursor.advance(interner);
                 let node =
                     AssignmentExpression::new(None, false, self.allow_yield, self.allow_await)
                         .parse(cursor, interner)?;
@@ -534,7 +511,7 @@ where
             },
             _ => return Err(ParseError::AbruptEnd),
         };
-        cursor.next(interner).expect("token disappeared");
+        cursor.advance(interner);
         Ok(name)
     }
 }
@@ -574,14 +551,10 @@ where
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("ClassElementName", "Parsing");
 
-        match cursor
-            .peek(0, interner)?
-            .ok_or(ParseError::AbruptEnd)?
-            .kind()
-        {
+        match cursor.peek(0, interner).or_abrupt()?.kind() {
             TokenKind::PrivateIdentifier(ident) => {
                 let ident = *ident;
-                cursor.next(interner).expect("token disappeared");
+                cursor.advance(interner);
                 Ok(property::ClassElementName::PrivateIdentifier(ident))
             }
             _ => Ok(property::ClassElementName::PropertyName(
@@ -682,11 +655,7 @@ where
         let class_element_name =
             ClassElementName::new(self.allow_yield, self.allow_await).parse(cursor, interner)?;
 
-        let params_start_position = cursor
-            .peek(0, interner)?
-            .ok_or(ParseError::AbruptEnd)?
-            .span()
-            .start();
+        let params_start_position = cursor.peek(0, interner).or_abrupt()?.span().start();
 
         let params = UniqueFormalParameters::new(true, false).parse(cursor, interner)?;
 
@@ -778,11 +747,7 @@ where
         let name =
             ClassElementName::new(self.allow_yield, self.allow_await).parse(cursor, interner)?;
 
-        let params_start_position = cursor
-            .peek(0, interner)?
-            .ok_or(ParseError::AbruptEnd)?
-            .span()
-            .start();
+        let params_start_position = cursor.peek(0, interner).or_abrupt()?.span().start();
 
         let params = UniqueFormalParameters::new(true, true).parse(cursor, interner)?;
 
@@ -888,11 +853,7 @@ where
         let class_element_name =
             ClassElementName::new(self.allow_yield, self.allow_await).parse(cursor, interner)?;
 
-        let params_start_position = cursor
-            .peek(0, interner)?
-            .ok_or(ParseError::AbruptEnd)?
-            .span()
-            .start();
+        let params_start_position = cursor.peek(0, interner).or_abrupt()?.span().start();
 
         let params = UniqueFormalParameters::new(false, true).parse(cursor, interner)?;
 

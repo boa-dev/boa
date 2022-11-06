@@ -7,7 +7,9 @@
 
 use crate::syntax::{
     lexer::{Error as LexError, TokenKind},
-    parser::{cursor::Cursor, AllowAwait, AllowYield, ParseError, ParseResult, TokenParser},
+    parser::{
+        cursor::Cursor, AllowAwait, AllowYield, OrAbrupt, ParseError, ParseResult, TokenParser,
+    },
 };
 use boa_ast::{expression::Identifier, Keyword};
 use boa_interner::{Interner, Sym};
@@ -61,7 +63,7 @@ where
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("IdentifierReference", "Parsing");
 
-        let token = cursor.next(interner)?.ok_or(ParseError::AbruptEnd)?;
+        let token = cursor.next(interner).or_abrupt()?;
 
         match token.kind() {
             TokenKind::Identifier(ident)
@@ -153,7 +155,7 @@ where
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("BindingIdentifier", "Parsing");
 
-        let next_token = cursor.next(interner)?.ok_or(ParseError::AbruptEnd)?;
+        let next_token = cursor.next(interner).or_abrupt()?;
 
         match next_token.kind() {
             TokenKind::Identifier(Sym::ARGUMENTS) if cursor.strict_mode() => {

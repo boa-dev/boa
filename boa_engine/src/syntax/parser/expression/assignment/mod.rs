@@ -22,17 +22,16 @@ use crate::syntax::{
             conditional::ConditionalExpression,
             r#yield::YieldExpression,
         },
-        name_in_lexically_declared_names, AllowAwait, AllowIn, AllowYield, Cursor, ParseError,
-        ParseResult, TokenParser,
+        name_in_lexically_declared_names, AllowAwait, AllowIn, AllowYield, Cursor, OrAbrupt,
+        ParseError, ParseResult, TokenParser,
     },
 };
-use ast::operations::{bound_names, contains, top_level_lexically_declared_names, ContainsSymbol};
 use boa_ast::{
-    self as ast,
     expression::{
         operator::assign::{Assign, AssignOp, AssignTarget},
         Identifier,
     },
+    operations::{bound_names, contains, top_level_lexically_declared_names, ContainsSymbol},
     Expression, Keyword, Punctuator,
 };
 use boa_interner::Interner;
@@ -102,11 +101,7 @@ where
         let _timer = Profiler::global().start_event("AssignmentExpression", "Parsing");
         cursor.set_goal(InputElement::RegExp);
 
-        match cursor
-            .peek(0, interner)?
-            .ok_or(ParseError::AbruptEnd)?
-            .kind()
-        {
+        match cursor.peek(0, interner).or_abrupt()?.kind() {
             // [+Yield]YieldExpression[?In, ?Await]
             TokenKind::Keyword((Keyword::Yield, _)) if self.allow_yield.0 => {
                 return YieldExpression::new(self.allow_in, self.allow_await)
@@ -118,10 +113,7 @@ where
 
                 // Because we already peeked the identifier token, there may be a line terminator before the identifier token.
                 // In that case we have to skip an additional token on the next peek.
-                let skip_n = if cursor
-                    .peek_is_line_terminator(0, interner)?
-                    .ok_or(ParseError::AbruptEnd)?
-                {
+                let skip_n = if cursor.peek_is_line_terminator(0, interner).or_abrupt()? {
                     2
                 } else {
                     1
@@ -143,23 +135,17 @@ where
             }
             //  AsyncArrowFunction[?In, ?Yield, ?Await]
             TokenKind::Keyword((Keyword::Async, _)) => {
-                let skip_n = if cursor
-                    .peek_is_line_terminator(0, interner)?
-                    .ok_or(ParseError::AbruptEnd)?
-                {
+                let skip_n = if cursor.peek_is_line_terminator(0, interner).or_abrupt()? {
                     2
                 } else {
                     1
                 };
 
                 if !cursor
-                    .peek_is_line_terminator(skip_n, interner)?
-                    .ok_or(ParseError::AbruptEnd)?
+                    .peek_is_line_terminator(skip_n, interner)
+                    .or_abrupt()?
                     && matches!(
-                        cursor
-                            .peek(1, interner)?
-                            .ok_or(ParseError::AbruptEnd)?
-                            .kind(),
+                        cursor.peek(1, interner).or_abrupt()?.kind(),
                         TokenKind::Identifier(_)
                             | TokenKind::Keyword((Keyword::Yield | Keyword::Await, _))
                             | TokenKind::Punctuator(Punctuator::OpenParen)
@@ -177,11 +163,7 @@ where
 
         cursor.set_goal(InputElement::Div);
 
-        let position = cursor
-            .peek(0, interner)?
-            .ok_or(ParseError::AbruptEnd)?
-            .span()
-            .start();
+        let position = cursor.peek(0, interner).or_abrupt()?.span().start();
         let mut lhs = ConditionalExpression::new(
             self.name,
             self.allow_in,
@@ -247,7 +229,7 @@ where
                 position,
             )?;
 
-            return Ok(ast::function::ArrowFunction::new(self.name, parameters, body).into());
+            return Ok(boa_ast::function::ArrowFunction::new(self.name, parameters, body).into());
         }
 
         // Review if we are trying to assign to an invalid left hand side expression.
@@ -260,7 +242,7 @@ where
                         }
                     }
 
-                    cursor.next(interner)?.expect("= token vanished");
+                    cursor.advance(interner);
                     cursor.set_goal(InputElement::RegExp);
 
                     if let Some(target) =
@@ -285,7 +267,7 @@ where
                         }
                     }
 
-                    cursor.next(interner)?.expect("token vanished");
+                    cursor.advance(interner);
                     if let Some(target) =
                         AssignTarget::from_expression(&lhs, cursor.strict_mode(), false)
                     {

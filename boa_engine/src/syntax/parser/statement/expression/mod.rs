@@ -1,7 +1,7 @@
 use crate::syntax::{
     lexer::TokenKind,
     parser::{
-        expression::Expression, AllowAwait, AllowYield, Cursor, ParseError, ParseResult,
+        expression::Expression, AllowAwait, AllowYield, Cursor, OrAbrupt, ParseError, ParseResult,
         TokenParser,
     },
 };
@@ -45,7 +45,7 @@ where
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("ExpressionStatement", "Parsing");
 
-        let next_token = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
+        let next_token = cursor.peek(0, interner).or_abrupt()?;
         match next_token.kind() {
             TokenKind::Keyword((
                 Keyword::Function | Keyword::Class | Keyword::Async | Keyword::Let,
@@ -63,7 +63,7 @@ where
                 ));
             }
             TokenKind::Keyword((Keyword::Async, false)) => {
-                let next_token = cursor.peek(1, interner)?.ok_or(ParseError::AbruptEnd)?;
+                let next_token = cursor.peek(1, interner).or_abrupt()?;
                 match next_token.kind() {
                     TokenKind::Keyword((Keyword::Function, true)) => {
                         return Err(ParseError::general(
@@ -81,7 +81,7 @@ where
                 }
             }
             TokenKind::Keyword((Keyword::Let, false)) => {
-                let next_token = cursor.peek(1, interner)?.ok_or(ParseError::AbruptEnd)?;
+                let next_token = cursor.peek(1, interner).or_abrupt()?;
                 if next_token.kind() == &TokenKind::Punctuator(Punctuator::OpenBracket) {
                     return Err(ParseError::general(
                         "expected statement",

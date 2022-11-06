@@ -79,7 +79,7 @@ where
 
         if let Some(tok) = cursor.peek(0, interner)? {
             if tok.kind() == &TokenKind::Punctuator(Punctuator::Question) {
-                cursor.next(interner)?.expect("? character vanished"); // Consume the token.
+                cursor.advance(interner);
                 let then_clause =
                     AssignmentExpression::new(None, true, self.allow_yield, self.allow_await)
                         .parse(cursor, interner)?;

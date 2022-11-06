@@ -5,7 +5,7 @@ use crate::syntax::{
         error::ParseError,
         expression::LabelIdentifier,
         statement::{AllowAwait, AllowReturn, Statement},
-        AllowYield, ParseResult, TokenParser,
+        AllowYield, OrAbrupt, ParseResult, TokenParser,
     },
 };
 use boa_ast::{self as ast, Keyword, Punctuator};
@@ -61,7 +61,7 @@ where
         cursor.expect(Punctuator::Colon, "Labelled Statement", interner)?;
 
         let strict = cursor.strict_mode();
-        let next_token = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
+        let next_token = cursor.peek(0, interner).or_abrupt()?;
 
         let labelled_item = match next_token.kind() {
             // Early Error: It is a Syntax Error if any strict mode source code matches this rule.

@@ -5,7 +5,7 @@ use crate::syntax::{
     lexer::TokenKind,
     parser::{
         expression::Expression, statement::declaration::FunctionDeclaration, AllowAwait,
-        AllowReturn, AllowYield, Cursor, ParseError, ParseResult, TokenParser,
+        AllowReturn, AllowYield, Cursor, OrAbrupt, ParseError, ParseResult, TokenParser,
     },
 };
 use boa_ast::{
@@ -72,7 +72,7 @@ where
             .end();
 
         let strict = cursor.strict_mode();
-        let token = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
+        let token = cursor.peek(0, interner).or_abrupt()?;
         let then_node = match token.kind() {
             TokenKind::Keyword((Keyword::Function, _)) => {
                 // FunctionDeclarations in IfStatement Statement Clauses
@@ -108,10 +108,10 @@ where
                     ));
                 }
                 TokenKind::Keyword((Keyword::Else, false)) => {
-                    cursor.next(interner)?.expect("token disappeared");
+                    cursor.advance(interner);
 
                     let strict = cursor.strict_mode();
-                    let token = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
+                    let token = cursor.peek(0, interner).or_abrupt()?;
                     let position = token.span().start();
                     let stmt = match token.kind() {
                         TokenKind::Keyword((Keyword::Function, _)) => {

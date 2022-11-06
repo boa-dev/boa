@@ -6,7 +6,7 @@ use crate::syntax::{
         cursor::Cursor,
         expression::Initializer,
         statement::{ArrayBindingPattern, BindingIdentifier, ObjectBindingPattern},
-        AllowAwait, AllowIn, AllowYield, ParseError, ParseResult, TokenParser,
+        AllowAwait, AllowIn, AllowYield, OrAbrupt, ParseResult, TokenParser,
     },
 };
 use boa_ast::{
@@ -163,7 +163,7 @@ where
     type Output = Variable;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        let peek_token = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
+        let peek_token = cursor.peek(0, interner).or_abrupt()?;
 
         match peek_token.kind() {
             TokenKind::Punctuator(Punctuator::OpenBlock) => {

@@ -1,6 +1,6 @@
 use crate::syntax::{
     lexer::{InputElement, Lexer, Token, TokenKind},
-    parser::error::ParseError,
+    parser::{error::ParseError, ParseResult},
 };
 use boa_ast::Position;
 use boa_interner::Interner;
@@ -83,7 +83,7 @@ where
         &mut self,
         start: Position,
         interner: &mut Interner,
-    ) -> Result<Token, ParseError> {
+    ) -> ParseResult<Token> {
         let _timer = Profiler::global().start_event("cursor::lex_regex()", "Parsing");
         self.set_goal(InputElement::RegExp);
         self.lexer
@@ -97,7 +97,7 @@ where
         &mut self,
         start: Position,
         interner: &mut Interner,
-    ) -> Result<Token, ParseError> {
+    ) -> ParseResult<Token> {
         self.lexer
             .lex_template(start, interner)
             .map_err(ParseError::from)
@@ -116,7 +116,7 @@ where
     /// Fills the peeking buffer with the next token.
     ///
     /// It will not fill two line terminators one after the other.
-    fn fill(&mut self, interner: &mut Interner) -> Result<(), ParseError> {
+    fn fill(&mut self, interner: &mut Interner) -> ParseResult<()> {
         debug_assert!(
             self.write_index < PEEK_BUF_SIZE,
             "write index went out of bounds"
@@ -166,12 +166,12 @@ where
     ///
     /// This follows iterator semantics in that a `peek(0, false)` followed by a `next(false)` will
     /// return the same value. Note that because a `peek(n, false)` may return a line terminator a
-    // subsequent `next(true)` may not return the same value.
+    /// subsequent `next(true)` may not return the same value.
     pub(super) fn next(
         &mut self,
         skip_line_terminators: bool,
         interner: &mut Interner,
-    ) -> Result<Option<Token>, ParseError> {
+    ) -> ParseResult<Option<Token>> {
         if self.read_index == self.write_index {
             self.fill(interner)?;
         }
@@ -217,7 +217,7 @@ where
         skip_n: usize,
         skip_line_terminators: bool,
         interner: &mut Interner,
-    ) -> Result<Option<&Token>, ParseError> {
+    ) -> ParseResult<Option<&Token>> {
         assert!(
             skip_n <= MAX_PEEK_SKIP,
             "you cannot skip more than {} elements",

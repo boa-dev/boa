@@ -13,7 +13,7 @@ use crate::syntax::{
         cursor::{Cursor, SemicolonResult},
         expression::Initializer,
         statement::{ArrayBindingPattern, BindingIdentifier, ObjectBindingPattern},
-        AllowAwait, AllowIn, AllowYield, ParseError, ParseResult, TokenParser,
+        AllowAwait, AllowIn, AllowYield, OrAbrupt, ParseError, ParseResult, TokenParser,
     },
 };
 use ast::operations::bound_names;
@@ -66,7 +66,7 @@ where
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("LexicalDeclaration", "Parsing");
-        let tok = cursor.next(interner)?.ok_or(ParseError::AbruptEnd)?;
+        let tok = cursor.next(interner).or_abrupt()?;
 
         match tok.kind() {
             TokenKind::Keyword((Keyword::Const | Keyword::Let, true)) => Err(ParseError::general(
@@ -159,7 +159,7 @@ where
                 if init_is_some || self.loop_init {
                     decls.push(decl);
                 } else {
-                    let next = cursor.next(interner)?.ok_or(ParseError::AbruptEnd)?;
+                    let next = cursor.next(interner).or_abrupt()?;
                     return Err(ParseError::general(
                         "Expected initializer for const declaration",
                         next.span().start(),
@@ -190,11 +190,11 @@ where
                     if tk.kind() == &TokenKind::Punctuator(Punctuator::Comma) =>
                 {
                     // We discard the comma
-                    let _comma = cursor.next(interner)?;
+                    cursor.advance(interner);
                 }
                 SemicolonResult::NotFound(_) if self.loop_init => break,
                 SemicolonResult::NotFound(_) => {
-                    let next = cursor.next(interner)?.ok_or(ParseError::AbruptEnd)?;
+                    let next = cursor.next(interner).or_abrupt()?;
                     return Err(ParseError::expected(
                         [";".to_owned(), "line terminator".to_owned()],
                         next.to_string(interner),
@@ -254,7 +254,7 @@ where
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("LexicalBinding", "Parsing");
 
-        let peek_token = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
+        let peek_token = cursor.peek(0, interner).or_abrupt()?;
         let position = peek_token.span().start();
 
         match peek_token.kind() {

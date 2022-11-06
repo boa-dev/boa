@@ -20,7 +20,7 @@ pub(in crate::syntax::parser) use lexical::LexicalDeclaration;
 
 use crate::syntax::{
     lexer::TokenKind,
-    parser::{AllowAwait, AllowYield, Cursor, ParseError, ParseResult, TokenParser},
+    parser::{AllowAwait, AllowYield, Cursor, OrAbrupt, ParseResult, TokenParser},
 };
 use boa_ast::{self as ast, Keyword};
 use boa_interner::Interner;
@@ -60,7 +60,7 @@ where
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("Declaration", "Parsing");
-        let tok = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
+        let tok = cursor.peek(0, interner).or_abrupt()?;
 
         match tok.kind() {
             TokenKind::Keyword((Keyword::Function | Keyword::Async | Keyword::Class, _)) => {
