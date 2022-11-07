@@ -33,11 +33,6 @@ impl GcBoxHeader {
     }
 
     #[inline]
-    pub fn set_next(&self, next: Option<NonNull<GcBox<dyn Trace>>>) {
-        self.next.set(next);
-    }
-
-    #[inline]
     pub fn roots(&self) -> usize {
         self.roots.get() & ROOTS_MASK
     }
@@ -114,10 +109,6 @@ impl<T: Trace + ?Sized> GcBox<T> {
         // Use .header to ignore fat pointer vtables, to work around
         // https://github.com/rust-lang/rust/issues/46139
         ptr::eq(&this.header, &other.header)
-    }
-
-    pub(crate) fn set_header_pointer(&self, next: Option<NonNull<GcBox<dyn Trace>>>) {
-        self.header.set_next(next)
     }
 
     /// Marks this `GcBox` and marks through its data.

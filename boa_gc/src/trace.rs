@@ -27,7 +27,9 @@ pub unsafe trait Trace: Finalize {
     /// Checks if an ephemeron's key is marked.
     ///
     /// Note: value should always be implemented to return false
-    unsafe fn is_marked_ephemeron(&self) -> bool;
+    unsafe fn is_marked_ephemeron(&self) -> bool {
+        false
+    }
 
     /// Returns true if a marked `Gc` is found
     unsafe fn weak_trace(&self);
@@ -51,10 +53,6 @@ macro_rules! unsafe_empty_trace {
     () => {
         #[inline]
         unsafe fn trace(&self) {}
-        #[inline]
-        unsafe fn is_marked_ephemeron(&self) -> bool {
-            false
-        }
         #[inline]
         unsafe fn weak_trace(&self) {}
         #[inline]

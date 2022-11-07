@@ -11,31 +11,35 @@
     clippy::borrow_deref_ref,
 )]
 
+extern crate self as boa_gc;
+
 use boa_profiler::Profiler;
-use std::cell::{Cell as StdCell, RefCell as StdRefCell};
+use std::cell::{Cell, RefCell};
 use std::mem;
 use std::ptr::NonNull;
 
-mod gc_box;
-mod internals;
-mod pointers;
 pub mod trace;
 
-pub use boa_gc_macros::{Finalize, Trace};
+pub(crate) mod internals;
+
+mod cell;
+mod pointers;
 
 pub use crate::trace::{Finalize, Trace};
-pub(crate) use gc_box::GcBox;
-pub use internals::{EphemeronBox, GcCell as Cell, GcCellRef as Ref, GcCellRefMut as RefMut};
+pub use boa_gc_macros::{Finalize, Trace};
+pub use cell::{GcCell, GcCellRef, GcCellRefMut};
 pub use pointers::{Ephemeron, Gc, WeakGc};
 
-pub type GcPointer = NonNull<GcBox<dyn Trace>>;
+use internals::GcBox;
 
-thread_local!(pub static EPHEMERON_QUEUE: StdCell<Option<Vec<GcPointer>>> = StdCell::new(None));
-thread_local!(pub static GC_DROPPING: StdCell<bool> = StdCell::new(false));
-thread_local!(static BOA_GC: StdRefCell<BoaGc> = StdRefCell::new( BoaGc {
+type GcPointer = NonNull<GcBox<dyn Trace>>;
+
+thread_local!(static EPHEMERON_QUEUE: Cell<Option<Vec<GcPointer>>> = Cell::new(None));
+thread_local!(static GC_DROPPING: Cell<bool> = Cell::new(false));
+thread_local!(static BOA_GC: RefCell<BoaGc> = RefCell::new( BoaGc {
     config: GcConfig::default(),
     runtime: GcRuntimeData::default(),
-    adult_start: StdCell::new(None),
+    adult_start: Cell::new(None),
 }));
 
 struct GcConfig {
@@ -64,14 +68,12 @@ struct GcRuntimeData {
 struct BoaGc {
     config: GcConfig,
     runtime: GcRuntimeData,
-    adult_start: StdCell<Option<GcPointer>>,
+    adult_start: Cell<Option<GcPointer>>,
 }
 
 impl Drop for BoaGc {
     fn drop(&mut self) {
-        unsafe {
-            Collector::dump(self);
-        }
+        Collector::dump(self);
     }
 }
 // Whether or not the thread is currently in the sweep phase of garbage collection.
@@ -96,98 +98,34 @@ pub fn finalizer_safe() -> bool {
     GC_DROPPING.with(|dropping| !dropping.get())
 }
 
-/// The GcAllocater handles initialization and allocation of garbage collected values.
+/// The Allocator handles allocation of garbage collected values.
 ///
 /// The allocator can trigger a garbage collection
-pub(crate) struct GcAlloc;
+struct Allocator;
 
-impl GcAlloc {
-    pub fn new<T: Trace>(value: T) -> NonNull<GcBox<T>> {
+impl Allocator {
+    fn new<T: Trace>(value: GcBox<T>) -> NonNull<GcBox<T>> {
         let _timer = Profiler::global().start_event("New Pointer", "BoaAlloc");
+        let eph = value.header.is_ephemeron();
+        let element_size = mem::size_of_val::<GcBox<T>>(&value);
         BOA_GC.with(|st| {
             let mut gc = st.borrow_mut();
 
-            unsafe {
-                Self::manage_state(&mut gc);
+            Self::manage_state(&mut gc);
+            value.header.next.set(gc.adult_start.take());
+            let ptr = unsafe { NonNull::new_unchecked(Box::into_raw(Box::from(value))) };
 
-                let gc_box = GcBox::new(value);
-
-                let element_size = mem::size_of_val::<GcBox<T>>(&gc_box);
-                let element_pointer = Box::into_raw(Box::from(gc_box));
-
-                let old_start = gc.adult_start.take();
-                (*element_pointer).set_header_pointer(old_start);
-                (*element_pointer).value().unroot();
-
-                gc.adult_start
-                    .set(Some(NonNull::new_unchecked(element_pointer)));
-
+            gc.adult_start.set(Some(ptr));
+            gc.runtime.total_bytes_allocated += element_size;
+            if !eph {
                 gc.runtime.total_bytes_allocated += element_size;
-
-                NonNull::new_unchecked(element_pointer)
             }
+
+            ptr
         })
     }
 
-    pub fn new_ephemeron<K: Trace + ?Sized, V: Trace>(
-        key: &Gc<K>,
-        value: V,
-    ) -> NonNull<GcBox<EphemeronBox<K, V>>> {
-        let _timer = Profiler::global().start_event("New Weak Pair", "BoaAlloc");
-        BOA_GC.with(|internals| {
-            let mut gc = internals.borrow_mut();
-
-            unsafe {
-                Self::manage_state(&mut gc);
-                let ephem = EphemeronBox::new_pair(key, value);
-                let gc_box = GcBox::new_weak(ephem);
-
-                let element_size = mem::size_of_val::<GcBox<_>>(&gc_box);
-                let element_pointer = Box::into_raw(Box::from(gc_box));
-
-                let old_start = gc.adult_start.take();
-                (*element_pointer).set_header_pointer(old_start);
-                (*element_pointer).value().unroot();
-
-                gc.adult_start
-                    .set(Some(NonNull::new_unchecked(element_pointer)));
-
-                gc.runtime.total_bytes_allocated += element_size;
-
-                NonNull::new_unchecked(element_pointer)
-            }
-        })
-    }
-
-    pub fn new_weak_box<T: Trace>(value: &Gc<T>) -> NonNull<GcBox<EphemeronBox<T, ()>>> {
-        let _timer = Profiler::global().start_event("New Weak Pointer", "BoaAlloc");
-        BOA_GC.with(|state| {
-            let mut gc = state.borrow_mut();
-
-            unsafe {
-                Self::manage_state(&mut gc);
-
-                let ephemeron = EphemeronBox::new(value);
-                let gc_box = GcBox::new_weak(ephemeron);
-
-                let element_size = mem::size_of_val::<GcBox<_>>(&gc_box);
-                let element_pointer = Box::into_raw(Box::from(gc_box));
-
-                let old_start = gc.adult_start.take();
-                (*element_pointer).set_header_pointer(old_start);
-                (*element_pointer).value().unroot();
-
-                gc.adult_start
-                    .set(Some(NonNull::new_unchecked(element_pointer)));
-
-                gc.runtime.total_bytes_allocated += element_size;
-
-                NonNull::new_unchecked(element_pointer)
-            }
-        })
-    }
-
-    unsafe fn manage_state(gc: &mut BoaGc) {
+    fn manage_state(gc: &mut BoaGc) {
         if gc.runtime.total_bytes_allocated > gc.config.adult_threshold {
             Collector::run_full_collection(gc);
 
@@ -209,30 +147,35 @@ impl GcAlloc {
 // then needs to be retriggered as finalization can potentially resurrect dead
 // nodes.
 //
-// A better appraoch in a more concurrent structure may be to reorder.
+// A better approach in a more concurrent structure may be to reorder.
 //
 // Mark -> Sweep -> Finalize
 pub struct Collector;
 
 impl Collector {
-    pub(crate) unsafe fn run_full_collection(gc: &mut BoaGc) {
+    fn run_full_collection(gc: &mut BoaGc) {
         let _timer = Profiler::global().start_event("Gc Full Collection", "gc");
         gc.runtime.collections += 1;
-        let unreachable_adults = Self::mark_heap(&gc.adult_start);
+        let unreachable_adults = unsafe { Self::mark_heap(&gc.adult_start) };
 
         // Check if any unreachable nodes were found and finalize
         if !unreachable_adults.is_empty() {
-            Self::finalize(unreachable_adults);
+            unsafe { Self::finalize(unreachable_adults) };
         }
 
-        let _final_unreachable_adults = Self::mark_heap(&gc.adult_start);
+        let _final_unreachable_adults = unsafe { Self::mark_heap(&gc.adult_start) };
 
         // Sweep both without promoting any values
-        Self::sweep(&gc.adult_start, &mut gc.runtime.total_bytes_allocated);
+        unsafe {
+            Self::sweep(
+                &gc.adult_start,
+                &mut gc.runtime.total_bytes_allocated,
+            );
+        }
     }
 
-    pub(crate) unsafe fn mark_heap(
-        head: &StdCell<Option<NonNull<GcBox<dyn Trace>>>>,
+    unsafe fn mark_heap(
+        head: &Cell<Option<NonNull<GcBox<dyn Trace>>>>,
     ) -> Vec<NonNull<GcBox<dyn Trace>>> {
         let _timer = Profiler::global().start_event("Gc Marking", "gc");
         // Walk the list, tracing and marking the nodes
@@ -270,28 +213,27 @@ impl Collector {
     ) -> Vec<NonNull<GcBox<dyn Trace>>> {
         let mut ephemeron_queue = initial_queue;
         loop {
-            let mut reachable_nodes = Vec::new();
-            let mut other_nodes = Vec::new();
             // iterate through ephemeron queue, sorting nodes by whether they
             // are reachable or unreachable<?>
-            for node in ephemeron_queue {
-                if (*node.as_ptr()).value.is_marked_ephemeron() {
-                    (*node.as_ptr()).header.mark();
-                    reachable_nodes.push(node);
-                } else {
-                    other_nodes.push(node);
-                }
-            }
+            let (reachable, other): (Vec<_>, Vec<_>) =
+                ephemeron_queue.into_iter().partition(|node| {
+                    if node.as_ref().value.is_marked_ephemeron() {
+                        node.as_ref().header.mark();
+                        true
+                    } else {
+                        false
+                    }
+                });
             // Replace the old queue with the unreachable<?>
-            ephemeron_queue = other_nodes;
+            ephemeron_queue = other;
 
             // If reachable nodes is not empty, trace values. If it is empty,
             // break from the loop
-            if !reachable_nodes.is_empty() {
+            if !reachable.is_empty() {
                 EPHEMERON_QUEUE.with(|state| state.set(Some(Vec::new())));
                 // iterate through reachable nodes and trace their values,
                 // enqueuing any ephemeron that is found during the trace
-                for node in reachable_nodes {
+                for node in reachable {
                     // TODO: deal with fetch ephemeron_queue
                     (*node.as_ptr()).weak_trace_inner()
                 }
@@ -321,7 +263,7 @@ impl Collector {
     }
 
     unsafe fn sweep(
-        heap_start: &StdCell<Option<NonNull<GcBox<dyn Trace>>>>,
+        heap_start: &Cell<Option<NonNull<GcBox<dyn Trace>>>>,
         total_allocated: &mut usize,
     ) {
         let _timer = Profiler::global().start_event("Gc Sweeping", "gc");
@@ -343,18 +285,14 @@ impl Collector {
     }
 
     // Clean up the heap when BoaGc is dropped
-    unsafe fn dump(gc: &mut BoaGc) {
-        Self::drop_heap(&gc.adult_start);
-    }
-
-    unsafe fn drop_heap(heap_start: &StdCell<Option<NonNull<GcBox<dyn Trace>>>>) {
+    fn dump(gc: &mut BoaGc) {
         // Not initializing a dropguard since this should only be invoked when BOA_GC is being dropped.
         let _guard = DropGuard::new();
 
-        let sweep_head = heap_start;
+        let sweep_head = &gc.adult_start;
         while let Some(node) = sweep_head.get() {
             // Drops every node
-            let unmarked_node = Box::from_raw(node.as_ptr());
+            let unmarked_node = unsafe { Box::from_raw(node.as_ptr()) };
             sweep_head.set(unmarked_node.header.next.take());
         }
     }
@@ -369,44 +307,11 @@ pub fn force_collect() {
     BOA_GC.with(|current| {
         let mut gc = current.borrow_mut();
 
-        unsafe {
-            if gc.runtime.total_bytes_allocated > 0 {
-                Collector::run_full_collection(&mut *gc)
-            }
+        if gc.runtime.total_bytes_allocated > 0 {
+            Collector::run_full_collection(&mut *gc)
         }
     })
 }
 
-pub struct GcTester;
-
-impl GcTester {
-    pub fn assert_collections(o: usize) {
-        BOA_GC.with(|current| {
-            let gc = current.borrow();
-            assert_eq!(gc.runtime.collections, o);
-        })
-    }
-
-    pub fn assert_collection_floor(floor: usize) {
-        BOA_GC.with(|current| {
-            let gc = current.borrow();
-            assert!(gc.runtime.collections > floor);
-        })
-    }
-
-    pub fn assert_empty_gc() {
-        BOA_GC.with(|current| {
-            let gc = current.borrow();
-
-            assert!(gc.adult_start.get().is_none());
-            assert!(gc.runtime.total_bytes_allocated == 0);
-        })
-    }
-
-    pub fn assert_bytes_allocated() {
-        BOA_GC.with(|current| {
-            let gc = current.borrow();
-            assert!(gc.runtime.total_bytes_allocated > 0);
-        })
-    }
-}
+#[cfg(test)]
+mod test;

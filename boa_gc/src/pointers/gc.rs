@@ -7,9 +7,9 @@ use std::ops::Deref;
 use std::ptr::{self, NonNull};
 use std::rc::Rc;
 
-use crate::gc_box::GcBox;
+use crate::internals::GcBox;
 use crate::trace::{Finalize, Trace};
-use crate::{finalizer_safe, Cell as GcCell, GcAlloc};
+use crate::{finalizer_safe, Allocator};
 
 pub(crate) unsafe fn set_data_ptr<T: ?Sized, U>(mut ptr: *mut T, data: *mut U) -> *mut T {
     ptr::write(&mut ptr as *mut _ as *mut *mut u8, data as *mut u8);
@@ -26,30 +26,15 @@ impl<T: Trace> Gc<T> {
     /// Constructs a new `Gc<T>` with the given value.
     pub fn new(value: T) -> Self {
         unsafe {
-            let pointer = GcAlloc::new(value);
-
-            let gc = Gc {
-                inner_ptr: Cell::new(NonNull::new_unchecked(pointer.as_ptr())),
-                marker: PhantomData,
-            };
-            gc.set_root();
-            gc
+            value.unroot();
         }
-    }
-
-    pub fn new_cell(value: T) -> Gc<GcCell<T>> {
-        unsafe {
-            let new_cell = GcCell::new(value);
-
-            let pointer = GcAlloc::new(new_cell);
-
-            let gc = Gc {
-                inner_ptr: Cell::new(NonNull::new_unchecked(pointer.as_ptr())),
-                marker: PhantomData,
-            };
-            gc.set_root();
-            gc
-        }
+        let inner_ptr = Allocator::new(GcBox::new(value));
+        let gc = Self {
+            inner_ptr: Cell::new(inner_ptr),
+            marker: PhantomData,
+        };
+        unsafe { gc.set_root() };
+        gc
     }
 }
 
@@ -89,14 +74,14 @@ impl<T: Trace + ?Sized> Gc<T> {
     }
 
     #[inline]
-    pub(crate) fn inner_ptr(&self) -> *mut GcBox<T> {
+    pub(crate) fn inner_ptr(&self) -> NonNull<GcBox<T>> {
         assert!(finalizer_safe());
-        unsafe { clear_root_bit(self.inner_ptr.get()).as_ptr() }
+        unsafe { clear_root_bit(self.inner_ptr.get()) }
     }
 
     #[inline]
     fn inner(&self) -> &GcBox<T> {
-        unsafe { &*self.inner_ptr() }
+        unsafe { self.inner_ptr().as_ref() }
     }
 }
 
@@ -185,7 +170,7 @@ impl<T: Trace + ?Sized> Drop for Gc<T> {
 impl<T: Trace + Default> Default for Gc<T> {
     #[inline]
     fn default() -> Self {
-        Self::new(Default::default())
+        Gc::new(Default::default())
     }
 }
 

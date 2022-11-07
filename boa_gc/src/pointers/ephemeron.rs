@@ -2,7 +2,7 @@ use crate::{
     finalizer_safe,
     internals::EphemeronBox,
     trace::{Finalize, Trace},
-    Gc, GcAlloc, GcBox, EPHEMERON_QUEUE,
+    Allocator, Gc, GcBox, EPHEMERON_QUEUE,
 };
 use std::cell::Cell;
 use std::ptr::NonNull;
@@ -13,26 +13,26 @@ pub struct Ephemeron<K: Trace + ?Sized + 'static, V: Trace + ?Sized + 'static> {
 
 impl<K: Trace + ?Sized, V: Trace> Ephemeron<K, V> {
     pub fn new(key: &Gc<K>, value: V) -> Self {
-        let ephemeron_box = GcAlloc::new_ephemeron(key, value);
-        unsafe {
-            Self {
-                inner_ptr: Cell::new(NonNull::new_unchecked(ephemeron_box.as_ptr())),
-            }
+        unsafe { value.unroot() };
+        Self {
+            inner_ptr: Cell::new(Allocator::new(GcBox::new_weak(EphemeronBox::new_pair(
+                key, value,
+            )))),
         }
     }
 }
 
 impl<K: Trace + ?Sized, V: Trace> Ephemeron<K, V> {
     #[inline]
-    fn inner_ptr(&self) -> *mut GcBox<EphemeronBox<K, V>> {
+    fn inner_ptr(&self) -> NonNull<GcBox<EphemeronBox<K, V>>> {
         assert!(finalizer_safe());
 
-        self.inner_ptr.get().as_ptr()
+        self.inner_ptr.get()
     }
 
     #[inline]
-    pub fn inner(&self) -> &GcBox<EphemeronBox<K, V>> {
-        unsafe { &*self.inner_ptr() }
+    fn inner(&self) -> &GcBox<EphemeronBox<K, V>> {
+        unsafe { &*self.inner_ptr().as_ptr() }
     }
 
     #[inline]
@@ -61,7 +61,7 @@ unsafe impl<K: Trace, V: Trace> Trace for Ephemeron<K, V> {
     unsafe fn weak_trace(&self) {
         EPHEMERON_QUEUE.with(|q| {
             let mut queue = q.take().expect("queue is initialized by weak_trace");
-            queue.push(NonNull::new_unchecked(self.inner_ptr()))
+            queue.push(self.inner_ptr())
         })
     }
 

@@ -12,7 +12,7 @@ use boa_engine::{
     builtins::JsArgs, object::FunctionBuilder, property::Attribute, Context, JsNativeErrorKind,
     JsResult, JsValue,
 };
-use boa_gc::{Cell, Finalize, Gc, Trace};
+use boa_gc::{Finalize, Gc, GcCell, Trace};
 use boa_parser::Parser;
 use colored::Colorize;
 use rayon::prelude::*;
@@ -400,13 +400,13 @@ impl Test {
 /// Object which includes the result of the async operation.
 #[derive(Debug, Clone, Trace, Finalize)]
 struct AsyncResult {
-    inner: Gc<Cell<Result<(), String>>>,
+    inner: Gc<GcCell<Result<(), String>>>,
 }
 
 impl Default for AsyncResult {
     fn default() -> Self {
         Self {
-            inner: Gc::new_cell(Ok(())),
+            inner: Gc::new(GcCell::new(Ok(()))),
         }
     }
 }

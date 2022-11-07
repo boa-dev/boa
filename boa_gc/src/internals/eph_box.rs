@@ -1,37 +1,20 @@
 //! This module will implement the internal types GcBox and Ephemeron
 use crate::trace::Trace;
-use crate::Finalize;
-use crate::{finalizer_safe, Gc, GcBox};
+use crate::{finalizer_safe, GcBox};
+use crate::{Finalize, Gc};
 use std::cell::Cell;
 use std::ptr::NonNull;
 
-/// Implementation of an Ephemeron structure
-pub struct EphemeronBox<K: Trace + ?Sized + 'static, V: Trace + ?Sized + 'static> {
+/// Implementation of an Ephemeron cell
+pub(crate) struct EphemeronBox<K: Trace + ?Sized + 'static, V: Trace + ?Sized + 'static> {
     key: Cell<Option<NonNull<GcBox<K>>>>,
     value: V,
 }
 
-impl<K: Trace + ?Sized> EphemeronBox<K, ()> {
-    // This could panic if called in while dropping / !finalizer_safe()
-    pub unsafe fn new(value: &Gc<K>) -> Self {
-        let ptr = NonNull::new_unchecked(value.clone().inner_ptr());
-        // Clone increments root, so we need to decrement it
-        (*ptr.as_ptr()).unroot_inner();
-        EphemeronBox {
-            key: Cell::new(Some(ptr)),
-            value: (),
-        }
-    }
-}
-
 impl<K: Trace + ?Sized, V: Trace> EphemeronBox<K, V> {
-    // This could panic if called while dropping / !finalizer_safe()
-    pub unsafe fn new_pair(key: &Gc<K>, value: V) -> Self {
-        let ptr = NonNull::new_unchecked(key.clone().inner_ptr());
-        // Clone increments root, so we need to decrement it
-        (*ptr.as_ptr()).unroot_inner();
+    pub fn new_pair(key: &Gc<K>, value: V) -> Self {
         EphemeronBox {
-            key: Cell::new(Some(ptr)),
+            key: Cell::new(Some(key.inner_ptr())),
             value,
         }
     }
@@ -125,7 +108,7 @@ unsafe impl<K: Trace + ?Sized, V: Trace + ?Sized> Trace for EphemeronBox<K, V> {
 
     #[inline]
     unsafe fn unroot(&self) {
-        // An ephemeron is never rotted in the GcBoxHeader
+        // An ephemeron is never rooted in the GcBoxHeader
     }
 
     #[inline]
