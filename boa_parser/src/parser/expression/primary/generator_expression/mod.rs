@@ -75,8 +75,9 @@ where
             ),
         };
 
-        // Early Error: If BindingIdentifier is present and the source code matching BindingIdentifier is strict mode code,
+        // If BindingIdentifier is present and the source text matched by BindingIdentifier is strict mode code,
         // it is a Syntax Error if the StringValue of BindingIdentifier is "eval" or "arguments".
+        // https://tc39.es/ecma262/#sec-generator-function-definitions-static-semantics-early-errors
         if let Some(name) = name {
             if cursor.strict_mode() && [Sym::EVAL, Sym::ARGUMENTS].contains(&name.sym()) {
                 return Err(Error::lex(LexError::Syntax(
@@ -103,8 +104,9 @@ where
 
         cursor.expect(Punctuator::CloseBlock, "generator expression", interner)?;
 
-        // Early Error: If the source code matching FormalParameters is strict mode code,
+        // If the source text matched by FormalParameters is strict mode code,
         // the Early Error rules for UniqueFormalParameters : FormalParameters are applied.
+        // https://tc39.es/ecma262/#sec-generator-function-definitions-static-semantics-early-errors
         if (cursor.strict_mode() || body.strict()) && params.has_duplicates() {
             return Err(Error::lex(LexError::Syntax(
                 "Duplicate parameter name not allowed in this context".into(),
@@ -112,8 +114,9 @@ where
             )));
         }
 
-        // Early Error: It is a Syntax Error if FunctionBodyContainsUseStrict of GeneratorBody is true
+        // It is a Syntax Error if FunctionBodyContainsUseStrict of GeneratorBody is true
         // and IsSimpleParameterList of FormalParameters is false.
+        // https://tc39.es/ecma262/#sec-generator-function-definitions-static-semantics-early-errors
         if body.strict() && !params.is_simple() {
             return Err(Error::lex(LexError::Syntax(
                 "Illegal 'use strict' directive in function with non-simple parameter list".into(),
@@ -122,13 +125,22 @@ where
         }
 
         // It is a Syntax Error if any element of the BoundNames of FormalParameters
-        // also occurs in the LexicallyDeclaredNames of FunctionBody.
-        // https://tc39.es/ecma262/#sec-function-definitions-static-semantics-early-errors
+        // also occurs in the LexicallyDeclaredNames of GeneratorBody.
+        // https://tc39.es/ecma262/#sec-generator-function-definitions-static-semantics-early-errors
         name_in_lexically_declared_names(
             &bound_names(&params),
             &top_level_lexically_declared_names(&body),
             params_start_position,
         )?;
+
+        // It is a Syntax Error if FormalParameters Contains YieldExpression is true.
+        // https://tc39.es/ecma262/#sec-generator-function-definitions-static-semantics-early-errors
+        if contains(&params, ContainsSymbol::YieldExpression) {
+            return Err(Error::lex(LexError::Syntax(
+                "generator expression cannot contain yield expression in parameters".into(),
+                params_start_position,
+            )));
+        }
 
         let function = Generator::new(name, params, body, has_binding_identifier);
 
