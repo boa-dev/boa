@@ -36,6 +36,12 @@ following:
 
 In this way, this fuzzer can identify correctness issues present in the parser.
 
+## Bytecompiler Fuzzer
+
+The bytecompiler fuzzer, located in [bytecompiler-implied.rs](fuzz_targets/bytecompiler-implied.rs), identifies cases
+which cause an assertion failure in the bytecompiler. These crashes can cause denial of service issues and may block the
+discovery of crash cases in the VM fuzzer.
+
 ## VM Fuzzer
 
 The VM fuzzer, located in [vm-implied.rs](fuzz_targets/vm-implied.rs), identifies crash cases in the VM. It does so by
