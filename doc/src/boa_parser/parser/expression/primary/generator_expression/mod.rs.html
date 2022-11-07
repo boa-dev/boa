@@ -142,6 +142,18 @@
 <span id="142">142</span>
 <span id="143">143</span>
 <span id="144">144</span>
+<span id="145">145</span>
+<span id="146">146</span>
+<span id="147">147</span>
+<span id="148">148</span>
+<span id="149">149</span>
+<span id="150">150</span>
+<span id="151">151</span>
+<span id="152">152</span>
+<span id="153">153</span>
+<span id="154">154</span>
+<span id="155">155</span>
+<span id="156">156</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Generator expression parsing.
 //!
 //! More information:
@@ -219,8 +231,9 @@
             ),
         };
 
-        <span class="comment">// Early Error: If BindingIdentifier is present and the source code matching BindingIdentifier is strict mode code,
+        <span class="comment">// If BindingIdentifier is present and the source text matched by BindingIdentifier is strict mode code,
         // it is a Syntax Error if the StringValue of BindingIdentifier is &quot;eval&quot; or &quot;arguments&quot;.
+        // https://tc39.es/ecma262/#sec-generator-function-definitions-static-semantics-early-errors
         </span><span class="kw">if let </span><span class="prelude-val">Some</span>(name) = name {
             <span class="kw">if </span>cursor.strict_mode() &amp;&amp; [Sym::EVAL, Sym::ARGUMENTS].contains(<span class="kw-2">&amp;</span>name.sym()) {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(Error::lex(LexError::Syntax(
@@ -247,8 +260,9 @@
 
         cursor.expect(Punctuator::CloseBlock, <span class="string">&quot;generator expression&quot;</span>, interner)<span class="question-mark">?</span>;
 
-        <span class="comment">// Early Error: If the source code matching FormalParameters is strict mode code,
+        <span class="comment">// If the source text matched by FormalParameters is strict mode code,
         // the Early Error rules for UniqueFormalParameters : FormalParameters are applied.
+        // https://tc39.es/ecma262/#sec-generator-function-definitions-static-semantics-early-errors
         </span><span class="kw">if </span>(cursor.strict_mode() || body.strict()) &amp;&amp; params.has_duplicates() {
             <span class="kw">return </span><span class="prelude-val">Err</span>(Error::lex(LexError::Syntax(
                 <span class="string">&quot;Duplicate parameter name not allowed in this context&quot;</span>.into(),
@@ -256,8 +270,9 @@
             )));
         }
 
-        <span class="comment">// Early Error: It is a Syntax Error if FunctionBodyContainsUseStrict of GeneratorBody is true
+        <span class="comment">// It is a Syntax Error if FunctionBodyContainsUseStrict of GeneratorBody is true
         // and IsSimpleParameterList of FormalParameters is false.
+        // https://tc39.es/ecma262/#sec-generator-function-definitions-static-semantics-early-errors
         </span><span class="kw">if </span>body.strict() &amp;&amp; !params.is_simple() {
             <span class="kw">return </span><span class="prelude-val">Err</span>(Error::lex(LexError::Syntax(
                 <span class="string">&quot;Illegal &#39;use strict&#39; directive in function with non-simple parameter list&quot;</span>.into(),
@@ -266,13 +281,22 @@
         }
 
         <span class="comment">// It is a Syntax Error if any element of the BoundNames of FormalParameters
-        // also occurs in the LexicallyDeclaredNames of FunctionBody.
-        // https://tc39.es/ecma262/#sec-function-definitions-static-semantics-early-errors
+        // also occurs in the LexicallyDeclaredNames of GeneratorBody.
+        // https://tc39.es/ecma262/#sec-generator-function-definitions-static-semantics-early-errors
         </span>name_in_lexically_declared_names(
             <span class="kw-2">&amp;</span>bound_names(<span class="kw-2">&amp;</span>params),
             <span class="kw-2">&amp;</span>top_level_lexically_declared_names(<span class="kw-2">&amp;</span>body),
             params_start_position,
         )<span class="question-mark">?</span>;
+
+        <span class="comment">// It is a Syntax Error if FormalParameters Contains YieldExpression is true.
+        // https://tc39.es/ecma262/#sec-generator-function-definitions-static-semantics-early-errors
+        </span><span class="kw">if </span>contains(<span class="kw-2">&amp;</span>params, ContainsSymbol::YieldExpression) {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(Error::lex(LexError::Syntax(
+                <span class="string">&quot;generator expression cannot contain yield expression in parameters&quot;</span>.into(),
+                params_start_position,
+            )));
+        }
 
         <span class="kw">let </span>function = Generator::new(name, params, body, has_binding_identifier);
 

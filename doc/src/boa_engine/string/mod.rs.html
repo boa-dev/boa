@@ -1079,7 +1079,6 @@
 <span id="1077">1077</span>
 <span id="1078">1078</span>
 <span id="1079">1079</span>
-<span id="1080">1080</span>
 </pre><pre class="rust"><code><span class="doccomment">//! A UTF-16–encoded, reference counted, immutable string.
 //!
 //! This module contains the [`JsString`] type, the [`js_string`][crate::js_string] macro and the
@@ -2021,7 +2020,6 @@
 </span><span class="kw">mod </span>tests {
     <span class="kw">use </span><span class="kw">super</span>::utf16;
     <span class="kw">use super</span>::{JsString, JsStringPtrKind};
-    <span class="kw">use </span>std::mem::size_of;
 
     <span class="kw">impl </span>JsString {
         <span class="doccomment">/// Gets the number of `JsString`s which point to this allocation.
