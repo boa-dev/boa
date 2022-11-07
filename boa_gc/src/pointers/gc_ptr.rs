@@ -161,7 +161,7 @@ impl<T: Trace + ?Sized> Drop for Gc<T> {
             unsafe {
                 self.inner().unroot_inner();
             }
-        } 
+        }
     }
 }
 

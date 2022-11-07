@@ -30,7 +30,6 @@ pub use pointers::{Gc, WeakGc, WeakPair};
 
 pub type GcPointer = NonNull<GcBox<dyn Trace>>;
 
-// TODO: Determine if thread local variables are the correct approach vs an initialized structure
 thread_local!(pub static EPHEMERON_QUEUE: StdCell<Option<Vec<GcPointer>>> = StdCell::new(None));
 thread_local!(pub static GC_DROPPING: StdCell<bool> = StdCell::new(false));
 thread_local!(static BOA_GC: StdRefCell<BoaGc> = StdRefCell::new( BoaGc {
@@ -223,22 +222,6 @@ impl BoaAlloc {
         })
     }
 
-    // Possibility here for `new_weak` that takes any value and creates a new WeakGc
-
-    pub(crate) unsafe fn promote_to_medium(
-        promotions: Vec<NonNull<GcBox<dyn Trace>>>,
-        gc: &mut BoaGc,
-    ) {
-        let _timer = Profiler::global().start_event("Gc Promoting", "gc");
-        for node in promotions {
-            (*node.as_ptr()).set_header_pointer(gc.adult_start.take());
-            let allocation_bytes = mem::size_of_val::<GcBox<_>>(&(*node.as_ptr()));
-            gc.runtime.youth_bytes -= allocation_bytes;
-            gc.runtime.adult_bytes += allocation_bytes;
-            gc.adult_start.set(Some(node));
-        }
-    }
-
     unsafe fn manage_state(gc: &mut BoaGc) {
         if gc.runtime.adult_bytes > gc.config.adult_threshold {
             Collector::run_full_collection(gc);
@@ -269,29 +252,6 @@ impl BoaAlloc {
 pub struct Collector;
 
 impl Collector {
-    pub(crate) unsafe fn run_youth_collection(gc: &mut BoaGc) {
-        let _timer = Profiler::global().start_event("Gc Youth Collection", "gc");
-        gc.runtime.collections += 1;
-        let unreachable_nodes = Self::mark_heap(&gc.youth_start);
-        let _adults = Self::mark_heap(&gc.adult_start);
-
-        if !unreachable_nodes.is_empty() {
-            Self::finalize(unreachable_nodes);
-        }
-        // The returned unreachable vector must be filled with nodes that are for certain dead (these will be removed during the sweep)
-        let finalized_unreachable_nodes = Self::mark_heap(&gc.youth_start);
-        println!("yc: {}", finalized_unreachable_nodes.len());
-        let promotion_candidates = Self::sweep_with_promotions(
-            &gc.youth_start,
-            &mut gc.runtime.youth_bytes,
-            &mut gc.runtime.total_bytes_allocated,
-        );
-        // Check if there are any candidates for promotion
-        if !promotion_candidates.is_empty() {
-            BoaAlloc::promote_to_medium(promotion_candidates, gc);
-        }
-    }
-
     pub(crate) unsafe fn run_full_collection(gc: &mut BoaGc) {
         let _timer = Profiler::global().start_event("Gc Full Collection", "gc");
         gc.runtime.collections += 1;
@@ -401,39 +361,6 @@ impl Collector {
         }
     }
 
-    unsafe fn sweep_with_promotions(
-        heap_start: &StdCell<Option<NonNull<GcBox<dyn Trace>>>>,
-        heap_bytes: &mut usize,
-        total_bytes: &mut usize,
-    ) -> Vec<NonNull<GcBox<dyn Trace>>> {
-        let _timer = Profiler::global().start_event("Gc Sweeping", "gc");
-        let _guard = DropGuard::new();
-
-        let mut promotions = Vec::new();
-        let mut sweep_head = heap_start;
-        while let Some(node) = sweep_head.get() {
-            if (*node.as_ptr()).is_marked() {
-                (*node.as_ptr()).header.unmark();
-                (*node.as_ptr()).header.inc_age();
-                if (*node.as_ptr()).header.age() >= 3 {
-                    sweep_head.set((*node.as_ptr()).header.next.take());
-                    promotions.push(node)
-                } else {
-                    sweep_head = &(*node.as_ptr()).header.next;
-                }
-            } else {
-                // Drops occur here
-                let unmarked_node = Box::from_raw(node.as_ptr());
-                let unallocated_bytes = mem::size_of_val::<GcBox<_>>(&*unmarked_node);
-                *heap_bytes -= unallocated_bytes;
-                *total_bytes -= unallocated_bytes;
-                sweep_head.set(unmarked_node.header.next.take());
-            }
-        }
-
-        promotions
-    }
-
     unsafe fn sweep(
         heap_start: &StdCell<Option<NonNull<GcBox<dyn Trace>>>>,
         bytes_allocated: &mut usize,
@@ -446,7 +373,6 @@ impl Collector {
         while let Some(node) = sweep_head.get() {
             if (*node.as_ptr()).is_marked() {
                 (*node.as_ptr()).header.unmark();
-                (*node.as_ptr()).header.inc_age();
                 sweep_head = &(*node.as_ptr()).header.next;
             } else {
                 // Drops occur here
@@ -490,8 +416,6 @@ pub fn force_collect() {
         unsafe {
             if gc.runtime.adult_bytes > 0 {
                 Collector::run_full_collection(&mut *gc)
-            } else {
-                Collector::run_youth_collection(&mut *gc)
             }
         }
     })

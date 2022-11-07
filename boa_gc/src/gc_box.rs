@@ -3,17 +3,13 @@ use std::cell::Cell;
 use std::ptr::{self, NonNull};
 
 // Age and Weak Flags
-const WEAK_MASK: u8 = 1 << 7;
-const AGE_MASK: u8 = !WEAK_MASK;
-const AGE_MAX: u8 = AGE_MASK;
-
 const MARK_MASK: usize = 1 << (usize::BITS - 1);
 const ROOTS_MASK: usize = !MARK_MASK;
 const ROOTS_MAX: usize = ROOTS_MASK;
 
 pub(crate) struct GcBoxHeader {
     roots: Cell<usize>,
-    cycle_age: Cell<u8>,
+    weak: Cell<bool>,
     pub(crate) next: Cell<Option<NonNull<GcBox<dyn Trace>>>>,
 }
 
@@ -23,7 +19,7 @@ impl GcBoxHeader {
         // TODO: implement a way for a cell to start out weak with WEAK_MASK
         GcBoxHeader {
             roots: Cell::new(1),
-            cycle_age: Cell::new(0_u8),
+            weak: Cell::new(false),
             next: Cell::new(None),
         }
     }
@@ -31,10 +27,9 @@ impl GcBoxHeader {
     #[inline]
     pub fn new_weak() -> Self {
         // Set weak_flag
-        let cycle_age = WEAK_MASK;
         GcBoxHeader {
             roots: Cell::new(0),
-            cycle_age: Cell::new(cycle_age),
+            weak: Cell::new(true),
             next: Cell::new(None),
         }
     }
@@ -85,23 +80,8 @@ impl GcBoxHeader {
     }
 
     #[inline]
-    pub fn age(&self) -> u8 {
-        self.cycle_age.get() & AGE_MASK
-    }
-
-    #[inline]
-    pub fn inc_age(&self) {
-        let age = self.cycle_age.get();
-
-        // There is no need to increment the age after hitting max age
-        if (age & AGE_MASK) < AGE_MAX {
-            self.cycle_age.set(age + 1);
-        }
-    }
-
-    #[inline]
     pub fn is_ephemeron(&self) -> bool {
-        self.cycle_age.get() & WEAK_MASK != 0
+        self.weak.get()
     }
 }
 
