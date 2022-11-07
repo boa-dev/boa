@@ -1,17 +1,24 @@
 use crate::{
     bytecompiler::{ByteCompiler, Literal},
-    syntax::ast::{
-        expression::{
-            literal::Literal as AstLiteral,
-            operator::{unary::UnaryOp, Unary},
-        },
-        Expression,
-    },
     vm::Opcode,
     JsNativeError, JsResult,
 };
 
+use boa_ast::{
+    expression::{
+        literal::Literal as AstLiteral,
+        operator::{unary::UnaryOp, Unary},
+    },
+    Expression,
+};
+
 use super::Access;
+
+mod binary;
+mod assign;
+
+pub(crate) use binary::compile_binary;
+pub(crate) use assign::compile_assign;
 
 pub(crate) fn compile_literal<'b>(
     byte_compiler: &mut ByteCompiler<'b>,
