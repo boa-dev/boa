@@ -7,6 +7,8 @@ use crate::{
     vm::{call_frame::CatchAddresses, code_block::Readable},
     Context, JsResult, JsValue,
 };
+#[cfg(feature = "fuzz")]
+use crate::{JsError, JsNativeError};
 use boa_interner::ToInternedString;
 use boa_profiler::Profiler;
 use std::{convert::TryInto, mem::size_of, time::Instant};
