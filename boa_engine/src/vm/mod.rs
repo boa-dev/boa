@@ -5,7 +5,7 @@
 use crate::{
     builtins::async_generator::{AsyncGenerator, AsyncGeneratorState},
     vm::{call_frame::CatchAddresses, code_block::Readable},
-    Context, JsError, JsNativeError, JsResult, JsValue,
+    Context, JsResult, JsValue,
 };
 use boa_interner::ToInternedString;
 use boa_profiler::Profiler;
