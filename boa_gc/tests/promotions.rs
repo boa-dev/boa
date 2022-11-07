@@ -33,5 +33,4 @@ fn generational_promo_two() {
     GcTester::assert_collection_floor(3);
 
     GcTester::assert_adult_bytes_allocated();
-    GcTester::assert_youth_bytes_allocated();
 }

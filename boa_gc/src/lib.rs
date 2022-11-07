@@ -36,11 +36,9 @@ thread_local!(static BOA_GC: StdRefCell<BoaGc> = StdRefCell::new( BoaGc {
     config: GcConfig::default(),
     runtime: GcRuntimeData::default(),
     adult_start: StdCell::new(None),
-    youth_start: StdCell::new(None),
 }));
 
 struct GcConfig {
-    youth_threshold: usize,
     adult_threshold: usize,
     growth_ratio: f64,
 }
@@ -51,7 +49,6 @@ struct GcConfig {
 impl Default for GcConfig {
     fn default() -> Self {
         Self {
-            youth_threshold: 4096,
             adult_threshold: 1024,
             growth_ratio: 0.8,
         }
@@ -62,7 +59,6 @@ impl Default for GcConfig {
 struct GcRuntimeData {
     collections: usize,
     total_bytes_allocated: usize,
-    youth_bytes: usize,
     adult_bytes: usize,
 }
 
@@ -70,7 +66,6 @@ struct BoaGc {
     config: GcConfig,
     runtime: GcRuntimeData,
     adult_start: StdCell<Option<GcPointer>>,
-    youth_start: StdCell<Option<GcPointer>>,
 }
 
 impl Drop for BoaGc {
@@ -180,11 +175,11 @@ impl BoaAlloc {
                 let element_size = mem::size_of_val::<GcBox<_>>(&gc_box);
                 let element_pointer = Box::into_raw(Box::from(gc_box));
 
-                let old_start = gc.youth_start.take();
+                let old_start = gc.adult_start.take();
                 (*element_pointer).set_header_pointer(old_start);
                 (*element_pointer).value().unroot();
 
-                gc.youth_start
+                gc.adult_start
                     .set(Some(NonNull::new_unchecked(element_pointer)));
 
                 gc.runtime.total_bytes_allocated += element_size;
@@ -208,11 +203,11 @@ impl BoaAlloc {
                 let element_size = mem::size_of_val::<GcBox<_>>(&gc_box);
                 let element_pointer = Box::into_raw(Box::from(gc_box));
 
-                let old_start = gc.youth_start.take();
+                let old_start = gc.adult_start.take();
                 (*element_pointer).set_header_pointer(old_start);
                 (*element_pointer).value().unroot();
 
-                gc.youth_start
+                gc.adult_start
                     .set(Some(NonNull::new_unchecked(element_pointer)));
 
                 gc.runtime.total_bytes_allocated += element_size;
@@ -232,8 +227,6 @@ impl BoaAlloc {
                 gc.config.adult_threshold =
                     (gc.runtime.adult_bytes as f64 / gc.config.growth_ratio) as usize
             }
-        } else if gc.runtime.youth_bytes > gc.config.youth_threshold {
-            //Collector::run_youth_collection(gc);
         }
     }
 }
@@ -387,7 +380,6 @@ impl Collector {
 
     // Clean up the heap when BoaGc is dropped
     unsafe fn dump(gc: &mut BoaGc) {
-        Self::drop_heap(&gc.youth_start);
         Self::drop_heap(&gc.adult_start);
     }
 
@@ -438,21 +430,12 @@ impl GcTester {
         })
     }
 
-    pub fn assert_youth_bytes_allocated() {
-        BOA_GC.with(|current| {
-            let gc = current.borrow();
-            assert!(gc.runtime.youth_bytes > 0);
-        })
-    }
-
     pub fn assert_empty_gc() {
         BOA_GC.with(|current| {
             let gc = current.borrow();
 
             assert!(gc.adult_start.get().is_none());
             assert!(gc.runtime.adult_bytes == 0);
-            assert!(gc.youth_start.get().is_none());
-            assert!(gc.runtime.youth_bytes == 0);
         })
     }
 
