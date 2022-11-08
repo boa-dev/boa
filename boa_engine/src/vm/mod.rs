@@ -13,6 +13,7 @@ use std::{convert::TryInto, mem::size_of, time::Instant};
 
 mod call_frame;
 mod code_block;
+pub mod graph;
 mod opcode;
 
 pub use {call_frame::CallFrame, code_block::CodeBlock, opcode::Opcode};
