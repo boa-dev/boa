@@ -1,6 +1,5 @@
 //! Await expression Expression.
 
-use crate::ContainsSymbol;
 use core::ops::ControlFlow;
 
 use super::Expression;
@@ -17,6 +16,7 @@ use boa_interner::{Interner, ToIndentedString, ToInternedString};
 /// [spec]: https://tc39.es/ecma262/#prod-AwaitExpression
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/await
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "fuzz", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct Await {
     target: Box<Expression>,
@@ -28,16 +28,6 @@ impl Await {
     #[must_use]
     pub fn target(&self) -> &Expression {
         &self.target
-    }
-
-    #[inline]
-    pub(crate) fn contains_arguments(&self) -> bool {
-        self.target.contains_arguments()
-    }
-
-    #[inline]
-    pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
-        self.target.contains(symbol)
     }
 }
 

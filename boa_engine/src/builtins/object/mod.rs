@@ -635,9 +635,7 @@ impl Object {
             }
         };
 
-        let obj = if let Some(obj) = o.as_object() {
-            obj
-        } else {
+        let Some(obj) = o.as_object() else {
             // 3. If Type(O) is not Object, return O.
             return Ok(o);
         };
@@ -780,7 +778,7 @@ impl Object {
 
         //  4. Let isArray be ? IsArray(O).
         //  5. If isArray is true, let builtinTag be "Array".
-        let builtin_tag = if o.is_array_abstract(context)? {
+        let builtin_tag = if o.is_array_abstract()? {
             utf16!("Array")
         } else {
             // 6. Else if O has a [[ParameterMap]] internal slot, let builtinTag be "Arguments".

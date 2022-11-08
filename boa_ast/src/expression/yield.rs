@@ -2,7 +2,6 @@ use boa_interner::{Interner, ToInternedString};
 use core::ops::ControlFlow;
 
 use crate::visitor::{VisitWith, Visitor, VisitorMut};
-use crate::ContainsSymbol;
 
 use super::Expression;
 
@@ -15,6 +14,7 @@ use super::Expression;
 /// [spec]: https://tc39.es/ecma262/#prod-YieldExpression
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/yield
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "fuzz", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct Yield {
     target: Option<Box<Expression>>,
@@ -43,16 +43,6 @@ impl Yield {
             target: expr.map(Box::new),
             delegate,
         }
-    }
-
-    #[inline]
-    pub(crate) fn contains_arguments(&self) -> bool {
-        matches!(self.target, Some(ref expr) if expr.contains_arguments())
-    }
-
-    #[inline]
-    pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
-        matches!(self.target, Some(ref expr) if expr.contains(symbol))
     }
 }
 

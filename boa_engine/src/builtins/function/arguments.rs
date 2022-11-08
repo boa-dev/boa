@@ -5,7 +5,7 @@ use crate::{
     symbol::{self, WellKnownSymbols},
     Context, JsValue,
 };
-use boa_ast::function::FormalParameterList;
+use boa_ast::{function::FormalParameterList, operations::bound_names};
 use boa_gc::{Finalize, Gc, Trace};
 use rustc_hash::FxHashMap;
 
@@ -199,18 +199,16 @@ impl Arguments {
 
         let mut bindings = FxHashMap::default();
         let mut property_index = 0;
-        'outer: for formal in formals.as_ref() {
-            for name in formal.names() {
-                if property_index >= len {
-                    break 'outer;
-                }
-                let binding_index = bindings.len() + 1;
-                let entry = bindings
-                    .entry(name)
-                    .or_insert((binding_index, property_index));
-                entry.1 = property_index;
-                property_index += 1;
+        for name in bound_names(formals) {
+            if property_index >= len {
+                break;
             }
+            let binding_index = bindings.len() + 1;
+            let entry = bindings
+                .entry(name)
+                .or_insert((binding_index, property_index));
+            entry.1 = property_index;
+            property_index += 1;
         }
 
         let mut map = ParameterMap {

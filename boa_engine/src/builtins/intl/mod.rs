@@ -184,7 +184,7 @@ fn lookup_matcher(
             // Assignment deferred. See return statement below.
             // ii. If locale and noExtensionsLocale are not the same String value, then
             let maybe_ext = if locale_str.eq(&no_extensions_locale) {
-                "".into()
+                String::new()
             } else {
                 // 1. Let extension be the String value consisting of the substring of the Unicode
                 //    locale extension sequence within locale.
@@ -205,7 +205,7 @@ fn lookup_matcher(
     // 5. Return result.
     MatcherRecord {
         locale: default_locale(canonicalizer).to_string(),
-        extension: "".into(),
+        extension: String::new(),
     }
 }
 
@@ -312,7 +312,7 @@ fn unicode_extension_components(extension: &str) -> UniExtRecord {
             // ii. Set keyword to the Record { [[Key]]: subtag, [[Value]]: "" }.
             keyword = Some(Keyword {
                 key: subtag.into(),
-                value: "".into(),
+                value: String::new(),
             });
         // f. Else,
         } else {
@@ -562,9 +562,9 @@ fn resolve_locale(
 
     // 5. Let result be a new Record.
     let mut result = ResolveLocaleRecord {
-        locale: "".into(),
+        locale: String::new(),
         properties: FxHashMap::default(),
-        data_locale: "".into(),
+        data_locale: String::new(),
     };
 
     // 6. Set result.[[dataLocale]] to foundLocale.
@@ -607,7 +607,7 @@ fn resolve_locale(
         };
 
         // g. Let supportedExtensionAddition be "".
-        let mut supported_extension_addition = "".into();
+        let mut supported_extension_addition = String::new();
 
         // h. If r has an [[extension]] field, then
         if !r.extension.is_empty() {
@@ -682,7 +682,7 @@ fn resolve_locale(
                     value = options_value;
 
                     // b. Let supportedExtensionAddition be "".
-                    supported_extension_addition = "".into();
+                    supported_extension_addition = String::new();
                 }
             }
         }

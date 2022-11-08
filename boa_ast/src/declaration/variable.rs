@@ -9,7 +9,7 @@ use crate::{
     expression::{Expression, Identifier},
     join_nodes,
     pattern::Pattern,
-    ContainsSymbol, Statement,
+    Statement,
 };
 use boa_interner::{Interner, ToInternedString};
 
@@ -45,19 +45,9 @@ use super::Declaration;
 /// [varstmt]: https://tc39.es/ecma262/#prod-VariableStatement
 /// [hoisting]: https://developer.mozilla.org/en-US/docs/Glossary/Hoisting
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "fuzz", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct VarDeclaration(pub VariableList);
-
-impl VarDeclaration {
-    #[inline]
-    pub(crate) fn contains_arguments(&self) -> bool {
-        self.0.as_ref().iter().any(Variable::contains_arguments)
-    }
-    #[inline]
-    pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
-        self.0.as_ref().iter().any(|decl| decl.contains(symbol))
-    }
-}
 
 impl From<VarDeclaration> for Statement {
     fn from(var: VarDeclaration) -> Self {
@@ -92,6 +82,7 @@ impl VisitWith for VarDeclaration {
 ///
 /// [lexical declaration]: https://tc39.es/ecma262/#sec-let-and-const-declarations
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "fuzz", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 pub enum LexicalDeclaration {
     /// A <code>[const]</code> variable creates a constant whose scope can be either global or local
@@ -123,22 +114,6 @@ impl LexicalDeclaration {
         match self {
             LexicalDeclaration::Const(list) | LexicalDeclaration::Let(list) => list,
         }
-    }
-
-    #[inline]
-    pub(crate) fn contains_arguments(&self) -> bool {
-        self.variable_list()
-            .as_ref()
-            .iter()
-            .any(Variable::contains_arguments)
-    }
-
-    #[inline]
-    pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
-        self.variable_list()
-            .as_ref()
-            .iter()
-            .any(|decl| decl.contains(symbol))
     }
 }
 
@@ -187,6 +162,7 @@ impl VisitWith for LexicalDeclaration {
 
 /// List of variables in a variable declaration.
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "fuzz", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct VariableList {
     list: Box<[Variable]>,
@@ -277,6 +253,7 @@ impl TryFrom<Vec<Variable>> for VariableList {
 /// [spec2]: https://tc39.es/ecma262/#prod-VariableDeclaration
 /// [spec3]:  https://tc39.es/ecma262/#sec-declarations-and-the-variable-statement
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "fuzz", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct Variable {
     binding: Binding,
@@ -326,39 +303,6 @@ impl Variable {
     pub fn init(&self) -> Option<&Expression> {
         self.init.as_ref()
     }
-
-    /// Gets the list of declared identifiers.
-    #[must_use]
-    pub fn idents(&self) -> Vec<Identifier> {
-        self.binding.idents()
-    }
-
-    #[inline]
-    pub(crate) fn contains_arguments(&self) -> bool {
-        if let Some(ref node) = self.init {
-            if node.contains_arguments() {
-                return true;
-            }
-        }
-        self.binding.contains_arguments()
-    }
-
-    /// Returns `true` if the variable declaration contains the given token.
-    ///
-    /// More information:
-    ///  - [ECMAScript specification][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-contains
-    #[inline]
-    #[must_use]
-    pub fn contains(&self, symbol: ContainsSymbol) -> bool {
-        if let Some(ref node) = self.init {
-            if node.contains(symbol) {
-                return true;
-            }
-        }
-        self.binding.contains(symbol)
-    }
 }
 
 impl VisitWith for Variable {
@@ -392,6 +336,7 @@ impl VisitWith for Variable {
 ///
 /// [spec]:  https://tc39.es/ecma262/#sec-declarations-and-the-variable-statement
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "fuzz", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 pub enum Binding {
     /// A single identifier binding.
@@ -409,30 +354,6 @@ impl From<Identifier> for Binding {
 impl From<Pattern> for Binding {
     fn from(pat: Pattern) -> Self {
         Self::Pattern(pat)
-    }
-}
-
-impl Binding {
-    pub(crate) fn contains_arguments(&self) -> bool {
-        matches!(self, Binding::Pattern(ref pattern) if pattern.contains_arguments())
-    }
-
-    /// Returns `true` if the node contains the given token.
-    ///
-    /// More information:
-    ///  - [ECMAScript specification][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-contains
-    pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
-        matches!(self, Binding::Pattern(ref pattern) if pattern.contains(symbol))
-    }
-
-    /// Gets the list of declared identifiers.
-    pub(crate) fn idents(&self) -> Vec<Identifier> {
-        match self {
-            Binding::Identifier(id) => vec![*id],
-            Binding::Pattern(ref pat) => pat.idents(),
-        }
     }
 }
 

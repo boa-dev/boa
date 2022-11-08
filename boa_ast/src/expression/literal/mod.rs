@@ -33,6 +33,7 @@ use super::Expression;
 /// [spec]: https://tc39.es/ecma262/#sec-primary-expression-literals
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Grammar_and_types#Literals
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "fuzz", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 pub enum Literal {
     /// A string literal is zero or more characters enclosed in double (`"`) or single (`'`) quotation marks.

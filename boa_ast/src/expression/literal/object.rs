@@ -8,7 +8,6 @@ use crate::{
     property::{MethodDefinition, PropertyDefinition, PropertyName},
     try_break,
     visitor::{VisitWith, Visitor, VisitorMut},
-    ContainsSymbol,
 };
 use boa_interner::{Interner, Sym, ToIndentedString, ToInternedString};
 use core::ops::ControlFlow;
@@ -34,6 +33,7 @@ use core::ops::ControlFlow;
 /// [primitive]: https://developer.mozilla.org/en-US/docs/Glossary/primitive
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "serde", serde(transparent))]
+#[cfg_attr(feature = "fuzz", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct ObjectLiteral {
     properties: Box<[PropertyDefinition]>,
@@ -204,18 +204,6 @@ impl ObjectLiteral {
         }
 
         Some(ObjectPattern::new(bindings.into()))
-    }
-
-    #[inline]
-    pub(crate) fn contains_arguments(&self) -> bool {
-        self.properties
-            .iter()
-            .any(PropertyDefinition::contains_arguments)
-    }
-
-    #[inline]
-    pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
-        self.properties.iter().any(|prop| prop.contains(symbol))
     }
 }
 

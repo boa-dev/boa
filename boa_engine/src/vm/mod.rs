@@ -167,7 +167,7 @@ impl Context {
         let promise_capability = self
             .realm
             .environments
-            .get_this_environment()
+            .current_function_slots()
             .as_function_slots()
             .and_then(|slots| {
                 let slots_borrow = slots.borrow();

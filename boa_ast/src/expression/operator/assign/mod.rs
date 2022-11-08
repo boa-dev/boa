@@ -15,20 +15,20 @@ mod op;
 use core::ops::ControlFlow;
 pub use op::*;
 
-use boa_interner::{Interner, Sym, ToInternedString};
+use boa_interner::{Interner, ToInternedString};
 
-use crate::try_break;
-use crate::visitor::{VisitWith, Visitor, VisitorMut};
 use crate::{
     expression::{access::PropertyAccess, identifier::Identifier, Expression},
     pattern::Pattern,
-    ContainsSymbol,
+    try_break,
+    visitor::{VisitWith, Visitor, VisitorMut},
 };
 
 /// An assignment operator expression.
 ///
 /// See the [module level documentation][self] for more information.
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "fuzz", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct Assign {
     op: AssignOp,
@@ -66,24 +66,6 @@ impl Assign {
     #[must_use]
     pub fn rhs(&self) -> &Expression {
         &self.rhs
-    }
-
-    #[inline]
-    pub(crate) fn contains_arguments(&self) -> bool {
-        (match &*self.lhs {
-            AssignTarget::Identifier(ident) => *ident == Sym::ARGUMENTS,
-            AssignTarget::Access(access) => access.contains_arguments(),
-            AssignTarget::Pattern(pattern) => pattern.contains_arguments(),
-        } || self.rhs.contains_arguments())
-    }
-
-    #[inline]
-    pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
-        (match &*self.lhs {
-            AssignTarget::Identifier(_) => false,
-            AssignTarget::Access(access) => access.contains(symbol),
-            AssignTarget::Pattern(pattern) => pattern.contains(symbol),
-        } || self.rhs.contains(symbol))
     }
 }
 
@@ -129,6 +111,7 @@ impl VisitWith for Assign {
 ///
 /// [spec]: hhttps://tc39.es/ecma262/#prod-LeftHandSideExpression
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "fuzz", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 pub enum AssignTarget {
     /// A simple identifier, such as `a`.

@@ -300,9 +300,7 @@ impl Array {
     /// by `Array.prototype.concat`.
     fn is_concat_spreadable(o: &JsValue, context: &mut Context) -> JsResult<bool> {
         // 1. If Type(O) is not Object, return false.
-        let o = if let Some(o) = o.as_object() {
-            o
-        } else {
+        let Some(o) = o.as_object() else {
             return Ok(false);
         };
 
@@ -315,7 +313,7 @@ impl Array {
         }
 
         // 4. Return ? IsArray(O).
-        o.is_array_abstract(context)
+        o.is_array_abstract()
     }
 
     /// `get Array [ @@species ]`
@@ -345,7 +343,7 @@ impl Array {
     ) -> JsResult<JsObject> {
         // 1. Let isArray be ? IsArray(originalArray).
         // 2. If isArray is false, return ? ArrayCreate(length).
-        if !original_array.is_array_abstract(context)? {
+        if !original_array.is_array_abstract()? {
             return Self::array_create(length, None, context);
         }
         // 3. Let C be ? Get(originalArray, "constructor").
@@ -461,9 +459,7 @@ impl Array {
                 let next = iterator_record.step(context)?;
 
                 // iv. If next is false, then
-                let next = if let Some(next) = next {
-                    next
-                } else {
+                let Some(next) = next else {
                     // 1. Perform ? Set(A, "length", 𝔽(k), true).
                     a.set("length", k, true, context)?;
 
@@ -566,10 +562,10 @@ impl Array {
     pub(crate) fn is_array(
         _: &JsValue,
         args: &[JsValue],
-        context: &mut Context,
+        _context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Return ? IsArray(arg).
-        args.get_or_undefined(0).is_array(context).map(Into::into)
+        args.get_or_undefined(0).is_array().map(Into::into)
     }
 
     /// `Array.of(...items)`
@@ -1788,7 +1784,7 @@ impl Array {
                 // iv. If depth > 0, then
                 if depth > 0 {
                     // 1. Set shouldFlatten to ? IsArray(element).
-                    should_flatten = element.is_array(context)?;
+                    should_flatten = element.is_array()?;
                 }
 
                 // v. If shouldFlatten is true

@@ -22,21 +22,21 @@
 //! [spec2]: https://tc39.es/ecma262/#prod-AssignmentPattern
 //! [destr]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Destructuring_assignment
 
-use crate::try_break;
-use crate::visitor::{VisitWith, Visitor, VisitorMut};
-use boa_interner::{Interner, Sym, ToInternedString};
-use core::ops::ControlFlow;
-
-use super::{
+use crate::{
     expression::{access::PropertyAccess, Identifier},
     property::PropertyName,
-    ContainsSymbol, Expression,
+    try_break,
+    visitor::{VisitWith, Visitor, VisitorMut},
+    Expression,
 };
+use boa_interner::{Interner, ToInternedString};
+use core::ops::ControlFlow;
 
 /// An object or array pattern binding or assignment.
 ///
 /// See the [module level documentation][self] for more information.
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "fuzz", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 pub enum Pattern {
     /// An object pattern (`let {a, b, c} = object`).
@@ -77,48 +77,6 @@ impl ToInternedString for Pattern {
     }
 }
 
-impl Pattern {
-    /// Gets the list of identifiers in the pattern.
-    ///
-    /// A single pattern may have 0 to n identifiers.
-    #[inline]
-    #[must_use]
-    pub fn idents(&self) -> Vec<Identifier> {
-        match &self {
-            Pattern::Object(pattern) => pattern.idents(),
-            Pattern::Array(pattern) => pattern.idents(),
-        }
-    }
-
-    /// Returns true if the node contains a identifier reference named 'arguments'.
-    ///
-    /// More information:
-    ///  - [ECMAScript specification][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-containsarguments
-    #[inline]
-    pub(crate) fn contains_arguments(&self) -> bool {
-        match self {
-            Pattern::Object(object) => object.contains_arguments(),
-            Pattern::Array(array) => array.contains_arguments(),
-        }
-    }
-
-    /// Returns `true` if the node contains the given token.
-    ///
-    /// More information:
-    ///  - [ECMAScript specification][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-contains
-    #[inline]
-    pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
-        match self {
-            Pattern::Object(object) => object.contains(symbol),
-            Pattern::Array(array) => array.contains(symbol),
-        }
-    }
-}
-
 impl VisitWith for Pattern {
     fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
@@ -151,6 +109,7 @@ impl VisitWith for Pattern {
 /// [spec1]: https://tc39.es/ecma262/#prod-ObjectBindingPattern
 /// [spec2]: https://tc39.es/ecma262/#prod-ObjectAssignmentPattern
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "fuzz", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct ObjectPattern(Box<[ObjectPatternElement]>);
 
@@ -196,16 +155,6 @@ impl ObjectPattern {
         &self.0
     }
 
-    /// Gets the list of identifiers declared by the object binding pattern.
-    #[inline]
-    #[must_use]
-    pub fn idents(&self) -> Vec<Identifier> {
-        self.0
-            .iter()
-            .flat_map(ObjectPatternElement::idents)
-            .collect()
-    }
-
     /// Returns true if the object binding pattern has a rest element.
     #[inline]
     #[must_use]
@@ -214,16 +163,6 @@ impl ObjectPattern {
             self.0.last(),
             Some(ObjectPatternElement::RestProperty { .. })
         )
-    }
-
-    #[inline]
-    pub(crate) fn contains_arguments(&self) -> bool {
-        self.0.iter().any(ObjectPatternElement::contains_arguments)
-    }
-
-    #[inline]
-    pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
-        self.0.iter().any(|e| e.contains(symbol))
     }
 }
 
@@ -259,6 +198,7 @@ impl VisitWith for ObjectPattern {
 /// [spec1]: https://tc39.es/ecma262/#prod-ArrayBindingPattern
 /// [spec2]: https://tc39.es/ecma262/#prod-ArrayAssignmentPattern
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "fuzz", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct ArrayPattern(Box<[ArrayPatternElement]>);
 
@@ -302,24 +242,6 @@ impl ArrayPattern {
     pub fn bindings(&self) -> &[ArrayPatternElement] {
         &self.0
     }
-
-    /// Gets the list of identifiers declared by the array binding pattern.
-    #[inline]
-    pub(crate) fn idents(&self) -> Vec<Identifier> {
-        self.0
-            .iter()
-            .flat_map(ArrayPatternElement::idents)
-            .collect()
-    }
-
-    #[inline]
-    pub(crate) fn contains_arguments(&self) -> bool {
-        self.0.iter().any(ArrayPatternElement::contains_arguments)
-    }
-
-    pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
-        self.0.iter().any(|e| e.contains(symbol))
-    }
 }
 
 impl VisitWith for ArrayPattern {
@@ -351,6 +273,7 @@ impl VisitWith for ArrayPattern {
 /// [spec1]: https://tc39.es/ecma262/#prod-BindingProperty
 /// [spec2]: https://tc39.es/ecma262/#prod-AssignmentProperty
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "fuzz", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 pub enum ObjectPatternElement {
     /// SingleName represents one of the following properties:
@@ -440,84 +363,6 @@ pub enum ObjectPatternElement {
         /// An optional default value for the variable, in case the property doesn't exist.
         default_init: Option<Expression>,
     },
-}
-
-impl ObjectPatternElement {
-    #[inline]
-    pub(crate) fn contains_arguments(&self) -> bool {
-        match self {
-            ObjectPatternElement::SingleName {
-                name,
-                ident,
-                default_init,
-            } => {
-                *ident == Sym::ARGUMENTS
-                    || name.contains_arguments()
-                    || matches!(default_init, Some(init) if init.contains_arguments())
-            }
-            ObjectPatternElement::RestProperty { ident, .. } => *ident == Sym::ARGUMENTS,
-            ObjectPatternElement::AssignmentPropertyAccess {
-                name,
-                access,
-                default_init,
-            } => {
-                name.contains_arguments()
-                    || access.contains_arguments()
-                    || matches!(default_init, Some(init) if init.contains_arguments())
-            }
-            ObjectPatternElement::AssignmentRestPropertyAccess { access, .. } => {
-                access.contains_arguments()
-            }
-            ObjectPatternElement::Pattern {
-                name,
-                pattern,
-                default_init,
-            } => {
-                name.contains_arguments()
-                    || pattern.contains_arguments()
-                    || matches!(default_init, Some(init) if init.contains_arguments())
-            }
-        }
-    }
-
-    pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
-        match self {
-            Self::SingleName {
-                name, default_init, ..
-            } => {
-                name.contains(symbol) || matches!(default_init, Some(init) if init.contains(symbol))
-            }
-            Self::AssignmentRestPropertyAccess { access, .. } => access.contains(symbol),
-            Self::Pattern {
-                name,
-                pattern,
-                default_init,
-            } => {
-                name.contains(symbol)
-                    || matches!(default_init, Some(init) if init.contains(symbol))
-                    || pattern.contains(symbol)
-            }
-            _ => false,
-        }
-    }
-
-    /// Gets the list of identifiers declared by the object binding pattern.
-    #[inline]
-    pub(crate) fn idents(&self) -> Vec<Identifier> {
-        match self {
-            Self::SingleName { ident, .. } | Self::RestProperty { ident, .. } => {
-                vec![*ident]
-            }
-            Self::AssignmentPropertyAccess {
-                name: PropertyName::Literal(lit),
-                ..
-            } => {
-                vec![(*lit).into()]
-            }
-            Self::Pattern { pattern, .. } => pattern.idents(),
-            _ => Vec::new(),
-        }
-    }
 }
 
 impl ToInternedString for ObjectPatternElement {
@@ -636,16 +481,7 @@ impl VisitWith for ObjectPatternElement {
                     ControlFlow::Continue(())
                 }
             }
-            ObjectPatternElement::RestProperty {
-                ident,
-                excluded_keys,
-            } => {
-                try_break!(visitor.visit_identifier(ident));
-                for key in excluded_keys {
-                    try_break!(visitor.visit_identifier(key));
-                }
-                ControlFlow::Continue(())
-            }
+            ObjectPatternElement::RestProperty { ident, .. } => visitor.visit_identifier(ident),
             ObjectPatternElement::AssignmentPropertyAccess {
                 name,
                 access,
@@ -659,15 +495,8 @@ impl VisitWith for ObjectPatternElement {
                     ControlFlow::Continue(())
                 }
             }
-            ObjectPatternElement::AssignmentRestPropertyAccess {
-                access,
-                excluded_keys,
-            } => {
-                try_break!(visitor.visit_property_access(access));
-                for key in excluded_keys {
-                    try_break!(visitor.visit_identifier(key));
-                }
-                ControlFlow::Continue(())
+            ObjectPatternElement::AssignmentRestPropertyAccess { access, .. } => {
+                visitor.visit_property_access(access)
             }
             ObjectPatternElement::Pattern {
                 name,
@@ -703,16 +532,7 @@ impl VisitWith for ObjectPatternElement {
                     ControlFlow::Continue(())
                 }
             }
-            ObjectPatternElement::RestProperty {
-                ident,
-                excluded_keys,
-            } => {
-                try_break!(visitor.visit_identifier_mut(ident));
-                for key in excluded_keys {
-                    try_break!(visitor.visit_identifier_mut(key));
-                }
-                ControlFlow::Continue(())
-            }
+            ObjectPatternElement::RestProperty { ident, .. } => visitor.visit_identifier_mut(ident),
             ObjectPatternElement::AssignmentPropertyAccess {
                 name,
                 access,
@@ -726,15 +546,8 @@ impl VisitWith for ObjectPatternElement {
                     ControlFlow::Continue(())
                 }
             }
-            ObjectPatternElement::AssignmentRestPropertyAccess {
-                access,
-                excluded_keys,
-            } => {
-                try_break!(visitor.visit_property_access_mut(access));
-                for key in excluded_keys {
-                    try_break!(visitor.visit_identifier_mut(key));
-                }
-                ControlFlow::Continue(())
+            ObjectPatternElement::AssignmentRestPropertyAccess { access, .. } => {
+                visitor.visit_property_access_mut(access)
             }
             ObjectPatternElement::Pattern {
                 name,
@@ -760,6 +573,7 @@ impl VisitWith for ObjectPatternElement {
 /// [spec1]: https://tc39.es/ecma262/#prod-BindingElement
 /// [spec2]: https://tc39.es/ecma262/#prod-AssignmentElement
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "fuzz", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 pub enum ArrayPatternElement {
     /// Elision represents the elision of an item in the array binding pattern.
@@ -850,79 +664,6 @@ pub enum ArrayPatternElement {
         /// The pattern where the unassigned index elements will be stored.
         pattern: Pattern,
     },
-}
-
-impl ArrayPatternElement {
-    /// Returns true if the node contains a identifier reference named 'arguments'.
-    ///
-    /// More information:
-    ///  - [ECMAScript specification][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-containsarguments
-    #[inline]
-    pub(crate) fn contains_arguments(&self) -> bool {
-        match self {
-            Self::Elision => false,
-            Self::SingleName {
-                ident,
-                default_init,
-            } => {
-                *ident == Sym::ARGUMENTS
-                    || matches!(default_init, Some(init) if init.contains_arguments())
-            }
-            Self::SingleNameRest { ident } => *ident == Sym::ARGUMENTS,
-            Self::PropertyAccess { access } | Self::PropertyAccessRest { access } => {
-                access.contains_arguments()
-            }
-            Self::PatternRest { pattern } => pattern.contains_arguments(),
-            Self::Pattern {
-                pattern,
-                default_init,
-            } => {
-                pattern.contains_arguments()
-                    || matches!(default_init, Some(init) if init.contains_arguments())
-            }
-        }
-    }
-
-    /// Returns `true` if the node contains the given token.
-    ///
-    /// More information:
-    ///  - [ECMAScript specification][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-contains
-    pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
-        match self {
-            Self::Elision | Self::SingleNameRest { .. } => false,
-            Self::SingleName { default_init, .. } => {
-                matches!(default_init, Some(init) if init.contains(symbol))
-            }
-            Self::PropertyAccess { access } | Self::PropertyAccessRest { access } => {
-                access.contains(symbol)
-            }
-            Self::Pattern {
-                pattern,
-                default_init,
-            } => {
-                pattern.contains(symbol)
-                    || matches!(default_init, Some(init) if init.contains(symbol))
-            }
-            Self::PatternRest { pattern } => pattern.contains(symbol),
-        }
-    }
-
-    /// Gets the list of identifiers in the array pattern element.
-    #[inline]
-    pub(crate) fn idents(&self) -> Vec<Identifier> {
-        match self {
-            Self::SingleName { ident, .. } => {
-                vec![*ident]
-            }
-            Self::Pattern { pattern, .. } | Self::PatternRest { pattern } => pattern.idents(),
-            Self::SingleNameRest { ident } => vec![*ident],
-            _ => Vec::new(),
-        }
-    }
 }
 
 impl ToInternedString for ArrayPatternElement {

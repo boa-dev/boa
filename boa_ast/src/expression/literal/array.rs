@@ -1,10 +1,10 @@
 //! Array declaration Expression.
 
 use crate::expression::operator::assign::AssignTarget;
+use crate::expression::Expression;
 use crate::pattern::{ArrayPattern, ArrayPatternElement, Pattern};
 use crate::try_break;
 use crate::visitor::{VisitWith, Visitor, VisitorMut};
-use crate::{expression::Expression, ContainsSymbol};
 use boa_interner::{Interner, Sym, ToInternedString};
 use core::ops::ControlFlow;
 
@@ -25,6 +25,7 @@ use core::ops::ControlFlow;
 /// [spec]: https://tc39.es/ecma262/#prod-ArrayLiteral
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "fuzz", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct ArrayLiteral {
     arr: Box<[Option<Expression>]>,
@@ -150,19 +151,6 @@ impl ArrayLiteral {
             }
         }
         Some(ArrayPattern::new(bindings.into()))
-    }
-
-    #[inline]
-    pub(crate) fn contains_arguments(&self) -> bool {
-        self.arr
-            .iter()
-            .flatten()
-            .any(Expression::contains_arguments)
-    }
-
-    #[inline]
-    pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
-        self.arr.iter().flatten().any(|expr| expr.contains(symbol))
     }
 }
 

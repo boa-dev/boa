@@ -4,6 +4,7 @@ use std::fmt::{Display, Formatter, Result};
 
 /// This represents a binary operation between two values.
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "fuzz", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum BinaryOp {
     /// Numeric operation.
@@ -86,6 +87,7 @@ impl Display for BinaryOp {
 ///
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_Operators#Arithmetic
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "fuzz", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum ArithmeticOp {
     /// The addition operator produces the sum of numeric operands or string concatenation.
@@ -196,6 +198,7 @@ impl Display for ArithmeticOp {
 ///
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_Operators#Bitwise
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "fuzz", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum BitwiseOp {
     /// Performs the AND operation on each pair of bits. a AND b yields 1 only if both a and b are 1.
@@ -319,6 +322,7 @@ impl Display for BitwiseOp {
 /// [spec]: tc39.es/ecma262/#sec-testing-and-comparison-operations
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_Operators#Comparison
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "fuzz", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum RelationalOp {
     /// The equality operator converts the operands if they are not of the same type, then applies
@@ -512,6 +516,7 @@ impl Display for RelationalOp {
 /// [spec]: https://tc39.es/ecma262/#sec-binary-logical-operators
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_Operators#Logical
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "fuzz", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum LogicalOp {
     /// The logical AND operator returns the value of the first operand if it can be coerced into `false`;

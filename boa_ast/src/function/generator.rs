@@ -21,11 +21,13 @@ use super::FormalParameterList;
 /// [spec]: https://tc39.es/ecma262/#sec-generator-function-definitions
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function*
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "fuzz", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct Generator {
     name: Option<Identifier>,
     parameters: FormalParameterList,
     body: StatementList,
+    has_binding_identifier: bool,
 }
 
 impl Generator {
@@ -36,11 +38,13 @@ impl Generator {
         name: Option<Identifier>,
         parameters: FormalParameterList,
         body: StatementList,
+        has_binding_identifier: bool,
     ) -> Self {
         Self {
             name,
             parameters,
             body,
+            has_binding_identifier,
         }
     }
 
@@ -63,6 +67,13 @@ impl Generator {
     #[must_use]
     pub fn body(&self) -> &StatementList {
         &self.body
+    }
+
+    /// Returns whether the function expression has a binding identifier.
+    #[inline]
+    #[must_use]
+    pub fn has_binding_identifier(&self) -> bool {
+        self.has_binding_identifier
     }
 }
 

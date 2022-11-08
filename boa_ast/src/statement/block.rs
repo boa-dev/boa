@@ -1,8 +1,9 @@
 //! Block AST node.
 
-use super::Statement;
-use crate::visitor::{VisitWith, Visitor, VisitorMut};
-use crate::{expression::Identifier, ContainsSymbol, StatementList};
+use crate::{
+    visitor::{VisitWith, Visitor, VisitorMut},
+    Statement, StatementList,
+};
 use boa_interner::{Interner, ToIndentedString};
 use core::ops::ControlFlow;
 
@@ -22,6 +23,7 @@ use core::ops::ControlFlow;
 /// [spec]: https://tc39.es/ecma262/#prod-BlockStatement
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/block
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "fuzz", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq, Default)]
 pub struct Block {
     #[cfg_attr(feature = "serde", serde(flatten))]
@@ -34,23 +36,6 @@ impl Block {
     #[must_use]
     pub fn statement_list(&self) -> &StatementList {
         &self.statements
-    }
-
-    /// Get the lexically declared names of the block.
-    #[inline]
-    #[must_use]
-    pub fn lexically_declared_names(&self) -> Vec<(Identifier, bool)> {
-        self.statements.lexically_declared_names()
-    }
-
-    #[inline]
-    pub(crate) fn contains_arguments(&self) -> bool {
-        self.statements.contains_arguments()
-    }
-
-    #[inline]
-    pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
-        self.statements.contains(symbol)
     }
 }
 

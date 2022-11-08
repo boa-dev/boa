@@ -113,13 +113,9 @@ impl Reflect {
 
         let new_target = if let Some(new_target) = args.get(2) {
             // 3. Else if IsConstructor(newTarget) is false, throw a TypeError exception.
-            if let Some(new_target) = new_target.as_constructor() {
-                new_target
-            } else {
-                return Err(JsNativeError::typ()
-                    .with_message("newTarget must be a constructor")
-                    .into());
-            }
+            new_target.as_constructor().ok_or_else(|| {
+                JsNativeError::typ().with_message("newTarget must be a constructor")
+            })?
         } else {
             // 2. If newTarget is not present, set newTarget to target.
             target
@@ -206,12 +202,11 @@ impl Reflect {
         // 2. Let key be ? ToPropertyKey(propertyKey).
         let key = args.get_or_undefined(1).to_property_key(context)?;
         // 3. If receiver is not present, then
-        let receiver = if let Some(receiver) = args.get(2).cloned() {
-            receiver
-        } else {
-            // 3.a. Set receiver to target.
-            target.clone().into()
-        };
+        // 3.a. Set receiver to target.
+        let receiver = args
+            .get(2)
+            .cloned()
+            .unwrap_or_else(|| target.clone().into());
         // 4. Return ? target.[[Get]](key, receiver).
         target.__get__(&key, receiver, context)
     }
@@ -369,11 +364,10 @@ impl Reflect {
             .ok_or_else(|| JsNativeError::typ().with_message("target must be an object"))?;
         let key = args.get_or_undefined(1).to_property_key(context)?;
         let value = args.get_or_undefined(2);
-        let receiver = if let Some(receiver) = args.get(3).cloned() {
-            receiver
-        } else {
-            target.clone().into()
-        };
+        let receiver = args
+            .get(3)
+            .cloned()
+            .unwrap_or_else(|| target.clone().into());
         Ok(target
             .__set__(key, value.clone(), receiver, context)?
             .into())

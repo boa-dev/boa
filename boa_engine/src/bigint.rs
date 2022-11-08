@@ -149,13 +149,10 @@ impl JsBigInt {
 
     #[inline]
     pub fn pow(x: &Self, y: &Self) -> JsResult<Self> {
-        let y = if let Some(y) = y.inner.to_biguint() {
-            y
-        } else {
-            return Err(JsNativeError::range()
-                .with_message("BigInt negative exponent")
-                .into());
-        };
+        let y = y
+            .inner
+            .to_biguint()
+            .ok_or_else(|| JsNativeError::range().with_message("BigInt negative exponent"))?;
 
         let num_bits = (x.inner.bits() as f64
             * y.to_f64().expect("Unable to convert from BigUInt to f64"))

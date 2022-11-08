@@ -23,13 +23,9 @@ impl Operation for ForAwaitOfLoopIterate {
             .as_boolean()
             .expect("iterator [[Done]] was not a boolean");
         let next_method = context.vm.pop();
-        let next_method_object = if let Some(object) = next_method.as_callable() {
-            object
-        } else {
-            return Err(JsNativeError::typ()
-                .with_message("iterable next method not a function")
-                .into());
-        };
+        let next_method_object = next_method.as_callable().ok_or_else(|| {
+            JsNativeError::typ().with_message("iterable next method not a function")
+        })?;
         let iterator = context.vm.pop();
         let next_result = next_method_object.call(&iterator, &[], context)?;
         context.vm.push(iterator);
@@ -54,13 +50,11 @@ impl Operation for ForAwaitOfLoopNext {
         let address = context.vm.read::<u32>();
 
         let next_result = context.vm.pop();
-        let next_result = if let Some(next_result) = next_result.as_object() {
-            IteratorResult::new(next_result.clone())
-        } else {
-            return Err(JsNativeError::typ()
-                .with_message("next value should be an object")
-                .into());
-        };
+        let next_result = next_result
+            .as_object()
+            .cloned()
+            .map(IteratorResult::new)
+            .ok_or_else(|| JsNativeError::typ().with_message("next value should be an object"))?;
 
         if next_result.complete(context)? {
             context.vm.frame_mut().pc = address as usize;

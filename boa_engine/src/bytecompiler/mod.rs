@@ -15,9 +15,10 @@ use boa_ast::{
         Call, Identifier, New, Optional, OptionalOperationKind,
     },
     function::{
-        ArrowFunction, AsyncFunction, AsyncGenerator, Class, ClassElement, FormalParameterList,
-        Function, Generator,
+        ArrowFunction, AsyncArrowFunction, AsyncFunction, AsyncGenerator, Class, ClassElement,
+        FormalParameterList, Function, Generator,
     },
+    operations::bound_names,
     pattern::{ArrayPatternElement, ObjectPatternElement, Pattern},
     property::{MethodDefinition, PropertyName},
     statement::{
@@ -45,6 +46,7 @@ enum NodeKind {
 enum FunctionKind {
     Ordinary,
     Arrow,
+    AsyncArrow,
     Async,
     Generator,
     AsyncGenerator,
@@ -57,20 +59,23 @@ struct FunctionSpec<'a> {
     name: Option<Identifier>,
     parameters: &'a FormalParameterList,
     body: &'a StatementList,
+    has_binding_identifier: bool,
 }
 
 impl<'a> FunctionSpec<'a> {
     #[inline]
     fn is_arrow(&self) -> bool {
-        self.kind == FunctionKind::Arrow
+        matches!(self.kind, FunctionKind::Arrow | FunctionKind::AsyncArrow)
     }
+
     #[inline]
     fn is_async(&self) -> bool {
         matches!(
             self.kind,
-            FunctionKind::Async | FunctionKind::AsyncGenerator
+            FunctionKind::Async | FunctionKind::AsyncGenerator | FunctionKind::AsyncArrow
         )
     }
+
     #[inline]
     fn is_generator(&self) -> bool {
         matches!(
@@ -87,9 +92,11 @@ impl<'a> From<&'a Function> for FunctionSpec<'a> {
             name: function.name(),
             parameters: function.parameters(),
             body: function.body(),
+            has_binding_identifier: function.has_binding_identifier(),
         }
     }
 }
+
 impl<'a> From<&'a ArrowFunction> for FunctionSpec<'a> {
     fn from(function: &'a ArrowFunction) -> Self {
         FunctionSpec {
@@ -97,9 +104,23 @@ impl<'a> From<&'a ArrowFunction> for FunctionSpec<'a> {
             name: function.name(),
             parameters: function.parameters(),
             body: function.body(),
+            has_binding_identifier: false,
         }
     }
 }
+
+impl<'a> From<&'a AsyncArrowFunction> for FunctionSpec<'a> {
+    fn from(function: &'a AsyncArrowFunction) -> Self {
+        FunctionSpec {
+            kind: FunctionKind::AsyncArrow,
+            name: function.name(),
+            parameters: function.parameters(),
+            body: function.body(),
+            has_binding_identifier: false,
+        }
+    }
+}
+
 impl<'a> From<&'a AsyncFunction> for FunctionSpec<'a> {
     fn from(function: &'a AsyncFunction) -> Self {
         FunctionSpec {
@@ -107,9 +128,11 @@ impl<'a> From<&'a AsyncFunction> for FunctionSpec<'a> {
             name: function.name(),
             parameters: function.parameters(),
             body: function.body(),
+            has_binding_identifier: function.has_binding_identifier(),
         }
     }
 }
+
 impl<'a> From<&'a Generator> for FunctionSpec<'a> {
     fn from(function: &'a Generator) -> Self {
         FunctionSpec {
@@ -117,9 +140,11 @@ impl<'a> From<&'a Generator> for FunctionSpec<'a> {
             name: function.name(),
             parameters: function.parameters(),
             body: function.body(),
+            has_binding_identifier: function.has_binding_identifier(),
         }
     }
 }
+
 impl<'a> From<&'a AsyncGenerator> for FunctionSpec<'a> {
     fn from(function: &'a AsyncGenerator) -> Self {
         FunctionSpec {
@@ -127,6 +152,7 @@ impl<'a> From<&'a AsyncGenerator> for FunctionSpec<'a> {
             name: function.name(),
             parameters: function.parameters(),
             body: function.body(),
+            has_binding_identifier: function.has_binding_identifier(),
         }
     }
 }
@@ -343,17 +369,17 @@ impl<'b> ByteCompiler<'b> {
 
     #[inline]
     fn emit_u64(&mut self, value: u64) {
-        self.code_block.code.extend(&value.to_ne_bytes());
+        self.code_block.code.extend(value.to_ne_bytes());
     }
 
     #[inline]
     fn emit_u32(&mut self, value: u32) {
-        self.code_block.code.extend(&value.to_ne_bytes());
+        self.code_block.code.extend(value.to_ne_bytes());
     }
 
     #[inline]
     fn emit_u16(&mut self, value: u16) {
-        self.code_block.code.extend(&value.to_ne_bytes());
+        self.code_block.code.extend(value.to_ne_bytes());
     }
 
     #[inline]
@@ -693,7 +719,7 @@ impl<'b> ByteCompiler<'b> {
                     }
                     PropertyAccessField::Expr(expr) => {
                         self.emit_opcode(Opcode::Super);
-                        self.compile_expr(&**expr, true)?;
+                        self.compile_expr(expr, true)?;
                         self.emit_opcode(Opcode::GetPropertyByValue);
                     }
                 },
@@ -939,6 +965,9 @@ impl<'b> ByteCompiler<'b> {
                 self.function(function.into(), NodeKind::Expression, use_expr)?;
             }
             Expression::ArrowFunction(function) => {
+                self.function(function.into(), NodeKind::Expression, use_expr)?;
+            }
+            Expression::AsyncArrowFunction(function) => {
                 self.function(function.into(), NodeKind::Expression, use_expr)?;
             }
             Expression::Generator(function) => {
@@ -1491,7 +1520,7 @@ impl<'b> ByteCompiler<'b> {
         label: Option<Sym>,
         configurable_globals: bool,
     ) -> JsResult<()> {
-        let init_bound_names = for_in_loop.initializer().bound_names();
+        let init_bound_names = bound_names(for_in_loop.initializer());
         if init_bound_names.is_empty() {
             self.compile_expr(for_in_loop.target(), true)?;
         } else {
@@ -1542,7 +1571,7 @@ impl<'b> ByteCompiler<'b> {
                     self.emit_binding(BindingOpcode::InitVar, *ident);
                 }
                 Binding::Pattern(pattern) => {
-                    for ident in pattern.idents() {
+                    for ident in bound_names(pattern) {
                         self.context.create_mutable_binding(ident, true, false);
                     }
                     self.compile_declaration_pattern(pattern, BindingOpcode::InitVar)?;
@@ -1554,7 +1583,7 @@ impl<'b> ByteCompiler<'b> {
                     self.emit_binding(BindingOpcode::InitLet, *ident);
                 }
                 Binding::Pattern(pattern) => {
-                    for ident in pattern.idents() {
+                    for ident in bound_names(pattern) {
                         self.context.create_mutable_binding(ident, false, false);
                     }
                     self.compile_declaration_pattern(pattern, BindingOpcode::InitLet)?;
@@ -1562,18 +1591,18 @@ impl<'b> ByteCompiler<'b> {
             },
             IterableLoopInitializer::Const(declaration) => match declaration {
                 Binding::Identifier(ident) => {
-                    self.context.create_immutable_binding(*ident);
+                    self.context.create_immutable_binding(*ident, true);
                     self.emit_binding(BindingOpcode::InitConst, *ident);
                 }
                 Binding::Pattern(pattern) => {
-                    for ident in pattern.idents() {
-                        self.context.create_immutable_binding(ident);
+                    for ident in bound_names(pattern) {
+                        self.context.create_immutable_binding(ident, true);
                     }
                     self.compile_declaration_pattern(pattern, BindingOpcode::InitConst)?;
                 }
             },
             IterableLoopInitializer::Pattern(pattern) => {
-                for ident in pattern.idents() {
+                for ident in bound_names(pattern) {
                     self.context.create_mutable_binding(ident, true, true);
                 }
                 self.compile_declaration_pattern(pattern, BindingOpcode::InitVar)?;
@@ -1606,7 +1635,7 @@ impl<'b> ByteCompiler<'b> {
         label: Option<Sym>,
         configurable_globals: bool,
     ) -> JsResult<()> {
-        let init_bound_names = for_of_loop.init().bound_names();
+        let init_bound_names = bound_names(for_of_loop.initializer());
         if init_bound_names.is_empty() {
             self.compile_expr(for_of_loop.iterable(), true)?;
         } else {
@@ -1648,7 +1677,7 @@ impl<'b> ByteCompiler<'b> {
             self.emit_opcode_with_operand(Opcode::ForInLoopNext)
         };
 
-        match for_of_loop.init() {
+        match for_of_loop.initializer() {
             IterableLoopInitializer::Identifier(ref ident) => {
                 self.context.create_mutable_binding(*ident, true, true);
                 let binding = self.context.set_mutable_binding(*ident);
@@ -1668,7 +1697,7 @@ impl<'b> ByteCompiler<'b> {
                     self.emit_binding(BindingOpcode::InitVar, *ident);
                 }
                 Binding::Pattern(pattern) => {
-                    for ident in pattern.idents() {
+                    for ident in bound_names(pattern) {
                         self.context.create_mutable_binding(ident, true, false);
                     }
                     self.compile_declaration_pattern(pattern, BindingOpcode::InitVar)?;
@@ -1680,7 +1709,7 @@ impl<'b> ByteCompiler<'b> {
                     self.emit_binding(BindingOpcode::InitLet, *ident);
                 }
                 Binding::Pattern(pattern) => {
-                    for ident in pattern.idents() {
+                    for ident in bound_names(pattern) {
                         self.context.create_mutable_binding(ident, false, false);
                     }
                     self.compile_declaration_pattern(pattern, BindingOpcode::InitLet)?;
@@ -1688,18 +1717,18 @@ impl<'b> ByteCompiler<'b> {
             },
             IterableLoopInitializer::Const(declaration) => match declaration {
                 Binding::Identifier(ident) => {
-                    self.context.create_immutable_binding(*ident);
+                    self.context.create_immutable_binding(*ident, true);
                     self.emit_binding(BindingOpcode::InitConst, *ident);
                 }
                 Binding::Pattern(pattern) => {
-                    for ident in pattern.idents() {
-                        self.context.create_immutable_binding(ident);
+                    for ident in bound_names(pattern) {
+                        self.context.create_immutable_binding(ident, true);
                     }
                     self.compile_declaration_pattern(pattern, BindingOpcode::InitConst)?;
                 }
             },
             IterableLoopInitializer::Pattern(pattern) => {
-                for ident in pattern.idents() {
+                for ident in bound_names(pattern) {
                     self.context.create_mutable_binding(ident, true, true);
                 }
                 self.compile_declaration_pattern(pattern, BindingOpcode::InitVar)?;
@@ -2137,7 +2166,7 @@ impl<'b> ByteCompiler<'b> {
                                 self.emit_binding(BindingOpcode::InitLet, *ident);
                             }
                             Binding::Pattern(pattern) => {
-                                for ident in pattern.idents() {
+                                for ident in bound_names(pattern) {
                                     self.context.create_mutable_binding(ident, false, false);
                                 }
                                 self.compile_declaration_pattern(pattern, BindingOpcode::InitLet)?;
@@ -2231,6 +2260,7 @@ impl<'b> ByteCompiler<'b> {
             name,
             parameters,
             body,
+            has_binding_identifier,
             ..
         } = function;
 
@@ -2240,15 +2270,18 @@ impl<'b> ByteCompiler<'b> {
             .r#async(r#async)
             .strict(self.code_block.strict)
             .arrow(arrow)
+            .has_binding_identifier(has_binding_identifier)
             .compile(parameters, body, self.context)?;
 
         let index = self.code_block.functions.len() as u32;
         self.code_block.functions.push(code);
 
-        if generator && r#async {
+        if r#async && generator {
             self.emit(Opcode::GetGeneratorAsync, &[index]);
         } else if generator {
             self.emit(Opcode::GetGenerator, &[index]);
+        } else if r#async && arrow {
+            self.emit(Opcode::GetAsyncArrowFunction, &[index]);
         } else if r#async {
             self.emit(Opcode::GetFunctionAsync, &[index]);
         } else if arrow {
@@ -2619,7 +2652,7 @@ impl<'b> ByteCompiler<'b> {
                         .create_mutable_binding(*ident, true, configurable_globals);
                 }
                 Binding::Pattern(pattern) => {
-                    for ident in pattern.idents() {
+                    for ident in bound_names(pattern) {
                         if ident == Sym::ARGUMENTS {
                             has_identifier_argument = true;
                         }
@@ -2646,7 +2679,7 @@ impl<'b> ByteCompiler<'b> {
                             self.context.create_mutable_binding(*ident, false, false);
                         }
                         Binding::Pattern(pattern) => {
-                            for ident in pattern.idents() {
+                            for ident in bound_names(pattern) {
                                 if ident == Sym::ARGUMENTS {
                                     has_identifier_argument = true;
                                 }
@@ -2664,14 +2697,14 @@ impl<'b> ByteCompiler<'b> {
                             if *ident == Sym::ARGUMENTS {
                                 has_identifier_argument = true;
                             }
-                            self.context.create_immutable_binding(*ident);
+                            self.context.create_immutable_binding(*ident, true);
                         }
                         Binding::Pattern(pattern) => {
-                            for ident in pattern.idents() {
+                            for ident in bound_names(pattern) {
                                 if ident == Sym::ARGUMENTS {
                                     has_identifier_argument = true;
                                 }
-                                self.context.create_immutable_binding(ident);
+                                self.context.create_immutable_binding(ident, true);
                             }
                         }
                     }
@@ -2825,7 +2858,7 @@ impl<'b> ByteCompiler<'b> {
                         compiler.emit_binding(BindingOpcode::InitArg, *ident);
                     }
                     Binding::Pattern(pattern) => {
-                        for ident in pattern.idents() {
+                        for ident in bound_names(pattern) {
                             compiler.context.create_mutable_binding(ident, false, false);
                         }
                         compiler.compile_declaration_pattern(pattern, BindingOpcode::InitArg)?;
@@ -2858,10 +2891,7 @@ impl<'b> ByteCompiler<'b> {
             } else {
                 let (num_bindings, compile_environment) =
                     compiler.context.pop_compile_time_environment();
-                compiler
-                    .code_block
-                    .compile_environments
-                    .push(compile_environment);
+                compiler.push_compile_environment(compile_environment);
                 compiler.code_block.num_bindings = num_bindings;
                 compiler.code_block.is_class_constructor = true;
             }
@@ -2871,10 +2901,7 @@ impl<'b> ByteCompiler<'b> {
             }
             let (num_bindings, compile_environment) =
                 compiler.context.pop_compile_time_environment();
-            compiler
-                .code_block
-                .compile_environments
-                .push(compile_environment);
+            compiler.push_compile_environment(compile_environment);
             compiler.code_block.num_bindings = num_bindings;
             compiler.code_block.is_class_constructor = true;
         }
@@ -3049,10 +3076,7 @@ impl<'b> ByteCompiler<'b> {
                     }
                     let (num_bindings, compile_environment) =
                         field_compiler.context.pop_compile_time_environment();
-                    field_compiler
-                        .code_block
-                        .compile_environments
-                        .push(compile_environment);
+                    field_compiler.push_compile_environment(compile_environment);
                     field_compiler.code_block.num_bindings = num_bindings;
                     field_compiler.emit_opcode(Opcode::Return);
 
@@ -3083,10 +3107,7 @@ impl<'b> ByteCompiler<'b> {
                     }
                     let (num_bindings, compile_environment) =
                         field_compiler.context.pop_compile_time_environment();
-                    field_compiler
-                        .code_block
-                        .compile_environments
-                        .push(compile_environment);
+                    field_compiler.push_compile_environment(compile_environment);
                     field_compiler.code_block.num_bindings = num_bindings;
                     field_compiler.emit_opcode(Opcode::Return);
 
@@ -3138,10 +3159,7 @@ impl<'b> ByteCompiler<'b> {
                     compiler.compile_statement_list(statement_list, false, false)?;
                     let (num_bindings, compile_environment) =
                         compiler.context.pop_compile_time_environment();
-                    compiler
-                        .code_block
-                        .compile_environments
-                        .push(compile_environment);
+                    compiler.push_compile_environment(compile_environment);
                     compiler.code_block.num_bindings = num_bindings;
 
                     let code = Gc::new(compiler.finish());

@@ -540,16 +540,14 @@ pub(crate) fn add_entries_from_iterable(
 
         // b. If next is false, return target.
         // c. Let nextItem be ? IteratorValue(next).
-        let next_item = if let Some(next) = next {
-            next.value(context)?
-        } else {
+        let Some(next_item) = next else {
             return Ok(target.clone().into());
         };
 
-        let next_item = if let Some(obj) = next_item.as_object() {
-            obj
-        // d. If Type(nextItem) is not Object, then
-        } else {
+        let next_item = next_item.value(context)?;
+
+        let Some(next_item) = next_item.as_object() else {
+            // d. If Type(nextItem) is not Object, then
             // i. Let error be ThrowCompletion(a newly created TypeError object).
             let err = Err(JsNativeError::typ()
                 .with_message("cannot get key and value from primitive item of `iterable`")

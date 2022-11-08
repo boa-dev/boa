@@ -2645,7 +2645,7 @@ fn spread_getters_in_object() {
         var a = { x: 42 };
         var aWithXGetter = { ...a, ... { get x() { throw new Error('not thrown yet') } } };
     "#;
-    assert_eq!(&exec(scenario), "\"Error\": \"not thrown yet\"");
+    assert_eq!(&exec(scenario), "Error: not thrown yet");
 }
 
 #[test]

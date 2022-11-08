@@ -3,6 +3,43 @@
 //! This module contains visitors which can be used to inspect or modify AST nodes. This allows for
 //! fine-grained manipulation of ASTs for analysis, rewriting, or instrumentation.
 
+use std::ops::ControlFlow;
+
+use crate::{
+    declaration::{
+        Binding, Declaration, LexicalDeclaration, VarDeclaration, Variable, VariableList,
+    },
+    expression::{
+        access::{
+            PrivatePropertyAccess, PropertyAccess, PropertyAccessField, SimplePropertyAccess,
+            SuperPropertyAccess,
+        },
+        literal::{ArrayLiteral, Literal, ObjectLiteral, TemplateElement, TemplateLiteral},
+        operator::{
+            assign::{Assign, AssignTarget},
+            Binary, Conditional, Unary,
+        },
+        Await, Call, Expression, Identifier, New, Optional, OptionalOperation,
+        OptionalOperationKind, Spread, SuperCall, TaggedTemplate, Yield,
+    },
+    function::{
+        ArrowFunction, AsyncArrowFunction, AsyncFunction, AsyncGenerator, Class, ClassElement,
+        FormalParameter, FormalParameterList, Function, Generator,
+    },
+    pattern::{ArrayPattern, ArrayPatternElement, ObjectPattern, ObjectPatternElement, Pattern},
+    property::{MethodDefinition, PropertyDefinition, PropertyName},
+    statement::{
+        iteration::{
+            Break, Continue, DoWhileLoop, ForInLoop, ForLoop, ForLoopInitializer, ForOfLoop,
+            IterableLoopInitializer, WhileLoop,
+        },
+        Block, Case, Catch, Finally, If, Labelled, LabelledItem, Return, Statement, Switch, Throw,
+        Try,
+    },
+    StatementList, StatementListItem,
+};
+use boa_interner::Sym;
+
 /// `Try`-like conditional unwrapping of `ControlFlow`.
 #[macro_export]
 macro_rules! try_break {
@@ -14,46 +51,11 @@ macro_rules! try_break {
     };
 }
 
-use crate::declaration::{
-    Binding, Declaration, LexicalDeclaration, VarDeclaration, Variable, VariableList,
-};
-use crate::expression::access::{
-    PrivatePropertyAccess, PropertyAccess, PropertyAccessField, SimplePropertyAccess,
-    SuperPropertyAccess,
-};
-use crate::expression::literal::{
-    ArrayLiteral, Literal, ObjectLiteral, TemplateElement, TemplateLiteral,
-};
-use crate::expression::operator::assign::{Assign, AssignTarget};
-use crate::expression::operator::{Binary, Conditional, Unary};
-use crate::expression::{
-    Await, Call, Expression, Identifier, New, Optional, OptionalOperation, OptionalOperationKind,
-    Spread, SuperCall, TaggedTemplate, Yield,
-};
-use crate::function::{
-    ArrowFunction, AsyncFunction, AsyncGenerator, Class, ClassElement, FormalParameter,
-    FormalParameterList, Function, Generator,
-};
-use crate::pattern::{
-    ArrayPattern, ArrayPatternElement, ObjectPattern, ObjectPatternElement, Pattern,
-};
-use crate::property::{MethodDefinition, PropertyDefinition, PropertyName};
-use crate::statement::iteration::{
-    Break, Continue, DoWhileLoop, ForInLoop, ForLoop, ForLoopInitializer, ForOfLoop,
-    IterableLoopInitializer, WhileLoop,
-};
-use crate::statement::{
-    Block, Case, Catch, Finally, If, Labelled, LabelledItem, Return, Statement, Switch, Throw, Try,
-};
-use crate::{StatementList, StatementListItem};
-use boa_interner::Sym;
-
 /// Creates the default visit function implementation for a particular type
 macro_rules! define_visit {
     ($fn_name:ident, $type_name:ident) => {
         #[doc = concat!("Visits a `", stringify!($type_name), "` with this visitor")]
-        #[must_use]
-        fn $fn_name(&mut self, node: &'ast $type_name) -> core::ops::ControlFlow<Self::BreakTy> {
+        fn $fn_name(&mut self, node: &'ast $type_name) -> ControlFlow<Self::BreakTy> {
             node.visit_with(self)
         }
     };
@@ -63,14 +65,132 @@ macro_rules! define_visit {
 macro_rules! define_visit_mut {
     ($fn_name:ident, $type_name:ident) => {
         #[doc = concat!("Visits a `", stringify!($type_name), "` with this visitor, mutably")]
-        #[must_use]
-        fn $fn_name(
-            &mut self,
-            node: &'ast mut $type_name,
-        ) -> core::ops::ControlFlow<Self::BreakTy> {
+        fn $fn_name(&mut self, node: &'ast mut $type_name) -> ControlFlow<Self::BreakTy> {
             node.visit_with_mut(self)
         }
     };
+}
+
+/// Generates the `NodeRef` and `NodeMutRef` enums from a list of variants.
+macro_rules! node_ref {
+    (
+        $(
+            $Variant:ident
+        ),*
+        $(,)?
+    ) => {
+        /// A reference to a node visitable by a [`Visitor`].
+        #[derive(Debug, Clone, Copy)]
+        #[allow(missing_docs)]
+        pub enum NodeRef<'a> {
+            $(
+                $Variant(&'a $Variant)
+            ),*
+        }
+
+        $(
+            impl<'a> From<&'a $Variant> for NodeRef<'a> {
+                fn from(node: &'a $Variant) -> NodeRef<'a> {
+                    Self::$Variant(node)
+                }
+            }
+        )*
+
+        /// A mutable reference to a node visitable by a [`VisitorMut`].
+        #[derive(Debug)]
+        #[allow(missing_docs)]
+        pub enum NodeRefMut<'a> {
+            $(
+                $Variant(&'a mut $Variant)
+            ),*
+        }
+
+        $(
+            impl<'a> From<&'a mut $Variant> for NodeRefMut<'a> {
+                fn from(node: &'a mut $Variant) -> NodeRefMut<'a> {
+                    Self::$Variant(node)
+                }
+            }
+        )*
+    }
+}
+
+node_ref! {
+    StatementList,
+    StatementListItem,
+    Statement,
+    Declaration,
+    Function,
+    Generator,
+    AsyncFunction,
+    AsyncGenerator,
+    Class,
+    LexicalDeclaration,
+    Block,
+    VarDeclaration,
+    Expression,
+    If,
+    DoWhileLoop,
+    WhileLoop,
+    ForLoop,
+    ForInLoop,
+    ForOfLoop,
+    Switch,
+    Continue,
+    Break,
+    Return,
+    Labelled,
+    Throw,
+    Try,
+    Identifier,
+    FormalParameterList,
+    ClassElement,
+    VariableList,
+    Variable,
+    Binding,
+    Pattern,
+    Literal,
+    ArrayLiteral,
+    ObjectLiteral,
+    Spread,
+    ArrowFunction,
+    AsyncArrowFunction,
+    TemplateLiteral,
+    PropertyAccess,
+    New,
+    Call,
+    SuperCall,
+    Optional,
+    TaggedTemplate,
+    Assign,
+    Unary,
+    Binary,
+    Conditional,
+    Await,
+    Yield,
+    ForLoopInitializer,
+    IterableLoopInitializer,
+    Case,
+    Sym,
+    LabelledItem,
+    Catch,
+    Finally,
+    FormalParameter,
+    PropertyName,
+    MethodDefinition,
+    ObjectPattern,
+    ArrayPattern,
+    PropertyDefinition,
+    TemplateElement,
+    SimplePropertyAccess,
+    PrivatePropertyAccess,
+    SuperPropertyAccess,
+    OptionalOperation,
+    AssignTarget,
+    ObjectPatternElement,
+    ArrayPatternElement,
+    PropertyAccessField,
+    OptionalOperationKind,
 }
 
 /// Represents an AST visitor.
@@ -119,6 +239,7 @@ pub trait Visitor<'ast>: Sized {
     define_visit!(visit_object_literal, ObjectLiteral);
     define_visit!(visit_spread, Spread);
     define_visit!(visit_arrow_function, ArrowFunction);
+    define_visit!(visit_async_arrow_function, AsyncArrowFunction);
     define_visit!(visit_template_literal, TemplateLiteral);
     define_visit!(visit_property_access, PropertyAccess);
     define_visit!(visit_new, New);
@@ -155,6 +276,90 @@ pub trait Visitor<'ast>: Sized {
     define_visit!(visit_array_pattern_element, ArrayPatternElement);
     define_visit!(visit_property_access_field, PropertyAccessField);
     define_visit!(visit_optional_operation_kind, OptionalOperationKind);
+
+    /// Generic entry point for a node that is visitable by a `Visitor`.
+    ///
+    /// This is usually used for generic functions that need to visit an unnamed AST node.
+    fn visit<N: Into<NodeRef<'ast>>>(&mut self, node: N) -> ControlFlow<Self::BreakTy> {
+        let node = node.into();
+        match node {
+            NodeRef::StatementList(n) => self.visit_statement_list(n),
+            NodeRef::StatementListItem(n) => self.visit_statement_list_item(n),
+            NodeRef::Statement(n) => self.visit_statement(n),
+            NodeRef::Declaration(n) => self.visit_declaration(n),
+            NodeRef::Function(n) => self.visit_function(n),
+            NodeRef::Generator(n) => self.visit_generator(n),
+            NodeRef::AsyncFunction(n) => self.visit_async_function(n),
+            NodeRef::AsyncGenerator(n) => self.visit_async_generator(n),
+            NodeRef::Class(n) => self.visit_class(n),
+            NodeRef::LexicalDeclaration(n) => self.visit_lexical_declaration(n),
+            NodeRef::Block(n) => self.visit_block(n),
+            NodeRef::VarDeclaration(n) => self.visit_var_declaration(n),
+            NodeRef::Expression(n) => self.visit_expression(n),
+            NodeRef::If(n) => self.visit_if(n),
+            NodeRef::DoWhileLoop(n) => self.visit_do_while_loop(n),
+            NodeRef::WhileLoop(n) => self.visit_while_loop(n),
+            NodeRef::ForLoop(n) => self.visit_for_loop(n),
+            NodeRef::ForInLoop(n) => self.visit_for_in_loop(n),
+            NodeRef::ForOfLoop(n) => self.visit_for_of_loop(n),
+            NodeRef::Switch(n) => self.visit_switch(n),
+            NodeRef::Continue(n) => self.visit_continue(n),
+            NodeRef::Break(n) => self.visit_break(n),
+            NodeRef::Return(n) => self.visit_return(n),
+            NodeRef::Labelled(n) => self.visit_labelled(n),
+            NodeRef::Throw(n) => self.visit_throw(n),
+            NodeRef::Try(n) => self.visit_try(n),
+            NodeRef::Identifier(n) => self.visit_identifier(n),
+            NodeRef::FormalParameterList(n) => self.visit_formal_parameter_list(n),
+            NodeRef::ClassElement(n) => self.visit_class_element(n),
+            NodeRef::VariableList(n) => self.visit_variable_list(n),
+            NodeRef::Variable(n) => self.visit_variable(n),
+            NodeRef::Binding(n) => self.visit_binding(n),
+            NodeRef::Pattern(n) => self.visit_pattern(n),
+            NodeRef::Literal(n) => self.visit_literal(n),
+            NodeRef::ArrayLiteral(n) => self.visit_array_literal(n),
+            NodeRef::ObjectLiteral(n) => self.visit_object_literal(n),
+            NodeRef::Spread(n) => self.visit_spread(n),
+            NodeRef::ArrowFunction(n) => self.visit_arrow_function(n),
+            NodeRef::AsyncArrowFunction(n) => self.visit_async_arrow_function(n),
+            NodeRef::TemplateLiteral(n) => self.visit_template_literal(n),
+            NodeRef::PropertyAccess(n) => self.visit_property_access(n),
+            NodeRef::New(n) => self.visit_new(n),
+            NodeRef::Call(n) => self.visit_call(n),
+            NodeRef::SuperCall(n) => self.visit_super_call(n),
+            NodeRef::Optional(n) => self.visit_optional(n),
+            NodeRef::TaggedTemplate(n) => self.visit_tagged_template(n),
+            NodeRef::Assign(n) => self.visit_assign(n),
+            NodeRef::Unary(n) => self.visit_unary(n),
+            NodeRef::Binary(n) => self.visit_binary(n),
+            NodeRef::Conditional(n) => self.visit_conditional(n),
+            NodeRef::Await(n) => self.visit_await(n),
+            NodeRef::Yield(n) => self.visit_yield(n),
+            NodeRef::ForLoopInitializer(n) => self.visit_for_loop_initializer(n),
+            NodeRef::IterableLoopInitializer(n) => self.visit_iterable_loop_initializer(n),
+            NodeRef::Case(n) => self.visit_case(n),
+            NodeRef::Sym(n) => self.visit_sym(n),
+            NodeRef::LabelledItem(n) => self.visit_labelled_item(n),
+            NodeRef::Catch(n) => self.visit_catch(n),
+            NodeRef::Finally(n) => self.visit_finally(n),
+            NodeRef::FormalParameter(n) => self.visit_formal_parameter(n),
+            NodeRef::PropertyName(n) => self.visit_property_name(n),
+            NodeRef::MethodDefinition(n) => self.visit_method_definition(n),
+            NodeRef::ObjectPattern(n) => self.visit_object_pattern(n),
+            NodeRef::ArrayPattern(n) => self.visit_array_pattern(n),
+            NodeRef::PropertyDefinition(n) => self.visit_property_definition(n),
+            NodeRef::TemplateElement(n) => self.visit_template_element(n),
+            NodeRef::SimplePropertyAccess(n) => self.visit_simple_property_access(n),
+            NodeRef::PrivatePropertyAccess(n) => self.visit_private_property_access(n),
+            NodeRef::SuperPropertyAccess(n) => self.visit_super_property_access(n),
+            NodeRef::OptionalOperation(n) => self.visit_optional_operation(n),
+            NodeRef::AssignTarget(n) => self.visit_assign_target(n),
+            NodeRef::ObjectPatternElement(n) => self.visit_object_pattern_element(n),
+            NodeRef::ArrayPatternElement(n) => self.visit_array_pattern_element(n),
+            NodeRef::PropertyAccessField(n) => self.visit_property_access_field(n),
+            NodeRef::OptionalOperationKind(n) => self.visit_optional_operation_kind(n),
+        }
+    }
 }
 
 /// Represents an AST visitor which can modify AST content.
@@ -203,6 +408,7 @@ pub trait VisitorMut<'ast>: Sized {
     define_visit_mut!(visit_object_literal_mut, ObjectLiteral);
     define_visit_mut!(visit_spread_mut, Spread);
     define_visit_mut!(visit_arrow_function_mut, ArrowFunction);
+    define_visit_mut!(visit_async_arrow_function_mut, AsyncArrowFunction);
     define_visit_mut!(visit_template_literal_mut, TemplateLiteral);
     define_visit_mut!(visit_property_access_mut, PropertyAccess);
     define_visit_mut!(visit_new_mut, New);
@@ -239,33 +445,117 @@ pub trait VisitorMut<'ast>: Sized {
     define_visit_mut!(visit_array_pattern_element_mut, ArrayPatternElement);
     define_visit_mut!(visit_property_access_field_mut, PropertyAccessField);
     define_visit_mut!(visit_optional_operation_kind_mut, OptionalOperationKind);
+
+    /// Generic entry point for a node that is visitable by a `VisitorMut`.
+    ///
+    /// This is usually used for generic functions that need to visit an unnamed AST node.
+    fn visit<N: Into<NodeRefMut<'ast>>>(&mut self, node: N) -> ControlFlow<Self::BreakTy> {
+        let node = node.into();
+        match node {
+            NodeRefMut::StatementList(n) => self.visit_statement_list_mut(n),
+            NodeRefMut::StatementListItem(n) => self.visit_statement_list_item_mut(n),
+            NodeRefMut::Statement(n) => self.visit_statement_mut(n),
+            NodeRefMut::Declaration(n) => self.visit_declaration_mut(n),
+            NodeRefMut::Function(n) => self.visit_function_mut(n),
+            NodeRefMut::Generator(n) => self.visit_generator_mut(n),
+            NodeRefMut::AsyncFunction(n) => self.visit_async_function_mut(n),
+            NodeRefMut::AsyncGenerator(n) => self.visit_async_generator_mut(n),
+            NodeRefMut::Class(n) => self.visit_class_mut(n),
+            NodeRefMut::LexicalDeclaration(n) => self.visit_lexical_declaration_mut(n),
+            NodeRefMut::Block(n) => self.visit_block_mut(n),
+            NodeRefMut::VarDeclaration(n) => self.visit_var_declaration_mut(n),
+            NodeRefMut::Expression(n) => self.visit_expression_mut(n),
+            NodeRefMut::If(n) => self.visit_if_mut(n),
+            NodeRefMut::DoWhileLoop(n) => self.visit_do_while_loop_mut(n),
+            NodeRefMut::WhileLoop(n) => self.visit_while_loop_mut(n),
+            NodeRefMut::ForLoop(n) => self.visit_for_loop_mut(n),
+            NodeRefMut::ForInLoop(n) => self.visit_for_in_loop_mut(n),
+            NodeRefMut::ForOfLoop(n) => self.visit_for_of_loop_mut(n),
+            NodeRefMut::Switch(n) => self.visit_switch_mut(n),
+            NodeRefMut::Continue(n) => self.visit_continue_mut(n),
+            NodeRefMut::Break(n) => self.visit_break_mut(n),
+            NodeRefMut::Return(n) => self.visit_return_mut(n),
+            NodeRefMut::Labelled(n) => self.visit_labelled_mut(n),
+            NodeRefMut::Throw(n) => self.visit_throw_mut(n),
+            NodeRefMut::Try(n) => self.visit_try_mut(n),
+            NodeRefMut::Identifier(n) => self.visit_identifier_mut(n),
+            NodeRefMut::FormalParameterList(n) => self.visit_formal_parameter_list_mut(n),
+            NodeRefMut::ClassElement(n) => self.visit_class_element_mut(n),
+            NodeRefMut::VariableList(n) => self.visit_variable_list_mut(n),
+            NodeRefMut::Variable(n) => self.visit_variable_mut(n),
+            NodeRefMut::Binding(n) => self.visit_binding_mut(n),
+            NodeRefMut::Pattern(n) => self.visit_pattern_mut(n),
+            NodeRefMut::Literal(n) => self.visit_literal_mut(n),
+            NodeRefMut::ArrayLiteral(n) => self.visit_array_literal_mut(n),
+            NodeRefMut::ObjectLiteral(n) => self.visit_object_literal_mut(n),
+            NodeRefMut::Spread(n) => self.visit_spread_mut(n),
+            NodeRefMut::ArrowFunction(n) => self.visit_arrow_function_mut(n),
+            NodeRefMut::AsyncArrowFunction(n) => self.visit_async_arrow_function_mut(n),
+            NodeRefMut::TemplateLiteral(n) => self.visit_template_literal_mut(n),
+            NodeRefMut::PropertyAccess(n) => self.visit_property_access_mut(n),
+            NodeRefMut::New(n) => self.visit_new_mut(n),
+            NodeRefMut::Call(n) => self.visit_call_mut(n),
+            NodeRefMut::SuperCall(n) => self.visit_super_call_mut(n),
+            NodeRefMut::Optional(n) => self.visit_optional_mut(n),
+            NodeRefMut::TaggedTemplate(n) => self.visit_tagged_template_mut(n),
+            NodeRefMut::Assign(n) => self.visit_assign_mut(n),
+            NodeRefMut::Unary(n) => self.visit_unary_mut(n),
+            NodeRefMut::Binary(n) => self.visit_binary_mut(n),
+            NodeRefMut::Conditional(n) => self.visit_conditional_mut(n),
+            NodeRefMut::Await(n) => self.visit_await_mut(n),
+            NodeRefMut::Yield(n) => self.visit_yield_mut(n),
+            NodeRefMut::ForLoopInitializer(n) => self.visit_for_loop_initializer_mut(n),
+            NodeRefMut::IterableLoopInitializer(n) => self.visit_iterable_loop_initializer_mut(n),
+            NodeRefMut::Case(n) => self.visit_case_mut(n),
+            NodeRefMut::Sym(n) => self.visit_sym_mut(n),
+            NodeRefMut::LabelledItem(n) => self.visit_labelled_item_mut(n),
+            NodeRefMut::Catch(n) => self.visit_catch_mut(n),
+            NodeRefMut::Finally(n) => self.visit_finally_mut(n),
+            NodeRefMut::FormalParameter(n) => self.visit_formal_parameter_mut(n),
+            NodeRefMut::PropertyName(n) => self.visit_property_name_mut(n),
+            NodeRefMut::MethodDefinition(n) => self.visit_method_definition_mut(n),
+            NodeRefMut::ObjectPattern(n) => self.visit_object_pattern_mut(n),
+            NodeRefMut::ArrayPattern(n) => self.visit_array_pattern_mut(n),
+            NodeRefMut::PropertyDefinition(n) => self.visit_property_definition_mut(n),
+            NodeRefMut::TemplateElement(n) => self.visit_template_element_mut(n),
+            NodeRefMut::SimplePropertyAccess(n) => self.visit_simple_property_access_mut(n),
+            NodeRefMut::PrivatePropertyAccess(n) => self.visit_private_property_access_mut(n),
+            NodeRefMut::SuperPropertyAccess(n) => self.visit_super_property_access_mut(n),
+            NodeRefMut::OptionalOperation(n) => self.visit_optional_operation_mut(n),
+            NodeRefMut::AssignTarget(n) => self.visit_assign_target_mut(n),
+            NodeRefMut::ObjectPatternElement(n) => self.visit_object_pattern_element_mut(n),
+            NodeRefMut::ArrayPatternElement(n) => self.visit_array_pattern_element_mut(n),
+            NodeRefMut::PropertyAccessField(n) => self.visit_property_access_field_mut(n),
+            NodeRefMut::OptionalOperationKind(n) => self.visit_optional_operation_kind_mut(n),
+        }
+    }
 }
 
 /// Denotes that a type may be visited, providing a method which allows a visitor to traverse its
 /// private fields.
 pub trait VisitWith {
     /// Visit this node with the provided visitor.
-    fn visit_with<'a, V>(&'a self, visitor: &mut V) -> core::ops::ControlFlow<V::BreakTy>
+    fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
         V: Visitor<'a>;
 
     /// Visit this node with the provided visitor mutably, allowing the visitor to modify private
     /// fields.
-    fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> core::ops::ControlFlow<V::BreakTy>
+    fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
         V: VisitorMut<'a>;
 }
 
 // implementation for Sym as it is out-of-crate
 impl VisitWith for Sym {
-    fn visit_with<'a, V>(&'a self, _visitor: &mut V) -> core::ops::ControlFlow<V::BreakTy>
+    fn visit_with<'a, V>(&'a self, _visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
         V: Visitor<'a>,
     {
         core::ops::ControlFlow::Continue(())
     }
 
-    fn visit_with_mut<'a, V>(&'a mut self, _visitor: &mut V) -> core::ops::ControlFlow<V::BreakTy>
+    fn visit_with_mut<'a, V>(&'a mut self, _visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
         V: VisitorMut<'a>,
     {

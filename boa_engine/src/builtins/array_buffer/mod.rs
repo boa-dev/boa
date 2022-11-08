@@ -148,33 +148,25 @@ impl ArrayBuffer {
     ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[ArrayBufferData]]).
-        let obj = if let Some(obj) = this.as_object() {
-            obj
-        } else {
-            return Err(JsNativeError::typ()
-                .with_message("ArrayBuffer.byteLength called with non-object value")
-                .into());
-        };
+        let obj = this.as_object().ok_or_else(|| {
+            JsNativeError::typ().with_message("ArrayBuffer.byteLength called with non-object value")
+        })?;
         let obj = obj.borrow();
-        let o = if let Some(o) = obj.as_array_buffer() {
-            o
-        } else {
-            return Err(JsNativeError::typ()
-                .with_message("ArrayBuffer.byteLength called with invalid object")
-                .into());
-        };
+        let buf = obj.as_array_buffer().ok_or_else(|| {
+            JsNativeError::typ().with_message("ArrayBuffer.byteLength called with invalid object")
+        })?;
 
         // TODO: Shared Array Buffer
         // 3. If IsSharedArrayBuffer(O) is true, throw a TypeError exception.
 
         // 4. If IsDetachedBuffer(O) is true, return +0𝔽.
-        if Self::is_detached_buffer(o) {
+        if Self::is_detached_buffer(buf) {
             return Ok(0.into());
         }
 
         // 5. Let length be O.[[ArrayBufferByteLength]].
         // 6. Return 𝔽(length).
-        Ok(o.array_buffer_byte_length.into())
+        Ok(buf.array_buffer_byte_length.into())
     }
 
     /// `25.1.5.3 ArrayBuffer.prototype.slice ( start, end )`
@@ -186,34 +178,26 @@ impl ArrayBuffer {
     fn slice(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[ArrayBufferData]]).
-        let obj = if let Some(obj) = this.as_object() {
-            obj
-        } else {
-            return Err(JsNativeError::typ()
-                .with_message("ArrayBuffer.slice called with non-object value")
-                .into());
-        };
+        let obj = this.as_object().ok_or_else(|| {
+            JsNativeError::typ().with_message("ArrayBuffer.slice called with non-object value")
+        })?;
         let obj_borrow = obj.borrow();
-        let o = if let Some(o) = obj_borrow.as_array_buffer() {
-            o
-        } else {
-            return Err(JsNativeError::typ()
-                .with_message("ArrayBuffer.slice called with invalid object")
-                .into());
-        };
+        let buf = obj_borrow.as_array_buffer().ok_or_else(|| {
+            JsNativeError::typ().with_message("ArrayBuffer.slice called with invalid object")
+        })?;
 
         // TODO: Shared Array Buffer
         // 3. If IsSharedArrayBuffer(O) is true, throw a TypeError exception.
 
         // 4. If IsDetachedBuffer(O) is true, throw a TypeError exception.
-        if Self::is_detached_buffer(o) {
+        if Self::is_detached_buffer(buf) {
             return Err(JsNativeError::typ()
                 .with_message("ArrayBuffer.slice called with detached buffer")
                 .into());
         }
 
         // 5. Let len be O.[[ArrayBufferByteLength]].
-        let len = o.array_buffer_byte_length as i64;
+        let len = buf.array_buffer_byte_length as i64;
 
         // 6. Let relativeStart be ? ToIntegerOrInfinity(start).
         let relative_start = args.get_or_undefined(0).to_integer_or_infinity(context)?;
@@ -298,14 +282,14 @@ impl ArrayBuffer {
 
             // 22. NOTE: Side-effects of the above steps may have detached O.
             // 23. If IsDetachedBuffer(O) is true, throw a TypeError exception.
-            if Self::is_detached_buffer(o) {
+            if Self::is_detached_buffer(buf) {
                 return Err(JsNativeError::typ()
                     .with_message("ArrayBuffer detached while ArrayBuffer.slice was running")
                     .into());
             }
 
             // 24. Let fromBuf be O.[[ArrayBufferData]].
-            let from_buf = o
+            let from_buf = buf
                 .array_buffer_data
                 .as_ref()
                 .expect("ArrayBuffer cannot be detached here");
@@ -389,13 +373,9 @@ impl ArrayBuffer {
 
         // 2. If IsDetachedBuffer(srcBuffer) is true, throw a TypeError exception.
         // 3. Let srcBlock be srcBuffer.[[ArrayBufferData]].
-        let src_block = if let Some(b) = &self.array_buffer_data {
-            b
-        } else {
-            return Err(JsNativeError::syntax()
-                .with_message("Cannot clone detached array buffer")
-                .into());
-        };
+        let src_block = self.array_buffer_data.as_deref().ok_or_else(|| {
+            JsNativeError::syntax().with_message("Cannot clone detached array buffer")
+        })?;
 
         {
             // 4. Let targetBlock be targetBuffer.[[ArrayBufferData]].

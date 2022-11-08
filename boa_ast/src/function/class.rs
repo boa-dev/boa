@@ -8,7 +8,7 @@ use crate::{
     property::{MethodDefinition, PropertyName},
     try_break,
     visitor::{VisitWith, Visitor, VisitorMut},
-    ContainsSymbol, Declaration, StatementList, StatementListItem, ToStringEscaped,
+    Declaration, StatementList, ToStringEscaped,
 };
 use boa_interner::{Interner, Sym, ToIndentedString, ToInternedString};
 
@@ -22,6 +22,7 @@ use super::Function;
 /// [spec]: https://tc39.es/ecma262/#sec-class-definitions
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Classes
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "fuzz", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct Class {
     name: Option<Identifier>,
@@ -74,26 +75,6 @@ impl Class {
     #[must_use]
     pub fn elements(&self) -> &[ClassElement] {
         &self.elements
-    }
-
-    #[inline]
-    pub(crate) fn contains_arguments(&self) -> bool {
-        matches!(self.name, Some(ref ident) if *ident == Sym::ARGUMENTS)
-            || matches!(self.super_ref, Some(ref expr) if expr.contains_arguments())
-            || self.elements.iter().any(ClassElement::contains_arguments)
-    }
-
-    #[inline]
-    pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
-        if symbol == ContainsSymbol::ClassBody && !self.elements.is_empty() {
-            return true;
-        }
-        if symbol == ContainsSymbol::ClassHeritage {
-            return self.super_ref.is_some();
-        }
-
-        matches!(self.super_ref, Some(ref expr) if expr.contains(symbol))
-            || self.elements.iter().any(|elem| elem.contains(symbol))
     }
 }
 
@@ -426,6 +407,7 @@ impl VisitWith for Class {
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-ClassElement
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "fuzz", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 pub enum ClassElement {
     /// A method definition, including `get` and `set` accessors.
@@ -448,47 +430,6 @@ pub enum ClassElement {
     PrivateStaticFieldDefinition(Sym, Option<Expression>),
     /// A static block, where a class can have initialization logic for its static fields.
     StaticBlock(StatementList),
-}
-
-impl ClassElement {
-    #[inline]
-    pub(crate) fn contains_arguments(&self) -> bool {
-        match self {
-            // Skipping function since they must not have names
-            Self::MethodDefinition(name, _) | Self::StaticMethodDefinition(name, _) => {
-                name.contains_arguments()
-            }
-            Self::FieldDefinition(name, Some(init))
-            | Self::StaticFieldDefinition(name, Some(init)) => {
-                name.contains_arguments() || init.contains_arguments()
-            }
-            Self::PrivateFieldDefinition(_, Some(init))
-            | Self::PrivateStaticFieldDefinition(_, Some(init)) => init.contains_arguments(),
-            Self::StaticBlock(statement_list) => statement_list
-                .statements()
-                .iter()
-                .any(StatementListItem::contains_arguments),
-            _ => false,
-        }
-    }
-
-    #[inline]
-    pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
-        match self {
-            // Skipping function since they must not have names
-            Self::MethodDefinition(name, _) | Self::StaticMethodDefinition(name, _) => {
-                name.contains(symbol)
-            }
-            Self::FieldDefinition(name, Some(init))
-            | Self::StaticFieldDefinition(name, Some(init)) => {
-                name.contains(symbol) || init.contains(symbol)
-            }
-            Self::PrivateFieldDefinition(_, Some(init))
-            | Self::PrivateStaticFieldDefinition(_, Some(init)) => init.contains(symbol),
-            Self::StaticBlock(_statement_list) => false,
-            _ => false,
-        }
-    }
 }
 
 impl VisitWith for ClassElement {

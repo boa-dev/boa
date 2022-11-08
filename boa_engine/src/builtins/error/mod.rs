@@ -170,14 +170,10 @@ impl Error {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
-        let o = if let Some(o) = this.as_object() {
-            o
         // 2. If Type(O) is not Object, throw a TypeError exception.
-        } else {
-            return Err(JsNativeError::typ()
-                .with_message("'this' is not an Object")
-                .into());
-        };
+        let o = this
+            .as_object()
+            .ok_or_else(|| JsNativeError::typ().with_message("'this' is not an Object"))?;
 
         // 3. Let name be ? Get(O, "name").
         let name = o.get(js_string!("name"), context)?;

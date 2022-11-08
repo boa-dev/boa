@@ -25,9 +25,7 @@ pub use self::{
     while_loop::WhileLoop,
 };
 use crate::visitor::{VisitWith, Visitor, VisitorMut};
-use boa_interner::{Interner, Sym, ToInternedString};
-
-use super::ContainsSymbol;
+use boa_interner::{Interner, ToInternedString};
 
 /// A `for-in`, `for-of` and `for-await-of` loop initializer.
 ///
@@ -37,6 +35,7 @@ use super::ContainsSymbol;
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-ForInOfStatement
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "fuzz", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 pub enum IterableLoopInitializer {
     /// An already declared variable.
@@ -51,46 +50,6 @@ pub enum IterableLoopInitializer {
     Const(Binding),
     /// A pattern with already declared variables.
     Pattern(Pattern),
-}
-
-impl IterableLoopInitializer {
-    /// Return the bound names of a for loop initializer.
-    ///
-    /// The returned list may contain duplicates.
-    ///
-    /// More information:
-    ///  - [ECMAScript specification][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-boundnames
-    #[must_use]
-    pub fn bound_names(&self) -> Vec<Identifier> {
-        match self {
-            Self::Let(binding) | Self::Const(binding) => binding.idents(),
-            _ => Vec::new(),
-        }
-    }
-
-    #[inline]
-    pub(crate) fn contains_arguments(&self) -> bool {
-        match self {
-            Self::Identifier(ident) => *ident == Sym::ARGUMENTS,
-            Self::Access(access) => access.contains_arguments(),
-            Self::Var(bind) | Self::Let(bind) | Self::Const(bind) => bind.contains_arguments(),
-            Self::Pattern(pattern) => pattern.contains_arguments(),
-        }
-    }
-
-    #[inline]
-    pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
-        match self {
-            Self::Var(declaration) | Self::Let(declaration) | Self::Const(declaration) => {
-                declaration.contains(symbol)
-            }
-            Self::Pattern(pattern) => pattern.contains(symbol),
-            Self::Access(access) => access.contains(symbol),
-            Self::Identifier(_) => false,
-        }
-    }
 }
 
 impl ToInternedString for IterableLoopInitializer {

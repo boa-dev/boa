@@ -14,11 +14,7 @@
 //! [class]: https://tc39.es/ecma262/#prod-ClassDeclaration
 //! [diff]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements#difference_between_statements_and_declarations
 
-use super::{
-    expression::Identifier,
-    function::{AsyncFunction, AsyncGenerator, Class, Function, Generator},
-    ContainsSymbol,
-};
+use super::function::{AsyncFunction, AsyncGenerator, Class, Function, Generator};
 use boa_interner::{Interner, ToIndentedString, ToInternedString};
 use core::ops::ControlFlow;
 
@@ -31,6 +27,7 @@ pub use variable::*;
 ///
 /// See the [module level documentation][self] for more information.
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "fuzz", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 pub enum Declaration {
     /// See [`Function`]
@@ -50,108 +47,6 @@ pub enum Declaration {
 
     /// See [`LexicalDeclaration`]
     Lexical(LexicalDeclaration),
-}
-
-impl Declaration {
-    /// Return the lexically declared names of a `Declaration`.
-    ///
-    /// The returned list may contain duplicates.
-    ///
-    /// If a declared name originates from a function declaration it is flagged as `true` in the returned list.
-    ///
-    /// More information:
-    ///  - [ECMAScript specification][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-lexicallydeclarednames
-    pub(crate) fn lexically_declared_names(&self) -> Vec<(Identifier, bool)> {
-        match self {
-            Declaration::Function(f) => {
-                if let Some(name) = f.name() {
-                    vec![(name, true)]
-                } else {
-                    Vec::new()
-                }
-            }
-            Declaration::Generator(g) => {
-                if let Some(name) = g.name() {
-                    vec![(name, false)]
-                } else {
-                    Vec::new()
-                }
-            }
-            Declaration::AsyncFunction(af) => {
-                if let Some(name) = af.name() {
-                    vec![(name, false)]
-                } else {
-                    Vec::new()
-                }
-            }
-            Declaration::AsyncGenerator(ag) => {
-                if let Some(name) = ag.name() {
-                    vec![(name, false)]
-                } else {
-                    Vec::new()
-                }
-            }
-            Declaration::Class(cl) => {
-                if let Some(name) = cl.name() {
-                    vec![(name, false)]
-                } else {
-                    Vec::new()
-                }
-            }
-            Declaration::Lexical(lexical) => {
-                let mut names = Vec::new();
-                for decl in lexical.variable_list().as_ref() {
-                    match decl.binding() {
-                        Binding::Identifier(ident) => {
-                            names.push((*ident, false));
-                        }
-                        Binding::Pattern(pattern) => {
-                            names.extend(pattern.idents().into_iter().map(|name| (name, false)));
-                        }
-                    }
-                }
-                names
-            }
-        }
-    }
-
-    /// Returns true if the node contains a identifier reference named 'arguments'.
-    ///
-    /// More information:
-    ///  - [ECMAScript specification][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-containsarguments
-    // TODO: replace with a visitor
-    pub(crate) fn contains_arguments(&self) -> bool {
-        match self {
-            Self::Function(_)
-            | Self::Generator(_)
-            | Self::AsyncGenerator(_)
-            | Self::AsyncFunction(_) => false,
-            Self::Lexical(decl) => decl.contains_arguments(),
-            Self::Class(class) => class.contains_arguments(),
-        }
-    }
-
-    /// Returns `true` if the node contains the given token.
-    ///
-    /// More information:
-    ///  - [ECMAScript specification][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-contains
-    // TODO: replace with a visitor
-    pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
-        match self {
-            Self::Function(_)
-            | Self::Generator(_)
-            | Self::AsyncGenerator(_)
-            | Self::AsyncFunction(_) => false,
-            Self::Class(class) => class.contains(symbol),
-            Self::Lexical(decl) => decl.contains(symbol),
-        }
-    }
 }
 
 impl ToIndentedString for Declaration {

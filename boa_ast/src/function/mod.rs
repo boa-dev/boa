@@ -5,12 +5,13 @@
 //!
 //! - [`Function`]s.
 //! - [`ArrowFunction`]s.
+//! - [`AsyncArrowFunction`]s.
 //! - [`Generator`]s.
 //! - [`AsyncFunction`]s.
 //! - [`AsyncGenerator`]s.
 //!
 //! All of them can be declared in either [declaration][decl] form or [expression][expr] form,
-//! except from `ArrowFunction`s, which can only be declared in expression form.
+//! except from `ArrowFunction`s and `AsyncArrowFunction`s, which can only be declared in expression form.
 //!
 //! This module also contains [`Class`]es, which are templates for creating objects. Classes
 //! can also be declared in either declaration or expression form.
@@ -21,6 +22,7 @@
 //! [expr]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/function
 
 mod arrow_function;
+mod async_arrow_function;
 mod async_function;
 mod async_generator;
 mod class;
@@ -28,6 +30,7 @@ mod generator;
 mod parameters;
 
 pub use arrow_function::ArrowFunction;
+pub use async_arrow_function::AsyncArrowFunction;
 pub use async_function::AsyncFunction;
 pub use async_generator::AsyncGenerator;
 pub use class::{Class, ClassElement};
@@ -54,15 +57,17 @@ use super::Declaration;
 /// [spec]: https://tc39.es/ecma262/#sec-function-definitions
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "fuzz", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct Function {
     name: Option<Identifier>,
     parameters: FormalParameterList,
     body: StatementList,
+    has_binding_identifier: bool,
 }
 
 impl Function {
-    /// Creates a new function expression
+    /// Creates a new function expression.
     #[inline]
     #[must_use]
     pub fn new(
@@ -74,6 +79,24 @@ impl Function {
             name,
             parameters,
             body,
+            has_binding_identifier: false,
+        }
+    }
+
+    /// Creates a new function expression with an expression binding identifier.
+    #[inline]
+    #[must_use]
+    pub fn new_with_binding_identifier(
+        name: Option<Identifier>,
+        parameters: FormalParameterList,
+        body: StatementList,
+        has_binding_identifier: bool,
+    ) -> Self {
+        Self {
+            name,
+            parameters,
+            body,
+            has_binding_identifier,
         }
     }
 
@@ -96,6 +119,13 @@ impl Function {
     #[must_use]
     pub fn body(&self) -> &StatementList {
         &self.body
+    }
+
+    /// Returns whether the function expression has a binding identifier.
+    #[inline]
+    #[must_use]
+    pub fn has_binding_identifier(&self) -> bool {
+        self.has_binding_identifier
     }
 }
 

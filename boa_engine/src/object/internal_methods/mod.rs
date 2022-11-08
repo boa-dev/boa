@@ -794,11 +794,8 @@ pub(crate) fn validate_and_apply_property_descriptor(
         Profiler::global().start_event("Object::validate_and_apply_property_descriptor", "object");
     // 1. Assert: If O is not undefined, then IsPropertyKey(P) is true.
 
-    let mut current = if let Some(own) = current {
-        own
-    }
-    // 2. If current is undefined, then
-    else {
+    let Some(mut current) = current else {
+        // 2. If current is undefined, then
         // a. If extensible is false, return false.
         if !extensible {
             return false;

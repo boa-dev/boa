@@ -3,7 +3,6 @@ use crate::visitor::{VisitWith, Visitor, VisitorMut};
 use crate::{
     expression::Expression,
     statement::{iteration::IterableLoopInitializer, Statement},
-    ContainsSymbol,
 };
 use boa_interner::{Interner, ToIndentedString, ToInternedString};
 use core::ops::ControlFlow;
@@ -21,6 +20,7 @@ use core::ops::ControlFlow;
 /// [spec]: https://tc39.es/ecma262/#prod-ForInOfStatement
 /// [forawait]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/for-await...of
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "fuzz", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct ForOfLoop {
     init: IterableLoopInitializer,
@@ -50,7 +50,7 @@ impl ForOfLoop {
     /// Gets the initializer of the for...of loop.
     #[inline]
     #[must_use]
-    pub fn init(&self) -> &IterableLoopInitializer {
+    pub fn initializer(&self) -> &IterableLoopInitializer {
         &self.init
     }
 
@@ -73,18 +73,6 @@ impl ForOfLoop {
     #[must_use]
     pub fn r#await(&self) -> bool {
         self.r#await
-    }
-
-    #[inline]
-    pub(crate) fn contains_arguments(&self) -> bool {
-        self.init.contains_arguments()
-            || self.iterable.contains_arguments()
-            || self.body.contains_arguments()
-    }
-
-    #[inline]
-    pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
-        self.init.contains(symbol) || self.iterable.contains(symbol) || self.body.contains(symbol)
     }
 }
 

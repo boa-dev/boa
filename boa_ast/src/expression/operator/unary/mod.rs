@@ -18,8 +18,8 @@ pub use op::*;
 
 use boa_interner::{Interner, ToInternedString};
 
+use crate::expression::Expression;
 use crate::visitor::{VisitWith, Visitor, VisitorMut};
-use crate::{expression::Expression, ContainsSymbol};
 
 /// A unary expression is an operation with only one operand.
 ///
@@ -30,6 +30,7 @@ use crate::{expression::Expression, ContainsSymbol};
 /// [spec]: https://tc39.es/ecma262/#prod-UnaryExpression
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_Operators#Unary_operators
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "fuzz", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct Unary {
     op: UnaryOp,
@@ -58,16 +59,6 @@ impl Unary {
     #[must_use]
     pub fn target(&self) -> &Expression {
         self.target.as_ref()
-    }
-
-    #[inline]
-    pub(crate) fn contains_arguments(&self) -> bool {
-        self.target.contains_arguments()
-    }
-
-    #[inline]
-    pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
-        self.target.contains(symbol)
     }
 }
 
