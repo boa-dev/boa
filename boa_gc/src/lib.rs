@@ -106,7 +106,6 @@ struct Allocator;
 impl Allocator {
     fn new<T: Trace>(value: GcBox<T>) -> NonNull<GcBox<T>> {
         let _timer = Profiler::global().start_event("New Pointer", "BoaAlloc");
-        let eph = value.header.is_ephemeron();
         let element_size = mem::size_of_val::<GcBox<T>>(&value);
         BOA_GC.with(|st| {
             let mut gc = st.borrow_mut();
@@ -117,9 +116,6 @@ impl Allocator {
 
             gc.adult_start.set(Some(ptr));
             gc.runtime.total_bytes_allocated += element_size;
-            if !eph {
-                gc.runtime.total_bytes_allocated += element_size;
-            }
 
             ptr
         })
@@ -167,10 +163,7 @@ impl Collector {
 
         // Sweep both without promoting any values
         unsafe {
-            Self::sweep(
-                &gc.adult_start,
-                &mut gc.runtime.total_bytes_allocated,
-            );
+            Self::sweep(&gc.adult_start, &mut gc.runtime.total_bytes_allocated);
         }
     }
 

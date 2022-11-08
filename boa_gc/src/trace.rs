@@ -84,10 +84,6 @@ macro_rules! custom_trace {
             $body
         }
         #[inline]
-        unsafe fn is_marked_ephemeron(&self) -> bool {
-            false
-        }
-        #[inline]
         unsafe fn weak_trace(&self) {
             #[inline]
             unsafe fn mark<T: $crate::Trace + ?Sized>(it: &T) {

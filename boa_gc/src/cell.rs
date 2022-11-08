@@ -221,11 +221,6 @@ unsafe impl<T: Trace + ?Sized> Trace for GcCell<T> {
     }
 
     #[inline]
-    unsafe fn is_marked_ephemeron(&self) -> bool {
-        false
-    }
-
-    #[inline]
     unsafe fn weak_trace(&self) {
         match self.flags.get().borrowed() {
             BorrowState::Writing => (),

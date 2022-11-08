@@ -94,11 +94,6 @@ unsafe impl<T: Trace + ?Sized> Trace for Gc<T> {
     }
 
     #[inline]
-    unsafe fn is_marked_ephemeron(&self) -> bool {
-        false
-    }
-
-    #[inline]
     unsafe fn weak_trace(&self) {
         self.inner().weak_trace_inner();
     }

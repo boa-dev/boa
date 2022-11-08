@@ -24,9 +24,6 @@ fn derive_trace(mut s: Structure<'_>) -> proc_macro2::TokenStream {
                 }
                 match *self { #trace_body }
             }
-            #[inline] unsafe fn is_marked_ephemeron(&self) -> bool {
-                false
-            }
             #[inline] unsafe fn weak_trace(&self) {
                 #[allow(dead_code, unreachable_code)]
                 #[inline]
