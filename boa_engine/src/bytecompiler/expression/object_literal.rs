@@ -1,6 +1,13 @@
-use boa_ast::{expression::literal::ObjectLiteral, property::{PropertyDefinition, PropertyName, MethodDefinition}};
+use boa_ast::{
+    expression::literal::ObjectLiteral,
+    property::{MethodDefinition, PropertyDefinition, PropertyName},
+};
 
-use crate::{bytecompiler::{ByteCompiler, NodeKind}, vm::Opcode, JsResult, JsNativeError};
+use crate::{
+    bytecompiler::{ByteCompiler, NodeKind},
+    vm::Opcode,
+    JsNativeError, JsResult,
+};
 
 pub(crate) fn compile_object_literal<'b>(
     byte_compiler: &mut ByteCompiler<'b>,
