@@ -3,6 +3,7 @@
 mod jsarray;
 mod jsarraybuffer;
 mod jsdataview;
+mod jsdate;
 mod jsfunction;
 mod jsgenerator;
 mod jsmap;
@@ -16,6 +17,7 @@ mod jstypedarray;
 pub use jsarray::*;
 pub use jsarraybuffer::*;
 pub use jsdataview::*;
+pub use jsdate::*;
 pub use jsfunction::*;
 pub use jsgenerator::*;
 pub use jsmap::*;
