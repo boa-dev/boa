@@ -1,7 +1,7 @@
 //! This module contains the bytecode compiler.
 
-mod function;
 mod expression;
+mod function;
 
 use crate::{
     environments::{BindingLocator, CompileTimeEnvironment},
@@ -12,12 +12,8 @@ use boa_ast::{
     declaration::{Binding, LexicalDeclaration, VarDeclaration},
     expression::{
         access::{PropertyAccess, PropertyAccessField},
-        literal::{self, TemplateElement},
-        operator::{
-            assign::{AssignOp, AssignTarget},
-            binary::{ArithmeticOp, BinaryOp, BitwiseOp, LogicalOp, RelationalOp},
-            unary::UnaryOp,
-        },
+        literal::TemplateElement,
+        operator::assign::AssignTarget,
         Call, Identifier, New, Optional, OptionalOperationKind,
     },
     function::{
@@ -26,7 +22,7 @@ use boa_ast::{
     },
     operations::bound_names,
     pattern::{ArrayPatternElement, ObjectPatternElement, Pattern},
-    property::{MethodDefinition, PropertyDefinition, PropertyName},
+    property::{MethodDefinition, PropertyName},
     statement::{
         iteration::{ForLoopInitializer, IterableLoopInitializer},
         Block, DoWhileLoop, ForInLoop, ForLoop, ForOfLoop, LabelledItem, WhileLoop,
@@ -926,155 +922,7 @@ impl<'b> ByteCompiler<'b> {
             Expression::Binary(binary) => expression::compile_binary(self, binary, use_expr)?,
             Expression::Assign(assign) => expression::compile_assign(self, assign, use_expr)?,
             Expression::ObjectLiteral(object) => {
-                self.emit_opcode(Opcode::PushEmptyObject);
-                for property in object.properties() {
-                    self.emit_opcode(Opcode::Dup);
-                    match property {
-                        PropertyDefinition::IdentifierReference(ident) => {
-                            let index = self.get_or_insert_name(*ident);
-                            self.access_get(Access::Variable { name: *ident }, true)?;
-                            self.emit(Opcode::DefineOwnPropertyByName, &[index]);
-                        }
-                        PropertyDefinition::Property(name, expr) => match name {
-                            PropertyName::Literal(name) => {
-                                self.compile_expr(expr, true)?;
-                                let index = self.get_or_insert_name((*name).into());
-                                if *name == Sym::__PROTO__ && !self.json_parse {
-                                    self.emit_opcode(Opcode::SetPrototype);
-                                } else {
-                                    self.emit(Opcode::DefineOwnPropertyByName, &[index]);
-                                }
-                            }
-                            PropertyName::Computed(name_node) => {
-                                self.compile_expr(name_node, true)?;
-                                self.emit_opcode(Opcode::ToPropertyKey);
-                                if expr.is_function_definition() {
-                                    self.emit_opcode(Opcode::Dup);
-                                    self.compile_expr(expr, true)?;
-                                    self.emit_opcode(Opcode::SetFunctionName);
-                                    self.emit_u8(0);
-                                } else {
-                                    self.compile_expr(expr, true)?;
-                                }
-                                self.emit_opcode(Opcode::DefineOwnPropertyByValue);
-                            }
-                        },
-                        PropertyDefinition::MethodDefinition(name, kind) => match kind {
-                            MethodDefinition::Get(expr) => match name {
-                                PropertyName::Literal(name) => {
-                                    self.function(expr.into(), NodeKind::Expression, true)?;
-                                    let index = self.get_or_insert_name((*name).into());
-                                    self.emit(Opcode::SetPropertyGetterByName, &[index]);
-                                }
-                                PropertyName::Computed(name_node) => {
-                                    self.compile_expr(name_node, true)?;
-                                    self.emit_opcode(Opcode::ToPropertyKey);
-                                    self.emit_opcode(Opcode::Dup);
-                                    self.function(expr.into(), NodeKind::Expression, true)?;
-                                    self.emit_opcode(Opcode::SetFunctionName);
-                                    self.emit_u8(1);
-                                    self.emit_opcode(Opcode::SetPropertyGetterByValue);
-                                }
-                            },
-                            MethodDefinition::Set(expr) => match name {
-                                PropertyName::Literal(name) => {
-                                    self.function(expr.into(), NodeKind::Expression, true)?;
-                                    let index = self.get_or_insert_name((*name).into());
-                                    self.emit(Opcode::SetPropertySetterByName, &[index]);
-                                }
-                                PropertyName::Computed(name_node) => {
-                                    self.compile_expr(name_node, true)?;
-                                    self.emit_opcode(Opcode::ToPropertyKey);
-                                    self.emit_opcode(Opcode::Dup);
-                                    self.function(expr.into(), NodeKind::Expression, true)?;
-                                    self.emit_opcode(Opcode::SetFunctionName);
-                                    self.emit_u8(2);
-                                    self.emit_opcode(Opcode::SetPropertySetterByValue);
-                                }
-                            },
-                            MethodDefinition::Ordinary(expr) => match name {
-                                PropertyName::Literal(name) => {
-                                    self.function(expr.into(), NodeKind::Expression, true)?;
-                                    let index = self.get_or_insert_name((*name).into());
-                                    self.emit(Opcode::DefineOwnPropertyByName, &[index]);
-                                }
-                                PropertyName::Computed(name_node) => {
-                                    self.compile_expr(name_node, true)?;
-                                    self.emit_opcode(Opcode::ToPropertyKey);
-                                    self.emit_opcode(Opcode::Dup);
-                                    self.function(expr.into(), NodeKind::Expression, true)?;
-                                    self.emit_opcode(Opcode::SetFunctionName);
-                                    self.emit_u8(0);
-                                    self.emit_opcode(Opcode::DefineOwnPropertyByValue);
-                                }
-                            },
-                            MethodDefinition::Async(expr) => match name {
-                                PropertyName::Literal(name) => {
-                                    self.function(expr.into(), NodeKind::Expression, true)?;
-                                    let index = self.get_or_insert_name((*name).into());
-                                    self.emit(Opcode::DefineOwnPropertyByName, &[index]);
-                                }
-                                PropertyName::Computed(name_node) => {
-                                    self.compile_expr(name_node, true)?;
-                                    self.emit_opcode(Opcode::ToPropertyKey);
-                                    self.emit_opcode(Opcode::Dup);
-                                    self.function(expr.into(), NodeKind::Expression, true)?;
-                                    self.emit_opcode(Opcode::SetFunctionName);
-                                    self.emit_u8(0);
-                                    self.emit_opcode(Opcode::DefineOwnPropertyByValue);
-                                }
-                            },
-                            MethodDefinition::Generator(expr) => match name {
-                                PropertyName::Literal(name) => {
-                                    self.function(expr.into(), NodeKind::Expression, true)?;
-                                    let index = self.get_or_insert_name((*name).into());
-                                    self.emit(Opcode::DefineOwnPropertyByName, &[index]);
-                                }
-                                PropertyName::Computed(name_node) => {
-                                    self.compile_expr(name_node, true)?;
-                                    self.emit_opcode(Opcode::ToPropertyKey);
-                                    self.emit_opcode(Opcode::Dup);
-                                    self.function(expr.into(), NodeKind::Expression, true)?;
-                                    self.emit_opcode(Opcode::SetFunctionName);
-                                    self.emit_u8(0);
-                                    self.emit_opcode(Opcode::DefineOwnPropertyByValue);
-                                }
-                            },
-                            MethodDefinition::AsyncGenerator(expr) => match name {
-                                PropertyName::Literal(name) => {
-                                    self.function(expr.into(), NodeKind::Expression, true)?;
-                                    let index = self.get_or_insert_name((*name).into());
-                                    self.emit(Opcode::DefineOwnPropertyByName, &[index]);
-                                }
-                                PropertyName::Computed(name_node) => {
-                                    self.compile_expr(name_node, true)?;
-                                    self.emit_opcode(Opcode::ToPropertyKey);
-                                    self.emit_opcode(Opcode::Dup);
-                                    self.function(expr.into(), NodeKind::Expression, true)?;
-                                    self.emit_opcode(Opcode::SetFunctionName);
-                                    self.emit_u8(0);
-                                    self.emit_opcode(Opcode::DefineOwnPropertyByValue);
-                                }
-                            },
-                        },
-                        PropertyDefinition::SpreadObject(expr) => {
-                            self.compile_expr(expr, true)?;
-                            self.emit_opcode(Opcode::Swap);
-                            self.emit(Opcode::CopyDataProperties, &[0, 0]);
-                            self.emit_opcode(Opcode::Pop);
-                        }
-                        // TODO: Promote to early errors
-                        PropertyDefinition::CoverInitializedName(_, _) => {
-                            return Err(JsNativeError::syntax()
-                                .with_message("invalid assignment pattern in object literal")
-                                .into())
-                        }
-                    }
-                }
-
-                if !use_expr {
-                    self.emit(Opcode::Pop, &[]);
-                }
+                expression::compile_object_literal(self, object, use_expr)?
             }
             Expression::Identifier(name) => {
                 self.access_get(Access::Variable { name: *name }, use_expr)?;
