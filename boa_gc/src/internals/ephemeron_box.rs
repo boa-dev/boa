@@ -1,38 +1,43 @@
 //! This module will implement the internal types GcBox and Ephemeron
 use crate::trace::Trace;
 use crate::Finalize;
-use crate::{finalizer_safe, GcBox};
+use crate::{finalizer_safe, Gc, GcBox};
 use std::cell::Cell;
 use std::ptr::NonNull;
 
 /// Implementation of an Ephemeron structure
-pub struct Ephemeron<K: Trace + ?Sized + 'static, V: Trace + ?Sized + 'static> {
+pub struct EphemeronBox<K: Trace + ?Sized + 'static, V: Trace + ?Sized + 'static> {
     key: Cell<Option<NonNull<GcBox<K>>>>,
     value: V,
 }
 
-impl<K: Trace + ?Sized> Ephemeron<K, ()> {
-    pub unsafe fn new(value: NonNull<GcBox<K>>) -> Self {
-        let ptr = NonNull::new_unchecked(value.as_ptr());
-        Ephemeron {
+impl<K: Trace + ?Sized> EphemeronBox<K, ()> {
+    // This could panic if called in while dropping / !finalizer_safe()
+    pub unsafe fn new(value: &Gc<K>) -> Self {
+        let ptr = NonNull::new_unchecked(value.clone().inner_ptr());
+        // Clone increments root, so we need to decrement it
+        (*ptr.as_ptr()).unroot_inner();
+        EphemeronBox {
             key: Cell::new(Some(ptr)),
             value: (),
         }
     }
 }
 
-impl<K: Trace, V: Trace> Ephemeron<K, V> {
-    pub unsafe fn new_pair(key: NonNull<GcBox<K>>, value: V) -> Self {
-        let ptr = NonNull::new_unchecked(key.as_ptr());
-
-        Ephemeron {
+impl<K: Trace + ?Sized, V: Trace> EphemeronBox<K, V> {
+    // This could panic if called while dropping / !finalizer_safe()
+    pub unsafe fn new_pair(key: &Gc<K>, value: V) -> Self {
+        let ptr = NonNull::new_unchecked(key.clone().inner_ptr());
+        // Clone increments root, so we need to decrement it
+        (*ptr.as_ptr()).unroot_inner();
+        EphemeronBox {
             key: Cell::new(Some(ptr)),
             value,
         }
     }
 }
 
-impl<K: Trace + ?Sized, V: Trace + ?Sized> Ephemeron<K, V> {
+impl<K: Trace + ?Sized, V: Trace + ?Sized> EphemeronBox<K, V> {
     #[inline]
     pub(crate) fn is_marked(&self) -> bool {
         if let Some(key) = self.inner_key() {
@@ -86,14 +91,14 @@ impl<K: Trace + ?Sized, V: Trace + ?Sized> Ephemeron<K, V> {
     }
 }
 
-impl<K: Trace + ?Sized, V: Trace + ?Sized> Finalize for Ephemeron<K, V> {
+impl<K: Trace + ?Sized, V: Trace + ?Sized> Finalize for EphemeronBox<K, V> {
     #[inline]
     fn finalize(&self) {
         self.key.set(None)
     }
 }
 
-unsafe impl<K: Trace + ?Sized, V: Trace + ?Sized> Trace for Ephemeron<K, V> {
+unsafe impl<K: Trace + ?Sized, V: Trace + ?Sized> Trace for EphemeronBox<K, V> {
     #[inline]
     unsafe fn trace(&self) {
         /* An ephemeron is never traced with Phase One Trace */

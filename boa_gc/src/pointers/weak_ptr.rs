@@ -1,21 +1,22 @@
 use crate::{
     finalizer_safe,
-    internals::Ephemeron,
+    internals::EphemeronBox,
     trace::{Finalize, Trace},
-    GcBox, EPHEMERON_QUEUE,
+    Gc, GcAlloc, GcBox, EPHEMERON_QUEUE,
 };
 use std::cell::Cell;
 use std::ptr::NonNull;
 
 pub struct WeakGc<T: Trace + ?Sized + 'static> {
-    inner_ptr: Cell<NonNull<GcBox<Ephemeron<T, ()>>>>,
+    inner_ptr: Cell<NonNull<GcBox<EphemeronBox<T, ()>>>>,
 }
 
 impl<T: Trace> WeakGc<T> {
-    pub fn new(value: NonNull<GcBox<Ephemeron<T, ()>>>) -> Self {
+    pub fn new(value: &Gc<T>) -> Self {
+        let weak_box = GcAlloc::new_weak_box(value);
         unsafe {
             Self {
-                inner_ptr: Cell::new(NonNull::new_unchecked(value.as_ptr())),
+                inner_ptr: Cell::new(NonNull::new_unchecked(weak_box.as_ptr())),
             }
         }
     }
@@ -23,14 +24,14 @@ impl<T: Trace> WeakGc<T> {
 
 impl<T: Trace + ?Sized> WeakGc<T> {
     #[inline]
-    fn inner_ptr(&self) -> *mut GcBox<Ephemeron<T, ()>> {
+    fn inner_ptr(&self) -> *mut GcBox<EphemeronBox<T, ()>> {
         assert!(finalizer_safe());
 
         self.inner_ptr.get().as_ptr()
     }
 
     #[inline]
-    fn inner(&self) -> &GcBox<Ephemeron<T, ()>> {
+    fn inner(&self) -> &GcBox<EphemeronBox<T, ()>> {
         unsafe { &*self.inner_ptr() }
     }
 

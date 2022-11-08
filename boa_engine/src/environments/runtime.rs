@@ -3,7 +3,7 @@ use std::cell::Cell;
 use crate::{
     environments::CompileTimeEnvironment, error::JsNativeError, object::JsObject, Context, JsValue,
 };
-use boa_gc::{BoaAlloc, Cell as GcCell, Finalize, Gc, Trace};
+use boa_gc::{Cell as GcCell, Finalize, Gc, Trace};
 
 use boa_ast::expression::Identifier;
 use rustc_hash::FxHashSet;
@@ -232,7 +232,7 @@ impl DeclarativeEnvironmentStack {
     #[inline]
     pub(crate) fn new(global_compile_environment: Gc<GcCell<CompileTimeEnvironment>>) -> Self {
         Self {
-            stack: vec![BoaAlloc::new(DeclarativeEnvironment {
+            stack: vec![Gc::new(DeclarativeEnvironment {
                 bindings: GcCell::new(Vec::new()),
                 compile: global_compile_environment,
                 poisoned: Cell::new(false),
@@ -368,7 +368,7 @@ impl DeclarativeEnvironmentStack {
 
         let index = self.stack.len();
 
-        self.stack.push(BoaAlloc::new(DeclarativeEnvironment {
+        self.stack.push(Gc::new(DeclarativeEnvironment {
             bindings: GcCell::new(vec![None; num_bindings]),
             compile: compile_environment,
             poisoned: Cell::new(poisoned),
@@ -414,7 +414,7 @@ impl DeclarativeEnvironmentStack {
             JsValue::Null
         };
 
-        self.stack.push(BoaAlloc::new(DeclarativeEnvironment {
+        self.stack.push(Gc::new(DeclarativeEnvironment {
             bindings: GcCell::new(vec![None; num_bindings]),
             compile: compile_environment,
             poisoned: Cell::new(poisoned),
@@ -445,7 +445,7 @@ impl DeclarativeEnvironmentStack {
         let poisoned = outer.poisoned.get();
         let slots = outer.slots.clone();
 
-        self.stack.push(BoaAlloc::new(DeclarativeEnvironment {
+        self.stack.push(Gc::new(DeclarativeEnvironment {
             bindings: GcCell::new(vec![None; num_bindings]),
             compile: compile_environment,
             poisoned: Cell::new(poisoned),

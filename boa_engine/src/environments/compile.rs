@@ -2,7 +2,7 @@ use crate::{
     environments::runtime::BindingLocator, property::PropertyDescriptor, Context, JsString, JsValue,
 };
 use boa_ast::expression::Identifier;
-use boa_gc::{BoaAlloc, Cell, Finalize, Gc, Trace};
+use boa_gc::{Cell, Finalize, Gc, Trace};
 
 use rustc_hash::FxHashMap;
 
@@ -223,7 +223,7 @@ impl Context {
         let environment_index = self.realm.compile_env.borrow().environment_index + 1;
         let outer = self.realm.compile_env.clone();
 
-        self.realm.compile_env = BoaAlloc::new_cell(CompileTimeEnvironment {
+        self.realm.compile_env = Gc::new_cell(CompileTimeEnvironment {
             outer: Some(outer),
             environment_index,
             bindings: FxHashMap::default(),

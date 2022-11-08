@@ -3,13 +3,13 @@ use std::cell::Cell;
 use std::ptr::{self, NonNull};
 
 // Age and Weak Flags
-const MARK_MASK: usize = 1 << (usize::BITS - 1);
-const ROOTS_MASK: usize = !MARK_MASK;
+const MARK_MASK: usize = 1 << (usize::BITS - 2);
+const WEAK_MASK: usize = 1 << (usize::BITS - 1);
+const ROOTS_MASK: usize = !(MARK_MASK | WEAK_MASK);
 const ROOTS_MAX: usize = ROOTS_MASK;
 
 pub(crate) struct GcBoxHeader {
     roots: Cell<usize>,
-    weak: Cell<bool>,
     pub(crate) next: Cell<Option<NonNull<GcBox<dyn Trace>>>>,
 }
 
@@ -19,7 +19,6 @@ impl GcBoxHeader {
         // TODO: implement a way for a cell to start out weak with WEAK_MASK
         GcBoxHeader {
             roots: Cell::new(1),
-            weak: Cell::new(false),
             next: Cell::new(None),
         }
     }
@@ -29,7 +28,6 @@ impl GcBoxHeader {
         // Set weak_flag
         GcBoxHeader {
             roots: Cell::new(0),
-            weak: Cell::new(true),
             next: Cell::new(None),
         }
     }
@@ -81,7 +79,7 @@ impl GcBoxHeader {
 
     #[inline]
     pub fn is_ephemeron(&self) -> bool {
-        self.weak.get()
+        self.roots.get() & WEAK_MASK != 0
     }
 }
 

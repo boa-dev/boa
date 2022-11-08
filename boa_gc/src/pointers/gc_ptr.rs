@@ -9,7 +9,7 @@ use std::rc::Rc;
 
 use crate::gc_box::GcBox;
 use crate::trace::{Finalize, Trace};
-use crate::{finalizer_safe, BoaAlloc};
+use crate::{finalizer_safe, Cell as GcCell, GcAlloc};
 
 pub(crate) unsafe fn set_data_ptr<T: ?Sized, U>(mut ptr: *mut T, data: *mut U) -> *mut T {
     ptr::write(&mut ptr as *mut _ as *mut *mut u8, data as *mut u8);
@@ -24,10 +24,27 @@ pub struct Gc<T: Trace + ?Sized + 'static> {
 
 impl<T: Trace> Gc<T> {
     /// Constructs a new `Gc<T>` with the given value.
-    pub fn new(value: NonNull<GcBox<T>>) -> Self {
+    pub fn new(value: T) -> Self {
         unsafe {
+            let pointer = GcAlloc::new(value);
+
             let gc = Gc {
-                inner_ptr: Cell::new(NonNull::new_unchecked(value.as_ptr())),
+                inner_ptr: Cell::new(NonNull::new_unchecked(pointer.as_ptr())),
+                marker: PhantomData,
+            };
+            gc.set_root();
+            gc
+        }
+    }
+
+    pub fn new_cell(value: T) -> Gc<GcCell<T>> {
+        unsafe {
+            let new_cell = GcCell::new(value);
+
+            let pointer = GcAlloc::new(new_cell);
+
+            let gc = Gc {
+                inner_ptr: Cell::new(NonNull::new_unchecked(pointer.as_ptr())),
                 marker: PhantomData,
             };
             gc.set_root();
@@ -72,7 +89,7 @@ impl<T: Trace + ?Sized> Gc<T> {
     }
 
     #[inline]
-    fn inner_ptr(&self) -> *mut GcBox<T> {
+    pub(crate) fn inner_ptr(&self) -> *mut GcBox<T> {
         assert!(finalizer_safe());
         unsafe { clear_root_bit(self.inner_ptr.get()).as_ptr() }
     }
@@ -168,7 +185,7 @@ impl<T: Trace + ?Sized> Drop for Gc<T> {
 impl<T: Trace + Default> Default for Gc<T> {
     #[inline]
     fn default() -> Self {
-        BoaAlloc::new(Default::default())
+        Self::new(Default::default())
     }
 }
 

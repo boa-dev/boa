@@ -30,7 +30,7 @@ use boa_ast::{
     },
     Declaration, Expression, Statement, StatementList, StatementListItem,
 };
-use boa_gc::{BoaAlloc, Gc};
+use boa_gc::Gc;
 use boa_interner::{Interner, Sym};
 use rustc_hash::FxHashMap;
 use std::mem::size_of;
@@ -3310,7 +3310,7 @@ impl<'b> ByteCompiler<'b> {
         compiler.emit_opcode(Opcode::PushUndefined);
         compiler.emit_opcode(Opcode::Return);
 
-        let code = BoaAlloc::new(compiler.finish());
+        let code = Gc::new(compiler.finish());
         let index = self.code_block.functions.len() as u32;
         self.code_block.functions.push(code);
         self.emit(Opcode::GetFunction, &[index]);
@@ -3481,7 +3481,7 @@ impl<'b> ByteCompiler<'b> {
                     field_compiler.code_block.num_bindings = num_bindings;
                     field_compiler.emit_opcode(Opcode::Return);
 
-                    let code = BoaAlloc::new(field_compiler.finish());
+                    let code = Gc::new(field_compiler.finish());
                     let index = self.code_block.functions.len() as u32;
                     self.code_block.functions.push(code);
                     self.emit(Opcode::GetFunction, &[index]);
@@ -3512,7 +3512,7 @@ impl<'b> ByteCompiler<'b> {
                     field_compiler.code_block.num_bindings = num_bindings;
                     field_compiler.emit_opcode(Opcode::Return);
 
-                    let code = BoaAlloc::new(field_compiler.finish());
+                    let code = Gc::new(field_compiler.finish());
                     let index = self.code_block.functions.len() as u32;
                     self.code_block.functions.push(code);
                     self.emit(Opcode::GetFunction, &[index]);
@@ -3563,7 +3563,7 @@ impl<'b> ByteCompiler<'b> {
                     compiler.push_compile_environment(compile_environment);
                     compiler.code_block.num_bindings = num_bindings;
 
-                    let code = BoaAlloc::new(compiler.finish());
+                    let code = Gc::new(compiler.finish());
                     let index = self.code_block.functions.len() as u32;
                     self.code_block.functions.push(code);
                     self.emit(Opcode::GetFunction, &[index]);

@@ -1,6 +1,6 @@
 pub(crate) mod borrow_flag;
 pub mod cell;
-pub mod ephemeron;
+pub mod ephemeron_box;
 
 pub use cell::*;
-pub use ephemeron::Ephemeron;
+pub use ephemeron_box::EphemeronBox;

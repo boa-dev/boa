@@ -25,8 +25,8 @@ pub use boa_gc_macros::{Finalize, Trace};
 
 pub use crate::trace::{Finalize, Trace};
 pub(crate) use gc_box::GcBox;
-pub use internals::{Ephemeron, GcCell as Cell, GcCellRef as Ref, GcCellRefMut as RefMut};
-pub use pointers::{Gc, WeakGc, WeakPair};
+pub use internals::{EphemeronBox, GcCell as Cell, GcCellRef as Ref, GcCellRefMut as RefMut};
+pub use pointers::{Ephemeron, Gc, WeakGc};
 
 pub type GcPointer = NonNull<GcBox<dyn Trace>>;
 
@@ -59,7 +59,6 @@ impl Default for GcConfig {
 struct GcRuntimeData {
     collections: usize,
     total_bytes_allocated: usize,
-    adult_bytes: usize,
 }
 
 struct BoaGc {
@@ -100,10 +99,10 @@ pub fn finalizer_safe() -> bool {
 /// The GcAllocater handles initialization and allocation of garbage collected values.
 ///
 /// The allocator can trigger a garbage collection
-pub struct BoaAlloc;
+pub(crate) struct GcAlloc;
 
-impl BoaAlloc {
-    pub fn new<T: Trace>(value: T) -> Gc<T> {
+impl GcAlloc {
+    pub fn new<T: Trace>(value: T) -> NonNull<GcBox<T>> {
         let _timer = Profiler::global().start_event("New Pointer", "BoaAlloc");
         BOA_GC.with(|st| {
             let mut gc = st.borrow_mut();
@@ -124,52 +123,23 @@ impl BoaAlloc {
                     .set(Some(NonNull::new_unchecked(element_pointer)));
 
                 gc.runtime.total_bytes_allocated += element_size;
-                gc.runtime.adult_bytes += element_size;
 
-                Gc::new(NonNull::new_unchecked(element_pointer))
+                NonNull::new_unchecked(element_pointer)
             }
         })
     }
 
-    pub fn new_cell<T: Trace>(value: T) -> Gc<Cell<T>> {
-        let _timer = Profiler::global().start_event("New Cell", "BoaAlloc");
-        BOA_GC.with(|st| {
-            let mut gc = st.borrow_mut();
-
-            // Manage state preps the internal state for allocation and
-            // triggers a collection if the state dictates it.
-            unsafe {
-                Self::manage_state(&mut gc);
-
-                let new_cell = Cell::new(value);
-
-                let gc_box = GcBox::new(new_cell);
-                let element_size = mem::size_of_val::<GcBox<Cell<T>>>(&gc_box);
-                let element_pointer = Box::into_raw(Box::from(gc_box));
-
-                let old_start = gc.adult_start.take();
-                (*element_pointer).set_header_pointer(old_start);
-                (*element_pointer).value().unroot();
-
-                gc.adult_start
-                    .set(Some(NonNull::new_unchecked(element_pointer)));
-
-                gc.runtime.adult_bytes += element_size;
-                gc.runtime.total_bytes_allocated += element_size;
-
-                Gc::new(NonNull::new_unchecked(element_pointer))
-            }
-        })
-    }
-
-    pub fn new_weak_pair<K: Trace, V: Trace>(key: NonNull<GcBox<K>>, value: V) -> WeakPair<K, V> {
+    pub fn new_ephemeron<K: Trace + ?Sized, V: Trace>(
+        key: &Gc<K>,
+        value: V,
+    ) -> NonNull<GcBox<EphemeronBox<K, V>>> {
         let _timer = Profiler::global().start_event("New Weak Pair", "BoaAlloc");
         BOA_GC.with(|internals| {
             let mut gc = internals.borrow_mut();
 
             unsafe {
                 Self::manage_state(&mut gc);
-                let ephem = Ephemeron::new_pair(key, value);
+                let ephem = EphemeronBox::new_pair(key, value);
                 let gc_box = GcBox::new_weak(ephem);
 
                 let element_size = mem::size_of_val::<GcBox<_>>(&gc_box);
@@ -184,12 +154,12 @@ impl BoaAlloc {
 
                 gc.runtime.total_bytes_allocated += element_size;
 
-                WeakPair::new(NonNull::new_unchecked(element_pointer))
+                NonNull::new_unchecked(element_pointer)
             }
         })
     }
 
-    pub fn new_weak_ref<T: Trace>(value: NonNull<GcBox<T>>) -> WeakGc<T> {
+    pub fn new_weak_box<T: Trace>(value: &Gc<T>) -> NonNull<GcBox<EphemeronBox<T, ()>>> {
         let _timer = Profiler::global().start_event("New Weak Pointer", "BoaAlloc");
         BOA_GC.with(|state| {
             let mut gc = state.borrow_mut();
@@ -197,7 +167,7 @@ impl BoaAlloc {
             unsafe {
                 Self::manage_state(&mut gc);
 
-                let ephemeron = Ephemeron::new(value);
+                let ephemeron = EphemeronBox::new(value);
                 let gc_box = GcBox::new_weak(ephemeron);
 
                 let element_size = mem::size_of_val::<GcBox<_>>(&gc_box);
@@ -212,20 +182,20 @@ impl BoaAlloc {
 
                 gc.runtime.total_bytes_allocated += element_size;
 
-                WeakGc::new(NonNull::new_unchecked(element_pointer))
+                NonNull::new_unchecked(element_pointer)
             }
         })
     }
 
     unsafe fn manage_state(gc: &mut BoaGc) {
-        if gc.runtime.adult_bytes > gc.config.adult_threshold {
+        if gc.runtime.total_bytes_allocated > gc.config.adult_threshold {
             Collector::run_full_collection(gc);
 
-            if gc.runtime.adult_bytes as f64
+            if gc.runtime.total_bytes_allocated as f64
                 > gc.config.adult_threshold as f64 * gc.config.growth_ratio
             {
                 gc.config.adult_threshold =
-                    (gc.runtime.adult_bytes as f64 / gc.config.growth_ratio) as usize
+                    (gc.runtime.total_bytes_allocated as f64 / gc.config.growth_ratio) as usize
             }
         }
     }
@@ -258,11 +228,7 @@ impl Collector {
         let _final_unreachable_adults = Self::mark_heap(&gc.adult_start);
 
         // Sweep both without promoting any values
-        Self::sweep(
-            &gc.adult_start,
-            &mut gc.runtime.adult_bytes,
-            &mut gc.runtime.total_bytes_allocated,
-        );
+        Self::sweep(&gc.adult_start, &mut gc.runtime.total_bytes_allocated);
     }
 
     pub(crate) unsafe fn mark_heap(
@@ -356,7 +322,6 @@ impl Collector {
 
     unsafe fn sweep(
         heap_start: &StdCell<Option<NonNull<GcBox<dyn Trace>>>>,
-        bytes_allocated: &mut usize,
         total_allocated: &mut usize,
     ) {
         let _timer = Profiler::global().start_event("Gc Sweeping", "gc");
@@ -371,7 +336,6 @@ impl Collector {
                 // Drops occur here
                 let unmarked_node = Box::from_raw(node.as_ptr());
                 let unallocated_bytes = mem::size_of_val::<GcBox<_>>(&*unmarked_node);
-                *bytes_allocated -= unallocated_bytes;
                 *total_allocated -= unallocated_bytes;
                 sweep_head.set(unmarked_node.header.next.take());
             }
@@ -406,7 +370,7 @@ pub fn force_collect() {
         let mut gc = current.borrow_mut();
 
         unsafe {
-            if gc.runtime.adult_bytes > 0 {
+            if gc.runtime.total_bytes_allocated > 0 {
                 Collector::run_full_collection(&mut *gc)
             }
         }
@@ -435,14 +399,14 @@ impl GcTester {
             let gc = current.borrow();
 
             assert!(gc.adult_start.get().is_none());
-            assert!(gc.runtime.adult_bytes == 0);
+            assert!(gc.runtime.total_bytes_allocated == 0);
         })
     }
 
-    pub fn assert_adult_bytes_allocated() {
+    pub fn assert_bytes_allocated() {
         BOA_GC.with(|current| {
             let gc = current.borrow();
-            assert!(gc.runtime.adult_bytes > 0);
+            assert!(gc.runtime.total_bytes_allocated > 0);
         })
     }
 }
