@@ -16,9 +16,11 @@ use super::Access;
 
 mod binary;
 mod assign;
+mod object_literal;
 
 pub(crate) use binary::compile_binary;
 pub(crate) use assign::compile_assign;
+pub(crate) use object_literal::compile_object_literal;
 
 pub(crate) fn compile_literal<'b>(
     byte_compiler: &mut ByteCompiler<'b>,
