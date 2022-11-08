@@ -470,7 +470,20 @@ impl Context {
     #[inline]
     pub fn compile(&mut self, statement_list: &StatementList) -> JsResult<Gc<CodeBlock>> {
         let _timer = Profiler::global().start_event("Compilation", "Main");
-        let mut compiler = ByteCompiler::new(Sym::MAIN, statement_list.strict(), self);
+        let mut compiler = ByteCompiler::new(Sym::MAIN, statement_list.strict(), false, self);
+        compiler.create_decls(statement_list, false);
+        compiler.compile_statement_list(statement_list, true, false)?;
+        Ok(Gc::new(compiler.finish()))
+    }
+
+    /// Compile the AST into a `CodeBlock` ready to be executed by the VM in a `JSON.parse` context.
+    #[inline]
+    pub fn compile_json_parse(
+        &mut self,
+        statement_list: &StatementList,
+    ) -> JsResult<Gc<CodeBlock>> {
+        let _timer = Profiler::global().start_event("Compilation", "Main");
+        let mut compiler = ByteCompiler::new(Sym::MAIN, statement_list.strict(), true, self);
         compiler.create_decls(statement_list, false);
         compiler.compile_statement_list(statement_list, true, false)?;
         Ok(Gc::new(compiler.finish()))
@@ -484,7 +497,7 @@ impl Context {
         strict: bool,
     ) -> JsResult<Gc<CodeBlock>> {
         let _timer = Profiler::global().start_event("Compilation", "Main");
-        let mut compiler = ByteCompiler::new(Sym::MAIN, statement_list.strict(), self);
+        let mut compiler = ByteCompiler::new(Sym::MAIN, statement_list.strict(), false, self);
         compiler.compile_statement_list_with_new_declarative(statement_list, true, strict)?;
         Ok(Gc::new(compiler.finish()))
     }

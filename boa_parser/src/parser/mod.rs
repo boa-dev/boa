@@ -139,6 +139,15 @@ impl<R> Parser<R> {
         self.cursor.set_strict_mode(true);
     }
 
+    /// Set the parser strict mode to true.
+    #[inline]
+    pub fn set_json_parse(&mut self)
+    where
+        R: Read,
+    {
+        self.cursor.set_json_parse(true);
+    }
+
     /// Parse the full input as a [ECMAScript Script][spec] into the boa AST representation.
     /// The resulting `StatementList` can be compiled into boa bytecode and executed in the boa vm.
     ///

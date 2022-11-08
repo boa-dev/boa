@@ -284,9 +284,8 @@ fn check_object_short_function_set() {
 fn check_object_shorthand_property_names() {
     let interner = &mut Interner::default();
 
-    let object_properties = vec![PropertyDefinition::Property(
+    let object_properties = vec![PropertyDefinition::IdentifierReference(
         interner.get_or_intern_static("a", utf16!("a")).into(),
-        Identifier::new(interner.get_or_intern_static("a", utf16!("a"))).into(),
     )];
 
     check_parser(
@@ -322,13 +321,11 @@ fn check_object_shorthand_multiple_properties() {
     let interner = &mut Interner::default();
 
     let object_properties = vec![
-        PropertyDefinition::Property(
+        PropertyDefinition::IdentifierReference(
             interner.get_or_intern_static("a", utf16!("a")).into(),
-            Identifier::new(interner.get_or_intern_static("a", utf16!("a"))).into(),
         ),
-        PropertyDefinition::Property(
+        PropertyDefinition::IdentifierReference(
             interner.get_or_intern_static("b", utf16!("b")).into(),
-            Identifier::new(interner.get_or_intern_static("b", utf16!("b"))).into(),
         ),
     ];
 
