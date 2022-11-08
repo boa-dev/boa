@@ -952,9 +952,7 @@ impl String {
 
         // 8. Let position be ! StringIndexOf(string, searchString, 0).
         // 9. If position is -1, return string.
-        let position = if let Some(p) = this_str.index_of(&search_str, 0) {
-            p
-        } else {
+        let Some(position) = this_str.index_of(&search_str, 0) else {
             return Ok(this_str.into());
         };
 

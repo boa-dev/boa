@@ -1,6 +1,9 @@
-use crate::try_break;
-use crate::visitor::{VisitWith, Visitor, VisitorMut};
-use crate::{expression::Expression, statement::Statement, ContainsSymbol};
+use crate::{
+    expression::Expression,
+    statement::Statement,
+    try_break,
+    visitor::{VisitWith, Visitor, VisitorMut},
+};
 use boa_interner::{Interner, ToIndentedString, ToInternedString};
 use core::ops::ControlFlow;
 
@@ -16,6 +19,7 @@ use core::ops::ControlFlow;
 /// [spec]: https://tc39.es/ecma262/#prod-grammar-notation-WhileStatement
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/while
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "fuzz", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct WhileLoop {
     condition: Expression,
@@ -45,16 +49,6 @@ impl WhileLoop {
     #[must_use]
     pub fn body(&self) -> &Statement {
         &self.body
-    }
-
-    #[inline]
-    pub(crate) fn contains_arguments(&self) -> bool {
-        self.condition.contains_arguments() || self.body.contains_arguments()
-    }
-
-    #[inline]
-    pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
-        self.condition.contains(symbol) || self.body.contains(symbol)
     }
 }
 

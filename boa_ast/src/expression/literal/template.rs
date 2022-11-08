@@ -9,7 +9,7 @@ use crate::{
     expression::Expression,
     try_break,
     visitor::{VisitWith, Visitor, VisitorMut},
-    ContainsSymbol, ToStringEscaped,
+    ToStringEscaped,
 };
 
 /// Template literals are string literals allowing embedded expressions.
@@ -21,6 +21,7 @@ use crate::{
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals
 /// [spec]: https://tc39.es/ecma262/#sec-template-literals
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "fuzz", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct TemplateLiteral {
     elements: Box<[TemplateElement]>,
@@ -40,6 +41,7 @@ impl From<TemplateLiteral> for Expression {
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-template-literals
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "fuzz", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 pub enum TemplateElement {
     /// A simple string.
@@ -60,22 +62,6 @@ impl TemplateLiteral {
     #[must_use]
     pub fn elements(&self) -> &[TemplateElement] {
         &self.elements
-    }
-
-    #[inline]
-    pub(crate) fn contains_arguments(&self) -> bool {
-        self.elements.iter().any(|e| match e {
-            TemplateElement::String(_) => false,
-            TemplateElement::Expr(expr) => expr.contains_arguments(),
-        })
-    }
-
-    #[inline]
-    pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
-        self.elements.iter().any(|e| match e {
-            TemplateElement::String(_) => false,
-            TemplateElement::Expr(expr) => expr.contains(symbol),
-        })
     }
 }
 

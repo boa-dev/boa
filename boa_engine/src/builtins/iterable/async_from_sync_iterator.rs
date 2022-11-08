@@ -233,10 +233,8 @@ impl AsyncFromSyncIterator {
         // 10. IfAbruptRejectPromise(result, promiseCapability).
         if_abrupt_reject_promise!(result, promise_capability, context);
 
-        // 11. If Type(result) is not Object, then
-        let result = if let Some(result) = result.as_object() {
-            result
-        } else {
+        let Some(result) = result.as_object() else {
+            // 11. If Type(result) is not Object, then
             // a. Perform ! Call(promiseCapability.[[Reject]], undefined, « a newly created TypeError object »).
             promise_capability
                 .reject()
@@ -333,10 +331,8 @@ impl AsyncFromSyncIterator {
         // 10. IfAbruptRejectPromise(result, promiseCapability).
         if_abrupt_reject_promise!(result, promise_capability, context);
 
-        // 11. If Type(result) is not Object, then
-        let result = if let Some(result) = result.as_object() {
-            result
-        } else {
+        let Some(result) = result.as_object() else {
+            // 11. If Type(result) is not Object, then
             // a. Perform ! Call(promiseCapability.[[Reject]], undefined, « a newly created TypeError object »).
             promise_capability
                 .reject()

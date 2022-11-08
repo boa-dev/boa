@@ -19,6 +19,7 @@ use crate::Statement;
 /// [spec]: https://tc39.es/ecma262/#prod-BreakStatement
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/break
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "fuzz", derive(arbitrary::Arbitrary))]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Break {
     label: Option<Sym>,
@@ -35,11 +36,6 @@ impl Break {
     #[must_use]
     pub fn label(&self) -> Option<Sym> {
         self.label
-    }
-
-    #[inline]
-    pub(crate) fn contains_arguments(self) -> bool {
-        matches!(self.label, Some(label) if label == Sym::ARGUMENTS)
     }
 }
 

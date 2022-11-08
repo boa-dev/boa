@@ -7,8 +7,8 @@ use core::ops::ControlFlow;
 
 use super::{
     expression::{literal::Literal, Identifier},
-    function::{AsyncFunction, AsyncGenerator, FormalParameterList, Function, Generator},
-    ContainsSymbol, Expression, StatementList,
+    function::{AsyncFunction, AsyncGenerator, Function, Generator},
+    Expression,
 };
 
 /// Describes the definition of a property within an object literal.
@@ -25,6 +25,7 @@ use super::{
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Glossary/property/JavaScript
 // TODO: Support all features: https://tc39.es/ecma262/#prod-PropertyDefinition
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "fuzz", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 pub enum PropertyDefinition {
     /// Puts a variable into an object.
@@ -77,43 +78,6 @@ pub enum PropertyDefinition {
     ///
     /// [spec]: https://tc39.es/ecma262/#prod-CoverInitializedName
     CoverInitializedName(Identifier, Expression),
-}
-
-impl PropertyDefinition {
-    #[inline]
-    pub(crate) fn contains_arguments(&self) -> bool {
-        match self {
-            PropertyDefinition::IdentifierReference(ident) => *ident == Sym::ARGUMENTS,
-            PropertyDefinition::Property(name, expr) => {
-                name.contains_arguments() || expr.contains_arguments()
-            }
-            // Skipping definition since functions are excluded from the search
-            PropertyDefinition::MethodDefinition(name, _) => name.contains_arguments(),
-            PropertyDefinition::SpreadObject(expr) => expr.contains_arguments(),
-            PropertyDefinition::CoverInitializedName(ident, expr) => {
-                *ident == Sym::ARGUMENTS || expr.contains_arguments()
-            }
-        }
-    }
-
-    #[inline]
-    pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
-        match self {
-            PropertyDefinition::IdentifierReference(_) => false,
-            PropertyDefinition::Property(name, expr) => {
-                name.contains(symbol) || expr.contains(symbol)
-            }
-            // Skipping definition since functions are excluded from the search
-            PropertyDefinition::MethodDefinition(_, _)
-                if symbol == ContainsSymbol::MethodDefinition =>
-            {
-                true
-            }
-            PropertyDefinition::MethodDefinition(name, _) => name.contains(symbol),
-            PropertyDefinition::SpreadObject(expr) => expr.contains(symbol),
-            PropertyDefinition::CoverInitializedName(_ident, expr) => expr.contains(symbol),
-        }
-    }
 }
 
 impl VisitWith for PropertyDefinition {
@@ -174,6 +138,7 @@ impl VisitWith for PropertyDefinition {
 /// [spec]: https://tc39.es/ecma262/#prod-MethodDefinition
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/Method_definitions
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "fuzz", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 pub enum MethodDefinition {
     /// The `get` syntax binds an object property to a function that will be called when that property is looked up.
@@ -248,34 +213,6 @@ pub enum MethodDefinition {
     Async(AsyncFunction),
 }
 
-impl MethodDefinition {
-    /// Gets the body of the method.
-    #[must_use]
-    pub fn body(&self) -> &StatementList {
-        match self {
-            MethodDefinition::Get(expr)
-            | MethodDefinition::Set(expr)
-            | MethodDefinition::Ordinary(expr) => expr.body(),
-            MethodDefinition::Generator(expr) => expr.body(),
-            MethodDefinition::AsyncGenerator(expr) => expr.body(),
-            MethodDefinition::Async(expr) => expr.body(),
-        }
-    }
-
-    /// Gets the parameters of the method.
-    #[must_use]
-    pub fn parameters(&self) -> &FormalParameterList {
-        match self {
-            MethodDefinition::Get(expr)
-            | MethodDefinition::Set(expr)
-            | MethodDefinition::Ordinary(expr) => expr.parameters(),
-            MethodDefinition::Generator(expr) => expr.parameters(),
-            MethodDefinition::AsyncGenerator(expr) => expr.parameters(),
-            MethodDefinition::Async(expr) => expr.parameters(),
-        }
-    }
-}
-
 impl VisitWith for MethodDefinition {
     fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
@@ -313,6 +250,7 @@ impl VisitWith for MethodDefinition {
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-PropertyName
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "fuzz", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 pub enum PropertyName {
     /// A `Literal` property name can be either an identifier, a string or a numeric literal.
@@ -360,22 +298,6 @@ impl PropertyName {
             PropertyName::Literal(sym)
             | PropertyName::Computed(Expression::Literal(Literal::String(sym))) => Some(*sym),
             PropertyName::Computed(_) => None,
-        }
-    }
-
-    #[inline]
-    pub(crate) fn contains_arguments(&self) -> bool {
-        match self {
-            PropertyName::Literal(_) => false,
-            PropertyName::Computed(expr) => expr.contains_arguments(),
-        }
-    }
-
-    #[inline]
-    pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
-        match self {
-            PropertyName::Literal(_) => false,
-            PropertyName::Computed(expr) => expr.contains(symbol),
         }
     }
 }

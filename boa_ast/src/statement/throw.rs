@@ -1,5 +1,8 @@
-use crate::visitor::{VisitWith, Visitor, VisitorMut};
-use crate::{statement::Statement, ContainsSymbol, Expression};
+use crate::{
+    statement::Statement,
+    visitor::{VisitWith, Visitor, VisitorMut},
+    Expression,
+};
 use boa_interner::{Interner, ToInternedString};
 use core::ops::ControlFlow;
 
@@ -18,6 +21,7 @@ use core::ops::ControlFlow;
 /// [spec]: https://tc39.es/ecma262/#prod-ThrowStatement
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/throw
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "fuzz", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct Throw {
     target: Expression,
@@ -34,16 +38,6 @@ impl Throw {
     #[must_use]
     pub fn new(target: Expression) -> Self {
         Self { target }
-    }
-
-    #[inline]
-    pub(crate) fn contains_arguments(&self) -> bool {
-        self.target.contains_arguments()
-    }
-
-    #[inline]
-    pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
-        self.target.contains(symbol)
     }
 }
 

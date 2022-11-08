@@ -1,6 +1,8 @@
-use crate::try_break;
-use crate::visitor::{VisitWith, Visitor, VisitorMut};
-use crate::{expression::Expression, ContainsSymbol};
+use crate::{
+    expression::Expression,
+    try_break,
+    visitor::{VisitWith, Visitor, VisitorMut},
+};
 use boa_interner::{Interner, ToInternedString};
 use core::ops::ControlFlow;
 
@@ -19,6 +21,7 @@ use core::ops::ControlFlow;
 /// [spec]: https://tc39.es/ecma262/#prod-ConditionalExpression
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Grammar_and_types#Literals
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "fuzz", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct Conditional {
     condition: Box<Expression>,
@@ -57,20 +60,6 @@ impl Conditional {
             if_true: Box::new(if_true),
             if_false: Box::new(if_false),
         }
-    }
-
-    #[inline]
-    pub(crate) fn contains_arguments(&self) -> bool {
-        self.condition.contains_arguments()
-            || self.if_true.contains_arguments()
-            || self.if_false.contains_arguments()
-    }
-
-    #[inline]
-    pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
-        self.condition.contains(symbol)
-            || self.if_true.contains(symbol)
-            || self.if_false.contains(symbol)
     }
 }
 

@@ -665,6 +665,19 @@ Cannot both specify accessors and a value or writable attribute",
         Ok(())
     }
 
+    #[inline]
+    pub(crate) fn get_property(&self, key: &PropertyKey) -> Option<PropertyDescriptor> {
+        let mut obj = Some(self.clone());
+
+        while let Some(o) = obj {
+            if let Some(v) = o.borrow().properties.get(key) {
+                return Some(v);
+            }
+            obj = o.borrow().prototype().clone();
+        }
+        None
+    }
+
     /// Helper function for property insertion.
     #[inline]
     #[track_caller]
@@ -728,7 +741,7 @@ Cannot both specify accessors and a value or writable attribute",
 impl AsRef<boa_gc::Cell<Object>> for JsObject {
     #[inline]
     fn as_ref(&self) -> &boa_gc::Cell<Object> {
-        &*self.inner
+        &self.inner
     }
 }
 

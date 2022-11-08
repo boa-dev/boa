@@ -25,10 +25,10 @@ use crate::{
     property::{Attribute, PropertyDescriptorBuilder},
     string::{utf16, CodePoint},
     symbol::WellKnownSymbols,
-    syntax::lexer::regex::RegExpFlags,
     value::JsValue,
     Context, JsResult, JsString,
 };
+use boa_parser::lexer::regex::RegExpFlags;
 use boa_profiler::Profiler;
 use regress::Regex;
 use std::str::FromStr;
@@ -1045,13 +1045,10 @@ impl RegExp {
     ) -> JsResult<JsValue> {
         // 1. Let rx be the this value.
         // 2. If Type(rx) is not Object, throw a TypeError exception.
-        let rx = if let Some(rx) = this.as_object() {
-            rx
-        } else {
-            return Err(JsNativeError::typ()
+        let rx = this.as_object().ok_or_else(|| {
+            JsNativeError::typ()
                 .with_message("RegExp.prototype.match method called on incompatible value")
-                .into());
-        };
+        })?;
 
         // 3. Let S be ? ToString(string).
         let arg_str = args.get_or_undefined(0).to_string(context)?;
@@ -1235,15 +1232,11 @@ impl RegExp {
     ) -> JsResult<JsValue> {
         // 1. Let rx be the this value.
         // 2. If Type(rx) is not Object, throw a TypeError exception.
-        let rx = if let Some(rx) = this.as_object() {
-            rx
-        } else {
-            return Err(JsNativeError::typ()
-                .with_message(
-                    "RegExp.prototype[Symbol.replace] method called on incompatible value",
-                )
-                .into());
-        };
+        let rx = this.as_object().ok_or_else(|| {
+            JsNativeError::typ().with_message(
+                "RegExp.prototype[Symbol.replace] method called on incompatible value",
+            )
+        })?;
 
         // 3. Let S be ? ToString(string).
         let arg_str = args.get_or_undefined(0).to_string(context)?;
@@ -1457,13 +1450,10 @@ impl RegExp {
     ) -> JsResult<JsValue> {
         // 1. Let rx be the this value.
         // 2. If Type(rx) is not Object, throw a TypeError exception.
-        let rx = if let Some(rx) = this.as_object() {
-            rx
-        } else {
-            return Err(JsNativeError::typ()
+        let rx = this.as_object().ok_or_else(|| {
+            JsNativeError::typ()
                 .with_message("RegExp.prototype[Symbol.search] method called on incompatible value")
-                .into());
-        };
+        })?;
 
         // 3. Let S be ? ToString(string).
         let arg_str = args.get_or_undefined(0).to_string(context)?;
@@ -1515,13 +1505,10 @@ impl RegExp {
     ) -> JsResult<JsValue> {
         // 1. Let rx be the this value.
         // 2. If Type(rx) is not Object, throw a TypeError exception.
-        let rx = if let Some(rx) = this.as_object() {
-            rx
-        } else {
-            return Err(JsNativeError::typ()
+        let rx = this.as_object().ok_or_else(|| {
+            JsNativeError::typ()
                 .with_message("RegExp.prototype.split method called on incompatible value")
-                .into());
-        };
+        })?;
 
         // 3. Let S be ? ToString(string).
         let arg_str = args.get_or_undefined(0).to_string(context)?;

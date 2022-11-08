@@ -1,14 +1,15 @@
 use boa_interner::{Interner, Sym, ToInternedString};
 use core::ops::ControlFlow;
 
+use crate::join_nodes;
 use crate::try_break;
 use crate::visitor::{VisitWith, Visitor, VisitorMut};
-use crate::{join_nodes, ContainsSymbol};
 
 use super::{access::PropertyAccessField, Expression};
 
 /// List of valid operations in an [`Optional`] chain.
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "fuzz", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 pub enum OptionalOperationKind {
     /// A property access (`a?.prop`).
@@ -26,25 +27,6 @@ pub enum OptionalOperationKind {
         /// The args passed to the function call.
         args: Box<[Expression]>,
     },
-}
-
-impl OptionalOperationKind {
-    #[inline]
-    pub(crate) fn contains_arguments(&self) -> bool {
-        match self {
-            OptionalOperationKind::SimplePropertyAccess { field } => field.contains_arguments(),
-            OptionalOperationKind::PrivatePropertyAccess { .. } => false,
-            OptionalOperationKind::Call { args } => args.iter().any(Expression::contains_arguments),
-        }
-    }
-    #[inline]
-    pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
-        match self {
-            OptionalOperationKind::SimplePropertyAccess { field } => field.contains(symbol),
-            OptionalOperationKind::PrivatePropertyAccess { .. } => false,
-            OptionalOperationKind::Call { args } => args.iter().any(|e| e.contains(symbol)),
-        }
-    }
 }
 
 impl VisitWith for OptionalOperationKind {
@@ -92,6 +74,7 @@ impl VisitWith for OptionalOperationKind {
 /// In contrast, a non-shorted operation (`.prop`) will try to access the property, even if the target
 /// is `undefined` or `null`.
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "fuzz", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct OptionalOperation {
     kind: OptionalOperationKind,
@@ -118,16 +101,6 @@ impl OptionalOperation {
     #[must_use]
     pub fn shorted(&self) -> bool {
         self.shorted
-    }
-
-    #[inline]
-    pub(crate) fn contains_arguments(&self) -> bool {
-        self.kind.contains_arguments()
-    }
-
-    #[inline]
-    pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
-        self.kind.contains(symbol)
     }
 }
 
@@ -204,6 +177,7 @@ impl VisitWith for OptionalOperation {
 /// [spec]: https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#prod-OptionalExpression
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Optional_chaining
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "fuzz", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct Optional {
     target: Box<Expression>,
@@ -257,16 +231,6 @@ impl Optional {
     #[must_use]
     pub fn chain(&self) -> &[OptionalOperation] {
         self.chain.as_ref()
-    }
-
-    #[inline]
-    pub(crate) fn contains_arguments(&self) -> bool {
-        self.target.contains_arguments()
-            || self.chain.iter().any(OptionalOperation::contains_arguments)
-    }
-    #[inline]
-    pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
-        self.target.contains(symbol) || self.chain.iter().any(|item| item.contains(symbol))
     }
 }
 

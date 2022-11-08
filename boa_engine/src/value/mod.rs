@@ -992,13 +992,13 @@ impl JsValue {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-isarray
-    pub(crate) fn is_array(&self, context: &mut Context) -> JsResult<bool> {
+    pub(crate) fn is_array(&self) -> JsResult<bool> {
         // Note: The spec specifies this function for JsValue.
         // The main part of the function is implemented for JsObject.
 
         // 1. If Type(argument) is not Object, return false.
         if let Some(object) = self.as_object() {
-            object.is_array_abstract(context)
+            object.is_array_abstract()
         }
         // 4. Return false.
         else {

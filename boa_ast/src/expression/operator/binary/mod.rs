@@ -21,14 +21,17 @@ pub use op::*;
 
 use boa_interner::{Interner, ToInternedString};
 
-use crate::try_break;
-use crate::visitor::{VisitWith, Visitor, VisitorMut};
-use crate::{expression::Expression, ContainsSymbol};
+use crate::{
+    expression::Expression,
+    try_break,
+    visitor::{VisitWith, Visitor, VisitorMut},
+};
 
 /// Binary operations require two operands, one before the operator and one after the operator.
 ///
 /// See the [module level documentation][self] for more information.
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "fuzz", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct Binary {
     op: BinaryOp,
@@ -66,16 +69,6 @@ impl Binary {
     #[must_use]
     pub fn rhs(&self) -> &Expression {
         &self.rhs
-    }
-
-    #[inline]
-    pub(crate) fn contains_arguments(&self) -> bool {
-        self.lhs.contains_arguments() || self.rhs.contains_arguments()
-    }
-
-    #[inline]
-    pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
-        self.lhs.contains(symbol) || self.rhs.contains(symbol)
     }
 }
 

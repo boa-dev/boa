@@ -19,11 +19,13 @@ use super::FormalParameterList;
 /// [spec]: https://tc39.es/ecma262/#sec-async-generator-function-definitions
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/async_function*
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "fuzz", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct AsyncGenerator {
     name: Option<Identifier>,
     parameters: FormalParameterList,
     body: StatementList,
+    has_binding_identifier: bool,
 }
 
 impl AsyncGenerator {
@@ -34,11 +36,13 @@ impl AsyncGenerator {
         name: Option<Identifier>,
         parameters: FormalParameterList,
         body: StatementList,
+        has_binding_identifier: bool,
     ) -> Self {
         Self {
             name,
             parameters,
             body,
+            has_binding_identifier,
         }
     }
 
@@ -61,6 +65,13 @@ impl AsyncGenerator {
     #[must_use]
     pub fn body(&self) -> &StatementList {
         &self.body
+    }
+
+    /// Returns whether the function expression has a binding identifier.
+    #[inline]
+    #[must_use]
+    pub fn has_binding_identifier(&self) -> bool {
+        self.has_binding_identifier
     }
 }
 

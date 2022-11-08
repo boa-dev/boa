@@ -1,10 +1,9 @@
 use crate::{
     declaration::{Binding, Variable},
-    expression::{Expression, Identifier},
-    pattern::Pattern,
+    expression::Expression,
+    operations::bound_names,
     try_break,
     visitor::{VisitWith, Visitor, VisitorMut},
-    ContainsSymbol,
 };
 use bitflags::bitflags;
 use boa_interner::{Interner, Sym, ToInternedString};
@@ -41,7 +40,7 @@ impl FormalParameterList {
         let mut names = FxHashSet::default();
 
         for parameter in &parameters {
-            let parameter_names = parameter.names();
+            let parameter_names = bound_names(parameter);
 
             for name in parameter_names {
                 if name == Sym::ARGUMENTS {
@@ -124,46 +123,6 @@ impl FormalParameterList {
     pub fn has_arguments(&self) -> bool {
         self.flags.contains(FormalParameterListFlags::HAS_ARGUMENTS)
     }
-
-    /// Check if the any of the parameters contains a yield expression.
-    #[must_use]
-    pub fn contains_yield_expression(&self) -> bool {
-        for parameter in self.parameters.iter() {
-            if parameter
-                .variable()
-                .contains(ContainsSymbol::YieldExpression)
-            {
-                return true;
-            }
-        }
-        false
-    }
-
-    /// Check if the any of the parameters contains a await expression.
-    #[must_use]
-    pub fn contains_await_expression(&self) -> bool {
-        for parameter in self.parameters.iter() {
-            if parameter
-                .variable()
-                .contains(ContainsSymbol::AwaitExpression)
-            {
-                return true;
-            }
-        }
-        false
-    }
-
-    #[inline]
-    pub(crate) fn contains_arguments(&self) -> bool {
-        self.parameters
-            .iter()
-            .any(FormalParameter::contains_arguments)
-    }
-
-    #[inline]
-    pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
-        self.parameters.iter().any(|param| param.contains(symbol))
-    }
 }
 
 impl From<Vec<FormalParameter>> for FormalParameterList {
@@ -207,6 +166,14 @@ impl VisitWith for FormalParameterList {
     }
 }
 
+#[cfg(feature = "fuzz")]
+impl<'a> arbitrary::Arbitrary<'a> for FormalParameterList {
+    fn arbitrary(u: &mut arbitrary::Unstructured<'a>) -> arbitrary::Result<Self> {
+        let params: Vec<FormalParameter> = u.arbitrary()?;
+        Ok(Self::from(params))
+    }
+}
+
 bitflags! {
     /// Flags for a [`FormalParameterList`].
     #[allow(clippy::unsafe_derive_deserialize)]
@@ -247,6 +214,7 @@ impl Default for FormalParameterListFlags {
 /// [spec]: https://tc39.es/ecma262/#prod-FormalParameter
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Errors/Missing_formal_parameter
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "fuzz", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct FormalParameter {
     variable: Variable,
@@ -262,19 +230,6 @@ impl FormalParameter {
         Self {
             variable: variable.into(),
             is_rest_param,
-        }
-    }
-
-    /// Gets the name of the formal parameter.
-    #[must_use]
-    pub fn names(&self) -> Vec<Identifier> {
-        match self.variable.binding() {
-            Binding::Identifier(ident) => vec![*ident],
-            Binding::Pattern(pattern) => match pattern {
-                Pattern::Object(object_pattern) => object_pattern.idents(),
-
-                Pattern::Array(array_pattern) => array_pattern.idents(),
-            },
         }
     }
 
@@ -296,19 +251,10 @@ impl FormalParameter {
         self.is_rest_param
     }
 
-    /// Returns `true` if the parameter is a simple [`Identifier`].
+    /// Returns `true` if the parameter is an identifier.
     #[must_use]
     pub fn is_identifier(&self) -> bool {
         matches!(&self.variable.binding(), Binding::Identifier(_))
-    }
-
-    pub(crate) fn contains_arguments(&self) -> bool {
-        self.variable.contains_arguments()
-    }
-
-    #[inline]
-    pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
-        self.variable.contains(symbol)
     }
 }
 

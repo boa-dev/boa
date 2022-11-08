@@ -1,12 +1,14 @@
 //! Statement list node.
 
-use super::{declaration::Binding, Declaration};
-use crate::try_break;
-use crate::visitor::{VisitWith, Visitor, VisitorMut};
-use crate::{expression::Identifier, statement::Statement, ContainsSymbol};
+use super::Declaration;
+use crate::{
+    statement::Statement,
+    try_break,
+    visitor::{VisitWith, Visitor, VisitorMut},
+};
 use boa_interner::{Interner, ToIndentedString};
 use core::ops::ControlFlow;
-use rustc_hash::FxHashSet;
+
 use std::cmp::Ordering;
 
 /// An item inside a [`StatementList`] Parse Node, as defined by the [spec].
@@ -16,6 +18,7 @@ use std::cmp::Ordering;
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-StatementListItem
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "fuzz", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 pub enum StatementListItem {
     /// See [`Statement`].
@@ -37,45 +40,6 @@ impl StatementListItem {
             (Self::Declaration(Declaration::Function(_)), _) => Ordering::Less,
 
             (_, _) => Ordering::Equal,
-        }
-    }
-
-    /// Gets the var declared names of this `StatementListItem`.
-    #[inline]
-    pub fn var_declared_names(&self, vars: &mut FxHashSet<Identifier>) {
-        match self {
-            StatementListItem::Statement(stmt) => stmt.var_declared_names(vars),
-            StatementListItem::Declaration(_) => {}
-        }
-    }
-
-    /// Returns true if the node contains a identifier reference named 'arguments'.
-    ///
-    /// More information:
-    ///  - [ECMAScript specification][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-containsarguments
-    #[inline]
-    #[must_use]
-    pub fn contains_arguments(&self) -> bool {
-        match self {
-            StatementListItem::Statement(stmt) => stmt.contains_arguments(),
-            StatementListItem::Declaration(decl) => decl.contains_arguments(),
-        }
-    }
-
-    /// Returns `true` if the node contains the given token.
-    ///
-    /// More information:
-    ///  - [ECMAScript specification][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-contains
-    #[inline]
-    #[must_use]
-    pub fn contains(&self, symbol: ContainsSymbol) -> bool {
-        match self {
-            StatementListItem::Statement(stmt) => stmt.contains(symbol),
-            StatementListItem::Declaration(decl) => decl.contains(symbol),
         }
     }
 }
@@ -178,105 +142,6 @@ impl StatementList {
     pub fn set_strict(&mut self, strict: bool) {
         self.strict = strict;
     }
-
-    /// Returns the var declared names of a `StatementList`.
-    #[inline]
-    pub fn var_declared_names(&self, vars: &mut FxHashSet<Identifier>) {
-        for stmt in &*self.statements {
-            stmt.var_declared_names(vars);
-        }
-    }
-
-    /// Returns the lexically declared names of a `StatementList`.
-    ///
-    /// The returned list may contain duplicates.
-    ///
-    /// If a declared name originates from a function declaration it is flagged as `true` in the returned list.
-    ///
-    /// More information:
-    ///  - [ECMAScript specification][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-lexicallydeclarednames
-    #[must_use]
-    pub fn lexically_declared_names(&self) -> Vec<(Identifier, bool)> {
-        let mut names = Vec::new();
-
-        for node in self.statements() {
-            match node {
-                StatementListItem::Statement(_) => {}
-                StatementListItem::Declaration(decl) => {
-                    names.extend(decl.lexically_declared_names());
-                }
-            }
-        }
-
-        names
-    }
-
-    /// Return the top level lexically declared names of a `StatementList`.
-    ///
-    /// The returned list may contain duplicates.
-    ///
-    /// More information:
-    ///  - [ECMAScript specification][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-toplevellexicallydeclarednames
-    #[must_use]
-    pub fn lexically_declared_names_top_level(&self) -> Vec<Identifier> {
-        let mut names = Vec::new();
-
-        for node in self.statements() {
-            if let StatementListItem::Declaration(decl) = node {
-                match decl {
-                    Declaration::Class(decl) => {
-                        if let Some(name) = decl.name() {
-                            names.push(name);
-                        }
-                    }
-                    Declaration::Lexical(list) => {
-                        for variable in list.variable_list().as_ref() {
-                            match variable.binding() {
-                                Binding::Identifier(ident) => {
-                                    names.push(*ident);
-                                }
-                                Binding::Pattern(pattern) => {
-                                    names.extend(pattern.idents());
-                                }
-                            }
-                        }
-                    }
-                    _ => {}
-                }
-            }
-        }
-
-        names
-    }
-
-    /// Returns true if the node contains a identifier reference named 'arguments'.
-    ///
-    /// More information:
-    ///  - [ECMAScript specification][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-containsarguments
-    #[inline]
-    pub fn contains_arguments(&self) -> bool {
-        self.statements
-            .iter()
-            .any(StatementListItem::contains_arguments)
-    }
-
-    /// Returns `true` if the node contains the given token.
-    ///
-    /// More information:
-    ///  - [ECMAScript specification][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-contains
-    #[inline]
-    #[must_use]
-    pub fn contains(&self, symbol: ContainsSymbol) -> bool {
-        self.statements.iter().any(|stmt| stmt.contains(symbol))
-    }
 }
 
 impl From<Box<[StatementListItem]>> for StatementList {
@@ -332,5 +197,15 @@ impl VisitWith for StatementList {
             try_break!(visitor.visit_statement_list_item_mut(statement));
         }
         ControlFlow::Continue(())
+    }
+}
+
+#[cfg(feature = "fuzz")]
+impl<'a> arbitrary::Arbitrary<'a> for StatementList {
+    fn arbitrary(u: &mut arbitrary::Unstructured<'a>) -> arbitrary::Result<Self> {
+        Ok(Self {
+            statements: u.arbitrary()?,
+            strict: false, // disable strictness; this is *not* in source data
+        })
     }
 }

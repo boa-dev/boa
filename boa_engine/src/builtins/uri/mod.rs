@@ -253,9 +253,7 @@ where
             let cp = string.code_point_at(k);
 
             // ii. If cp.[[IsUnpairedSurrogate]] is true, throw a URIError exception.
-            let ch = if let CodePoint::Unicode(ch) = cp {
-                ch
-            } else {
+            let CodePoint::Unicode(ch) = cp else {
                 return Err(JsNativeError::uri()
                     .with_message("trying to encode an invalid string")
                     .into());
@@ -345,7 +343,7 @@ where
             k += 2;
 
             // vi. Let n be the number of leading 1 bits in B.
-            let n = leading_one_bits(b);
+            let n = b.leading_ones() as usize;
 
             // vii. If n = 0, then
             if n == 0 {
@@ -453,62 +451,9 @@ fn decode_hex_byte(high: u16, low: u16) -> Option<u8> {
     }
 }
 
-/// Counts the number of leading 1 bits in a given byte.
-#[inline]
-fn leading_one_bits(byte: u8) -> usize {
-    // This uses a value table for speed
-    if byte == u8::MAX {
-        8
-    } else if byte == 0b1111_1110 {
-        7
-    } else if byte & 0b1111_1100 == 0b1111_1100 {
-        6
-    } else if byte & 0b1111_1000 == 0b1111_1000 {
-        5
-    } else if byte & 0b1111_0000 == 0b1111_0000 {
-        4
-    } else if byte & 0b1110_0000 == 0b1110_0000 {
-        3
-    } else if byte & 0b1100_0000 == 0b1100_0000 {
-        2
-    } else if byte & 0b1000_0000 == 0b1000_0000 {
-        1
-    } else {
-        0
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    /// Checks if the `leading_one_bits()` function works as expected.
-    #[test]
-    fn ut_leading_one_bits() {
-        assert_eq!(leading_one_bits(0b1111_1111), 8);
-        assert_eq!(leading_one_bits(0b1111_1110), 7);
-
-        assert_eq!(leading_one_bits(0b1111_1100), 6);
-        assert_eq!(leading_one_bits(0b1111_1101), 6);
-
-        assert_eq!(leading_one_bits(0b1111_1011), 5);
-        assert_eq!(leading_one_bits(0b1111_1000), 5);
-
-        assert_eq!(leading_one_bits(0b1111_0000), 4);
-        assert_eq!(leading_one_bits(0b1111_0111), 4);
-
-        assert_eq!(leading_one_bits(0b1110_0000), 3);
-        assert_eq!(leading_one_bits(0b1110_1111), 3);
-
-        assert_eq!(leading_one_bits(0b1100_0000), 2);
-        assert_eq!(leading_one_bits(0b1101_1111), 2);
-
-        assert_eq!(leading_one_bits(0b1000_0000), 1);
-        assert_eq!(leading_one_bits(0b1011_1111), 1);
-
-        assert_eq!(leading_one_bits(0b0000_0000), 0);
-        assert_eq!(leading_one_bits(0b0111_1111), 0);
-    }
 
     /// Checks that the `decode_byte()` function works as expected.
     #[test]

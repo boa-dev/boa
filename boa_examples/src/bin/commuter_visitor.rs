@@ -10,8 +10,9 @@ use boa_ast::{
     visitor::{VisitWith, VisitorMut},
     Expression,
 };
-use boa_engine::{syntax::Parser, Context};
+use boa_engine::Context;
 use boa_interner::ToInternedString;
+use boa_parser::Parser;
 use core::ops::ControlFlow;
 use std::{convert::Infallible, fs::File, io::BufReader};
 
@@ -69,7 +70,7 @@ fn main() {
     ));
     let mut ctx = Context::default();
 
-    let mut statements = parser.parse_all(&mut ctx).unwrap();
+    let mut statements = parser.parse_all(ctx.interner_mut()).unwrap();
 
     let mut visitor = CommutorVisitor::default();
 

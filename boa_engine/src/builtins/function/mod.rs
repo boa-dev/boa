@@ -26,13 +26,17 @@ use crate::{
     property::{Attribute, PropertyDescriptor, PropertyKey},
     string::utf16,
     symbol::WellKnownSymbols,
-    syntax::Parser,
     value::IntegerOrInfinity,
     Context, JsResult, JsString, JsValue,
 };
-use boa_ast::{function::FormalParameterList, StatementList};
+use boa_ast::{
+    function::FormalParameterList,
+    operations::{bound_names, contains, lexically_declared_names, ContainsSymbol},
+    StatementList,
+};
 use boa_gc::{self, custom_trace, Finalize, Gc, Trace};
 use boa_interner::Sym;
+use boa_parser::Parser;
 use boa_profiler::Profiler;
 use dyn_clone::DynClone;
 use std::{
@@ -240,15 +244,21 @@ pub enum Function {
     Async {
         code: Gc<crate::vm::CodeBlock>,
         environments: DeclarativeEnvironmentStack,
+        /// The `[[HomeObject]]` internal slot.
+        home_object: Option<JsObject>,
         promise_capability: PromiseCapability,
     },
     Generator {
         code: Gc<crate::vm::CodeBlock>,
         environments: DeclarativeEnvironmentStack,
+        /// The `[[HomeObject]]` internal slot.
+        home_object: Option<JsObject>,
     },
     AsyncGenerator {
         code: Gc<crate::vm::CodeBlock>,
         environments: DeclarativeEnvironmentStack,
+        /// The `[[HomeObject]]` internal slot.
+        home_object: Option<JsObject>,
     },
 }
 
@@ -266,15 +276,17 @@ unsafe impl Trace for Function {
                     mark(elem);
                 }
             }
-            Self::Async { code, environments, promise_capability } => {
+            Self::Async { code, environments, home_object, promise_capability } => {
                 mark(code);
                 mark(environments);
+                mark(home_object);
                 mark(promise_capability);
             }
-            Self::Generator { code, environments }
-            | Self::AsyncGenerator { code, environments } => {
+            Self::Generator { code, environments, home_object}
+            | Self::AsyncGenerator { code, environments, home_object} => {
                 mark(code);
                 mark(environments);
+                mark(home_object);
             }
         }
     }}
@@ -312,17 +324,23 @@ impl Function {
 
     /// Returns a reference to the function `[[HomeObject]]` slot if present.
     pub(crate) fn get_home_object(&self) -> Option<&JsObject> {
-        if let Self::Ordinary { home_object, .. } = self {
-            home_object.as_ref()
-        } else {
-            None
+        match self {
+            Self::Ordinary { home_object, .. }
+            | Self::Async { home_object, .. }
+            | Self::Generator { home_object, .. }
+            | Self::AsyncGenerator { home_object, .. } => home_object.as_ref(),
+            _ => None,
         }
     }
 
     ///  Sets the `[[HomeObject]]` slot if present.
     pub(crate) fn set_home_object(&mut self, object: JsObject) {
-        if let Self::Ordinary { home_object, .. } = self {
-            *home_object = Some(object);
+        match self {
+            Self::Ordinary { home_object, .. }
+            | Self::Async { home_object, .. }
+            | Self::Generator { home_object, .. }
+            | Self::AsyncGenerator { home_object, .. } => *home_object = Some(object),
+            _ => {}
         }
     }
 
@@ -515,7 +533,7 @@ impl BuiltInFunctionObject {
                     }
                 };
 
-                if generator && parameters.contains_yield_expression() {
+                if generator && contains(&parameters, ContainsSymbol::YieldExpression) {
                     return Err(JsNativeError::syntax().with_message(
                             "yield expression is not allowed in formal parameter list of generator function",
                         ).into());
@@ -525,14 +543,14 @@ impl BuiltInFunctionObject {
             };
 
             // It is a Syntax Error if FormalParameters Contains YieldExpression is true.
-            if generator && r#async && parameters.contains_yield_expression() {
+            if generator && r#async && contains(&parameters, ContainsSymbol::YieldExpression) {
                 return Err(JsNativeError::syntax()
                     .with_message("yield expression not allowed in async generator parameters")
                     .into());
             }
 
             // It is a Syntax Error if FormalParameters Contains AwaitExpression is true.
-            if generator && r#async && parameters.contains_await_expression() {
+            if generator && r#async && contains(&parameters, ContainsSymbol::AwaitExpression) {
                 return Err(JsNativeError::syntax()
                     .with_message("await expression not allowed in async generator parameters")
                     .into());
@@ -555,13 +573,11 @@ impl BuiltInFunctionObject {
             // Early Error: If BindingIdentifier is present and the source text matched by BindingIdentifier is strict mode code,
             // it is a Syntax Error if the StringValue of BindingIdentifier is "eval" or "arguments".
             if body.strict() {
-                for parameter in parameters.as_ref() {
-                    for name in parameter.names() {
-                        if name == Sym::ARGUMENTS || name == Sym::EVAL {
-                            return Err(JsNativeError::syntax()
-                                .with_message(" Unexpected 'eval' or 'arguments' in strict mode")
-                                .into());
-                        }
+                for name in bound_names(&parameters) {
+                    if name == Sym::ARGUMENTS || name == Sym::EVAL {
+                        return Err(JsNativeError::syntax()
+                            .with_message(" Unexpected 'eval' or 'arguments' in strict mode")
+                            .into());
                     }
                 }
             }
@@ -588,20 +604,15 @@ impl BuiltInFunctionObject {
             // also occurs in the LexicallyDeclaredNames of FunctionBody.
             // https://tc39.es/ecma262/#sec-function-definitions-static-semantics-early-errors
             {
-                let lexically_declared_names = body.lexically_declared_names();
-                for param in parameters.as_ref() {
-                    for param_name in param.names() {
-                        if lexically_declared_names
-                            .iter()
-                            .any(|(name, _)| *name == param_name)
-                        {
-                            return Err(JsNativeError::syntax()
-                                .with_message(format!(
-                                    "Redeclaration of formal parameter `{}`",
-                                    context.interner().resolve_expect(param_name.sym())
-                                ))
-                                .into());
-                        }
+                let lexically_declared_names = lexically_declared_names(&body);
+                for name in bound_names(&parameters) {
+                    if lexically_declared_names.contains(&name) {
+                        return Err(JsNativeError::syntax()
+                            .with_message(format!(
+                                "Redeclaration of formal parameter `{}`",
+                                context.interner().resolve_expect(name.sym())
+                            ))
+                            .into());
                     }
                 }
             }
@@ -823,31 +834,23 @@ impl BuiltInFunctionObject {
             }
         };
 
-        match (function, name) {
-            (
-                Function::Native {
-                    function: _,
-                    constructor: _,
-                },
-                Some(name),
-            ) => Ok(js_string!(
-                utf16!("function "),
-                &name,
-                utf16!("() {{\n  [native Code]\n}}")
-            )
-            .into()),
-            (Function::Ordinary { .. }, Some(name)) if name.is_empty() => {
-                Ok(js_string!("[Function (anonymous)]").into())
-            }
-            (Function::Ordinary { .. }, Some(name)) => {
+        let name = name
+            .filter(|n| !n.is_empty())
+            .unwrap_or_else(|| "anonymous".into());
+
+        match function {
+            Function::Native { .. } | Function::Closure { .. } | Function::Ordinary { .. } => {
                 Ok(js_string!(utf16!("[Function: "), &name, utf16!("]")).into())
             }
-            (Function::Ordinary { .. }, None) => Ok(js_string!("[Function (anonymous)]").into()),
-            (Function::Generator { .. }, Some(name)) => {
-                Ok(js_string!(utf16!("[Function*: "), &name, utf16!("]")).into())
+            Function::Async { .. } => {
+                Ok(js_string!(utf16!("[AsyncFunction: "), &name, utf16!("]")).into())
             }
-            (Function::Generator { .. }, None) => Ok(js_string!("[Function* (anonymous)]").into()),
-            _ => Ok("TODO".into()),
+            Function::Generator { .. } => {
+                Ok(js_string!(utf16!("[GeneratorFunction: "), &name, utf16!("]")).into())
+            }
+            Function::AsyncGenerator { .. } => {
+                Ok(js_string!(utf16!("[AsyncGeneratorFunction: "), &name, utf16!("]")).into())
+            }
         }
     }
 

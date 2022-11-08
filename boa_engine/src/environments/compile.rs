@@ -14,6 +14,7 @@ struct CompileTimeBinding {
     index: usize,
     mutable: bool,
     lex: bool,
+    strict: bool,
 }
 
 /// A compile time environment maps bound identifiers to their binding positions.
@@ -111,6 +112,7 @@ impl CompileTimeEnvironment {
                             index: binding_index,
                             mutable: true,
                             lex: !function_scope,
+                            strict: false,
                         },
                     );
                 }
@@ -131,6 +133,7 @@ impl CompileTimeEnvironment {
                         index: binding_index,
                         mutable: true,
                         lex: !function_scope,
+                        strict: false,
                     },
                 );
             }
@@ -140,7 +143,7 @@ impl CompileTimeEnvironment {
 
     /// Crate an immutable binding.
     #[inline]
-    pub(crate) fn create_immutable_binding(&mut self, name: Identifier) {
+    pub(crate) fn create_immutable_binding(&mut self, name: Identifier, strict: bool) {
         let binding_index = self.bindings.len();
         self.bindings.insert(
             name,
@@ -148,6 +151,7 @@ impl CompileTimeEnvironment {
                 index: binding_index,
                 mutable: false,
                 lex: true,
+                strict,
             },
         );
     }
@@ -197,7 +201,8 @@ impl CompileTimeEnvironment {
             Some(binding) if binding.mutable => {
                 BindingLocator::declarative(name, self.environment_index, binding.index)
             }
-            Some(_) => BindingLocator::mutate_immutable(name),
+            Some(binding) if binding.strict => BindingLocator::mutate_immutable(name),
+            Some(_) => BindingLocator::silent(name),
             None => {
                 if let Some(outer) = &self.outer {
                     outer.borrow().set_mutable_binding_recursive(name)
@@ -347,11 +352,11 @@ impl Context {
     ///
     /// Panics if the global environment does not exist.
     #[inline]
-    pub(crate) fn create_immutable_binding(&mut self, name: Identifier) {
+    pub(crate) fn create_immutable_binding(&mut self, name: Identifier, strict: bool) {
         self.realm
             .compile_env
             .borrow_mut()
-            .create_immutable_binding(name);
+            .create_immutable_binding(name, strict);
     }
 
     /// Initialize an immutable binding at bytecode compile time and return it's binding locator.

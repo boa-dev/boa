@@ -5,12 +5,9 @@ use crate::visitor::{VisitWith, Visitor, VisitorMut};
 use crate::{
     declaration::Binding,
     statement::{Block, Statement},
-    StatementListItem,
 };
 use boa_interner::{Interner, ToIndentedString, ToInternedString};
 use core::ops::ControlFlow;
-
-use super::ContainsSymbol;
 
 /// The `try...catch` statement marks a block of statements to try and specifies a response
 /// should an exception be thrown.
@@ -26,6 +23,7 @@ use super::ContainsSymbol;
 /// [spec]: https://tc39.es/ecma262/#prod-TryStatement
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/try...catch
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "fuzz", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct Try {
     block: Block,
@@ -34,6 +32,7 @@ pub struct Try {
 
 /// The type of error handler in a [`Try`] statement.
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "fuzz", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 pub enum ErrorHandler {
     /// A [`Catch`] error handler.
@@ -77,20 +76,6 @@ impl Try {
             ErrorHandler::Finally(f) | ErrorHandler::Full(_, f) => Some(f),
             ErrorHandler::Catch(_) => None,
         }
-    }
-
-    #[inline]
-    pub(crate) fn contains_arguments(&self) -> bool {
-        self.block.contains_arguments()
-            || matches!(self.catch(), Some(catch) if catch.contains_arguments())
-            || matches!(self.finally(), Some(finally) if finally.contains_arguments())
-    }
-
-    #[inline]
-    pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
-        self.block.contains(symbol)
-            || matches!(self.catch(), Some(catch) if catch.contains(symbol))
-            || matches!(self.finally(), Some(finally) if finally.contains(symbol))
     }
 }
 
@@ -154,6 +139,7 @@ impl VisitWith for Try {
 
 /// Catch block.
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "fuzz", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct Catch {
     parameter: Option<Binding>,
@@ -180,24 +166,6 @@ impl Catch {
     #[must_use]
     pub fn block(&self) -> &Block {
         &self.block
-    }
-
-    #[inline]
-    pub(crate) fn contains_arguments(&self) -> bool {
-        self.block
-            .statement_list()
-            .statements()
-            .iter()
-            .any(StatementListItem::contains_arguments)
-    }
-
-    #[inline]
-    pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
-        self.block
-            .statement_list()
-            .statements()
-            .iter()
-            .any(|stmt| stmt.contains(symbol))
     }
 }
 
@@ -240,6 +208,7 @@ impl VisitWith for Catch {
 
 /// Finally block.
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "fuzz", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct Finally {
     block: Block,
@@ -251,24 +220,6 @@ impl Finally {
     #[must_use]
     pub fn block(&self) -> &Block {
         &self.block
-    }
-
-    #[inline]
-    pub(crate) fn contains_arguments(&self) -> bool {
-        self.block
-            .statement_list()
-            .statements()
-            .iter()
-            .any(StatementListItem::contains_arguments)
-    }
-
-    #[inline]
-    pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
-        self.block
-            .statement_list()
-            .statements()
-            .iter()
-            .any(|stmt| stmt.contains(symbol))
     }
 }
 

@@ -1,6 +1,6 @@
+use crate::join_nodes;
 use crate::try_break;
 use crate::visitor::{VisitWith, Visitor, VisitorMut};
-use crate::{join_nodes, ContainsSymbol};
 use boa_interner::{Interner, ToInternedString};
 use core::ops::ControlFlow;
 
@@ -21,6 +21,7 @@ use super::Expression;
 /// [spec]: https://tc39.es/ecma262/#prod-CallExpression
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Functions#Calling_functions
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "fuzz", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct Call {
     function: Box<Expression>,
@@ -50,16 +51,6 @@ impl Call {
     #[must_use]
     pub fn args(&self) -> &[Expression] {
         &self.args
-    }
-
-    #[inline]
-    pub(crate) fn contains_arguments(&self) -> bool {
-        self.function.contains_arguments() || self.args.iter().any(Expression::contains_arguments)
-    }
-
-    #[inline]
-    pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
-        self.function.contains(symbol) || self.args.iter().any(|expr| expr.contains(symbol))
     }
 }
 
@@ -114,6 +105,7 @@ impl VisitWith for Call {
 /// [spec]: https://tc39.es/ecma262/#prod-SuperCall
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/super
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "fuzz", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct SuperCall {
     args: Box<[Expression]>,
@@ -132,16 +124,6 @@ impl SuperCall {
     #[must_use]
     pub fn arguments(&self) -> &[Expression] {
         &self.args
-    }
-
-    #[inline]
-    pub(crate) fn contains_arguments(&self) -> bool {
-        self.args.iter().any(Expression::contains_arguments)
-    }
-
-    #[inline]
-    pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
-        self.args.iter().any(|expr| expr.contains(symbol))
     }
 }
 

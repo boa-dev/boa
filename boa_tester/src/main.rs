@@ -60,7 +60,6 @@
     clippy::missing_errors_doc,
     clippy::as_conversions,
     clippy::let_unit_value,
-    rustdoc::missing_doc_code_examples
 )]
 
 mod exec;

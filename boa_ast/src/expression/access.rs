@@ -14,9 +14,9 @@
 //! [spec]: https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#sec-property-accessors
 //! [access]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Property_Accessors
 
+use crate::expression::Expression;
 use crate::try_break;
 use crate::visitor::{VisitWith, Visitor, VisitorMut};
-use crate::{expression::Expression, ContainsSymbol};
 use boa_interner::{Interner, Sym, ToInternedString};
 use core::ops::ControlFlow;
 
@@ -24,28 +24,13 @@ use core::ops::ControlFlow;
 ///
 /// See the [module level documentation][self] for more information.
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "fuzz", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 pub enum PropertyAccessField {
     /// A constant property field, such as `x.prop`.
     Const(Sym),
     /// An expression property field, such as `x["val"]`.
     Expr(Box<Expression>),
-}
-
-impl PropertyAccessField {
-    pub(crate) fn contains_arguments(&self) -> bool {
-        match self {
-            PropertyAccessField::Const(_) => false,
-            PropertyAccessField::Expr(expr) => expr.contains_arguments(),
-        }
-    }
-    #[inline]
-    pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
-        match self {
-            PropertyAccessField::Const(_) => false,
-            PropertyAccessField::Expr(expr) => expr.contains(symbol),
-        }
-    }
 }
 
 impl From<Sym> for PropertyAccessField {
@@ -88,6 +73,7 @@ impl VisitWith for PropertyAccessField {
 ///
 /// See the [module level documentation][self] for more information.
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "fuzz", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 pub enum PropertyAccess {
     /// A simple property access (`x.prop`).
@@ -96,26 +82,6 @@ pub enum PropertyAccess {
     Private(PrivatePropertyAccess),
     /// A property access of a `super` reference. (`super["prop"]`).
     Super(SuperPropertyAccess),
-}
-
-impl PropertyAccess {
-    #[inline]
-    pub(crate) fn contains_arguments(&self) -> bool {
-        match self {
-            PropertyAccess::Simple(s) => s.contains_arguments(),
-            PropertyAccess::Private(p) => p.contains_arguments(),
-            PropertyAccess::Super(s) => s.contains_arguments(),
-        }
-    }
-
-    #[inline]
-    pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
-        match self {
-            PropertyAccess::Simple(s) => s.contains(symbol),
-            PropertyAccess::Private(p) => p.contains(symbol),
-            PropertyAccess::Super(s) => s.contains(symbol),
-        }
-    }
 }
 
 impl ToInternedString for PropertyAccess {
@@ -162,6 +128,7 @@ impl VisitWith for PropertyAccess {
 
 /// A simple property access, where the target object is an [`Expression`].
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "fuzz", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct SimplePropertyAccess {
     target: Box<Expression>,
@@ -193,16 +160,6 @@ impl SimplePropertyAccess {
             target: target.into(),
             field: field.into(),
         }
-    }
-
-    #[inline]
-    pub(crate) fn contains_arguments(&self) -> bool {
-        self.target.contains_arguments() || self.field.contains_arguments()
-    }
-
-    #[inline]
-    pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
-        self.target.contains(symbol) || self.field.contains(symbol)
     }
 }
 
@@ -255,6 +212,7 @@ impl VisitWith for SimplePropertyAccess {
 /// [spec]: https://tc39.es/ecma262/#prod-MemberExpression
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Classes/Private_class_fields
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "fuzz", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct PrivatePropertyAccess {
     target: Box<Expression>,
@@ -284,16 +242,6 @@ impl PrivatePropertyAccess {
     #[must_use]
     pub fn field(&self) -> Sym {
         self.field
-    }
-
-    #[inline]
-    pub(crate) fn contains_arguments(&self) -> bool {
-        self.target.contains_arguments()
-    }
-
-    #[inline]
-    pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
-        self.target.contains(symbol)
     }
 }
 
@@ -341,6 +289,7 @@ impl VisitWith for PrivatePropertyAccess {
 /// [spec]: https://tc39.es/ecma262/#prod-SuperProperty
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/super
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "fuzz", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct SuperPropertyAccess {
     field: PropertyAccessField,
@@ -358,16 +307,6 @@ impl SuperPropertyAccess {
     #[must_use]
     pub fn field(&self) -> &PropertyAccessField {
         &self.field
-    }
-
-    #[inline]
-    pub(crate) fn contains_arguments(&self) -> bool {
-        self.field.contains_arguments()
-    }
-
-    #[inline]
-    pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
-        symbol == ContainsSymbol::SuperProperty || self.field.contains(symbol)
     }
 }
 

@@ -353,13 +353,9 @@ impl IteratorRecord {
 
         // Note: We check if iteratorRecord.[[NextMethod]] is callable here.
         // This check would happen in `Call` according to the spec, but we do not implement call for `JsValue`.
-        let next_method = if let Some(next_method) = self.next_method.as_callable() {
-            next_method
-        } else {
-            return Err(JsNativeError::typ()
-                .with_message("iterable next method not a function")
-                .into());
-        };
+        let next_method = self.next_method.as_callable().ok_or_else(|| {
+            JsNativeError::typ().with_message("iterable next method not a function")
+        })?;
 
         let result = if let Some(value) = value {
             // 2. Else,
@@ -373,13 +369,14 @@ impl IteratorRecord {
 
         // 3. If Type(result) is not Object, throw a TypeError exception.
         // 4. Return result.
-        if let Some(o) = result.as_object() {
-            Ok(IteratorResult { object: o.clone() })
-        } else {
-            Err(JsNativeError::typ()
-                .with_message("next value should be an object")
-                .into())
-        }
+        result
+            .as_object()
+            .map(|o| IteratorResult { object: o.clone() })
+            .ok_or_else(|| {
+                JsNativeError::typ()
+                    .with_message("next value should be an object")
+                    .into()
+            })
     }
 
     /// `IteratorStep ( iteratorRecord )`

@@ -5,7 +5,6 @@ use crate::{
     object::JsObject,
     object::ObjectData,
     property::PropertyDescriptor,
-    syntax::parser,
     Context, JsString, JsValue,
 };
 use boa_gc::{Finalize, Trace};
@@ -320,8 +319,8 @@ impl JsError {
     }
 }
 
-impl From<parser::ParseError> for JsError {
-    fn from(err: parser::ParseError) -> Self {
+impl From<boa_parser::Error> for JsError {
+    fn from(err: boa_parser::Error) -> Self {
         Self::from(JsNativeError::from(err))
     }
 }
@@ -655,8 +654,8 @@ impl JsNativeError {
     }
 }
 
-impl From<parser::ParseError> for JsNativeError {
-    fn from(err: parser::ParseError) -> Self {
+impl From<boa_parser::Error> for JsNativeError {
+    fn from(err: boa_parser::Error) -> Self {
         Self::syntax().with_message(err.to_string())
     }
 }

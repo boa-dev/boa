@@ -113,10 +113,8 @@ impl<T: Class> ClassConstructor for T {
                 .into());
         }
 
-        let class_constructor = context.global_object().clone().get(T::NAME, context)?;
-        let class_constructor = if let JsValue::Object(ref obj) = class_constructor {
-            obj
-        } else {
+        let class = context.global_object().clone().get(T::NAME, context)?;
+        let JsValue::Object(ref class_constructor) = class else {
             return Err(JsNativeError::typ()
                 .with_message(format!(
                     "invalid constructor for native class `{}` ",
@@ -124,28 +122,25 @@ impl<T: Class> ClassConstructor for T {
                 ))
                 .into());
         };
-        let class_prototype =
-            if let JsValue::Object(ref obj) = class_constructor.get(PROTOTYPE, context)? {
-                obj.clone()
-            } else {
-                return Err(JsNativeError::typ()
-                    .with_message(format!(
-                        "invalid default prototype for native class `{}`",
-                        T::NAME
-                    ))
-                    .into());
-            };
+
+        let JsValue::Object(ref class_prototype) = class_constructor.get(PROTOTYPE, context)? else {
+            return Err(JsNativeError::typ()
+                .with_message(format!(
+                    "invalid default prototype for native class `{}`",
+                    T::NAME
+                ))
+                .into());
+        };
 
         let prototype = this
             .as_object()
-            .cloned()
             .map(|obj| {
                 obj.get(PROTOTYPE, context)
                     .map(|val| val.as_object().cloned())
             })
             .transpose()?
             .flatten()
-            .unwrap_or(class_prototype);
+            .unwrap_or_else(|| class_prototype.clone());
 
         let native_instance = Self::constructor(this, args, context)?;
         let object_instance = JsObject::from_proto_and_data(
