@@ -137,7 +137,7 @@ impl Sym {
 }
 
 macro_rules! create_static_strings {
-    ( $( $s:literal ),+ ) => {
+    ( $( $s:literal ),+$(,)? ) => {
         /// Ordered set of commonly used static `UTF-8` strings.
         ///
         /// # Note
@@ -197,5 +197,5 @@ create_static_strings! {
     "async",
     "of",
     "target",
-    "__proto__"
+    "__proto__",
 }
