@@ -16,7 +16,6 @@ pub(crate) struct GcBoxHeader {
 impl GcBoxHeader {
     #[inline]
     pub fn new() -> Self {
-        // TODO: implement a way for a cell to start out weak with WEAK_MASK
         GcBoxHeader {
             roots: Cell::new(1),
             next: Cell::new(None),
@@ -27,7 +26,7 @@ impl GcBoxHeader {
     pub fn new_weak() -> Self {
         // Set weak_flag
         GcBoxHeader {
-            roots: Cell::new(0),
+            roots: Cell::new(WEAK_MASK),
             next: Cell::new(None),
         }
     }

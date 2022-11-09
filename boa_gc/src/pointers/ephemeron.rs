@@ -13,9 +13,8 @@ pub struct Ephemeron<K: Trace + ?Sized + 'static, V: Trace + ?Sized + 'static> {
 
 impl<K: Trace + ?Sized, V: Trace> Ephemeron<K, V> {
     pub fn new(key: &Gc<K>, value: V) -> Self {
-        unsafe { value.unroot() };
         Self {
-            inner_ptr: Cell::new(Allocator::new(GcBox::new_weak(EphemeronBox::new_pair(
+            inner_ptr: Cell::new(Allocator::new(GcBox::new_weak(EphemeronBox::new(
                 key, value,
             )))),
         }

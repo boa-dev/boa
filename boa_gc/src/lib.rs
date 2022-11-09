@@ -161,7 +161,6 @@ impl Collector {
 
         let _final_unreachable_adults = unsafe { Self::mark_heap(&gc.adult_start) };
 
-        // Sweep both without promoting any values
         unsafe {
             Self::sweep(&gc.adult_start, &mut gc.runtime.total_bytes_allocated);
         }

@@ -25,10 +25,11 @@ pub struct Gc<T: Trace + ?Sized + 'static> {
 impl<T: Trace> Gc<T> {
     /// Constructs a new `Gc<T>` with the given value.
     pub fn new(value: T) -> Self {
-        unsafe {
-            value.unroot();
-        }
+        // Create GcBox and allocate it to heap.
+        //
+        // Note: Allocator can cause Collector to run
         let inner_ptr = Allocator::new(GcBox::new(value));
+        unsafe { (*inner_ptr.as_ptr()).value().unroot() }
         let gc = Self {
             inner_ptr: Cell::new(inner_ptr),
             marker: PhantomData,

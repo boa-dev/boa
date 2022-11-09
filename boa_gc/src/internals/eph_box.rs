@@ -12,7 +12,7 @@ pub(crate) struct EphemeronBox<K: Trace + ?Sized + 'static, V: Trace + ?Sized + 
 }
 
 impl<K: Trace + ?Sized, V: Trace> EphemeronBox<K, V> {
-    pub fn new_pair(key: &Gc<K>, value: V) -> Self {
+    pub fn new(key: &Gc<K>, value: V) -> Self {
         EphemeronBox {
             key: Cell::new(Some(key.inner_ptr())),
             value,

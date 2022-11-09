@@ -1,6 +1,8 @@
 use crate::BOA_GC;
 
 mod allocation;
+mod cell;
+mod weak;
 
 struct Harness;
 
