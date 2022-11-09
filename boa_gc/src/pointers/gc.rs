@@ -11,8 +11,12 @@ use crate::internals::GcBox;
 use crate::trace::{Finalize, Trace};
 use crate::{finalizer_safe, Allocator};
 
-pub(crate) unsafe fn set_data_ptr<T: ?Sized, U>(mut ptr: *mut T, data: *mut U) -> *mut T {
-    ptr::write(addr_of_mut!(ptr).cast::<*mut u8>(), data.cast::<u8>());
+// Technically, this function is safe, since we're just modifying the address of a pointer without
+// dereferencing it.
+pub(crate) fn set_data_ptr<T: ?Sized, U>(mut ptr: *mut T, data: *mut U) -> *mut T {
+    unsafe {
+        ptr::write(addr_of_mut!(ptr).cast::<*mut u8>(), data.cast::<u8>());
+    }
     ptr
 }
 
@@ -34,7 +38,7 @@ impl<T: Trace> Gc<T> {
             inner_ptr: Cell::new(inner_ptr),
             marker: PhantomData,
         };
-        unsafe { gc.set_root() };
+        gc.set_root();
         gc
     }
 }
@@ -54,7 +58,7 @@ pub(crate) unsafe fn clear_root_bit<T: ?Sized + Trace>(
     let data = ptr.cast::<u8>();
     let addr = data as isize;
     let ptr = set_data_ptr(ptr, data.wrapping_offset((addr & !1) - addr));
-    NonNull::new_unchecked(ptr)
+    unsafe { NonNull::new_unchecked(ptr) }
 }
 
 impl<T: Trace + ?Sized> Gc<T> {
@@ -62,16 +66,20 @@ impl<T: Trace + ?Sized> Gc<T> {
         self.inner_ptr.get().as_ptr().cast::<u8>() as usize & 1 != 0
     }
 
-    unsafe fn set_root(&self) {
+    fn set_root(&self) {
         let ptr = self.inner_ptr.get().as_ptr();
         let data = ptr.cast::<u8>();
         let addr = data as isize;
         let ptr = set_data_ptr(ptr, data.wrapping_offset((addr | 1) - addr));
-        self.inner_ptr.set(NonNull::new_unchecked(ptr));
+        unsafe {
+            self.inner_ptr.set(NonNull::new_unchecked(ptr));
+        }
     }
 
-    unsafe fn clear_root(&self) {
-        self.inner_ptr.set(clear_root_bit(self.inner_ptr.get()));
+    fn clear_root(&self) {
+        unsafe {
+            self.inner_ptr.set(clear_root_bit(self.inner_ptr.get()));
+        }
     }
 
     #[inline]
@@ -91,12 +99,16 @@ impl<T: Trace + ?Sized> Finalize for Gc<T> {}
 unsafe impl<T: Trace + ?Sized> Trace for Gc<T> {
     #[inline]
     unsafe fn trace(&self) {
-        self.inner().trace_inner();
+        unsafe {
+            self.inner().trace_inner();
+        }
     }
 
     #[inline]
     unsafe fn weak_trace(&self) {
-        self.inner().weak_trace_inner();
+        unsafe {
+            self.inner().weak_trace_inner();
+        }
     }
 
     #[inline]
@@ -106,7 +118,6 @@ unsafe impl<T: Trace + ?Sized> Trace for Gc<T> {
         // inaccessible due to this method being invoked during the sweeping
         // phase, and we don't want to modify our state before panicking.
         self.inner().root_inner();
-
         self.set_root();
     }
 
@@ -117,7 +128,6 @@ unsafe impl<T: Trace + ?Sized> Trace for Gc<T> {
         // inaccessible due to this method being invoked during the sweeping
         // phase, and we don't want to modify our state before panicking.
         self.inner().unroot_inner();
-
         self.clear_root();
     }
 
@@ -130,15 +140,13 @@ unsafe impl<T: Trace + ?Sized> Trace for Gc<T> {
 impl<T: Trace + ?Sized> Clone for Gc<T> {
     #[inline]
     fn clone(&self) -> Self {
-        unsafe {
-            self.inner().root_inner();
-            let gc = Gc {
-                inner_ptr: Cell::new(self.inner_ptr.get()),
-                marker: PhantomData,
-            };
-            gc.set_root();
-            gc
-        }
+        self.inner().root_inner();
+        let gc = Gc {
+            inner_ptr: Cell::new(self.inner_ptr.get()),
+            marker: PhantomData,
+        };
+        gc.set_root();
+        gc
     }
 }
 
@@ -156,9 +164,7 @@ impl<T: Trace + ?Sized> Drop for Gc<T> {
     fn drop(&mut self) {
         // If this pointer was a root, we should unroot it.
         if self.rooted() {
-            unsafe {
-                self.inner().unroot_inner();
-            }
+            self.inner().unroot_inner();
         }
     }
 }

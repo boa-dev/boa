@@ -113,24 +113,28 @@ impl<T: Trace + ?Sized> GcBox<T> {
     pub(crate) unsafe fn trace_inner(&self) {
         if !self.header.is_marked() && !self.header.is_ephemeron() {
             self.header.mark();
-            self.value.trace();
+            unsafe {
+                self.value.trace();
+            }
         }
     }
 
     /// Trace inner data
     pub(crate) unsafe fn weak_trace_inner(&self) {
-        self.value.weak_trace();
+        unsafe {
+            self.value.weak_trace();
+        }
     }
 
     /// Increases the root count on this `GcBox`.
     /// Roots prevent the `GcBox` from being destroyed by the garbage collector.
-    pub(crate) unsafe fn root_inner(&self) {
+    pub(crate) fn root_inner(&self) {
         self.header.inc_roots();
     }
 
     /// Decreases the root count on this `GcBox`.
     /// Roots prevent the `GcBox` from being destroyed by the garbage collector.
-    pub(crate) unsafe fn unroot_inner(&self) {
+    pub(crate) fn unroot_inner(&self) {
         self.header.dec_roots();
     }
 

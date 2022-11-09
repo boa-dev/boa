@@ -63,13 +63,17 @@ impl<K: Trace + ?Sized, V: Trace + ?Sized> EphemeronBox<K, V> {
     #[inline]
     unsafe fn weak_trace_key(&self) {
         if let Some(key) = self.inner_key() {
-            key.weak_trace_inner();
+            unsafe {
+                key.weak_trace_inner();
+            }
         }
     }
 
     #[inline]
     unsafe fn weak_trace_value(&self) {
-        self.value().weak_trace();
+        unsafe {
+            self.value().weak_trace();
+        }
     }
 }
 
@@ -88,15 +92,17 @@ unsafe impl<K: Trace + ?Sized, V: Trace + ?Sized> Trace for EphemeronBox<K, V> {
     }
 
     #[inline]
-    unsafe fn is_marked_ephemeron(&self) -> bool {
+    fn is_marked_ephemeron(&self) -> bool {
         self.is_marked()
     }
 
     #[inline]
     unsafe fn weak_trace(&self) {
         if self.is_marked() {
-            self.weak_trace_key();
-            self.weak_trace_value();
+            unsafe {
+                self.weak_trace_key();
+                self.weak_trace_value();
+            }
         }
     }
 

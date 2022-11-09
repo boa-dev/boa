@@ -20,6 +20,9 @@
     clippy::needless_pass_by_value,
     clippy::match_wildcard_for_single_variants,
     clippy::map_unwrap_or,
+    clippy::undocumented_unsafe_blocks,
+    clippy::missing_safety_doc,
+    unsafe_op_in_unsafe_fn,
     unused_qualifications,
     unused_import_braces,
     unused_lifetimes,
@@ -37,11 +40,7 @@
     nonstandard_style,
     missing_docs
 )]
-#![allow(
-    clippy::let_unit_value,
-    clippy::missing_safety_doc,
-    clippy::module_name_repetitions
-)]
+#![allow(clippy::let_unit_value, clippy::module_name_repetitions)]
 
 extern crate self as boa_gc;
 
@@ -209,19 +208,22 @@ impl Collector {
         let mut ephemeron_queue = Vec::new();
         let mut mark_head = head;
         while let Some(node) = mark_head.get() {
-            if (*node.as_ptr()).header.is_ephemeron() {
+            let node_ref = unsafe { node.as_ref() };
+            if node_ref.header.is_ephemeron() {
                 ephemeron_queue.push(node);
-            } else if (*node.as_ptr()).header.roots() > 0 {
-                (*node.as_ptr()).trace_inner();
+            } else if node_ref.header.roots() > 0 {
+                unsafe {
+                    node_ref.trace_inner();
+                }
             } else {
                 finalize.push(node);
             }
-            mark_head = &(*node.as_ptr()).header.next;
+            mark_head = &node_ref.header.next;
         }
 
         // Ephemeron Evaluation
         if !ephemeron_queue.is_empty() {
-            ephemeron_queue = Self::mark_ephemerons(ephemeron_queue);
+            ephemeron_queue = unsafe { Self::mark_ephemerons(ephemeron_queue) };
         }
 
         // Any left over nodes in the ephemeron queue at this point are
@@ -243,11 +245,12 @@ impl Collector {
             // are reachable or unreachable<?>
             let (reachable, other): (Vec<_>, Vec<_>) =
                 ephemeron_queue.into_iter().partition(|node| {
-                    if node.as_ref().value.is_marked_ephemeron() {
-                        node.as_ref().header.mark();
+                    let node = unsafe { node.as_ref() };
+                    if node.value.is_marked_ephemeron() {
+                        node.header.mark();
                         true
                     } else {
-                        node.as_ref().header.roots() > 0
+                        node.header.roots() > 0
                     }
                 });
             // Replace the old queue with the unreachable<?>
@@ -263,7 +266,9 @@ impl Collector {
             // enqueuing any ephemeron that is found during the trace
             for node in reachable {
                 // TODO: deal with fetch ephemeron_queue
-                (*node.as_ptr()).weak_trace_inner();
+                unsafe {
+                    node.as_ref().weak_trace_inner();
+                }
             }
 
             EPHEMERON_QUEUE.with(|st| {
@@ -281,8 +286,9 @@ impl Collector {
             // We double check that the unreachable nodes are actually unreachable
             // prior to finalization as they could have been marked by a different
             // trace after initially being added to the queue
-            if !(*node.as_ptr()).header.is_marked() {
-                Trace::run_finalizer(&(*node.as_ptr()).value);
+            let node = unsafe { node.as_ref() };
+            if !node.header.is_marked() {
+                Trace::run_finalizer(&node.value);
             }
         }
     }
@@ -296,17 +302,17 @@ impl Collector {
 
         let mut sweep_head = heap_start;
         while let Some(node) = sweep_head.get() {
-            if (*node.as_ptr()).is_marked() {
-                (*node.as_ptr()).header.unmark();
-                sweep_head = &(*node.as_ptr()).header.next;
-            } else if (*node.as_ptr()).header.is_ephemeron() && (*node.as_ptr()).header.roots() > 0
-            {
+            let node_ref = unsafe { node.as_ref() };
+            if node_ref.is_marked() {
+                node_ref.header.unmark();
+                sweep_head = &node_ref.header.next;
+            } else if node_ref.header.is_ephemeron() && node_ref.header.roots() > 0 {
                 // Keep the ephemeron box's alive if rooted, but note that it's pointer is no longer safe
-                Trace::run_finalizer(&(*node.as_ptr()).value);
-                sweep_head = &(*node.as_ptr()).header.next;
+                Trace::run_finalizer(&node_ref.value);
+                sweep_head = &node_ref.header.next;
             } else {
                 // Drops occur here
-                let unmarked_node = Box::from_raw(node.as_ptr());
+                let unmarked_node = unsafe { Box::from_raw(node.as_ptr()) };
                 let unallocated_bytes = mem::size_of_val::<GcBox<_>>(&*unmarked_node);
                 *total_allocated -= unallocated_bytes;
                 sweep_head.set(unmarked_node.header.next.take());

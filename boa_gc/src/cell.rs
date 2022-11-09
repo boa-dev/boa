@@ -223,7 +223,7 @@ unsafe impl<T: Trace + ?Sized> Trace for GcCell<T> {
     unsafe fn trace(&self) {
         match self.flags.get().borrowed() {
             BorrowState::Writing => (),
-            _ => (*self.cell.get()).trace(),
+            _ => unsafe { (*self.cell.get()).trace() },
         }
     }
 
@@ -231,7 +231,7 @@ unsafe impl<T: Trace + ?Sized> Trace for GcCell<T> {
     unsafe fn weak_trace(&self) {
         match self.flags.get().borrowed() {
             BorrowState::Writing => (),
-            _ => (*self.cell.get()).weak_trace(),
+            _ => unsafe { (*self.cell.get()).weak_trace() },
         }
     }
 
@@ -241,7 +241,7 @@ unsafe impl<T: Trace + ?Sized> Trace for GcCell<T> {
 
         match self.flags.get().borrowed() {
             BorrowState::Writing => (),
-            _ => (*self.cell.get()).root(),
+            _ => unsafe { (*self.cell.get()).root() },
         }
     }
 
@@ -252,7 +252,7 @@ unsafe impl<T: Trace + ?Sized> Trace for GcCell<T> {
 
         match self.flags.get().borrowed() {
             BorrowState::Writing => (),
-            _ => (*self.cell.get()).unroot(),
+            _ => unsafe { (*self.cell.get()).unroot() },
         }
     }
 

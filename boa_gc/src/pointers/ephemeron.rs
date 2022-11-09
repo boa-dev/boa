@@ -84,6 +84,6 @@ unsafe impl<K: Trace, V: Trace> Trace for Ephemeron<K, V> {
 impl<K: Trace + ?Sized, V: Trace> Drop for Ephemeron<K, V> {
     #[inline]
     fn drop(&mut self) {
-        unsafe { self.inner().unroot_inner() }
+        self.inner().unroot_inner();
     }
 }

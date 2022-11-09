@@ -24,7 +24,7 @@
 mod common;
 
 use crate::{builtins::string::is_trimmable_whitespace, JsBigInt};
-use boa_gc::{unsafe_empty_trace, Finalize, Trace};
+use boa_gc::{empty_trace, Finalize, Trace};
 pub use boa_macros::utf16;
 
 use std::{
@@ -292,7 +292,7 @@ sa::assert_eq_size!(JsString, *const ());
 
 // Safety: `JsString` does not contain any objects which needs to be traced, so this is safe.
 unsafe impl Trace for JsString {
-    unsafe_empty_trace!();
+    empty_trace!();
 }
 
 impl JsString {

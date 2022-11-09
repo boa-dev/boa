@@ -30,44 +30,59 @@ fn derive_trace(mut s: Structure<'_>) -> proc_macro2::TokenStream {
     let trace_impl = s.unsafe_bound_impl(
         quote!(::boa_gc::Trace),
         quote! {
-            #[inline] unsafe fn trace(&self) {
+            #[inline]
+            unsafe fn trace(&self) {
                 #[allow(dead_code)]
                 #[inline]
-                unsafe fn mark<T: ::boa_gc::Trace + ?Sized>(it: &T) {
-                    ::boa_gc::Trace::trace(it);
+                fn mark<T: ::boa_gc::Trace + ?Sized>(it: &T) {
+                    unsafe {
+                        ::boa_gc::Trace::trace(it);
+                    }
                 }
                 match *self { #trace_body }
             }
-            #[inline] unsafe fn weak_trace(&self) {
+            #[inline]
+            unsafe fn weak_trace(&self) {
                 #[allow(dead_code, unreachable_code)]
                 #[inline]
-                unsafe fn mark<T: ::boa_gc::Trace + ?Sized>(it: &T) {
-                    ::boa_gc::Trace::weak_trace(it)
+                fn mark<T: ::boa_gc::Trace + ?Sized>(it: &T) {
+                    unsafe {
+                        ::boa_gc::Trace::weak_trace(it)
+                    }
                 }
                 match *self { #trace_body }
             }
-            #[inline] unsafe fn root(&self) {
+            #[inline]
+            unsafe fn root(&self) {
                 #[allow(dead_code)]
                 #[inline]
-                unsafe fn mark<T: ::boa_gc::Trace + ?Sized>(it: &T) {
-                    ::boa_gc::Trace::root(it);
+                fn mark<T: ::boa_gc::Trace + ?Sized>(it: &T) {
+                    unsafe {
+                        ::boa_gc::Trace::root(it);
+                    }
                 }
                 match *self { #trace_body }
             }
-            #[inline] unsafe fn unroot(&self) {
+            #[inline]
+            unsafe fn unroot(&self) {
                 #[allow(dead_code)]
                 #[inline]
-                unsafe fn mark<T: ::boa_gc::Trace + ?Sized>(it: &T) {
-                    ::boa_gc::Trace::unroot(it);
+                fn mark<T: ::boa_gc::Trace + ?Sized>(it: &T) {
+                    unsafe {
+                        ::boa_gc::Trace::unroot(it);
+                    }
                 }
                 match *self { #trace_body }
             }
-            #[inline] fn run_finalizer(&self) {
+            #[inline]
+            fn run_finalizer(&self) {
                 ::boa_gc::Finalize::finalize(self);
                 #[allow(dead_code)]
                 #[inline]
                 fn mark<T: ::boa_gc::Trace + ?Sized>(it: &T) {
-                    ::boa_gc::Trace::run_finalizer(it);
+                    unsafe {
+                        ::boa_gc::Trace::run_finalizer(it);
+                    }
                 }
                 match *self { #trace_body }
             }
