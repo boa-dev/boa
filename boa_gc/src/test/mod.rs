@@ -30,3 +30,8 @@ impl Harness {
         })
     }
 }
+
+fn run_test(test: impl FnOnce() + Send + 'static) {
+    let handle = std::thread::spawn(test);
+    handle.join().unwrap();
+}

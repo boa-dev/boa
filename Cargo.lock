@@ -154,19 +154,9 @@ dependencies = [
 name = "boa_gc"
 version = "0.16.0"
 dependencies = [
- "boa_gc_macros",
+ "boa_macros",
  "boa_profiler",
  "measureme",
-]
-
-[[package]]
-name = "boa_gc_macros"
-version = "0.16.0"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn",
- "synstructure",
 ]
 
 [[package]]
@@ -187,8 +177,10 @@ dependencies = [
 name = "boa_macros"
 version = "0.16.0"
 dependencies = [
+ "proc-macro2",
  "quote",
  "syn",
+ "synstructure",
 ]
 
 [[package]]
