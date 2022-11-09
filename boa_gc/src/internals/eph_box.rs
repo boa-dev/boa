@@ -1,18 +1,17 @@
-//! This module will implement the internal types GcBox and Ephemeron
 use crate::trace::Trace;
 use crate::{finalizer_safe, GcBox};
 use crate::{Finalize, Gc};
 use std::cell::Cell;
 use std::ptr::NonNull;
 
-/// Implementation of an Ephemeron cell
+/// The inner allocation of an [`Ephemeron`][crate::Ephemeron] pointer.
 pub(crate) struct EphemeronBox<K: Trace + ?Sized + 'static, V: Trace + ?Sized + 'static> {
     key: Cell<Option<NonNull<GcBox<K>>>>,
     value: V,
 }
 
 impl<K: Trace + ?Sized, V: Trace> EphemeronBox<K, V> {
-    pub fn new(key: &Gc<K>, value: V) -> Self {
+    pub(crate) fn new(key: &Gc<K>, value: V) -> Self {
         EphemeronBox {
             key: Cell::new(Some(key.inner_ptr())),
             value,
@@ -33,7 +32,7 @@ impl<K: Trace + ?Sized, V: Trace + ?Sized> EphemeronBox<K, V> {
     #[inline]
     fn inner_key_ptr(&self) -> Option<*mut GcBox<K>> {
         assert!(finalizer_safe());
-        self.key.get().map(|key_node| key_node.as_ptr())
+        self.key.get().map(NonNull::as_ptr)
     }
 
     #[inline]
@@ -48,7 +47,7 @@ impl<K: Trace + ?Sized, V: Trace + ?Sized> EphemeronBox<K, V> {
     }
 
     #[inline]
-    pub fn key(&self) -> Option<&K> {
+    pub(crate) fn key(&self) -> Option<&K> {
         if let Some(key_box) = self.inner_key() {
             Some(key_box.value())
         } else {
@@ -57,27 +56,27 @@ impl<K: Trace + ?Sized, V: Trace + ?Sized> EphemeronBox<K, V> {
     }
 
     #[inline]
-    pub fn value(&self) -> &V {
+    pub(crate) fn value(&self) -> &V {
         &self.value
     }
 
     #[inline]
     unsafe fn weak_trace_key(&self) {
         if let Some(key) = self.inner_key() {
-            key.weak_trace_inner()
+            key.weak_trace_inner();
         }
     }
 
     #[inline]
     unsafe fn weak_trace_value(&self) {
-        self.value().weak_trace()
+        self.value().weak_trace();
     }
 }
 
 impl<K: Trace + ?Sized, V: Trace + ?Sized> Finalize for EphemeronBox<K, V> {
     #[inline]
     fn finalize(&self) {
-        self.key.set(None)
+        self.key.set(None);
     }
 }
 
@@ -113,6 +112,6 @@ unsafe impl<K: Trace + ?Sized, V: Trace + ?Sized> Trace for EphemeronBox<K, V> {
 
     #[inline]
     fn run_finalizer(&self) {
-        Finalize::finalize(self)
+        Finalize::finalize(self);
     }
 }

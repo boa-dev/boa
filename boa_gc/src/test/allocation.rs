@@ -27,5 +27,5 @@ fn gc_basic_pointer_alloc() {
         force_collect();
         Harness::assert_collections(2);
         Harness::assert_empty_gc();
-    })
+    });
 }

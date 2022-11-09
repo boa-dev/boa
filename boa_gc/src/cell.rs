@@ -34,10 +34,7 @@ impl BorrowFlag {
     }
 
     pub(crate) fn rooted(self) -> bool {
-        match self.0 & ROOT {
-            0 => false,
-            _ => true,
-        }
+        self.0 & ROOT > 0
     }
 
     pub(crate) fn set_writing(self) -> Self {
@@ -57,7 +54,14 @@ impl BorrowFlag {
         // this is equivalent to the following, more complicated, expression:
         //
         // BorrowFlag((self.0 & ROOT) | (((self.0 >> 1) + 1) << 1))
-        BorrowFlag(self.0 + 0b10)
+        let flags = BorrowFlag(self.0 + 0b10);
+
+        // This will fail if the borrow count overflows, which shouldn't happen,
+        // but let's be safe
+        {
+            assert!(flags.borrowed() == BorrowState::Reading);
+        }
+        flags
     }
 
     pub(crate) fn sub_reading(self) -> Self {
@@ -73,7 +77,7 @@ impl BorrowFlag {
 
     pub(crate) fn set_rooted(self, rooted: bool) -> Self {
         // Preserve the non-root bits
-        BorrowFlag((self.0 & !ROOT) | (rooted as usize))
+        BorrowFlag((self.0 & !ROOT) | (usize::from(rooted)))
     }
 }
 
@@ -144,15 +148,14 @@ impl<T: Trace + ?Sized> GcCell<T> {
     ///
     /// This is the non-panicking variant of [`borrow`](#method.borrow).
     ///
+    /// # Errors
+    ///
+    /// Returns an `Err` if the value is currently mutably borrowed.
     pub fn try_borrow(&self) -> Result<GcCellRef<'_, T>, BorrowError> {
         if self.flags.get().borrowed() == BorrowState::Writing {
             return Err(BorrowError);
         }
         self.flags.set(self.flags.get().add_reading());
-
-        // This will fail if the borrow count overflows, which shouldn't happen,
-        // but let's be safe
-        assert!(self.flags.get().borrowed() == BorrowState::Reading);
 
         unsafe {
             Ok(GcCellRef {
@@ -168,6 +171,10 @@ impl<T: Trace + ?Sized> GcCell<T> {
     /// The value cannot be borrowed while this borrow is active.
     ///
     /// This is the non-panicking variant of [`borrow_mut`](#method.borrow_mut).
+    ///
+    /// # Errors
+    ///
+    /// Returns an `Err` if the value is currently borrowed.
     pub fn try_borrow_mut(&self) -> Result<GcCellRefMut<'_, T>, BorrowMutError> {
         if self.flags.get().borrowed() != BorrowState::Unused {
             return Err(BorrowMutError);
@@ -193,7 +200,7 @@ impl<T: Trace + ?Sized> GcCell<T> {
 #[derive(Debug, Clone, Copy, Eq, PartialEq, Ord, PartialOrd, Default, Hash)]
 pub struct BorrowError;
 
-impl std::fmt::Display for BorrowError {
+impl Display for BorrowError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         Display::fmt("GcCell<T> already mutably borrowed", f)
     }
@@ -203,7 +210,7 @@ impl std::fmt::Display for BorrowError {
 #[derive(Debug, Clone, Copy, Eq, PartialEq, Ord, PartialOrd, Default, Hash)]
 pub struct BorrowMutError;
 
-impl std::fmt::Display for BorrowMutError {
+impl Display for BorrowMutError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         Display::fmt("GcCell<T> already borrowed", f)
     }
@@ -275,6 +282,8 @@ impl<'a, T: ?Sized> GcCellRef<'a, T> {
     /// would interfere with the use of `c.borrow().clone()` to clone
     /// the contents of a `GcCell`.
     #[inline]
+    #[allow(clippy::should_implement_trait)]
+    #[must_use]
     pub fn clone(orig: &GcCellRef<'a, T>) -> GcCellRef<'a, T> {
         orig.flags.set(orig.flags.get().add_reading());
         GcCellRef {
@@ -312,7 +321,7 @@ impl<'a, T: ?Sized> GcCellRef<'a, T> {
     ///
     /// The `GcCell` is already immutably borrowed, so this cannot fail.
     ///
-    /// This is an associated function that needs to be used as GcCellRef::map_split(...).
+    /// This is an associated function that needs to be used as `GcCellRef::map_split(...)`.
     /// A method would interfere with methods of the same name on the contents of a `GcCellRef` used through `Deref`.
     #[inline]
     pub fn map_split<U, V, F>(orig: Self, f: F) -> (GcCellRef<'a, U>, GcCellRef<'a, V>)
@@ -443,7 +452,7 @@ impl<'a, T: Trace + ?Sized, U: ?Sized> Drop for GcCellRefMut<'a, T, U> {
 
 impl<'a, T: Trace + ?Sized, U: Debug + ?Sized> Debug for GcCellRefMut<'a, T, U> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        Debug::fmt(&*(self.deref()), f)
+        Debug::fmt(&**self, f)
     }
 }
 
@@ -469,6 +478,7 @@ impl<T: Trace + Default> Default for GcCell<T> {
     }
 }
 
+#[allow(clippy::inline_always)]
 impl<T: Trace + ?Sized + PartialEq> PartialEq for GcCell<T> {
     #[inline(always)]
     fn eq(&self, other: &Self) -> bool {
@@ -478,6 +488,7 @@ impl<T: Trace + ?Sized + PartialEq> PartialEq for GcCell<T> {
 
 impl<T: Trace + ?Sized + Eq> Eq for GcCell<T> {}
 
+#[allow(clippy::inline_always)]
 impl<T: Trace + ?Sized + PartialOrd> PartialOrd for GcCell<T> {
     #[inline(always)]
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {

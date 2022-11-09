@@ -20,7 +20,7 @@ fn eph_weak_gc_test() {
             drop(gc_value);
             force_collect();
 
-            assert!(weak.value().is_none())
+            assert!(weak.value().is_none());
         }
     });
 }

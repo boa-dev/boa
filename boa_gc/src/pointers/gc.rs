@@ -4,7 +4,7 @@ use std::fmt::{self, Debug, Display};
 use std::hash::{Hash, Hasher};
 use std::marker::PhantomData;
 use std::ops::Deref;
-use std::ptr::{self, NonNull};
+use std::ptr::{self, addr_of_mut, NonNull};
 use std::rc::Rc;
 
 use crate::internals::GcBox;
@@ -12,7 +12,7 @@ use crate::trace::{Finalize, Trace};
 use crate::{finalizer_safe, Allocator};
 
 pub(crate) unsafe fn set_data_ptr<T: ?Sized, U>(mut ptr: *mut T, data: *mut U) -> *mut T {
-    ptr::write(&mut ptr as *mut _ as *mut *mut u8, data as *mut u8);
+    ptr::write(addr_of_mut!(ptr).cast::<*mut u8>(), data.cast::<u8>());
     ptr
 }
 
@@ -28,7 +28,7 @@ impl<T: Trace> Gc<T> {
         // Create GcBox and allocate it to heap.
         //
         // Note: Allocator can cause Collector to run
-        let inner_ptr = Allocator::new(GcBox::new(value));
+        let inner_ptr = Allocator::allocate(GcBox::new(value));
         unsafe { (*inner_ptr.as_ptr()).value().unroot() }
         let gc = Self {
             inner_ptr: Cell::new(inner_ptr),
@@ -51,7 +51,7 @@ pub(crate) unsafe fn clear_root_bit<T: ?Sized + Trace>(
     ptr: NonNull<GcBox<T>>,
 ) -> NonNull<GcBox<T>> {
     let ptr = ptr.as_ptr();
-    let data = ptr as *mut u8;
+    let data = ptr.cast::<u8>();
     let addr = data as isize;
     let ptr = set_data_ptr(ptr, data.wrapping_offset((addr & !1) - addr));
     NonNull::new_unchecked(ptr)
@@ -59,12 +59,12 @@ pub(crate) unsafe fn clear_root_bit<T: ?Sized + Trace>(
 
 impl<T: Trace + ?Sized> Gc<T> {
     fn rooted(&self) -> bool {
-        self.inner_ptr.get().as_ptr() as *mut u8 as usize & 1 != 0
+        self.inner_ptr.get().as_ptr().cast::<u8>() as usize & 1 != 0
     }
 
     unsafe fn set_root(&self) {
         let ptr = self.inner_ptr.get().as_ptr();
-        let data = ptr as *mut u8;
+        let data = ptr.cast::<u8>();
         let addr = data as isize;
         let ptr = set_data_ptr(ptr, data.wrapping_offset((addr | 1) - addr));
         self.inner_ptr.set(NonNull::new_unchecked(ptr));
@@ -170,6 +170,7 @@ impl<T: Trace + Default> Default for Gc<T> {
     }
 }
 
+#[allow(clippy::inline_always)]
 impl<T: Trace + ?Sized + PartialEq> PartialEq for Gc<T> {
     #[inline(always)]
     fn eq(&self, other: &Self) -> bool {
@@ -179,6 +180,7 @@ impl<T: Trace + ?Sized + PartialEq> PartialEq for Gc<T> {
 
 impl<T: Trace + ?Sized + Eq> Eq for Gc<T> {}
 
+#[allow(clippy::inline_always)]
 impl<T: Trace + ?Sized + PartialOrd> PartialOrd for Gc<T> {
     #[inline(always)]
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
@@ -239,12 +241,12 @@ impl<T: Trace + ?Sized> fmt::Pointer for Gc<T> {
 
 impl<T: Trace + ?Sized> std::borrow::Borrow<T> for Gc<T> {
     fn borrow(&self) -> &T {
-        &**self
+        self
     }
 }
 
-impl<T: Trace + ?Sized> std::convert::AsRef<T> for Gc<T> {
+impl<T: Trace + ?Sized> AsRef<T> for Gc<T> {
     fn as_ref(&self) -> &T {
-        &**self
+        self
     }
 }

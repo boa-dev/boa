@@ -1,15 +1,46 @@
 //! Garbage collector for the Boa JavaScript engine.
 
+#![warn(
+    clippy::perf,
+    clippy::single_match_else,
+    clippy::dbg_macro,
+    clippy::doc_markdown,
+    clippy::wildcard_imports,
+    clippy::struct_excessive_bools,
+    clippy::doc_markdown,
+    clippy::semicolon_if_nothing_returned,
+    clippy::pedantic
+)]
+#![deny(
+    clippy::all,
+    clippy::cast_lossless,
+    clippy::redundant_closure_for_method_calls,
+    clippy::unnested_or_patterns,
+    clippy::trivially_copy_pass_by_ref,
+    clippy::needless_pass_by_value,
+    clippy::match_wildcard_for_single_variants,
+    clippy::map_unwrap_or,
+    unused_qualifications,
+    unused_import_braces,
+    unused_lifetimes,
+    unreachable_pub,
+    trivial_numeric_casts,
+    rustdoc::broken_intra_doc_links,
+    missing_debug_implementations,
+    missing_copy_implementations,
+    deprecated_in_future,
+    meta_variable_misuse,
+    non_ascii_idents,
+    rust_2018_compatibility,
+    rust_2018_idioms,
+    future_incompatible,
+    nonstandard_style,
+    missing_docs
+)]
 #![allow(
     clippy::let_unit_value,
-    clippy::should_implement_trait,
-    clippy::match_like_matches_macro,
-    clippy::new_ret_no_self,
-    clippy::needless_bool,
-    // Putting the below on the allow list for now, but these should eventually be addressed
     clippy::missing_safety_doc,
-    clippy::explicit_auto_deref,
-    clippy::borrow_deref_ref,
+    clippy::module_name_repetitions
 )]
 
 extern crate self as boa_gc;
@@ -19,7 +50,7 @@ use std::cell::{Cell, RefCell};
 use std::mem;
 use std::ptr::NonNull;
 
-pub mod trace;
+mod trace;
 
 pub(crate) mod internals;
 
@@ -44,8 +75,8 @@ thread_local!(static BOA_GC: RefCell<BoaGc> = RefCell::new( BoaGc {
 }));
 
 struct GcConfig {
-    adult_threshold: usize,
-    growth_ratio: f64,
+    threshold: usize,
+    used_space_percentage: usize,
 }
 
 // Setting the defaults to an arbitrary value currently.
@@ -54,8 +85,8 @@ struct GcConfig {
 impl Default for GcConfig {
     fn default() -> Self {
         Self {
-            adult_threshold: 1024,
-            growth_ratio: 0.8,
+            threshold: 1024,
+            used_space_percentage: 80,
         }
     }
 }
@@ -63,7 +94,7 @@ impl Default for GcConfig {
 #[derive(Default)]
 struct GcRuntimeData {
     collections: usize,
-    total_bytes_allocated: usize,
+    bytes_allocated: usize,
 }
 
 struct BoaGc {
@@ -95,6 +126,8 @@ impl Drop for DropGuard {
     }
 }
 
+/// Returns `true` if it is safe for a type to run [`Finalize::finalize`].
+#[must_use]
 pub fn finalizer_safe() -> bool {
     GC_DROPPING.with(|dropping| !dropping.get())
 }
@@ -105,7 +138,7 @@ pub fn finalizer_safe() -> bool {
 struct Allocator;
 
 impl Allocator {
-    fn new<T: Trace>(value: GcBox<T>) -> NonNull<GcBox<T>> {
+    fn allocate<T: Trace>(value: GcBox<T>) -> NonNull<GcBox<T>> {
         let _timer = Profiler::global().start_event("New Pointer", "BoaAlloc");
         let element_size = mem::size_of_val::<GcBox<T>>(&value);
         BOA_GC.with(|st| {
@@ -116,21 +149,21 @@ impl Allocator {
             let ptr = unsafe { NonNull::new_unchecked(Box::into_raw(Box::from(value))) };
 
             gc.adult_start.set(Some(ptr));
-            gc.runtime.total_bytes_allocated += element_size;
+            gc.runtime.bytes_allocated += element_size;
 
             ptr
         })
     }
 
     fn manage_state(gc: &mut BoaGc) {
-        if gc.runtime.total_bytes_allocated > gc.config.adult_threshold {
+        if gc.runtime.bytes_allocated > gc.config.threshold {
             Collector::run_full_collection(gc);
 
-            if gc.runtime.total_bytes_allocated as f64
-                > gc.config.adult_threshold as f64 * gc.config.growth_ratio
+            if gc.runtime.bytes_allocated
+                > gc.config.threshold / 100 * gc.config.used_space_percentage
             {
-                gc.config.adult_threshold =
-                    (gc.runtime.total_bytes_allocated as f64 / gc.config.growth_ratio) as usize
+                gc.config.threshold =
+                    gc.runtime.bytes_allocated / gc.config.used_space_percentage * 100;
             }
         }
     }
@@ -147,7 +180,7 @@ impl Allocator {
 // A better approach in a more concurrent structure may be to reorder.
 //
 // Mark -> Sweep -> Finalize
-pub struct Collector;
+struct Collector;
 
 impl Collector {
     fn run_full_collection(gc: &mut BoaGc) {
@@ -163,7 +196,7 @@ impl Collector {
         let _final_unreachable_adults = unsafe { Self::mark_heap(&gc.adult_start) };
 
         unsafe {
-            Self::sweep(&gc.adult_start, &mut gc.runtime.total_bytes_allocated);
+            Self::sweep(&gc.adult_start, &mut gc.runtime.bytes_allocated);
         }
     }
 
@@ -181,7 +214,7 @@ impl Collector {
             } else if (*node.as_ptr()).header.roots() > 0 {
                 (*node.as_ptr()).trace_inner();
             } else {
-                finalize.push(node)
+                finalize.push(node);
             }
             mark_head = &(*node.as_ptr()).header.next;
         }
@@ -213,10 +246,8 @@ impl Collector {
                     if node.as_ref().value.is_marked_ephemeron() {
                         node.as_ref().header.mark();
                         true
-                    } else if node.as_ref().header.roots() > 0 {
-                        true
                     } else {
-                        false
+                        node.as_ref().header.roots() > 0
                     }
                 });
             // Replace the old queue with the unreachable<?>
@@ -224,23 +255,22 @@ impl Collector {
 
             // If reachable nodes is not empty, trace values. If it is empty,
             // break from the loop
-            if !reachable.is_empty() {
-                EPHEMERON_QUEUE.with(|state| state.set(Some(Vec::new())));
-                // iterate through reachable nodes and trace their values,
-                // enqueuing any ephemeron that is found during the trace
-                for node in reachable {
-                    // TODO: deal with fetch ephemeron_queue
-                    (*node.as_ptr()).weak_trace_inner()
-                }
-
-                EPHEMERON_QUEUE.with(|st| {
-                    if let Some(found_nodes) = st.take() {
-                        ephemeron_queue.extend(found_nodes)
-                    }
-                })
-            } else {
+            if reachable.is_empty() {
                 break;
             }
+            EPHEMERON_QUEUE.with(|state| state.set(Some(Vec::new())));
+            // iterate through reachable nodes and trace their values,
+            // enqueuing any ephemeron that is found during the trace
+            for node in reachable {
+                // TODO: deal with fetch ephemeron_queue
+                (*node.as_ptr()).weak_trace_inner();
+            }
+
+            EPHEMERON_QUEUE.with(|st| {
+                if let Some(found_nodes) = st.take() {
+                    ephemeron_queue.extend(found_nodes);
+                }
+            });
         }
         ephemeron_queue
     }
@@ -252,7 +282,7 @@ impl Collector {
             // prior to finalization as they could have been marked by a different
             // trace after initially being added to the queue
             if !(*node.as_ptr()).header.is_marked() {
-                Trace::run_finalizer(&(*node.as_ptr()).value)
+                Trace::run_finalizer(&(*node.as_ptr()).value);
             }
         }
     }
@@ -298,19 +328,15 @@ impl Collector {
     }
 }
 
-// A utility function that forces runs through Collector method based off the state.
-//
-// Note:
-//  - This method is meant solely for testing purposes only
-//  - `force_collect` will not extend threshold
+/// Forcefully runs a garbage collection of all unaccessible nodes.
 pub fn force_collect() {
     BOA_GC.with(|current| {
         let mut gc = current.borrow_mut();
 
-        if gc.runtime.total_bytes_allocated > 0 {
-            Collector::run_full_collection(&mut *gc)
+        if gc.runtime.bytes_allocated > 0 {
+            Collector::run_full_collection(&mut gc);
         }
-    })
+    });
 }
 
 #[cfg(test)]

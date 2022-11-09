@@ -13,9 +13,9 @@ use std::sync::atomic::{
     AtomicU64, AtomicU8, AtomicUsize,
 };
 
-/// The Finalize trait, which needs to be implemented on
-/// garbage-collected objects to define finalization logic.
+/// Substitute for the [`Drop`] trait for garbage collected types.
 pub trait Finalize {
+    /// Cleanup logic for a type.
     fn finalize(&self) {}
 }
 
@@ -40,12 +40,12 @@ pub unsafe trait Trace: Finalize {
     /// Decrements the root-count of all contained `Gc`s.
     unsafe fn unroot(&self);
 
-    /// Runs Finalize::finalize() on this object and all
+    /// Runs [`Finalize::finalize`] on this object and all
     /// contained subobjects
     fn run_finalizer(&self);
 }
 
-/// This rule implements the trace methods with empty implementations.
+/// Utility macro to define an empty implementation of [`Trace`].
 ///
 /// Use this for marking types as not containing any `Trace` types.
 #[macro_export]
@@ -66,7 +66,7 @@ macro_rules! unsafe_empty_trace {
     };
 }
 
-/// This rule implements the trace method.
+/// Utility macro to manually implement [`Trace`] on a type.
 ///
 /// You define a `this` parameter name and pass in a body, which should call `mark` on every
 /// traceable element inside the body. The mark implementation will automatically delegate to the
@@ -112,11 +112,11 @@ macro_rules! custom_trace {
         }
         #[inline]
         fn run_finalizer(&self) {
-            $crate::Finalize::finalize(self);
             #[inline]
             fn mark<T: $crate::Trace + ?Sized>(it: &T) {
                 $crate::Trace::run_finalizer(it);
             }
+            $crate::Finalize::finalize(self);
             let $this = self;
             $body
         }

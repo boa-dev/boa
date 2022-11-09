@@ -15,7 +15,7 @@ pub(crate) struct GcBoxHeader {
 
 impl GcBoxHeader {
     #[inline]
-    pub fn new() -> Self {
+    pub(crate) fn new() -> Self {
         GcBoxHeader {
             roots: Cell::new(1),
             next: Cell::new(None),
@@ -23,7 +23,7 @@ impl GcBoxHeader {
     }
 
     #[inline]
-    pub fn new_weak() -> Self {
+    pub(crate) fn new_weak() -> Self {
         // Set weak_flag
         GcBoxHeader {
             roots: Cell::new(WEAK_MASK | 1),
@@ -32,12 +32,12 @@ impl GcBoxHeader {
     }
 
     #[inline]
-    pub fn roots(&self) -> usize {
+    pub(crate) fn roots(&self) -> usize {
         self.roots.get() & ROOTS_MASK
     }
 
     #[inline]
-    pub fn inc_roots(&self) {
+    pub(crate) fn inc_roots(&self) {
         let roots = self.roots.get();
 
         if (roots & ROOTS_MASK) < ROOTS_MAX {
@@ -49,39 +49,38 @@ impl GcBoxHeader {
     }
 
     #[inline]
-    pub fn dec_roots(&self) {
+    pub(crate) fn dec_roots(&self) {
         // Underflow check as a stop gap for current issue when dropping
         if self.roots.get() > 0 {
-            self.roots.set(self.roots.get() - 1)
+            self.roots.set(self.roots.get() - 1);
         }
     }
 
     #[inline]
-    pub fn is_marked(&self) -> bool {
+    pub(crate) fn is_marked(&self) -> bool {
         self.roots.get() & MARK_MASK != 0
     }
 
     #[inline]
-    pub fn mark(&self) {
-        self.roots.set(self.roots.get() | MARK_MASK)
+    pub(crate) fn mark(&self) {
+        self.roots.set(self.roots.get() | MARK_MASK);
     }
 
     #[inline]
-    pub fn unmark(&self) {
-        self.roots.set(self.roots.get() & !MARK_MASK)
+    pub(crate) fn unmark(&self) {
+        self.roots.set(self.roots.get() & !MARK_MASK);
     }
 
     #[inline]
-    pub fn is_ephemeron(&self) -> bool {
+    pub(crate) fn is_ephemeron(&self) -> bool {
         self.roots.get() & WEAK_MASK != 0
     }
 }
 
 // NOTE: [repr(C)] is most likely unneeded here, but will keep it for now
-/// The GcBox represents a box on `BoaGc`'s heap. The GcBox's creation and allocation is handled
-/// by the allocator
+/// A garbage collected allocation.
 #[repr(C)]
-pub struct GcBox<T: Trace + ?Sized + 'static> {
+pub(crate) struct GcBox<T: Trace + ?Sized + 'static> {
     pub(crate) header: GcBoxHeader,
     pub(crate) value: T,
 }
