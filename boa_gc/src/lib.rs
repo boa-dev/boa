@@ -133,7 +133,7 @@ pub fn finalizer_safe() -> bool {
 
 /// The Allocator handles allocation of garbage collected values.
 ///
-/// The allocator can trigger a garbage collection
+/// The allocator can trigger a garbage collection.
 struct Allocator;
 
 impl Allocator {
@@ -280,12 +280,17 @@ impl Collector {
         ephemeron_queue
     }
 
+    /// # Safety
+    ///
+    /// Passing a vec with invalid pointers will result in Undefined Behaviour.
     unsafe fn finalize(finalize_vec: Vec<NonNull<GcBox<dyn Trace>>>) {
         let _timer = Profiler::global().start_event("Gc Finalization", "gc");
         for node in finalize_vec {
             // We double check that the unreachable nodes are actually unreachable
             // prior to finalization as they could have been marked by a different
             // trace after initially being added to the queue
+            //
+            // SAFETY: The caller must ensure all pointers inside `finalize_vec` are valid.
             let node = unsafe { node.as_ref() };
             if !node.header.is_marked() {
                 Trace::run_finalizer(&node.value);
@@ -293,6 +298,12 @@ impl Collector {
         }
     }
 
+    /// # Safety
+    ///
+    /// - Providing an invalid pointer in the `heap_start` or in any of the headers of each
+    /// node will result in Undefined Behaviour.
+    /// - Providing a list of pointers that weren't allocated by `Box::into_raw(Box::new(..))`
+    /// will result in Undefined Behaviour.
     unsafe fn sweep(
         heap_start: &Cell<Option<NonNull<GcBox<dyn Trace>>>>,
         total_allocated: &mut usize,
@@ -302,6 +313,7 @@ impl Collector {
 
         let mut sweep_head = heap_start;
         while let Some(node) = sweep_head.get() {
+            // SAFETY: The caller must ensure the validity of every node of `heap_start`.
             let node_ref = unsafe { node.as_ref() };
             if node_ref.is_marked() {
                 node_ref.header.unmark();
@@ -311,7 +323,8 @@ impl Collector {
                 Trace::run_finalizer(&node_ref.value);
                 sweep_head = &node_ref.header.next;
             } else {
-                // Drops occur here
+                // SAFETY: The algorithm ensures only unmarked/unreachable pointers are dropped.
+                // The caller must ensure all pointers were allocated by `Box::into_raw(Box::new(..))`.
                 let unmarked_node = unsafe { Box::from_raw(node.as_ptr()) };
                 let unallocated_bytes = mem::size_of_val::<GcBox<_>>(&*unmarked_node);
                 *total_allocated -= unallocated_bytes;
@@ -327,7 +340,9 @@ impl Collector {
 
         let sweep_head = &gc.adult_start;
         while let Some(node) = sweep_head.get() {
-            // Drops every node
+            // SAFETY:
+            // The `Allocator` must always ensure its start node is a valid, non-null pointer that
+            // was allocated by `Box::from_raw(Box::new(..))`.
             let unmarked_node = unsafe { Box::from_raw(node.as_ptr()) };
             sweep_head.set(unmarked_node.header.next.take());
         }
