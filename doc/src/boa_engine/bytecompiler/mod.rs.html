@@ -3723,6 +3723,17 @@
 <span id="3721">3721</span>
 <span id="3722">3722</span>
 <span id="3723">3723</span>
+<span id="3724">3724</span>
+<span id="3725">3725</span>
+<span id="3726">3726</span>
+<span id="3727">3727</span>
+<span id="3728">3728</span>
+<span id="3729">3729</span>
+<span id="3730">3730</span>
+<span id="3731">3731</span>
+<span id="3732">3732</span>
+<span id="3733">3733</span>
+<span id="3734">3734</span>
 </pre><pre class="rust"><code><span class="kw">mod </span>function;
 
 <span class="kw">use crate</span>::{
@@ -3959,6 +3970,7 @@
     bindings_map: FxHashMap&lt;BindingLocator, u32&gt;,
     jump_info: Vec&lt;JumpControlInfo&gt;,
     in_async_generator: bool,
+    json_parse: bool,
     context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span><span class="kw-2">mut </span>Context,
 }
 
@@ -3967,7 +3979,7 @@
     </span><span class="kw">const </span>DUMMY_ADDRESS: u32 = u32::MAX;
 
     <span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>new(name: Sym, strict: bool, context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span><span class="kw-2">mut </span>Context) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>new(name: Sym, strict: bool, json_parse: bool, context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span><span class="kw-2">mut </span>Context) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             code_block: CodeBlock::new(name, <span class="number">0</span>, strict),
             literals_map: FxHashMap::default(),
@@ -3975,6 +3987,7 @@
             bindings_map: FxHashMap::default(),
             jump_info: Vec::new(),
             in_async_generator: <span class="bool-val">false</span>,
+            json_parse,
             context,
         }
     }
@@ -4925,13 +4938,18 @@
                     <span class="kw">match </span>property {
                         PropertyDefinition::IdentifierReference(ident) =&gt; {
                             <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_name(<span class="kw-2">*</span>ident);
+                            <span class="self">self</span>.access_get(Access::Variable { name: <span class="kw-2">*</span>ident }, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
                             <span class="self">self</span>.emit(Opcode::DefineOwnPropertyByName, <span class="kw-2">&amp;</span>[index]);
                         }
                         PropertyDefinition::Property(name, expr) =&gt; <span class="kw">match </span>name {
                             PropertyName::Literal(name) =&gt; {
                                 <span class="self">self</span>.compile_expr(expr, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
                                 <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_name((<span class="kw-2">*</span>name).into());
-                                <span class="self">self</span>.emit(Opcode::DefineOwnPropertyByName, <span class="kw-2">&amp;</span>[index]);
+                                <span class="kw">if </span><span class="kw-2">*</span>name == Sym::__PROTO__ &amp;&amp; !<span class="self">self</span>.json_parse {
+                                    <span class="self">self</span>.emit_opcode(Opcode::SetPrototype);
+                                } <span class="kw">else </span>{
+                                    <span class="self">self</span>.emit(Opcode::DefineOwnPropertyByName, <span class="kw-2">&amp;</span>[index]);
+                                }
                             }
                             PropertyName::Computed(name_node) =&gt; {
                                 <span class="self">self</span>.compile_expr(name_node, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
@@ -6950,6 +6968,7 @@
             bindings_map: FxHashMap::default(),
             jump_info: Vec::new(),
             in_async_generator: <span class="bool-val">false</span>,
+            json_parse: <span class="self">self</span>.json_parse,
             context: <span class="self">self</span>.context,
         };
         compiler.context.push_compile_time_environment(<span class="bool-val">true</span>);
@@ -7192,6 +7211,7 @@
                         bindings_map: FxHashMap::default(),
                         jump_info: Vec::new(),
                         in_async_generator: <span class="bool-val">false</span>,
+                        json_parse: <span class="self">self</span>.json_parse,
                         context: <span class="self">self</span>.context,
                     };
                     field_compiler.context.push_compile_time_environment(<span class="bool-val">true</span>);
@@ -7223,6 +7243,7 @@
                         bindings_map: FxHashMap::default(),
                         jump_info: Vec::new(),
                         in_async_generator: <span class="bool-val">false</span>,
+                        json_parse: <span class="self">self</span>.json_parse,
                         context: <span class="self">self</span>.context,
                     };
                     field_compiler.context.push_compile_time_environment(<span class="bool-val">true</span>);
@@ -7279,7 +7300,8 @@
                 }
                 ClassElement::StaticBlock(statement_list) =&gt; {
                     <span class="self">self</span>.emit_opcode(Opcode::Dup);
-                    <span class="kw">let </span><span class="kw-2">mut </span>compiler = ByteCompiler::new(Sym::EMPTY_STRING, <span class="bool-val">true</span>, <span class="self">self</span>.context);
+                    <span class="kw">let </span><span class="kw-2">mut </span>compiler =
+                        ByteCompiler::new(Sym::EMPTY_STRING, <span class="bool-val">true</span>, <span class="bool-val">false</span>, <span class="self">self</span>.context);
                     compiler.context.push_compile_time_environment(<span class="bool-val">true</span>);
                     compiler.create_decls(statement_list, <span class="bool-val">false</span>);
                     compiler.compile_statement_list(statement_list, <span class="bool-val">false</span>, <span class="bool-val">false</span>)<span class="question-mark">?</span>;

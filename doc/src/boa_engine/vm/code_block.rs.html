@@ -1575,6 +1575,7 @@
 <span id="1573">1573</span>
 <span id="1574">1574</span>
 <span id="1575">1575</span>
+<span id="1576">1576</span>
 </pre><pre class="rust"><code><span class="doccomment">//! `CodeBlock`
 //!
 //! This module is for the `CodeBlock` which implements a function representation in the VM
@@ -1970,6 +1971,7 @@
             | Opcode::NewSpread
             | Opcode::SuperCallSpread
             | Opcode::ForAwaitOfLoopIterate
+            | Opcode::SetPrototype
             | Opcode::Nop =&gt; String::new(),
         }
     }

@@ -224,6 +224,7 @@
 <span id="222">222</span>
 <span id="223">223</span>
 <span id="224">224</span>
+<span id="225">225</span>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     builtins::function::ThisMode,
     bytecompiler::ByteCompiler,
@@ -333,6 +334,7 @@
             bindings_map: FxHashMap::default(),
             jump_info: Vec::new(),
             in_async_generator: <span class="self">self</span>.generator &amp;&amp; <span class="self">self</span>.r#async,
+            json_parse: <span class="bool-val">false</span>,
             context,
         };
 

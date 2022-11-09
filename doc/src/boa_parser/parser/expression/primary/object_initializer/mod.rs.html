@@ -945,6 +945,36 @@
 <span id="945">945</span>
 <span id="946">946</span>
 <span id="947">947</span>
+<span id="948">948</span>
+<span id="949">949</span>
+<span id="950">950</span>
+<span id="951">951</span>
+<span id="952">952</span>
+<span id="953">953</span>
+<span id="954">954</span>
+<span id="955">955</span>
+<span id="956">956</span>
+<span id="957">957</span>
+<span id="958">958</span>
+<span id="959">959</span>
+<span id="960">960</span>
+<span id="961">961</span>
+<span id="962">962</span>
+<span id="963">963</span>
+<span id="964">964</span>
+<span id="965">965</span>
+<span id="966">966</span>
+<span id="967">967</span>
+<span id="968">968</span>
+<span id="969">969</span>
+<span id="970">970</span>
+<span id="971">971</span>
+<span id="972">972</span>
+<span id="973">973</span>
+<span id="974">974</span>
+<span id="975">975</span>
+<span id="976">976</span>
+<span id="977">977</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Object initializer parsing.
 //!
 //! More information:
@@ -1022,15 +1052,34 @@
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;ObjectLiteral&quot;</span>, <span class="string">&quot;Parsing&quot;</span>);
         <span class="kw">let </span><span class="kw-2">mut </span>elements = Vec::new();
 
+        <span class="kw">let </span><span class="kw-2">mut </span>has_proto = <span class="bool-val">false</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>duplicate_proto_position = <span class="prelude-val">None</span>;
+
         <span class="kw">loop </span>{
             <span class="kw">if </span>cursor.next_if(Punctuator::CloseBlock, interner)<span class="question-mark">?</span>.is_some() {
                 <span class="kw">break</span>;
             }
 
-            elements.push(
-                PropertyDefinition::new(<span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await)
-                    .parse(cursor, interner)<span class="question-mark">?</span>,
-            );
+            <span class="kw">let </span>position = cursor.peek(<span class="number">0</span>, interner).or_abrupt()<span class="question-mark">?</span>.span().start();
+
+            <span class="kw">let </span>property = PropertyDefinition::new(<span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await)
+                .parse(cursor, interner)<span class="question-mark">?</span>;
+
+            <span class="kw">if </span><span class="macro">matches!</span>(
+                property,
+                property::PropertyDefinition::Property(
+                    property::PropertyName::Literal(Sym::__PROTO__),
+                    <span class="kw">_
+                </span>)
+            ) {
+                <span class="kw">if </span>has_proto &amp;&amp; duplicate_proto_position.is_none() {
+                    duplicate_proto_position = <span class="prelude-val">Some</span>(position);
+                } <span class="kw">else </span>{
+                    has_proto = <span class="bool-val">true</span>;
+                }
+            }
+
+            elements.push(property);
 
             <span class="kw">if </span>cursor.next_if(Punctuator::CloseBlock, interner)<span class="question-mark">?</span>.is_some() {
                 <span class="kw">break</span>;
@@ -1043,6 +1092,20 @@
                     next_token.to_string(interner),
                     next_token.span(),
                     <span class="string">&quot;object literal&quot;</span>,
+                ));
+            }
+        }
+
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(position) = duplicate_proto_position {
+            <span class="kw">if </span>!cursor.json_parse()
+                &amp;&amp; <span class="kw">match </span>cursor.peek(<span class="number">0</span>, interner)<span class="question-mark">? </span>{
+                    <span class="prelude-val">Some</span>(token) =&gt; token.kind() != <span class="kw-2">&amp;</span>TokenKind::Punctuator(Punctuator::Assign),
+                    <span class="prelude-val">None </span>=&gt; <span class="bool-val">true</span>,
+                }
+            {
+                <span class="kw">return </span><span class="prelude-val">Err</span>(Error::general(
+                    <span class="string">&quot;Duplicate __proto__ fields are not allowed in object literals.&quot;</span>,
+                    position,
                 ));
             }
         }
@@ -1090,10 +1153,7 @@
             TokenKind::Punctuator(Punctuator::CloseBlock | Punctuator::Comma) =&gt; {
                 <span class="kw">let </span>ident = IdentifierReference::new(<span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await)
                     .parse(cursor, interner)<span class="question-mark">?</span>;
-                <span class="kw">return </span><span class="prelude-val">Ok</span>(property::PropertyDefinition::Property(
-                    ident.sym().into(),
-                    ident.into(),
-                ));
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(property::PropertyDefinition::IdentifierReference(ident));
             }
             TokenKind::Punctuator(Punctuator::Assign) =&gt; {
                 <span class="kw">return </span>CoverInitializedName::new(<span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await)

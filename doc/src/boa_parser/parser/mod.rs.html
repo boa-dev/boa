@@ -373,6 +373,15 @@
 <span id="373">373</span>
 <span id="374">374</span>
 <span id="375">375</span>
+<span id="376">376</span>
+<span id="377">377</span>
+<span id="378">378</span>
+<span id="379">379</span>
+<span id="380">380</span>
+<span id="381">381</span>
+<span id="382">382</span>
+<span id="383">383</span>
+<span id="384">384</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa parser implementation.
 
 </span><span class="kw">mod </span>cursor;
@@ -512,6 +521,15 @@
         </span>R: Read,
     {
         <span class="self">self</span>.cursor.set_strict_mode(<span class="bool-val">true</span>);
+    }
+
+    <span class="doccomment">/// Set the parser strict mode to true.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>set_json_parse(<span class="kw-2">&amp;mut </span><span class="self">self</span>)
+    <span class="kw">where
+        </span>R: Read,
+    {
+        <span class="self">self</span>.cursor.set_json_parse(<span class="bool-val">true</span>);
     }
 
     <span class="doccomment">/// Parse the full input as a [ECMAScript Script][spec] into the boa AST representation.

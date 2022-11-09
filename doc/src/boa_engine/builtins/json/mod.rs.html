@@ -873,6 +873,11 @@
 <span id="871">871</span>
 <span id="872">872</span>
 <span id="873">873</span>
+<span id="874">874</span>
+<span id="875">875</span>
+<span id="876">876</span>
+<span id="877">877</span>
+<span id="878">878</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `JSON` object.
 //!
 //! The `JSON` object contains methods for parsing [JavaScript Object Notation (JSON)][spec]
@@ -905,6 +910,7 @@
     value::IntegerOrInfinity,
     Context, JsResult, JsString, JsValue,
 };
+<span class="kw">use </span>boa_parser::Parser;
 <span class="kw">use </span>boa_profiler::Profiler;
 <span class="kw">use </span>tap::{Conv, Pipe};
 
@@ -1069,7 +1075,11 @@
         // 8. NOTE: The PropertyDefinitionEvaluation semantics defined in 13.2.5.5 have special handling for the above evaluation.
         // 9. Let unfiltered be completion.[[Value]].
         // 10. Assert: unfiltered is either a String, Number, Boolean, Null, or an Object that is defined by either an ArrayLiteral or an ObjectLiteral.
-        </span><span class="kw">let </span>unfiltered = context.eval(script_string.as_bytes())<span class="question-mark">?</span>;
+        </span><span class="kw">let </span><span class="kw-2">mut </span>parser = Parser::new(script_string.as_bytes());
+        parser.set_json_parse();
+        <span class="kw">let </span>statement_list = parser.parse_all(context.interner_mut())<span class="question-mark">?</span>;
+        <span class="kw">let </span>code_block = context.compile_json_parse(<span class="kw-2">&amp;</span>statement_list)<span class="question-mark">?</span>;
+        <span class="kw">let </span>unfiltered = context.execute(code_block)<span class="question-mark">?</span>;
 
         <span class="comment">// 11. If IsCallable(reviver) is true, then
         </span><span class="kw">if let </span><span class="prelude-val">Some</span>(obj) = args.get_or_undefined(<span class="number">1</span>).as_callable() {

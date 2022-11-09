@@ -1467,6 +1467,13 @@
 <span id="1465">1465</span>
 <span id="1466">1466</span>
 <span id="1467">1467</span>
+<span id="1468">1468</span>
+<span id="1469">1469</span>
+<span id="1470">1470</span>
+<span id="1471">1471</span>
+<span id="1472">1472</span>
+<span id="1473">1473</span>
+<span id="1474">1474</span>
 </pre><pre class="rust"><code><span class="doccomment">/// The opcodes of the vm.
 </span><span class="kw">use crate</span>::{vm::ShouldExit, Context, JsResult};
 
@@ -1812,6 +1819,13 @@
         ///
         /// Stack: home, function **=&gt;** home, function
         </span>SetHomeObject,
+
+        <span class="doccomment">/// Set the prototype of an object if the value is an object or null.
+        ///
+        /// Operands:
+        ///
+        /// Stack: object, value **=&gt;**
+        </span>SetPrototype,
 
         <span class="doccomment">/// Push an empty array value on the stack.
         ///

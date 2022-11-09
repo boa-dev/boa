@@ -322,6 +322,22 @@
 <span id="322">322</span>
 <span id="323">323</span>
 <span id="324">324</span>
+<span id="325">325</span>
+<span id="326">326</span>
+<span id="327">327</span>
+<span id="328">328</span>
+<span id="329">329</span>
+<span id="330">330</span>
+<span id="331">331</span>
+<span id="332">332</span>
+<span id="333">333</span>
+<span id="334">334</span>
+<span id="335">335</span>
+<span id="336">336</span>
+<span id="337">337</span>
+<span id="338">338</span>
+<span id="339">339</span>
+<span id="340">340</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Cursor implementation for the parser.
 </span><span class="kw">mod </span>buffered_lexer;
 
@@ -355,6 +371,9 @@
 
     <span class="doccomment">/// Tracks if the cursor is in a arrow function declaration.
     </span>arrow: bool,
+
+    <span class="doccomment">/// Indicate if the cursor is used in `JSON.parse`.
+    </span>json_parse: bool,
 }
 
 <span class="kw">impl</span>&lt;R&gt; Cursor&lt;R&gt;
@@ -368,6 +387,7 @@
             buffered_lexer: Lexer::new(reader).into(),
             private_environments_stack: Vec::new(),
             arrow: <span class="bool-val">false</span>,
+            json_parse: <span class="bool-val">false</span>,
         }
     }
 
@@ -448,6 +468,18 @@
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>set_arrow(<span class="kw-2">&amp;mut </span><span class="self">self</span>, arrow: bool) {
         <span class="self">self</span>.arrow = arrow;
+    }
+
+    <span class="doccomment">/// Returns if the cursor is currently used in `JSON.parse`.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>json_parse(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.json_parse
+    }
+
+    <span class="doccomment">/// Set if the cursor is currently used in `JSON.parse`.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>set_json_parse(<span class="kw-2">&amp;mut </span><span class="self">self</span>, json_parse: bool) {
+        <span class="self">self</span>.json_parse = json_parse;
     }
 
     <span class="doccomment">/// Push a new private environment.
