@@ -5,6 +5,7 @@
     clippy::should_implement_trait,
     clippy::match_like_matches_macro,
     clippy::new_ret_no_self,
+    clippy::needless_bool,
     // Putting the below on the allow list for now, but these should eventually be addressed
     clippy::missing_safety_doc,
     clippy::explicit_auto_deref,
@@ -26,7 +27,7 @@ mod cell;
 mod pointers;
 
 pub use crate::trace::{Finalize, Trace};
-pub use boa_gc_macros::{Finalize, Trace};
+pub use boa_macros::{Finalize, Trace};
 pub use cell::{GcCell, GcCellRef, GcCellRefMut};
 pub use pointers::{Ephemeron, Gc, WeakGc};
 
@@ -212,6 +213,8 @@ impl Collector {
                     if node.as_ref().value.is_marked_ephemeron() {
                         node.as_ref().header.mark();
                         true
+                    } else if node.as_ref().header.roots() > 0 {
+                        true
                     } else {
                         false
                     }
@@ -265,6 +268,11 @@ impl Collector {
         while let Some(node) = sweep_head.get() {
             if (*node.as_ptr()).is_marked() {
                 (*node.as_ptr()).header.unmark();
+                sweep_head = &(*node.as_ptr()).header.next;
+            } else if (*node.as_ptr()).header.is_ephemeron() && (*node.as_ptr()).header.roots() > 0
+            {
+                // Keep the ephemeron box's alive if rooted, but note that it's pointer is no longer safe
+                Trace::run_finalizer(&(*node.as_ptr()).value);
                 sweep_head = &(*node.as_ptr()).header.next;
             } else {
                 // Drops occur here

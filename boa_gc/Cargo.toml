@@ -12,7 +12,7 @@ rust-version.workspace = true
 
 [dependencies]
 boa_profiler.workspace = true
-boa_gc_macros = { path = "derive_macros", version = "0.16.0" }
+boa_macros.workspace = true
 
 # Optional Dependencies
 measureme = { version = "10.1.0", optional = true }

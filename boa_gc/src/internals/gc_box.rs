@@ -26,7 +26,7 @@ impl GcBoxHeader {
     pub fn new_weak() -> Self {
         // Set weak_flag
         GcBoxHeader {
-            roots: Cell::new(WEAK_MASK),
+            roots: Cell::new(WEAK_MASK | 1),
             next: Cell::new(None),
         }
     }

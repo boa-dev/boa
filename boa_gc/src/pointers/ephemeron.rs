@@ -7,7 +7,7 @@ use crate::{
 use std::cell::Cell;
 use std::ptr::NonNull;
 
-pub struct Ephemeron<K: Trace + ?Sized + 'static, V: Trace + ?Sized + 'static> {
+pub struct Ephemeron<K: Trace + ?Sized + 'static, V: Trace + 'static> {
     inner_ptr: Cell<NonNull<GcBox<EphemeronBox<K, V>>>>,
 }
 
@@ -68,5 +68,12 @@ unsafe impl<K: Trace, V: Trace> Trace for Ephemeron<K, V> {
     #[inline]
     fn run_finalizer(&self) {
         Finalize::finalize(self)
+    }
+}
+
+impl<K: Trace + ?Sized, V: Trace> Drop for Ephemeron<K, V> {
+    #[inline]
+    fn drop(&mut self) {
+        unsafe { self.inner().unroot_inner() }
     }
 }
