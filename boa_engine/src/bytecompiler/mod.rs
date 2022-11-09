@@ -234,6 +234,7 @@ pub struct ByteCompiler<'b> {
     bindings_map: FxHashMap<BindingLocator, u32>,
     jump_info: Vec<JumpControlInfo>,
     in_async_generator: bool,
+    json_parse: bool,
     context: &'b mut Context,
 }
 
@@ -242,7 +243,7 @@ impl<'b> ByteCompiler<'b> {
     const DUMMY_ADDRESS: u32 = u32::MAX;
 
     #[inline]
-    pub fn new(name: Sym, strict: bool, context: &'b mut Context) -> Self {
+    pub fn new(name: Sym, strict: bool, json_parse: bool, context: &'b mut Context) -> Self {
         Self {
             code_block: CodeBlock::new(name, 0, strict),
             literals_map: FxHashMap::default(),
@@ -250,6 +251,7 @@ impl<'b> ByteCompiler<'b> {
             bindings_map: FxHashMap::default(),
             jump_info: Vec::new(),
             in_async_generator: false,
+            json_parse,
             context,
         }
     }
@@ -1200,13 +1202,18 @@ impl<'b> ByteCompiler<'b> {
                     match property {
                         PropertyDefinition::IdentifierReference(ident) => {
                             let index = self.get_or_insert_name(*ident);
+                            self.access_get(Access::Variable { name: *ident }, true)?;
                             self.emit(Opcode::DefineOwnPropertyByName, &[index]);
                         }
                         PropertyDefinition::Property(name, expr) => match name {
                             PropertyName::Literal(name) => {
                                 self.compile_expr(expr, true)?;
                                 let index = self.get_or_insert_name((*name).into());
-                                self.emit(Opcode::DefineOwnPropertyByName, &[index]);
+                                if *name == Sym::__PROTO__ && !self.json_parse {
+                                    self.emit_opcode(Opcode::SetPrototype);
+                                } else {
+                                    self.emit(Opcode::DefineOwnPropertyByName, &[index]);
+                                }
                             }
                             PropertyName::Computed(name_node) => {
                                 self.compile_expr(name_node, true)?;
@@ -3225,6 +3232,7 @@ impl<'b> ByteCompiler<'b> {
             bindings_map: FxHashMap::default(),
             jump_info: Vec::new(),
             in_async_generator: false,
+            json_parse: self.json_parse,
             context: self.context,
         };
         compiler.context.push_compile_time_environment(true);
@@ -3467,6 +3475,7 @@ impl<'b> ByteCompiler<'b> {
                         bindings_map: FxHashMap::default(),
                         jump_info: Vec::new(),
                         in_async_generator: false,
+                        json_parse: self.json_parse,
                         context: self.context,
                     };
                     field_compiler.context.push_compile_time_environment(true);
@@ -3498,6 +3507,7 @@ impl<'b> ByteCompiler<'b> {
                         bindings_map: FxHashMap::default(),
                         jump_info: Vec::new(),
                         in_async_generator: false,
+                        json_parse: self.json_parse,
                         context: self.context,
                     };
                     field_compiler.context.push_compile_time_environment(true);
@@ -3554,7 +3564,8 @@ impl<'b> ByteCompiler<'b> {
                 }
                 ClassElement::StaticBlock(statement_list) => {
                     self.emit_opcode(Opcode::Dup);
-                    let mut compiler = ByteCompiler::new(Sym::EMPTY_STRING, true, self.context);
+                    let mut compiler =
+                        ByteCompiler::new(Sym::EMPTY_STRING, true, false, self.context);
                     compiler.context.push_compile_time_environment(true);
                     compiler.create_decls(statement_list, false);
                     compiler.compile_statement_list(statement_list, false, false)?;

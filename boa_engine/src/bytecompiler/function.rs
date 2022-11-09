@@ -107,6 +107,7 @@ impl FunctionCompiler {
             bindings_map: FxHashMap::default(),
             jump_info: Vec::new(),
             in_async_generator: self.generator && self.r#async,
+            json_parse: false,
             context,
         };
 

@@ -344,6 +344,13 @@ generate_impl! {
         /// Stack: home, function **=>** home, function
         SetHomeObject,
 
+        /// Set the prototype of an object if the value is an object or null.
+        ///
+        /// Operands:
+        ///
+        /// Stack: object, value **=>**
+        SetPrototype,
+
         /// Push an empty array value on the stack.
         ///
         /// Operands:

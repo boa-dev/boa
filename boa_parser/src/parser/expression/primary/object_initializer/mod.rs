@@ -75,15 +75,34 @@ where
         let _timer = Profiler::global().start_event("ObjectLiteral", "Parsing");
         let mut elements = Vec::new();
 
+        let mut has_proto = false;
+        let mut duplicate_proto_position = None;
+
         loop {
             if cursor.next_if(Punctuator::CloseBlock, interner)?.is_some() {
                 break;
             }
 
-            elements.push(
-                PropertyDefinition::new(self.allow_yield, self.allow_await)
-                    .parse(cursor, interner)?,
-            );
+            let position = cursor.peek(0, interner).or_abrupt()?.span().start();
+
+            let property = PropertyDefinition::new(self.allow_yield, self.allow_await)
+                .parse(cursor, interner)?;
+
+            if matches!(
+                property,
+                property::PropertyDefinition::Property(
+                    property::PropertyName::Literal(Sym::__PROTO__),
+                    _
+                )
+            ) {
+                if has_proto && duplicate_proto_position.is_none() {
+                    duplicate_proto_position = Some(position);
+                } else {
+                    has_proto = true;
+                }
+            }
+
+            elements.push(property);
 
             if cursor.next_if(Punctuator::CloseBlock, interner)?.is_some() {
                 break;
@@ -96,6 +115,20 @@ where
                     next_token.to_string(interner),
                     next_token.span(),
                     "object literal",
+                ));
+            }
+        }
+
+        if let Some(position) = duplicate_proto_position {
+            if !cursor.json_parse()
+                && match cursor.peek(0, interner)? {
+                    Some(token) => token.kind() != &TokenKind::Punctuator(Punctuator::Assign),
+                    None => true,
+                }
+            {
+                return Err(Error::general(
+                    "Duplicate __proto__ fields are not allowed in object literals.",
+                    position,
                 ));
             }
         }
@@ -143,10 +176,7 @@ where
             TokenKind::Punctuator(Punctuator::CloseBlock | Punctuator::Comma) => {
                 let ident = IdentifierReference::new(self.allow_yield, self.allow_await)
                     .parse(cursor, interner)?;
-                return Ok(property::PropertyDefinition::Property(
-                    ident.sym().into(),
-                    ident.into(),
-                ));
+                return Ok(property::PropertyDefinition::IdentifierReference(ident));
             }
             TokenKind::Punctuator(Punctuator::Assign) => {
                 return CoverInitializedName::new(self.allow_yield, self.allow_await)

@@ -393,6 +393,7 @@ impl CodeBlock {
             | Opcode::NewSpread
             | Opcode::SuperCallSpread
             | Opcode::ForAwaitOfLoopIterate
+            | Opcode::SetPrototype
             | Opcode::Nop => String::new(),
         }
     }
