@@ -881,7 +881,7 @@ impl ToInternedString for CodeBlock {
             }
         }
 
-        println!("\n{}\n", self.to_graph(interner).to_dot_format());
+        println!("\n{}\n", self.to_graph(interner).to_mermaid_format());
 
         f
     }

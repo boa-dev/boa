@@ -84,7 +84,7 @@ impl Graph {
         self.edges.push(edge);
     }
 
-    pub fn to_dot_format(&self) -> String {
+    pub fn to_graphviz_format(&self) -> String {
         let mut result = String::new();
         result += "digraph {\n";
         result += "\tnode [shape=record];\n";
@@ -129,6 +129,43 @@ impl Graph {
         }
         result += "\t}\n";
         result += "}\n";
+        result
+    }
+
+    pub fn to_mermaid_format(&self) -> String {
+        let mut result = String::new();
+        let rankdir = match self.rank_direction {
+            RankDirection::TopToBottom => "TD",
+            RankDirection::LeftToRight => "LR",
+            RankDirection::RightToLeft => "RL",
+        };
+        result += &format!("graph {}\n", rankdir);
+
+        for node in &self.nodes {
+            let (shape_begin, shape_end) = match node.shape {
+                NodeShape::None | NodeShape::Record => ('[', ']'),
+                NodeShape::Diamond => ('{', '}'),
+            };
+            result += &format!(
+                "    {}_i_{}{shape_begin}{}{shape_end}\n",
+                self.label, node.location, node.label
+            );
+        }
+
+        for edge in &self.edges {
+            let color = match edge.color {
+                NodeColor::None => "",
+            };
+            result += &format!(
+                "    {}_i_{} -->| {}| {}_i_{}\n",
+                self.label,
+                edge.from,
+                edge.label.as_deref().unwrap_or(""),
+                self.label,
+                edge.to,
+            );
+        }
+        result += "\n";
         result
     }
 }
