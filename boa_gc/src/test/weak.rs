@@ -58,15 +58,21 @@ fn eph_allocation_chains() {
             let cloned_gc = gc_value.clone();
             let weak = WeakGc::new(&cloned_gc);
             let wrap = Gc::new(weak);
-            
+
             assert_eq!(wrap.value().expect("weak is live"), &String::from("foo"));
-            
+
             let eph = Ephemeron::new(&wrap, 3);
 
             drop(cloned_gc);
             force_collect();
 
-            assert_eq!(eph.key().expect("eph is still live").value().expect("weak is still live"), &String::from("foo"));
+            assert_eq!(
+                eph.key()
+                    .expect("eph is still live")
+                    .value()
+                    .expect("weak is still live"),
+                &String::from("foo")
+            );
 
             drop(gc_value);
             force_collect();

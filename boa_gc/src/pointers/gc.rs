@@ -104,7 +104,7 @@ impl<T: Trace + ?Sized> Gc<T> {
 
 impl<T: Trace + ?Sized> Finalize for Gc<T> {}
 
-// SAFETY: `Gc` maintains it's own rootedness and implements all methods of 
+// SAFETY: `Gc` maintains it's own rootedness and implements all methods of
 // Trace. It is not possible to root an already rooted `Gc` and vice versa.
 unsafe impl<T: Trace + ?Sized> Trace for Gc<T> {
     #[inline]
