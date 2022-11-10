@@ -1033,7 +1033,7 @@ generate_impl! {
 
         /// Start of a catch block.
         ///
-        /// Operands:
+        /// Operands: finally_address: `u32`
         ///
         /// Stack: **=>**
         CatchStart,

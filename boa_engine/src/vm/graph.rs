@@ -504,29 +504,111 @@ impl CodeBlock {
                         EdgeStyle::Line,
                     );
                 }
+                Opcode::LogicalAnd | Opcode::LogicalOr | Opcode::Coalesce => {
+                    let exit = self.read::<u32>(pc);
+                    pc += size_of::<u32>();
+                    graph.add_node(previous_pc, NodeShape::None, opcode_str.into(), Color::None);
+                    graph.add_edge(previous_pc, pc, None, Color::None, EdgeStyle::Line);
+                    graph.add_edge(
+                        previous_pc,
+                        exit as usize,
+                        Some("SHORT CIRCUIT".into()),
+                        Color::Red,
+                        EdgeStyle::Line,
+                    );
+                }
+                Opcode::Case => {
+                    let address = self.read::<u32>(pc) as usize;
+                    pc += size_of::<u32>();
+                    graph.add_node(previous_pc, NodeShape::None, opcode_str.into(), Color::None);
+                    graph.add_edge(
+                        previous_pc,
+                        pc,
+                        Some("NO".into()),
+                        Color::Red,
+                        EdgeStyle::Line,
+                    );
+                    graph.add_edge(
+                        previous_pc,
+                        address,
+                        Some("YES".into()),
+                        Color::Green,
+                        EdgeStyle::Line,
+                    );
+                }
+                Opcode::Default => {
+                    let address = self.read::<u32>(pc) as usize;
+                    pc += size_of::<u32>();
+                    graph.add_node(previous_pc, NodeShape::None, opcode_str.into(), Color::None);
+                    graph.add_edge(previous_pc, address, None, Color::None, EdgeStyle::Line);
+                }
+                Opcode::ForInLoopInitIterator => {
+                    let address = self.read::<u32>(pc) as usize;
+                    pc += size_of::<u32>();
+                    graph.add_node(previous_pc, NodeShape::None, opcode_str.into(), Color::None);
+                    graph.add_edge(previous_pc, pc, None, Color::None, EdgeStyle::Line);
+                    graph.add_edge(
+                        previous_pc,
+                        address,
+                        Some("NULL OR UNDEFINED".into()),
+                        Color::None,
+                        EdgeStyle::Line,
+                    );
+                }
+                Opcode::ForInLoopNext
+                | Opcode::ForAwaitOfLoopNext
+                | Opcode::GeneratorNextDelegate => {
+                    let address = self.read::<u32>(pc) as usize;
+                    pc += size_of::<u32>();
+                    graph.add_node(previous_pc, NodeShape::None, opcode_str.into(), Color::None);
+                    graph.add_edge(previous_pc, pc, None, Color::None, EdgeStyle::Line);
+                    graph.add_edge(
+                        previous_pc,
+                        address,
+                        Some("DONE".into()),
+                        Color::None,
+                        EdgeStyle::Line,
+                    );
+                }
                 Opcode::CatchStart
                 | Opcode::FinallySetJump
-                | Opcode::Case
-                | Opcode::Default
-                | Opcode::LogicalAnd
-                | Opcode::LogicalOr
-                | Opcode::Coalesce
                 | Opcode::CallEval
                 | Opcode::Call
                 | Opcode::New
                 | Opcode::SuperCall
-                | Opcode::ForInLoopInitIterator
-                | Opcode::ForInLoopNext
-                | Opcode::ForAwaitOfLoopNext
-                | Opcode::ConcatToString
-                | Opcode::GeneratorNextDelegate => {
+                | Opcode::ConcatToString => {
                     let operands = self.read::<u32>(pc).to_string();
                     pc += size_of::<u32>();
                     let label = format!("{opcode_str} {operands}");
                     graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
                     graph.add_edge(previous_pc, pc, None, Color::None, EdgeStyle::Line);
                 }
-                Opcode::TryStart | Opcode::CopyDataProperties => {
+                Opcode::TryStart => {
+                    let next_address = self.read::<u32>(pc);
+                    pc += size_of::<u32>();
+                    let finally_address = self.read::<u32>(pc);
+                    pc += size_of::<u32>();
+
+                    graph.add_node(previous_pc, NodeShape::None, opcode_str.into(), Color::None);
+                    graph.add_edge(previous_pc, pc, None, Color::None, EdgeStyle::Line);
+                    graph.add_edge(
+                        previous_pc,
+                        next_address as usize,
+                        Some("NEXT".into()),
+                        Color::None,
+                        EdgeStyle::Line,
+                    );
+                    if finally_address != 0 {
+                        graph.add_edge(
+                            previous_pc,
+                            finally_address as usize,
+                            Some("FINALLY".into()),
+                            Color::None,
+                            EdgeStyle::Line,
+                        );
+                    }
+                }
+                Opcode::CopyDataProperties => {
                     let operand1 = self.read::<u32>(pc);
                     pc += size_of::<u32>();
                     let operand2 = self.read::<u32>(pc);
@@ -642,6 +724,9 @@ impl CodeBlock {
                     graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
                     graph.add_edge(previous_pc, pc, None, Color::None, EdgeStyle::Line);
                 }
+                Opcode::Throw => {
+                    graph.add_node(previous_pc, NodeShape::None, opcode_str.into(), Color::None);
+                }
                 Opcode::Pop
                 | Opcode::PopIfThrown
                 | Opcode::Dup
@@ -704,7 +789,6 @@ impl CodeBlock {
                 | Opcode::DeleteSuperThrow
                 | Opcode::ToPropertyKey
                 | Opcode::ToBoolean
-                | Opcode::Throw
                 | Opcode::TryEnd
                 | Opcode::CatchEnd
                 | Opcode::CatchEnd2
