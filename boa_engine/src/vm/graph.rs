@@ -737,6 +737,15 @@ impl CodeBlock {
                 }
                 Opcode::Throw => {
                     graph.add_node(previous_pc, NodeShape::None, opcode_str.into(), Color::None);
+                    if let Some((_try_pc, next, _finally)) = try_entries.last() {
+                        graph.add_edge(
+                            previous_pc,
+                            *next as usize,
+                            Some("CAUGHT".into()),
+                            Color::None,
+                            EdgeStyle::Line,
+                        );
+                    }
                 }
                 Opcode::Pop
                 | Opcode::PopIfThrown
