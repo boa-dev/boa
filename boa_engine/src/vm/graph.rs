@@ -1,3 +1,9 @@
+use std::mem::size_of;
+
+use boa_interner::{Interner, Sym};
+
+use crate::vm::{CodeBlock, Opcode};
+
 #[derive(Debug, Clone, Copy)]
 pub enum NodeShape {
     None,
@@ -313,5 +319,357 @@ impl Graph {
         }
         result += "\n";
         result
+    }
+}
+
+impl CodeBlock {
+    pub fn to_graph(&self, interner: &Interner, graph: &mut SubGraph) {
+        let mut name = interner.resolve_expect(self.name).to_string();
+        if self.name == Sym::MAIN {
+            name = "__main__".to_string();
+        }
+
+        graph.set_label(name);
+
+        let mut environments = Vec::new();
+
+        let mut pc = 0;
+        while pc < self.code.len() {
+            let opcode: Opcode = self.code[pc].try_into().expect("invalid opcode");
+            let opcode_str = opcode.as_str();
+            let previous_pc = pc;
+
+            pc += size_of::<Opcode>();
+            match opcode {
+                Opcode::RotateLeft | Opcode::RotateRight => {
+                    let operands = self.read::<u8>(pc).to_string();
+                    pc += size_of::<u8>();
+                    let label = format!("{opcode_str} {operands}");
+
+                    graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
+                    graph.add_edge(previous_pc, pc, None, Color::None, EdgeStyle::Line);
+                }
+                Opcode::PushInt8 => {
+                    let operands = self.read::<i8>(pc).to_string();
+                    pc += size_of::<i8>();
+                    let label = format!("{opcode_str} {operands}");
+
+                    graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
+                    graph.add_edge(previous_pc, pc, None, Color::None, EdgeStyle::Line);
+                }
+                Opcode::PushInt16 => {
+                    let operands = self.read::<i16>(pc).to_string();
+                    pc += size_of::<i16>();
+                    let label = format!("{opcode_str} {operands}");
+                    graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
+                    graph.add_edge(previous_pc, pc, None, Color::None, EdgeStyle::Line);
+                }
+                Opcode::PushInt32 => {
+                    let operands = self.read::<i32>(pc).to_string();
+                    pc += size_of::<i32>();
+                    let label = format!("{opcode_str} {operands}");
+                    graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
+                    graph.add_edge(previous_pc, pc, None, Color::None, EdgeStyle::Line);
+                }
+                Opcode::PushRational => {
+                    let operand = self.read::<f64>(pc);
+                    pc += size_of::<f64>();
+                    let label = format!("{opcode_str} {}", ryu_js::Buffer::new().format(operand));
+
+                    graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
+                    graph.add_edge(previous_pc, pc, None, Color::None, EdgeStyle::Line);
+                }
+                Opcode::PushLiteral => {
+                    let operand = self.read::<u32>(pc);
+                    pc += size_of::<u32>();
+                    let operand_str = self.literals[operand as usize].display().to_string();
+                    let operand_str = operand_str.escape_debug();
+                    let label = format!("{opcode_str} {}", operand_str);
+
+                    graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
+                    graph.add_edge(previous_pc, pc, None, Color::None, EdgeStyle::Line);
+                }
+                Opcode::Jump => {
+                    let operand = self.read::<u32>(pc);
+                    pc += size_of::<u32>();
+                    graph.add_node(
+                        previous_pc,
+                        NodeShape::Diamond,
+                        opcode_str.into(),
+                        Color::None,
+                    );
+                    graph.add_edge(
+                        previous_pc,
+                        operand as usize,
+                        None,
+                        Color::None,
+                        EdgeStyle::Line,
+                    );
+                }
+                Opcode::JumpIfFalse
+                | Opcode::JumpIfNotUndefined
+                | Opcode::JumpIfNullOrUndefined => {
+                    let operand = self.read::<u32>(pc);
+                    pc += size_of::<u32>();
+                    graph.add_node(
+                        previous_pc,
+                        NodeShape::Diamond,
+                        opcode_str.into(),
+                        Color::None,
+                    );
+                    graph.add_edge(
+                        previous_pc,
+                        operand as usize,
+                        Some("YES".into()),
+                        Color::Green,
+                        EdgeStyle::Line,
+                    );
+                    graph.add_edge(
+                        previous_pc,
+                        pc,
+                        Some("NO".into()),
+                        Color::Red,
+                        EdgeStyle::Line,
+                    );
+                }
+                Opcode::CatchStart
+                | Opcode::FinallySetJump
+                | Opcode::Case
+                | Opcode::Default
+                | Opcode::LogicalAnd
+                | Opcode::LogicalOr
+                | Opcode::Coalesce
+                | Opcode::CallEval
+                | Opcode::Call
+                | Opcode::New
+                | Opcode::SuperCall
+                | Opcode::ForInLoopInitIterator
+                | Opcode::ForInLoopNext
+                | Opcode::ForAwaitOfLoopNext
+                | Opcode::ConcatToString
+                | Opcode::GeneratorNextDelegate => {
+                    let operands = self.read::<u32>(pc).to_string();
+                    pc += size_of::<u32>();
+                    let label = format!("{opcode_str} {operands}");
+                    graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
+                    graph.add_edge(previous_pc, pc, None, Color::None, EdgeStyle::Line);
+                }
+                Opcode::TryStart | Opcode::CopyDataProperties => {
+                    let operand1 = self.read::<u32>(pc);
+                    pc += size_of::<u32>();
+                    let operand2 = self.read::<u32>(pc);
+                    pc += size_of::<u32>();
+
+                    let label = format!("{opcode_str} {operand1}, {operand2}");
+                    graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
+                    graph.add_edge(previous_pc, pc, None, Color::None, EdgeStyle::Line);
+                }
+                Opcode::PushDeclarativeEnvironment | Opcode::PushFunctionEnvironment => {
+                    environments.push(previous_pc);
+
+                    let operand1 = self.read::<u32>(pc);
+                    pc += size_of::<u32>();
+                    let operand2 = self.read::<u32>(pc);
+                    pc += size_of::<u32>();
+
+                    let label = format!("{opcode_str} {operand1}, {operand2}");
+                    graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
+                    graph.add_edge(previous_pc, pc, None, Color::None, EdgeStyle::Line);
+                }
+                Opcode::PopEnvironment => {
+                    let environment_push = environments
+                        .pop()
+                        .expect("There should be a push evironment before");
+                    graph.add_node(previous_pc, NodeShape::None, opcode_str.into(), Color::None);
+                    graph.add_edge(previous_pc, pc, None, Color::None, EdgeStyle::Line);
+                    graph.add_edge(
+                        previous_pc,
+                        environment_push,
+                        None,
+                        Color::Purple,
+                        EdgeStyle::Dotted,
+                    );
+                }
+                Opcode::GetArrowFunction
+                | Opcode::GetAsyncArrowFunction
+                | Opcode::GetFunction
+                | Opcode::GetFunctionAsync
+                | Opcode::GetGenerator
+                | Opcode::GetGeneratorAsync => {
+                    let operand = self.read::<u32>(pc);
+                    let fn_name = interner
+                        .resolve_expect(self.functions[operand as usize].name)
+                        .to_string();
+                    pc += size_of::<u32>();
+                    let label = format!(
+                        "{opcode_str} '{fn_name}' (length: {})",
+                        self.functions[operand as usize].length
+                    );
+                    graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
+                    graph.add_edge(previous_pc, pc, None, Color::None, EdgeStyle::Line);
+                }
+                Opcode::DefInitArg
+                | Opcode::DefVar
+                | Opcode::DefInitVar
+                | Opcode::DefLet
+                | Opcode::DefInitLet
+                | Opcode::DefInitConst
+                | Opcode::GetName
+                | Opcode::GetNameOrUndefined
+                | Opcode::SetName
+                | Opcode::DeleteName => {
+                    let operand = self.read::<u32>(pc);
+                    pc += size_of::<u32>();
+                    let label = format!(
+                        "{opcode_str} '{}'",
+                        interner.resolve_expect(self.bindings[operand as usize].name().sym()),
+                    );
+                    graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
+                    graph.add_edge(previous_pc, pc, None, Color::None, EdgeStyle::Line);
+                }
+                Opcode::GetPropertyByName
+                | Opcode::SetPropertyByName
+                | Opcode::DefineOwnPropertyByName
+                | Opcode::DefineClassMethodByName
+                | Opcode::SetPropertyGetterByName
+                | Opcode::DefineClassGetterByName
+                | Opcode::SetPropertySetterByName
+                | Opcode::DefineClassSetterByName
+                | Opcode::AssignPrivateField
+                | Opcode::SetPrivateField
+                | Opcode::SetPrivateMethod
+                | Opcode::SetPrivateSetter
+                | Opcode::SetPrivateGetter
+                | Opcode::GetPrivateField
+                | Opcode::DeletePropertyByName
+                | Opcode::PushClassFieldPrivate
+                | Opcode::PushClassPrivateGetter
+                | Opcode::PushClassPrivateSetter
+                | Opcode::PushClassPrivateMethod => {
+                    let operand = self.read::<u32>(pc);
+                    pc += size_of::<u32>();
+                    let label = format!(
+                        "{opcode_str} '{}'",
+                        interner.resolve_expect(self.names[operand as usize].sym()),
+                    );
+                    graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
+                    graph.add_edge(previous_pc, pc, None, Color::None, EdgeStyle::Line);
+                }
+                Opcode::Pop
+                | Opcode::PopIfThrown
+                | Opcode::Dup
+                | Opcode::Swap
+                | Opcode::PushZero
+                | Opcode::PushOne
+                | Opcode::PushNaN
+                | Opcode::PushPositiveInfinity
+                | Opcode::PushNegativeInfinity
+                | Opcode::PushNull
+                | Opcode::PushTrue
+                | Opcode::PushFalse
+                | Opcode::PushUndefined
+                | Opcode::PushEmptyObject
+                | Opcode::PushClassPrototype
+                | Opcode::SetClassPrototype
+                | Opcode::SetHomeObject
+                | Opcode::Add
+                | Opcode::Sub
+                | Opcode::Div
+                | Opcode::Mul
+                | Opcode::Mod
+                | Opcode::Pow
+                | Opcode::ShiftRight
+                | Opcode::ShiftLeft
+                | Opcode::UnsignedShiftRight
+                | Opcode::BitOr
+                | Opcode::BitAnd
+                | Opcode::BitXor
+                | Opcode::BitNot
+                | Opcode::In
+                | Opcode::Eq
+                | Opcode::StrictEq
+                | Opcode::NotEq
+                | Opcode::StrictNotEq
+                | Opcode::GreaterThan
+                | Opcode::GreaterThanOrEq
+                | Opcode::LessThan
+                | Opcode::LessThanOrEq
+                | Opcode::InstanceOf
+                | Opcode::TypeOf
+                | Opcode::Void
+                | Opcode::LogicalNot
+                | Opcode::Pos
+                | Opcode::Neg
+                | Opcode::Inc
+                | Opcode::IncPost
+                | Opcode::Dec
+                | Opcode::DecPost
+                | Opcode::GetPropertyByValue
+                | Opcode::GetPropertyByValuePush
+                | Opcode::SetPropertyByValue
+                | Opcode::DefineOwnPropertyByValue
+                | Opcode::DefineClassMethodByValue
+                | Opcode::SetPropertyGetterByValue
+                | Opcode::DefineClassGetterByValue
+                | Opcode::SetPropertySetterByValue
+                | Opcode::DefineClassSetterByValue
+                | Opcode::DeletePropertyByValue
+                | Opcode::DeleteSuperThrow
+                | Opcode::ToPropertyKey
+                | Opcode::ToBoolean
+                | Opcode::Throw
+                | Opcode::TryEnd
+                | Opcode::CatchEnd
+                | Opcode::CatchEnd2
+                | Opcode::FinallyStart
+                | Opcode::FinallyEnd
+                | Opcode::This
+                | Opcode::Super
+                | Opcode::Return
+                | Opcode::LoopStart
+                | Opcode::LoopContinue
+                | Opcode::LoopEnd
+                | Opcode::InitIterator
+                | Opcode::InitIteratorAsync
+                | Opcode::IteratorNext
+                | Opcode::IteratorClose
+                | Opcode::IteratorToArray
+                | Opcode::RequireObjectCoercible
+                | Opcode::ValueNotNullOrUndefined
+                | Opcode::RestParameterInit
+                | Opcode::RestParameterPop
+                | Opcode::PushValueToArray
+                | Opcode::PushElisionToArray
+                | Opcode::PushIteratorToArray
+                | Opcode::PushNewArray
+                | Opcode::PopOnReturnAdd
+                | Opcode::PopOnReturnSub
+                | Opcode::Yield
+                | Opcode::GeneratorNext
+                | Opcode::AsyncGeneratorNext
+                | Opcode::PushClassField
+                | Opcode::SuperCallDerived
+                | Opcode::Await
+                | Opcode::PushNewTarget
+                | Opcode::CallEvalSpread
+                | Opcode::CallSpread
+                | Opcode::NewSpread
+                | Opcode::SuperCallSpread
+                | Opcode::ForAwaitOfLoopIterate
+                | Opcode::Nop => {
+                    graph.add_node(previous_pc, NodeShape::None, opcode_str.into(), Color::None);
+                    graph.add_edge(previous_pc, pc, None, Color::None, EdgeStyle::Line);
+                }
+            }
+        }
+
+        graph.add_node(pc, NodeShape::Diamond, "End".into(), Color::Red);
+        graph.add_node(pc + 1, NodeShape::Diamond, "Start".into(), Color::Green);
+        graph.add_edge(pc + 1, 0, None, Color::None, EdgeStyle::Line);
+
+        for function in &self.functions {
+            let subgraph = graph.subgraph(String::new());
+            function.to_graph(interner, subgraph);
+        }
     }
 }
