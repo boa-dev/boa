@@ -29,7 +29,7 @@ use boa_interner::{Interner, Sym, ToInternedString};
 use boa_profiler::Profiler;
 use std::{collections::VecDeque, convert::TryInto, mem::size_of};
 
-use super::graph::{Edge, Graph, Node, NodeColor, NodeShape};
+use super::graph::{Color, Edge, Graph, Node, NodeShape};
 
 /// This represents whether a value can be read from [`CodeBlock`] code.
 ///
@@ -427,9 +427,9 @@ impl CodeBlock {
                         previous_pc,
                         NodeShape::None,
                         label.into(),
-                        NodeColor::None,
+                        Color::None,
                     ));
-                    graph.add_edge(Edge::new(previous_pc, pc, None, NodeColor::None));
+                    graph.add_edge(Edge::new(previous_pc, pc, None, Color::None));
                 }
                 Opcode::PushInt8 => {
                     let operands = self.read::<i8>(pc).to_string();
@@ -440,9 +440,9 @@ impl CodeBlock {
                         previous_pc,
                         NodeShape::None,
                         label.into(),
-                        NodeColor::None,
+                        Color::None,
                     ));
-                    graph.add_edge(Edge::new(previous_pc, pc, None, NodeColor::None));
+                    graph.add_edge(Edge::new(previous_pc, pc, None, Color::None));
                 }
                 Opcode::PushInt16 => {
                     let operands = self.read::<i16>(pc).to_string();
@@ -452,9 +452,9 @@ impl CodeBlock {
                         previous_pc,
                         NodeShape::None,
                         label.into(),
-                        NodeColor::None,
+                        Color::None,
                     ));
-                    graph.add_edge(Edge::new(previous_pc, pc, None, NodeColor::None));
+                    graph.add_edge(Edge::new(previous_pc, pc, None, Color::None));
                 }
                 Opcode::PushInt32 => {
                     let operands = self.read::<i32>(pc).to_string();
@@ -464,9 +464,9 @@ impl CodeBlock {
                         previous_pc,
                         NodeShape::None,
                         label.into(),
-                        NodeColor::None,
+                        Color::None,
                     ));
-                    graph.add_edge(Edge::new(previous_pc, pc, None, NodeColor::None));
+                    graph.add_edge(Edge::new(previous_pc, pc, None, Color::None));
                 }
                 Opcode::PushRational => {
                     let operand = self.read::<f64>(pc);
@@ -477,9 +477,9 @@ impl CodeBlock {
                         previous_pc,
                         NodeShape::None,
                         label.into(),
-                        NodeColor::None,
+                        Color::None,
                     ));
-                    graph.add_edge(Edge::new(previous_pc, pc, None, NodeColor::None));
+                    graph.add_edge(Edge::new(previous_pc, pc, None, Color::None));
                 }
                 Opcode::PushLiteral => {
                     let operand = self.read::<u32>(pc);
@@ -492,9 +492,9 @@ impl CodeBlock {
                         previous_pc,
                         NodeShape::None,
                         label.into(),
-                        NodeColor::None,
+                        Color::None,
                     ));
-                    graph.add_edge(Edge::new(previous_pc, pc, None, NodeColor::None));
+                    graph.add_edge(Edge::new(previous_pc, pc, None, Color::None));
                 }
                 Opcode::Jump => {
                     let operand = self.read::<u32>(pc);
@@ -503,14 +503,9 @@ impl CodeBlock {
                         previous_pc,
                         NodeShape::Diamond,
                         opcode_str.into(),
-                        NodeColor::None,
+                        Color::None,
                     ));
-                    graph.add_edge(Edge::new(
-                        previous_pc,
-                        operand as usize,
-                        None,
-                        NodeColor::None,
-                    ));
+                    graph.add_edge(Edge::new(previous_pc, operand as usize, None, Color::None));
                 }
                 Opcode::JumpIfFalse
                 | Opcode::JumpIfNotUndefined
@@ -521,20 +516,15 @@ impl CodeBlock {
                         previous_pc,
                         NodeShape::Diamond,
                         opcode_str.into(),
-                        NodeColor::None,
+                        Color::None,
                     ));
                     graph.add_edge(Edge::new(
                         previous_pc,
                         operand as usize,
                         Some("YES".into()),
-                        NodeColor::None,
+                        Color::Green,
                     ));
-                    graph.add_edge(Edge::new(
-                        previous_pc,
-                        pc,
-                        Some("NO".into()),
-                        NodeColor::None,
-                    ));
+                    graph.add_edge(Edge::new(previous_pc, pc, Some("NO".into()), Color::Red));
                 }
                 Opcode::CatchStart
                 | Opcode::FinallySetJump
@@ -559,9 +549,9 @@ impl CodeBlock {
                         previous_pc,
                         NodeShape::None,
                         label.into(),
-                        NodeColor::None,
+                        Color::None,
                     ));
-                    graph.add_edge(Edge::new(previous_pc, pc, None, NodeColor::None));
+                    graph.add_edge(Edge::new(previous_pc, pc, None, Color::None));
                 }
                 Opcode::TryStart
                 | Opcode::PushDeclarativeEnvironment
@@ -576,18 +566,18 @@ impl CodeBlock {
                         previous_pc,
                         NodeShape::None,
                         label.into(),
-                        NodeColor::None,
+                        Color::None,
                     ));
-                    graph.add_edge(Edge::new(previous_pc, pc, None, NodeColor::None));
+                    graph.add_edge(Edge::new(previous_pc, pc, None, Color::None));
                 }
                 Opcode::PopEnvironment => {
                     graph.add_node(Node::new(
                         previous_pc,
                         NodeShape::None,
                         opcode_str.into(),
-                        NodeColor::None,
+                        Color::None,
                     ));
-                    graph.add_edge(Edge::new(previous_pc, pc, None, NodeColor::None));
+                    graph.add_edge(Edge::new(previous_pc, pc, None, Color::None));
                 }
                 Opcode::CopyDataProperties => {
                     let operand1 = self.read::<u32>(pc);
@@ -600,9 +590,9 @@ impl CodeBlock {
                         previous_pc,
                         NodeShape::None,
                         label.into(),
-                        NodeColor::None,
+                        Color::None,
                     ));
-                    graph.add_edge(Edge::new(previous_pc, pc, None, NodeColor::None));
+                    graph.add_edge(Edge::new(previous_pc, pc, None, Color::None));
                 }
                 Opcode::GetArrowFunction
                 | Opcode::GetAsyncArrowFunction
@@ -623,9 +613,9 @@ impl CodeBlock {
                         previous_pc,
                         NodeShape::None,
                         label.into(),
-                        NodeColor::None,
+                        Color::None,
                     ));
-                    graph.add_edge(Edge::new(previous_pc, pc, None, NodeColor::None));
+                    graph.add_edge(Edge::new(previous_pc, pc, None, Color::None));
                 }
                 Opcode::DefInitArg
                 | Opcode::DefVar
@@ -647,9 +637,9 @@ impl CodeBlock {
                         previous_pc,
                         NodeShape::None,
                         label.into(),
-                        NodeColor::None,
+                        Color::None,
                     ));
-                    graph.add_edge(Edge::new(previous_pc, pc, None, NodeColor::None));
+                    graph.add_edge(Edge::new(previous_pc, pc, None, Color::None));
                 }
                 Opcode::GetPropertyByName
                 | Opcode::SetPropertyByName
@@ -680,9 +670,9 @@ impl CodeBlock {
                         previous_pc,
                         NodeShape::None,
                         label.into(),
-                        NodeColor::None,
+                        Color::None,
                     ));
-                    graph.add_edge(Edge::new(previous_pc, pc, None, NodeColor::None));
+                    graph.add_edge(Edge::new(previous_pc, pc, None, Color::None));
                 }
                 Opcode::Pop
                 | Opcode::PopIfThrown
@@ -790,26 +780,21 @@ impl CodeBlock {
                         previous_pc,
                         NodeShape::None,
                         opcode_str.into(),
-                        NodeColor::None,
+                        Color::None,
                     ));
-                    graph.add_edge(Edge::new(previous_pc, pc, None, NodeColor::None));
+                    graph.add_edge(Edge::new(previous_pc, pc, None, Color::None));
                 }
             }
         }
 
-        graph.add_node(Node::new(
-            pc,
-            NodeShape::Diamond,
-            "End".into(),
-            NodeColor::None,
-        ));
+        graph.add_node(Node::new(pc, NodeShape::Diamond, "End".into(), Color::Red));
         graph.add_node(Node::new(
             pc + 1,
             NodeShape::Diamond,
             "Start".into(),
-            NodeColor::None,
+            Color::Green,
         ));
-        graph.add_edge(Edge::new(pc + 1, 0, None, NodeColor::None));
+        graph.add_edge(Edge::new(pc + 1, 0, None, Color::None));
 
         graph
     }
@@ -881,7 +866,7 @@ impl ToInternedString for CodeBlock {
             }
         }
 
-        println!("\n{}\n", self.to_graph(interner).to_mermaid_format());
+        println!("\n{}\n", self.to_graph(interner).to_graphviz_format());
 
         f
     }

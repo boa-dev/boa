@@ -6,8 +6,14 @@ pub enum NodeShape {
 }
 
 #[derive(Debug, Clone, Copy)]
-pub enum NodeColor {
+pub enum Color {
     None,
+    Red,
+    Green,
+    Blue,
+    Yellow,
+    Purple,
+    Color(u32),
 }
 
 #[derive(Debug)]
@@ -15,11 +21,11 @@ pub struct Node {
     location: usize,
     shape: NodeShape,
     label: Box<str>,
-    color: NodeColor,
+    color: Color,
 }
 
 impl Node {
-    pub fn new(location: usize, shape: NodeShape, label: Box<str>, color: NodeColor) -> Self {
+    pub fn new(location: usize, shape: NodeShape, label: Box<str>, color: Color) -> Self {
         Self {
             location,
             shape,
@@ -37,11 +43,11 @@ pub struct Edge {
     pub from: usize,
     pub to: usize,
     pub label: Option<Box<str>>,
-    pub color: NodeColor,
+    pub color: Color,
 }
 
 impl Edge {
-    pub fn new(from: usize, to: usize, label: Option<Box<str>>, color: NodeColor) -> Self {
+    pub fn new(from: usize, to: usize, label: Option<Box<str>>, color: Color) -> Self {
         Self {
             from,
             to,
@@ -106,7 +112,13 @@ impl Graph {
                 NodeShape::Diamond => ", shape=diamond",
             };
             let color = match node.color {
-                NodeColor::None => "",
+                Color::None => String::new(),
+                Color::Red => ",style=filled,color=red".into(),
+                Color::Green => ",style=filled,color=green".into(),
+                Color::Blue => ",style=filled,color=blue".into(),
+                Color::Yellow => ",style=filled,color=yellow".into(),
+                Color::Purple => ",style=filled,color=purple".into(),
+                Color::Color(color) => format!(",style=filled,color=\\\"#{color:X}\\\""),
             };
             result += &format!(
                 "\t\t{}_i_{}[label=\"{}\"{shape}{color}];\n",
@@ -116,10 +128,16 @@ impl Graph {
 
         for edge in &self.edges {
             let color = match edge.color {
-                NodeColor::None => "",
+                Color::None => String::new(),
+                Color::Red => ",style=filled,color=red".into(),
+                Color::Green => ",style=filled,color=green".into(),
+                Color::Blue => ",style=filled,color=blue".into(),
+                Color::Yellow => ",style=filled,color=yellow".into(),
+                Color::Purple => ",style=filled,color=purple".into(),
+                Color::Color(color) => format!(",style=filled,color=\\\"#{color:X}\\\""),
             };
             result += &format!(
-                "\t\t{}_i_{} -> {}_i_{} [label=\"{}\", len=f {color}];\n",
+                "\t\t{}_i_{} -> {}_i_{} [label=\"{}\", len=f{color}];\n",
                 self.label,
                 edge.from,
                 self.label,
@@ -142,6 +160,15 @@ impl Graph {
         result += &format!("graph {}\n", rankdir);
 
         for node in &self.nodes {
+            let color = match node.color {
+                Color::None => String::new(),
+                Color::Red => "red".into(),
+                Color::Green => "green".into(),
+                Color::Blue => "blue".into(),
+                Color::Yellow => "yellow".into(),
+                Color::Purple => "purple".into(),
+                Color::Color(color) => format!("#{color:X}"),
+            };
             let (shape_begin, shape_end) = match node.shape {
                 NodeShape::None | NodeShape::Record => ('[', ']'),
                 NodeShape::Diamond => ('{', '}'),
@@ -150,11 +177,20 @@ impl Graph {
                 "    {}_i_{}{shape_begin}{}{shape_end}\n",
                 self.label, node.location, node.label
             );
+            if !color.is_empty() {
+                result += &format!("    style {}_i_{} fill:{color}\n", self.label, node.location);
+            }
         }
 
-        for edge in &self.edges {
+        for (index, edge) in self.edges.iter().enumerate() {
             let color = match edge.color {
-                NodeColor::None => "",
+                Color::None => String::new(),
+                Color::Red => "red".into(),
+                Color::Green => "green".into(),
+                Color::Blue => "blue".into(),
+                Color::Yellow => "yellow".into(),
+                Color::Purple => "purple".into(),
+                Color::Color(color) => format!("#{color:X}"),
             };
             result += &format!(
                 "    {}_i_{} -->| {}| {}_i_{}\n",
@@ -164,6 +200,13 @@ impl Graph {
                 self.label,
                 edge.to,
             );
+
+            if !color.is_empty() {
+                result += &format!(
+                    "    linkStyle {} stroke:{}, stroke-width: 4px\n",
+                    index, color
+                );
+            }
         }
         result += "\n";
         result
