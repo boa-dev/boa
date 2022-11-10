@@ -403,6 +403,7 @@ impl CodeBlock {
         graph.set_label(name);
 
         let mut environments = Vec::new();
+        let mut returns = Vec::new();
 
         let mut pc = 0;
         while pc < self.code.len() {
@@ -711,7 +712,6 @@ impl CodeBlock {
                 | Opcode::FinallyEnd
                 | Opcode::This
                 | Opcode::Super
-                | Opcode::Return
                 | Opcode::LoopStart
                 | Opcode::LoopContinue
                 | Opcode::LoopEnd
@@ -747,7 +747,15 @@ impl CodeBlock {
                     graph.add_node(previous_pc, NodeShape::None, opcode_str.into(), Color::None);
                     graph.add_edge(previous_pc, pc, None, Color::None, EdgeStyle::Line);
                 }
+                Opcode::Return => {
+                    graph.add_node(previous_pc, NodeShape::None, opcode_str.into(), Color::None);
+                    returns.push(previous_pc);
+                }
             }
+        }
+
+        for ret in returns {
+            graph.add_edge(ret, pc, None, Color::None, EdgeStyle::Line);
         }
 
         graph.add_node(pc, NodeShape::Diamond, "End".into(), Color::Red);
