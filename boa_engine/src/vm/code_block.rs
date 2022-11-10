@@ -20,7 +20,7 @@ use crate::{
     },
     property::PropertyDescriptor,
     vm::call_frame::GeneratorResumeKind,
-    vm::{call_frame::FinallyReturn, CallFrame, Opcode},
+    vm::{call_frame::FinallyReturn, CallFrame, Opcode, graph::Graph},
     Context, JsResult, JsString, JsValue,
 };
 use boa_ast::{expression::Identifier, function::FormalParameterList};
@@ -29,7 +29,7 @@ use boa_interner::{Interner, Sym, ToInternedString};
 use boa_profiler::Profiler;
 use std::{collections::VecDeque, convert::TryInto, mem::size_of};
 
-use super::graph::{Color, Edge, EdgeStyle, Graph, Node, NodeShape};
+use super::graph::{Color, Edge, EdgeStyle, Node, NodeShape, SubGraph};
 
 /// This represents whether a value can be read from [`CodeBlock`] code.
 ///
@@ -402,13 +402,13 @@ impl CodeBlock {
 }
 
 impl CodeBlock {
-    fn to_graph(&self, interner: &Interner) -> Graph {
+    fn to_graph(&self, interner: &Interner, graph: &mut Graph) {
         let mut name = interner.resolve_expect(self.name).to_string();
         if self.name == Sym::MAIN {
             name = "__main__".to_string();
         }
 
-        let mut graph = Graph::new(name);
+        let mut graph = graph.subgraph(name);
 
         let mut environments = Vec::new();
 
@@ -745,8 +745,6 @@ impl CodeBlock {
         graph.add_node(pc, NodeShape::Diamond, "End".into(), Color::Red);
         graph.add_node(pc + 1, NodeShape::Diamond, "Start".into(), Color::Green);
         graph.add_edge(pc + 1, 0, None, Color::None, EdgeStyle::Line);
-
-        graph
     }
 }
 
@@ -816,7 +814,9 @@ impl ToInternedString for CodeBlock {
             }
         }
 
-        println!("\n{}\n", self.to_graph(interner).to_mermaid_format());
+        let mut graph = Graph::new(crate::vm::graph::Direction::TopToBottom);
+        self.to_graph(interner, &mut graph);
+        println!("\n{}\n", graph.to_graphviz_format());
 
         f
     }
