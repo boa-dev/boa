@@ -12,7 +12,7 @@ use crate::{
         promise::PromiseCapability,
     },
     context::intrinsics::StandardConstructors,
-    environments::{self, BindingLocator, CompileTimeEnvironment},
+    environments::{BindingLocator, CompileTimeEnvironment},
     error::JsNativeError,
     js_string,
     object::{
@@ -20,7 +20,7 @@ use crate::{
     },
     property::PropertyDescriptor,
     vm::call_frame::GeneratorResumeKind,
-    vm::{call_frame::FinallyReturn, CallFrame, Opcode, graph::Graph},
+    vm::{call_frame::FinallyReturn, graph::Graph, CallFrame, Opcode},
     Context, JsResult, JsString, JsValue,
 };
 use boa_ast::{expression::Identifier, function::FormalParameterList};
@@ -29,7 +29,7 @@ use boa_interner::{Interner, Sym, ToInternedString};
 use boa_profiler::Profiler;
 use std::{collections::VecDeque, convert::TryInto, mem::size_of};
 
-use super::graph::{Color, Edge, EdgeStyle, Node, NodeShape, SubGraph};
+use super::graph::{Color, EdgeStyle, NodeShape, SubGraph};
 
 /// This represents whether a value can be read from [`CodeBlock`] code.
 ///
@@ -402,13 +402,13 @@ impl CodeBlock {
 }
 
 impl CodeBlock {
-    fn to_graph(&self, interner: &Interner, graph: &mut Graph) {
+    fn to_graph(&self, interner: &Interner, graph: &mut SubGraph) {
         let mut name = interner.resolve_expect(self.name).to_string();
         if self.name == Sym::MAIN {
             name = "__main__".to_string();
         }
 
-        let mut graph = graph.subgraph(name);
+        graph.set_label(name);
 
         let mut environments = Vec::new();
 
@@ -745,6 +745,11 @@ impl CodeBlock {
         graph.add_node(pc, NodeShape::Diamond, "End".into(), Color::Red);
         graph.add_node(pc + 1, NodeShape::Diamond, "Start".into(), Color::Green);
         graph.add_edge(pc + 1, 0, None, Color::None, EdgeStyle::Line);
+
+        for function in &self.functions {
+            let subgraph = graph.subgraph(String::new());
+            function.to_graph(interner, subgraph);
+        }
     }
 }
 
@@ -815,8 +820,8 @@ impl ToInternedString for CodeBlock {
         }
 
         let mut graph = Graph::new(crate::vm::graph::Direction::TopToBottom);
-        self.to_graph(interner, &mut graph);
-        println!("\n{}\n", graph.to_graphviz_format());
+        self.to_graph(interner, graph.subgraph(String::default()));
+        println!("\n{}\n", graph.to_mermaid_format());
 
         f
     }
