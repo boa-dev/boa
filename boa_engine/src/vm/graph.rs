@@ -236,8 +236,7 @@ impl SubGraph {
             };
             let style = match edge.style {
                 EdgeStyle::Line => "-->",
-                EdgeStyle::Dotted => "-.->",
-                EdgeStyle::Dashed => "-.->",
+                EdgeStyle::Dotted | EdgeStyle::Dashed => "-.->",
             };
             result.push_str(&format!(
                 "  {}_i_{} {style}| {}| {}_i_{}\n",

@@ -60,7 +60,12 @@
 )]
 
 use boa_ast::StatementList;
-use boa_engine::Context;
+use boa_engine::{
+    vm::{
+        graph::{Direction, Graph},
+    },
+    Context, JsResult,
+};
 use clap::{Parser, ValueEnum, ValueHint};
 use colored::{Color, Colorize};
 use rustyline::{config::Config, error::ReadlineError, EditMode, Editor};
@@ -104,6 +109,10 @@ struct Opt {
     #[arg(long, short)]
     trace: bool,
 
+    /// Generate instruction flowgraph. Default is Graphviz.
+    #[arg(long, value_name = "FORMAT", ignore_case = true, value_enum)]
+    flowgraph: Option<Option<FlowgraphFormat>>,
+
     /// Use vi mode in the REPL
     #[arg(long = "vi")]
     vi_mode: bool,
@@ -134,6 +143,14 @@ enum DumpFormat {
 
     // This is a pretty printed json format.
     JsonPretty,
+}
+
+#[derive(Debug, Clone, Copy, ValueEnum)]
+enum FlowgraphFormat {
+    /// Generates in graphviz format.
+    Graphviz,
+    /// Generates in mermaid format.
+    Mermaid,
 }
 
 /// Parses the the token stream into an AST and returns it.
@@ -184,6 +201,19 @@ where
     Ok(())
 }
 
+fn generate_flowgraph(context: &mut Context, src: &[u8], flowgraph: FlowgraphFormat) -> JsResult<String> {
+    let ast = context.parse(src)?;
+    let code = context.compile(&ast)?;
+
+    let mut graph = Graph::new(Direction::TopToBottom);
+    code.to_graph(context.interner(), graph.subgraph(String::default()));
+    let result = match flowgraph {
+        FlowgraphFormat::Graphviz => graph.to_graphviz_format(),
+        FlowgraphFormat::Mermaid => graph.to_mermaid_format(),
+    };
+    Ok(result)
+}
+
 pub fn main() -> Result<(), io::Error> {
     let args = Opt::parse();
 
@@ -198,6 +228,11 @@ pub fn main() -> Result<(), io::Error> {
         if args.has_dump_flag() {
             if let Err(e) = dump(&buffer, &args, &mut context) {
                 eprintln!("{e}");
+            }
+        } else if let Some(flowgraph) = args.flowgraph {
+            match generate_flowgraph(&mut context, &buffer, flowgraph.unwrap_or(FlowgraphFormat::Graphviz)) {
+                Ok(v) => println!("{}", v),
+                Err(v) => eprintln!("Uncaught {v}"),
             }
         } else {
             match context.eval(&buffer) {
@@ -244,6 +279,11 @@ pub fn main() -> Result<(), io::Error> {
                     if args.has_dump_flag() {
                         if let Err(e) = dump(&line, &args, &mut context) {
                             eprintln!("{e}");
+                        }
+                    } else if let Some(flowgraph) = args.flowgraph {
+                        match generate_flowgraph(&mut context, line.trim_end().as_bytes(), flowgraph.unwrap_or(FlowgraphFormat::Graphviz)) {
+                            Ok(v) => println!("{}", v),
+                            Err(v) => eprintln!("Uncaught {v}"),
                         }
                     } else {
                         match context.eval(line.trim_end()) {

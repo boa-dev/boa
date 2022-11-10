@@ -20,7 +20,7 @@ use crate::{
     },
     property::PropertyDescriptor,
     vm::call_frame::GeneratorResumeKind,
-    vm::{call_frame::FinallyReturn, graph::Graph, CallFrame, Opcode},
+    vm::{call_frame::FinallyReturn, CallFrame, Opcode},
     Context, JsResult, JsString, JsValue,
 };
 use boa_ast::{expression::Identifier, function::FormalParameterList};
@@ -464,10 +464,6 @@ impl ToInternedString for CodeBlock {
                 ));
             }
         }
-
-        let mut graph = Graph::new(crate::vm::graph::Direction::TopToBottom);
-        self.to_graph(interner, graph.subgraph(String::default()));
-        println!("\n{}\n", graph.to_mermaid_format());
 
         f
     }
