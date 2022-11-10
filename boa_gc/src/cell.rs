@@ -221,13 +221,15 @@ impl Display for BorrowMutError {
 
 impl<T: Trace + ?Sized> Finalize for GcCell<T> {}
 
-// SAFETY: Please see [`Trace`]. Borrowed
+// SAFETY: GcCell maintains it's own BorrowState and rootedness. GcCell's implementation
+// focuses on only continuing Trace based methods while the cell state is not written. 
+// Implementing a Trace while the cell is being written to or incorrectly implementing Trace
+// on GcCell's value may cause Undefined Behavior
 unsafe impl<T: Trace + ?Sized> Trace for GcCell<T> {
     #[inline]
     unsafe fn trace(&self) {
         match self.flags.get().borrowed() {
             BorrowState::Writing => (),
-            // SAFETY: Please see [`Trace`]
             _ => unsafe { (*self.cell.get()).trace() },
         }
     }
@@ -236,7 +238,6 @@ unsafe impl<T: Trace + ?Sized> Trace for GcCell<T> {
     unsafe fn weak_trace(&self) {
         match self.flags.get().borrowed() {
             BorrowState::Writing => (),
-            // SAFETY: Please see [`Trace`]
             _ => unsafe { (*self.cell.get()).weak_trace() },
         }
     }
@@ -247,7 +248,6 @@ unsafe impl<T: Trace + ?Sized> Trace for GcCell<T> {
 
         match self.flags.get().borrowed() {
             BorrowState::Writing => (),
-            // SAFETY: Please see [`Trace`]
             _ => unsafe { (*self.cell.get()).root() },
         }
     }
@@ -259,7 +259,6 @@ unsafe impl<T: Trace + ?Sized> Trace for GcCell<T> {
 
         match self.flags.get().borrowed() {
             BorrowState::Writing => (),
-            // SAFETY: Please see [`Trace`]
             _ => unsafe { (*self.cell.get()).unroot() },
         }
     }
@@ -269,7 +268,6 @@ unsafe impl<T: Trace + ?Sized> Trace for GcCell<T> {
         Finalize::finalize(self);
         match self.flags.get().borrowed() {
             BorrowState::Writing => (),
-            // SAFETY: Please see [`Trace`]
             _ => unsafe { (*self.cell.get()).run_finalizer() },
         }
     }
