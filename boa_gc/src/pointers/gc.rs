@@ -14,6 +14,7 @@ use crate::{finalizer_safe, Allocator};
 // Technically, this function is safe, since we're just modifying the address of a pointer without
 // dereferencing it.
 pub(crate) fn set_data_ptr<T: ?Sized, U>(mut ptr: *mut T, data: *mut U) -> *mut T {
+    // SAFETY: this should be safe as ptr must be a valid nonnull
     unsafe {
         ptr::write(addr_of_mut!(ptr).cast::<*mut u8>(), data.cast::<u8>());
     }
@@ -33,6 +34,7 @@ impl<T: Trace> Gc<T> {
         //
         // Note: Allocator can cause Collector to run
         let inner_ptr = Allocator::allocate(GcBox::new(value));
+        // SAFETY: inner_ptr was just allocated, so it must be a valid value that implements [`Trace`]
         unsafe { (*inner_ptr.as_ptr()).value().unroot() }
         let gc = Self {
             inner_ptr: Cell::new(inner_ptr),
@@ -58,6 +60,7 @@ pub(crate) unsafe fn clear_root_bit<T: ?Sized + Trace>(
     let data = ptr.cast::<u8>();
     let addr = data as isize;
     let ptr = set_data_ptr(ptr, data.wrapping_offset((addr & !1) - addr));
+    // SAFETY: ptr must be a non null value
     unsafe { NonNull::new_unchecked(ptr) }
 }
 
@@ -71,12 +74,14 @@ impl<T: Trace + ?Sized> Gc<T> {
         let data = ptr.cast::<u8>();
         let addr = data as isize;
         let ptr = set_data_ptr(ptr, data.wrapping_offset((addr | 1) - addr));
+        // SAFETY: ptr must be a non null value.
         unsafe {
             self.inner_ptr.set(NonNull::new_unchecked(ptr));
         }
     }
 
     fn clear_root(&self) {
+        // SAFETY: inner_ptr must be a valid non-null pointer to a live GcBox.
         unsafe {
             self.inner_ptr.set(clear_root_bit(self.inner_ptr.get()));
         }
@@ -85,20 +90,25 @@ impl<T: Trace + ?Sized> Gc<T> {
     #[inline]
     pub(crate) fn inner_ptr(&self) -> NonNull<GcBox<T>> {
         assert!(finalizer_safe());
+        // SAFETY: inner_ptr must be a live GcBox. Calling this on a dropped GcBox
+        // can result in Undefined Behavior.
         unsafe { clear_root_bit(self.inner_ptr.get()) }
     }
 
     #[inline]
     fn inner(&self) -> &GcBox<T> {
+        // SAFETY: Please see Gc::inner_ptr()
         unsafe { self.inner_ptr().as_ref() }
     }
 }
 
 impl<T: Trace + ?Sized> Finalize for Gc<T> {}
 
+// SAFETY: Please see [`Trace`].
 unsafe impl<T: Trace + ?Sized> Trace for Gc<T> {
     #[inline]
     unsafe fn trace(&self) {
+        // SAFETY: Inner must be live and allocated GcBox.
         unsafe {
             self.inner().trace_inner();
         }
@@ -106,9 +116,7 @@ unsafe impl<T: Trace + ?Sized> Trace for Gc<T> {
 
     #[inline]
     unsafe fn weak_trace(&self) {
-        unsafe {
-            self.inner().weak_trace_inner();
-        }
+        self.inner().weak_trace_inner();
     }
 
     #[inline]

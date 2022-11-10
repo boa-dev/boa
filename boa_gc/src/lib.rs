@@ -145,6 +145,7 @@ impl Allocator {
 
             Self::manage_state(&mut gc);
             value.header.next.set(gc.adult_start.take());
+            // Safety: Value Cannot be a null as it must be a GcBox<T>
             let ptr = unsafe { NonNull::new_unchecked(Box::into_raw(Box::from(value))) };
 
             gc.adult_start.set(Some(ptr));
@@ -183,35 +184,39 @@ struct Collector;
 
 impl Collector {
     fn run_full_collection(gc: &mut BoaGc) {
+        println!("run collect");
         let _timer = Profiler::global().start_event("Gc Full Collection", "gc");
         gc.runtime.collections += 1;
-        let unreachable_adults = unsafe { Self::mark_heap(&gc.adult_start) };
+        let unreachable_adults = Self::mark_heap(&gc.adult_start);
 
         // Check if any unreachable nodes were found and finalize
         if !unreachable_adults.is_empty() {
+            // SAFETY: Please see `Collector::finalize()`
             unsafe { Self::finalize(unreachable_adults) };
         }
 
-        let _final_unreachable_adults = unsafe { Self::mark_heap(&gc.adult_start) };
+        let _final_unreachable_adults = Self::mark_heap(&gc.adult_start);
 
+        // SAFETY: Please see `Collector::sweep()`
         unsafe {
             Self::sweep(&gc.adult_start, &mut gc.runtime.bytes_allocated);
         }
     }
 
-    unsafe fn mark_heap(
-        head: &Cell<Option<NonNull<GcBox<dyn Trace>>>>,
-    ) -> Vec<NonNull<GcBox<dyn Trace>>> {
+    fn mark_heap(head: &Cell<Option<NonNull<GcBox<dyn Trace>>>>) -> Vec<NonNull<GcBox<dyn Trace>>> {
         let _timer = Profiler::global().start_event("Gc Marking", "gc");
         // Walk the list, tracing and marking the nodes
         let mut finalize = Vec::new();
         let mut ephemeron_queue = Vec::new();
         let mut mark_head = head;
         while let Some(node) = mark_head.get() {
+            // SAFETY: node must be valid as it is coming directly from the heap.
             let node_ref = unsafe { node.as_ref() };
             if node_ref.header.is_ephemeron() {
                 ephemeron_queue.push(node);
             } else if node_ref.header.roots() > 0 {
+                // SAFETY: the reference to node must be valid as it is rooted. Passing
+                // invalid references can result in Undefined Behavior
                 unsafe {
                     node_ref.trace_inner();
                 }
@@ -223,7 +228,7 @@ impl Collector {
 
         // Ephemeron Evaluation
         if !ephemeron_queue.is_empty() {
-            ephemeron_queue = unsafe { Self::mark_ephemerons(ephemeron_queue) };
+            ephemeron_queue = Self::mark_ephemerons(ephemeron_queue);
         }
 
         // Any left over nodes in the ephemeron queue at this point are
@@ -236,7 +241,7 @@ impl Collector {
     // Tracing Ephemerons/Weak is always requires tracing the inner nodes in case it ends up marking unmarked node
     //
     // Time complexity should be something like O(nd) where d is the longest chain of epehemerons
-    unsafe fn mark_ephemerons(
+    fn mark_ephemerons(
         initial_queue: Vec<NonNull<GcBox<dyn Trace>>>,
     ) -> Vec<NonNull<GcBox<dyn Trace>>> {
         let mut ephemeron_queue = initial_queue;
@@ -245,6 +250,7 @@ impl Collector {
             // are reachable or unreachable<?>
             let (reachable, other): (Vec<_>, Vec<_>) =
                 ephemeron_queue.into_iter().partition(|node| {
+                    // SAFETY: Any node on the eph_queue or the heap must be non null
                     let node = unsafe { node.as_ref() };
                     if node.value.is_marked_ephemeron() {
                         node.header.mark();
@@ -266,6 +272,7 @@ impl Collector {
             // enqueuing any ephemeron that is found during the trace
             for node in reachable {
                 // TODO: deal with fetch ephemeron_queue
+                // SAFETY: Node must be a valid pointer or else it would not be deemed reachable.
                 unsafe {
                     node.as_ref().weak_trace_inner();
                 }

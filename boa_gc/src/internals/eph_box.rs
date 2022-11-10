@@ -20,6 +20,7 @@ impl<K: Trace + ?Sized, V: Trace> EphemeronBox<K, V> {
 }
 
 impl<K: Trace + ?Sized, V: Trace + ?Sized> EphemeronBox<K, V> {
+    /// Checks if the key pointer is marked by Trace
     #[inline]
     pub(crate) fn is_marked(&self) -> bool {
         if let Some(key) = self.inner_key() {
@@ -29,14 +30,22 @@ impl<K: Trace + ?Sized, V: Trace + ?Sized> EphemeronBox<K, V> {
         }
     }
 
+    /// Returns some pointer to the `key`'s `GcBox` or None
+    /// # Panics
+    /// This method will panic if called while the garbage collector is dropping.
     #[inline]
     fn inner_key_ptr(&self) -> Option<*mut GcBox<K>> {
         assert!(finalizer_safe());
         self.key.get().map(NonNull::as_ptr)
     }
 
+    /// Returns some reference to `key`'s `GcBox` or None
     #[inline]
     fn inner_key(&self) -> Option<&GcBox<K>> {
+        // SAFETY: This is safe as `EphemeronBox::inner_key_ptr()` will
+        // fetch either a live `GcBox` or None. The value of `key` is set
+        // to None in the case where `EphemeronBox` and `key`'s `GcBox`
+        // entered into `Collector::sweep()` as unmarked.
         unsafe {
             if let Some(inner_key) = self.inner_key_ptr() {
                 Some(&*inner_key)
@@ -46,6 +55,7 @@ impl<K: Trace + ?Sized, V: Trace + ?Sized> EphemeronBox<K, V> {
         }
     }
 
+    /// Returns a reference to the value of `key`'s `GcBox`
     #[inline]
     pub(crate) fn key(&self) -> Option<&K> {
         if let Some(key_box) = self.inner_key() {
@@ -55,28 +65,36 @@ impl<K: Trace + ?Sized, V: Trace + ?Sized> EphemeronBox<K, V> {
         }
     }
 
+    /// Returns a reference to `value`
     #[inline]
     pub(crate) fn value(&self) -> &V {
         &self.value
     }
 
+    /// Calls [`Trace::weak_trace()`][crate::Trace] on key
     #[inline]
-    unsafe fn weak_trace_key(&self) {
+    fn weak_trace_key(&self) {
         if let Some(key) = self.inner_key() {
-            unsafe {
-                key.weak_trace_inner();
-            }
+            key.weak_trace_inner();
         }
     }
 
+    /// Calls [`Trace::weak_trace()`][crate::Trace] on value
+    ///
     #[inline]
-    unsafe fn weak_trace_value(&self) {
+    fn weak_trace_value(&self) {
+        // SAFETY: Value is a sized element that must implement trace. The
+        // operation is safe as EphemeronBox owns value and `Trace::weak_trace`
+        // must be implemented on it
         unsafe {
             self.value().weak_trace();
         }
     }
 }
 
+// `EphemeronBox`'s Finalize is special in that if it is determined to be unreachable
+// and therefore so has the `GcBox` that `key`stores the pointer to, then we set `key`
+// to None to guarantee that we do not access freed memory.
 impl<K: Trace + ?Sized, V: Trace + ?Sized> Finalize for EphemeronBox<K, V> {
     #[inline]
     fn finalize(&self) {
@@ -84,38 +102,57 @@ impl<K: Trace + ?Sized, V: Trace + ?Sized> Finalize for EphemeronBox<K, V> {
     }
 }
 
+// SAFETY: Please see [`Trace]
 unsafe impl<K: Trace + ?Sized, V: Trace + ?Sized> Trace for EphemeronBox<K, V> {
+    /// # Safety
+    ///
+    /// Please see [`Trace`].
     #[inline]
     unsafe fn trace(&self) {
         /* An ephemeron is never traced with Phase One Trace */
-        /* May be traced in phase 3, so this still may need to be implemented */
     }
 
+    /// Checks if the `key`'s `GcBox` has been marked by `Trace::trace()` or `Trace::weak_trace`.
+    ///
+    /// # Safety
+    ///
+    /// Please see [`Trace`].
     #[inline]
     fn is_marked_ephemeron(&self) -> bool {
         self.is_marked()
     }
 
+    /// Checks if this `EphemeronBox` has already been determined reachable. If so, continue to trace
+    /// value in `key` and `value`
+    ///
+    /// # Safety
+    ///
+    /// Please see [`Traced`].
     #[inline]
     unsafe fn weak_trace(&self) {
         if self.is_marked() {
-            unsafe {
-                self.weak_trace_key();
-                self.weak_trace_value();
-            }
+            self.weak_trace_key();
+            self.weak_trace_value();
         }
     }
 
+    /// # Safety
+    ///
+    /// Please see [`Trace`].
     #[inline]
     unsafe fn root(&self) {
         // An ephemeron here should probably not be rooted.
     }
 
+    /// # Safety
+    ///
+    /// Please see [`Trace`].
     #[inline]
     unsafe fn unroot(&self) {
         // An ephemeron is never rooted in the GcBoxHeader
     }
 
+    // SAFETY: Please see [`Trace`]
     #[inline]
     fn run_finalizer(&self) {
         Finalize::finalize(self);

@@ -10,9 +10,12 @@ use std::ptr::NonNull;
 #[derive(Debug)]
 /// A key-value pair where the value becomes unaccesible when the key is garbage collected.
 ///
-/// See Racket's explanation on [**ephemerons**][eph] for a more detailed explanation.
+/// See Racket's explanation on [**ephemerons**][eph] for a brief overview or read Barry Hayes'
+/// [_Ephemerons_: a new finalization mechanism][acm].
+///
 ///
 /// [eph]: https://docs.racket-lang.org/reference/ephemerons.html
+/// [acm]: https://dl.acm.org/doi/10.1145/263700.263733
 pub struct Ephemeron<K: Trace + ?Sized + 'static, V: Trace + 'static> {
     inner_ptr: Cell<NonNull<GcBox<EphemeronBox<K, V>>>>,
 }
@@ -38,6 +41,7 @@ impl<K: Trace + ?Sized, V: Trace> Ephemeron<K, V> {
 
     #[inline]
     fn inner(&self) -> &GcBox<EphemeronBox<K, V>> {
+        // SAFETY: GcBox<EphemeronBox<K,V>> must live until it is unrooted by Drop
         unsafe { &*self.inner_ptr().as_ptr() }
     }
 
@@ -57,6 +61,7 @@ impl<K: Trace + ?Sized, V: Trace> Ephemeron<K, V> {
 
 impl<K: Trace, V: Trace> Finalize for Ephemeron<K, V> {}
 
+// SAFETY: Please see [`Trace]
 unsafe impl<K: Trace, V: Trace> Trace for Ephemeron<K, V> {
     #[inline]
     unsafe fn trace(&self) {}

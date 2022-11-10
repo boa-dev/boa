@@ -48,3 +48,16 @@ fn eph_ephemeron_test() {
         }
     });
 }
+
+#[test]
+fn eph_basic_alloc_dump_test() {
+    run_test(|| {
+        let gc_value = Gc::new(String::from("gc here"));
+        let _gc_two = Gc::new("hmmm");
+
+        let eph = Ephemeron::new(&gc_value, 4);
+        let _fourth = Gc::new("tail");
+
+        assert_eq!(*eph.key().expect("must be live"), String::from("gc here"));
+    })
+}

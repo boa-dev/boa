@@ -157,6 +157,7 @@ impl<T: Trace + ?Sized> GcCell<T> {
         }
         self.flags.set(self.flags.get().add_reading());
 
+        // SAFETY: calling value on a rooted value may cause Undefined Behavior
         unsafe {
             Ok(GcCellRef {
                 flags: &self.flags,
@@ -181,6 +182,8 @@ impl<T: Trace + ?Sized> GcCell<T> {
         }
         self.flags.set(self.flags.get().set_writing());
 
+        // SAFETY: This is safe as the value is rooted if it was not previously rooted,
+        // so it cannot be dropped.
         unsafe {
             // Force the val_ref's contents to be rooted for the duration of the
             // mutable borrow
@@ -218,11 +221,13 @@ impl Display for BorrowMutError {
 
 impl<T: Trace + ?Sized> Finalize for GcCell<T> {}
 
+// SAFETY: Please see [`Trace`]. Borrowed
 unsafe impl<T: Trace + ?Sized> Trace for GcCell<T> {
     #[inline]
     unsafe fn trace(&self) {
         match self.flags.get().borrowed() {
             BorrowState::Writing => (),
+            // SAFETY: Please see [`Trace`]
             _ => unsafe { (*self.cell.get()).trace() },
         }
     }
@@ -231,6 +236,7 @@ unsafe impl<T: Trace + ?Sized> Trace for GcCell<T> {
     unsafe fn weak_trace(&self) {
         match self.flags.get().borrowed() {
             BorrowState::Writing => (),
+            // SAFETY: Please see [`Trace`]
             _ => unsafe { (*self.cell.get()).weak_trace() },
         }
     }
@@ -241,6 +247,7 @@ unsafe impl<T: Trace + ?Sized> Trace for GcCell<T> {
 
         match self.flags.get().borrowed() {
             BorrowState::Writing => (),
+            // SAFETY: Please see [`Trace`]
             _ => unsafe { (*self.cell.get()).root() },
         }
     }
@@ -252,6 +259,7 @@ unsafe impl<T: Trace + ?Sized> Trace for GcCell<T> {
 
         match self.flags.get().borrowed() {
             BorrowState::Writing => (),
+            // SAFETY: Please see [`Trace`]
             _ => unsafe { (*self.cell.get()).unroot() },
         }
     }
@@ -261,6 +269,7 @@ unsafe impl<T: Trace + ?Sized> Trace for GcCell<T> {
         Finalize::finalize(self);
         match self.flags.get().borrowed() {
             BorrowState::Writing => (),
+            // SAFETY: Please see [`Trace`]
             _ => unsafe { (*self.cell.get()).run_finalizer() },
         }
     }
@@ -402,6 +411,7 @@ impl<'a, T: Trace + ?Sized, U: ?Sized> GcCellRefMut<'a, T, U> {
         V: ?Sized,
         F: FnOnce(&mut U) -> &mut V,
     {
+        // SAFETY: This is safe as `GcCellRefMut` is already borrowed, so the value is rooted.
         let value = unsafe { &mut *(orig.value as *mut U) };
 
         let ret = GcCellRefMut {
@@ -440,6 +450,8 @@ impl<'a, T: Trace + ?Sized, U: ?Sized> Drop for GcCellRefMut<'a, T, U> {
         // Restore the rooted state of the GcCell's contents to the state of the GcCell.
         // During the lifetime of the GcCellRefMut, the GcCell's contents are rooted.
         if !self.gc_cell.flags.get().rooted() {
+            // SAFETY: If `GcCell` is no longer rooted, then unroot it. This should be safe
+            // as the internal `GcBox` should be guaranteed to have at least 1 root.
             unsafe {
                 (*self.gc_cell.cell.get()).unroot();
             }
@@ -462,6 +474,7 @@ impl<'a, T: Trace + ?Sized, U: Display + ?Sized> Display for GcCellRefMut<'a, T,
     }
 }
 
+// SAFETY: GcCell<T> tracks it's `BorrowState` is `Writing`
 unsafe impl<T: ?Sized + Send> Send for GcCell<T> {}
 
 impl<T: Trace + Clone> Clone for GcCell<T> {

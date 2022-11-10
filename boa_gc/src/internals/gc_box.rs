@@ -113,6 +113,10 @@ impl<T: Trace + ?Sized> GcBox<T> {
     pub(crate) unsafe fn trace_inner(&self) {
         if !self.header.is_marked() && !self.header.is_ephemeron() {
             self.header.mark();
+            // SAFETY: if `GcBox::trace_inner()` has been called, then,
+            // this box must have been deemed as reachable via tracing
+            // from a root, which by extension means that value has not
+            // been dropped either.
             unsafe {
                 self.value.trace();
             }
@@ -120,7 +124,9 @@ impl<T: Trace + ?Sized> GcBox<T> {
     }
 
     /// Trace inner data
-    pub(crate) unsafe fn weak_trace_inner(&self) {
+    pub(crate) fn weak_trace_inner(&self) {
+        // SAFETY: if a `GcBox` has `weak_trace_inner` called, then the inner.
+        // value must have been deemed as reachable.
         unsafe {
             self.value.weak_trace();
         }
@@ -135,7 +141,9 @@ impl<T: Trace + ?Sized> GcBox<T> {
     /// Decreases the root count on this `GcBox`.
     /// Roots prevent the `GcBox` from being destroyed by the garbage collector.
     pub(crate) fn unroot_inner(&self) {
-        self.header.dec_roots();
+        if !self.header.is_ephemeron() {
+            self.header.dec_roots();
+        }
     }
 
     /// Returns a reference to the `GcBox`'s value.
