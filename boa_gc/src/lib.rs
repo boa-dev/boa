@@ -184,7 +184,6 @@ struct Collector;
 
 impl Collector {
     fn run_full_collection(gc: &mut BoaGc) {
-        println!("run collect");
         let _timer = Profiler::global().start_event("Gc Full Collection", "gc");
         gc.runtime.collections += 1;
         let unreachable_adults = Self::mark_heap(&gc.adult_start);

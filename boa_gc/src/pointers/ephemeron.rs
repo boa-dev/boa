@@ -34,8 +34,6 @@ impl<K: Trace + ?Sized, V: Trace> Ephemeron<K, V> {
 impl<K: Trace + ?Sized, V: Trace> Ephemeron<K, V> {
     #[inline]
     fn inner_ptr(&self) -> NonNull<GcBox<EphemeronBox<K, V>>> {
-        assert!(finalizer_safe());
-
         self.inner_ptr.get()
     }
 
@@ -91,6 +89,10 @@ unsafe impl<K: Trace, V: Trace> Trace for Ephemeron<K, V> {
 impl<K: Trace + ?Sized, V: Trace> Drop for Ephemeron<K, V> {
     #[inline]
     fn drop(&mut self) {
-        self.inner().unroot_inner();
+        // NOTE: We assert that this drop call is not a
+        // drop from `Collector::dump` or `Collector::sweep`
+        if finalizer_safe() {
+            self.inner().unroot_inner();
+        }
     }
 }
