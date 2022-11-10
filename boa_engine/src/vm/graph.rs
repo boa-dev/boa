@@ -16,6 +16,13 @@ pub enum Color {
     Color(u32),
 }
 
+#[derive(Debug, Clone, Copy)]
+pub enum EdgeStyle {
+    Line,
+    Dotted,
+    Dashed,
+}
+
 #[derive(Debug)]
 pub struct Node {
     location: usize,
@@ -33,9 +40,6 @@ impl Node {
             color,
         }
     }
-    pub fn location(&self) -> usize {
-        self.location
-    }
 }
 
 #[derive(Debug)]
@@ -44,15 +48,23 @@ pub struct Edge {
     pub to: usize,
     pub label: Option<Box<str>>,
     pub color: Color,
+    pub style: EdgeStyle,
 }
 
 impl Edge {
-    pub fn new(from: usize, to: usize, label: Option<Box<str>>, color: Color) -> Self {
+    pub fn new(
+        from: usize,
+        to: usize,
+        label: Option<Box<str>>,
+        color: Color,
+        style: EdgeStyle,
+    ) -> Self {
         Self {
             from,
             to,
             label,
             color,
+            style,
         }
     }
 }
@@ -82,11 +94,20 @@ impl Graph {
         }
     }
 
-    pub fn add_node(&mut self, node: Node) {
+    pub fn add_node(&mut self, location: usize, shape: NodeShape, label: Box<str>, color: Color) {
+        let node = Node::new(location, shape, label, color);
         self.nodes.push(node);
     }
 
-    pub fn add_edge(&mut self, edge: Edge) {
+    pub fn add_edge(
+        &mut self,
+        from: usize,
+        to: usize,
+        label: Option<Box<str>>,
+        color: Color,
+        style: EdgeStyle,
+    ) {
+        let edge = Edge::new(from, to, label, color, style);
         self.edges.push(edge);
     }
 
@@ -129,15 +150,20 @@ impl Graph {
         for edge in &self.edges {
             let color = match edge.color {
                 Color::None => String::new(),
-                Color::Red => ",style=filled,color=red".into(),
-                Color::Green => ",style=filled,color=green".into(),
-                Color::Blue => ",style=filled,color=blue".into(),
-                Color::Yellow => ",style=filled,color=yellow".into(),
-                Color::Purple => ",style=filled,color=purple".into(),
-                Color::Color(color) => format!(",style=filled,color=\\\"#{color:X}\\\""),
+                Color::Red => ",color=red".into(),
+                Color::Green => ",color=green".into(),
+                Color::Blue => ",color=blue".into(),
+                Color::Yellow => ",color=yellow".into(),
+                Color::Purple => ",color=purple".into(),
+                Color::Color(color) => format!(",color=\\\"#{color:X}\\\""),
+            };
+            let style = match edge.style {
+                EdgeStyle::Line => "",
+                EdgeStyle::Dotted => ",style=dotted",
+                EdgeStyle::Dashed => ",style=dashed",
             };
             result += &format!(
-                "\t\t{}_i_{} -> {}_i_{} [label=\"{}\", len=f{color}];\n",
+                "\t\t{}_i_{} -> {}_i_{} [label=\"{}\", len=f{style}{color}];\n",
                 self.label,
                 edge.from,
                 self.label,
@@ -178,7 +204,10 @@ impl Graph {
                 self.label, node.location, node.label
             );
             if !color.is_empty() {
-                result += &format!("    style {}_i_{} fill:{color}\n", self.label, node.location);
+                result += &format!(
+                    "    style {}_i_{} fill:{color}\n",
+                    self.label, node.location
+                );
             }
         }
 
@@ -192,8 +221,13 @@ impl Graph {
                 Color::Purple => "purple".into(),
                 Color::Color(color) => format!("#{color:X}"),
             };
+            let style = match edge.style {
+                EdgeStyle::Line => "-->",
+                EdgeStyle::Dotted => "-.->",
+                EdgeStyle::Dashed => "-.->",
+            };
             result += &format!(
-                "    {}_i_{} -->| {}| {}_i_{}\n",
+                "    {}_i_{} {style}| {}| {}_i_{}\n",
                 self.label,
                 edge.from,
                 edge.label.as_deref().unwrap_or(""),
