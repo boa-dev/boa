@@ -655,6 +655,7 @@ impl CodeBlock {
                 | Opcode::NewSpread
                 | Opcode::SuperCallSpread
                 | Opcode::ForAwaitOfLoopIterate
+                | Opcode::SetPrototype
                 | Opcode::Nop => {
                     graph.add_node(previous_pc, NodeShape::None, opcode_str.into(), Color::None);
                     graph.add_edge(previous_pc, pc, None, Color::None, EdgeStyle::Line);

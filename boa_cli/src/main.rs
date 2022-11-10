@@ -61,9 +61,7 @@
 
 use boa_ast::StatementList;
 use boa_engine::{
-    vm::{
-        graph::{Direction, Graph},
-    },
+    vm::graph::{Direction, Graph},
     Context, JsResult,
 };
 use clap::{Parser, ValueEnum, ValueHint};
@@ -201,7 +199,11 @@ where
     Ok(())
 }
 
-fn generate_flowgraph(context: &mut Context, src: &[u8], flowgraph: FlowgraphFormat) -> JsResult<String> {
+fn generate_flowgraph(
+    context: &mut Context,
+    src: &[u8],
+    flowgraph: FlowgraphFormat,
+) -> JsResult<String> {
     let ast = context.parse(src)?;
     let code = context.compile(&ast)?;
 
@@ -230,7 +232,11 @@ pub fn main() -> Result<(), io::Error> {
                 eprintln!("{e}");
             }
         } else if let Some(flowgraph) = args.flowgraph {
-            match generate_flowgraph(&mut context, &buffer, flowgraph.unwrap_or(FlowgraphFormat::Graphviz)) {
+            match generate_flowgraph(
+                &mut context,
+                &buffer,
+                flowgraph.unwrap_or(FlowgraphFormat::Graphviz),
+            ) {
                 Ok(v) => println!("{}", v),
                 Err(v) => eprintln!("Uncaught {v}"),
             }
@@ -281,7 +287,11 @@ pub fn main() -> Result<(), io::Error> {
                             eprintln!("{e}");
                         }
                     } else if let Some(flowgraph) = args.flowgraph {
-                        match generate_flowgraph(&mut context, line.trim_end().as_bytes(), flowgraph.unwrap_or(FlowgraphFormat::Graphviz)) {
+                        match generate_flowgraph(
+                            &mut context,
+                            line.trim_end().as_bytes(),
+                            flowgraph.unwrap_or(FlowgraphFormat::Graphviz),
+                        ) {
                             Ok(v) => println!("{}", v),
                             Err(v) => eprintln!("Uncaught {v}"),
                         }

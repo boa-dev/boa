@@ -26,6 +26,8 @@ intl = [
 
 fuzz = ["boa_ast/fuzz", "boa_interner/fuzz"]
 
+flowgraph = []
+
 # Enable Boa's WHATWG console object implementation.
 console = []
 
