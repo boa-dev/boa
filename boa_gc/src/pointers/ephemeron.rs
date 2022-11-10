@@ -61,11 +61,13 @@ impl<K: Trace + ?Sized, V: Trace> Ephemeron<K, V> {
 
 impl<K: Trace, V: Trace> Finalize for Ephemeron<K, V> {}
 
-// SAFETY: Please see [`Trace]
+// SAFETY: Ephemerons trace implementation is standard for everything except `Trace::weak_trace()`,
+// which pushes the GcBox<EphemeronBox<_>> onto the EphemeronQueue
 unsafe impl<K: Trace, V: Trace> Trace for Ephemeron<K, V> {
     #[inline]
     unsafe fn trace(&self) {}
 
+    // Push this Ephemeron's pointer onto the EphemeronQueue
     #[inline]
     unsafe fn weak_trace(&self) {
         EPHEMERON_QUEUE.with(|q| {

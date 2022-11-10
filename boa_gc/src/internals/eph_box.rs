@@ -102,32 +102,23 @@ impl<K: Trace + ?Sized, V: Trace + ?Sized> Finalize for EphemeronBox<K, V> {
     }
 }
 
-// SAFETY: Please see [`Trace]
+// SAFETY: EphemeronBox implements primarly two methods of trace `Trace::is_marked_ephemeron`
+// to determine whether the key field is stored and `Trace;:weak_trace` which continues the `Trace::weak_trace()`
+// into `key` and `value`.
 unsafe impl<K: Trace + ?Sized, V: Trace + ?Sized> Trace for EphemeronBox<K, V> {
-    /// # Safety
-    ///
-    /// Please see [`Trace`].
     #[inline]
     unsafe fn trace(&self) {
         /* An ephemeron is never traced with Phase One Trace */
     }
 
     /// Checks if the `key`'s `GcBox` has been marked by `Trace::trace()` or `Trace::weak_trace`.
-    ///
-    /// # Safety
-    ///
-    /// Please see [`Trace`].
     #[inline]
     fn is_marked_ephemeron(&self) -> bool {
         self.is_marked()
     }
 
     /// Checks if this `EphemeronBox` has already been determined reachable. If so, continue to trace
-    /// value in `key` and `value`
-    ///
-    /// # Safety
-    ///
-    /// Please see [`Trace`].
+    /// value in `key` and `value`.
     #[inline]
     unsafe fn weak_trace(&self) {
         if self.is_marked() {
@@ -136,23 +127,14 @@ unsafe impl<K: Trace + ?Sized, V: Trace + ?Sized> Trace for EphemeronBox<K, V> {
         }
     }
 
-    /// # Safety
-    ///
-    /// Please see [`Trace`].
+    // EphemeronBox does not implement root.
     #[inline]
-    unsafe fn root(&self) {
-        // An ephemeron here should probably not be rooted.
-    }
+    unsafe fn root(&self) {}
 
-    /// # Safety
-    ///
-    /// Please see [`Trace`].
+    // EphemeronBox does not implement unroot
     #[inline]
-    unsafe fn unroot(&self) {
-        // An ephemeron is never rooted in the GcBoxHeader
-    }
+    unsafe fn unroot(&self) {}
 
-    // SAFETY: Please see [`Trace`]
     #[inline]
     fn run_finalizer(&self) {
         Finalize::finalize(self);
