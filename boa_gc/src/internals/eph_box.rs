@@ -127,7 +127,7 @@ unsafe impl<K: Trace + ?Sized, V: Trace + ?Sized> Trace for EphemeronBox<K, V> {
     ///
     /// # Safety
     ///
-    /// Please see [`Traced`].
+    /// Please see [`Trace`].
     #[inline]
     unsafe fn weak_trace(&self) {
         if self.is_marked() {
