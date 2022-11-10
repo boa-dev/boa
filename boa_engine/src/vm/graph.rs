@@ -403,6 +403,7 @@ impl CodeBlock {
         graph.set_label(name);
 
         let mut environments = Vec::new();
+        let mut try_entries = Vec::new();
         let mut returns = Vec::new();
 
         let mut pc = 0;
@@ -588,6 +589,16 @@ impl CodeBlock {
                     pc += size_of::<u32>();
                     let finally_address = self.read::<u32>(pc);
                     pc += size_of::<u32>();
+
+                    try_entries.push((
+                        previous_pc,
+                        next_address,
+                        if finally_address == 0 {
+                            None
+                        } else {
+                            Some(finally_address)
+                        },
+                    ));
 
                     graph.add_node(previous_pc, NodeShape::None, opcode_str.into(), Color::None);
                     graph.add_edge(previous_pc, pc, None, Color::None, EdgeStyle::Line);
@@ -789,7 +800,6 @@ impl CodeBlock {
                 | Opcode::DeleteSuperThrow
                 | Opcode::ToPropertyKey
                 | Opcode::ToBoolean
-                | Opcode::TryEnd
                 | Opcode::CatchEnd
                 | Opcode::CatchEnd2
                 | Opcode::FinallyStart
@@ -831,9 +841,27 @@ impl CodeBlock {
                     graph.add_node(previous_pc, NodeShape::None, opcode_str.into(), Color::None);
                     graph.add_edge(previous_pc, pc, None, Color::None, EdgeStyle::Line);
                 }
+                Opcode::TryEnd => {
+                    try_entries
+                        .pop()
+                        .expect("there should already be try block");
+
+                    graph.add_node(previous_pc, NodeShape::None, opcode_str.into(), Color::None);
+                    graph.add_edge(previous_pc, pc, None, Color::None, EdgeStyle::Line);
+                }
                 Opcode::Return => {
                     graph.add_node(previous_pc, NodeShape::None, opcode_str.into(), Color::None);
-                    returns.push(previous_pc);
+                    if let Some((_try_pc, _next, Some(finally))) = try_entries.last() {
+                        graph.add_edge(
+                            previous_pc,
+                            *finally as usize,
+                            None,
+                            Color::None,
+                            EdgeStyle::Line,
+                        );
+                    } else {
+                        returns.push(previous_pc);
+                    }
                 }
             }
         }
