@@ -4,6 +4,43 @@ use boa_interner::{Interner, Sym};
 
 use crate::vm::{CodeBlock, Opcode};
 
+#[allow(clippy::many_single_char_names)]
+fn hsv_to_rgb(h: f64, s: f64, v: f64) -> u32 {
+    let h_i = (h * 6.0) as i64;
+    let f = h * 6.0 - h_i as f64;
+    let p = v * (1.0 - s);
+    let q = v * (1.0 - f * s);
+    let t = v * (1.0 - (1.0 - f) * s);
+
+    let (r, g, b) = match h_i {
+        0 => (v, t, p),
+        1 => (q, v, p),
+        2 => (p, v, t),
+        3 => (p, q, v),
+        4 => (t, p, v),
+        5 => (v, p, q),
+        _ => unreachable!(),
+    };
+
+    let r = (r * 256.0) as u32;
+    let g = (g * 256.0) as u32;
+    let b = (b * 256.0) as u32;
+
+    let mut result = 0;
+    result |= r << 16;
+    result |= g << 8;
+    result |= b;
+
+    result
+}
+
+fn generate_color(mut random: f64) -> u32 {
+    const GOLDEN_RATIO_CONJUGATE: f64 = 0.618033988749895;
+    random += GOLDEN_RATIO_CONJUGATE;
+    random %= 1.0;
+    hsv_to_rgb(random, 0.7, 0.95)
+}
+
 #[derive(Debug, Clone, Copy)]
 pub enum NodeShape {
     None,
@@ -29,6 +66,12 @@ pub enum EdgeStyle {
     Dashed,
 }
 
+#[derive(Debug, Clone, Copy)]
+pub enum EdgeType {
+    None,
+    Arrow,
+}
+
 #[derive(Debug)]
 pub struct Node {
     location: usize,
@@ -50,11 +93,12 @@ impl Node {
 
 #[derive(Debug)]
 pub struct Edge {
-    pub from: usize,
-    pub to: usize,
-    pub label: Option<Box<str>>,
-    pub color: Color,
-    pub style: EdgeStyle,
+    from: usize,
+    to: usize,
+    label: Option<Box<str>>,
+    color: Color,
+    style: EdgeStyle,
+    type_: EdgeType,
 }
 
 impl Edge {
@@ -71,7 +115,12 @@ impl Edge {
             label,
             color,
             style,
+            type_: EdgeType::Arrow,
         }
+    }
+
+    pub fn set_type(&mut self, type_: EdgeType) {
+        self.type_ = type_;
     }
 }
 
@@ -123,9 +172,10 @@ impl SubGraph {
         label: Option<Box<str>>,
         color: Color,
         style: EdgeStyle,
-    ) {
+    ) -> &mut Edge {
         let edge = Edge::new(from, to, label, color, style);
         self.edges.push(edge);
+        self.edges.last_mut().expect("Already pushed edge")
     }
 
     pub fn subgraph(&mut self, label: String) -> &mut SubGraph {
@@ -139,6 +189,15 @@ impl SubGraph {
         result.push_str(&format!("\tsubgraph cluster_{} {{\n", self.label));
         result.push_str("\t\tstyle = filled;\n");
         result.push_str(&format!("\t\tlabel = \"{}\";\n", self.label));
+
+        result.push_str(&format!(
+            "\t\t{}_start [label=\"Start\",shape=Mdiamond,style=filled,color=green]\n",
+            self.label
+        ));
+        if !self.nodes.is_empty() {
+            result.push_str(&format!("\t\t{}_start -> {}_i_0\n", self.label, self.label));
+        }
+
         for node in &self.nodes {
             let shape = match node.shape {
                 NodeShape::None => "",
@@ -152,7 +211,7 @@ impl SubGraph {
                 Color::Blue => ",style=filled,color=blue".into(),
                 Color::Yellow => ",style=filled,color=yellow".into(),
                 Color::Purple => ",style=filled,color=purple".into(),
-                Color::Color(color) => format!(",style=filled,color=\\\"#{color:X}\\\""),
+                Color::Color(color) => format!(",style=filled,color=\"#{color:X}\""),
             };
             result.push_str(&format!(
                 "\t\t{}_i_{}[label=\"{}\"{shape}{color}];\n",
@@ -168,12 +227,15 @@ impl SubGraph {
                 Color::Blue => ",color=blue".into(),
                 Color::Yellow => ",color=yellow".into(),
                 Color::Purple => ",color=purple".into(),
-                Color::Color(color) => format!(",color=\\\"#{color:X}\\\""),
+                Color::Color(color) => format!(",color=\"#{color:X}\""),
             };
-            let style = match edge.style {
-                EdgeStyle::Line => "",
-                EdgeStyle::Dotted => ",style=dotted",
-                EdgeStyle::Dashed => ",style=dashed",
+            let style = match (edge.style, edge.type_) {
+                (EdgeStyle::Line, EdgeType::None) => ",dir=none",
+                (EdgeStyle::Line, EdgeType::Arrow) => "",
+                (EdgeStyle::Dotted, EdgeType::None) => ",style=dotted,dir=none",
+                (EdgeStyle::Dotted, EdgeType::Arrow) => ",style=dotted",
+                (EdgeStyle::Dashed, EdgeType::None) => ",style=dashed,dir=none",
+                (EdgeStyle::Dashed, EdgeType::Arrow) => ",style=dashed,",
             };
             result.push_str(&format!(
                 "\t\t{}_i_{} -> {}_i_{} [label=\"{}\", len=f{style}{color}];\n",
@@ -198,6 +260,13 @@ impl SubGraph {
         };
         result.push_str(&format!("  subgraph {}\n", self.label));
         result.push_str(&format!("  direction {}\n", rankdir));
+
+        result.push_str(&format!("  {}_start{{Start}}\n", self.label));
+        result.push_str(&format!("  style {}_start fill:green\n", self.label));
+        if !self.nodes.is_empty() {
+            result.push_str(&format!("  {}_start --> {}_i_0\n", self.label, self.label));
+        }
+
         for node in &self.nodes {
             let color = match node.color {
                 Color::None => String::new(),
@@ -234,9 +303,11 @@ impl SubGraph {
                 Color::Purple => "purple".into(),
                 Color::Color(color) => format!("#{color:X}"),
             };
-            let style = match edge.style {
-                EdgeStyle::Line => "-->",
-                EdgeStyle::Dotted | EdgeStyle::Dashed => "-.->",
+            let style = match (edge.style, edge.type_) {
+                (EdgeStyle::Line, EdgeType::None) => "---",
+                (EdgeStyle::Line, EdgeType::Arrow) => "-->",
+                (EdgeStyle::Dotted | EdgeStyle::Dashed, EdgeType::None) => "-.-",
+                (EdgeStyle::Dotted | EdgeStyle::Dashed, EdgeType::Arrow) => "-.->",
             };
             result.push_str(&format!(
                 "  {}_i_{} {style}| {}| {}_i_{}\n",
@@ -250,7 +321,8 @@ impl SubGraph {
             if !color.is_empty() {
                 result.push_str(&format!(
                     "  linkStyle {} stroke:{}, stroke-width: 4px\n",
-                    index, color
+                    index + 1,
+                    color
                 ));
             }
         }
@@ -464,7 +536,8 @@ impl CodeBlock {
                     graph.add_edge(previous_pc, pc, None, Color::None, EdgeStyle::Line);
                 }
                 Opcode::PushDeclarativeEnvironment | Opcode::PushFunctionEnvironment => {
-                    environments.push(previous_pc);
+                    let random = rand::random();
+                    environments.push((previous_pc, random));
 
                     let operand1 = self.read::<u32>(pc);
                     pc += size_of::<u32>();
@@ -472,22 +545,36 @@ impl CodeBlock {
                     pc += size_of::<u32>();
 
                     let label = format!("{opcode_str} {operand1}, {operand2}");
-                    graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
+                    graph.add_node(
+                        previous_pc,
+                        NodeShape::None,
+                        label.into(),
+                        Color::Color(generate_color(random)),
+                    );
                     graph.add_edge(previous_pc, pc, None, Color::None, EdgeStyle::Line);
                 }
                 Opcode::PopEnvironment => {
-                    let environment_push = environments
+                    let (environment_push, random) = environments
                         .pop()
                         .expect("There should be a push evironment before");
-                    graph.add_node(previous_pc, NodeShape::None, opcode_str.into(), Color::None);
-                    graph.add_edge(previous_pc, pc, None, Color::None, EdgeStyle::Line);
-                    graph.add_edge(
+
+                    let color = generate_color(random);
+                    graph.add_node(
                         previous_pc,
-                        environment_push,
-                        None,
-                        Color::Purple,
-                        EdgeStyle::Dotted,
+                        NodeShape::None,
+                        opcode_str.into(),
+                        Color::Color(color),
                     );
+                    graph.add_edge(previous_pc, pc, None, Color::None, EdgeStyle::Line);
+                    graph
+                        .add_edge(
+                            previous_pc,
+                            environment_push,
+                            None,
+                            Color::Color(color),
+                            EdgeStyle::Dotted,
+                        )
+                        .set_type(EdgeType::None);
                 }
                 Opcode::GetArrowFunction
                 | Opcode::GetAsyncArrowFunction
@@ -664,8 +751,6 @@ impl CodeBlock {
         }
 
         graph.add_node(pc, NodeShape::Diamond, "End".into(), Color::Red);
-        graph.add_node(pc + 1, NodeShape::Diamond, "Start".into(), Color::Green);
-        graph.add_edge(pc + 1, 0, None, Color::None, EdgeStyle::Line);
 
         for function in &self.functions {
             let subgraph = graph.subgraph(String::new());
