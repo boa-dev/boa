@@ -2070,10 +2070,6 @@
 <span id="2068">2068</span>
 <span id="2069">2069</span>
 <span id="2070">2070</span>
-<span id="2071">2071</span>
-<span id="2072">2072</span>
-<span id="2073">2073</span>
-<span id="2074">2074</span>
 </pre><pre class="rust"><code><span class="attribute">#[cfg(test)]
 </span><span class="kw">mod </span>tests;
 
@@ -2088,7 +2084,7 @@
     },
     string::utf16,
     symbol::WellKnownSymbols,
-    value::{JsValue, PreferredType},
+    value::{IntegerOrInfinity, JsValue, PreferredType},
     Context, JsError, JsResult,
 };
 <span class="kw">use </span>boa_profiler::Profiler;
@@ -2197,9 +2193,9 @@
         .method(<span class="self">Self</span>::to_gmt_string, <span class="string">&quot;toGMTString&quot;</span>, <span class="number">0</span>)
         .method(<span class="self">Self</span>::to_iso_string, <span class="string">&quot;toISOString&quot;</span>, <span class="number">0</span>)
         .method(<span class="self">Self</span>::to_json, <span class="string">&quot;toJSON&quot;</span>, <span class="number">1</span>)
-        .method(<span class="self">Self</span>::to_locale_date_string, <span class="string">&quot;toLocaleDateString&quot;</span>, <span class="number">2</span>)
-        .method(<span class="self">Self</span>::to_locale_string, <span class="string">&quot;toLocaleString&quot;</span>, <span class="number">2</span>)
-        .method(<span class="self">Self</span>::to_locale_time_string, <span class="string">&quot;toLocaleTimeString&quot;</span>, <span class="number">2</span>)
+        .method(<span class="self">Self</span>::to_locale_date_string, <span class="string">&quot;toLocaleDateString&quot;</span>, <span class="number">0</span>)
+        .method(<span class="self">Self</span>::to_locale_string, <span class="string">&quot;toLocaleString&quot;</span>, <span class="number">0</span>)
+        .method(<span class="self">Self</span>::to_locale_time_string, <span class="string">&quot;toLocaleTimeString&quot;</span>, <span class="number">0</span>)
         .method(<span class="self">Self</span>::to_string, <span class="string">&quot;toString&quot;</span>, <span class="number">0</span>)
         .method(<span class="self">Self</span>::to_time_string, <span class="string">&quot;toTimeString&quot;</span>, <span class="number">0</span>)
         .method(<span class="self">Self</span>::to_utc_string, <span class="string">&quot;toUTCString&quot;</span>, <span class="number">0</span>)
@@ -2228,11 +2224,16 @@
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-timeclip
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>time_clip(time: f64) -&gt; <span class="prelude-ty">Option</span>&lt;f64&gt; {
-        <span class="kw">if </span>time.abs() &gt; <span class="number">8.64e15 </span>{
-            <span class="prelude-val">None
-        </span>} <span class="kw">else </span>{
-            <span class="prelude-val">Some</span>(time)
+    </span><span class="kw">pub fn </span>time_clip(time: f64) -&gt; <span class="prelude-ty">Option</span>&lt;i64&gt; {
+        <span class="comment">// 1. If time is not finite, return NaN.
+        // 2. If abs(ℝ(time)) &gt; 8.64 × 1015, return NaN.
+        // 3. Return 𝔽(! ToIntegerOrInfinity(time)).
+        </span><span class="kw">if </span>time.is_nan() {
+            <span class="kw">return </span><span class="prelude-val">None</span>;
+        }
+        <span class="kw">match </span>IntegerOrInfinity::from(time) {
+            IntegerOrInfinity::Integer(i) <span class="kw">if </span>i.abs() &lt;= <span class="number">864i64 </span>* <span class="number">10i64</span>.pow(<span class="number">13</span>) =&gt; <span class="prelude-val">Some</span>(i),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         }
     }
 
@@ -3405,26 +3406,17 @@
         </span>this_time_value(this)<span class="question-mark">?</span>;
 
         <span class="comment">// 2. Let t be ? ToNumber(time).
-        </span><span class="kw">let </span>t = <span class="kw">if let </span><span class="prelude-val">Some</span>(t) = args.get(<span class="number">0</span>) {
-            <span class="kw">let </span>t = t.to_number(context)<span class="question-mark">?</span>;
-            <span class="kw">let </span>seconds = (t / <span class="number">1_000f64</span>) <span class="kw">as </span>i64;
-            <span class="kw">let </span>nanoseconds = ((t % <span class="number">1_000f64</span>) * <span class="number">1_000_000f64</span>) <span class="kw">as </span>u32;
-            <span class="self">Self</span>(
-                ignore_ambiguity(Local.timestamp_opt(seconds, nanoseconds))
-                    .map(|dt| dt.naive_utc()),
-            )
-        } <span class="kw">else </span>{
-            <span class="self">Self</span>(<span class="prelude-val">None</span>)
-        };
+        </span><span class="kw">let </span>t = args.get_or_undefined(<span class="number">0</span>).to_number(context)<span class="question-mark">?</span>;
 
         <span class="comment">// 3. Let v be TimeClip(t).
-        </span><span class="kw">let </span>v = <span class="self">Self</span>::get_time(this, args, context)<span class="question-mark">?</span>;
+        </span><span class="kw">let </span>v_int = <span class="self">Self</span>::time_clip(t);
+        <span class="kw">let </span>v = v_int.map(|t| Local.timestamp_millis(t).naive_utc());
 
         <span class="comment">// 4. Set the [[DateValue]] internal slot of this Date object to v.
-        </span>this.set_data(ObjectData::date(t));
+        </span>this.set_data(ObjectData::date(Date(v)));
 
         <span class="comment">// 5. Return v.
-        </span><span class="prelude-val">Ok</span>(v)
+        </span><span class="prelude-val">Ok</span>(v_int.map_or(JsValue::Rational(f64::NAN), JsValue::from))
     }
 
     <span class="doccomment">/// `Date.prototype.setUTCDate()`
@@ -3804,7 +3796,7 @@
         _args: <span class="kw-2">&amp;</span>[JsValue],
         context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
-        <span class="self">Self</span>::to_utc_string(this, <span class="kw-2">&amp;</span>[JsValue::Null], context)
+        <span class="self">Self</span>::to_utc_string(this, <span class="kw-2">&amp;</span>[], context)
     }
 
     <span class="doccomment">/// `Date.prototype.toISOString()`
@@ -3979,13 +3971,13 @@
     </span><span class="kw">pub fn </span>to_utc_string(
         this: <span class="kw-2">&amp;</span>JsValue,
         _args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context,
+        _context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="kw">if let </span><span class="prelude-val">Some</span>(t) = this_time_value(this)<span class="question-mark">?</span>.<span class="number">0 </span>{
             <span class="kw">let </span>utc_string = t.format(<span class="string">&quot;%a, %d %b %Y %H:%M:%S GMT&quot;</span>).to_string();
             <span class="prelude-val">Ok</span>(JsValue::new(utc_string))
         } <span class="kw">else </span>{
-            <span class="prelude-val">Ok</span>(context.construct_error(<span class="string">&quot;Invalid time value&quot;</span>))
+            <span class="prelude-val">Ok</span>(<span class="macro">js_string!</span>(<span class="string">&quot;Invalid Date&quot;</span>).into())
         }
     }
 

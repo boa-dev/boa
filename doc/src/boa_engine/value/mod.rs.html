@@ -1102,21 +1102,6 @@
 <span id="1100">1100</span>
 <span id="1101">1101</span>
 <span id="1102">1102</span>
-<span id="1103">1103</span>
-<span id="1104">1104</span>
-<span id="1105">1105</span>
-<span id="1106">1106</span>
-<span id="1107">1107</span>
-<span id="1108">1108</span>
-<span id="1109">1109</span>
-<span id="1110">1110</span>
-<span id="1111">1111</span>
-<span id="1112">1112</span>
-<span id="1113">1113</span>
-<span id="1114">1114</span>
-<span id="1115">1115</span>
-<span id="1116">1116</span>
-<span id="1117">1117</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the JavaScript Value.
 //!
 //! Javascript values, utility methods and conversion between Javascript values and Rust values.
@@ -1984,23 +1969,8 @@
         <span class="comment">// 1. Let number be ? ToNumber(argument).
         </span><span class="kw">let </span>number = <span class="self">self</span>.to_number(context)<span class="question-mark">?</span>;
 
-        <span class="kw">if </span>number.is_nan() || number == <span class="number">0.0 </span>{
-            <span class="comment">// 2. If number is NaN, +0𝔽, or -0𝔽, return 0.
-            </span><span class="prelude-val">Ok</span>(IntegerOrInfinity::Integer(<span class="number">0</span>))
-        } <span class="kw">else if </span>number == f64::INFINITY {
-            <span class="comment">// 3. If number is +∞𝔽, return +∞.
-            </span><span class="prelude-val">Ok</span>(IntegerOrInfinity::PositiveInfinity)
-        } <span class="kw">else if </span>number == f64::NEG_INFINITY {
-            <span class="comment">// 4. If number is -∞𝔽, return -∞.
-            </span><span class="prelude-val">Ok</span>(IntegerOrInfinity::NegativeInfinity)
-        } <span class="kw">else </span>{
-            <span class="comment">// 5. Let integer be floor(abs(ℝ(number))).
-            // 6. If number &lt; +0𝔽, set integer to -integer.
-            </span><span class="kw">let </span>integer = number.abs().floor().copysign(number) <span class="kw">as </span>i64;
-
-            <span class="comment">// 7. Return integer.
-            </span><span class="prelude-val">Ok</span>(IntegerOrInfinity::Integer(integer))
-        }
+        <span class="comment">// Continues on `IntegerOrInfinity::from::&lt;f64&gt;`
+        </span><span class="prelude-val">Ok</span>(IntegerOrInfinity::from(number))
     }
 
     <span class="doccomment">/// Converts a value to a double precision floating point.
