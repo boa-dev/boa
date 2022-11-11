@@ -119,7 +119,6 @@ impl<K: Trace + ?Sized, V: Trace> Drop for Ephemeron<K, V> {
         // NOTE: We assert that this drop call is not a
         // drop from `Collector::dump` or `Collector::sweep`
         if finalizer_safe() {
-            println!("drop was run");
             self.inner().unroot_inner();
         }
     }
