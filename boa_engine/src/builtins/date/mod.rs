@@ -12,7 +12,7 @@ use crate::{
     },
     string::utf16,
     symbol::WellKnownSymbols,
-    value::{JsValue, PreferredType},
+    value::{IntegerOrInfinity, JsValue, PreferredType},
     Context, JsError, JsResult,
 };
 use boa_profiler::Profiler;
@@ -121,9 +121,9 @@ impl BuiltIn for Date {
         .method(Self::to_gmt_string, "toGMTString", 0)
         .method(Self::to_iso_string, "toISOString", 0)
         .method(Self::to_json, "toJSON", 1)
-        .method(Self::to_locale_date_string, "toLocaleDateString", 2)
-        .method(Self::to_locale_string, "toLocaleString", 2)
-        .method(Self::to_locale_time_string, "toLocaleTimeString", 2)
+        .method(Self::to_locale_date_string, "toLocaleDateString", 0)
+        .method(Self::to_locale_string, "toLocaleString", 0)
+        .method(Self::to_locale_time_string, "toLocaleTimeString", 0)
         .method(Self::to_string, "toString", 0)
         .method(Self::to_time_string, "toTimeString", 0)
         .method(Self::to_utc_string, "toUTCString", 0)
@@ -152,11 +152,16 @@ impl Date {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-timeclip
     #[inline]
-    pub fn time_clip(time: f64) -> Option<f64> {
-        if time.abs() > 8.64e15 {
-            None
-        } else {
-            Some(time)
+    pub fn time_clip(time: f64) -> Option<i64> {
+        // 1. If time is not finite, return NaN.
+        // 2. If abs(ℝ(time)) > 8.64 × 1015, return NaN.
+        // 3. Return 𝔽(! ToIntegerOrInfinity(time)).
+        if time.is_nan() {
+            return None;
+        }
+        match IntegerOrInfinity::from(time) {
+            IntegerOrInfinity::Integer(i) if i.abs() <= 864i64 * 10i64.pow(13) => Some(i),
+            _ => None,
         }
     }
 
@@ -1329,26 +1334,17 @@ impl Date {
         this_time_value(this)?;
 
         // 2. Let t be ? ToNumber(time).
-        let t = if let Some(t) = args.get(0) {
-            let t = t.to_number(context)?;
-            let seconds = (t / 1_000f64) as i64;
-            let nanoseconds = ((t % 1_000f64) * 1_000_000f64) as u32;
-            Self(
-                ignore_ambiguity(Local.timestamp_opt(seconds, nanoseconds))
-                    .map(|dt| dt.naive_utc()),
-            )
-        } else {
-            Self(None)
-        };
+        let t = args.get_or_undefined(0).to_number(context)?;
 
         // 3. Let v be TimeClip(t).
-        let v = Self::get_time(this, args, context)?;
+        let v_int = Self::time_clip(t);
+        let v = v_int.map(|t| Local.timestamp_millis(t).naive_utc());
 
         // 4. Set the [[DateValue]] internal slot of this Date object to v.
-        this.set_data(ObjectData::date(t));
+        this.set_data(ObjectData::date(Date(v)));
 
         // 5. Return v.
-        Ok(v)
+        Ok(v_int.map_or(JsValue::Rational(f64::NAN), JsValue::from))
     }
 
     /// `Date.prototype.setUTCDate()`
@@ -1728,7 +1724,7 @@ impl Date {
         _args: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        Self::to_utc_string(this, &[JsValue::Null], context)
+        Self::to_utc_string(this, &[], context)
     }
 
     /// `Date.prototype.toISOString()`
@@ -1903,13 +1899,13 @@ impl Date {
     pub fn to_utc_string(
         this: &JsValue,
         _args: &[JsValue],
-        context: &mut Context,
+        _context: &mut Context,
     ) -> JsResult<JsValue> {
         if let Some(t) = this_time_value(this)?.0 {
             let utc_string = t.format("%a, %d %b %Y %H:%M:%S GMT").to_string();
             Ok(JsValue::new(utc_string))
         } else {
-            Ok(context.construct_error("Invalid time value"))
+            Ok(js_string!("Invalid Date").into())
         }
     }
 
