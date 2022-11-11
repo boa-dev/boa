@@ -215,8 +215,8 @@ impl SubGraph {
                 Color::Color(color) => format!(",style=filled,color=\"#{color:X}\""),
             };
             result.push_str(&format!(
-                "\t\t{}_i_{}[label=\"{}\"{shape}{color}];\n",
-                self.label, node.location, node.label
+                "\t\t{}_i_{}[label=\"{:04}: {}\"{shape}{color}];\n",
+                self.label, node.location, node.location, node.label
             ));
         }
 
@@ -284,8 +284,8 @@ impl SubGraph {
                 NodeShape::Diamond => ('{', '}'),
             };
             result.push_str(&format!(
-                "  {}_i_{}{shape_begin}\"{}\"{shape_end}\n",
-                self.label, node.location, node.label
+                "  {}_i_{}{shape_begin}\"{:04}: {}\"{shape_end}\n",
+                self.label, node.location, node.location, node.label
             ));
             if !color.is_empty() {
                 result.push_str(&format!(
@@ -416,42 +416,37 @@ impl CodeBlock {
             let opcode_str = opcode.as_str();
             let previous_pc = pc;
 
+            let mut tmp = pc;
+            let label = format!(
+                "{opcode_str} {}",
+                self.instruction_operands(&mut tmp, interner)
+            );
+
             pc += size_of::<Opcode>();
             match opcode {
                 Opcode::RotateLeft | Opcode::RotateRight => {
-                    let operands = self.read::<u8>(pc).to_string();
                     pc += size_of::<u8>();
-                    let label = format!("{opcode_str} {operands}");
-
                     graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
                     graph.add_edge(previous_pc, pc, None, Color::None, EdgeStyle::Line);
                 }
                 Opcode::PushInt8 => {
-                    let operands = self.read::<i8>(pc).to_string();
                     pc += size_of::<i8>();
-                    let label = format!("{opcode_str} {operands}");
 
                     graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
                     graph.add_edge(previous_pc, pc, None, Color::None, EdgeStyle::Line);
                 }
                 Opcode::PushInt16 => {
-                    let operands = self.read::<i16>(pc).to_string();
                     pc += size_of::<i16>();
-                    let label = format!("{opcode_str} {operands}");
                     graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
                     graph.add_edge(previous_pc, pc, None, Color::None, EdgeStyle::Line);
                 }
                 Opcode::PushInt32 => {
-                    let operands = self.read::<i32>(pc).to_string();
                     pc += size_of::<i32>();
-                    let label = format!("{opcode_str} {operands}");
                     graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
                     graph.add_edge(previous_pc, pc, None, Color::None, EdgeStyle::Line);
                 }
                 Opcode::PushRational => {
-                    let operand = self.read::<f64>(pc);
                     pc += size_of::<f64>();
-                    let label = format!("{opcode_str} {}", ryu_js::Buffer::new().format(operand));
 
                     graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
                     graph.add_edge(previous_pc, pc, None, Color::None, EdgeStyle::Line);
@@ -469,12 +464,7 @@ impl CodeBlock {
                 Opcode::Jump => {
                     let operand = self.read::<u32>(pc);
                     pc += size_of::<u32>();
-                    graph.add_node(
-                        previous_pc,
-                        NodeShape::Diamond,
-                        opcode_str.into(),
-                        Color::None,
-                    );
+                    graph.add_node(previous_pc, NodeShape::Diamond, label.into(), Color::None);
                     graph.add_edge(
                         previous_pc,
                         operand as usize,
@@ -488,12 +478,7 @@ impl CodeBlock {
                 | Opcode::JumpIfNullOrUndefined => {
                     let operand = self.read::<u32>(pc);
                     pc += size_of::<u32>();
-                    graph.add_node(
-                        previous_pc,
-                        NodeShape::Diamond,
-                        opcode_str.into(),
-                        Color::None,
-                    );
+                    graph.add_node(previous_pc, NodeShape::Diamond, label.into(), Color::None);
                     graph.add_edge(
                         previous_pc,
                         operand as usize,
@@ -512,7 +497,7 @@ impl CodeBlock {
                 Opcode::LogicalAnd | Opcode::LogicalOr | Opcode::Coalesce => {
                     let exit = self.read::<u32>(pc);
                     pc += size_of::<u32>();
-                    graph.add_node(previous_pc, NodeShape::None, opcode_str.into(), Color::None);
+                    graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
                     graph.add_edge(previous_pc, pc, None, Color::None, EdgeStyle::Line);
                     graph.add_edge(
                         previous_pc,
@@ -525,7 +510,7 @@ impl CodeBlock {
                 Opcode::Case => {
                     let address = self.read::<u32>(pc) as usize;
                     pc += size_of::<u32>();
-                    graph.add_node(previous_pc, NodeShape::None, opcode_str.into(), Color::None);
+                    graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
                     graph.add_edge(
                         previous_pc,
                         pc,
@@ -544,13 +529,13 @@ impl CodeBlock {
                 Opcode::Default => {
                     let address = self.read::<u32>(pc) as usize;
                     pc += size_of::<u32>();
-                    graph.add_node(previous_pc, NodeShape::None, opcode_str.into(), Color::None);
+                    graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
                     graph.add_edge(previous_pc, address, None, Color::None, EdgeStyle::Line);
                 }
                 Opcode::ForInLoopInitIterator => {
                     let address = self.read::<u32>(pc) as usize;
                     pc += size_of::<u32>();
-                    graph.add_node(previous_pc, NodeShape::None, opcode_str.into(), Color::None);
+                    graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
                     graph.add_edge(previous_pc, pc, None, Color::None, EdgeStyle::Line);
                     graph.add_edge(
                         previous_pc,
@@ -565,7 +550,7 @@ impl CodeBlock {
                 | Opcode::GeneratorNextDelegate => {
                     let address = self.read::<u32>(pc) as usize;
                     pc += size_of::<u32>();
-                    graph.add_node(previous_pc, NodeShape::None, opcode_str.into(), Color::None);
+                    graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
                     graph.add_edge(previous_pc, pc, None, Color::None, EdgeStyle::Line);
                     graph.add_edge(
                         previous_pc,
@@ -582,9 +567,7 @@ impl CodeBlock {
                 | Opcode::New
                 | Opcode::SuperCall
                 | Opcode::ConcatToString => {
-                    let operands = self.read::<u32>(pc).to_string();
                     pc += size_of::<u32>();
-                    let label = format!("{opcode_str} {operands}");
                     graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
                     graph.add_edge(previous_pc, pc, None, Color::None, EdgeStyle::Line);
                 }
@@ -604,7 +587,7 @@ impl CodeBlock {
                         },
                     ));
 
-                    graph.add_node(previous_pc, NodeShape::None, opcode_str.into(), Color::None);
+                    graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
                     graph.add_edge(previous_pc, pc, None, Color::None, EdgeStyle::Line);
                     graph.add_edge(
                         previous_pc,
@@ -637,12 +620,9 @@ impl CodeBlock {
                     let random = rand::random();
                     environments.push((previous_pc, random));
 
-                    let operand1 = self.read::<u32>(pc);
                     pc += size_of::<u32>();
-                    let operand2 = self.read::<u32>(pc);
                     pc += size_of::<u32>();
 
-                    let label = format!("{opcode_str} {operand1}, {operand2}");
                     graph.add_node(
                         previous_pc,
                         NodeShape::None,
@@ -660,7 +640,7 @@ impl CodeBlock {
                     graph.add_node(
                         previous_pc,
                         NodeShape::None,
-                        opcode_str.into(),
+                        label.into(),
                         Color::Color(color),
                     );
                     graph.add_edge(previous_pc, pc, None, Color::None, EdgeStyle::Line);
@@ -740,7 +720,7 @@ impl CodeBlock {
                     graph.add_edge(previous_pc, pc, None, Color::None, EdgeStyle::Line);
                 }
                 Opcode::Throw => {
-                    graph.add_node(previous_pc, NodeShape::None, opcode_str.into(), Color::None);
+                    graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
                     if let Some((_try_pc, next, _finally)) = try_entries.last() {
                         graph.add_edge(
                             previous_pc,
@@ -851,7 +831,7 @@ impl CodeBlock {
                 | Opcode::ForAwaitOfLoopIterate
                 | Opcode::SetPrototype
                 | Opcode::Nop => {
-                    graph.add_node(previous_pc, NodeShape::None, opcode_str.into(), Color::None);
+                    graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
                     graph.add_edge(previous_pc, pc, None, Color::None, EdgeStyle::Line);
                 }
                 Opcode::TryEnd => {
@@ -859,11 +839,11 @@ impl CodeBlock {
                         .pop()
                         .expect("there should already be try block");
 
-                    graph.add_node(previous_pc, NodeShape::None, opcode_str.into(), Color::None);
+                    graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
                     graph.add_edge(previous_pc, pc, None, Color::None, EdgeStyle::Line);
                 }
                 Opcode::Return => {
-                    graph.add_node(previous_pc, NodeShape::None, opcode_str.into(), Color::None);
+                    graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
                     if let Some((_try_pc, _next, Some(finally))) = try_entries.last() {
                         graph.add_edge(
                             previous_pc,
