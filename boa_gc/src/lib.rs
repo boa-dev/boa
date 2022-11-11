@@ -73,6 +73,7 @@ thread_local!(static BOA_GC: RefCell<BoaGc> = RefCell::new( BoaGc {
     adult_start: Cell::new(None),
 }));
 
+#[derive(Debug, Clone, Copy)]
 struct GcConfig {
     threshold: usize,
     used_space_percentage: usize,
@@ -137,6 +138,7 @@ pub fn finalizer_safe() -> bool {
 struct Allocator;
 
 impl Allocator {
+    /// Allocate a new garbage collected value to the Garbage Collector's heap.
     fn allocate<T: Trace>(value: GcBox<T>) -> NonNull<GcBox<T>> {
         let _timer = Profiler::global().start_event("New Pointer", "BoaAlloc");
         let element_size = mem::size_of_val::<GcBox<T>>(&value);
@@ -183,6 +185,7 @@ impl Allocator {
 struct Collector;
 
 impl Collector {
+    /// Run a collection on the full heap.
     fn run_full_collection(gc: &mut BoaGc) {
         let _timer = Profiler::global().start_event("Gc Full Collection", "gc");
         gc.runtime.collections += 1;
@@ -202,6 +205,7 @@ impl Collector {
         }
     }
 
+    /// Walk the heap and mark any nodes deemed reachable
     fn mark_heap(head: &Cell<Option<NonNull<GcBox<dyn Trace>>>>) -> Vec<NonNull<GcBox<dyn Trace>>> {
         let _timer = Profiler::global().start_event("Gc Marking", "gc");
         // Walk the list, tracing and marking the nodes
@@ -240,6 +244,7 @@ impl Collector {
     // Tracing Ephemerons/Weak is always requires tracing the inner nodes in case it ends up marking unmarked node
     //
     // Time complexity should be something like O(nd) where d is the longest chain of epehemerons
+    /// Mark any ephemerons that are deemed live and trace their fields.
     fn mark_ephemerons(
         initial_queue: Vec<NonNull<GcBox<dyn Trace>>>,
     ) -> Vec<NonNull<GcBox<dyn Trace>>> {
