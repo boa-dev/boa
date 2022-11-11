@@ -34,14 +34,14 @@ impl<K: Trace + ?Sized, V: Trace + ?Sized> EphemeronBox<K, V> {
     /// # Panics
     /// This method will panic if called while the garbage collector is dropping.
     #[inline]
-    fn inner_key_ptr(&self) -> Option<*mut GcBox<K>> {
+    pub(crate) fn inner_key_ptr(&self) -> Option<*mut GcBox<K>> {
         assert!(finalizer_safe());
         self.key.get().map(NonNull::as_ptr)
     }
 
     /// Returns some reference to `key`'s `GcBox` or None
     #[inline]
-    fn inner_key(&self) -> Option<&GcBox<K>> {
+    pub(crate) fn inner_key(&self) -> Option<&GcBox<K>> {
         // SAFETY: This is safe as `EphemeronBox::inner_key_ptr()` will
         // fetch either a live `GcBox` or None. The value of `key` is set
         // to None in the case where `EphemeronBox` and `key`'s `GcBox`

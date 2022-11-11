@@ -141,9 +141,7 @@ impl<T: Trace + ?Sized> GcBox<T> {
     /// Decreases the root count on this `GcBox`.
     /// Roots prevent the `GcBox` from being destroyed by the garbage collector.
     pub(crate) fn unroot_inner(&self) {
-        if !self.header.is_ephemeron() {
-            self.header.dec_roots();
-        }
+        self.header.dec_roots();
     }
 
     /// Returns a reference to the `GcBox`'s value.

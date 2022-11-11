@@ -23,8 +23,8 @@ pub(crate) fn set_data_ptr<T: ?Sized, U>(mut ptr: *mut T, data: *mut U) -> *mut 
 
 /// A garbage-collected pointer type over an immutable value.
 pub struct Gc<T: Trace + ?Sized + 'static> {
-    inner_ptr: Cell<NonNull<GcBox<T>>>,
-    marker: PhantomData<Rc<T>>,
+    pub(crate) inner_ptr: Cell<NonNull<GcBox<T>>>,
+    pub(crate) marker: PhantomData<Rc<T>>,
 }
 
 impl<T: Trace> Gc<T> {
@@ -50,6 +50,20 @@ impl<T: Trace + ?Sized> Gc<T> {
     pub fn ptr_eq(this: &Gc<T>, other: &Gc<T>) -> bool {
         GcBox::ptr_eq(this.inner(), other.inner())
     }
+
+    /// Will return a new rooted `Gc` from a `GcBox` pointer
+    pub(crate) fn from_ptr(ptr: NonNull<GcBox<T>>) -> Gc<T> {
+        // SAFETY: the value provided as a pointer MUST be a valid GcBox.
+        unsafe {
+            ptr.as_ref().root_inner();
+            let gc = Gc {
+                inner_ptr: Cell::new(ptr),
+                marker: PhantomData,
+            };
+            gc.set_root();
+            gc
+        }
+    }
 }
 
 /// Returns the given pointer with its root bit cleared.
@@ -69,7 +83,7 @@ impl<T: Trace + ?Sized> Gc<T> {
         self.inner_ptr.get().as_ptr().cast::<u8>() as usize & 1 != 0
     }
 
-    fn set_root(&self) {
+    pub(crate) fn set_root(&self) {
         let ptr = self.inner_ptr.get().as_ptr();
         let data = ptr.cast::<u8>();
         let addr = data as isize;
@@ -149,13 +163,7 @@ unsafe impl<T: Trace + ?Sized> Trace for Gc<T> {
 impl<T: Trace + ?Sized> Clone for Gc<T> {
     #[inline]
     fn clone(&self) -> Self {
-        self.inner().root_inner();
-        let gc = Gc {
-            inner_ptr: Cell::new(self.inner_ptr.get()),
-            marker: PhantomData,
-        };
-        gc.set_root();
-        gc
+        Gc::from_ptr(self.inner_ptr())
     }
 }
 

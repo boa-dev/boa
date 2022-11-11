@@ -94,3 +94,37 @@ fn eph_basic_alloc_dump_test() {
         assert_eq!(*eph.key().expect("must be live"), String::from("gc here"));
     })
 }
+
+#[test]
+fn eph_basic_upgrade_test() {
+    run_test(|| {
+        let init_gc = Gc::new(String::from("foo"));
+        
+        let weak = WeakGc::new(&init_gc);
+
+        let new_gc = weak.upgrade().expect("Weak is still live");
+
+        drop(weak);
+        force_collect();
+
+        assert_eq!(*init_gc, *new_gc);
+    })
+}
+
+#[test]
+fn eph_basic_clone_test() {
+    run_test(|| {
+        let init_gc = Gc::new(String::from("bar"));
+
+        let weak = WeakGc::new(&init_gc);
+
+        let new_gc = weak.upgrade().expect("Weak is live");
+        let new_weak = weak.clone();
+
+        drop(weak);
+        force_collect();
+
+        assert_eq!(*new_gc, *new_weak.value().expect("weak should be live"));
+        assert_eq!(*init_gc, *new_weak.value().expect("weak_should be live still"));
+    })
+}

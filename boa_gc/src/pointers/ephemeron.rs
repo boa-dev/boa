@@ -55,6 +55,16 @@ impl<K: Trace + ?Sized, V: Trace> Ephemeron<K, V> {
     pub fn value(&self) -> &V {
         self.inner().value().value()
     }
+
+    #[inline]
+    /// Gets a `Gc` for the stored key of this `Ephemeron`.
+    pub fn upgrade_key(&self) -> Option<Gc<K>> {
+        // SAFETY: ptr must be a valid pointer or None would have been returned.
+        self.inner().value().inner_key_ptr().map(|ptr| unsafe {
+            let inner_ptr = NonNull::new_unchecked(ptr);
+            Gc::from_ptr(inner_ptr)
+        })
+    }
 }
 
 impl<K: Trace, V: Trace> Finalize for Ephemeron<K, V> {}
@@ -86,12 +96,30 @@ unsafe impl<K: Trace, V: Trace> Trace for Ephemeron<K, V> {
     }
 }
 
+impl<K: Trace + ?Sized, V: Trace> Clone for Ephemeron<K, V> {
+    #[inline]
+    fn clone(&self) -> Ephemeron<K, V> {
+        // SAFETY: This is safe because the inner_ptr must live as long as it's roots.
+        // Mismanagement of roots can cause inner_ptr to use after free or Undefined
+        // Behavior.
+        unsafe {
+            let eph = Ephemeron {
+                inner_ptr: Cell::new(NonNull::new_unchecked(self.inner_ptr().as_ptr())),
+            };
+            // Increment the Ephemeron's GcBox roots by 1
+            self.inner().root_inner();
+            eph
+        }
+    }
+}
+
 impl<K: Trace + ?Sized, V: Trace> Drop for Ephemeron<K, V> {
     #[inline]
     fn drop(&mut self) {
         // NOTE: We assert that this drop call is not a
         // drop from `Collector::dump` or `Collector::sweep`
         if finalizer_safe() {
+            println!("drop was run");
             self.inner().unroot_inner();
         }
     }

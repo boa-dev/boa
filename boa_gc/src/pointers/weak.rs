@@ -25,6 +25,21 @@ impl<T: Trace + ?Sized> WeakGc<T> {
     pub fn value(&self) -> Option<&T> {
         self.inner.key()
     }
+
+    #[inline]
+    /// Upgrade returns a `Gc` pointer for the internal value if valid, or None if the value was already garbage collected.
+    pub fn upgrade(&self) -> Option<Gc<T>> {
+        self.inner.upgrade_key()
+    }
+}
+
+impl<T: Trace + ?Sized> Clone for WeakGc<T> {
+    #[inline]
+    fn clone(&self) -> Self {
+        WeakGc {
+            inner: self.inner.clone(),
+        }
+    }
 }
 
 impl<T: Trace + ?Sized> From<Ephemeron<T, ()>> for WeakGc<T> {
