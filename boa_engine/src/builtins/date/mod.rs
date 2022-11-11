@@ -153,6 +153,9 @@ impl Date {
     /// [spec]: https://tc39.es/ecma262/#sec-timeclip
     #[inline]
     pub fn time_clip(time: f64) -> Option<i64> {
+        // 1. If time is not finite, return NaN.
+        // 2. If abs(ℝ(time)) > 8.64 × 1015, return NaN.
+        // 3. Return 𝔽(! ToIntegerOrInfinity(time)).
         if time.is_nan() {
             return None;
         }
