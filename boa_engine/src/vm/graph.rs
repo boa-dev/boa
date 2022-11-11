@@ -127,6 +127,7 @@ impl Edge {
 #[derive(Debug, Clone, Copy)]
 pub enum Direction {
     TopToBottom,
+    BottomToTop,
     LeftToRight,
     RightToLeft,
 }
@@ -255,6 +256,7 @@ impl SubGraph {
     fn mermaid_format(&self, result: &mut String) {
         let rankdir = match self.direction {
             Direction::TopToBottom => "TB",
+            Direction::BottomToTop => "BT",
             Direction::LeftToRight => "LR",
             Direction::RightToLeft => "RL",
         };
@@ -364,6 +366,7 @@ impl Graph {
 
         let rankdir = match self.direction {
             Direction::TopToBottom => "TB",
+            Direction::BottomToTop => "BT",
             Direction::LeftToRight => "LR",
             Direction::RightToLeft => "RL",
         };
@@ -380,6 +383,7 @@ impl Graph {
         let mut result = String::new();
         let rankdir = match self.direction {
             Direction::TopToBottom => "TD",
+            Direction::BottomToTop => "DT",
             Direction::LeftToRight => "LR",
             Direction::RightToLeft => "RL",
         };

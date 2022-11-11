@@ -99,21 +99,38 @@ struct Opt {
         short = 'a',
         value_name = "FORMAT",
         ignore_case = true,
-        value_enum
+        value_enum,
+        conflicts_with = "graph"
     )]
     dump_ast: Option<Option<DumpFormat>>,
 
     /// Dump the AST to stdout with the given format.
-    #[arg(long, short)]
+    #[arg(long, short, conflicts_with = "graph")]
     trace: bool,
-
-    /// Generate instruction flowgraph. Default is Graphviz.
-    #[arg(long, value_name = "FORMAT", ignore_case = true, value_enum)]
-    flowgraph: Option<Option<FlowgraphFormat>>,
 
     /// Use vi mode in the REPL
     #[arg(long = "vi")]
     vi_mode: bool,
+
+    /// Generate instruction flowgraph. Default is Graphviz.
+    #[arg(
+        long,
+        value_name = "FORMAT",
+        ignore_case = true,
+        value_enum,
+        group = "graph"
+    )]
+    flowgraph: Option<Option<FlowgraphFormat>>,
+
+    /// Specifies the direction of the flowgraph. Default is TopToBottom.
+    #[arg(
+        long,
+        value_name = "FORMAT",
+        ignore_case = true,
+        value_enum,
+        requires = "graph"
+    )]
+    flowgraph_direction: Option<FlowgraphDirection>,
 }
 
 impl Opt {
@@ -149,6 +166,14 @@ enum FlowgraphFormat {
     Graphviz,
     /// Generates in mermaid format.
     Mermaid,
+}
+
+#[derive(Debug, Clone, Copy, ValueEnum)]
+enum FlowgraphDirection {
+    TopToBottom,
+    BottomToTop,
+    LeftToRight,
+    RightToLeft,
 }
 
 /// Parses the the token stream into an AST and returns it.
@@ -203,11 +228,19 @@ fn generate_flowgraph(
     context: &mut Context,
     src: &[u8],
     flowgraph: FlowgraphFormat,
+    flowgraph_direction: Option<FlowgraphDirection>,
 ) -> JsResult<String> {
     let ast = context.parse(src)?;
     let code = context.compile(&ast)?;
 
-    let mut graph = Graph::new(Direction::TopToBottom);
+    let flowgraph_direction = match flowgraph_direction {
+        Some(FlowgraphDirection::TopToBottom) | None => Direction::TopToBottom,
+        Some(FlowgraphDirection::BottomToTop) => Direction::BottomToTop,
+        Some(FlowgraphDirection::LeftToRight) => Direction::LeftToRight,
+        Some(FlowgraphDirection::RightToLeft) => Direction::RightToLeft,
+    };
+
+    let mut graph = Graph::new(flowgraph_direction);
     code.to_graph(context.interner(), graph.subgraph(String::default()));
     let result = match flowgraph {
         FlowgraphFormat::Graphviz => graph.to_graphviz_format(),
@@ -236,6 +269,7 @@ pub fn main() -> Result<(), io::Error> {
                 &mut context,
                 &buffer,
                 flowgraph.unwrap_or(FlowgraphFormat::Graphviz),
+                args.flowgraph_direction,
             ) {
                 Ok(v) => println!("{}", v),
                 Err(v) => eprintln!("Uncaught {v}"),
@@ -291,6 +325,7 @@ pub fn main() -> Result<(), io::Error> {
                             &mut context,
                             line.trim_end().as_bytes(),
                             flowgraph.unwrap_or(FlowgraphFormat::Graphviz),
+                            args.flowgraph_direction,
                         ) {
                             Ok(v) => println!("{}", v),
                             Err(v) => eprintln!("Uncaught {v}"),
