@@ -116,6 +116,7 @@ pub struct StandardConstructors {
     data_view: StandardConstructor,
     date_time_format: StandardConstructor,
     promise: StandardConstructor,
+    weak_ref: StandardConstructor,
 }
 
 impl Default for StandardConstructors {
@@ -175,6 +176,7 @@ impl Default for StandardConstructors {
             data_view: StandardConstructor::default(),
             date_time_format: StandardConstructor::default(),
             promise: StandardConstructor::default(),
+            weak_ref: StandardConstructor::default(),
         };
 
         // The value of `Array.prototype` is the Array prototype object.
@@ -401,6 +403,11 @@ impl StandardConstructors {
     #[inline]
     pub fn promise(&self) -> &StandardConstructor {
         &self.promise
+    }
+
+    #[inline]
+    pub fn weak_ref(&self) -> &StandardConstructor {
+        &self.weak_ref
     }
 }
 

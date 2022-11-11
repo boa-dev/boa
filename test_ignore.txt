@@ -9,6 +9,7 @@ feature:Temporal
 feature:tail-call-optimization
 feature:ShadowRealm
 feature:FinalizationRegistry
+feature:FinalizationRegistry.prototype.cleanupSome
 feature:Atomics
 feature:dynamic_import
 feature:decorators
@@ -28,6 +29,11 @@ feature:Intl.Locale
 
 // Non-standard
 feature:caller
+
+// Stage 3 proposals
+
+// https://github.com/tc39/proposal-symbols-as-weakmap-keys
+feature:symbols-as-weakmap-keys
 
 // These generate a stack overflow
 tco-call

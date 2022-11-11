@@ -628,8 +628,8 @@ impl Object {
             val => {
                 return Err(JsNativeError::typ()
                     .with_message(format!(
-                        "expected an object or null, got {}",
-                        val.type_of().to_std_string_escaped()
+                        "expected an object or null, got `{}`",
+                        val.type_of()
                     ))
                     .into())
             }

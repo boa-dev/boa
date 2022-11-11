@@ -420,10 +420,7 @@ impl Array {
             JsValue::Object(o) if o.is_callable() => Some(o),
             _ => {
                 return Err(JsNativeError::typ()
-                    .with_message(format!(
-                        "{} is not a function",
-                        mapfn.type_of().to_std_string_escaped()
-                    ))
+                    .with_message(format!("`{}` is not callable", mapfn.type_of()))
                     .into())
             }
         };
