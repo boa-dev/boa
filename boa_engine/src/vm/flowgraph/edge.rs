@@ -39,6 +39,7 @@ pub struct Edge {
 
 impl Edge {
     /// Construct a new edge.
+    #[inline]
     pub(super) fn new(
         from: usize,
         to: usize,
@@ -57,6 +58,7 @@ impl Edge {
     }
 
     /// Set the type of the edge.
+    #[inline]
     pub fn set_type(&mut self, type_: EdgeType) {
         self.type_ = type_;
     }

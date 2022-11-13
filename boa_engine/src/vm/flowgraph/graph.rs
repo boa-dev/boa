@@ -29,6 +29,7 @@ pub struct SubGraph {
 
 impl SubGraph {
     /// Construct a new subgraph.
+    #[inline]
     fn new(label: String) -> Self {
         Self {
             label,
@@ -40,22 +41,26 @@ impl SubGraph {
     }
 
     /// Set the label of the subgraph.
+    #[inline]
     pub fn set_label(&mut self, label: String) {
         self.label = label;
     }
 
     /// Set the direction of the subgraph.
+    #[inline]
     pub fn set_direction(&mut self, direction: Direction) {
         self.direction = direction;
     }
 
     /// Add a node to the subgraph.
+    #[inline]
     pub fn add_node(&mut self, location: usize, shape: NodeShape, label: Box<str>, color: Color) {
         let node = Node::new(location, shape, label, color);
         self.nodes.push(node);
     }
 
     /// Add an edge to the subgraph.
+    #[inline]
     pub fn add_edge(
         &mut self,
         from: usize,
@@ -70,6 +75,7 @@ impl SubGraph {
     }
 
     /// Create a subgraph in this subgraph.
+    #[inline]
     pub fn subgraph(&mut self, label: String) -> &mut SubGraph {
         self.subgraphs.push(SubGraph::new(label));
         let result = self
@@ -81,6 +87,7 @@ impl SubGraph {
     }
 
     /// Format into the graphviz format.
+    #[inline]
     fn graphviz_format(&self, result: &mut String, prefix: &str) {
         result.push_str(&format!("\tsubgraph cluster_{prefix}_{} {{\n", self.label));
         result.push_str("\t\tstyle = filled;\n");
@@ -110,15 +117,7 @@ impl SubGraph {
                 NodeShape::Record => ", shape=record",
                 NodeShape::Diamond => ", shape=diamond",
             };
-            let color = match node.color {
-                Color::None => String::new(),
-                Color::Red => ",style=filled,color=red".into(),
-                Color::Green => ",style=filled,color=green".into(),
-                Color::Blue => ",style=filled,color=blue".into(),
-                Color::Yellow => ",style=filled,color=yellow".into(),
-                Color::Purple => ",style=filled,color=purple".into(),
-                Color::Rgb(color) => format!(",style=filled,color=\"#{color:X}\""),
-            };
+            let color = format!(",style=filled,color=\"{}\"", node.color);
             result.push_str(&format!(
                 "\t\t{prefix}_{}_i_{}[label=\"{:04}: {}\"{shape}{color}];\n",
                 self.label, node.location, node.location, node.label
@@ -126,15 +125,7 @@ impl SubGraph {
         }
 
         for edge in &self.edges {
-            let color = match edge.color {
-                Color::None => String::new(),
-                Color::Red => ",color=red".into(),
-                Color::Green => ",color=green".into(),
-                Color::Blue => ",color=blue".into(),
-                Color::Yellow => ",color=yellow".into(),
-                Color::Purple => ",color=purple".into(),
-                Color::Rgb(color) => format!(",color=\"#{color:X}\""),
-            };
+            let color = format!(",color=\"{}\"", edge.color);
             let style = match (edge.style, edge.type_) {
                 (EdgeStyle::Line, EdgeType::None) => ",dir=none",
                 (EdgeStyle::Line, EdgeType::Arrow) => "",
@@ -160,6 +151,7 @@ impl SubGraph {
     }
 
     /// Format into the mermaid format.
+    #[inline]
     fn mermaid_format(&self, result: &mut String, prefix: &str) {
         let rankdir = match self.direction {
             Direction::TopToBottom => "TB",
@@ -191,15 +183,6 @@ impl SubGraph {
         }
 
         for node in &self.nodes {
-            let color = match node.color {
-                Color::None => String::new(),
-                Color::Red => "red".into(),
-                Color::Green => "green".into(),
-                Color::Blue => "blue".into(),
-                Color::Yellow => "yellow".into(),
-                Color::Purple => "purple".into(),
-                Color::Rgb(color) => format!("#{color:X}"),
-            };
             let (shape_begin, shape_end) = match node.shape {
                 NodeShape::None | NodeShape::Record => ('[', ']'),
                 NodeShape::Diamond => ('{', '}'),
@@ -208,24 +191,15 @@ impl SubGraph {
                 "  {prefix}_{}_i_{}{shape_begin}\"{:04}: {}\"{shape_end}\n",
                 self.label, node.location, node.location, node.label
             ));
-            if !color.is_empty() {
+            if !node.color.is_none() {
                 result.push_str(&format!(
-                    "  style {prefix}_{}_i_{} fill:{color}\n",
-                    self.label, node.location
+                    "  style {prefix}_{}_i_{} fill:{}\n",
+                    self.label, node.location, node.color
                 ));
             }
         }
 
         for (index, edge) in self.edges.iter().enumerate() {
-            let color = match edge.color {
-                Color::None => String::new(),
-                Color::Red => "red".into(),
-                Color::Green => "green".into(),
-                Color::Blue => "blue".into(),
-                Color::Yellow => "yellow".into(),
-                Color::Purple => "purple".into(),
-                Color::Rgb(color) => format!("#{color:X}"),
-            };
             let style = match (edge.style, edge.type_) {
                 (EdgeStyle::Line, EdgeType::None) => "---",
                 (EdgeStyle::Line, EdgeType::Arrow) => "-->",
@@ -241,11 +215,11 @@ impl SubGraph {
                 edge.to,
             ));
 
-            if !color.is_empty() {
+            if !edge.color.is_none() {
                 result.push_str(&format!(
                     "  linkStyle {} stroke:{}, stroke-width: 4px\n",
                     index + 1,
-                    color
+                    edge.color
                 ));
             }
         }
@@ -266,6 +240,7 @@ pub struct Graph {
 
 impl Graph {
     /// Construct a [`Graph`]
+    #[inline]
     pub fn new(direction: Direction) -> Self {
         Graph {
             subgraphs: Vec::default(),
@@ -274,6 +249,7 @@ impl Graph {
     }
 
     /// Create a [`SubGraph`] in this [`Graph`].
+    #[inline]
     pub fn subgraph(&mut self, label: String) -> &mut SubGraph {
         self.subgraphs.push(SubGraph::new(label));
         let result = self
@@ -285,6 +261,7 @@ impl Graph {
     }
 
     /// Output the graph into the graphviz format.
+    #[inline]
     pub fn to_graphviz_format(&self) -> String {
         let mut result = String::new();
         result += "digraph {\n";
@@ -306,6 +283,7 @@ impl Graph {
     }
 
     /// Output the graph into the mermaid format.
+    #[inline]
     pub fn to_mermaid_format(&self) -> String {
         let mut result = String::new();
         let rankdir = match self.direction {

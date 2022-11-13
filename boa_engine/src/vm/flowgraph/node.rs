@@ -26,6 +26,7 @@ pub struct Node {
 
 impl Node {
     /// Construct a new node.
+    #[inline]
     pub(super) fn new(location: usize, shape: NodeShape, label: Box<str>, color: Color) -> Self {
         Self {
             location,

@@ -18,6 +18,7 @@ pub use node::*;
 
 impl CodeBlock {
     /// Output the [`CodeBlock`] VM instructions into a [`Graph`].
+    #[inline]
     pub fn to_graph(&self, interner: &Interner, graph: &mut SubGraph) {
         let mut name = interner.resolve_expect(self.name).to_string();
         // Have to remove any invalid graph chars like `<` or `>`.
