@@ -61,7 +61,7 @@
 
 use boa_ast::StatementList;
 use boa_engine::{
-    vm::graph::{Direction, Graph},
+    vm::flowgraph::{Direction, Graph},
     Context, JsResult,
 };
 use clap::{Parser, ValueEnum, ValueHint};
