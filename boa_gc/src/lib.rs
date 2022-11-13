@@ -142,6 +142,7 @@ pub fn finalizer_safe() -> bool {
 /// The Allocator handles allocation of garbage collected values.
 ///
 /// The allocator can trigger a garbage collection.
+#[derive(Debug, Clone, Copy)]
 struct Allocator;
 
 impl Allocator {
