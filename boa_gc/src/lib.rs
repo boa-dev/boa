@@ -15,6 +15,7 @@
     clippy::all,
     clippy::cast_lossless,
     clippy::redundant_closure_for_method_calls,
+    clippy::use_self,
     clippy::unnested_or_patterns,
     clippy::trivially_copy_pass_by_ref,
     clippy::needless_pass_by_value,
@@ -91,12 +92,13 @@ impl Default for GcConfig {
     }
 }
 
-#[derive(Default)]
+#[derive(Default, Debug, Clone, Copy)]
 struct GcRuntimeData {
     collections: usize,
     bytes_allocated: usize,
 }
 
+#[derive(Debug)]
 struct BoaGc {
     config: GcConfig,
     runtime: GcRuntimeData,
@@ -108,15 +110,19 @@ impl Drop for BoaGc {
         Collector::dump(self);
     }
 }
+
 // Whether or not the thread is currently in the sweep phase of garbage collection.
 // During this phase, attempts to dereference a `Gc<T>` pointer will trigger a panic.
-
+/// `DropGuard` flags whether the Collector is currently running `Collector::sweep()` or `Collector::dump()`
+///
+/// While the `DropGuard` is active, all `GcBox`s must not be dereferenced or accessed as it could cause Undefined Behavior
+#[derive(Debug, Clone)]
 struct DropGuard;
 
 impl DropGuard {
-    fn new() -> DropGuard {
+    fn new() -> Self {
         GC_DROPPING.with(|dropping| dropping.set(true));
-        DropGuard
+        Self
     }
 }
 
@@ -128,6 +134,7 @@ impl Drop for DropGuard {
 
 /// Returns `true` if it is safe for a type to run [`Finalize::finalize`].
 #[must_use]
+#[inline]
 pub fn finalizer_safe() -> bool {
     GC_DROPPING.with(|dropping| !dropping.get())
 }

@@ -39,12 +39,12 @@ impl BorrowFlag {
 
     pub(crate) fn set_writing(self) -> Self {
         // Set every bit other than the root bit, which is preserved
-        BorrowFlag(self.0 | WRITING)
+        Self(self.0 | WRITING)
     }
 
     pub(crate) fn set_unused(self) -> Self {
         // Clear every bit other than the root bit, which is preserved
-        BorrowFlag(self.0 & ROOT)
+        Self(self.0 & ROOT)
     }
 
     pub(crate) fn add_reading(self) -> Self {
@@ -54,7 +54,7 @@ impl BorrowFlag {
         // this is equivalent to the following, more complicated, expression:
         //
         // BorrowFlag((self.0 & ROOT) | (((self.0 >> 1) + 1) << 1))
-        let flags = BorrowFlag(self.0 + 0b10);
+        let flags = Self(self.0 + 0b10);
 
         // This will fail if the borrow count overflows, which shouldn't happen,
         // but let's be safe
@@ -72,12 +72,12 @@ impl BorrowFlag {
         // complicated, expression:
         //
         // BorrowFlag((self.0 & ROOT) | (((self.0 >> 1) - 1) << 1))
-        BorrowFlag(self.0 - 0b10)
+        Self(self.0 - 0b10)
     }
 
     pub(crate) fn set_rooted(self, rooted: bool) -> Self {
         // Preserve the non-root bits
-        BorrowFlag((self.0 & !ROOT) | (usize::from(rooted)))
+        Self((self.0 & !ROOT) | (usize::from(rooted)))
     }
 }
 
@@ -94,7 +94,7 @@ impl<T: Trace> GcCell<T> {
     /// Creates a new `GcCell` containing `value`.
     #[inline]
     pub fn new(value: T) -> Self {
-        GcCell {
+        Self {
             flags: Cell::new(BORROWFLAG_INIT),
             cell: UnsafeCell::new(value),
         }
@@ -534,6 +534,7 @@ impl<T: Trace + ?Sized + PartialOrd> PartialOrd for GcCell<T> {
 
 impl<T: Trace + ?Sized + Ord> Ord for GcCell<T> {
     #[inline]
+    #[allow(clippy::use_self)]
     fn cmp(&self, other: &GcCell<T>) -> Ordering {
         (*self.borrow()).cmp(&*other.borrow())
     }

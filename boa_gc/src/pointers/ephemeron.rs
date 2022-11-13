@@ -98,12 +98,12 @@ unsafe impl<K: Trace, V: Trace> Trace for Ephemeron<K, V> {
 
 impl<K: Trace + ?Sized, V: Trace> Clone for Ephemeron<K, V> {
     #[inline]
-    fn clone(&self) -> Ephemeron<K, V> {
+    fn clone(&self) -> Self {
         // SAFETY: This is safe because the inner_ptr must live as long as it's roots.
         // Mismanagement of roots can cause inner_ptr to use after free or Undefined
         // Behavior.
         unsafe {
-            let eph = Ephemeron {
+            let eph = Self {
                 inner_ptr: Cell::new(NonNull::new_unchecked(self.inner_ptr().as_ptr())),
             };
             // Increment the Ephemeron's GcBox roots by 1

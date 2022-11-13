@@ -12,7 +12,7 @@ pub(crate) struct EphemeronBox<K: Trace + ?Sized + 'static, V: Trace + ?Sized + 
 
 impl<K: Trace + ?Sized, V: Trace> EphemeronBox<K, V> {
     pub(crate) fn new(key: &Gc<K>, value: V) -> Self {
-        EphemeronBox {
+        Self {
             key: Cell::new(Some(key.inner_ptr())),
             value,
         }
@@ -103,7 +103,7 @@ impl<K: Trace + ?Sized, V: Trace + ?Sized> Finalize for EphemeronBox<K, V> {
 }
 
 // SAFETY: EphemeronBox implements primarly two methods of trace `Trace::is_marked_ephemeron`
-// to determine whether the key field is stored and `Trace;:weak_trace` which continues the `Trace::weak_trace()`
+// to determine whether the key field is stored and `Trace::weak_trace` which continues the `Trace::weak_trace()`
 // into `key` and `value`.
 unsafe impl<K: Trace + ?Sized, V: Trace + ?Sized> Trace for EphemeronBox<K, V> {
     #[inline]

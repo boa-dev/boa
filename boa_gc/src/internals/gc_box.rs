@@ -28,7 +28,7 @@ impl GcBoxHeader {
     /// Creates a new `GcBoxHeader` with a root of 1 and next set to None.
     #[inline]
     pub(crate) fn new() -> Self {
-        GcBoxHeader {
+        Self {
             roots: Cell::new(1),
             next: Cell::new(None),
         }
@@ -38,7 +38,7 @@ impl GcBoxHeader {
     #[inline]
     pub(crate) fn new_weak() -> Self {
         // Set weak_flag
-        GcBoxHeader {
+        Self {
             roots: Cell::new(WEAK_MASK | 1),
             next: Cell::new(None),
         }
@@ -108,6 +108,7 @@ impl fmt::Debug for GcBoxHeader {
 }
 
 /// A garbage collected allocation.
+#[derive(Debug)]
 pub(crate) struct GcBox<T: Trace + ?Sized + 'static> {
     pub(crate) header: GcBoxHeader,
     pub(crate) value: T,
@@ -133,6 +134,7 @@ impl<T: Trace> GcBox<T> {
 
 impl<T: Trace + ?Sized> GcBox<T> {
     /// Returns `true` if the two references refer to the same `GcBox`.
+    #[allow(clippy::use_self)]
     pub(crate) fn ptr_eq(this: &GcBox<T>, other: &GcBox<T>) -> bool {
         // Use .header to ignore fat pointer vtables, to work around
         // https://github.com/rust-lang/rust/issues/46139

@@ -47,16 +47,17 @@ impl<T: Trace> Gc<T> {
 
 impl<T: Trace + ?Sized> Gc<T> {
     /// Returns `true` if the two `Gc`s point to the same allocation.
+    #[allow(clippy::use_self)]
     pub fn ptr_eq(this: &Gc<T>, other: &Gc<T>) -> bool {
         GcBox::ptr_eq(this.inner(), other.inner())
     }
 
     /// Will return a new rooted `Gc` from a `GcBox` pointer
-    pub(crate) fn from_ptr(ptr: NonNull<GcBox<T>>) -> Gc<T> {
+    pub(crate) fn from_ptr(ptr: NonNull<GcBox<T>>) -> Self {
         // SAFETY: the value provided as a pointer MUST be a valid GcBox.
         unsafe {
             ptr.as_ref().root_inner();
-            let gc = Gc {
+            let gc = Self {
                 inner_ptr: Cell::new(ptr),
                 marker: PhantomData,
             };
@@ -163,7 +164,7 @@ unsafe impl<T: Trace + ?Sized> Trace for Gc<T> {
 impl<T: Trace + ?Sized> Clone for Gc<T> {
     #[inline]
     fn clone(&self) -> Self {
-        Gc::from_ptr(self.inner_ptr())
+        Self::from_ptr(self.inner_ptr())
     }
 }
 
@@ -189,7 +190,7 @@ impl<T: Trace + ?Sized> Drop for Gc<T> {
 impl<T: Trace + Default> Default for Gc<T> {
     #[inline]
     fn default() -> Self {
-        Gc::new(Default::default())
+        Self::new(Default::default())
     }
 }
 

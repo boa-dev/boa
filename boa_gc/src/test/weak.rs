@@ -79,7 +79,7 @@ fn eph_allocation_chains() {
 
             assert!(eph.key().expect("eph is still live").value().is_none());
         }
-    })
+    });
 }
 
 #[test]
@@ -92,7 +92,7 @@ fn eph_basic_alloc_dump_test() {
         let _fourth = Gc::new("tail");
 
         assert_eq!(*eph.key().expect("must be live"), String::from("gc here"));
-    })
+    });
 }
 
 #[test]
@@ -108,7 +108,7 @@ fn eph_basic_upgrade_test() {
         force_collect();
 
         assert_eq!(*init_gc, *new_gc);
-    })
+    });
 }
 
 #[test]
@@ -129,5 +129,5 @@ fn eph_basic_clone_test() {
             *init_gc,
             *new_weak.value().expect("weak_should be live still")
         );
-    })
+    });
 }
