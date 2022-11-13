@@ -235,23 +235,36 @@ impl SubGraph {
     /// Create a subgraph in this subgraph.
     pub fn subgraph(&mut self, label: String) -> &mut SubGraph {
         self.subgraphs.push(SubGraph::new(label));
-        self.subgraphs
+        let result = self
+            .subgraphs
             .last_mut()
-            .expect("We just pushed a subgraph")
+            .expect("We just pushed a subgraph");
+        result.set_direction(self.direction);
+        result
     }
 
     /// Format into the graphviz format.
-    fn graphviz_format(&self, result: &mut String) {
-        result.push_str(&format!("\tsubgraph cluster_{} {{\n", self.label));
+    fn graphviz_format(&self, result: &mut String, prefix: &str) {
+        result.push_str(&format!("\tsubgraph cluster_{prefix}_{} {{\n", self.label));
         result.push_str("\t\tstyle = filled;\n");
-        result.push_str(&format!("\t\tlabel = \"{}\";\n", self.label));
+        result.push_str(&format!(
+            "\t\tlabel = \"{}\";\n",
+            if self.label.is_empty() {
+                "Anonymous Function"
+            } else {
+                self.label.as_ref()
+            }
+        ));
 
         result.push_str(&format!(
-            "\t\t{}_start [label=\"Start\",shape=Mdiamond,style=filled,color=green]\n",
+            "\t\t{prefix}_{}_start [label=\"Start\",shape=Mdiamond,style=filled,color=green]\n",
             self.label
         ));
         if !self.nodes.is_empty() {
-            result.push_str(&format!("\t\t{}_start -> {}_i_0\n", self.label, self.label));
+            result.push_str(&format!(
+                "\t\t{prefix}_{}_start -> {prefix}_{}_i_0\n",
+                self.label, self.label
+            ));
         }
 
         for node in &self.nodes {
@@ -270,7 +283,7 @@ impl SubGraph {
                 Color::Color(color) => format!(",style=filled,color=\"#{color:X}\""),
             };
             result.push_str(&format!(
-                "\t\t{}_i_{}[label=\"{:04}: {}\"{shape}{color}];\n",
+                "\t\t{prefix}_{}_i_{}[label=\"{:04}: {}\"{shape}{color}];\n",
                 self.label, node.location, node.location, node.label
             ));
         }
@@ -294,7 +307,7 @@ impl SubGraph {
                 (EdgeStyle::Dashed, EdgeType::Arrow) => ",style=dashed,",
             };
             result.push_str(&format!(
-                "\t\t{}_i_{} -> {}_i_{} [label=\"{}\", len=f{style}{color}];\n",
+                "\t\t{prefix}_{}_i_{} -> {prefix}_{}_i_{} [label=\"{}\", len=f{style}{color}];\n",
                 self.label,
                 edge.from,
                 self.label,
@@ -302,27 +315,42 @@ impl SubGraph {
                 edge.label.as_deref().unwrap_or("")
             ));
         }
-        for subgraph in &self.subgraphs {
-            subgraph.graphviz_format(result);
+        for (index, subgraph) in self.subgraphs.iter().enumerate() {
+            let prefix = format!("{prefix}_F{index}");
+            subgraph.graphviz_format(result, &prefix);
         }
         result.push_str("\t}\n");
     }
 
     /// Format into the mermaid format.
-    fn mermaid_format(&self, result: &mut String) {
+    fn mermaid_format(&self, result: &mut String, prefix: &str) {
         let rankdir = match self.direction {
             Direction::TopToBottom => "TB",
             Direction::BottomToTop => "BT",
             Direction::LeftToRight => "LR",
             Direction::RightToLeft => "RL",
         };
-        result.push_str(&format!("  subgraph {}\n", self.label));
+        result.push_str(&format!(
+            "  subgraph {prefix}_{}[\"{}\"]\n",
+            self.label,
+            if self.label.is_empty() {
+                "Anonymous Function"
+            } else {
+                self.label.as_ref()
+            }
+        ));
         result.push_str(&format!("  direction {}\n", rankdir));
 
-        result.push_str(&format!("  {}_start{{Start}}\n", self.label));
-        result.push_str(&format!("  style {}_start fill:green\n", self.label));
+        result.push_str(&format!("  {prefix}_{}_start{{Start}}\n", self.label));
+        result.push_str(&format!(
+            "  style {prefix}_{}_start fill:green\n",
+            self.label
+        ));
         if !self.nodes.is_empty() {
-            result.push_str(&format!("  {}_start --> {}_i_0\n", self.label, self.label));
+            result.push_str(&format!(
+                "  {prefix}_{}_start --> {prefix}_{}_i_0\n",
+                self.label, self.label
+            ));
         }
 
         for node in &self.nodes {
@@ -340,12 +368,12 @@ impl SubGraph {
                 NodeShape::Diamond => ('{', '}'),
             };
             result.push_str(&format!(
-                "  {}_i_{}{shape_begin}\"{:04}: {}\"{shape_end}\n",
+                "  {prefix}_{}_i_{}{shape_begin}\"{:04}: {}\"{shape_end}\n",
                 self.label, node.location, node.location, node.label
             ));
             if !color.is_empty() {
                 result.push_str(&format!(
-                    "  style {}_i_{} fill:{color}\n",
+                    "  style {prefix}_{}_i_{} fill:{color}\n",
                     self.label, node.location
                 ));
             }
@@ -368,7 +396,7 @@ impl SubGraph {
                 (EdgeStyle::Dotted | EdgeStyle::Dashed, EdgeType::Arrow) => "-.->",
             };
             result.push_str(&format!(
-                "  {}_i_{} {style}| {}| {}_i_{}\n",
+                "  {prefix}_{}_i_{} {style}| {}| {prefix}_{}_i_{}\n",
                 self.label,
                 edge.from,
                 edge.label.as_deref().unwrap_or(""),
@@ -384,8 +412,9 @@ impl SubGraph {
                 ));
             }
         }
-        for subgraph in &self.subgraphs {
-            subgraph.mermaid_format(result);
+        for (index, subgraph) in self.subgraphs.iter().enumerate() {
+            let prefix = format!("{prefix}_F{index}");
+            subgraph.mermaid_format(result, &prefix);
         }
         result.push_str("  end\n");
     }
@@ -433,7 +462,7 @@ impl Graph {
         result += &format!("\trankdir={rankdir};\n");
 
         for subgraph in &self.subgraphs {
-            subgraph.graphviz_format(&mut result);
+            subgraph.graphviz_format(&mut result, "");
         }
         result += "}\n";
         result
@@ -451,7 +480,7 @@ impl Graph {
         result += &format!("graph {}\n", rankdir);
 
         for subgraph in &self.subgraphs {
-            subgraph.mermaid_format(&mut result);
+            subgraph.mermaid_format(&mut result, "");
         }
         result += "\n";
         result
