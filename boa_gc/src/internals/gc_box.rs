@@ -134,8 +134,7 @@ impl<T: Trace> GcBox<T> {
 
 impl<T: Trace + ?Sized> GcBox<T> {
     /// Returns `true` if the two references refer to the same `GcBox`.
-    #[allow(clippy::use_self)]
-    pub(crate) fn ptr_eq(this: &GcBox<T>, other: &GcBox<T>) -> bool {
+    pub(crate) fn ptr_eq(this: &Self, other: &Self) -> bool {
         // Use .header to ignore fat pointer vtables, to work around
         // https://github.com/rust-lang/rust/issues/46139
         ptr::eq(&this.header, &other.header)

@@ -534,8 +534,7 @@ impl<T: Trace + ?Sized + PartialOrd> PartialOrd for GcCell<T> {
 
 impl<T: Trace + ?Sized + Ord> Ord for GcCell<T> {
     #[inline]
-    #[allow(clippy::use_self)]
-    fn cmp(&self, other: &GcCell<T>) -> Ordering {
+    fn cmp(&self, other: &Self) -> Ordering {
         (*self.borrow()).cmp(&*other.borrow())
     }
 }
