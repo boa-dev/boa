@@ -160,14 +160,20 @@ enum DumpFormat {
     JsonPretty,
 }
 
+/// Represents the format of the instruction flowgraph.
 #[derive(Debug, Clone, Copy, ValueEnum)]
 enum FlowgraphFormat {
-    /// Generates in graphviz format.
+    /// Generates in [graphviz][graphviz] format.
+    ///
+    /// [graphviz]: https://graphviz.org/
     Graphviz,
-    /// Generates in mermaid format.
+    /// Generates in [mermaid][mermaid] format.
+    ///
+    /// [mermaid]: https://mermaid-js.github.io/mermaid/#/
     Mermaid,
 }
 
+/// Represents the direction of the instruction flowgraph.
 #[derive(Debug, Clone, Copy, ValueEnum)]
 enum FlowgraphDirection {
     TopToBottom,
@@ -227,22 +233,22 @@ where
 fn generate_flowgraph(
     context: &mut Context,
     src: &[u8],
-    flowgraph: FlowgraphFormat,
-    flowgraph_direction: Option<FlowgraphDirection>,
+    format: FlowgraphFormat,
+    direction: Option<FlowgraphDirection>,
 ) -> JsResult<String> {
     let ast = context.parse(src)?;
     let code = context.compile(&ast)?;
 
-    let flowgraph_direction = match flowgraph_direction {
+    let direction = match direction {
         Some(FlowgraphDirection::TopToBottom) | None => Direction::TopToBottom,
         Some(FlowgraphDirection::BottomToTop) => Direction::BottomToTop,
         Some(FlowgraphDirection::LeftToRight) => Direction::LeftToRight,
         Some(FlowgraphDirection::RightToLeft) => Direction::RightToLeft,
     };
 
-    let mut graph = Graph::new(flowgraph_direction);
+    let mut graph = Graph::new(direction);
     code.to_graph(context.interner(), graph.subgraph(String::default()));
-    let result = match flowgraph {
+    let result = match format {
         FlowgraphFormat::Graphviz => graph.to_graphviz_format(),
         FlowgraphFormat::Mermaid => graph.to_mermaid_format(),
     };

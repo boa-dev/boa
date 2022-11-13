@@ -1,9 +1,12 @@
+//! This module is responsible for generating the vm instruction flowgraph.
+
 use std::mem::size_of;
 
 use boa_interner::{Interner, Sym};
 
 use crate::vm::{CodeBlock, Opcode};
 
+/// Helper function for converting HSV to RGB color format.
 #[allow(clippy::many_single_char_names)]
 fn hsv_to_rgb(h: f64, s: f64, v: f64) -> u32 {
     let h_i = (h * 6.0) as i64;
@@ -34,6 +37,8 @@ fn hsv_to_rgb(h: f64, s: f64, v: f64) -> u32 {
     result
 }
 
+/// This funcition takes a random value and converts it to
+/// a pleasant to look at RGB color.
 fn generate_color(mut random: f64) -> u32 {
     const GOLDEN_RATIO_CONJUGATE: f64 = 0.618033988749895;
     random += GOLDEN_RATIO_CONJUGATE;
@@ -41,47 +46,72 @@ fn generate_color(mut random: f64) -> u32 {
     hsv_to_rgb(random, 0.7, 0.95)
 }
 
+/// Reperesents the shape of a node in the flowgraph.
 #[derive(Debug, Clone, Copy)]
 pub enum NodeShape {
+    // Represents the default shape used in the graph.
     None,
+    /// Represents a rectangular node shape.
     Record,
+    /// Represents a diamond node shape.
     Diamond,
 }
 
+/// Represents the color of a node or edge.
 #[derive(Debug, Clone, Copy)]
 pub enum Color {
+    /// Represents the default color.
     None,
+    /// Represents the color red.
     Red,
+    /// Represents the color green.
     Green,
+    /// Represents the color blue.
     Blue,
+    /// Represents the color yellow.
     Yellow,
+    /// Represents the color purple.
     Purple,
+    /// Represents a RGB color.
     Color(u32),
 }
 
+/// Represents the edge (connection) style.
 #[derive(Debug, Clone, Copy)]
 pub enum EdgeStyle {
+    /// Represents a solid line.
     Line,
+    /// Represents a dotted line.
     Dotted,
+    /// Represents a dashed line.
     Dashed,
 }
 
+/// Represents the edge type.
 #[derive(Debug, Clone, Copy)]
 pub enum EdgeType {
+    /// Represents no decoration on the edge line.
     None,
+    /// Represents arrow edge type.
     Arrow,
 }
 
-#[derive(Debug)]
+/// This represents a node in the flowgraph.
+#[derive(Debug, Clone)]
 pub struct Node {
+    /// The opcode location.
     location: usize,
+    /// The shape of the opcode.
     shape: NodeShape,
+    /// The label/contents of the node.
     label: Box<str>,
+    /// The background color of the node.
     color: Color,
 }
 
 impl Node {
-    pub fn new(location: usize, shape: NodeShape, label: Box<str>, color: Color) -> Self {
+    /// Construct a new node.
+    fn new(location: usize, shape: NodeShape, label: Box<str>, color: Color) -> Self {
         Self {
             location,
             shape,
@@ -91,18 +121,26 @@ impl Node {
     }
 }
 
-#[derive(Debug)]
+/// Represents an edge/connection in the flowgraph.
+#[derive(Debug, Clone)]
 pub struct Edge {
+    /// The location of the source node.
     from: usize,
+    /// The location of the destination node.
     to: usize,
+    /// The label on top of the edge.
     label: Option<Box<str>>,
+    /// The color of the line.
     color: Color,
+    /// The style of the line.
     style: EdgeStyle,
+    /// The type of the line.
     type_: EdgeType,
 }
 
 impl Edge {
-    pub fn new(
+    /// Construct a new edge.
+    fn new(
         from: usize,
         to: usize,
         label: Option<Box<str>>,
@@ -119,11 +157,13 @@ impl Edge {
         }
     }
 
+    /// Set the type of the edge.
     pub fn set_type(&mut self, type_: EdgeType) {
         self.type_ = type_;
     }
 }
 
+/// This represents the direction of flow in the flowgraph.
 #[derive(Debug, Clone, Copy)]
 pub enum Direction {
     TopToBottom,
@@ -132,18 +172,27 @@ pub enum Direction {
     RightToLeft,
 }
 
-#[derive(Debug)]
+/// Represents a sub-graph in the graph.
+///
+/// Sub-graphs can be nested.
+#[derive(Debug, Clone)]
 pub struct SubGraph {
+    /// The label on the sub-graph.
     label: String,
+    /// The nodes it contains.
     nodes: Vec<Node>,
+    /// The edges/connections in contains.
     edges: Vec<Edge>,
+    /// The direction of flow in the sub-graph.
     direction: Direction,
 
+    /// The sub-graphs this graph contains.
     subgraphs: Vec<SubGraph>,
 }
 
 impl SubGraph {
-    pub fn new(label: String) -> Self {
+    /// Construct a new subgraph.
+    fn new(label: String) -> Self {
         Self {
             label,
             nodes: Vec::default(),
@@ -153,19 +202,23 @@ impl SubGraph {
         }
     }
 
+    /// Set the label of the subgraph.
     pub fn set_label(&mut self, label: String) {
         self.label = label;
     }
 
+    /// Set the direction of the subgraph.
     pub fn set_direction(&mut self, direction: Direction) {
         self.direction = direction;
     }
 
+    /// Add a node to the subgraph.
     pub fn add_node(&mut self, location: usize, shape: NodeShape, label: Box<str>, color: Color) {
         let node = Node::new(location, shape, label, color);
         self.nodes.push(node);
     }
 
+    /// Add an edge to the subgraph.
     pub fn add_edge(
         &mut self,
         from: usize,
@@ -179,6 +232,7 @@ impl SubGraph {
         self.edges.last_mut().expect("Already pushed edge")
     }
 
+    /// Create a subgraph in this subgraph.
     pub fn subgraph(&mut self, label: String) -> &mut SubGraph {
         self.subgraphs.push(SubGraph::new(label));
         self.subgraphs
@@ -186,6 +240,7 @@ impl SubGraph {
             .expect("We just pushed a subgraph")
     }
 
+    /// Format into the graphviz format.
     fn graphviz_format(&self, result: &mut String) {
         result.push_str(&format!("\tsubgraph cluster_{} {{\n", self.label));
         result.push_str("\t\tstyle = filled;\n");
@@ -253,6 +308,7 @@ impl SubGraph {
         result.push_str("\t}\n");
     }
 
+    /// Format into the mermaid format.
     fn mermaid_format(&self, result: &mut String) {
         let rankdir = match self.direction {
             Direction::TopToBottom => "TB",
@@ -335,6 +391,7 @@ impl SubGraph {
     }
 }
 
+/// This represents the main graph that other [`SubGraph`]s can be nested in.
 #[derive(Debug)]
 pub struct Graph {
     subgraphs: Vec<SubGraph>,
@@ -342,6 +399,7 @@ pub struct Graph {
 }
 
 impl Graph {
+    /// Construct a [`Graph`]
     pub fn new(direction: Direction) -> Self {
         Graph {
             subgraphs: Vec::default(),
@@ -349,6 +407,7 @@ impl Graph {
         }
     }
 
+    /// Create a [`SubGraph`] in this [`Graph`].
     pub fn subgraph(&mut self, label: String) -> &mut SubGraph {
         self.subgraphs.push(SubGraph::new(label));
         let result = self
@@ -359,6 +418,7 @@ impl Graph {
         result
     }
 
+    /// Output the graph into the graphviz format.
     pub fn to_graphviz_format(&self) -> String {
         let mut result = String::new();
         result += "digraph {\n";
@@ -379,6 +439,7 @@ impl Graph {
         result
     }
 
+    /// Output the graph into the mermaid format.
     pub fn to_mermaid_format(&self) -> String {
         let mut result = String::new();
         let rankdir = match self.direction {
@@ -398,8 +459,10 @@ impl Graph {
 }
 
 impl CodeBlock {
+    /// Output the [`CodeBlock`] VM instructions into a [`Graph`].
     pub fn to_graph(&self, interner: &Interner, graph: &mut SubGraph) {
         let mut name = interner.resolve_expect(self.name).to_string();
+        // Have to remove any invalid graph chars like `<` or `>`.
         if self.name == Sym::MAIN {
             name = "__main__".to_string();
         }
