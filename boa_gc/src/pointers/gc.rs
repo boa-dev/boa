@@ -47,8 +47,7 @@ impl<T: Trace> Gc<T> {
 
 impl<T: Trace + ?Sized> Gc<T> {
     /// Returns `true` if the two `Gc`s point to the same allocation.
-    #[allow(clippy::use_self)]
-    pub fn ptr_eq(this: &Gc<T>, other: &Gc<T>) -> bool {
+    pub fn ptr_eq(this: &Self, other: &Self) -> bool {
         GcBox::ptr_eq(this.inner(), other.inner())
     }
 
