@@ -26,6 +26,7 @@ intl = [
 
 fuzz = ["boa_ast/fuzz", "boa_interner/fuzz"]
 
+# Enable Boa's VM instruction flowgraph generator.
 flowgraph = []
 
 # Enable Boa's WHATWG console object implementation.
