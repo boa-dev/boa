@@ -61,6 +61,7 @@ view the graph.
 ```bash
 cargo run -- test.js --flowgraph | dot -Tpng > test.png
 ```
+
 You can specify the `-Tsvg` to generate a `svg` instead of a `png` file.
 
 ![Graphviz flowgraph](./img/graphviz_flowgraph.svg)
