@@ -68,14 +68,14 @@ impl Identifier {
     /// Creates a new identifier AST Expression.
     #[inline]
     #[must_use]
-    pub fn new(ident: Sym) -> Self {
+    pub const fn new(ident: Sym) -> Self {
         Self { ident }
     }
 
     /// Retrieves the identifier's string symbol in the interner.
     #[inline]
     #[must_use]
-    pub fn sym(self) -> Sym {
+    pub const fn sym(self) -> Sym {
         self.ident
     }
 }

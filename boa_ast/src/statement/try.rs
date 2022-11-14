@@ -47,21 +47,21 @@ impl Try {
     /// Creates a new `Try` AST node.
     #[inline]
     #[must_use]
-    pub fn new(block: Block, handler: ErrorHandler) -> Self {
+    pub const fn new(block: Block, handler: ErrorHandler) -> Self {
         Self { block, handler }
     }
 
     /// Gets the `try` block.
     #[inline]
     #[must_use]
-    pub fn block(&self) -> &Block {
+    pub const fn block(&self) -> &Block {
         &self.block
     }
 
     /// Gets the `catch` block, if any.
     #[inline]
     #[must_use]
-    pub fn catch(&self) -> Option<&Catch> {
+    pub const fn catch(&self) -> Option<&Catch> {
         match &self.handler {
             ErrorHandler::Catch(c) | ErrorHandler::Full(c, _) => Some(c),
             ErrorHandler::Finally(_) => None,
@@ -71,7 +71,7 @@ impl Try {
     /// Gets the `finally` block, if any.
     #[inline]
     #[must_use]
-    pub fn finally(&self) -> Option<&Finally> {
+    pub const fn finally(&self) -> Option<&Finally> {
         match &self.handler {
             ErrorHandler::Finally(f) | ErrorHandler::Full(_, f) => Some(f),
             ErrorHandler::Catch(_) => None,
@@ -150,21 +150,21 @@ impl Catch {
     /// Creates a new catch block.
     #[inline]
     #[must_use]
-    pub fn new(parameter: Option<Binding>, block: Block) -> Self {
+    pub const fn new(parameter: Option<Binding>, block: Block) -> Self {
         Self { parameter, block }
     }
 
     /// Gets the parameter of the catch block.
     #[inline]
     #[must_use]
-    pub fn parameter(&self) -> Option<&Binding> {
+    pub const fn parameter(&self) -> Option<&Binding> {
         self.parameter.as_ref()
     }
 
     /// Retrieves the catch execution block.
     #[inline]
     #[must_use]
-    pub fn block(&self) -> &Block {
+    pub const fn block(&self) -> &Block {
         &self.block
     }
 }
@@ -218,7 +218,7 @@ impl Finally {
     /// Gets the finally block.
     #[inline]
     #[must_use]
-    pub fn block(&self) -> &Block {
+    pub const fn block(&self) -> &Block {
         &self.block
     }
 }

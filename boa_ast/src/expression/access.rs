@@ -53,8 +53,8 @@ impl VisitWith for PropertyAccessField {
         V: Visitor<'a>,
     {
         match self {
-            PropertyAccessField::Const(sym) => visitor.visit_sym(sym),
-            PropertyAccessField::Expr(expr) => visitor.visit_expression(expr),
+            Self::Const(sym) => visitor.visit_sym(sym),
+            Self::Expr(expr) => visitor.visit_expression(expr),
         }
     }
 
@@ -63,8 +63,8 @@ impl VisitWith for PropertyAccessField {
         V: VisitorMut<'a>,
     {
         match self {
-            PropertyAccessField::Const(sym) => visitor.visit_sym_mut(sym),
-            PropertyAccessField::Expr(expr) => visitor.visit_expression_mut(&mut *expr),
+            Self::Const(sym) => visitor.visit_sym_mut(sym),
+            Self::Expr(expr) => visitor.visit_expression_mut(&mut *expr),
         }
     }
 }
@@ -88,9 +88,9 @@ impl ToInternedString for PropertyAccess {
     #[inline]
     fn to_interned_string(&self, interner: &Interner) -> String {
         match self {
-            PropertyAccess::Simple(s) => s.to_interned_string(interner),
-            PropertyAccess::Private(p) => p.to_interned_string(interner),
-            PropertyAccess::Super(s) => s.to_interned_string(interner),
+            Self::Simple(s) => s.to_interned_string(interner),
+            Self::Private(p) => p.to_interned_string(interner),
+            Self::Super(s) => s.to_interned_string(interner),
         }
     }
 }
@@ -108,9 +108,9 @@ impl VisitWith for PropertyAccess {
         V: Visitor<'a>,
     {
         match self {
-            PropertyAccess::Simple(spa) => visitor.visit_simple_property_access(spa),
-            PropertyAccess::Private(ppa) => visitor.visit_private_property_access(ppa),
-            PropertyAccess::Super(supa) => visitor.visit_super_property_access(supa),
+            Self::Simple(spa) => visitor.visit_simple_property_access(spa),
+            Self::Private(ppa) => visitor.visit_private_property_access(ppa),
+            Self::Super(supa) => visitor.visit_super_property_access(supa),
         }
     }
 
@@ -119,9 +119,9 @@ impl VisitWith for PropertyAccess {
         V: VisitorMut<'a>,
     {
         match self {
-            PropertyAccess::Simple(spa) => visitor.visit_simple_property_access_mut(spa),
-            PropertyAccess::Private(ppa) => visitor.visit_private_property_access_mut(ppa),
-            PropertyAccess::Super(supa) => visitor.visit_super_property_access_mut(supa),
+            Self::Simple(spa) => visitor.visit_simple_property_access_mut(spa),
+            Self::Private(ppa) => visitor.visit_private_property_access_mut(ppa),
+            Self::Super(supa) => visitor.visit_super_property_access_mut(supa),
         }
     }
 }
@@ -139,14 +139,14 @@ impl SimplePropertyAccess {
     /// Gets the target object of the property access.
     #[inline]
     #[must_use]
-    pub fn target(&self) -> &Expression {
+    pub const fn target(&self) -> &Expression {
         &self.target
     }
 
     /// Gets the accessed field of the target object.
     #[inline]
     #[must_use]
-    pub fn field(&self) -> &PropertyAccessField {
+    pub const fn field(&self) -> &PropertyAccessField {
         &self.field
     }
 
@@ -233,14 +233,14 @@ impl PrivatePropertyAccess {
     /// Gets the original object from where to get the field from.
     #[inline]
     #[must_use]
-    pub fn target(&self) -> &Expression {
+    pub const fn target(&self) -> &Expression {
         &self.target
     }
 
     /// Gets the name of the field to retrieve.
     #[inline]
     #[must_use]
-    pub fn field(&self) -> Sym {
+    pub const fn field(&self) -> Sym {
         self.field
     }
 }
@@ -298,14 +298,14 @@ pub struct SuperPropertyAccess {
 impl SuperPropertyAccess {
     /// Creates a new property access field node.
     #[must_use]
-    pub fn new(field: PropertyAccessField) -> Self {
+    pub const fn new(field: PropertyAccessField) -> Self {
         Self { field }
     }
 
     /// Gets the name of the field to retrieve.
     #[inline]
     #[must_use]
-    pub fn field(&self) -> &PropertyAccessField {
+    pub const fn field(&self) -> &PropertyAccessField {
         &self.field
     }
 }

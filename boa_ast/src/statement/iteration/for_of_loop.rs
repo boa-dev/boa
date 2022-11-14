@@ -50,28 +50,28 @@ impl ForOfLoop {
     /// Gets the initializer of the for...of loop.
     #[inline]
     #[must_use]
-    pub fn initializer(&self) -> &IterableLoopInitializer {
+    pub const fn initializer(&self) -> &IterableLoopInitializer {
         &self.init
     }
 
     /// Gets the iterable expression of the for...of loop.
     #[inline]
     #[must_use]
-    pub fn iterable(&self) -> &Expression {
+    pub const fn iterable(&self) -> &Expression {
         &self.iterable
     }
 
     /// Gets the body to execute in the for...of loop.
     #[inline]
     #[must_use]
-    pub fn body(&self) -> &Statement {
+    pub const fn body(&self) -> &Statement {
         &self.body
     }
 
     /// Returns true if this "for...of" loop is an "for await...of" loop.
     #[inline]
     #[must_use]
-    pub fn r#await(&self) -> bool {
+    pub const fn r#await(&self) -> bool {
         self.r#await
     }
 }

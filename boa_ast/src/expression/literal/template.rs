@@ -60,7 +60,7 @@ impl TemplateLiteral {
 
     /// Gets the element list of this `TemplateLiteral`.
     #[must_use]
-    pub fn elements(&self) -> &[TemplateElement] {
+    pub const fn elements(&self) -> &[TemplateElement] {
         &self.elements
     }
 }
@@ -116,8 +116,8 @@ impl VisitWith for TemplateElement {
         V: Visitor<'a>,
     {
         match self {
-            TemplateElement::String(sym) => visitor.visit_sym(sym),
-            TemplateElement::Expr(expr) => visitor.visit_expression(expr),
+            Self::String(sym) => visitor.visit_sym(sym),
+            Self::Expr(expr) => visitor.visit_expression(expr),
         }
     }
 
@@ -126,8 +126,8 @@ impl VisitWith for TemplateElement {
         V: VisitorMut<'a>,
     {
         match self {
-            TemplateElement::String(sym) => visitor.visit_sym_mut(sym),
-            TemplateElement::Expr(expr) => visitor.visit_expression_mut(expr),
+            Self::String(sym) => visitor.visit_sym_mut(sym),
+            Self::Expr(expr) => visitor.visit_expression_mut(expr),
         }
     }
 }

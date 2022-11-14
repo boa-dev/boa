@@ -43,7 +43,7 @@ impl ObjectLiteral {
     /// Gets the object literal properties
     #[inline]
     #[must_use]
-    pub fn properties(&self) -> &[PropertyDefinition] {
+    pub const fn properties(&self) -> &[PropertyDefinition] {
         &self.properties
     }
 
@@ -121,18 +121,12 @@ impl ObjectLiteral {
                                         return None;
                                     }
                                     excluded_keys.push(*ident);
-                                    bindings.push(ObjectPatternElement::SingleName {
-                                        ident: *ident,
-                                        name: PropertyName::Literal(name),
-                                        default_init: Some(assign.rhs().clone()),
-                                    });
-                                } else {
-                                    bindings.push(ObjectPatternElement::SingleName {
-                                        ident: *ident,
-                                        name: PropertyName::Literal(name),
-                                        default_init: Some(assign.rhs().clone()),
-                                    });
                                 }
+                                bindings.push(ObjectPatternElement::SingleName {
+                                    ident: *ident,
+                                    name: PropertyName::Literal(name),
+                                    default_init: Some(assign.rhs().clone()),
+                                });
                             } else {
                                 return None;
                             }

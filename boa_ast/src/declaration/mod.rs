@@ -52,12 +52,12 @@ pub enum Declaration {
 impl ToIndentedString for Declaration {
     fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
         match self {
-            Declaration::Function(f) => f.to_indented_string(interner, indentation),
-            Declaration::Generator(g) => g.to_indented_string(interner, indentation),
-            Declaration::AsyncFunction(af) => af.to_indented_string(interner, indentation),
-            Declaration::AsyncGenerator(ag) => ag.to_indented_string(interner, indentation),
-            Declaration::Class(c) => c.to_indented_string(interner, indentation),
-            Declaration::Lexical(l) => {
+            Self::Function(f) => f.to_indented_string(interner, indentation),
+            Self::Generator(g) => g.to_indented_string(interner, indentation),
+            Self::AsyncFunction(af) => af.to_indented_string(interner, indentation),
+            Self::AsyncGenerator(ag) => ag.to_indented_string(interner, indentation),
+            Self::Class(c) => c.to_indented_string(interner, indentation),
+            Self::Lexical(l) => {
                 let mut s = l.to_interned_string(interner);
                 s.push(';');
                 s
@@ -72,12 +72,12 @@ impl VisitWith for Declaration {
         V: Visitor<'a>,
     {
         match self {
-            Declaration::Function(f) => visitor.visit_function(f),
-            Declaration::Generator(g) => visitor.visit_generator(g),
-            Declaration::AsyncFunction(af) => visitor.visit_async_function(af),
-            Declaration::AsyncGenerator(ag) => visitor.visit_async_generator(ag),
-            Declaration::Class(c) => visitor.visit_class(c),
-            Declaration::Lexical(ld) => visitor.visit_lexical_declaration(ld),
+            Self::Function(f) => visitor.visit_function(f),
+            Self::Generator(g) => visitor.visit_generator(g),
+            Self::AsyncFunction(af) => visitor.visit_async_function(af),
+            Self::AsyncGenerator(ag) => visitor.visit_async_generator(ag),
+            Self::Class(c) => visitor.visit_class(c),
+            Self::Lexical(ld) => visitor.visit_lexical_declaration(ld),
         }
     }
 
@@ -86,12 +86,12 @@ impl VisitWith for Declaration {
         V: VisitorMut<'a>,
     {
         match self {
-            Declaration::Function(f) => visitor.visit_function_mut(f),
-            Declaration::Generator(g) => visitor.visit_generator_mut(g),
-            Declaration::AsyncFunction(af) => visitor.visit_async_function_mut(af),
-            Declaration::AsyncGenerator(ag) => visitor.visit_async_generator_mut(ag),
-            Declaration::Class(c) => visitor.visit_class_mut(c),
-            Declaration::Lexical(ld) => visitor.visit_lexical_declaration_mut(ld),
+            Self::Function(f) => visitor.visit_function_mut(f),
+            Self::Generator(g) => visitor.visit_generator_mut(g),
+            Self::AsyncFunction(af) => visitor.visit_async_function_mut(af),
+            Self::AsyncGenerator(ag) => visitor.visit_async_generator_mut(ag),
+            Self::Class(c) => visitor.visit_class_mut(c),
+            Self::Lexical(ld) => visitor.visit_lexical_declaration_mut(ld),
         }
     }
 }

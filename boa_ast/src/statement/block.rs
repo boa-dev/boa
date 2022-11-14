@@ -34,7 +34,7 @@ impl Block {
     /// Gets the list of statements and declarations in this block.
     #[inline]
     #[must_use]
-    pub fn statement_list(&self) -> &StatementList {
+    pub const fn statement_list(&self) -> &StatementList {
         &self.statements
     }
 }

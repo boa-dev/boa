@@ -188,26 +188,26 @@ impl VisitWith for Statement {
         V: Visitor<'a>,
     {
         match self {
-            Statement::Block(b) => visitor.visit_block(b),
-            Statement::Var(v) => visitor.visit_var_declaration(v),
-            Statement::Empty => {
+            Self::Block(b) => visitor.visit_block(b),
+            Self::Var(v) => visitor.visit_var_declaration(v),
+            Self::Empty => {
                 // do nothing; there is nothing to visit here
                 ControlFlow::Continue(())
             }
-            Statement::Expression(e) => visitor.visit_expression(e),
-            Statement::If(i) => visitor.visit_if(i),
-            Statement::DoWhileLoop(dw) => visitor.visit_do_while_loop(dw),
-            Statement::WhileLoop(w) => visitor.visit_while_loop(w),
-            Statement::ForLoop(f) => visitor.visit_for_loop(f),
-            Statement::ForInLoop(fi) => visitor.visit_for_in_loop(fi),
-            Statement::ForOfLoop(fo) => visitor.visit_for_of_loop(fo),
-            Statement::Switch(s) => visitor.visit_switch(s),
-            Statement::Continue(c) => visitor.visit_continue(c),
-            Statement::Break(b) => visitor.visit_break(b),
-            Statement::Return(r) => visitor.visit_return(r),
-            Statement::Labelled(l) => visitor.visit_labelled(l),
-            Statement::Throw(th) => visitor.visit_throw(th),
-            Statement::Try(tr) => visitor.visit_try(tr),
+            Self::Expression(e) => visitor.visit_expression(e),
+            Self::If(i) => visitor.visit_if(i),
+            Self::DoWhileLoop(dw) => visitor.visit_do_while_loop(dw),
+            Self::WhileLoop(w) => visitor.visit_while_loop(w),
+            Self::ForLoop(f) => visitor.visit_for_loop(f),
+            Self::ForInLoop(fi) => visitor.visit_for_in_loop(fi),
+            Self::ForOfLoop(fo) => visitor.visit_for_of_loop(fo),
+            Self::Switch(s) => visitor.visit_switch(s),
+            Self::Continue(c) => visitor.visit_continue(c),
+            Self::Break(b) => visitor.visit_break(b),
+            Self::Return(r) => visitor.visit_return(r),
+            Self::Labelled(l) => visitor.visit_labelled(l),
+            Self::Throw(th) => visitor.visit_throw(th),
+            Self::Try(tr) => visitor.visit_try(tr),
         }
     }
 
@@ -216,26 +216,26 @@ impl VisitWith for Statement {
         V: VisitorMut<'a>,
     {
         match self {
-            Statement::Block(b) => visitor.visit_block_mut(b),
-            Statement::Var(v) => visitor.visit_var_declaration_mut(v),
-            Statement::Empty => {
+            Self::Block(b) => visitor.visit_block_mut(b),
+            Self::Var(v) => visitor.visit_var_declaration_mut(v),
+            Self::Empty => {
                 // do nothing; there is nothing to visit here
                 ControlFlow::Continue(())
             }
-            Statement::Expression(e) => visitor.visit_expression_mut(e),
-            Statement::If(i) => visitor.visit_if_mut(i),
-            Statement::DoWhileLoop(dw) => visitor.visit_do_while_loop_mut(dw),
-            Statement::WhileLoop(w) => visitor.visit_while_loop_mut(w),
-            Statement::ForLoop(f) => visitor.visit_for_loop_mut(f),
-            Statement::ForInLoop(fi) => visitor.visit_for_in_loop_mut(fi),
-            Statement::ForOfLoop(fo) => visitor.visit_for_of_loop_mut(fo),
-            Statement::Switch(s) => visitor.visit_switch_mut(s),
-            Statement::Continue(c) => visitor.visit_continue_mut(c),
-            Statement::Break(b) => visitor.visit_break_mut(b),
-            Statement::Return(r) => visitor.visit_return_mut(r),
-            Statement::Labelled(l) => visitor.visit_labelled_mut(l),
-            Statement::Throw(th) => visitor.visit_throw_mut(th),
-            Statement::Try(tr) => visitor.visit_try_mut(tr),
+            Self::Expression(e) => visitor.visit_expression_mut(e),
+            Self::If(i) => visitor.visit_if_mut(i),
+            Self::DoWhileLoop(dw) => visitor.visit_do_while_loop_mut(dw),
+            Self::WhileLoop(w) => visitor.visit_while_loop_mut(w),
+            Self::ForLoop(f) => visitor.visit_for_loop_mut(f),
+            Self::ForInLoop(fi) => visitor.visit_for_in_loop_mut(fi),
+            Self::ForOfLoop(fo) => visitor.visit_for_of_loop_mut(fo),
+            Self::Switch(s) => visitor.visit_switch_mut(s),
+            Self::Continue(c) => visitor.visit_continue_mut(c),
+            Self::Break(b) => visitor.visit_break_mut(b),
+            Self::Return(r) => visitor.visit_return_mut(r),
+            Self::Labelled(l) => visitor.visit_labelled_mut(l),
+            Self::Throw(th) => visitor.visit_throw_mut(th),
+            Self::Try(tr) => visitor.visit_try_mut(tr),
         }
     }
 }
