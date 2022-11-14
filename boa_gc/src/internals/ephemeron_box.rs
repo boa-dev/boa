@@ -80,7 +80,6 @@ impl<K: Trace + ?Sized, V: Trace + ?Sized> EphemeronBox<K, V> {
     }
 
     /// Calls [`Trace::weak_trace()`][crate::Trace] on value
-    ///
     #[inline]
     fn weak_trace_value(&self) {
         // SAFETY: Value is a sized element that must implement trace. The
@@ -135,6 +134,11 @@ unsafe impl<K: Trace + ?Sized, V: Trace + ?Sized> Trace for EphemeronBox<K, V> {
     #[inline]
     unsafe fn unroot(&self) {}
 
+    // An `EphemeronBox`'s key is set to None once it has been finalized.
+    //
+    // NOTE: while it is possible for the `key`'s pointer value to be 
+    // resurrected, we should still consider the finalize the ephemeron 
+    // box and set the `key` to None.
     #[inline]
     fn run_finalizer(&self) {
         Finalize::finalize(self);
