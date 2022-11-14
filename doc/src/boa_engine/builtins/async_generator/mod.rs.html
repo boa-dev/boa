@@ -791,7 +791,7 @@
     vm::GeneratorResumeKind,
     Context, JsError, JsResult,
 };
-<span class="kw">use </span>boa_gc::{Cell, Finalize, Gc, Trace};
+<span class="kw">use </span>boa_gc::{Finalize, Gc, GcCell, Trace};
 <span class="kw">use </span>boa_profiler::Profiler;
 <span class="kw">use </span>std::collections::VecDeque;
 
@@ -829,7 +829,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) state: AsyncGeneratorState,
 
     <span class="doccomment">/// The `[[AsyncGeneratorContext]]` internal slot.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) context: <span class="prelude-ty">Option</span>&lt;Gc&lt;Cell&lt;GeneratorContext&gt;&gt;&gt;,
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) context: <span class="prelude-ty">Option</span>&lt;Gc&lt;GcCell&lt;GeneratorContext&gt;&gt;&gt;,
 
     <span class="doccomment">/// The `[[AsyncGeneratorQueue]]` internal slot.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) queue: VecDeque&lt;AsyncGeneratorRequest&gt;,
@@ -1284,7 +1284,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>resume(
         generator: <span class="kw-2">&amp;</span>JsObject,
         state: AsyncGeneratorState,
-        generator_context: <span class="kw-2">&amp;</span>Gc&lt;Cell&lt;GeneratorContext&gt;&gt;,
+        generator_context: <span class="kw-2">&amp;</span>Gc&lt;GcCell&lt;GeneratorContext&gt;&gt;,
         completion: (JsResult&lt;JsValue&gt;, bool),
         context: <span class="kw-2">&amp;mut </span>Context,
     ) {

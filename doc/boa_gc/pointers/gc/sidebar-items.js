@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":[["clear_root_bit","Returns the given pointer with its root bit cleared."],["set_data_ptr",""]],"struct":[["Gc","A garbage-collected pointer type over an immutable value."]]};

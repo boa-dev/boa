@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["EphemeronBox","The inner allocation of an [`Ephemeron`][crate::Ephemeron] pointer."]]};

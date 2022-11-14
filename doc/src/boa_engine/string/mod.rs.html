@@ -1105,7 +1105,7 @@
 </span><span class="kw">mod </span>common;
 
 <span class="kw">use crate</span>::{builtins::string::is_trimmable_whitespace, JsBigInt};
-<span class="kw">use </span>boa_gc::{unsafe_empty_trace, Finalize, Trace};
+<span class="kw">use </span>boa_gc::{empty_trace, Finalize, Trace};
 <span class="kw">pub use </span>boa_macros::utf16;
 
 <span class="kw">use </span>std::{
@@ -1373,7 +1373,7 @@
 
 <span class="comment">// Safety: `JsString` does not contain any objects which needs to be traced, so this is safe.
 </span><span class="kw">unsafe impl </span>Trace <span class="kw">for </span>JsString {
-    <span class="macro">unsafe_empty_trace!</span>();
+    <span class="macro">empty_trace!</span>();
 }
 
 <span class="kw">impl </span>JsString {

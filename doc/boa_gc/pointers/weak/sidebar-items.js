@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["WeakGc","A weak reference to a [`Gc`]."]]};

@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["Ephemeron","A key-value pair where the value becomes unaccesible when the key is garbage collected."]]};

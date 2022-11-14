@@ -368,7 +368,7 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol
 
 </span><span class="kw">use crate</span>::{js_string, string::utf16, JsString};
-<span class="kw">use </span>boa_gc::{unsafe_empty_trace, Finalize, Trace};
+<span class="kw">use </span>boa_gc::{empty_trace, Finalize, Trace};
 <span class="kw">use </span>std::{
     cell::Cell,
     hash::{Hash, Hasher},
@@ -607,7 +607,7 @@
 <span class="comment">// Safety: JsSymbol does not contain any objects which needs to be traced,
 // so this is safe.
 </span><span class="kw">unsafe impl </span>Trace <span class="kw">for </span>JsSymbol {
-    <span class="macro">unsafe_empty_trace!</span>();
+    <span class="macro">empty_trace!</span>();
 }
 
 <span class="kw">impl </span>JsSymbol {

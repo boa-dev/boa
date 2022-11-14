@@ -13,9 +13,111 @@
 <span id="13">13</span>
 <span id="14">14</span>
 <span id="15">15</span>
+<span id="16">16</span>
+<span id="17">17</span>
+<span id="18">18</span>
+<span id="19">19</span>
+<span id="20">20</span>
+<span id="21">21</span>
+<span id="22">22</span>
+<span id="23">23</span>
+<span id="24">24</span>
+<span id="25">25</span>
+<span id="26">26</span>
+<span id="27">27</span>
+<span id="28">28</span>
+<span id="29">29</span>
+<span id="30">30</span>
+<span id="31">31</span>
+<span id="32">32</span>
+<span id="33">33</span>
+<span id="34">34</span>
+<span id="35">35</span>
+<span id="36">36</span>
+<span id="37">37</span>
+<span id="38">38</span>
+<span id="39">39</span>
+<span id="40">40</span>
+<span id="41">41</span>
+<span id="42">42</span>
+<span id="43">43</span>
+<span id="44">44</span>
+<span id="45">45</span>
+<span id="46">46</span>
+<span id="47">47</span>
+<span id="48">48</span>
+<span id="49">49</span>
+<span id="50">50</span>
+<span id="51">51</span>
+<span id="52">52</span>
+<span id="53">53</span>
+<span id="54">54</span>
+<span id="55">55</span>
+<span id="56">56</span>
+<span id="57">57</span>
+<span id="58">58</span>
+<span id="59">59</span>
+<span id="60">60</span>
+<span id="61">61</span>
+<span id="62">62</span>
+<span id="63">63</span>
+<span id="64">64</span>
+<span id="65">65</span>
+<span id="66">66</span>
+<span id="67">67</span>
+<span id="68">68</span>
+<span id="69">69</span>
+<span id="70">70</span>
+<span id="71">71</span>
+<span id="72">72</span>
+<span id="73">73</span>
+<span id="74">74</span>
+<span id="75">75</span>
+<span id="76">76</span>
+<span id="77">77</span>
+<span id="78">78</span>
+<span id="79">79</span>
+<span id="80">80</span>
+<span id="81">81</span>
+<span id="82">82</span>
+<span id="83">83</span>
+<span id="84">84</span>
+<span id="85">85</span>
+<span id="86">86</span>
+<span id="87">87</span>
+<span id="88">88</span>
+<span id="89">89</span>
+<span id="90">90</span>
+<span id="91">91</span>
+<span id="92">92</span>
+<span id="93">93</span>
+<span id="94">94</span>
+<span id="95">95</span>
+<span id="96">96</span>
+<span id="97">97</span>
+<span id="98">98</span>
+<span id="99">99</span>
+<span id="100">100</span>
+<span id="101">101</span>
+<span id="102">102</span>
+<span id="103">103</span>
+<span id="104">104</span>
+<span id="105">105</span>
+<span id="106">106</span>
+<span id="107">107</span>
+<span id="108">108</span>
+<span id="109">109</span>
+<span id="110">110</span>
+<span id="111">111</span>
+<span id="112">112</span>
+<span id="113">113</span>
+<span id="114">114</span>
+<span id="115">115</span>
+<span id="116">116</span>
 </pre><pre class="rust"><code><span class="kw">use </span>proc_macro::TokenStream;
 <span class="kw">use </span>quote::quote;
 <span class="kw">use </span>syn::{parse_macro_input, LitStr};
+<span class="kw">use </span>synstructure::{decl_derive, AddBounds, Structure};
 
 <span class="doccomment">/// Construct a utf-16 array literal from a utf-8 [`str`] literal.
 </span><span class="attribute">#[proc_macro]
@@ -27,6 +129,106 @@
         [#(#utf16),<span class="kw-2">*</span>].as_slice()
     }
     .into()
+}
+
+<span class="macro">decl_derive!</span>([Trace, attributes(unsafe_ignore_trace)] =&gt; derive_trace);
+
+<span class="kw">fn </span>derive_trace(<span class="kw-2">mut </span>s: Structure&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; proc_macro2::TokenStream {
+    s.filter(|bi| {
+        !bi.ast()
+            .attrs
+            .iter()
+            .any(|attr| attr.path.is_ident(<span class="string">&quot;unsafe_ignore_trace&quot;</span>))
+    });
+    <span class="kw">let </span>trace_body = s.each(|bi| <span class="macro">quote!</span>(mark(#bi)));
+
+    s.add_bounds(AddBounds::Fields);
+    <span class="kw">let </span>trace_impl = s.unsafe_bound_impl(
+        <span class="macro">quote!</span>(::boa_gc::Trace),
+        <span class="macro">quote! </span>{
+            <span class="attribute">#[inline]
+            </span><span class="kw">unsafe fn </span>trace(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+                <span class="attribute">#[allow(dead_code)]
+                #[inline]
+                </span><span class="kw">fn </span>mark&lt;T: ::boa_gc::Trace + <span class="question-mark">?</span>Sized&gt;(it: <span class="kw-2">&amp;</span>T) {
+                    <span class="kw">unsafe </span>{
+                        ::boa_gc::Trace::trace(it);
+                    }
+                }
+                <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{ #trace_body }
+            }
+            <span class="attribute">#[inline]
+            </span><span class="kw">unsafe fn </span>weak_trace(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+                <span class="attribute">#[allow(dead_code, unreachable_code)]
+                #[inline]
+                </span><span class="kw">fn </span>mark&lt;T: ::boa_gc::Trace + <span class="question-mark">?</span>Sized&gt;(it: <span class="kw-2">&amp;</span>T) {
+                    <span class="kw">unsafe </span>{
+                        ::boa_gc::Trace::weak_trace(it)
+                    }
+                }
+                <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{ #trace_body }
+            }
+            <span class="attribute">#[inline]
+            </span><span class="kw">unsafe fn </span>root(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+                <span class="attribute">#[allow(dead_code)]
+                #[inline]
+                </span><span class="kw">fn </span>mark&lt;T: ::boa_gc::Trace + <span class="question-mark">?</span>Sized&gt;(it: <span class="kw-2">&amp;</span>T) {
+                    <span class="kw">unsafe </span>{
+                        ::boa_gc::Trace::root(it);
+                    }
+                }
+                <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{ #trace_body }
+            }
+            <span class="attribute">#[inline]
+            </span><span class="kw">unsafe fn </span>unroot(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+                <span class="attribute">#[allow(dead_code)]
+                #[inline]
+                </span><span class="kw">fn </span>mark&lt;T: ::boa_gc::Trace + <span class="question-mark">?</span>Sized&gt;(it: <span class="kw-2">&amp;</span>T) {
+                    <span class="kw">unsafe </span>{
+                        ::boa_gc::Trace::unroot(it);
+                    }
+                }
+                <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{ #trace_body }
+            }
+            <span class="attribute">#[inline]
+            </span><span class="kw">fn </span>run_finalizer(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+                ::boa_gc::Finalize::finalize(<span class="self">self</span>);
+                <span class="attribute">#[allow(dead_code)]
+                #[inline]
+                </span><span class="kw">fn </span>mark&lt;T: ::boa_gc::Trace + <span class="question-mark">?</span>Sized&gt;(it: <span class="kw-2">&amp;</span>T) {
+                    <span class="kw">unsafe </span>{
+                        ::boa_gc::Trace::run_finalizer(it);
+                    }
+                }
+                <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{ #trace_body }
+            }
+        },
+    );
+
+    <span class="comment">// We also implement drop to prevent unsafe drop implementations on this
+    // type and encourage people to use Finalize. This implementation will
+    // call `Finalize::finalize` if it is safe to do so.
+    </span><span class="kw">let </span>drop_impl = s.unbound_impl(
+        <span class="macro">quote!</span>(::std::ops::Drop),
+        <span class="macro">quote! </span>{
+            <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+                <span class="kw">if </span>::boa_gc::finalizer_safe() {
+                    ::boa_gc::Finalize::finalize(<span class="self">self</span>);
+                }
+            }
+        },
+    );
+
+    <span class="macro">quote! </span>{
+        #trace_impl
+        #drop_impl
+    }
+}
+
+<span class="macro">decl_derive!</span>([Finalize] =&gt; derive_finalize);
+
+<span class="kw">fn </span>derive_finalize(s: Structure&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; proc_macro2::TokenStream {
+    s.unbound_impl(<span class="macro">quote!</span>(::boa_gc::Finalize), <span class="macro">quote!</span>())
 }
 </code></pre></div>
 </section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="boa_macros" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0 (897e37553 2022-11-02)" ></div></body></html>

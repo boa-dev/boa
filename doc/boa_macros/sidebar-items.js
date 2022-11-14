@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"macro":[["utf16","Construct a utf-16 array literal from a utf-8 [`str`] literal."]]};
+window.SIDEBAR_ITEMS = {"derive":[["Finalize",""],["Trace",""]],"fn":[["derive_finalize",""],["derive_trace",""]],"macro":[["utf16","Construct a utf-16 array literal from a utf-8 [`str`] literal."]]};

@@ -3766,7 +3766,7 @@
     },
     Declaration, Expression, Statement, StatementList, StatementListItem,
 };
-<span class="kw">use </span>boa_gc::Gc;
+<span class="kw">use </span>boa_gc::{Gc, GcCell};
 <span class="kw">use </span>boa_interner::{Interner, Sym};
 <span class="kw">use </span>rustc_hash::FxHashMap;
 <span class="kw">use </span>std::mem::size_of;
@@ -4001,7 +4001,7 @@
     </span><span class="attribute">#[inline]
     </span><span class="kw">fn </span>push_compile_environment(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        environment: Gc&lt;boa_gc::Cell&lt;CompileTimeEnvironment&gt;&gt;,
+        environment: Gc&lt;GcCell&lt;CompileTimeEnvironment&gt;&gt;,
     ) -&gt; usize {
         <span class="kw">let </span>index = <span class="self">self</span>.code_block.compile_environments.len();
         <span class="self">self</span>.code_block.compile_environments.push(environment);

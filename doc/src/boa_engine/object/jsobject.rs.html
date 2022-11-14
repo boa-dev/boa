@@ -890,7 +890,7 @@
     value::PreferredType,
     Context, JsResult, JsValue,
 };
-<span class="kw">use </span>boa_gc::{<span class="self">self</span>, Finalize, Gc, Trace};
+<span class="kw">use </span>boa_gc::{<span class="self">self</span>, Finalize, Gc, GcCell, Trace};
 <span class="kw">use </span>rustc_hash::FxHashMap;
 <span class="kw">use </span>std::{
     cell::RefCell,
@@ -901,15 +901,15 @@
 };
 
 <span class="doccomment">/// A wrapper type for an immutably borrowed type T.
-</span><span class="kw">pub type </span>Ref&lt;<span class="lifetime">&#39;a</span>, T&gt; = boa_gc::Ref&lt;<span class="lifetime">&#39;a</span>, T&gt;;
+</span><span class="kw">pub type </span>Ref&lt;<span class="lifetime">&#39;a</span>, T&gt; = boa_gc::GcCellRef&lt;<span class="lifetime">&#39;a</span>, T&gt;;
 
 <span class="doccomment">/// A wrapper type for a mutably borrowed type T.
-</span><span class="kw">pub type </span>RefMut&lt;<span class="lifetime">&#39;a</span>, T, U&gt; = boa_gc::RefMut&lt;<span class="lifetime">&#39;a</span>, T, U&gt;;
+</span><span class="kw">pub type </span>RefMut&lt;<span class="lifetime">&#39;a</span>, T, U&gt; = boa_gc::GcCellRefMut&lt;<span class="lifetime">&#39;a</span>, T, U&gt;;
 
 <span class="doccomment">/// Garbage collected `Object`.
 </span><span class="attribute">#[derive(Trace, Finalize, Clone, Default)]
 </span><span class="kw">pub struct </span>JsObject {
-    inner: Gc&lt;boa_gc::Cell&lt;Object&gt;&gt;,
+    inner: Gc&lt;GcCell&lt;Object&gt;&gt;,
 }
 
 <span class="kw">impl </span>JsObject {
@@ -917,7 +917,7 @@
     </span><span class="attribute">#[inline]
     </span><span class="kw">fn </span>from_object(object: Object) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
-            inner: Gc::new(boa_gc::Cell::new(object)),
+            inner: Gc::new(GcCell::new(object)),
         }
     }
 
@@ -1618,9 +1618,9 @@ Cannot both specify accessors and a value or writable attribute&quot;</span>,
     }
 }
 
-<span class="kw">impl </span>AsRef&lt;boa_gc::Cell&lt;Object&gt;&gt; <span class="kw">for </span>JsObject {
+<span class="kw">impl </span>AsRef&lt;GcCell&lt;Object&gt;&gt; <span class="kw">for </span>JsObject {
     <span class="attribute">#[inline]
-    </span><span class="kw">fn </span>as_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>boa_gc::Cell&lt;Object&gt; {
+    </span><span class="kw">fn </span>as_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>GcCell&lt;Object&gt; {
         <span class="kw-2">&amp;</span><span class="self">self</span>.inner
     }
 }

@@ -391,7 +391,7 @@
     environments::runtime::BindingLocator, property::PropertyDescriptor, Context, JsString, JsValue,
 };
 <span class="kw">use </span>boa_ast::expression::Identifier;
-<span class="kw">use </span>boa_gc::{Cell, Finalize, Gc, Trace};
+<span class="kw">use </span>boa_gc::{Finalize, Gc, GcCell, Trace};
 
 <span class="kw">use </span>rustc_hash::FxHashMap;
 
@@ -411,7 +411,7 @@
 /// A compile time environment also indicates, if it is a function environment.
 </span><span class="attribute">#[derive(Debug, Finalize, Trace)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>CompileTimeEnvironment {
-    outer: <span class="prelude-ty">Option</span>&lt;Gc&lt;Cell&lt;<span class="self">Self</span>&gt;&gt;&gt;,
+    outer: <span class="prelude-ty">Option</span>&lt;Gc&lt;GcCell&lt;<span class="self">Self</span>&gt;&gt;&gt;,
     environment_index: usize,
     <span class="attribute">#[unsafe_ignore_trace]
     </span>bindings: FxHashMap&lt;Identifier, CompileTimeBinding&gt;,
@@ -612,7 +612,7 @@
         <span class="kw">let </span>environment_index = <span class="self">self</span>.realm.compile_env.borrow().environment_index + <span class="number">1</span>;
         <span class="kw">let </span>outer = <span class="self">self</span>.realm.compile_env.clone();
 
-        <span class="self">self</span>.realm.compile_env = Gc::new(Cell::new(CompileTimeEnvironment {
+        <span class="self">self</span>.realm.compile_env = Gc::new(GcCell::new(CompileTimeEnvironment {
             outer: <span class="prelude-val">Some</span>(outer),
             environment_index,
             bindings: FxHashMap::default(),
@@ -630,7 +630,7 @@
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>pop_compile_time_environment(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-    ) -&gt; (usize, Gc&lt;Cell&lt;CompileTimeEnvironment&gt;&gt;) {
+    ) -&gt; (usize, Gc&lt;GcCell&lt;CompileTimeEnvironment&gt;&gt;) {
         <span class="kw">let </span>current_env_borrow = <span class="self">self</span>.realm.compile_env.borrow();
         <span class="kw">if let </span><span class="prelude-val">Some</span>(outer) = <span class="kw-2">&amp;</span>current_env_borrow.outer {
             <span class="kw">let </span>outer_clone = outer.clone();

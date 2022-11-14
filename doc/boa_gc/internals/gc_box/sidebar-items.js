@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":[["MARK_MASK",""],["ROOTS_MASK",""],["ROOTS_MAX",""],["WEAK_MASK",""]],"struct":[["GcBox","A garbage collected allocation."],["GcBoxHeader","The `GcBoxheader` contains the `GcBox`’s current state for the `Collector`’s Mark/Sweep as well as a pointer to the next node in the heap."]]};

@@ -2100,7 +2100,7 @@
     value::JsValue,
     Context, JsError, JsResult,
 };
-<span class="kw">use </span>boa_gc::{Cell <span class="kw">as </span>GcCell, Finalize, Gc, Trace};
+<span class="kw">use </span>boa_gc::{Finalize, Gc, GcCell, Trace};
 <span class="kw">use </span>boa_profiler::Profiler;
 <span class="kw">use </span>std::{cell::Cell, rc::Rc};
 <span class="kw">use </span>tap::{Conv, Pipe};
@@ -2197,7 +2197,7 @@
 
                 <span class="comment">// 2. NOTE: C is assumed to be a constructor function that supports the parameter conventions of the Promise constructor (see 27.2.3.1).
                 // 3. Let promiseCapability be the PromiseCapability Record { [[Promise]]: undefined, [[Resolve]]: undefined, [[Reject]]: undefined }.
-                </span><span class="kw">let </span>promise_capability = Gc::new(boa_gc::Cell::new(RejectResolve {
+                </span><span class="kw">let </span>promise_capability = Gc::new(GcCell::new(RejectResolve {
                     reject: JsValue::undefined(),
                     resolve: JsValue::undefined(),
                 }));

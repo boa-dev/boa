@@ -444,7 +444,7 @@
     builtins::JsArgs, object::FunctionBuilder, property::Attribute, Context, JsNativeErrorKind,
     JsResult, JsValue,
 };
-<span class="kw">use </span>boa_gc::{Cell, Finalize, Gc, Trace};
+<span class="kw">use </span>boa_gc::{Finalize, Gc, GcCell, Trace};
 <span class="kw">use </span>boa_parser::Parser;
 <span class="kw">use </span>colored::Colorize;
 <span class="kw">use </span>rayon::prelude::<span class="kw-2">*</span>;
@@ -832,13 +832,13 @@
 <span class="doccomment">/// Object which includes the result of the async operation.
 </span><span class="attribute">#[derive(Debug, Clone, Trace, Finalize)]
 </span><span class="kw">struct </span>AsyncResult {
-    inner: Gc&lt;Cell&lt;<span class="prelude-ty">Result</span>&lt;(), String&gt;&gt;&gt;,
+    inner: Gc&lt;GcCell&lt;<span class="prelude-ty">Result</span>&lt;(), String&gt;&gt;&gt;,
 }
 
 <span class="kw">impl </span>Default <span class="kw">for </span>AsyncResult {
     <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
-            inner: Gc::new(Cell::new(<span class="prelude-val">Ok</span>(()))),
+            inner: Gc::new(GcCell::new(<span class="prelude-val">Ok</span>(()))),
         }
     }
 }

@@ -1090,7 +1090,7 @@
     operations::{bound_names, contains, lexically_declared_names, ContainsSymbol},
     StatementList,
 };
-<span class="kw">use </span>boa_gc::{<span class="self">self</span>, custom_trace, Finalize, Gc, Trace};
+<span class="kw">use </span>boa_gc::{<span class="self">self</span>, custom_trace, Finalize, Gc, GcCell, Trace};
 <span class="kw">use </span>boa_interner::Sym;
 <span class="kw">use </span>boa_parser::Parser;
 <span class="kw">use </span>boa_profiler::Profiler;
@@ -1234,7 +1234,7 @@
 /// with `Any::downcast_ref` and `Any::downcast_mut` to recover the original
 /// type.
 </span><span class="attribute">#[derive(Clone, Debug, Trace, Finalize)]
-</span><span class="kw">pub struct </span>Captures(Gc&lt;boa_gc::Cell&lt;Box&lt;<span class="kw">dyn </span>NativeObject&gt;&gt;&gt;);
+</span><span class="kw">pub struct </span>Captures(Gc&lt;GcCell&lt;Box&lt;<span class="kw">dyn </span>NativeObject&gt;&gt;&gt;);
 
 <span class="kw">impl </span>Captures {
     <span class="doccomment">/// Creates a new capture context.
@@ -1242,7 +1242,7 @@
     </span><span class="kw">where
         </span>T: NativeObject,
     {
-        <span class="self">Self</span>(Gc::new(boa_gc::Cell::new(Box::new(captures))))
+        <span class="self">Self</span>(Gc::new(GcCell::new(Box::new(captures))))
     }
 
     <span class="doccomment">/// Casts `Captures` to `Any`
@@ -1250,7 +1250,7 @@
     /// # Panics
     ///
     /// Panics if it&#39;s already borrowed as `&amp;mut Any`
-    </span><span class="kw">pub fn </span>as_any(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; boa_gc::Ref&lt;<span class="lifetime">&#39;_</span>, <span class="kw">dyn </span>Any&gt; {
+    </span><span class="kw">pub fn </span>as_any(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; boa_gc::GcCellRef&lt;<span class="lifetime">&#39;_</span>, <span class="kw">dyn </span>Any&gt; {
         Ref::map(<span class="self">self</span>.<span class="number">0</span>.borrow(), |data| data.deref().as_any())
     }
 
@@ -1259,7 +1259,7 @@
     /// # Panics
     ///
     /// Panics if it&#39;s already borrowed as `&amp;mut Any`
-    </span><span class="kw">pub fn </span>as_mut_any(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; boa_gc::RefMut&lt;<span class="lifetime">&#39;_</span>, Box&lt;<span class="kw">dyn </span>NativeObject&gt;, <span class="kw">dyn </span>Any&gt; {
+    </span><span class="kw">pub fn </span>as_mut_any(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; boa_gc::GcCellRefMut&lt;<span class="lifetime">&#39;_</span>, Box&lt;<span class="kw">dyn </span>NativeObject&gt;, <span class="kw">dyn </span>Any&gt; {
         RefMut::map(<span class="self">self</span>.<span class="number">0</span>.borrow_mut(), |data| data.deref_mut().as_mut_any())
     }
 }
