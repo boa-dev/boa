@@ -30,7 +30,7 @@ use boa_ast::{
     },
     Declaration, Expression, Statement, StatementList, StatementListItem,
 };
-use boa_gc::Gc;
+use boa_gc::{Gc, GcCell};
 use boa_interner::{Interner, Sym};
 use rustc_hash::FxHashMap;
 use std::mem::size_of;
@@ -265,7 +265,7 @@ impl<'b> ByteCompiler<'b> {
     #[inline]
     fn push_compile_environment(
         &mut self,
-        environment: Gc<boa_gc::Cell<CompileTimeEnvironment>>,
+        environment: Gc<GcCell<CompileTimeEnvironment>>,
     ) -> usize {
         let index = self.code_block.compile_environments.len();
         self.code_block.compile_environments.push(environment);

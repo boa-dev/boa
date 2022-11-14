@@ -8,7 +8,7 @@ use crate::{
     environments::{CompileTimeEnvironment, DeclarativeEnvironmentStack},
     object::{GlobalPropertyMap, JsObject, JsPrototype, ObjectData, PropertyMap},
 };
-use boa_gc::{Cell, Gc};
+use boa_gc::{Gc, GcCell};
 use boa_profiler::Profiler;
 
 /// Representation of a Realm.
@@ -21,7 +21,7 @@ pub struct Realm {
     pub(crate) global_property_map: PropertyMap,
     pub(crate) global_prototype: JsPrototype,
     pub(crate) environments: DeclarativeEnvironmentStack,
-    pub(crate) compile_env: Gc<Cell<CompileTimeEnvironment>>,
+    pub(crate) compile_env: Gc<GcCell<CompileTimeEnvironment>>,
 }
 
 impl Realm {
@@ -33,7 +33,7 @@ impl Realm {
         // Allow identification of the global object easily
         let global_object = JsObject::from_proto_and_data(None, ObjectData::global());
 
-        let global_compile_environment = Gc::new(Cell::new(CompileTimeEnvironment::new_global()));
+        let global_compile_environment = Gc::new(GcCell::new(CompileTimeEnvironment::new_global()));
 
         Self {
             global_object,

@@ -16,7 +16,7 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol
 
 use crate::{js_string, string::utf16, JsString};
-use boa_gc::{unsafe_empty_trace, Finalize, Trace};
+use boa_gc::{empty_trace, Finalize, Trace};
 use std::{
     cell::Cell,
     hash::{Hash, Hasher},
@@ -255,7 +255,7 @@ pub struct JsSymbol {
 // Safety: JsSymbol does not contain any objects which needs to be traced,
 // so this is safe.
 unsafe impl Trace for JsSymbol {
-    unsafe_empty_trace!();
+    empty_trace!();
 }
 
 impl JsSymbol {
