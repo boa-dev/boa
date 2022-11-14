@@ -27,7 +27,7 @@ jobs:
       - name: Run cargo-tarpaulin
         uses: actions-rs/tarpaulin@v0.1
         with:
-          args: --features intl --ignore-tests
+          args: --features intl --ignore-tests --engine llvm
       - name: Upload to codecov.io
         uses: codecov/codecov-action@v3
 
