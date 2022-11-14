@@ -13,7 +13,7 @@ use crate::trace::{Finalize, Trace};
 pub(crate) struct BorrowFlag(usize);
 
 /// `BorrowState` represents the various states of a `BorrowFlag`
-/// 
+///
 ///  - Reading: the value is currently being read/borrowed.
 ///  - Writing: the value is currently being written/borrowed mutably.
 ///  - Unused: the value is currently unrooted.
@@ -63,7 +63,7 @@ impl BorrowFlag {
     }
 
     /// Increments the counter for a new borrow.
-    /// 
+    ///
     /// # Panic
     ///  - This method will panic if the current `BorrowState` is writing.
     ///  - This method will panic after incrementing if the borrow count overflows.
@@ -86,7 +86,7 @@ impl BorrowFlag {
     }
 
     /// Decrements the counter to remove a borrow.
-    /// 
+    ///
     /// # Panic
     ///  - This method will panic if the current `BorrowState` is not reading.
     #[inline]
