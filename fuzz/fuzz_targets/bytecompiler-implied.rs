@@ -11,7 +11,7 @@ use std::io::Cursor;
 fn do_fuzz(original: FuzzSource) -> Corpus {
     let mut ctx = Context::builder()
         .interner(original.interner)
-        .insns_remaining(0)
+        .instructions_remaining(0)
         .build();
     let mut parser = Parser::new(Cursor::new(&original.source));
     if let Ok(parsed) = parser.parse_all(ctx.interner_mut()) {

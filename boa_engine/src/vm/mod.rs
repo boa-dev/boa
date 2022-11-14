@@ -182,10 +182,10 @@ impl Context {
 
         while self.vm.frame().pc < self.vm.frame().code.code.len() {
             #[cfg(feature = "fuzz")]
-            if self.insns_remaining == 0 {
+            if self.instructions_remaining == 0 {
                 return Err(JsError::from_native(JsNativeError::no_instructions_remain()));
             } else {
-                self.insns_remaining -= 1;
+                self.instructions_remaining -= 1;
             }
 
             let result = if self.vm.trace {
