@@ -12,7 +12,7 @@
 //! [early]: https://tc39.es/ecma262/#sec-static-semantic-rules
 
 #![cfg_attr(not(test), forbid(clippy::unwrap_used))]
-#![warn(clippy::dbg_macro)]
+#![warn(missing_docs, clippy::dbg_macro)]
 #![deny(
     // rustc lint groups https://doc.rust-lang.org/rustc/lints/groups.html
     warnings,
@@ -30,7 +30,6 @@
     missing_abi,
     missing_copy_implementations,
     missing_debug_implementations,
-    missing_docs,
     non_ascii_idents,
     noop_method_call,
     single_use_lifetimes,
