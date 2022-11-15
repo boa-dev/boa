@@ -1996,8 +1996,8 @@
             </span>val =&gt; {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
                     .with_message(<span class="macro">format!</span>(
-                        <span class="string">&quot;expected an object or null, got {}&quot;</span>,
-                        val.type_of().to_std_string_escaped()
+                        <span class="string">&quot;expected an object or null, got `{}`&quot;</span>,
+                        val.type_of()
                     ))
                     .into())
             }

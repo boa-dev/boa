@@ -878,6 +878,17 @@
 <span id="876">876</span>
 <span id="877">877</span>
 <span id="878">878</span>
+<span id="879">879</span>
+<span id="880">880</span>
+<span id="881">881</span>
+<span id="882">882</span>
+<span id="883">883</span>
+<span id="884">884</span>
+<span id="885">885</span>
+<span id="886">886</span>
+<span id="887">887</span>
+<span id="888">888</span>
+<span id="889">889</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the `JsObject` structure.
 //!
 //! The `JsObject` is a garbage collected Object.
@@ -1616,12 +1627,23 @@ Cannot both specify accessors and a value or writable attribute&quot;</span>,
             }
         )
     }
+
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>inner(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Gc&lt;GcCell&lt;Object&gt;&gt; {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.inner
+    }
 }
 
 <span class="kw">impl </span>AsRef&lt;GcCell&lt;Object&gt;&gt; <span class="kw">for </span>JsObject {
     <span class="attribute">#[inline]
     </span><span class="kw">fn </span>as_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>GcCell&lt;Object&gt; {
         <span class="kw-2">&amp;</span><span class="self">self</span>.inner
+    }
+}
+
+<span class="kw">impl </span>From&lt;Gc&lt;GcCell&lt;Object&gt;&gt;&gt; <span class="kw">for </span>JsObject {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(inner: Gc&lt;GcCell&lt;Object&gt;&gt;) -&gt; <span class="self">Self </span>{
+        JsObject { inner }
     }
 }
 

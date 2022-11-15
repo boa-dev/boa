@@ -226,8 +226,6 @@
 <span id="224">224</span>
 <span id="225">225</span>
 <span id="226">226</span>
-<span id="227">227</span>
-<span id="228">228</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Builtins live here, such as Object, String, Math, etc.
 
 </span><span class="kw">pub mod </span>array;
@@ -263,6 +261,7 @@
 <span class="kw">pub mod </span>typed_array;
 <span class="kw">pub mod </span>undefined;
 <span class="kw">pub mod </span>uri;
+<span class="kw">pub mod </span>weak;
 
 <span class="attribute">#[cfg(feature = <span class="string">&quot;console&quot;</span>)]
 </span><span class="kw">pub mod </span>console;
@@ -312,44 +311,42 @@
     builtins::{
         array_buffer::ArrayBuffer, async_generator::AsyncGenerator,
         async_generator_function::AsyncGeneratorFunction, generator::Generator,
-        generator_function::GeneratorFunction, typed_array::TypedArray, uri::Uri,
+        generator_function::GeneratorFunction, typed_array::TypedArray, uri::Uri, weak::WeakRef,
     },
     property::{Attribute, PropertyDescriptor},
     Context, JsValue,
 };
 
-<span class="doccomment">/// Trait representing a global built-in object such as `Math`, `Object` or
-/// `String`.
+<span class="doccomment">/// Trait representing a global built-in object such as `Math`, `Object` or `String`.
 ///
-/// This trait must be implemented for any global built-in accessible from
-/// Javascript.
+/// This trait must be implemented for any global built-in accessible from JavaScript.
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">trait </span>BuiltIn {
     <span class="doccomment">/// Binding name of the built-in inside the global object.
     ///
-    /// E.g. If you want access the properties of a `Complex` built-in
-    /// with the name `Cplx` you must assign `&quot;Cplx&quot;` to this constant,
-    /// making any property inside it accessible from Javascript as `Cplx.prop`
+    /// E.g. If you want access the properties of a `Complex` built-in with the name `Cplx` you must
+    /// assign `&quot;Cplx&quot;` to this constant, making any property inside it accessible from Javascript
+    /// as `Cplx.prop`
     </span><span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str;
 
-    <span class="doccomment">/// Property attribute flags of the built-in.
-    /// Check [Attribute] for more information.
+    <span class="doccomment">/// Property attribute flags of the built-in. Check [`Attribute`] for more information.
     </span><span class="kw">const </span>ATTRIBUTE: Attribute = Attribute::WRITABLE
         .union(Attribute::NON_ENUMERABLE)
         .union(Attribute::CONFIGURABLE);
 
     <span class="doccomment">/// Initialization code for the built-in.
-    /// This is where the methods, properties, static methods and the constructor
-    /// of a built-in must be initialized to be accessible from Javascript.
+    ///
+    /// This is where the methods, properties, static methods and the constructor of a built-in must
+    /// be initialized to be accessible from Javascript.
     ///
     /// # Note
     ///
-    /// A return value of `None` indicates that the value must not be added as
-    /// a global attribute for the global object.
+    /// A return value of `None` indicates that the value must not be added as a global attribute
+    /// for the global object.
     </span><span class="kw">fn </span>init(context: <span class="kw-2">&amp;mut </span>Context) -&gt; <span class="prelude-ty">Option</span>&lt;JsValue&gt;;
 }
 
-<span class="doccomment">/// Utility function that checks if a type implements `BuiltIn` before
-/// initializing it as a global built-in.
+<span class="doccomment">/// Utility function that checks if a type implements `BuiltIn` before initializing it as a global
+/// built-in.
 </span><span class="attribute">#[inline]
 </span><span class="kw">fn </span>init_builtin&lt;B: BuiltIn&gt;(context: <span class="kw-2">&amp;mut </span>Context) {
     <span class="kw">if let </span><span class="prelude-val">Some</span>(value) = B::init(context) {
@@ -425,7 +422,8 @@
         AsyncFunction,
         AsyncGenerator,
         AsyncGeneratorFunction,
-        Uri
+        Uri,
+        WeakRef
     };
 
     <span class="attribute">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
@@ -436,17 +434,15 @@
 }
 
 <span class="kw">pub trait </span>JsArgs {
-    <span class="doccomment">/// Utility function to `get` a parameter from
-    /// a `[JsValue]` or default to `JsValue::Undefined`
+    <span class="doccomment">/// Utility function to `get` a parameter from a `[JsValue]` or default to `JsValue::Undefined`
     /// if `get` returns `None`.
     ///
     /// Call this if you are thinking of calling something similar to
     /// `args.get(n).cloned().unwrap_or_default()` or
     /// `args.get(n).unwrap_or(&amp;undefined)`.
     ///
-    /// This returns a reference for efficiency, in case
-    /// you only need to call methods of `JsValue`, so
-    /// try to minimize calling `clone`.
+    /// This returns a reference for efficiency, in case you only need to call methods of `JsValue`,
+    /// so try to minimize calling `clone`.
     </span><span class="kw">fn </span>get_or_undefined(<span class="kw-2">&amp;</span><span class="self">self</span>, index: usize) -&gt; <span class="kw-2">&amp;</span>JsValue;
 }
 

@@ -673,6 +673,23 @@
 <span id="671">671</span>
 <span id="672">672</span>
 <span id="673">673</span>
+<span id="674">674</span>
+<span id="675">675</span>
+<span id="676">676</span>
+<span id="677">677</span>
+<span id="678">678</span>
+<span id="679">679</span>
+<span id="680">680</span>
+<span id="681">681</span>
+<span id="682">682</span>
+<span id="683">683</span>
+<span id="684">684</span>
+<span id="685">685</span>
+<span id="686">686</span>
+<span id="687">687</span>
+<span id="688">688</span>
+<span id="689">689</span>
+<span id="690">690</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Javascript context.
 
 </span><span class="kw">pub mod </span>intrinsics;
@@ -779,6 +796,8 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) vm: Vm,
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) promise_job_queue: VecDeque&lt;JobCallback&gt;,
+
+    <span class="kw">pub</span>(<span class="kw">crate</span>) kept_alive: Vec&lt;JsObject&gt;,
 }
 
 <span class="kw">impl </span>Default <span class="kw">for </span>Context {
@@ -1213,6 +1232,7 @@
         <span class="self">self</span>.realm.set_global_binding_number();
         <span class="kw">let </span>result = <span class="self">self</span>.run();
         <span class="self">self</span>.vm.pop_frame();
+        <span class="self">self</span>.clear_kept_objects();
         <span class="self">self</span>.run_queued_jobs()<span class="question-mark">?</span>;
         <span class="kw">let </span>(result, <span class="kw">_</span>) = result<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(result)
@@ -1222,6 +1242,7 @@
     </span><span class="kw">fn </span>run_queued_jobs(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; JsResult&lt;()&gt; {
         <span class="kw">while let </span><span class="prelude-val">Some</span>(job) = <span class="self">self</span>.promise_job_queue.pop_front() {
             job.call_job_callback(<span class="kw-2">&amp;</span>JsValue::Undefined, <span class="kw-2">&amp;</span>[], <span class="self">self</span>)<span class="question-mark">?</span>;
+            <span class="self">self</span>.clear_kept_objects();
         }
         <span class="prelude-val">Ok</span>(())
     }
@@ -1254,6 +1275,18 @@
         // Let scriptOrModule be ...
         // TODO
         </span><span class="self">self</span>.promise_job_queue.push_back(job);
+    }
+
+    <span class="doccomment">/// Abstract operation [`ClearKeptObjects`][clear].
+    ///
+    /// Clears all objects maintained alive by calls to the [`AddToKeptObjects`][add] abstract
+    /// operation, used within the [`WeakRef`][weak] constructor.
+    ///
+    /// [clear]: https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-clear-kept-objects
+    /// [add]: https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-addtokeptobjects
+    /// [weak]: https://tc39.es/ecma262/multipage/managing-memory.html#sec-weak-ref-objects
+    </span><span class="kw">pub fn </span>clear_kept_objects(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="self">self</span>.kept_alive.clear();
     }
 }
 <span class="doccomment">/// Builder for the [`Context`] type.
@@ -1336,6 +1369,7 @@
             <span class="attribute">#[cfg(feature = <span class="string">&quot;fuzz&quot;</span>)]
             </span>instructions_remaining: <span class="self">self</span>.instructions_remaining,
             promise_job_queue: VecDeque::new(),
+            kept_alive: Vec::new(),
         };
 
         <span class="comment">// Add new builtIns to Context Realm

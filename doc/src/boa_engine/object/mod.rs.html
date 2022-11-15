@@ -2260,6 +2260,29 @@
 <span id="2258">2258</span>
 <span id="2259">2259</span>
 <span id="2260">2260</span>
+<span id="2261">2261</span>
+<span id="2262">2262</span>
+<span id="2263">2263</span>
+<span id="2264">2264</span>
+<span id="2265">2265</span>
+<span id="2266">2266</span>
+<span id="2267">2267</span>
+<span id="2268">2268</span>
+<span id="2269">2269</span>
+<span id="2270">2270</span>
+<span id="2271">2271</span>
+<span id="2272">2272</span>
+<span id="2273">2273</span>
+<span id="2274">2274</span>
+<span id="2275">2275</span>
+<span id="2276">2276</span>
+<span id="2277">2277</span>
+<span id="2278">2278</span>
+<span id="2279">2279</span>
+<span id="2280">2280</span>
+<span id="2281">2281</span>
+<span id="2282">2282</span>
+<span id="2283">2283</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the Rust representation of a JavaScript object,
 //! see [`object::builtins`][builtins] for implementors.
 //!
@@ -2318,7 +2341,7 @@
     Context, JsBigInt, JsResult, JsString, JsSymbol, JsValue,
 };
 
-<span class="kw">use </span>boa_gc::{custom_trace, Finalize, Trace};
+<span class="kw">use </span>boa_gc::{custom_trace, Finalize, GcCell, Trace, WeakGc};
 <span class="kw">use </span>boa_interner::Sym;
 <span class="kw">use </span>rustc_hash::FxHashMap;
 <span class="kw">use </span>std::{
@@ -2455,6 +2478,7 @@
     NativeObject(Box&lt;<span class="kw">dyn </span>NativeObject&gt;),
     IntegerIndexed(IntegerIndexed),
     Promise(Promise),
+    WeakRef(WeakGc&lt;GcCell&lt;Object&gt;&gt;),
     <span class="attribute">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
     </span>DateTimeFormat(Box&lt;DateTimeFormat&gt;),
 }
@@ -2484,6 +2508,7 @@
             </span><span class="self">Self</span>::DateTimeFormat(f) =&gt; mark(f),
             <span class="self">Self</span>::Promise(p) =&gt; mark(p),
             <span class="self">Self</span>::AsyncGenerator(g) =&gt; mark(g),
+            <span class="self">Self</span>::WeakRef(wr) =&gt; mark(wr),
             <span class="self">Self</span>::RegExp(<span class="kw">_</span>)
             | <span class="self">Self</span>::BigInt(<span class="kw">_</span>)
             | <span class="self">Self</span>::Boolean(<span class="kw">_</span>)
@@ -2774,6 +2799,14 @@
         }
     }
 
+    <span class="doccomment">/// Creates the `WeakRef` object data
+    </span><span class="kw">pub fn </span>weak_ref(weak_ref: WeakGc&lt;GcCell&lt;Object&gt;&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            kind: ObjectKind::WeakRef(weak_ref),
+            internal_methods: <span class="kw-2">&amp;</span>ORDINARY_INTERNAL_METHODS,
+        }
+    }
+
     <span class="doccomment">/// Create the `NativeObject` object data
     </span><span class="kw">pub fn </span>native_object(native_object: Box&lt;<span class="kw">dyn </span>NativeObject&gt;) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
@@ -2838,6 +2871,7 @@
             <span class="attribute">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
             </span><span class="self">Self</span>::DateTimeFormat(<span class="kw">_</span>) =&gt; <span class="string">&quot;DateTimeFormat&quot;</span>,
             <span class="self">Self</span>::Promise(<span class="kw">_</span>) =&gt; <span class="string">&quot;Promise&quot;</span>,
+            <span class="self">Self</span>::WeakRef(<span class="kw">_</span>) =&gt; <span class="string">&quot;WeakRef&quot;</span>,
         })
     }
 }
@@ -3682,6 +3716,18 @@
                 kind: ObjectKind::Promise(<span class="kw-2">ref mut </span>promise),
                 ..
             } =&gt; <span class="prelude-val">Some</span>(promise),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
+        }
+    }
+
+    <span class="doccomment">/// Gets the `WeakRef`data if the object is a `WeakRef`.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>as_weak_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>WeakGc&lt;GcCell&lt;Object&gt;&gt;&gt; {
+        <span class="kw">match </span><span class="self">self</span>.data {
+            ObjectData {
+                kind: ObjectKind::WeakRef(<span class="kw-2">ref </span>weak_ref),
+                ..
+            } =&gt; <span class="prelude-val">Some</span>(weak_ref),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         }
     }

@@ -2943,9 +2943,6 @@
 <span id="2941">2941</span>
 <span id="2942">2942</span>
 <span id="2943">2943</span>
-<span id="2944">2944</span>
-<span id="2945">2945</span>
-<span id="2946">2946</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `Array` object.
 //!
 //! The JavaScript `Array` class is a global object that is used in the construction of arrays; which are high-level, list-like objects.
@@ -3368,10 +3365,7 @@
             JsValue::Object(o) <span class="kw">if </span>o.is_callable() =&gt; <span class="prelude-val">Some</span>(o),
             <span class="kw">_ </span>=&gt; {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                    .with_message(<span class="macro">format!</span>(
-                        <span class="string">&quot;{} is not a function&quot;</span>,
-                        mapfn.type_of().to_std_string_escaped()
-                    ))
+                    .with_message(<span class="macro">format!</span>(<span class="string">&quot;`{}` is not callable&quot;</span>, mapfn.type_of()))
                     .into())
             }
         };

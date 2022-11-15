@@ -1090,8 +1090,8 @@
         </span><span class="kw">if </span>!target.is_object() {
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
                 .with_message(<span class="macro">format!</span>(
-                    <span class="string">&quot;right-hand side of &#39;instanceof&#39; should be an object, got {}&quot;</span>,
-                    target.type_of().to_std_string_escaped()
+                    <span class="string">&quot;right-hand side of &#39;instanceof&#39; should be an object, got `{}`&quot;</span>,
+                    target.type_of()
                 ))
                 .into());
         }

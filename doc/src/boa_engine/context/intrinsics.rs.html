@@ -447,6 +447,13 @@
 <span id="445">445</span>
 <span id="446">446</span>
 <span id="447">447</span>
+<span id="448">448</span>
+<span id="449">449</span>
+<span id="450">450</span>
+<span id="451">451</span>
+<span id="452">452</span>
+<span id="453">453</span>
+<span id="454">454</span>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     builtins::{
         array::Array, error::r#type::create_throw_type_error, iterable::IteratorPrototypes,
@@ -565,6 +572,7 @@
     data_view: StandardConstructor,
     date_time_format: StandardConstructor,
     promise: StandardConstructor,
+    weak_ref: StandardConstructor,
 }
 
 <span class="kw">impl </span>Default <span class="kw">for </span>StandardConstructors {
@@ -624,6 +632,7 @@
             data_view: StandardConstructor::default(),
             date_time_format: StandardConstructor::default(),
             promise: StandardConstructor::default(),
+            weak_ref: StandardConstructor::default(),
         };
 
         <span class="comment">// The value of `Array.prototype` is the Array prototype object.
@@ -850,6 +859,11 @@
     <span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>promise(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
         <span class="kw-2">&amp;</span><span class="self">self</span>.promise
+    }
+
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>weak_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.weak_ref
     }
 }
 
