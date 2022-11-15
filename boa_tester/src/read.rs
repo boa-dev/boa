@@ -9,7 +9,7 @@ use color_eyre::{
 };
 use fxhash::FxHashMap;
 use serde::Deserialize;
-use std::{fs, io, path::Path, str::FromStr};
+use std::{fs, io, path::Path};
 
 /// Representation of the YAML metadata in Test262 tests.
 #[derive(Debug, Clone, Deserialize)]
@@ -82,36 +82,6 @@ pub(super) enum TestFlag {
     NonDeterministic,
 }
 
-#[derive(Debug)]
-pub(crate) struct TestFlagParseError {
-    variant: Box<str>,
-}
-
-impl TestFlagParseError {
-    pub(crate) fn variant(&self) -> &str {
-        self.variant.as_ref()
-    }
-}
-
-impl FromStr for TestFlag {
-    type Err = TestFlagParseError;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s {
-            "onlyStrict" => Ok(Self::OnlyStrict),
-            "noStrict" => Ok(Self::NoStrict),
-            "module" => Ok(Self::Module),
-            "raw" => Ok(Self::Raw),
-            "async" => Ok(Self::Async),
-            "generated" => Ok(Self::Generated),
-            "CanBlockIsFalse" => Ok(Self::CanBlockIsFalse),
-            "CanBlockIsTrue" => Ok(Self::CanBlockIsTrue),
-            "non-deterministic" => Ok(Self::NonDeterministic),
-            _ => Err(TestFlagParseError { variant: s.into() }),
-        }
-    }
-}
-
 /// Reads the Test262 defined bindings.
 pub(super) fn read_harness(test262_path: &Path) -> Result<Harness> {
     let mut includes = FxHashMap::default();
@@ -154,23 +124,35 @@ pub(super) fn read_harness(test262_path: &Path) -> Result<Harness> {
 }
 
 /// Reads a test suite in the given path.
-pub(super) fn read_suite(path: &Path, ignored: &Ignored) -> Result<TestSuite> {
+pub(super) fn read_suite(
+    path: &Path,
+    ignored: &Ignored,
+    mut ignore_suite: bool,
+) -> Result<TestSuite> {
     let name = path
         .file_name()
         .ok_or_else(|| eyre!(format!("test suite with no name found: {}", path.display())))?
         .to_str()
         .ok_or_else(|| eyre!(format!("non-UTF-8 suite name found: {}", path.display())))?;
 
+    ignore_suite |= ignored.contains_test(name);
+
     let mut suites = Vec::new();
     let mut tests = Vec::new();
 
+    // !ignored.contains_any_flag(self.flags)
+    // && !ignored.contains_test(&self.name)
+    // && !self
+    //     .features
+    //     .iter()
+    //     .any(|feat| ignored.contains_feature(feat))
     // TODO: iterate in parallel
     for entry in path.read_dir().wrap_err("retrieving entry")? {
         let entry = entry?;
 
         if entry.file_type().wrap_err("retrieving file type")?.is_dir() {
             suites.push(
-                read_suite(entry.path().as_path(), ignored).wrap_err_with(|| {
+                read_suite(entry.path().as_path(), ignored, ignore_suite).wrap_err_with(|| {
                     let path = entry.path();
                     let suite = path.display();
                     format!("error reading sub-suite {suite}")
@@ -178,16 +160,24 @@ pub(super) fn read_suite(path: &Path, ignored: &Ignored) -> Result<TestSuite> {
             );
         } else if entry.file_name().to_string_lossy().contains("_FIXTURE") {
             continue;
-        } else if ignored.contains_file(&entry.file_name().to_string_lossy()) {
-            let mut test = Test::default();
-            test.set_name(entry.file_name().to_string_lossy());
-            tests.push(test);
         } else {
-            tests.push(read_test(entry.path().as_path()).wrap_err_with(|| {
+            let mut test = read_test(entry.path().as_path()).wrap_err_with(|| {
                 let path = entry.path();
                 let suite = path.display();
                 format!("error reading test {suite}")
-            })?);
+            })?;
+
+            if ignore_suite
+                || ignored.contains_any_flag(test.flags)
+                || ignored.contains_test(&test.name)
+                || test
+                    .features
+                    .iter()
+                    .any(|feat| ignored.contains_feature(feat))
+            {
+                test.set_ignored();
+            }
+            tests.push(test);
         }
     }
 

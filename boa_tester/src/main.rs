@@ -97,8 +97,6 @@ struct Ignored {
     tests: FxHashSet<Box<str>>,
     #[serde(default)]
     features: FxHashSet<Box<str>>,
-    #[serde(default)]
-    files: FxHashSet<Box<str>>,
     #[serde(default = "TestFlags::empty")]
     flags: TestFlags,
 }
@@ -125,12 +123,6 @@ impl Ignored {
             .unwrap_or_default()
     }
 
-    /// Checks if the ignore list contains the given file name in the list to
-    /// ignore from reading.
-    pub(crate) fn contains_file(&self, file: &str) -> bool {
-        self.files.contains(file)
-    }
-
     pub(crate) fn contains_any_flag(&self, flags: TestFlags) -> bool {
         flags.intersects(self.flags)
     }
@@ -141,7 +133,6 @@ impl Default for Ignored {
         Self {
             tests: FxHashSet::default(),
             features: FxHashSet::default(),
-            files: FxHashSet::default(),
             flags: TestFlags::empty(),
         }
     }
@@ -261,11 +252,11 @@ fn run_test_suite(
         if verbose != 0 {
             println!("Test loaded, starting...");
         }
-        test.run(&harness, &ignored, verbose);
+        test.run(&harness, verbose);
 
         println!();
     } else {
-        let suite = read_suite(&test262_path.join(suite), &ignored).wrap_err_with(|| {
+        let suite = read_suite(&test262_path.join(suite), &ignored, false).wrap_err_with(|| {
             let suite = suite.display();
             format!("could not read the suite {suite}")
         })?;
@@ -273,7 +264,7 @@ fn run_test_suite(
         if verbose != 0 {
             println!("Test suite loaded, starting tests...");
         }
-        let results = suite.run(&harness, &ignored, verbose, parallel);
+        let results = suite.run(&harness, verbose, parallel);
 
         println!();
         println!("Results:");
@@ -380,6 +371,7 @@ struct Test {
     includes: Box<[Box<str>]>,
     locale: Locale,
     content: Box<str>,
+    ignored: bool,
 }
 
 impl Test {
@@ -401,15 +393,12 @@ impl Test {
             includes: metadata.includes,
             locale: metadata.locale,
             content: content.into(),
+            ignored: false,
         }
     }
 
-    /// Sets the name of the test.
-    fn set_name<N>(&mut self, name: N)
-    where
-        N: Into<Box<str>>,
-    {
-        self.name = name.into();
+    fn set_ignored(&mut self) {
+        self.ignored = true;
     }
 }
 
@@ -506,29 +495,7 @@ impl<'de> Deserialize<'de> for TestFlags {
             type Value = TestFlags;
 
             fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-                write!(formatter, "a list of flags")
-            }
-
-            fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
-            where
-                E: serde::de::Error,
-            {
-                v.parse::<TestFlag>().map(TestFlags::from).map_err(|err| {
-                    E::unknown_variant(
-                        err.variant(),
-                        &[
-                            "onlyStrict",
-                            "noStrict",
-                            "module",
-                            "raw",
-                            "async",
-                            "generated",
-                            "CanBlockIsFalse",
-                            "CanBlockIsTrue",
-                            "non-deterministic",
-                        ],
-                    )
-                })
+                write!(formatter, "a sequence of flags")
             }
 
             fn visit_seq<A>(self, mut seq: A) -> Result<Self::Value, A::Error>
@@ -536,8 +503,8 @@ impl<'de> Deserialize<'de> for TestFlags {
                 A: serde::de::SeqAccess<'de>,
             {
                 let mut flags = TestFlags::empty();
-                while let Some(elem) = seq.next_element()? {
-                    flags |= elem;
+                while let Some(elem) = seq.next_element::<TestFlag>()? {
+                    flags |= elem.into();
                 }
                 Ok(flags)
             }

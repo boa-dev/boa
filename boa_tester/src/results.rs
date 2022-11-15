@@ -1,5 +1,5 @@
 use super::SuiteResult;
-use color_eyre::Result;
+use color_eyre::{eyre::WrapErr, Result};
 use serde::{Deserialize, Serialize};
 use std::{
     env, fs,
@@ -210,9 +210,15 @@ fn update_gh_pages_repo(path: &Path, verbose: u8) {
 
 /// Compares the results of two test suite runs.
 pub(crate) fn compare_results(base: &Path, new: &Path, markdown: bool) -> Result<()> {
-    let base_results: ResultInfo = serde_json::from_reader(BufReader::new(fs::File::open(base)?))?;
+    let base_results: ResultInfo = serde_json::from_reader(BufReader::new(
+        fs::File::open(base).wrap_err("could not open the base results file")?,
+    ))
+    .wrap_err("could not read the base results")?;
 
-    let new_results: ResultInfo = serde_json::from_reader(BufReader::new(fs::File::open(new)?))?;
+    let new_results: ResultInfo = serde_json::from_reader(BufReader::new(
+        fs::File::open(new).wrap_err("could not open the new results file")?,
+    ))
+    .wrap_err("could not read the new results")?;
 
     let base_total = base_results.results.total as isize;
     let new_total = new_results.results.total as isize;
