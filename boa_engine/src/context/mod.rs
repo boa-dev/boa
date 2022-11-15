@@ -104,6 +104,8 @@ pub struct Context {
     pub(crate) vm: Vm,
 
     pub(crate) promise_job_queue: VecDeque<JobCallback>,
+
+    pub(crate) kept_alive: Vec<JsObject>,
 }
 
 impl Default for Context {
@@ -538,6 +540,7 @@ impl Context {
         self.realm.set_global_binding_number();
         let result = self.run();
         self.vm.pop_frame();
+        self.clear_kept_objects();
         self.run_queued_jobs()?;
         let (result, _) = result?;
         Ok(result)
@@ -547,6 +550,7 @@ impl Context {
     fn run_queued_jobs(&mut self) -> JsResult<()> {
         while let Some(job) = self.promise_job_queue.pop_front() {
             job.call_job_callback(&JsValue::Undefined, &[], self)?;
+            self.clear_kept_objects();
         }
         Ok(())
     }
@@ -579,6 +583,18 @@ impl Context {
         // Let scriptOrModule be ...
         // TODO
         self.promise_job_queue.push_back(job);
+    }
+
+    /// Abstract operation [`ClearKeptObjects`][clear].
+    ///
+    /// Clears all objects maintained alive by calls to the [`AddToKeptObjects`][add] abstract
+    /// operation, used within the [`WeakRef`][weak] constructor.
+    ///
+    /// [clear]: https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-clear-kept-objects
+    /// [add]: https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-addtokeptobjects
+    /// [weak]: https://tc39.es/ecma262/multipage/managing-memory.html#sec-weak-ref-objects
+    pub fn clear_kept_objects(&mut self) {
+        self.kept_alive.clear();
     }
 }
 /// Builder for the [`Context`] type.
@@ -661,6 +677,7 @@ impl ContextBuilder {
             #[cfg(feature = "fuzz")]
             instructions_remaining: self.instructions_remaining,
             promise_job_queue: VecDeque::new(),
+            kept_alive: Vec::new(),
         };
 
         // Add new builtIns to Context Realm

@@ -86,8 +86,8 @@ impl Operation for In {
         if !rhs.is_object() {
             return Err(JsNativeError::typ()
                 .with_message(format!(
-                    "right-hand side of 'in' should be an object, got {}",
-                    rhs.type_of().to_std_string_escaped()
+                    "right-hand side of 'in' should be an object, got `{}`",
+                    rhs.type_of()
                 ))
                 .into());
         }

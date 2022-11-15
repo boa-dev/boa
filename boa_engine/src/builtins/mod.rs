@@ -33,6 +33,7 @@ pub mod symbol;
 pub mod typed_array;
 pub mod undefined;
 pub mod uri;
+pub mod weak;
 
 #[cfg(feature = "console")]
 pub mod console;
@@ -82,44 +83,42 @@ use crate::{
     builtins::{
         array_buffer::ArrayBuffer, async_generator::AsyncGenerator,
         async_generator_function::AsyncGeneratorFunction, generator::Generator,
-        generator_function::GeneratorFunction, typed_array::TypedArray, uri::Uri,
+        generator_function::GeneratorFunction, typed_array::TypedArray, uri::Uri, weak::WeakRef,
     },
     property::{Attribute, PropertyDescriptor},
     Context, JsValue,
 };
 
-/// Trait representing a global built-in object such as `Math`, `Object` or
-/// `String`.
+/// Trait representing a global built-in object such as `Math`, `Object` or `String`.
 ///
-/// This trait must be implemented for any global built-in accessible from
-/// Javascript.
+/// This trait must be implemented for any global built-in accessible from JavaScript.
 pub(crate) trait BuiltIn {
     /// Binding name of the built-in inside the global object.
     ///
-    /// E.g. If you want access the properties of a `Complex` built-in
-    /// with the name `Cplx` you must assign `"Cplx"` to this constant,
-    /// making any property inside it accessible from Javascript as `Cplx.prop`
+    /// E.g. If you want access the properties of a `Complex` built-in with the name `Cplx` you must
+    /// assign `"Cplx"` to this constant, making any property inside it accessible from Javascript
+    /// as `Cplx.prop`
     const NAME: &'static str;
 
-    /// Property attribute flags of the built-in.
-    /// Check [Attribute] for more information.
+    /// Property attribute flags of the built-in. Check [`Attribute`] for more information.
     const ATTRIBUTE: Attribute = Attribute::WRITABLE
         .union(Attribute::NON_ENUMERABLE)
         .union(Attribute::CONFIGURABLE);
 
     /// Initialization code for the built-in.
-    /// This is where the methods, properties, static methods and the constructor
-    /// of a built-in must be initialized to be accessible from Javascript.
+    ///
+    /// This is where the methods, properties, static methods and the constructor of a built-in must
+    /// be initialized to be accessible from Javascript.
     ///
     /// # Note
     ///
-    /// A return value of `None` indicates that the value must not be added as
-    /// a global attribute for the global object.
+    /// A return value of `None` indicates that the value must not be added as a global attribute
+    /// for the global object.
     fn init(context: &mut Context) -> Option<JsValue>;
 }
 
-/// Utility function that checks if a type implements `BuiltIn` before
-/// initializing it as a global built-in.
+/// Utility function that checks if a type implements `BuiltIn` before initializing it as a global
+/// built-in.
 #[inline]
 fn init_builtin<B: BuiltIn>(context: &mut Context) {
     if let Some(value) = B::init(context) {
@@ -195,7 +194,8 @@ pub fn init(context: &mut Context) {
         AsyncFunction,
         AsyncGenerator,
         AsyncGeneratorFunction,
-        Uri
+        Uri,
+        WeakRef
     };
 
     #[cfg(feature = "intl")]
@@ -206,17 +206,15 @@ pub fn init(context: &mut Context) {
 }
 
 pub trait JsArgs {
-    /// Utility function to `get` a parameter from
-    /// a `[JsValue]` or default to `JsValue::Undefined`
+    /// Utility function to `get` a parameter from a `[JsValue]` or default to `JsValue::Undefined`
     /// if `get` returns `None`.
     ///
     /// Call this if you are thinking of calling something similar to
     /// `args.get(n).cloned().unwrap_or_default()` or
     /// `args.get(n).unwrap_or(&undefined)`.
     ///
-    /// This returns a reference for efficiency, in case
-    /// you only need to call methods of `JsValue`, so
-    /// try to minimize calling `clone`.
+    /// This returns a reference for efficiency, in case you only need to call methods of `JsValue`,
+    /// so try to minimize calling `clone`.
     fn get_or_undefined(&self, index: usize) -> &JsValue;
 }
 

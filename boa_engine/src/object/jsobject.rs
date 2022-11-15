@@ -736,12 +736,23 @@ Cannot both specify accessors and a value or writable attribute",
             }
         )
     }
+
+    pub(crate) fn inner(&self) -> &Gc<GcCell<Object>> {
+        &self.inner
+    }
 }
 
 impl AsRef<GcCell<Object>> for JsObject {
     #[inline]
     fn as_ref(&self) -> &GcCell<Object> {
         &self.inner
+    }
+}
+
+impl From<Gc<GcCell<Object>>> for JsObject {
+    #[inline]
+    fn from(inner: Gc<GcCell<Object>>) -> Self {
+        JsObject { inner }
     }
 }
 

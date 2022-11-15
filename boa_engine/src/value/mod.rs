@@ -949,7 +949,7 @@ impl JsValue {
     /// - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-typeof-operator
-    pub fn type_of(&self) -> JsString {
+    pub fn type_of(&self) -> &'static str {
         match *self {
             Self::Rational(_) | Self::Integer(_) => "number",
             Self::String(_) => "string",
@@ -966,7 +966,6 @@ impl JsValue {
                 }
             }
         }
-        .into()
     }
 
     /// Abstract operation `IsArray ( argument )`
