@@ -2,9 +2,10 @@ use boa_ast::{
     expression::literal::ObjectLiteral,
     property::{MethodDefinition, PropertyDefinition, PropertyName},
 };
+use boa_interner::Sym;
 
 use crate::{
-    bytecompiler::{ByteCompiler, NodeKind},
+    bytecompiler::{Access, ByteCompiler, NodeKind},
     vm::Opcode,
     JsNativeError, JsResult,
 };
@@ -20,13 +21,18 @@ pub(crate) fn compile_object_literal<'b>(
         match property {
             PropertyDefinition::IdentifierReference(ident) => {
                 let index = byte_compiler.get_or_insert_name(*ident);
+                byte_compiler.access_get(Access::Variable { name: *ident }, true)?;
                 byte_compiler.emit(Opcode::DefineOwnPropertyByName, &[index]);
             }
             PropertyDefinition::Property(name, expr) => match name {
                 PropertyName::Literal(name) => {
                     byte_compiler.compile_expr(expr, true)?;
                     let index = byte_compiler.get_or_insert_name((*name).into());
-                    byte_compiler.emit(Opcode::DefineOwnPropertyByName, &[index]);
+                    if *name == Sym::__PROTO__ && !byte_compiler.json_parse {
+                        byte_compiler.emit_opcode(Opcode::SetPrototype);
+                    } else {
+                        byte_compiler.emit(Opcode::DefineOwnPropertyByName, &[index]);
+                    }
                 }
                 PropertyName::Computed(name_node) => {
                     byte_compiler.compile_expr(name_node, true)?;
