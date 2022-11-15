@@ -431,6 +431,15 @@
 <span id="429">429</span>
 <span id="430">430</span>
 <span id="431">431</span>
+<span id="432">432</span>
+<span id="433">433</span>
+<span id="434">434</span>
+<span id="435">435</span>
+<span id="436">436</span>
+<span id="437">437</span>
+<span id="438">438</span>
+<span id="439">439</span>
+<span id="440">440</span>
 </pre><pre class="rust"><code><span class="doccomment">//! The Virtual Machine (VM) handles generating instructions, then executing them.
 //! This module will provide an instruction set for the AST to use, various traits,
 //! plus an interpreter to execute those instructions
@@ -440,6 +449,8 @@
     vm::{call_frame::CatchAddresses, code_block::Readable},
     Context, JsResult, JsValue,
 };
+<span class="attribute">#[cfg(feature = <span class="string">&quot;fuzz&quot;</span>)]
+</span><span class="kw">use crate</span>::{JsError, JsNativeError};
 <span class="kw">use </span>boa_interner::ToInternedString;
 <span class="kw">use </span>boa_profiler::Profiler;
 <span class="kw">use </span>std::{convert::TryInto, mem::size_of, time::Instant};
@@ -612,6 +623,13 @@
             });
 
         <span class="kw">while </span><span class="self">self</span>.vm.frame().pc &lt; <span class="self">self</span>.vm.frame().code.code.len() {
+            <span class="attribute">#[cfg(feature = <span class="string">&quot;fuzz&quot;</span>)]
+            </span><span class="kw">if </span><span class="self">self</span>.instructions_remaining == <span class="number">0 </span>{
+                <span class="kw">return </span><span class="prelude-val">Err</span>(JsError::from_native(JsNativeError::no_instructions_remain()));
+            } <span class="kw">else </span>{
+                <span class="self">self</span>.instructions_remaining -= <span class="number">1</span>;
+            }
+
             <span class="kw">let </span>result = <span class="kw">if </span><span class="self">self</span>.vm.trace {
                 <span class="kw">let </span><span class="kw-2">mut </span>pc = <span class="self">self</span>.vm.frame().pc;
                 <span class="kw">let </span>opcode: Opcode = <span class="self">self

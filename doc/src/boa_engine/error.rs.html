@@ -766,6 +766,29 @@
 <span id="764">764</span>
 <span id="765">765</span>
 <span id="766">766</span>
+<span id="767">767</span>
+<span id="768">768</span>
+<span id="769">769</span>
+<span id="770">770</span>
+<span id="771">771</span>
+<span id="772">772</span>
+<span id="773">773</span>
+<span id="774">774</span>
+<span id="775">775</span>
+<span id="776">776</span>
+<span id="777">777</span>
+<span id="778">778</span>
+<span id="779">779</span>
+<span id="780">780</span>
+<span id="781">781</span>
+<span id="782">782</span>
+<span id="783">783</span>
+<span id="784">784</span>
+<span id="785">785</span>
+<span id="786">786</span>
+<span id="787">787</span>
+<span id="788">788</span>
+<span id="789">789</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Error-related types and conversions.
 
 </span><span class="kw">use crate</span>::{
@@ -1271,6 +1294,17 @@
         <span class="self">Self</span>::new(JsNativeErrorKind::Uri, Box::default(), <span class="prelude-val">None</span>)
     }
 
+    <span class="doccomment">/// Creates a new `JsNativeError` that indicates that the context hit its execution limit. This
+    /// is only used in a fuzzing context.
+    </span><span class="attribute">#[cfg(feature = <span class="string">&quot;fuzz&quot;</span>)]
+    </span><span class="kw">pub fn </span>no_instructions_remain() -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::new(
+            JsNativeErrorKind::NoInstructionsRemain,
+            Box::default(),
+            <span class="prelude-val">None</span>,
+        )
+    }
+
     <span class="doccomment">/// Sets the message of this error.
     ///
     /// # Examples
@@ -1387,6 +1421,12 @@
             }
             JsNativeErrorKind::Type =&gt; (constructors.type_error().prototype(), ErrorKind::Type),
             JsNativeErrorKind::Uri =&gt; (constructors.uri_error().prototype(), ErrorKind::Uri),
+            <span class="attribute">#[cfg(feature = <span class="string">&quot;fuzz&quot;</span>)]
+            </span>JsNativeErrorKind::NoInstructionsRemain =&gt; {
+                <span class="macro">unreachable!</span>(
+                    <span class="string">&quot;The NoInstructionsRemain native error cannot be converted to an opaque type.&quot;
+                </span>)
+            }
         };
 
         <span class="kw">let </span>o = JsObject::from_proto_and_data(prototype, ObjectData::error(tag));
@@ -1515,6 +1555,10 @@
     /// [e_uri]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/encodeURI
     /// [d_uri]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/decodeURI
     </span>Uri,
+    <span class="doccomment">/// Error thrown when no instructions remain. Only used in a fuzzing context; not a valid JS
+    /// error variant.
+    </span><span class="attribute">#[cfg(feature = <span class="string">&quot;fuzz&quot;</span>)]
+    </span>NoInstructionsRemain,
 }
 
 <span class="kw">impl </span>std::fmt::Display <span class="kw">for </span>JsNativeErrorKind {
@@ -1528,6 +1572,8 @@
             JsNativeErrorKind::Syntax =&gt; <span class="string">&quot;SyntaxError&quot;</span>,
             JsNativeErrorKind::Type =&gt; <span class="string">&quot;TypeError&quot;</span>,
             JsNativeErrorKind::Uri =&gt; <span class="string">&quot;UriError&quot;</span>,
+            <span class="attribute">#[cfg(feature = <span class="string">&quot;fuzz&quot;</span>)]
+            </span>JsNativeErrorKind::NoInstructionsRemain =&gt; <span class="string">&quot;NoInstructionsRemain&quot;</span>,
         }
         .fmt(f)
     }

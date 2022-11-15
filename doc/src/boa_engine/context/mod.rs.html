@@ -656,6 +656,23 @@
 <span id="654">654</span>
 <span id="655">655</span>
 <span id="656">656</span>
+<span id="657">657</span>
+<span id="658">658</span>
+<span id="659">659</span>
+<span id="660">660</span>
+<span id="661">661</span>
+<span id="662">662</span>
+<span id="663">663</span>
+<span id="664">664</span>
+<span id="665">665</span>
+<span id="666">666</span>
+<span id="667">667</span>
+<span id="668">668</span>
+<span id="669">669</span>
+<span id="670">670</span>
+<span id="671">671</span>
+<span id="672">672</span>
+<span id="673">673</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Javascript context.
 
 </span><span class="kw">pub mod </span>intrinsics;
@@ -754,6 +771,10 @@
     <span class="doccomment">/// ICU related utilities
     </span><span class="attribute">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
     </span>icu: icu::Icu,
+
+    <span class="doccomment">/// Number of instructions remaining before a forced exit
+    </span><span class="attribute">#[cfg(feature = <span class="string">&quot;fuzz&quot;</span>)]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) instructions_remaining: usize,
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) vm: Vm,
 
@@ -1251,6 +1272,8 @@
     interner: <span class="prelude-ty">Option</span>&lt;Interner&gt;,
     <span class="attribute">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
     </span>icu: <span class="prelude-ty">Option</span>&lt;icu::Icu&gt;,
+    <span class="attribute">#[cfg(feature = <span class="string">&quot;fuzz&quot;</span>)]
+    </span>instructions_remaining: usize,
 }
 
 <span class="kw">impl </span>ContextBuilder {
@@ -1272,6 +1295,15 @@
         <span class="self">self</span>.icu = <span class="prelude-val">Some</span>(icu::Icu::new(provider)<span class="question-mark">?</span>);
         <span class="prelude-val">Ok</span>(<span class="self">self</span>)
     }
+
+    <span class="doccomment">/// Specifies the number of instructions remaining to the [`Context`].
+    ///
+    /// This function is only available if the `fuzz` feature is enabled.
+    </span><span class="attribute">#[cfg(feature = <span class="string">&quot;fuzz&quot;</span>)]
+    </span><span class="kw">pub fn </span>instructions_remaining(<span class="kw-2">mut </span><span class="self">self</span>, instructions_remaining: usize) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.instructions_remaining = instructions_remaining;
+        <span class="self">self
+    </span>}
 
     <span class="doccomment">/// Creates a new [`ContextBuilder`] with a default empty [`Interner`]
     /// and a default [`BoaProvider`] if the `intl` feature is enabled.
@@ -1301,6 +1333,8 @@
                 </span>icu::Icu::new(Box::new(icu_testdata::get_provider()))
                     .expect(<span class="string">&quot;Failed to initialize default icu data.&quot;</span>)
             }),
+            <span class="attribute">#[cfg(feature = <span class="string">&quot;fuzz&quot;</span>)]
+            </span>instructions_remaining: <span class="self">self</span>.instructions_remaining,
             promise_job_queue: VecDeque::new(),
         };
 
