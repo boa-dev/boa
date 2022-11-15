@@ -2,6 +2,7 @@
 
 mod expression;
 mod function;
+mod statement;
 
 use crate::{
     environments::{BindingLocator, CompileTimeEnvironment},
@@ -12,7 +13,6 @@ use boa_ast::{
     declaration::{Binding, LexicalDeclaration, VarDeclaration},
     expression::{
         access::{PropertyAccess, PropertyAccessField},
-        literal::TemplateElement,
         operator::assign::AssignTarget,
         Call, Identifier, New, Optional, OptionalOperationKind,
     },
@@ -930,19 +930,7 @@ impl<'b> ByteCompiler<'b> {
             Expression::PropertyAccess(access) => {
                 self.access_get(Access::Property { access }, use_expr)?;
             }
-            Expression::Conditional(op) => {
-                self.compile_expr(op.condition(), true)?;
-                let jelse = self.jump_if_false();
-                self.compile_expr(op.if_true(), true)?;
-                let exit = self.jump();
-                self.patch_jump(jelse);
-                self.compile_expr(op.if_false(), true)?;
-                self.patch_jump(exit);
-
-                if !use_expr {
-                    self.emit(Opcode::Pop, &[]);
-                }
-            }
+            Expression::Conditional(op) => expression::compile_conditional(self, op, use_expr)?,
             Expression::ArrayLiteral(array) => {
                 self.emit_opcode(Opcode::PushNewArray);
                 self.emit_opcode(Opcode::PopOnReturnAdd);
@@ -991,25 +979,7 @@ impl<'b> ByteCompiler<'b> {
             Expression::Call(call) => self.call(Callable::Call(call), use_expr)?,
             Expression::New(new) => self.call(Callable::New(new), use_expr)?,
             Expression::TemplateLiteral(template_literal) => {
-                for element in template_literal.elements() {
-                    match element {
-                        TemplateElement::String(s) => self.emit_push_literal(Literal::String(
-                            self.interner().resolve_expect(*s).into_common(false),
-                        )),
-                        TemplateElement::Expr(expr) => {
-                            self.compile_expr(expr, true)?;
-                        }
-                    }
-                }
-
-                self.emit(
-                    Opcode::ConcatToString,
-                    &[template_literal.elements().len() as u32],
-                );
-
-                if !use_expr {
-                    self.emit(Opcode::Pop, &[]);
-                }
+                expression::compile_template_literal(self, template_literal, use_expr)?
             }
             Expression::Await(expr) => {
                 self.compile_expr(expr.target(), true)?;
@@ -1863,24 +1833,7 @@ impl<'b> ByteCompiler<'b> {
     ) -> JsResult<()> {
         match node {
             Statement::Var(var) => self.compile_var_decl(var)?,
-            Statement::If(node) => {
-                self.compile_expr(node.cond(), true)?;
-                let jelse = self.jump_if_false();
-
-                self.compile_stmt(node.body(), false, configurable_globals)?;
-
-                match node.else_node() {
-                    None => {
-                        self.patch_jump(jelse);
-                    }
-                    Some(else_body) => {
-                        let exit = self.jump();
-                        self.patch_jump(jelse);
-                        self.compile_stmt(else_body, false, configurable_globals)?;
-                        self.patch_jump(exit);
-                    }
-                }
-            }
+            Statement::If(node) => statement::compile_if(self, node, configurable_globals)?,
             Statement::ForLoop(for_loop) => {
                 self.compile_for_loop(for_loop, None, configurable_globals)?;
             }
@@ -1899,137 +1852,10 @@ impl<'b> ByteCompiler<'b> {
             Statement::Block(block) => {
                 self.compile_block(block, None, use_expr, configurable_globals)?;
             }
-            Statement::Labelled(labelled) => match labelled.item() {
-                LabelledItem::Statement(stmt) => match stmt {
-                    Statement::ForLoop(for_loop) => {
-                        self.compile_for_loop(
-                            for_loop,
-                            Some(labelled.label()),
-                            configurable_globals,
-                        )?;
-                    }
-                    Statement::ForInLoop(for_in_loop) => {
-                        self.compile_for_in_loop(
-                            for_in_loop,
-                            Some(labelled.label()),
-                            configurable_globals,
-                        )?;
-                    }
-                    Statement::ForOfLoop(for_of_loop) => {
-                        self.compile_for_of_loop(
-                            for_of_loop,
-                            Some(labelled.label()),
-                            configurable_globals,
-                        )?;
-                    }
-                    Statement::WhileLoop(while_loop) => {
-                        self.compile_while_loop(
-                            while_loop,
-                            Some(labelled.label()),
-                            configurable_globals,
-                        )?;
-                    }
-                    Statement::DoWhileLoop(do_while_loop) => {
-                        self.compile_do_while_loop(
-                            do_while_loop,
-                            Some(labelled.label()),
-                            configurable_globals,
-                        )?;
-                    }
-                    Statement::Block(block) => {
-                        self.compile_block(
-                            block,
-                            Some(labelled.label()),
-                            use_expr,
-                            configurable_globals,
-                        )?;
-                    }
-                    stmt => self.compile_stmt(stmt, use_expr, configurable_globals)?,
-                },
-                LabelledItem::Function(f) => {
-                    self.function(f.into(), NodeKind::Declaration, false)?;
-                }
-            },
-            Statement::Continue(node) => {
-                let next = self.next_opcode_location();
-                if let Some(info) = self
-                    .jump_info
-                    .last()
-                    .filter(|info| info.kind == JumpControlInfoKind::Try)
-                {
-                    let start_address = info.start_address;
-                    let in_finally = info
-                        .finally_start
-                        .map_or(false, |finally_start| next > finally_start.index);
-                    let in_catch_no_finally = !info.has_finally && info.in_catch;
-
-                    if in_finally {
-                        self.emit_opcode(Opcode::PopIfThrown);
-                    }
-                    if in_finally || in_catch_no_finally {
-                        self.emit_opcode(Opcode::CatchEnd2);
-                    } else {
-                        self.emit_opcode(Opcode::TryEnd);
-                    }
-                    self.emit(Opcode::FinallySetJump, &[start_address]);
-                    let label = self.jump();
-                    self.jump_info
-                        .last_mut()
-                        .expect("no jump information found")
-                        .try_continues
-                        .push(label);
-                } else {
-                    let mut items = self
-                        .jump_info
-                        .iter()
-                        .rev()
-                        .filter(|info| info.kind == JumpControlInfoKind::Loop);
-                    let address = if let Some(label_name) = node.label() {
-                        let mut num_loops = 0;
-                        let mut emit_for_of_in_exit = 0;
-                        let mut address_info = None;
-                        for info in items {
-                            if info.label == node.label() {
-                                address_info = Some(info);
-                                break;
-                            }
-                            num_loops += 1;
-                            if info.for_of_in_loop {
-                                emit_for_of_in_exit += 1;
-                            }
-                        }
-                        // TODO: promote to an early error.
-                        let address = address_info
-                            .ok_or_else(|| {
-                                JsNativeError::syntax().with_message(format!(
-                                    "Cannot use the undeclared label '{}'",
-                                    self.context.interner().resolve_expect(label_name)
-                                ))
-                            })?
-                            .start_address;
-                        for _ in 0..emit_for_of_in_exit {
-                            self.emit_opcode(Opcode::Pop);
-                            self.emit_opcode(Opcode::Pop);
-                            self.emit_opcode(Opcode::Pop);
-                        }
-                        for _ in 0..num_loops {
-                            self.emit_opcode(Opcode::LoopEnd);
-                        }
-                        address
-                    } else {
-                        items
-                            .next()
-                            // TODO: promote to an early error.
-                            .ok_or_else(|| {
-                                JsNativeError::syntax().with_message("continue must be inside loop")
-                            })?
-                            .start_address
-                    };
-                    self.emit_opcode(Opcode::LoopEnd);
-                    self.emit_opcode(Opcode::LoopStart);
-                    self.emit(Opcode::Jump, &[address]);
-                }
+            Statement::Labelled(labelled) => {
+                statement::compile_labeled(self, labelled, use_expr, configurable_globals)?
             }
+            Statement::Continue(node) => statement::compile_continue(self, node)?,
             Statement::Break(node) => {
                 let next = self.next_opcode_location();
                 if let Some(info) = self
