@@ -503,6 +503,17 @@ impl JsNativeError {
         Self::new(JsNativeErrorKind::Uri, Box::default(), None)
     }
 
+    /// Creates a new `JsNativeError` that indicates that the context hit its execution limit. This
+    /// is only used in a fuzzing context.
+    #[cfg(feature = "fuzz")]
+    pub fn no_instructions_remain() -> Self {
+        Self::new(
+            JsNativeErrorKind::NoInstructionsRemain,
+            Box::default(),
+            None,
+        )
+    }
+
     /// Sets the message of this error.
     ///
     /// # Examples
@@ -619,6 +630,12 @@ impl JsNativeError {
             }
             JsNativeErrorKind::Type => (constructors.type_error().prototype(), ErrorKind::Type),
             JsNativeErrorKind::Uri => (constructors.uri_error().prototype(), ErrorKind::Uri),
+            #[cfg(feature = "fuzz")]
+            JsNativeErrorKind::NoInstructionsRemain => {
+                unreachable!(
+                    "The NoInstructionsRemain native error cannot be converted to an opaque type."
+                )
+            }
         };
 
         let o = JsObject::from_proto_and_data(prototype, ObjectData::error(tag));
@@ -747,6 +764,10 @@ pub enum JsNativeErrorKind {
     /// [e_uri]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/encodeURI
     /// [d_uri]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/decodeURI
     Uri,
+    /// Error thrown when no instructions remain. Only used in a fuzzing context; not a valid JS
+    /// error variant.
+    #[cfg(feature = "fuzz")]
+    NoInstructionsRemain,
 }
 
 impl std::fmt::Display for JsNativeErrorKind {
@@ -760,6 +781,8 @@ impl std::fmt::Display for JsNativeErrorKind {
             JsNativeErrorKind::Syntax => "SyntaxError",
             JsNativeErrorKind::Type => "TypeError",
             JsNativeErrorKind::Uri => "UriError",
+            #[cfg(feature = "fuzz")]
+            JsNativeErrorKind::NoInstructionsRemain => "NoInstructionsRemain",
         }
         .fmt(f)
     }

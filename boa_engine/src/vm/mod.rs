@@ -7,6 +7,8 @@ use crate::{
     vm::{call_frame::CatchAddresses, code_block::Readable},
     Context, JsResult, JsValue,
 };
+#[cfg(feature = "fuzz")]
+use crate::{JsError, JsNativeError};
 use boa_interner::ToInternedString;
 use boa_profiler::Profiler;
 use std::{convert::TryInto, mem::size_of, time::Instant};
@@ -179,6 +181,13 @@ impl Context {
             });
 
         while self.vm.frame().pc < self.vm.frame().code.code.len() {
+            #[cfg(feature = "fuzz")]
+            if self.instructions_remaining == 0 {
+                return Err(JsError::from_native(JsNativeError::no_instructions_remain()));
+            } else {
+                self.instructions_remaining -= 1;
+            }
+
             let result = if self.vm.trace {
                 let mut pc = self.vm.frame().pc;
                 let opcode: Opcode = self
