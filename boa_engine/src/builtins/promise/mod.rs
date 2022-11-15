@@ -21,7 +21,7 @@ use crate::{
     value::JsValue,
     Context, JsError, JsResult,
 };
-use boa_gc::{Cell as GcCell, Finalize, Gc, Trace};
+use boa_gc::{Finalize, Gc, GcCell, Trace};
 use boa_profiler::Profiler;
 use std::{cell::Cell, rc::Rc};
 use tap::{Conv, Pipe};
@@ -118,7 +118,7 @@ impl PromiseCapability {
 
                 // 2. NOTE: C is assumed to be a constructor function that supports the parameter conventions of the Promise constructor (see 27.2.3.1).
                 // 3. Let promiseCapability be the PromiseCapability Record { [[Promise]]: undefined, [[Resolve]]: undefined, [[Reject]]: undefined }.
-                let promise_capability = Gc::new(boa_gc::Cell::new(RejectResolve {
+                let promise_capability = Gc::new(GcCell::new(RejectResolve {
                     reject: JsValue::undefined(),
                     resolve: JsValue::undefined(),
                 }));

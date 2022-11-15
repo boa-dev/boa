@@ -97,6 +97,10 @@ pub struct Context {
     #[cfg(feature = "intl")]
     icu: icu::Icu,
 
+    /// Number of instructions remaining before a forced exit
+    #[cfg(feature = "fuzz")]
+    pub(crate) instructions_remaining: usize,
+
     pub(crate) vm: Vm,
 
     pub(crate) promise_job_queue: VecDeque<JobCallback>,
@@ -470,7 +474,20 @@ impl Context {
     #[inline]
     pub fn compile(&mut self, statement_list: &StatementList) -> JsResult<Gc<CodeBlock>> {
         let _timer = Profiler::global().start_event("Compilation", "Main");
-        let mut compiler = ByteCompiler::new(Sym::MAIN, statement_list.strict(), self);
+        let mut compiler = ByteCompiler::new(Sym::MAIN, statement_list.strict(), false, self);
+        compiler.create_decls(statement_list, false);
+        compiler.compile_statement_list(statement_list, true, false)?;
+        Ok(Gc::new(compiler.finish()))
+    }
+
+    /// Compile the AST into a `CodeBlock` ready to be executed by the VM in a `JSON.parse` context.
+    #[inline]
+    pub fn compile_json_parse(
+        &mut self,
+        statement_list: &StatementList,
+    ) -> JsResult<Gc<CodeBlock>> {
+        let _timer = Profiler::global().start_event("Compilation", "Main");
+        let mut compiler = ByteCompiler::new(Sym::MAIN, statement_list.strict(), true, self);
         compiler.create_decls(statement_list, false);
         compiler.compile_statement_list(statement_list, true, false)?;
         Ok(Gc::new(compiler.finish()))
@@ -484,7 +501,7 @@ impl Context {
         strict: bool,
     ) -> JsResult<Gc<CodeBlock>> {
         let _timer = Profiler::global().start_event("Compilation", "Main");
-        let mut compiler = ByteCompiler::new(Sym::MAIN, statement_list.strict(), self);
+        let mut compiler = ByteCompiler::new(Sym::MAIN, statement_list.strict(), false, self);
         compiler.compile_statement_list_with_new_declarative(statement_list, true, strict)?;
         Ok(Gc::new(compiler.finish()))
     }
@@ -580,6 +597,8 @@ pub struct ContextBuilder {
     interner: Option<Interner>,
     #[cfg(feature = "intl")]
     icu: Option<icu::Icu>,
+    #[cfg(feature = "fuzz")]
+    instructions_remaining: usize,
 }
 
 impl ContextBuilder {
@@ -600,6 +619,15 @@ impl ContextBuilder {
     pub fn icu_provider(mut self, provider: Box<dyn icu::BoaProvider>) -> Result<Self, DataError> {
         self.icu = Some(icu::Icu::new(provider)?);
         Ok(self)
+    }
+
+    /// Specifies the number of instructions remaining to the [`Context`].
+    ///
+    /// This function is only available if the `fuzz` feature is enabled.
+    #[cfg(feature = "fuzz")]
+    pub fn instructions_remaining(mut self, instructions_remaining: usize) -> Self {
+        self.instructions_remaining = instructions_remaining;
+        self
     }
 
     /// Creates a new [`ContextBuilder`] with a default empty [`Interner`]
@@ -630,6 +658,8 @@ impl ContextBuilder {
                 icu::Icu::new(Box::new(icu_testdata::get_provider()))
                     .expect("Failed to initialize default icu data.")
             }),
+            #[cfg(feature = "fuzz")]
+            instructions_remaining: self.instructions_remaining,
             promise_job_queue: VecDeque::new(),
         };
 

@@ -865,23 +865,8 @@ impl JsValue {
         // 1. Let number be ? ToNumber(argument).
         let number = self.to_number(context)?;
 
-        if number.is_nan() || number == 0.0 {
-            // 2. If number is NaN, +0𝔽, or -0𝔽, return 0.
-            Ok(IntegerOrInfinity::Integer(0))
-        } else if number == f64::INFINITY {
-            // 3. If number is +∞𝔽, return +∞.
-            Ok(IntegerOrInfinity::PositiveInfinity)
-        } else if number == f64::NEG_INFINITY {
-            // 4. If number is -∞𝔽, return -∞.
-            Ok(IntegerOrInfinity::NegativeInfinity)
-        } else {
-            // 5. Let integer be floor(abs(ℝ(number))).
-            // 6. If number < +0𝔽, set integer to -integer.
-            let integer = number.abs().floor().copysign(number) as i64;
-
-            // 7. Return integer.
-            Ok(IntegerOrInfinity::Integer(integer))
-        }
+        // Continues on `IntegerOrInfinity::from::<f64>`
+        Ok(IntegerOrInfinity::from(number))
     }
 
     /// Converts a value to a double precision floating point.

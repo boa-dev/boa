@@ -34,7 +34,7 @@ use boa_ast::{
     operations::{bound_names, contains, lexically_declared_names, ContainsSymbol},
     StatementList,
 };
-use boa_gc::{self, custom_trace, Finalize, Gc, Trace};
+use boa_gc::{self, custom_trace, Finalize, Gc, GcCell, Trace};
 use boa_interner::Sym;
 use boa_parser::Parser;
 use boa_profiler::Profiler;
@@ -178,7 +178,7 @@ unsafe impl Trace for ClassFieldDefinition {
 /// with `Any::downcast_ref` and `Any::downcast_mut` to recover the original
 /// type.
 #[derive(Clone, Debug, Trace, Finalize)]
-pub struct Captures(Gc<boa_gc::Cell<Box<dyn NativeObject>>>);
+pub struct Captures(Gc<GcCell<Box<dyn NativeObject>>>);
 
 impl Captures {
     /// Creates a new capture context.
@@ -186,7 +186,7 @@ impl Captures {
     where
         T: NativeObject,
     {
-        Self(Gc::new(boa_gc::Cell::new(Box::new(captures))))
+        Self(Gc::new(GcCell::new(Box::new(captures))))
     }
 
     /// Casts `Captures` to `Any`
@@ -194,7 +194,7 @@ impl Captures {
     /// # Panics
     ///
     /// Panics if it's already borrowed as `&mut Any`
-    pub fn as_any(&self) -> boa_gc::Ref<'_, dyn Any> {
+    pub fn as_any(&self) -> boa_gc::GcCellRef<'_, dyn Any> {
         Ref::map(self.0.borrow(), |data| data.deref().as_any())
     }
 
@@ -203,7 +203,7 @@ impl Captures {
     /// # Panics
     ///
     /// Panics if it's already borrowed as `&mut Any`
-    pub fn as_mut_any(&self) -> boa_gc::RefMut<'_, Box<dyn NativeObject>, dyn Any> {
+    pub fn as_mut_any(&self) -> boa_gc::GcCellRefMut<'_, Box<dyn NativeObject>, dyn Any> {
         RefMut::map(self.0.borrow_mut(), |data| data.deref_mut().as_mut_any())
     }
 }

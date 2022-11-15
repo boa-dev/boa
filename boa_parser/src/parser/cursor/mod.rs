@@ -31,6 +31,9 @@ pub(super) struct Cursor<R> {
 
     /// Tracks if the cursor is in a arrow function declaration.
     arrow: bool,
+
+    /// Indicate if the cursor is used in `JSON.parse`.
+    json_parse: bool,
 }
 
 impl<R> Cursor<R>
@@ -44,6 +47,7 @@ where
             buffered_lexer: Lexer::new(reader).into(),
             private_environments_stack: Vec::new(),
             arrow: false,
+            json_parse: false,
         }
     }
 
@@ -124,6 +128,18 @@ where
     #[inline]
     pub(super) fn set_arrow(&mut self, arrow: bool) {
         self.arrow = arrow;
+    }
+
+    /// Returns if the cursor is currently used in `JSON.parse`.
+    #[inline]
+    pub(super) fn json_parse(&self) -> bool {
+        self.json_parse
+    }
+
+    /// Set if the cursor is currently used in `JSON.parse`.
+    #[inline]
+    pub(super) fn set_json_parse(&mut self, json_parse: bool) {
+        self.json_parse = json_parse;
     }
 
     /// Push a new private environment.

@@ -27,3 +27,15 @@ name = "parser-idempotency"
 path = "fuzz_targets/parser-idempotency.rs"
 test = false
 doc = false
+
+[[bin]]
+name = "vm-implied"
+path = "fuzz_targets/vm-implied.rs"
+test = false
+doc = false
+
+[[bin]]
+name = "bytecompiler-implied"
+path = "fuzz_targets/bytecompiler-implied.rs"
+test = false
+doc = false

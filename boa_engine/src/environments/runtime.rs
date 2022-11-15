@@ -3,7 +3,7 @@ use std::cell::Cell;
 use crate::{
     environments::CompileTimeEnvironment, error::JsNativeError, object::JsObject, Context, JsValue,
 };
-use boa_gc::{Cell as GcCell, Finalize, Gc, Trace};
+use boa_gc::{Finalize, Gc, GcCell, Trace};
 
 use boa_ast::expression::Identifier;
 use rustc_hash::FxHashSet;

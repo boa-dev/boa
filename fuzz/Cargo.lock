@@ -59,7 +59,6 @@ dependencies = [
  "chrono",
  "dyn-clone",
  "fast-float",
- "gc",
  "indexmap",
  "num-bigint",
  "num-integer",
@@ -93,7 +92,8 @@ dependencies = [
 name = "boa_gc"
 version = "0.16.0"
 dependencies = [
- "gc",
+ "boa_macros",
+ "boa_profiler",
 ]
 
 [[package]]
@@ -113,8 +113,10 @@ dependencies = [
 name = "boa_macros"
 version = "0.16.0"
 dependencies = [
+ "proc-macro2",
  "quote",
  "syn",
+ "synstructure",
 ]
 
 [[package]]
@@ -167,9 +169,9 @@ checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
 
 [[package]]
 name = "chrono"
-version = "0.4.22"
+version = "0.4.23"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bfd4d1b31faaa3a89d7934dbded3111da0d2ef28e3ebccdb4f0179f5929d1ef1"
+checksum = "16b0a3d9ed01224b22057780a37bb8c5dbfe1be8ba48678e7bf57ec4b385411f"
 dependencies = [
  "iana-time-zone",
  "js-sys",
@@ -262,27 +264,6 @@ name = "fast-float"
 version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "95765f67b4b18863968b4a1bd5bb576f732b29a4a28c7cd84c09fa3e2875f33c"
-
-[[package]]
-name = "gc"
-version = "0.4.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3edaac0f5832202ebc99520cb77c932248010c4645d20be1dc62d6579f5b3752"
-dependencies = [
- "gc_derive",
-]
-
-[[package]]
-name = "gc_derive"
-version = "0.4.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "60df8444f094ff7885631d80e78eb7d88c3c2361a98daaabb06256e4500db941"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn",
- "synstructure",
-]
 
 [[package]]
 name = "getrandom"

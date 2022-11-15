@@ -104,6 +104,9 @@ impl Sym {
     /// Symbol for the `"target"` string.
     pub const TARGET: Self = unsafe { Self::new_unchecked(28) };
 
+    /// Symbol for the `"__proto__"` string.
+    pub const __PROTO__: Self = unsafe { Self::new_unchecked(29) };
+
     /// Creates a new [`Sym`] from the provided `value`, or returns `None` if `index` is zero.
     #[inline]
     pub(super) fn new(value: usize) -> Option<Self> {
@@ -134,7 +137,7 @@ impl Sym {
 }
 
 macro_rules! create_static_strings {
-    ( $( $s:literal ),+ ) => {
+    ( $( $s:literal ),+$(,)? ) => {
         /// Ordered set of commonly used static `UTF-8` strings.
         ///
         /// # Note
@@ -193,5 +196,6 @@ create_static_strings! {
     "false",
     "async",
     "of",
-    "target"
+    "target",
+    "__proto__",
 }
