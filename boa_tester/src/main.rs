@@ -1,7 +1,7 @@
 //! Test262 test runner
 //!
 //! This crate will run the full ECMAScript test suite (Test262) and report compliance of the
-//! `boa` context.
+//! `boa` wrap_err.
 #![doc(
     html_logo_url = "https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg",
     html_favicon_url = "https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"
@@ -70,26 +70,36 @@ use self::{
     read::{read_harness, read_suite, read_test, MetaData, Negative, TestFlag},
     results::{compare_results, write_json},
 };
-use anyhow::{bail, Context};
 use bitflags::bitflags;
 use clap::{ArgAction, Parser, ValueHint};
+use color_eyre::{
+    eyre::{bail, WrapErr},
+    Result,
+};
 use colored::Colorize;
 use fxhash::{FxHashMap, FxHashSet};
-use once_cell::sync::Lazy;
 use read::ErrorType;
-use serde::{Deserialize, Serialize};
+use serde::{
+    de::{Unexpected, Visitor},
+    Deserialize, Deserializer, Serialize,
+};
 use std::{
-    fs,
+    fs::{self, File},
+    io::Read,
     path::{Path, PathBuf},
 };
 
 /// Structure to allow defining ignored tests, features and files that should
 /// be ignored even when reading.
-#[derive(Debug)]
+#[derive(Debug, Deserialize)]
 struct Ignored {
+    #[serde(default)]
     tests: FxHashSet<Box<str>>,
+    #[serde(default)]
     features: FxHashSet<Box<str>>,
+    #[serde(default)]
     files: FxHashSet<Box<str>>,
+    #[serde(default = "TestFlags::empty")]
     flags: TestFlags,
 }
 
@@ -102,10 +112,17 @@ impl Ignored {
 
     /// Checks if the ignore list contains the given feature name in the list
     /// of features to ignore.
-    pub(crate) fn contains_any_feature(&self, features: &[Box<str>]) -> bool {
-        features
-            .iter()
-            .any(|feature| self.features.contains(feature))
+    pub(crate) fn contains_feature(&self, feature: &str) -> bool {
+        if self.features.contains(feature) {
+            return true;
+        }
+        // Some features are an accessor instead of a simple feature name e.g. `Intl.DurationFormat`.
+        // This ensures those are also ignored.
+        feature
+            .split('.')
+            .next()
+            .map(|feat| self.features.contains(feat))
+            .unwrap_or_default()
     }
 
     /// Checks if the ignore list contains the given file name in the list to
@@ -129,68 +146,6 @@ impl Default for Ignored {
         }
     }
 }
-
-/// List of ignored tests.
-static IGNORED: Lazy<Ignored> = Lazy::new(|| {
-    let path = Path::new("test_ignore.txt");
-    if path.exists() {
-        let filtered = fs::read_to_string(path).expect("could not read test filters");
-        filtered
-            .lines()
-            .filter(|line| !line.is_empty() && !line.starts_with("//"))
-            .fold(Ignored::default(), |mut ign, line| {
-                // let mut line = line.to_owned();
-                if line.starts_with("file:") {
-                    let file = line
-                        .strip_prefix("file:")
-                        .expect("prefix disappeared")
-                        .trim()
-                        .to_owned()
-                        .into_boxed_str();
-                    let test = if file.ends_with(".js") {
-                        file.strip_suffix(".js")
-                            .expect("suffix disappeared")
-                            .to_owned()
-                            .into_boxed_str()
-                    } else {
-                        file.clone()
-                    };
-                    ign.files.insert(file);
-                    ign.tests.insert(test);
-                } else if line.starts_with("feature:") {
-                    ign.features.insert(
-                        line.strip_prefix("feature:")
-                            .expect("prefix disappeared")
-                            .trim()
-                            .to_owned()
-                            .into_boxed_str(),
-                    );
-                } else if line.starts_with("flag:") {
-                    let flag = line
-                        .strip_prefix("flag:")
-                        .expect("prefix disappeared")
-                        .trim()
-                        .parse::<TestFlag>()
-                        .expect("invalid flag found");
-                    ign.flags.insert(flag.into());
-                } else {
-                    let mut test = line.trim();
-                    if test
-                        .rsplit('.')
-                        .next()
-                        .map(|ext| ext.eq_ignore_ascii_case("js"))
-                        == Some(true)
-                    {
-                        test = test.strip_suffix(".js").expect("suffix disappeared");
-                    }
-                    ign.tests.insert(test.to_owned().into_boxed_str());
-                }
-                ign
-            })
-    } else {
-        Ignored::default()
-    }
-});
 
 /// Boa test262 tester
 #[derive(Debug, Parser)]
@@ -217,6 +172,10 @@ enum Cli {
         /// Execute tests serially
         #[arg(short, long)]
         disable_parallelism: bool,
+
+        /// Path to a TOML file with the ignored tests, features, flags and/or files.
+        #[arg(short, long, default_value = "test_ignore.toml", value_hint = ValueHint::FilePath)]
+        ignored: PathBuf,
     },
     /// Compare two test suite results.
     Compare {
@@ -235,7 +194,8 @@ enum Cli {
 }
 
 /// Program entry point.
-fn main() {
+fn main() -> Result<()> {
+    color_eyre::install()?;
     match Cli::parse() {
         Cli::Run {
             verbose,
@@ -243,23 +203,15 @@ fn main() {
             suite,
             output,
             disable_parallelism,
-        } => {
-            if let Err(e) = run_test_suite(
-                verbose,
-                !disable_parallelism,
-                test262_path.as_path(),
-                suite.as_path(),
-                output.as_deref(),
-            ) {
-                eprintln!("Error: {e}");
-                let mut src = e.source();
-                while let Some(e) = src {
-                    eprintln!("    caused by: {e}");
-                    src = e.source();
-                }
-                std::process::exit(1);
-            }
-        }
+            ignored: ignore,
+        } => run_test_suite(
+            verbose,
+            !disable_parallelism,
+            test262_path.as_path(),
+            suite.as_path(),
+            output.as_deref(),
+            ignore.as_path(),
+        ),
         Cli::Compare {
             base,
             new,
@@ -275,24 +227,33 @@ fn run_test_suite(
     test262_path: &Path,
     suite: &Path,
     output: Option<&Path>,
-) -> anyhow::Result<()> {
+    ignored: &Path,
+) -> Result<()> {
     if let Some(path) = output {
         if path.exists() {
             if !path.is_dir() {
                 bail!("the output path must be a directory.");
             }
         } else {
-            fs::create_dir_all(path).context("could not create the output directory")?;
+            fs::create_dir_all(path).wrap_err("could not create the output directory")?;
         }
     }
+
+    let ignored = {
+        let mut input = String::new();
+        let mut f = File::open(ignored).wrap_err("could not open ignored tests file")?;
+        f.read_to_string(&mut input)
+            .wrap_err("could not read ignored tests file")?;
+        toml::from_str(&input).wrap_err("could not decode ignored tests file")?
+    };
 
     if verbose != 0 {
         println!("Loading the test suite...");
     }
-    let harness = read_harness(test262_path).context("could not read harness")?;
+    let harness = read_harness(test262_path).wrap_err("could not read harness")?;
 
     if suite.to_string_lossy().ends_with(".js") {
-        let test = read_test(&test262_path.join(suite)).with_context(|| {
+        let test = read_test(&test262_path.join(suite)).wrap_err_with(|| {
             let suite = suite.display();
             format!("could not read the test {suite}")
         })?;
@@ -300,11 +261,11 @@ fn run_test_suite(
         if verbose != 0 {
             println!("Test loaded, starting...");
         }
-        test.run(&harness, verbose);
+        test.run(&harness, &ignored, verbose);
 
         println!();
     } else {
-        let suite = read_suite(&test262_path.join(suite)).with_context(|| {
+        let suite = read_suite(&test262_path.join(suite), &ignored).wrap_err_with(|| {
             let suite = suite.display();
             format!("could not read the suite {suite}")
         })?;
@@ -312,7 +273,7 @@ fn run_test_suite(
         if verbose != 0 {
             println!("Test suite loaded, starting tests...");
         }
-        let results = suite.run(&harness, verbose, parallel);
+        let results = suite.run(&harness, &ignored, verbose, parallel);
 
         println!();
         println!("Results:");
@@ -332,7 +293,7 @@ fn run_test_suite(
         );
 
         write_json(results, output, verbose)
-            .context("could not write the results to the output JSON file")?;
+            .wrap_err("could not write the results to the output JSON file")?;
     }
 
     Ok(())
@@ -530,6 +491,81 @@ where
             }
 
             result
+        }
+    }
+}
+
+impl<'de> Deserialize<'de> for TestFlags {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        struct FlagsVisitor;
+
+        impl<'de> Visitor<'de> for FlagsVisitor {
+            type Value = TestFlags;
+
+            fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                write!(formatter, "a list of flags")
+            }
+
+            fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
+            where
+                E: serde::de::Error,
+            {
+                v.parse::<TestFlag>().map(TestFlags::from).map_err(|err| {
+                    E::unknown_variant(
+                        err.variant(),
+                        &[
+                            "onlyStrict",
+                            "noStrict",
+                            "module",
+                            "raw",
+                            "async",
+                            "generated",
+                            "CanBlockIsFalse",
+                            "CanBlockIsTrue",
+                            "non-deterministic",
+                        ],
+                    )
+                })
+            }
+
+            fn visit_seq<A>(self, mut seq: A) -> Result<Self::Value, A::Error>
+            where
+                A: serde::de::SeqAccess<'de>,
+            {
+                let mut flags = TestFlags::empty();
+                while let Some(elem) = seq.next_element()? {
+                    flags |= elem;
+                }
+                Ok(flags)
+            }
+        }
+
+        struct RawFlagsVisitor;
+
+        impl<'de> Visitor<'de> for RawFlagsVisitor {
+            type Value = TestFlags;
+
+            fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                write!(formatter, "a flags number")
+            }
+
+            fn visit_u16<E>(self, v: u16) -> Result<Self::Value, E>
+            where
+                E: serde::de::Error,
+            {
+                TestFlags::from_bits(v).ok_or_else(|| {
+                    E::invalid_value(Unexpected::Unsigned(v.into()), &"a valid flag number")
+                })
+            }
+        }
+
+        if deserializer.is_human_readable() {
+            deserializer.deserialize_seq(FlagsVisitor)
+        } else {
+            deserializer.deserialize_u16(RawFlagsVisitor)
         }
     }
 }

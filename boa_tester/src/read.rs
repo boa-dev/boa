@@ -1,7 +1,12 @@
 //! Module to read the list of test suites from disk.
 
-use super::{Harness, Locale, Phase, Test, TestSuite, IGNORED};
-use anyhow::Context;
+use crate::Ignored;
+
+use super::{Harness, Locale, Phase, Test, TestSuite};
+use color_eyre::{
+    eyre::{eyre, WrapErr},
+    Result,
+};
 use fxhash::FxHashMap;
 use serde::Deserialize;
 use std::{fs, io, path::Path, str::FromStr};
@@ -77,8 +82,19 @@ pub(super) enum TestFlag {
     NonDeterministic,
 }
 
+#[derive(Debug)]
+pub(crate) struct TestFlagParseError {
+    variant: Box<str>,
+}
+
+impl TestFlagParseError {
+    pub(crate) fn variant(&self) -> &str {
+        self.variant.as_ref()
+    }
+}
+
 impl FromStr for TestFlag {
-    type Err = String; // TODO: improve error type.
+    type Err = TestFlagParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
@@ -91,17 +107,17 @@ impl FromStr for TestFlag {
             "CanBlockIsFalse" => Ok(Self::CanBlockIsFalse),
             "CanBlockIsTrue" => Ok(Self::CanBlockIsTrue),
             "non-deterministic" => Ok(Self::NonDeterministic),
-            _ => Err(format!("unknown test flag: {s}")),
+            _ => Err(TestFlagParseError { variant: s.into() }),
         }
     }
 }
 
 /// Reads the Test262 defined bindings.
-pub(super) fn read_harness(test262_path: &Path) -> anyhow::Result<Harness> {
+pub(super) fn read_harness(test262_path: &Path) -> Result<Harness> {
     let mut includes = FxHashMap::default();
 
-    for entry in
-        fs::read_dir(test262_path.join("harness")).context("error reading the harness directory")?
+    for entry in fs::read_dir(test262_path.join("harness"))
+        .wrap_err("error reading the harness directory")?
     {
         let entry = entry?;
         let file_name = entry.file_name();
@@ -112,7 +128,7 @@ pub(super) fn read_harness(test262_path: &Path) -> anyhow::Result<Harness> {
         }
 
         let content = fs::read_to_string(entry.path())
-            .with_context(|| format!("error reading the harnes/{file_name}"))?;
+            .wrap_err_with(|| format!("error reading the harnes/{file_name}"))?;
 
         includes.insert(
             file_name.into_owned().into_boxed_str(),
@@ -120,13 +136,13 @@ pub(super) fn read_harness(test262_path: &Path) -> anyhow::Result<Harness> {
         );
     }
     let assert = fs::read_to_string(test262_path.join("harness/assert.js"))
-        .context("error reading harnes/assert.js")?
+        .wrap_err("error reading harnes/assert.js")?
         .into_boxed_str();
     let sta = fs::read_to_string(test262_path.join("harness/sta.js"))
-        .context("error reading harnes/sta.js")?
+        .wrap_err("error reading harnes/sta.js")?
         .into_boxed_str();
     let doneprint_handle = fs::read_to_string(test262_path.join("harness/doneprintHandle.js"))
-        .context("error reading harnes/doneprintHandle.js")?
+        .wrap_err("error reading harnes/doneprintHandle.js")?
         .into_boxed_str();
 
     Ok(Harness {
@@ -138,34 +154,36 @@ pub(super) fn read_harness(test262_path: &Path) -> anyhow::Result<Harness> {
 }
 
 /// Reads a test suite in the given path.
-pub(super) fn read_suite(path: &Path) -> anyhow::Result<TestSuite> {
+pub(super) fn read_suite(path: &Path, ignored: &Ignored) -> Result<TestSuite> {
     let name = path
         .file_name()
-        .with_context(|| format!("test suite with no name found: {}", path.display()))?
+        .ok_or_else(|| eyre!(format!("test suite with no name found: {}", path.display())))?
         .to_str()
-        .with_context(|| format!("non-UTF-8 suite name found: {}", path.display()))?;
+        .ok_or_else(|| eyre!(format!("non-UTF-8 suite name found: {}", path.display())))?;
 
     let mut suites = Vec::new();
     let mut tests = Vec::new();
 
     // TODO: iterate in parallel
-    for entry in path.read_dir().context("retrieving entry")? {
+    for entry in path.read_dir().wrap_err("retrieving entry")? {
         let entry = entry?;
 
-        if entry.file_type().context("retrieving file type")?.is_dir() {
-            suites.push(read_suite(entry.path().as_path()).with_context(|| {
-                let path = entry.path();
-                let suite = path.display();
-                format!("error reading sub-suite {suite}")
-            })?);
+        if entry.file_type().wrap_err("retrieving file type")?.is_dir() {
+            suites.push(
+                read_suite(entry.path().as_path(), ignored).wrap_err_with(|| {
+                    let path = entry.path();
+                    let suite = path.display();
+                    format!("error reading sub-suite {suite}")
+                })?,
+            );
         } else if entry.file_name().to_string_lossy().contains("_FIXTURE") {
             continue;
-        } else if IGNORED.contains_file(&entry.file_name().to_string_lossy()) {
+        } else if ignored.contains_file(&entry.file_name().to_string_lossy()) {
             let mut test = Test::default();
             test.set_name(entry.file_name().to_string_lossy());
             tests.push(test);
         } else {
-            tests.push(read_test(entry.path().as_path()).with_context(|| {
+            tests.push(read_test(entry.path().as_path()).wrap_err_with(|| {
                 let path = entry.path();
                 let suite = path.display();
                 format!("error reading test {suite}")

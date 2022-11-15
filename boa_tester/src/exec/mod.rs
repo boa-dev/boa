@@ -2,11 +2,10 @@
 
 mod js262;
 
-use crate::read::ErrorType;
+use crate::{read::ErrorType, Ignored};
 
 use super::{
-    Harness, Outcome, Phase, SuiteResult, Test, TestFlags, TestOutcomeResult, TestResult,
-    TestSuite, IGNORED,
+    Harness, Outcome, Phase, SuiteResult, Test, TestFlags, TestOutcomeResult, TestResult, TestSuite,
 };
 use boa_engine::{
     builtins::JsArgs, object::FunctionBuilder, property::Attribute, Context, JsNativeErrorKind,
@@ -19,7 +18,13 @@ use rayon::prelude::*;
 
 impl TestSuite {
     /// Runs the test suite.
-    pub(crate) fn run(&self, harness: &Harness, verbose: u8, parallel: bool) -> SuiteResult {
+    pub(crate) fn run(
+        &self,
+        harness: &Harness,
+        ignored: &Ignored,
+        verbose: u8,
+        parallel: bool,
+    ) -> SuiteResult {
         if verbose != 0 {
             println!("Suite {}:", self.name);
         }
@@ -27,24 +32,24 @@ impl TestSuite {
         let suites: Vec<_> = if parallel {
             self.suites
                 .par_iter()
-                .map(|suite| suite.run(harness, verbose, parallel))
+                .map(|suite| suite.run(harness, ignored, verbose, parallel))
                 .collect()
         } else {
             self.suites
                 .iter()
-                .map(|suite| suite.run(harness, verbose, parallel))
+                .map(|suite| suite.run(harness, ignored, verbose, parallel))
                 .collect()
         };
 
         let tests: Vec<_> = if parallel {
             self.tests
                 .par_iter()
-                .flat_map(|test| test.run(harness, verbose))
+                .flat_map(|test| test.run(harness, ignored, verbose))
                 .collect()
         } else {
             self.tests
                 .iter()
-                .flat_map(|test| test.run(harness, verbose))
+                .flat_map(|test| test.run(harness, ignored, verbose))
                 .collect()
         };
 
@@ -115,21 +120,27 @@ impl TestSuite {
 
 impl Test {
     /// Runs the test.
-    pub(crate) fn run(&self, harness: &Harness, verbose: u8) -> Vec<TestResult> {
+    pub(crate) fn run(&self, harness: &Harness, ignored: &Ignored, verbose: u8) -> Vec<TestResult> {
         let mut results = Vec::new();
         if self.flags.contains(TestFlags::STRICT) && !self.flags.contains(TestFlags::RAW) {
-            results.push(self.run_once(harness, true, verbose));
+            results.push(self.run_once(harness, ignored, true, verbose));
         }
 
         if self.flags.contains(TestFlags::NO_STRICT) || self.flags.contains(TestFlags::RAW) {
-            results.push(self.run_once(harness, false, verbose));
+            results.push(self.run_once(harness, ignored, false, verbose));
         }
 
         results
     }
 
     /// Runs the test once, in strict or non-strict mode
-    fn run_once(&self, harness: &Harness, strict: bool, verbose: u8) -> TestResult {
+    fn run_once(
+        &self,
+        harness: &Harness,
+        ignored: &Ignored,
+        strict: bool,
+        verbose: u8,
+    ) -> TestResult {
         if verbose > 1 {
             println!(
                 "`{}`{}: starting",
@@ -144,9 +155,12 @@ impl Test {
             self.content.to_string()
         };
 
-        let (result, result_text) = if !IGNORED.contains_any_flag(self.flags)
-            && !IGNORED.contains_test(&self.name)
-            && !IGNORED.contains_any_feature(&self.features)
+        let (result, result_text) = if !ignored.contains_any_flag(self.flags)
+            && !ignored.contains_test(&self.name)
+            && !self
+                .features
+                .iter()
+                .any(|feat| ignored.contains_feature(feat))
             && (matches!(self.expected_outcome, Outcome::Positive)
                 || matches!(
                     self.expected_outcome,
