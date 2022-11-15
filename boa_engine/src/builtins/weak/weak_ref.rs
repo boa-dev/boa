@@ -91,9 +91,9 @@ impl WeakRef {
     /// If the referenced object hasn't been collected, this method promotes a `WeakRef` into a
     /// proper [`JsObject`], or returns `undefined` otherwise.
     ///
-    /// [spec]: https://tc39.es/ecma262/#sec-weakrefderef
+    /// [spec]: https://tc39.es/ecma262/#sec-weak-ref.prototype.deref
     pub(crate) fn deref(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        // Let weakRef be the this value.
+        // 1. Let weakRef be the this value.
         // 2. Perform ? RequireInternalSlot(weakRef, [[WeakRefTarget]]).
         let weak_ref = this.as_object().map(JsObject::borrow).ok_or_else(|| {
             JsNativeError::typ().with_message(format!(
@@ -125,5 +125,42 @@ impl WeakRef {
             // 3. Return undefined.
             Ok(JsValue::undefined())
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::{Context, JsValue};
+
+    #[test]
+    fn weak_ref_collected() {
+        let context = &mut Context::default();
+
+        assert!(context
+            .eval(
+                r#"
+            var ptr;
+            {
+                let obj = {a: 5, b: 6};
+                ptr = new WeakRef(obj);
+            }
+            ptr.deref()
+        "#
+            )
+            .unwrap()
+            .is_object());
+
+        boa_gc::force_collect();
+
+        assert_eq!(
+            context
+                .eval(
+                    r#"
+            ptr.deref()
+        "#
+                )
+                .unwrap(),
+            JsValue::undefined()
+        )
     }
 }
