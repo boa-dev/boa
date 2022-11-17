@@ -140,12 +140,6 @@ pub(super) fn read_suite(
     let mut suites = Vec::new();
     let mut tests = Vec::new();
 
-    // !ignored.contains_any_flag(self.flags)
-    // && !ignored.contains_test(&self.name)
-    // && !self
-    //     .features
-    //     .iter()
-    //     .any(|feat| ignored.contains_feature(feat))
     // TODO: iterate in parallel
     for entry in path.read_dir().wrap_err("retrieving entry")? {
         let entry = entry?;
