@@ -165,28 +165,28 @@
     <span class="doccomment">/// Gets the initializer of the for...of loop.
     </span><span class="attribute">#[inline]
     #[must_use]
-    </span><span class="kw">pub fn </span>initializer(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>IterableLoopInitializer {
+    </span><span class="kw">pub const fn </span>initializer(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>IterableLoopInitializer {
         <span class="kw-2">&amp;</span><span class="self">self</span>.init
     }
 
     <span class="doccomment">/// Gets the iterable expression of the for...of loop.
     </span><span class="attribute">#[inline]
     #[must_use]
-    </span><span class="kw">pub fn </span>iterable(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Expression {
+    </span><span class="kw">pub const fn </span>iterable(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Expression {
         <span class="kw-2">&amp;</span><span class="self">self</span>.iterable
     }
 
     <span class="doccomment">/// Gets the body to execute in the for...of loop.
     </span><span class="attribute">#[inline]
     #[must_use]
-    </span><span class="kw">pub fn </span>body(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Statement {
+    </span><span class="kw">pub const fn </span>body(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Statement {
         <span class="kw-2">&amp;</span><span class="self">self</span>.body
     }
 
     <span class="doccomment">/// Returns true if this &quot;for...of&quot; loop is an &quot;for await...of&quot; loop.
     </span><span class="attribute">#[inline]
     #[must_use]
-    </span><span class="kw">pub fn </span>r#await(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+    </span><span class="kw">pub const fn </span>r#await(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.r#await
     }
 }

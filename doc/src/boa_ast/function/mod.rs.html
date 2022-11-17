@@ -254,7 +254,7 @@
     <span class="doccomment">/// Creates a new function expression.
     </span><span class="attribute">#[inline]
     #[must_use]
-    </span><span class="kw">pub fn </span>new(
+    </span><span class="kw">pub const fn </span>new(
         name: <span class="prelude-ty">Option</span>&lt;Identifier&gt;,
         parameters: FormalParameterList,
         body: StatementList,
@@ -270,7 +270,7 @@
     <span class="doccomment">/// Creates a new function expression with an expression binding identifier.
     </span><span class="attribute">#[inline]
     #[must_use]
-    </span><span class="kw">pub fn </span>new_with_binding_identifier(
+    </span><span class="kw">pub const fn </span>new_with_binding_identifier(
         name: <span class="prelude-ty">Option</span>&lt;Identifier&gt;,
         parameters: FormalParameterList,
         body: StatementList,
@@ -287,28 +287,28 @@
     <span class="doccomment">/// Gets the name of the function declaration.
     </span><span class="attribute">#[inline]
     #[must_use]
-    </span><span class="kw">pub fn </span>name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Identifier&gt; {
+    </span><span class="kw">pub const fn </span>name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Identifier&gt; {
         <span class="self">self</span>.name
     }
 
     <span class="doccomment">/// Gets the list of parameters of the function declaration.
     </span><span class="attribute">#[inline]
     #[must_use]
-    </span><span class="kw">pub fn </span>parameters(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>FormalParameterList {
+    </span><span class="kw">pub const fn </span>parameters(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>FormalParameterList {
         <span class="kw-2">&amp;</span><span class="self">self</span>.parameters
     }
 
     <span class="doccomment">/// Gets the body of the function declaration.
     </span><span class="attribute">#[inline]
     #[must_use]
-    </span><span class="kw">pub fn </span>body(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StatementList {
+    </span><span class="kw">pub const fn </span>body(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StatementList {
         <span class="kw-2">&amp;</span><span class="self">self</span>.body
     }
 
     <span class="doccomment">/// Returns whether the function expression has a binding identifier.
     </span><span class="attribute">#[inline]
     #[must_use]
-    </span><span class="kw">pub fn </span>has_binding_identifier(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+    </span><span class="kw">pub const fn </span>has_binding_identifier(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.has_binding_identifier
     }
 }

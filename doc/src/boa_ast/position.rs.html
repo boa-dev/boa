@@ -333,14 +333,14 @@
     <span class="doccomment">/// Gets the line number of the position.
     </span><span class="attribute">#[inline]
     #[must_use]
-    </span><span class="kw">pub fn </span>line_number(<span class="self">self</span>) -&gt; u32 {
+    </span><span class="kw">pub const fn </span>line_number(<span class="self">self</span>) -&gt; u32 {
         <span class="self">self</span>.line_number.get()
     }
 
     <span class="doccomment">/// Gets the column number of the position.
     </span><span class="attribute">#[inline]
     #[must_use]
-    </span><span class="kw">pub fn </span>column_number(<span class="self">self</span>) -&gt; u32 {
+    </span><span class="kw">pub const fn </span>column_number(<span class="self">self</span>) -&gt; u32 {
         <span class="self">self</span>.column_number.get()
     }
 }
@@ -382,14 +382,14 @@
     <span class="doccomment">/// Gets the starting position of the span.
     </span><span class="attribute">#[inline]
     #[must_use]
-    </span><span class="kw">pub fn </span>start(<span class="self">self</span>) -&gt; Position {
+    </span><span class="kw">pub const fn </span>start(<span class="self">self</span>) -&gt; Position {
         <span class="self">self</span>.start
     }
 
     <span class="doccomment">/// Gets the final position of the span.
     </span><span class="attribute">#[inline]
     #[must_use]
-    </span><span class="kw">pub fn </span>end(<span class="self">self</span>) -&gt; Position {
+    </span><span class="kw">pub const fn </span>end(<span class="self">self</span>) -&gt; Position {
         <span class="self">self</span>.end
     }
 

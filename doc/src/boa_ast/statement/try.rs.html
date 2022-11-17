@@ -303,21 +303,21 @@
     <span class="doccomment">/// Creates a new `Try` AST node.
     </span><span class="attribute">#[inline]
     #[must_use]
-    </span><span class="kw">pub fn </span>new(block: Block, handler: ErrorHandler) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub const fn </span>new(block: Block, handler: ErrorHandler) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{ block, handler }
     }
 
     <span class="doccomment">/// Gets the `try` block.
     </span><span class="attribute">#[inline]
     #[must_use]
-    </span><span class="kw">pub fn </span>block(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Block {
+    </span><span class="kw">pub const fn </span>block(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Block {
         <span class="kw-2">&amp;</span><span class="self">self</span>.block
     }
 
     <span class="doccomment">/// Gets the `catch` block, if any.
     </span><span class="attribute">#[inline]
     #[must_use]
-    </span><span class="kw">pub fn </span>catch(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Catch&gt; {
+    </span><span class="kw">pub const fn </span>catch(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Catch&gt; {
         <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.handler {
             ErrorHandler::Catch(c) | ErrorHandler::Full(c, <span class="kw">_</span>) =&gt; <span class="prelude-val">Some</span>(c),
             ErrorHandler::Finally(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
@@ -327,7 +327,7 @@
     <span class="doccomment">/// Gets the `finally` block, if any.
     </span><span class="attribute">#[inline]
     #[must_use]
-    </span><span class="kw">pub fn </span>finally(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Finally&gt; {
+    </span><span class="kw">pub const fn </span>finally(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Finally&gt; {
         <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.handler {
             ErrorHandler::Finally(f) | ErrorHandler::Full(<span class="kw">_</span>, f) =&gt; <span class="prelude-val">Some</span>(f),
             ErrorHandler::Catch(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
@@ -406,21 +406,21 @@
     <span class="doccomment">/// Creates a new catch block.
     </span><span class="attribute">#[inline]
     #[must_use]
-    </span><span class="kw">pub fn </span>new(parameter: <span class="prelude-ty">Option</span>&lt;Binding&gt;, block: Block) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub const fn </span>new(parameter: <span class="prelude-ty">Option</span>&lt;Binding&gt;, block: Block) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{ parameter, block }
     }
 
     <span class="doccomment">/// Gets the parameter of the catch block.
     </span><span class="attribute">#[inline]
     #[must_use]
-    </span><span class="kw">pub fn </span>parameter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Binding&gt; {
+    </span><span class="kw">pub const fn </span>parameter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Binding&gt; {
         <span class="self">self</span>.parameter.as_ref()
     }
 
     <span class="doccomment">/// Retrieves the catch execution block.
     </span><span class="attribute">#[inline]
     #[must_use]
-    </span><span class="kw">pub fn </span>block(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Block {
+    </span><span class="kw">pub const fn </span>block(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Block {
         <span class="kw-2">&amp;</span><span class="self">self</span>.block
     }
 }
@@ -474,7 +474,7 @@
     <span class="doccomment">/// Gets the finally block.
     </span><span class="attribute">#[inline]
     #[must_use]
-    </span><span class="kw">pub fn </span>block(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Block {
+    </span><span class="kw">pub const fn </span>block(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Block {
         <span class="kw-2">&amp;</span><span class="self">self</span>.block
     }
 }

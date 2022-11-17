@@ -401,8 +401,8 @@
         </span>V: Visitor&lt;<span class="lifetime">&#39;a</span>&gt;,
     {
         <span class="kw">match </span><span class="self">self </span>{
-            PropertyAccessField::Const(sym) =&gt; visitor.visit_sym(sym),
-            PropertyAccessField::Expr(expr) =&gt; visitor.visit_expression(expr),
+            <span class="self">Self</span>::Const(sym) =&gt; visitor.visit_sym(sym),
+            <span class="self">Self</span>::Expr(expr) =&gt; visitor.visit_expression(expr),
         }
     }
 
@@ -411,8 +411,8 @@
         </span>V: VisitorMut&lt;<span class="lifetime">&#39;a</span>&gt;,
     {
         <span class="kw">match </span><span class="self">self </span>{
-            PropertyAccessField::Const(sym) =&gt; visitor.visit_sym_mut(sym),
-            PropertyAccessField::Expr(expr) =&gt; visitor.visit_expression_mut(<span class="kw-2">&amp;mut *</span>expr),
+            <span class="self">Self</span>::Const(sym) =&gt; visitor.visit_sym_mut(sym),
+            <span class="self">Self</span>::Expr(expr) =&gt; visitor.visit_expression_mut(<span class="kw-2">&amp;mut *</span>expr),
         }
     }
 }
@@ -436,9 +436,9 @@
     <span class="attribute">#[inline]
     </span><span class="kw">fn </span>to_interned_string(<span class="kw-2">&amp;</span><span class="self">self</span>, interner: <span class="kw-2">&amp;</span>Interner) -&gt; String {
         <span class="kw">match </span><span class="self">self </span>{
-            PropertyAccess::Simple(s) =&gt; s.to_interned_string(interner),
-            PropertyAccess::Private(p) =&gt; p.to_interned_string(interner),
-            PropertyAccess::Super(s) =&gt; s.to_interned_string(interner),
+            <span class="self">Self</span>::Simple(s) =&gt; s.to_interned_string(interner),
+            <span class="self">Self</span>::Private(p) =&gt; p.to_interned_string(interner),
+            <span class="self">Self</span>::Super(s) =&gt; s.to_interned_string(interner),
         }
     }
 }
@@ -456,9 +456,9 @@
         </span>V: Visitor&lt;<span class="lifetime">&#39;a</span>&gt;,
     {
         <span class="kw">match </span><span class="self">self </span>{
-            PropertyAccess::Simple(spa) =&gt; visitor.visit_simple_property_access(spa),
-            PropertyAccess::Private(ppa) =&gt; visitor.visit_private_property_access(ppa),
-            PropertyAccess::Super(supa) =&gt; visitor.visit_super_property_access(supa),
+            <span class="self">Self</span>::Simple(spa) =&gt; visitor.visit_simple_property_access(spa),
+            <span class="self">Self</span>::Private(ppa) =&gt; visitor.visit_private_property_access(ppa),
+            <span class="self">Self</span>::Super(supa) =&gt; visitor.visit_super_property_access(supa),
         }
     }
 
@@ -467,9 +467,9 @@
         </span>V: VisitorMut&lt;<span class="lifetime">&#39;a</span>&gt;,
     {
         <span class="kw">match </span><span class="self">self </span>{
-            PropertyAccess::Simple(spa) =&gt; visitor.visit_simple_property_access_mut(spa),
-            PropertyAccess::Private(ppa) =&gt; visitor.visit_private_property_access_mut(ppa),
-            PropertyAccess::Super(supa) =&gt; visitor.visit_super_property_access_mut(supa),
+            <span class="self">Self</span>::Simple(spa) =&gt; visitor.visit_simple_property_access_mut(spa),
+            <span class="self">Self</span>::Private(ppa) =&gt; visitor.visit_private_property_access_mut(ppa),
+            <span class="self">Self</span>::Super(supa) =&gt; visitor.visit_super_property_access_mut(supa),
         }
     }
 }
@@ -487,14 +487,14 @@
     <span class="doccomment">/// Gets the target object of the property access.
     </span><span class="attribute">#[inline]
     #[must_use]
-    </span><span class="kw">pub fn </span>target(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Expression {
+    </span><span class="kw">pub const fn </span>target(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Expression {
         <span class="kw-2">&amp;</span><span class="self">self</span>.target
     }
 
     <span class="doccomment">/// Gets the accessed field of the target object.
     </span><span class="attribute">#[inline]
     #[must_use]
-    </span><span class="kw">pub fn </span>field(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>PropertyAccessField {
+    </span><span class="kw">pub const fn </span>field(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>PropertyAccessField {
         <span class="kw-2">&amp;</span><span class="self">self</span>.field
     }
 
@@ -581,14 +581,14 @@
     <span class="doccomment">/// Gets the original object from where to get the field from.
     </span><span class="attribute">#[inline]
     #[must_use]
-    </span><span class="kw">pub fn </span>target(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Expression {
+    </span><span class="kw">pub const fn </span>target(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Expression {
         <span class="kw-2">&amp;</span><span class="self">self</span>.target
     }
 
     <span class="doccomment">/// Gets the name of the field to retrieve.
     </span><span class="attribute">#[inline]
     #[must_use]
-    </span><span class="kw">pub fn </span>field(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Sym {
+    </span><span class="kw">pub const fn </span>field(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Sym {
         <span class="self">self</span>.field
     }
 }
@@ -646,14 +646,14 @@
 <span class="kw">impl </span>SuperPropertyAccess {
     <span class="doccomment">/// Creates a new property access field node.
     </span><span class="attribute">#[must_use]
-    </span><span class="kw">pub fn </span>new(field: PropertyAccessField) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub const fn </span>new(field: PropertyAccessField) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{ field }
     }
 
     <span class="doccomment">/// Gets the name of the field to retrieve.
     </span><span class="attribute">#[inline]
     #[must_use]
-    </span><span class="kw">pub fn </span>field(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>PropertyAccessField {
+    </span><span class="kw">pub const fn </span>field(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>PropertyAccessField {
         <span class="kw-2">&amp;</span><span class="self">self</span>.field
     }
 }

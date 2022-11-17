@@ -156,14 +156,14 @@
     <span class="doccomment">/// Gets the condition of the if statement.
     </span><span class="attribute">#[inline]
     #[must_use]
-    </span><span class="kw">pub fn </span>cond(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Expression {
+    </span><span class="kw">pub const fn </span>cond(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Expression {
         <span class="kw-2">&amp;</span><span class="self">self</span>.condition
     }
 
     <span class="doccomment">/// Gets the body to execute if the condition is true.
     </span><span class="attribute">#[inline]
     #[must_use]
-    </span><span class="kw">pub fn </span>body(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Statement {
+    </span><span class="kw">pub const fn </span>body(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Statement {
         <span class="kw-2">&amp;</span><span class="self">self</span>.body
     }
 

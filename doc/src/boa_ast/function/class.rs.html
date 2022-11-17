@@ -505,8 +505,6 @@
 <span id="505">505</span>
 <span id="506">506</span>
 <span id="507">507</span>
-<span id="508">508</span>
-<span id="509">509</span>
 </pre><pre class="rust"><code><span class="kw">use </span>core::ops::ControlFlow;
 <span class="kw">use </span>std::borrow::Cow;
 
@@ -561,28 +559,28 @@
     <span class="doccomment">/// Returns the name of the class.
     </span><span class="attribute">#[inline]
     #[must_use]
-    </span><span class="kw">pub fn </span>name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Identifier&gt; {
+    </span><span class="kw">pub const fn </span>name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Identifier&gt; {
         <span class="self">self</span>.name
     }
 
     <span class="doccomment">/// Returns the super class ref of the class.
     </span><span class="attribute">#[inline]
     #[must_use]
-    </span><span class="kw">pub fn </span>super_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Expression&gt; {
+    </span><span class="kw">pub const fn </span>super_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Expression&gt; {
         <span class="self">self</span>.super_ref.as_ref()
     }
 
     <span class="doccomment">/// Returns the constructor of the class.
     </span><span class="attribute">#[inline]
     #[must_use]
-    </span><span class="kw">pub fn </span>constructor(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Function&gt; {
+    </span><span class="kw">pub const fn </span>constructor(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Function&gt; {
         <span class="self">self</span>.constructor.as_ref()
     }
 
     <span class="doccomment">/// Gets the list of all fields defined on the class.
     </span><span class="attribute">#[inline]
     #[must_use]
-    </span><span class="kw">pub fn </span>elements(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[ClassElement] {
+    </span><span class="kw">pub const fn </span>elements(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[ClassElement] {
         <span class="kw-2">&amp;</span><span class="self">self</span>.elements
     }
 }
@@ -599,21 +597,23 @@
         <span class="kw">if </span><span class="self">self</span>.elements.is_empty() &amp;&amp; <span class="self">self</span>.constructor().is_none() {
             <span class="kw">return </span><span class="macro">format!</span>(
                 <span class="string">&quot;class {class_name}{} {{}}&quot;</span>,
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(sup) = <span class="kw-2">&amp;</span><span class="self">self</span>.super_ref {
-                    <span class="macro">format!</span>(<span class="string">&quot; extends {}&quot;</span>, sup.to_interned_string(interner))
-                } <span class="kw">else </span>{
-                    String::new()
-                }
+                <span class="self">self</span>.super_ref
+                    .as_ref()
+                    .map_or_else(String::new, |sup| <span class="macro">format!</span>(
+                        <span class="string">&quot; extends {}&quot;</span>,
+                        sup.to_interned_string(interner)
+                    ))
             );
         }
         <span class="kw">let </span>indentation = <span class="string">&quot;    &quot;</span>.repeat(indent_n + <span class="number">1</span>);
         <span class="kw">let </span><span class="kw-2">mut </span>buf = <span class="macro">format!</span>(
             <span class="string">&quot;class {class_name}{} {{\n&quot;</span>,
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(sup) = <span class="kw-2">&amp;</span><span class="self">self</span>.super_ref {
-                <span class="macro">format!</span>(<span class="string">&quot;extends {}&quot;</span>, sup.to_interned_string(interner))
-            } <span class="kw">else </span>{
-                String::new()
-            }
+            <span class="self">self</span>.super_ref
+                .as_ref()
+                .map_or_else(String::new, |sup| <span class="macro">format!</span>(
+                    <span class="string">&quot;extends {}&quot;</span>,
+                    sup.to_interned_string(interner)
+                ))
         );
         <span class="kw">if let </span><span class="prelude-val">Some</span>(expr) = <span class="kw-2">&amp;</span><span class="self">self</span>.constructor {
             buf.push_str(<span class="kw-2">&amp;</span><span class="macro">format!</span>(
@@ -947,13 +947,11 @@
         </span>V: Visitor&lt;<span class="lifetime">&#39;a</span>&gt;,
     {
         <span class="kw">match </span><span class="self">self </span>{
-            ClassElement::MethodDefinition(pn, md)
-            | ClassElement::StaticMethodDefinition(pn, md) =&gt; {
+            <span class="self">Self</span>::MethodDefinition(pn, md) | <span class="self">Self</span>::StaticMethodDefinition(pn, md) =&gt; {
                 <span class="macro">try_break!</span>(visitor.visit_property_name(pn));
                 visitor.visit_method_definition(md)
             }
-            ClassElement::FieldDefinition(pn, maybe_expr)
-            | ClassElement::StaticFieldDefinition(pn, maybe_expr) =&gt; {
+            <span class="self">Self</span>::FieldDefinition(pn, maybe_expr) | <span class="self">Self</span>::StaticFieldDefinition(pn, maybe_expr) =&gt; {
                 <span class="macro">try_break!</span>(visitor.visit_property_name(pn));
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(expr) = maybe_expr {
                     visitor.visit_expression(expr)
@@ -961,13 +959,13 @@
                     ControlFlow::Continue(())
                 }
             }
-            ClassElement::PrivateMethodDefinition(sym, md)
-            | ClassElement::PrivateStaticMethodDefinition(sym, md) =&gt; {
+            <span class="self">Self</span>::PrivateMethodDefinition(sym, md)
+            | <span class="self">Self</span>::PrivateStaticMethodDefinition(sym, md) =&gt; {
                 <span class="macro">try_break!</span>(visitor.visit_sym(sym));
                 visitor.visit_method_definition(md)
             }
-            ClassElement::PrivateFieldDefinition(sym, maybe_expr)
-            | ClassElement::PrivateStaticFieldDefinition(sym, maybe_expr) =&gt; {
+            <span class="self">Self</span>::PrivateFieldDefinition(sym, maybe_expr)
+            | <span class="self">Self</span>::PrivateStaticFieldDefinition(sym, maybe_expr) =&gt; {
                 <span class="macro">try_break!</span>(visitor.visit_sym(sym));
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(expr) = maybe_expr {
                     visitor.visit_expression(expr)
@@ -975,7 +973,7 @@
                     ControlFlow::Continue(())
                 }
             }
-            ClassElement::StaticBlock(sl) =&gt; visitor.visit_statement_list(sl),
+            <span class="self">Self</span>::StaticBlock(sl) =&gt; visitor.visit_statement_list(sl),
         }
     }
 
@@ -984,13 +982,11 @@
         </span>V: VisitorMut&lt;<span class="lifetime">&#39;a</span>&gt;,
     {
         <span class="kw">match </span><span class="self">self </span>{
-            ClassElement::MethodDefinition(pn, md)
-            | ClassElement::StaticMethodDefinition(pn, md) =&gt; {
+            <span class="self">Self</span>::MethodDefinition(pn, md) | <span class="self">Self</span>::StaticMethodDefinition(pn, md) =&gt; {
                 <span class="macro">try_break!</span>(visitor.visit_property_name_mut(pn));
                 visitor.visit_method_definition_mut(md)
             }
-            ClassElement::FieldDefinition(pn, maybe_expr)
-            | ClassElement::StaticFieldDefinition(pn, maybe_expr) =&gt; {
+            <span class="self">Self</span>::FieldDefinition(pn, maybe_expr) | <span class="self">Self</span>::StaticFieldDefinition(pn, maybe_expr) =&gt; {
                 <span class="macro">try_break!</span>(visitor.visit_property_name_mut(pn));
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(expr) = maybe_expr {
                     visitor.visit_expression_mut(expr)
@@ -998,13 +994,13 @@
                     ControlFlow::Continue(())
                 }
             }
-            ClassElement::PrivateMethodDefinition(sym, md)
-            | ClassElement::PrivateStaticMethodDefinition(sym, md) =&gt; {
+            <span class="self">Self</span>::PrivateMethodDefinition(sym, md)
+            | <span class="self">Self</span>::PrivateStaticMethodDefinition(sym, md) =&gt; {
                 <span class="macro">try_break!</span>(visitor.visit_sym_mut(sym));
                 visitor.visit_method_definition_mut(md)
             }
-            ClassElement::PrivateFieldDefinition(sym, maybe_expr)
-            | ClassElement::PrivateStaticFieldDefinition(sym, maybe_expr) =&gt; {
+            <span class="self">Self</span>::PrivateFieldDefinition(sym, maybe_expr)
+            | <span class="self">Self</span>::PrivateStaticFieldDefinition(sym, maybe_expr) =&gt; {
                 <span class="macro">try_break!</span>(visitor.visit_sym_mut(sym));
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(expr) = maybe_expr {
                     visitor.visit_expression_mut(expr)
@@ -1012,7 +1008,7 @@
                     ControlFlow::Continue(())
                 }
             }
-            ClassElement::StaticBlock(sl) =&gt; visitor.visit_statement_list_mut(sl),
+            <span class="self">Self</span>::StaticBlock(sl) =&gt; visitor.visit_statement_list_mut(sl),
         }
     }
 }

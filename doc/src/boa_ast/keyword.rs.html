@@ -1103,7 +1103,7 @@
     <span class="doccomment">/// Gets the keyword as a binary operation, if this keyword is the `in` or the `instanceof`
     /// keywords.
     </span><span class="attribute">#[must_use]
-    </span><span class="kw">pub fn </span>as_binary_op(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;BinaryOp&gt; {
+    </span><span class="kw">pub const fn </span>as_binary_op(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;BinaryOp&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::In =&gt; <span class="prelude-val">Some</span>(BinaryOp::Relational(RelationalOp::In)),
             <span class="self">Self</span>::InstanceOf =&gt; <span class="prelude-val">Some</span>(BinaryOp::Relational(RelationalOp::InstanceOf)),
@@ -1113,7 +1113,7 @@
 
     <span class="doccomment">/// Gets the keyword as a tuple of strings.
     </span><span class="attribute">#[must_use]
-    </span><span class="kw">pub fn </span>as_str(<span class="self">self</span>) -&gt; (<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str, <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[u16]) {
+    </span><span class="kw">pub const fn </span>as_str(<span class="self">self</span>) -&gt; (<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str, <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[u16]) {
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::Await =&gt; (<span class="string">&quot;await&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;await&quot;</span>)),
             <span class="self">Self</span>::Async =&gt; (<span class="string">&quot;async&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;async&quot;</span>)),

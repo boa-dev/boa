@@ -136,21 +136,21 @@
     <span class="doccomment">/// Gets the condition of the `Conditional` expression.
     </span><span class="attribute">#[inline]
     #[must_use]
-    </span><span class="kw">pub fn </span>condition(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Expression {
+    </span><span class="kw">pub const fn </span>condition(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Expression {
         <span class="kw-2">&amp;</span><span class="self">self</span>.condition
     }
 
     <span class="doccomment">/// Gets the expression returned if `condition` is truthy.
     </span><span class="attribute">#[inline]
     #[must_use]
-    </span><span class="kw">pub fn </span>if_true(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Expression {
+    </span><span class="kw">pub const fn </span>if_true(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Expression {
         <span class="kw-2">&amp;</span><span class="self">self</span>.if_true
     }
 
     <span class="doccomment">/// Gets the expression returned if `condition` is falsy.
     </span><span class="attribute">#[inline]
     #[must_use]
-    </span><span class="kw">pub fn </span>if_false(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Expression {
+    </span><span class="kw">pub const fn </span>if_false(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Expression {
         <span class="kw-2">&amp;</span><span class="self">self</span>.if_false
     }
 

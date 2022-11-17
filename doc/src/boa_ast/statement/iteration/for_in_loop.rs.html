@@ -136,21 +136,21 @@
     <span class="doccomment">/// Gets the initializer of the for...in loop.
     </span><span class="attribute">#[inline]
     #[must_use]
-    </span><span class="kw">pub fn </span>initializer(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>IterableLoopInitializer {
+    </span><span class="kw">pub const fn </span>initializer(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>IterableLoopInitializer {
         <span class="kw-2">&amp;</span><span class="self">self</span>.initializer
     }
 
     <span class="doccomment">/// Gets the target object of the for...in loop.
     </span><span class="attribute">#[inline]
     #[must_use]
-    </span><span class="kw">pub fn </span>target(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Expression {
+    </span><span class="kw">pub const fn </span>target(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Expression {
         <span class="kw-2">&amp;</span><span class="self">self</span>.target
     }
 
     <span class="doccomment">/// Gets the body of the for...in loop.
     </span><span class="attribute">#[inline]
     #[must_use]
-    </span><span class="kw">pub fn </span>body(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Statement {
+    </span><span class="kw">pub const fn </span>body(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Statement {
         <span class="kw-2">&amp;</span><span class="self">self</span>.body
     }
 }

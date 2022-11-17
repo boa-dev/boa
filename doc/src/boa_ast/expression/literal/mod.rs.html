@@ -380,7 +380,7 @@
 <span class="kw">impl </span>From&lt;Literal&gt; <span class="kw">for </span>Expression {
     <span class="attribute">#[inline]
     </span><span class="kw">fn </span>from(lit: Literal) -&gt; <span class="self">Self </span>{
-        Expression::Literal(lit)
+        <span class="self">Self</span>::Literal(lit)
     }
 }
 
@@ -406,7 +406,7 @@
     <span class="kw">where
         </span>V: Visitor&lt;<span class="lifetime">&#39;a</span>&gt;,
     {
-        <span class="kw">if let </span>Literal::String(sym) = <span class="self">self </span>{
+        <span class="kw">if let </span><span class="self">Self</span>::String(sym) = <span class="self">self </span>{
             visitor.visit_sym(sym)
         } <span class="kw">else </span>{
             ControlFlow::Continue(())
@@ -417,7 +417,7 @@
     <span class="kw">where
         </span>V: VisitorMut&lt;<span class="lifetime">&#39;a</span>&gt;,
     {
-        <span class="kw">if let </span>Literal::String(sym) = <span class="self">self </span>{
+        <span class="kw">if let </span><span class="self">Self</span>::String(sym) = <span class="self">self </span>{
             visitor.visit_sym_mut(sym)
         } <span class="kw">else </span>{
             ControlFlow::Continue(())

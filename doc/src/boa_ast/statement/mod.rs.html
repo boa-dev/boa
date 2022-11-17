@@ -429,26 +429,26 @@
         </span>V: Visitor&lt;<span class="lifetime">&#39;a</span>&gt;,
     {
         <span class="kw">match </span><span class="self">self </span>{
-            Statement::Block(b) =&gt; visitor.visit_block(b),
-            Statement::Var(v) =&gt; visitor.visit_var_declaration(v),
-            Statement::Empty =&gt; {
+            <span class="self">Self</span>::Block(b) =&gt; visitor.visit_block(b),
+            <span class="self">Self</span>::Var(v) =&gt; visitor.visit_var_declaration(v),
+            <span class="self">Self</span>::Empty =&gt; {
                 <span class="comment">// do nothing; there is nothing to visit here
                 </span>ControlFlow::Continue(())
             }
-            Statement::Expression(e) =&gt; visitor.visit_expression(e),
-            Statement::If(i) =&gt; visitor.visit_if(i),
-            Statement::DoWhileLoop(dw) =&gt; visitor.visit_do_while_loop(dw),
-            Statement::WhileLoop(w) =&gt; visitor.visit_while_loop(w),
-            Statement::ForLoop(f) =&gt; visitor.visit_for_loop(f),
-            Statement::ForInLoop(fi) =&gt; visitor.visit_for_in_loop(fi),
-            Statement::ForOfLoop(fo) =&gt; visitor.visit_for_of_loop(fo),
-            Statement::Switch(s) =&gt; visitor.visit_switch(s),
-            Statement::Continue(c) =&gt; visitor.visit_continue(c),
-            Statement::Break(b) =&gt; visitor.visit_break(b),
-            Statement::Return(r) =&gt; visitor.visit_return(r),
-            Statement::Labelled(l) =&gt; visitor.visit_labelled(l),
-            Statement::Throw(th) =&gt; visitor.visit_throw(th),
-            Statement::Try(tr) =&gt; visitor.visit_try(tr),
+            <span class="self">Self</span>::Expression(e) =&gt; visitor.visit_expression(e),
+            <span class="self">Self</span>::If(i) =&gt; visitor.visit_if(i),
+            <span class="self">Self</span>::DoWhileLoop(dw) =&gt; visitor.visit_do_while_loop(dw),
+            <span class="self">Self</span>::WhileLoop(w) =&gt; visitor.visit_while_loop(w),
+            <span class="self">Self</span>::ForLoop(f) =&gt; visitor.visit_for_loop(f),
+            <span class="self">Self</span>::ForInLoop(fi) =&gt; visitor.visit_for_in_loop(fi),
+            <span class="self">Self</span>::ForOfLoop(fo) =&gt; visitor.visit_for_of_loop(fo),
+            <span class="self">Self</span>::Switch(s) =&gt; visitor.visit_switch(s),
+            <span class="self">Self</span>::Continue(c) =&gt; visitor.visit_continue(c),
+            <span class="self">Self</span>::Break(b) =&gt; visitor.visit_break(b),
+            <span class="self">Self</span>::Return(r) =&gt; visitor.visit_return(r),
+            <span class="self">Self</span>::Labelled(l) =&gt; visitor.visit_labelled(l),
+            <span class="self">Self</span>::Throw(th) =&gt; visitor.visit_throw(th),
+            <span class="self">Self</span>::Try(tr) =&gt; visitor.visit_try(tr),
         }
     }
 
@@ -457,26 +457,26 @@
         </span>V: VisitorMut&lt;<span class="lifetime">&#39;a</span>&gt;,
     {
         <span class="kw">match </span><span class="self">self </span>{
-            Statement::Block(b) =&gt; visitor.visit_block_mut(b),
-            Statement::Var(v) =&gt; visitor.visit_var_declaration_mut(v),
-            Statement::Empty =&gt; {
+            <span class="self">Self</span>::Block(b) =&gt; visitor.visit_block_mut(b),
+            <span class="self">Self</span>::Var(v) =&gt; visitor.visit_var_declaration_mut(v),
+            <span class="self">Self</span>::Empty =&gt; {
                 <span class="comment">// do nothing; there is nothing to visit here
                 </span>ControlFlow::Continue(())
             }
-            Statement::Expression(e) =&gt; visitor.visit_expression_mut(e),
-            Statement::If(i) =&gt; visitor.visit_if_mut(i),
-            Statement::DoWhileLoop(dw) =&gt; visitor.visit_do_while_loop_mut(dw),
-            Statement::WhileLoop(w) =&gt; visitor.visit_while_loop_mut(w),
-            Statement::ForLoop(f) =&gt; visitor.visit_for_loop_mut(f),
-            Statement::ForInLoop(fi) =&gt; visitor.visit_for_in_loop_mut(fi),
-            Statement::ForOfLoop(fo) =&gt; visitor.visit_for_of_loop_mut(fo),
-            Statement::Switch(s) =&gt; visitor.visit_switch_mut(s),
-            Statement::Continue(c) =&gt; visitor.visit_continue_mut(c),
-            Statement::Break(b) =&gt; visitor.visit_break_mut(b),
-            Statement::Return(r) =&gt; visitor.visit_return_mut(r),
-            Statement::Labelled(l) =&gt; visitor.visit_labelled_mut(l),
-            Statement::Throw(th) =&gt; visitor.visit_throw_mut(th),
-            Statement::Try(tr) =&gt; visitor.visit_try_mut(tr),
+            <span class="self">Self</span>::Expression(e) =&gt; visitor.visit_expression_mut(e),
+            <span class="self">Self</span>::If(i) =&gt; visitor.visit_if_mut(i),
+            <span class="self">Self</span>::DoWhileLoop(dw) =&gt; visitor.visit_do_while_loop_mut(dw),
+            <span class="self">Self</span>::WhileLoop(w) =&gt; visitor.visit_while_loop_mut(w),
+            <span class="self">Self</span>::ForLoop(f) =&gt; visitor.visit_for_loop_mut(f),
+            <span class="self">Self</span>::ForInLoop(fi) =&gt; visitor.visit_for_in_loop_mut(fi),
+            <span class="self">Self</span>::ForOfLoop(fo) =&gt; visitor.visit_for_of_loop_mut(fo),
+            <span class="self">Self</span>::Switch(s) =&gt; visitor.visit_switch_mut(s),
+            <span class="self">Self</span>::Continue(c) =&gt; visitor.visit_continue_mut(c),
+            <span class="self">Self</span>::Break(b) =&gt; visitor.visit_break_mut(b),
+            <span class="self">Self</span>::Return(r) =&gt; visitor.visit_return_mut(r),
+            <span class="self">Self</span>::Labelled(l) =&gt; visitor.visit_labelled_mut(l),
+            <span class="self">Self</span>::Throw(th) =&gt; visitor.visit_throw_mut(th),
+            <span class="self">Self</span>::Try(tr) =&gt; visitor.visit_try_mut(tr),
         }
     }
 }

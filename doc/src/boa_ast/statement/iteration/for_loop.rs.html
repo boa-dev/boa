@@ -307,28 +307,28 @@
     <span class="doccomment">/// Gets the initialization node.
     </span><span class="attribute">#[inline]
     #[must_use]
-    </span><span class="kw">pub fn </span>init(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>ForLoopInitializer&gt; {
+    </span><span class="kw">pub const fn </span>init(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>ForLoopInitializer&gt; {
         <span class="self">self</span>.inner.init()
     }
 
     <span class="doccomment">/// Gets the loop condition node.
     </span><span class="attribute">#[inline]
     #[must_use]
-    </span><span class="kw">pub fn </span>condition(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Expression&gt; {
+    </span><span class="kw">pub const fn </span>condition(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Expression&gt; {
         <span class="self">self</span>.inner.condition()
     }
 
     <span class="doccomment">/// Gets the final expression node.
     </span><span class="attribute">#[inline]
     #[must_use]
-    </span><span class="kw">pub fn </span>final_expr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Expression&gt; {
+    </span><span class="kw">pub const fn </span>final_expr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Expression&gt; {
         <span class="self">self</span>.inner.final_expr()
     }
 
     <span class="doccomment">/// Gets the body of the for loop.
     </span><span class="attribute">#[inline]
     #[must_use]
-    </span><span class="kw">pub fn </span>body(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Statement {
+    </span><span class="kw">pub const fn </span>body(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Statement {
         <span class="self">self</span>.inner.body()
     }
 }
@@ -411,7 +411,7 @@
 <span class="kw">impl </span>InnerForLoop {
     <span class="doccomment">/// Creates a new inner for loop.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">fn </span>new(
+    </span><span class="kw">const fn </span>new(
         init: <span class="prelude-ty">Option</span>&lt;ForLoopInitializer&gt;,
         condition: <span class="prelude-ty">Option</span>&lt;Expression&gt;,
         final_expr: <span class="prelude-ty">Option</span>&lt;Expression&gt;,
@@ -427,25 +427,25 @@
 
     <span class="doccomment">/// Gets the initialization node.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">fn </span>init(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>ForLoopInitializer&gt; {
+    </span><span class="kw">const fn </span>init(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>ForLoopInitializer&gt; {
         <span class="self">self</span>.init.as_ref()
     }
 
     <span class="doccomment">/// Gets the loop condition node.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">fn </span>condition(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Expression&gt; {
+    </span><span class="kw">const fn </span>condition(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Expression&gt; {
         <span class="self">self</span>.condition.as_ref()
     }
 
     <span class="doccomment">/// Gets the final expression node.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">fn </span>final_expr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Expression&gt; {
+    </span><span class="kw">const fn </span>final_expr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Expression&gt; {
         <span class="self">self</span>.final_expr.as_ref()
     }
 
     <span class="doccomment">/// Gets the body of the for loop.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">fn </span>body(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Statement {
+    </span><span class="kw">const fn </span>body(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Statement {
         <span class="kw-2">&amp;</span><span class="self">self</span>.body
     }
 }
@@ -483,21 +483,21 @@
 <span class="kw">impl </span>From&lt;Expression&gt; <span class="kw">for </span>ForLoopInitializer {
     <span class="attribute">#[inline]
     </span><span class="kw">fn </span>from(expr: Expression) -&gt; <span class="self">Self </span>{
-        ForLoopInitializer::Expression(expr)
+        <span class="self">Self</span>::Expression(expr)
     }
 }
 
 <span class="kw">impl </span>From&lt;LexicalDeclaration&gt; <span class="kw">for </span>ForLoopInitializer {
     <span class="attribute">#[inline]
     </span><span class="kw">fn </span>from(list: LexicalDeclaration) -&gt; <span class="self">Self </span>{
-        ForLoopInitializer::Lexical(list)
+        <span class="self">Self</span>::Lexical(list)
     }
 }
 
 <span class="kw">impl </span>From&lt;VarDeclaration&gt; <span class="kw">for </span>ForLoopInitializer {
     <span class="attribute">#[inline]
     </span><span class="kw">fn </span>from(list: VarDeclaration) -&gt; <span class="self">Self </span>{
-        ForLoopInitializer::Var(list)
+        <span class="self">Self</span>::Var(list)
     }
 }
 
@@ -507,9 +507,9 @@
         </span>V: Visitor&lt;<span class="lifetime">&#39;a</span>&gt;,
     {
         <span class="kw">match </span><span class="self">self </span>{
-            ForLoopInitializer::Expression(expr) =&gt; visitor.visit_expression(expr),
-            ForLoopInitializer::Var(vd) =&gt; visitor.visit_var_declaration(vd),
-            ForLoopInitializer::Lexical(ld) =&gt; visitor.visit_lexical_declaration(ld),
+            <span class="self">Self</span>::Expression(expr) =&gt; visitor.visit_expression(expr),
+            <span class="self">Self</span>::Var(vd) =&gt; visitor.visit_var_declaration(vd),
+            <span class="self">Self</span>::Lexical(ld) =&gt; visitor.visit_lexical_declaration(ld),
         }
     }
 
@@ -518,9 +518,9 @@
         </span>V: VisitorMut&lt;<span class="lifetime">&#39;a</span>&gt;,
     {
         <span class="kw">match </span><span class="self">self </span>{
-            ForLoopInitializer::Expression(expr) =&gt; visitor.visit_expression_mut(expr),
-            ForLoopInitializer::Var(vd) =&gt; visitor.visit_var_declaration_mut(vd),
-            ForLoopInitializer::Lexical(ld) =&gt; visitor.visit_lexical_declaration_mut(ld),
+            <span class="self">Self</span>::Expression(expr) =&gt; visitor.visit_expression_mut(expr),
+            <span class="self">Self</span>::Var(vd) =&gt; visitor.visit_var_declaration_mut(vd),
+            <span class="self">Self</span>::Lexical(ld) =&gt; visitor.visit_lexical_declaration_mut(ld),
         }
     }
 }

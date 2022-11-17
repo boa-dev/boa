@@ -77,7 +77,6 @@
 <span id="77">77</span>
 <span id="78">78</span>
 <span id="79">79</span>
-<span id="80">80</span>
 </pre><pre class="rust"><code><span class="kw">use </span>boa_interner::{Interner, Sym, ToInternedString};
 <span class="kw">use </span>core::ops::ControlFlow;
 
@@ -108,24 +107,23 @@
 <span class="kw">impl </span>Break {
     <span class="doccomment">/// Creates a `Break` AST node.
     </span><span class="attribute">#[must_use]
-    </span><span class="kw">pub fn </span>new(label: <span class="prelude-ty">Option</span>&lt;Sym&gt;) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub const fn </span>new(label: <span class="prelude-ty">Option</span>&lt;Sym&gt;) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{ label }
     }
 
     <span class="doccomment">/// Gets the label of the break statement, if any.
     </span><span class="attribute">#[must_use]
-    </span><span class="kw">pub fn </span>label(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Sym&gt; {
+    </span><span class="kw">pub const fn </span>label(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Sym&gt; {
         <span class="self">self</span>.label
     }
 }
 
 <span class="kw">impl </span>ToInternedString <span class="kw">for </span>Break {
     <span class="kw">fn </span>to_interned_string(<span class="kw-2">&amp;</span><span class="self">self</span>, interner: <span class="kw-2">&amp;</span>Interner) -&gt; String {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(label) = <span class="self">self</span>.label {
-            <span class="macro">format!</span>(<span class="string">&quot;break {}&quot;</span>, interner.resolve_expect(label))
-        } <span class="kw">else </span>{
-            <span class="string">&quot;break&quot;</span>.to_owned()
-        }
+        <span class="self">self</span>.label.map_or_else(
+            || <span class="string">&quot;break&quot;</span>.to_owned(),
+            |label| <span class="macro">format!</span>(<span class="string">&quot;break {}&quot;</span>, interner.resolve_expect(label)),
+        )
     }
 }
 

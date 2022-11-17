@@ -117,13 +117,13 @@
 <span class="kw">impl </span>Return {
     <span class="doccomment">/// Gets the target expression value of this `Return` statement.
     </span><span class="attribute">#[must_use]
-    </span><span class="kw">pub fn </span>target(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Expression&gt; {
+    </span><span class="kw">pub const fn </span>target(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Expression&gt; {
         <span class="self">self</span>.target.as_ref()
     }
 
     <span class="doccomment">/// Creates a `Return` AST node.
     </span><span class="attribute">#[must_use]
-    </span><span class="kw">pub fn </span>new(expression: <span class="prelude-ty">Option</span>&lt;Expression&gt;) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub const fn </span>new(expression: <span class="prelude-ty">Option</span>&lt;Expression&gt;) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{ target: expression }
     }
 }
@@ -136,10 +136,10 @@
 
 <span class="kw">impl </span>ToInternedString <span class="kw">for </span>Return {
     <span class="kw">fn </span>to_interned_string(<span class="kw-2">&amp;</span><span class="self">self</span>, interner: <span class="kw-2">&amp;</span>Interner) -&gt; String {
-        <span class="kw">match </span><span class="self">self</span>.target() {
-            <span class="prelude-val">Some</span>(ex) =&gt; <span class="macro">format!</span>(<span class="string">&quot;return {}&quot;</span>, ex.to_interned_string(interner)),
-            <span class="prelude-val">None </span>=&gt; <span class="string">&quot;return&quot;</span>.to_owned(),
-        }
+        <span class="self">self</span>.target().map_or_else(
+            || <span class="string">&quot;return&quot;</span>.to_owned(),
+            |ex| <span class="macro">format!</span>(<span class="string">&quot;return {}&quot;</span>, ex.to_interned_string(interner)),
+        )
     }
 }
 

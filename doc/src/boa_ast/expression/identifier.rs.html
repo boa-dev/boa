@@ -190,14 +190,14 @@
     <span class="doccomment">/// Creates a new identifier AST Expression.
     </span><span class="attribute">#[inline]
     #[must_use]
-    </span><span class="kw">pub fn </span>new(ident: Sym) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub const fn </span>new(ident: Sym) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{ ident }
     }
 
     <span class="doccomment">/// Retrieves the identifier&#39;s string symbol in the interner.
     </span><span class="attribute">#[inline]
     #[must_use]
-    </span><span class="kw">pub fn </span>sym(<span class="self">self</span>) -&gt; Sym {
+    </span><span class="kw">pub const fn </span>sym(<span class="self">self</span>) -&gt; Sym {
         <span class="self">self</span>.ident
     }
 }

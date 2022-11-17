@@ -356,9 +356,6 @@
 <span id="356">356</span>
 <span id="357">357</span>
 <span id="358">358</span>
-<span id="359">359</span>
-<span id="360">360</span>
-<span id="361">361</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Property definition related types, used in object literals and class definitions.
 
 </span><span class="kw">use </span><span class="kw">crate</span>::try_break;
@@ -447,17 +444,17 @@
         </span>V: Visitor&lt;<span class="lifetime">&#39;a</span>&gt;,
     {
         <span class="kw">match </span><span class="self">self </span>{
-            PropertyDefinition::IdentifierReference(id) =&gt; visitor.visit_identifier(id),
-            PropertyDefinition::Property(pn, expr) =&gt; {
+            <span class="self">Self</span>::IdentifierReference(id) =&gt; visitor.visit_identifier(id),
+            <span class="self">Self</span>::Property(pn, expr) =&gt; {
                 <span class="macro">try_break!</span>(visitor.visit_property_name(pn));
                 visitor.visit_expression(expr)
             }
-            PropertyDefinition::MethodDefinition(pn, md) =&gt; {
+            <span class="self">Self</span>::MethodDefinition(pn, md) =&gt; {
                 <span class="macro">try_break!</span>(visitor.visit_property_name(pn));
                 visitor.visit_method_definition(md)
             }
-            PropertyDefinition::SpreadObject(expr) =&gt; visitor.visit_expression(expr),
-            PropertyDefinition::CoverInitializedName(id, expr) =&gt; {
+            <span class="self">Self</span>::SpreadObject(expr) =&gt; visitor.visit_expression(expr),
+            <span class="self">Self</span>::CoverInitializedName(id, expr) =&gt; {
                 <span class="macro">try_break!</span>(visitor.visit_identifier(id));
                 visitor.visit_expression(expr)
             }
@@ -469,17 +466,17 @@
         </span>V: VisitorMut&lt;<span class="lifetime">&#39;a</span>&gt;,
     {
         <span class="kw">match </span><span class="self">self </span>{
-            PropertyDefinition::IdentifierReference(id) =&gt; visitor.visit_identifier_mut(id),
-            PropertyDefinition::Property(pn, expr) =&gt; {
+            <span class="self">Self</span>::IdentifierReference(id) =&gt; visitor.visit_identifier_mut(id),
+            <span class="self">Self</span>::Property(pn, expr) =&gt; {
                 <span class="macro">try_break!</span>(visitor.visit_property_name_mut(pn));
                 visitor.visit_expression_mut(expr)
             }
-            PropertyDefinition::MethodDefinition(pn, md) =&gt; {
+            <span class="self">Self</span>::MethodDefinition(pn, md) =&gt; {
                 <span class="macro">try_break!</span>(visitor.visit_property_name_mut(pn));
                 visitor.visit_method_definition_mut(md)
             }
-            PropertyDefinition::SpreadObject(expr) =&gt; visitor.visit_expression_mut(expr),
-            PropertyDefinition::CoverInitializedName(id, expr) =&gt; {
+            <span class="self">Self</span>::SpreadObject(expr) =&gt; visitor.visit_expression_mut(expr),
+            <span class="self">Self</span>::CoverInitializedName(id, expr) =&gt; {
                 <span class="macro">try_break!</span>(visitor.visit_identifier_mut(id));
                 visitor.visit_expression_mut(expr)
             }
@@ -580,12 +577,10 @@
         </span>V: Visitor&lt;<span class="lifetime">&#39;a</span>&gt;,
     {
         <span class="kw">match </span><span class="self">self </span>{
-            MethodDefinition::Get(f) | MethodDefinition::Set(f) | MethodDefinition::Ordinary(f) =&gt; {
-                visitor.visit_function(f)
-            }
-            MethodDefinition::Generator(g) =&gt; visitor.visit_generator(g),
-            MethodDefinition::AsyncGenerator(ag) =&gt; visitor.visit_async_generator(ag),
-            MethodDefinition::Async(af) =&gt; visitor.visit_async_function(af),
+            <span class="self">Self</span>::Get(f) | <span class="self">Self</span>::Set(f) | <span class="self">Self</span>::Ordinary(f) =&gt; visitor.visit_function(f),
+            <span class="self">Self</span>::Generator(g) =&gt; visitor.visit_generator(g),
+            <span class="self">Self</span>::AsyncGenerator(ag) =&gt; visitor.visit_async_generator(ag),
+            <span class="self">Self</span>::Async(af) =&gt; visitor.visit_async_function(af),
         }
     }
 
@@ -594,12 +589,10 @@
         </span>V: VisitorMut&lt;<span class="lifetime">&#39;a</span>&gt;,
     {
         <span class="kw">match </span><span class="self">self </span>{
-            MethodDefinition::Get(f) | MethodDefinition::Set(f) | MethodDefinition::Ordinary(f) =&gt; {
-                visitor.visit_function_mut(f)
-            }
-            MethodDefinition::Generator(g) =&gt; visitor.visit_generator_mut(g),
-            MethodDefinition::AsyncGenerator(ag) =&gt; visitor.visit_async_generator_mut(ag),
-            MethodDefinition::Async(af) =&gt; visitor.visit_async_function_mut(af),
+            <span class="self">Self</span>::Get(f) | <span class="self">Self</span>::Set(f) | <span class="self">Self</span>::Ordinary(f) =&gt; visitor.visit_function_mut(f),
+            <span class="self">Self</span>::Generator(g) =&gt; visitor.visit_generator_mut(g),
+            <span class="self">Self</span>::AsyncGenerator(ag) =&gt; visitor.visit_async_generator_mut(ag),
+            <span class="self">Self</span>::Async(af) =&gt; visitor.visit_async_function_mut(af),
         }
     }
 }
@@ -634,7 +627,7 @@
 <span class="kw">impl </span>PropertyName {
     <span class="doccomment">/// Returns the literal property name if it exists.
     </span><span class="attribute">#[must_use]
-    </span><span class="kw">pub fn </span>literal(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Sym&gt; {
+    </span><span class="kw">pub const fn </span>literal(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Sym&gt; {
         <span class="kw">if let </span><span class="self">Self</span>::Literal(sym) = <span class="self">self </span>{
             <span class="prelude-val">Some</span>(<span class="kw-2">*</span>sym)
         } <span class="kw">else </span>{
@@ -644,7 +637,7 @@
 
     <span class="doccomment">/// Returns the expression if the property name is computed.
     </span><span class="attribute">#[must_use]
-    </span><span class="kw">pub fn </span>computed(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Expression&gt; {
+    </span><span class="kw">pub const fn </span>computed(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Expression&gt; {
         <span class="kw">if let </span><span class="self">Self</span>::Computed(expr) = <span class="self">self </span>{
             <span class="prelude-val">Some</span>(expr)
         } <span class="kw">else </span>{
@@ -654,11 +647,12 @@
 
     <span class="doccomment">/// Returns either the literal property name or the computed const string property name.
     </span><span class="attribute">#[must_use]
-    </span><span class="kw">pub fn </span>prop_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Sym&gt; {
+    </span><span class="kw">pub const fn </span>prop_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Sym&gt; {
         <span class="kw">match </span><span class="self">self </span>{
-            PropertyName::Literal(sym)
-            | PropertyName::Computed(Expression::Literal(Literal::String(sym))) =&gt; <span class="prelude-val">Some</span>(<span class="kw-2">*</span>sym),
-            PropertyName::Computed(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
+            <span class="self">Self</span>::Literal(sym) | <span class="self">Self</span>::Computed(Expression::Literal(Literal::String(sym))) =&gt; {
+                <span class="prelude-val">Some</span>(<span class="kw-2">*</span>sym)
+            }
+            <span class="self">Self</span>::Computed(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
         }
     }
 }
@@ -666,8 +660,8 @@
 <span class="kw">impl </span>ToInternedString <span class="kw">for </span>PropertyName {
     <span class="kw">fn </span>to_interned_string(<span class="kw-2">&amp;</span><span class="self">self</span>, interner: <span class="kw-2">&amp;</span>Interner) -&gt; String {
         <span class="kw">match </span><span class="self">self </span>{
-            PropertyName::Literal(key) =&gt; interner.resolve_expect(<span class="kw-2">*</span>key).to_string(),
-            PropertyName::Computed(key) =&gt; key.to_interned_string(interner),
+            <span class="self">Self</span>::Literal(key) =&gt; interner.resolve_expect(<span class="kw-2">*</span>key).to_string(),
+            <span class="self">Self</span>::Computed(key) =&gt; key.to_interned_string(interner),
         }
     }
 }
@@ -690,8 +684,8 @@
         </span>V: Visitor&lt;<span class="lifetime">&#39;a</span>&gt;,
     {
         <span class="kw">match </span><span class="self">self </span>{
-            PropertyName::Literal(sym) =&gt; visitor.visit_sym(sym),
-            PropertyName::Computed(expr) =&gt; visitor.visit_expression(expr),
+            <span class="self">Self</span>::Literal(sym) =&gt; visitor.visit_sym(sym),
+            <span class="self">Self</span>::Computed(expr) =&gt; visitor.visit_expression(expr),
         }
     }
 
@@ -700,8 +694,8 @@
         </span>V: VisitorMut&lt;<span class="lifetime">&#39;a</span>&gt;,
     {
         <span class="kw">match </span><span class="self">self </span>{
-            PropertyName::Literal(sym) =&gt; visitor.visit_sym_mut(sym),
-            PropertyName::Computed(expr) =&gt; visitor.visit_expression_mut(expr),
+            <span class="self">Self</span>::Literal(sym) =&gt; visitor.visit_sym_mut(sym),
+            <span class="self">Self</span>::Computed(expr) =&gt; visitor.visit_expression_mut(expr),
         }
     }
 }

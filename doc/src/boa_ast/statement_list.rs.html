@@ -207,8 +207,6 @@
 <span id="207">207</span>
 <span id="208">208</span>
 <span id="209">209</span>
-<span id="210">210</span>
-<span id="211">211</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Statement list node.
 
 </span><span class="kw">use </span><span class="kw">super</span>::Declaration;
@@ -241,7 +239,7 @@
 <span class="kw">impl </span>StatementListItem {
     <span class="doccomment">/// Returns a node ordering based on the hoistability of each statement.
     </span><span class="attribute">#[must_use]
-    </span><span class="kw">pub fn </span>hoistable_order(a: <span class="kw-2">&amp;</span><span class="self">Self</span>, b: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; Ordering {
+    </span><span class="kw">pub const fn </span>hoistable_order(a: <span class="kw-2">&amp;</span><span class="self">Self</span>, b: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; Ordering {
         <span class="kw">match </span>(a, b) {
             (
                 <span class="self">Self</span>::Declaration(Declaration::Function(<span class="kw">_</span>)),
@@ -270,10 +268,10 @@
         <span class="kw">let </span><span class="kw-2">mut </span>buf = <span class="string">&quot;    &quot;</span>.repeat(indentation);
 
         <span class="kw">match </span><span class="self">self </span>{
-            StatementListItem::Statement(stmt) =&gt; {
+            <span class="self">Self</span>::Statement(stmt) =&gt; {
                 buf.push_str(<span class="kw-2">&amp;</span>stmt.to_no_indent_string(interner, indentation));
             }
-            StatementListItem::Declaration(decl) =&gt; {
+            <span class="self">Self</span>::Declaration(decl) =&gt; {
                 buf.push_str(<span class="kw-2">&amp;</span>decl.to_indented_string(interner, indentation));
             }
         }
@@ -285,14 +283,14 @@
 <span class="kw">impl </span>From&lt;Statement&gt; <span class="kw">for </span>StatementListItem {
     <span class="attribute">#[inline]
     </span><span class="kw">fn </span>from(stmt: Statement) -&gt; <span class="self">Self </span>{
-        StatementListItem::Statement(stmt)
+        <span class="self">Self</span>::Statement(stmt)
     }
 }
 
 <span class="kw">impl </span>From&lt;Declaration&gt; <span class="kw">for </span>StatementListItem {
     <span class="attribute">#[inline]
     </span><span class="kw">fn </span>from(decl: Declaration) -&gt; <span class="self">Self </span>{
-        StatementListItem::Declaration(decl)
+        <span class="self">Self</span>::Declaration(decl)
     }
 }
 
@@ -302,8 +300,8 @@
         </span>V: Visitor&lt;<span class="lifetime">&#39;a</span>&gt;,
     {
         <span class="kw">match </span><span class="self">self </span>{
-            StatementListItem::Statement(statement) =&gt; visitor.visit_statement(statement),
-            StatementListItem::Declaration(declaration) =&gt; visitor.visit_declaration(declaration),
+            <span class="self">Self</span>::Statement(statement) =&gt; visitor.visit_statement(statement),
+            <span class="self">Self</span>::Declaration(declaration) =&gt; visitor.visit_declaration(declaration),
         }
     }
 
@@ -312,10 +310,8 @@
         </span>V: VisitorMut&lt;<span class="lifetime">&#39;a</span>&gt;,
     {
         <span class="kw">match </span><span class="self">self </span>{
-            StatementListItem::Statement(statement) =&gt; visitor.visit_statement_mut(statement),
-            StatementListItem::Declaration(declaration) =&gt; {
-                visitor.visit_declaration_mut(declaration)
-            }
+            <span class="self">Self</span>::Statement(statement) =&gt; visitor.visit_statement_mut(statement),
+            <span class="self">Self</span>::Declaration(declaration) =&gt; visitor.visit_declaration_mut(declaration),
         }
     }
 }
@@ -337,14 +333,14 @@
     <span class="doccomment">/// Gets the list of statements.
     </span><span class="attribute">#[inline]
     #[must_use]
-    </span><span class="kw">pub fn </span>statements(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[StatementListItem] {
+    </span><span class="kw">pub const fn </span>statements(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[StatementListItem] {
         <span class="kw-2">&amp;</span><span class="self">self</span>.statements
     }
 
     <span class="doccomment">/// Get the strict mode.
     </span><span class="attribute">#[inline]
     #[must_use]
-    </span><span class="kw">pub fn </span>strict(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+    </span><span class="kw">pub const fn </span>strict(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.strict
     }
 

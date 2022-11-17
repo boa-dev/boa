@@ -785,8 +785,6 @@
 <span id="785">785</span>
 <span id="786">786</span>
 <span id="787">787</span>
-<span id="788">788</span>
-<span id="789">789</span>
 </pre><pre class="rust"><code><span class="doccomment">//! A pattern binding or assignment node.
 //!
 //! A [`Pattern`] Corresponds to the [`BindingPattern`][spec1] and the [`AssignmentPattern`][spec2]
@@ -836,13 +834,13 @@
 
 <span class="kw">impl </span>From&lt;ObjectPattern&gt; <span class="kw">for </span>Pattern {
     <span class="kw">fn </span>from(obj: ObjectPattern) -&gt; <span class="self">Self </span>{
-        Pattern::Object(obj)
+        <span class="self">Self</span>::Object(obj)
     }
 }
 
 <span class="kw">impl </span>From&lt;ArrayPattern&gt; <span class="kw">for </span>Pattern {
     <span class="kw">fn </span>from(obj: ArrayPattern) -&gt; <span class="self">Self </span>{
-        Pattern::Array(obj)
+        <span class="self">Self</span>::Array(obj)
     }
 }
 
@@ -860,8 +858,8 @@
 <span class="kw">impl </span>ToInternedString <span class="kw">for </span>Pattern {
     <span class="kw">fn </span>to_interned_string(<span class="kw-2">&amp;</span><span class="self">self</span>, interner: <span class="kw-2">&amp;</span>Interner) -&gt; String {
         <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self </span>{
-            Pattern::Object(o) =&gt; o.to_interned_string(interner),
-            Pattern::Array(a) =&gt; a.to_interned_string(interner),
+            <span class="self">Self</span>::Object(o) =&gt; o.to_interned_string(interner),
+            <span class="self">Self</span>::Array(a) =&gt; a.to_interned_string(interner),
         }
     }
 }
@@ -872,8 +870,8 @@
         </span>V: Visitor&lt;<span class="lifetime">&#39;a</span>&gt;,
     {
         <span class="kw">match </span><span class="self">self </span>{
-            Pattern::Object(op) =&gt; visitor.visit_object_pattern(op),
-            Pattern::Array(ap) =&gt; visitor.visit_array_pattern(ap),
+            <span class="self">Self</span>::Object(op) =&gt; visitor.visit_object_pattern(op),
+            <span class="self">Self</span>::Array(ap) =&gt; visitor.visit_array_pattern(ap),
         }
     }
 
@@ -882,8 +880,8 @@
         </span>V: VisitorMut&lt;<span class="lifetime">&#39;a</span>&gt;,
     {
         <span class="kw">match </span><span class="self">self </span>{
-            Pattern::Object(op) =&gt; visitor.visit_object_pattern_mut(op),
-            Pattern::Array(ap) =&gt; visitor.visit_array_pattern_mut(ap),
+            <span class="self">Self</span>::Object(op) =&gt; visitor.visit_object_pattern_mut(op),
+            <span class="self">Self</span>::Array(ap) =&gt; visitor.visit_array_pattern_mut(ap),
         }
     }
 }
@@ -940,14 +938,14 @@
     <span class="doccomment">/// Gets the bindings for the object binding pattern.
     </span><span class="attribute">#[inline]
     #[must_use]
-    </span><span class="kw">pub fn </span>bindings(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[ObjectPatternElement] {
+    </span><span class="kw">pub const fn </span>bindings(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[ObjectPatternElement] {
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0
     </span>}
 
     <span class="doccomment">/// Returns true if the object binding pattern has a rest element.
     </span><span class="attribute">#[inline]
     #[must_use]
-    </span><span class="kw">pub fn </span>has_rest(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+    </span><span class="kw">pub const fn </span>has_rest(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="macro">matches!</span>(
             <span class="self">self</span>.<span class="number">0</span>.last(),
             <span class="prelude-val">Some</span>(ObjectPatternElement::RestProperty { .. })
@@ -1028,7 +1026,7 @@
     <span class="doccomment">/// Gets the bindings for the array binding pattern.
     </span><span class="attribute">#[inline]
     #[must_use]
-    </span><span class="kw">pub fn </span>bindings(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[ArrayPatternElement] {
+    </span><span class="kw">pub const fn </span>bindings(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[ArrayPatternElement] {
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0
     </span>}
 }
@@ -1257,7 +1255,7 @@
         </span>V: Visitor&lt;<span class="lifetime">&#39;a</span>&gt;,
     {
         <span class="kw">match </span><span class="self">self </span>{
-            ObjectPatternElement::SingleName {
+            <span class="self">Self</span>::SingleName {
                 name,
                 ident,
                 default_init,
@@ -1270,8 +1268,8 @@
                     ControlFlow::Continue(())
                 }
             }
-            ObjectPatternElement::RestProperty { ident, .. } =&gt; visitor.visit_identifier(ident),
-            ObjectPatternElement::AssignmentPropertyAccess {
+            <span class="self">Self</span>::RestProperty { ident, .. } =&gt; visitor.visit_identifier(ident),
+            <span class="self">Self</span>::AssignmentPropertyAccess {
                 name,
                 access,
                 default_init,
@@ -1284,10 +1282,10 @@
                     ControlFlow::Continue(())
                 }
             }
-            ObjectPatternElement::AssignmentRestPropertyAccess { access, .. } =&gt; {
+            <span class="self">Self</span>::AssignmentRestPropertyAccess { access, .. } =&gt; {
                 visitor.visit_property_access(access)
             }
-            ObjectPatternElement::Pattern {
+            <span class="self">Self</span>::Pattern {
                 name,
                 pattern,
                 default_init,
@@ -1308,7 +1306,7 @@
         </span>V: VisitorMut&lt;<span class="lifetime">&#39;a</span>&gt;,
     {
         <span class="kw">match </span><span class="self">self </span>{
-            ObjectPatternElement::SingleName {
+            <span class="self">Self</span>::SingleName {
                 name,
                 ident,
                 default_init,
@@ -1321,8 +1319,8 @@
                     ControlFlow::Continue(())
                 }
             }
-            ObjectPatternElement::RestProperty { ident, .. } =&gt; visitor.visit_identifier_mut(ident),
-            ObjectPatternElement::AssignmentPropertyAccess {
+            <span class="self">Self</span>::RestProperty { ident, .. } =&gt; visitor.visit_identifier_mut(ident),
+            <span class="self">Self</span>::AssignmentPropertyAccess {
                 name,
                 access,
                 default_init,
@@ -1335,10 +1333,10 @@
                     ControlFlow::Continue(())
                 }
             }
-            ObjectPatternElement::AssignmentRestPropertyAccess { access, .. } =&gt; {
+            <span class="self">Self</span>::AssignmentRestPropertyAccess { access, .. } =&gt; {
                 visitor.visit_property_access_mut(access)
             }
-            ObjectPatternElement::Pattern {
+            <span class="self">Self</span>::Pattern {
                 name,
                 pattern,
                 default_init,
@@ -1501,7 +1499,7 @@
         </span>V: Visitor&lt;<span class="lifetime">&#39;a</span>&gt;,
     {
         <span class="kw">match </span><span class="self">self </span>{
-            ArrayPatternElement::SingleName {
+            <span class="self">Self</span>::SingleName {
                 ident,
                 default_init,
             } =&gt; {
@@ -1512,11 +1510,10 @@
                     ControlFlow::Continue(())
                 }
             }
-            ArrayPatternElement::PropertyAccess { access }
-            | ArrayPatternElement::PropertyAccessRest { access } =&gt; {
+            <span class="self">Self</span>::PropertyAccess { access } | <span class="self">Self</span>::PropertyAccessRest { access } =&gt; {
                 visitor.visit_property_access(access)
             }
-            ArrayPatternElement::Pattern {
+            <span class="self">Self</span>::Pattern {
                 pattern,
                 default_init,
             } =&gt; {
@@ -1527,9 +1524,9 @@
                     ControlFlow::Continue(())
                 }
             }
-            ArrayPatternElement::SingleNameRest { ident } =&gt; visitor.visit_identifier(ident),
-            ArrayPatternElement::PatternRest { pattern } =&gt; visitor.visit_pattern(pattern),
-            ArrayPatternElement::Elision =&gt; {
+            <span class="self">Self</span>::SingleNameRest { ident } =&gt; visitor.visit_identifier(ident),
+            <span class="self">Self</span>::PatternRest { pattern } =&gt; visitor.visit_pattern(pattern),
+            <span class="self">Self</span>::Elision =&gt; {
                 <span class="comment">// special case to be handled by user
                 </span>ControlFlow::Continue(())
             }
@@ -1541,7 +1538,7 @@
         </span>V: VisitorMut&lt;<span class="lifetime">&#39;a</span>&gt;,
     {
         <span class="kw">match </span><span class="self">self </span>{
-            ArrayPatternElement::SingleName {
+            <span class="self">Self</span>::SingleName {
                 ident,
                 default_init,
             } =&gt; {
@@ -1552,11 +1549,10 @@
                     ControlFlow::Continue(())
                 }
             }
-            ArrayPatternElement::PropertyAccess { access }
-            | ArrayPatternElement::PropertyAccessRest { access } =&gt; {
+            <span class="self">Self</span>::PropertyAccess { access } | <span class="self">Self</span>::PropertyAccessRest { access } =&gt; {
                 visitor.visit_property_access_mut(access)
             }
-            ArrayPatternElement::Pattern {
+            <span class="self">Self</span>::Pattern {
                 pattern,
                 default_init,
             } =&gt; {
@@ -1567,9 +1563,9 @@
                     ControlFlow::Continue(())
                 }
             }
-            ArrayPatternElement::SingleNameRest { ident } =&gt; visitor.visit_identifier_mut(ident),
-            ArrayPatternElement::PatternRest { pattern } =&gt; visitor.visit_pattern_mut(pattern),
-            ArrayPatternElement::Elision =&gt; {
+            <span class="self">Self</span>::SingleNameRest { ident } =&gt; visitor.visit_identifier_mut(ident),
+            <span class="self">Self</span>::PatternRest { pattern } =&gt; visitor.visit_pattern_mut(pattern),
+            <span class="self">Self</span>::Elision =&gt; {
                 <span class="comment">// special case to be handled by user
                 </span>ControlFlow::Continue(())
             }

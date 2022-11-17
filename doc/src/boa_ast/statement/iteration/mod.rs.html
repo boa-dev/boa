@@ -92,10 +92,6 @@
 <span id="92">92</span>
 <span id="93">93</span>
 <span id="94">94</span>
-<span id="95">95</span>
-<span id="96">96</span>
-<span id="97">97</span>
-<span id="98">98</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Iteration nodes
 
 </span><span class="kw">mod </span>r#break;
@@ -171,12 +167,10 @@
         </span>V: Visitor&lt;<span class="lifetime">&#39;a</span>&gt;,
     {
         <span class="kw">match </span><span class="self">self </span>{
-            IterableLoopInitializer::Identifier(id) =&gt; visitor.visit_identifier(id),
-            IterableLoopInitializer::Access(pa) =&gt; visitor.visit_property_access(pa),
-            IterableLoopInitializer::Var(b)
-            | IterableLoopInitializer::Let(b)
-            | IterableLoopInitializer::Const(b) =&gt; visitor.visit_binding(b),
-            IterableLoopInitializer::Pattern(p) =&gt; visitor.visit_pattern(p),
+            <span class="self">Self</span>::Identifier(id) =&gt; visitor.visit_identifier(id),
+            <span class="self">Self</span>::Access(pa) =&gt; visitor.visit_property_access(pa),
+            <span class="self">Self</span>::Var(b) | <span class="self">Self</span>::Let(b) | <span class="self">Self</span>::Const(b) =&gt; visitor.visit_binding(b),
+            <span class="self">Self</span>::Pattern(p) =&gt; visitor.visit_pattern(p),
         }
     }
 
@@ -185,12 +179,10 @@
         </span>V: VisitorMut&lt;<span class="lifetime">&#39;a</span>&gt;,
     {
         <span class="kw">match </span><span class="self">self </span>{
-            IterableLoopInitializer::Identifier(id) =&gt; visitor.visit_identifier_mut(id),
-            IterableLoopInitializer::Access(pa) =&gt; visitor.visit_property_access_mut(pa),
-            IterableLoopInitializer::Var(b)
-            | IterableLoopInitializer::Let(b)
-            | IterableLoopInitializer::Const(b) =&gt; visitor.visit_binding_mut(b),
-            IterableLoopInitializer::Pattern(p) =&gt; visitor.visit_pattern_mut(p),
+            <span class="self">Self</span>::Identifier(id) =&gt; visitor.visit_identifier_mut(id),
+            <span class="self">Self</span>::Access(pa) =&gt; visitor.visit_property_access_mut(pa),
+            <span class="self">Self</span>::Var(b) | <span class="self">Self</span>::Let(b) | <span class="self">Self</span>::Const(b) =&gt; visitor.visit_binding_mut(b),
+            <span class="self">Self</span>::Pattern(p) =&gt; visitor.visit_pattern_mut(p),
         }
     }
 }

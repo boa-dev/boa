@@ -177,28 +177,28 @@
     <span class="doccomment">/// Gets the tag function of the template.
     </span><span class="attribute">#[inline]
     #[must_use]
-    </span><span class="kw">pub fn </span>tag(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Expression {
+    </span><span class="kw">pub const fn </span>tag(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Expression {
         <span class="kw-2">&amp;</span><span class="self">self</span>.tag
     }
 
     <span class="doccomment">/// Gets the inner raw strings of the template.
     </span><span class="attribute">#[inline]
     #[must_use]
-    </span><span class="kw">pub fn </span>raws(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[Sym] {
+    </span><span class="kw">pub const fn </span>raws(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[Sym] {
         <span class="kw-2">&amp;</span><span class="self">self</span>.raws
     }
 
     <span class="doccomment">/// Gets the cooked strings of the template.
     </span><span class="attribute">#[inline]
     #[must_use]
-    </span><span class="kw">pub fn </span>cookeds(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<span class="prelude-ty">Option</span>&lt;Sym&gt;] {
+    </span><span class="kw">pub const fn </span>cookeds(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<span class="prelude-ty">Option</span>&lt;Sym&gt;] {
         <span class="kw-2">&amp;</span><span class="self">self</span>.cookeds
     }
 
     <span class="doccomment">/// Gets the interpolated expressions of the template.
     </span><span class="attribute">#[inline]
     #[must_use]
-    </span><span class="kw">pub fn </span>exprs(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[Expression] {
+    </span><span class="kw">pub const fn </span>exprs(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[Expression] {
         <span class="kw-2">&amp;</span><span class="self">self</span>.exprs
     }
 }

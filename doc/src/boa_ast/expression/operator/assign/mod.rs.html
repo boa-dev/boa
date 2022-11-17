@@ -240,21 +240,21 @@
     <span class="doccomment">/// Gets the operator of the assignment operation.
     </span><span class="attribute">#[inline]
     #[must_use]
-    </span><span class="kw">pub fn </span>op(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; AssignOp {
+    </span><span class="kw">pub const fn </span>op(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; AssignOp {
         <span class="self">self</span>.op
     }
 
     <span class="doccomment">/// Gets the left hand side of the assignment operation.
     </span><span class="attribute">#[inline]
     #[must_use]
-    </span><span class="kw">pub fn </span>lhs(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>AssignTarget {
+    </span><span class="kw">pub const fn </span>lhs(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>AssignTarget {
         <span class="kw-2">&amp;</span><span class="self">self</span>.lhs
     }
 
     <span class="doccomment">/// Gets the right hand side of the assignment operation.
     </span><span class="attribute">#[inline]
     #[must_use]
-    </span><span class="kw">pub fn </span>rhs(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Expression {
+    </span><span class="kw">pub const fn </span>rhs(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Expression {
         <span class="kw-2">&amp;</span><span class="self">self</span>.rhs
     }
 }
@@ -341,9 +341,9 @@
     <span class="attribute">#[inline]
     </span><span class="kw">fn </span>to_interned_string(<span class="kw-2">&amp;</span><span class="self">self</span>, interner: <span class="kw-2">&amp;</span>Interner) -&gt; String {
         <span class="kw">match </span><span class="self">self </span>{
-            AssignTarget::Identifier(id) =&gt; id.to_interned_string(interner),
-            AssignTarget::Access(access) =&gt; access.to_interned_string(interner),
-            AssignTarget::Pattern(pattern) =&gt; pattern.to_interned_string(interner),
+            <span class="self">Self</span>::Identifier(id) =&gt; id.to_interned_string(interner),
+            <span class="self">Self</span>::Access(access) =&gt; access.to_interned_string(interner),
+            <span class="self">Self</span>::Pattern(pattern) =&gt; pattern.to_interned_string(interner),
         }
     }
 }
@@ -361,9 +361,9 @@
         </span>V: Visitor&lt;<span class="lifetime">&#39;a</span>&gt;,
     {
         <span class="kw">match </span><span class="self">self </span>{
-            AssignTarget::Identifier(id) =&gt; visitor.visit_identifier(id),
-            AssignTarget::Access(pa) =&gt; visitor.visit_property_access(pa),
-            AssignTarget::Pattern(pat) =&gt; visitor.visit_pattern(pat),
+            <span class="self">Self</span>::Identifier(id) =&gt; visitor.visit_identifier(id),
+            <span class="self">Self</span>::Access(pa) =&gt; visitor.visit_property_access(pa),
+            <span class="self">Self</span>::Pattern(pat) =&gt; visitor.visit_pattern(pat),
         }
     }
 
@@ -372,9 +372,9 @@
         </span>V: VisitorMut&lt;<span class="lifetime">&#39;a</span>&gt;,
     {
         <span class="kw">match </span><span class="self">self </span>{
-            AssignTarget::Identifier(id) =&gt; visitor.visit_identifier_mut(id),
-            AssignTarget::Access(pa) =&gt; visitor.visit_property_access_mut(pa),
-            AssignTarget::Pattern(pat) =&gt; visitor.visit_pattern_mut(pat),
+            <span class="self">Self</span>::Identifier(id) =&gt; visitor.visit_identifier_mut(id),
+            <span class="self">Self</span>::Access(pa) =&gt; visitor.visit_property_access_mut(pa),
+            <span class="self">Self</span>::Pattern(pat) =&gt; visitor.visit_pattern_mut(pat),
         }
     }
 }

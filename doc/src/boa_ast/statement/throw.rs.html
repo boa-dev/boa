@@ -100,13 +100,13 @@
 <span class="kw">impl </span>Throw {
     <span class="doccomment">/// Gets the target expression of this `Throw` statement.
     </span><span class="attribute">#[must_use]
-    </span><span class="kw">pub fn </span>target(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Expression {
+    </span><span class="kw">pub const fn </span>target(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Expression {
         <span class="kw-2">&amp;</span><span class="self">self</span>.target
     }
 
     <span class="doccomment">/// Creates a `Throw` AST node.
     </span><span class="attribute">#[must_use]
-    </span><span class="kw">pub fn </span>new(target: Expression) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub const fn </span>new(target: Expression) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{ target }
     }
 }

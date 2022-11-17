@@ -180,8 +180,8 @@
 <span class="kw">impl </span>LabelledItem {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>to_indented_string(<span class="kw-2">&amp;</span><span class="self">self</span>, interner: <span class="kw-2">&amp;</span>Interner, indentation: usize) -&gt; String {
         <span class="kw">match </span><span class="self">self </span>{
-            LabelledItem::Function(f) =&gt; f.to_indented_string(interner, indentation),
-            LabelledItem::Statement(stmt) =&gt; stmt.to_indented_string(interner, indentation),
+            <span class="self">Self</span>::Function(f) =&gt; f.to_indented_string(interner, indentation),
+            <span class="self">Self</span>::Statement(stmt) =&gt; stmt.to_indented_string(interner, indentation),
         }
     }
 }
@@ -210,8 +210,8 @@
         </span>V: Visitor&lt;<span class="lifetime">&#39;a</span>&gt;,
     {
         <span class="kw">match </span><span class="self">self </span>{
-            LabelledItem::Function(f) =&gt; visitor.visit_function(f),
-            LabelledItem::Statement(s) =&gt; visitor.visit_statement(s),
+            <span class="self">Self</span>::Function(f) =&gt; visitor.visit_function(f),
+            <span class="self">Self</span>::Statement(s) =&gt; visitor.visit_statement(s),
         }
     }
 
@@ -220,8 +220,8 @@
         </span>V: VisitorMut&lt;<span class="lifetime">&#39;a</span>&gt;,
     {
         <span class="kw">match </span><span class="self">self </span>{
-            LabelledItem::Function(f) =&gt; visitor.visit_function_mut(f),
-            LabelledItem::Statement(s) =&gt; visitor.visit_statement_mut(s),
+            <span class="self">Self</span>::Function(f) =&gt; visitor.visit_function_mut(f),
+            <span class="self">Self</span>::Statement(s) =&gt; visitor.visit_statement_mut(s),
         }
     }
 }
@@ -252,13 +252,13 @@
 
     <span class="doccomment">/// Gets the labelled item.
     </span><span class="attribute">#[must_use]
-    </span><span class="kw">pub fn </span>item(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>LabelledItem {
+    </span><span class="kw">pub const fn </span>item(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>LabelledItem {
         <span class="kw-2">&amp;</span><span class="self">self</span>.item
     }
 
     <span class="doccomment">/// Gets the label name.
     </span><span class="attribute">#[must_use]
-    </span><span class="kw">pub fn </span>label(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Sym {
+    </span><span class="kw">pub const fn </span>label(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Sym {
         <span class="self">self</span>.label
     }
 

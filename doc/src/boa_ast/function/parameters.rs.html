@@ -368,46 +368,46 @@
     <span class="doccomment">/// Returns the length of the parameter list.
     /// Note that this is not equal to the length of the parameters slice.
     </span><span class="attribute">#[must_use]
-    </span><span class="kw">pub fn </span>length(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u32 {
+    </span><span class="kw">pub const fn </span>length(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u32 {
         <span class="self">self</span>.length
     }
 
     <span class="doccomment">/// Returns the parameter list flags.
     </span><span class="attribute">#[must_use]
-    </span><span class="kw">pub fn </span>flags(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; FormalParameterListFlags {
+    </span><span class="kw">pub const fn </span>flags(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; FormalParameterListFlags {
         <span class="self">self</span>.flags
     }
 
     <span class="doccomment">/// Indicates if the parameter list is simple.
     </span><span class="attribute">#[must_use]
-    </span><span class="kw">pub fn </span>is_simple(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+    </span><span class="kw">pub const fn </span>is_simple(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.flags.contains(FormalParameterListFlags::IS_SIMPLE)
     }
 
     <span class="doccomment">/// Indicates if the parameter list has duplicate parameters.
     </span><span class="attribute">#[must_use]
-    </span><span class="kw">pub fn </span>has_duplicates(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+    </span><span class="kw">pub const fn </span>has_duplicates(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.flags
             .contains(FormalParameterListFlags::HAS_DUPLICATES)
     }
 
     <span class="doccomment">/// Indicates if the parameter list has a rest parameter.
     </span><span class="attribute">#[must_use]
-    </span><span class="kw">pub fn </span>has_rest_parameter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+    </span><span class="kw">pub const fn </span>has_rest_parameter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.flags
             .contains(FormalParameterListFlags::HAS_REST_PARAMETER)
     }
 
     <span class="doccomment">/// Indicates if the parameter list has expressions in it&#39;s parameters.
     </span><span class="attribute">#[must_use]
-    </span><span class="kw">pub fn </span>has_expressions(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+    </span><span class="kw">pub const fn </span>has_expressions(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.flags
             .contains(FormalParameterListFlags::HAS_EXPRESSIONS)
     }
 
     <span class="doccomment">/// Indicates if the parameter list has parameters named &#39;arguments&#39;.
     </span><span class="attribute">#[must_use]
-    </span><span class="kw">pub fn </span>has_arguments(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+    </span><span class="kw">pub const fn </span>has_arguments(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.flags.contains(FormalParameterListFlags::HAS_ARGUMENTS)
     }
 }
@@ -522,25 +522,25 @@
 
     <span class="doccomment">/// Gets the variable of the formal parameter
     </span><span class="attribute">#[must_use]
-    </span><span class="kw">pub fn </span>variable(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Variable {
+    </span><span class="kw">pub const fn </span>variable(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Variable {
         <span class="kw-2">&amp;</span><span class="self">self</span>.variable
     }
 
     <span class="doccomment">/// Gets the initialization node of the formal parameter, if any.
     </span><span class="attribute">#[must_use]
-    </span><span class="kw">pub fn </span>init(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Expression&gt; {
+    </span><span class="kw">pub const fn </span>init(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Expression&gt; {
         <span class="self">self</span>.variable.init()
     }
 
     <span class="doccomment">/// Returns `true` if the parameter is a rest parameter.
     </span><span class="attribute">#[must_use]
-    </span><span class="kw">pub fn </span>is_rest_param(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+    </span><span class="kw">pub const fn </span>is_rest_param(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.is_rest_param
     }
 
     <span class="doccomment">/// Returns `true` if the parameter is an identifier.
     </span><span class="attribute">#[must_use]
-    </span><span class="kw">pub fn </span>is_identifier(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+    </span><span class="kw">pub const fn </span>is_identifier(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="macro">matches!</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.variable.binding(), Binding::Identifier(<span class="kw">_</span>))
     }
 }

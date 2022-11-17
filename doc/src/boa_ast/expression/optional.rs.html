@@ -247,10 +247,6 @@
 <span id="247">247</span>
 <span id="248">248</span>
 <span id="249">249</span>
-<span id="250">250</span>
-<span id="251">251</span>
-<span id="252">252</span>
-<span id="253">253</span>
 </pre><pre class="rust"><code><span class="kw">use </span>boa_interner::{Interner, Sym, ToInternedString};
 <span class="kw">use </span>core::ops::ControlFlow;
 
@@ -288,11 +284,9 @@
         </span>V: Visitor&lt;<span class="lifetime">&#39;a</span>&gt;,
     {
         <span class="kw">match </span><span class="self">self </span>{
-            OptionalOperationKind::SimplePropertyAccess { field } =&gt; {
-                visitor.visit_property_access_field(field)
-            }
-            OptionalOperationKind::PrivatePropertyAccess { field } =&gt; visitor.visit_sym(field),
-            OptionalOperationKind::Call { args } =&gt; {
+            <span class="self">Self</span>::SimplePropertyAccess { field } =&gt; visitor.visit_property_access_field(field),
+            <span class="self">Self</span>::PrivatePropertyAccess { field } =&gt; visitor.visit_sym(field),
+            <span class="self">Self</span>::Call { args } =&gt; {
                 <span class="kw">for </span>arg <span class="kw">in </span>args.iter() {
                     <span class="macro">try_break!</span>(visitor.visit_expression(arg));
                 }
@@ -306,11 +300,9 @@
         </span>V: VisitorMut&lt;<span class="lifetime">&#39;a</span>&gt;,
     {
         <span class="kw">match </span><span class="self">self </span>{
-            OptionalOperationKind::SimplePropertyAccess { field } =&gt; {
-                visitor.visit_property_access_field_mut(field)
-            }
-            OptionalOperationKind::PrivatePropertyAccess { field } =&gt; visitor.visit_sym_mut(field),
-            OptionalOperationKind::Call { args } =&gt; {
+            <span class="self">Self</span>::SimplePropertyAccess { field } =&gt; visitor.visit_property_access_field_mut(field),
+            <span class="self">Self</span>::PrivatePropertyAccess { field } =&gt; visitor.visit_sym_mut(field),
+            <span class="self">Self</span>::Call { args } =&gt; {
                 <span class="kw">for </span>arg <span class="kw">in </span>args.iter_mut() {
                     <span class="macro">try_break!</span>(visitor.visit_expression_mut(arg));
                 }
@@ -338,13 +330,13 @@
     <span class="doccomment">/// Creates a new `OptionalOperation`.
     </span><span class="attribute">#[inline]
     #[must_use]
-    </span><span class="kw">pub fn </span>new(kind: OptionalOperationKind, shorted: bool) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub const fn </span>new(kind: OptionalOperationKind, shorted: bool) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{ kind, shorted }
     }
     <span class="doccomment">/// Gets the kind of operation.
     </span><span class="attribute">#[inline]
     #[must_use]
-    </span><span class="kw">pub fn </span>kind(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>OptionalOperationKind {
+    </span><span class="kw">pub const fn </span>kind(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>OptionalOperationKind {
         <span class="kw-2">&amp;</span><span class="self">self</span>.kind
     }
 
@@ -352,7 +344,7 @@
     /// `undefined` or `null`.
     </span><span class="attribute">#[inline]
     #[must_use]
-    </span><span class="kw">pub fn </span>shorted(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+    </span><span class="kw">pub const fn </span>shorted(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.shorted
     }
 }
@@ -489,7 +481,7 @@
 
 <span class="kw">impl </span>From&lt;Optional&gt; <span class="kw">for </span>Expression {
     <span class="kw">fn </span>from(opt: Optional) -&gt; <span class="self">Self </span>{
-        Expression::Optional(opt)
+        <span class="self">Self</span>::Optional(opt)
     }
 }
 

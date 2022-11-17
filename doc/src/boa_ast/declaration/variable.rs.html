@@ -383,10 +383,6 @@
 <span id="383">383</span>
 <span id="384">384</span>
 <span id="385">385</span>
-<span id="386">386</span>
-<span id="387">387</span>
-<span id="388">388</span>
-<span id="389">389</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Variable related declarations.
 
 </span><span class="kw">use </span>core::ops::ControlFlow;
@@ -440,7 +436,7 @@
 
 <span class="kw">impl </span>From&lt;VarDeclaration&gt; <span class="kw">for </span>Statement {
     <span class="kw">fn </span>from(var: VarDeclaration) -&gt; <span class="self">Self </span>{
-        Statement::Var(var)
+        <span class="self">Self</span>::Var(var)
     }
 }
 
@@ -499,16 +495,16 @@
 <span class="kw">impl </span>LexicalDeclaration {
     <span class="doccomment">/// Gets the inner variable list of the `LexicalDeclaration`
     </span><span class="attribute">#[must_use]
-    </span><span class="kw">pub fn </span>variable_list(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>VariableList {
+    </span><span class="kw">pub const fn </span>variable_list(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>VariableList {
         <span class="kw">match </span><span class="self">self </span>{
-            LexicalDeclaration::Const(list) | LexicalDeclaration::Let(list) =&gt; list,
+            <span class="self">Self</span>::Const(list) | <span class="self">Self</span>::Let(list) =&gt; list,
         }
     }
 }
 
 <span class="kw">impl </span>From&lt;LexicalDeclaration&gt; <span class="kw">for </span>Declaration {
     <span class="kw">fn </span>from(lex: LexicalDeclaration) -&gt; <span class="self">Self </span>{
-        Declaration::Lexical(lex)
+        <span class="self">Self</span>::Lexical(lex)
     }
 }
 
@@ -517,8 +513,8 @@
         <span class="macro">format!</span>(
             <span class="string">&quot;{} {}&quot;</span>,
             <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self </span>{
-                LexicalDeclaration::Let(<span class="kw">_</span>) =&gt; <span class="string">&quot;let&quot;</span>,
-                LexicalDeclaration::Const(<span class="kw">_</span>) =&gt; <span class="string">&quot;const&quot;</span>,
+                <span class="self">Self</span>::Let(<span class="kw">_</span>) =&gt; <span class="string">&quot;let&quot;</span>,
+                <span class="self">Self</span>::Const(<span class="kw">_</span>) =&gt; <span class="string">&quot;const&quot;</span>,
             },
             <span class="self">self</span>.variable_list().to_interned_string(interner)
         )
@@ -531,9 +527,7 @@
         </span>V: Visitor&lt;<span class="lifetime">&#39;a</span>&gt;,
     {
         <span class="kw">match </span><span class="self">self </span>{
-            LexicalDeclaration::Const(vars) | LexicalDeclaration::Let(vars) =&gt; {
-                visitor.visit_variable_list(vars)
-            }
+            <span class="self">Self</span>::Const(vars) | <span class="self">Self</span>::Let(vars) =&gt; visitor.visit_variable_list(vars),
         }
     }
 
@@ -542,9 +536,7 @@
         </span>V: VisitorMut&lt;<span class="lifetime">&#39;a</span>&gt;,
     {
         <span class="kw">match </span><span class="self">self </span>{
-            LexicalDeclaration::Const(vars) | LexicalDeclaration::Let(vars) =&gt; {
-                visitor.visit_variable_list_mut(vars)
-            }
+            <span class="self">Self</span>::Const(vars) | <span class="self">Self</span>::Let(vars) =&gt; visitor.visit_variable_list_mut(vars),
         }
     }
 }
@@ -565,7 +557,7 @@
             <span class="kw">return </span><span class="prelude-val">None</span>;
         }
 
-        <span class="prelude-val">Some</span>(VariableList { list })
+        <span class="prelude-val">Some</span>(<span class="self">Self </span>{ list })
     }
 }
 
@@ -617,7 +609,7 @@
     <span class="kw">type </span>Error = TryFromVariableListError;
 
     <span class="kw">fn </span>try_from(value: Box&lt;[Variable]&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <span class="self">Self</span>::Error&gt; {
-        VariableList::new(value).ok_or(TryFromVariableListError(()))
+        <span class="self">Self</span>::new(value).ok_or(TryFromVariableListError(()))
     }
 }
 
@@ -625,7 +617,7 @@
     <span class="kw">type </span>Error = TryFromVariableListError;
 
     <span class="kw">fn </span>try_from(value: Vec&lt;Variable&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <span class="self">Self</span>::Error&gt; {
-        VariableList::try_from(value.into_boxed_slice())
+        <span class="self">Self</span>::try_from(value.into_boxed_slice())
     }
 }
 
@@ -664,7 +656,7 @@
     <span class="doccomment">/// Creates a new variable declaration from a `BindingIdentifier`.
     </span><span class="attribute">#[inline]
     #[must_use]
-    </span><span class="kw">pub fn </span>from_identifier(ident: Identifier, init: <span class="prelude-ty">Option</span>&lt;Expression&gt;) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub const fn </span>from_identifier(ident: Identifier, init: <span class="prelude-ty">Option</span>&lt;Expression&gt;) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             binding: Binding::Identifier(ident),
             init,
@@ -674,7 +666,7 @@
     <span class="doccomment">/// Creates a new variable declaration from a `Pattern`.
     </span><span class="attribute">#[inline]
     #[must_use]
-    </span><span class="kw">pub fn </span>from_pattern(pattern: Pattern, init: <span class="prelude-ty">Option</span>&lt;Expression&gt;) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub const fn </span>from_pattern(pattern: Pattern, init: <span class="prelude-ty">Option</span>&lt;Expression&gt;) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             binding: Binding::Pattern(pattern),
             init,
@@ -682,14 +674,14 @@
     }
     <span class="doccomment">/// Gets the variable declaration binding.
     </span><span class="attribute">#[must_use]
-    </span><span class="kw">pub fn </span>binding(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Binding {
+    </span><span class="kw">pub const fn </span>binding(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Binding {
         <span class="kw-2">&amp;</span><span class="self">self</span>.binding
     }
 
     <span class="doccomment">/// Gets the initialization expression for the variable declaration, if any.
     </span><span class="attribute">#[inline]
     #[must_use]
-    </span><span class="kw">pub fn </span>init(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Expression&gt; {
+    </span><span class="kw">pub const fn </span>init(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Expression&gt; {
         <span class="self">self</span>.init.as_ref()
     }
 }
@@ -749,8 +741,8 @@
 <span class="kw">impl </span>ToInternedString <span class="kw">for </span>Binding {
     <span class="kw">fn </span>to_interned_string(<span class="kw-2">&amp;</span><span class="self">self</span>, interner: <span class="kw-2">&amp;</span>Interner) -&gt; String {
         <span class="kw">match </span><span class="self">self </span>{
-            Binding::Identifier(id) =&gt; id.to_interned_string(interner),
-            Binding::Pattern(<span class="kw-2">ref </span>pattern) =&gt; pattern.to_interned_string(interner),
+            <span class="self">Self</span>::Identifier(id) =&gt; id.to_interned_string(interner),
+            <span class="self">Self</span>::Pattern(<span class="kw-2">ref </span>pattern) =&gt; pattern.to_interned_string(interner),
         }
     }
 }
@@ -761,8 +753,8 @@
         </span>V: Visitor&lt;<span class="lifetime">&#39;a</span>&gt;,
     {
         <span class="kw">match </span><span class="self">self </span>{
-            Binding::Identifier(id) =&gt; visitor.visit_identifier(id),
-            Binding::Pattern(pattern) =&gt; visitor.visit_pattern(pattern),
+            <span class="self">Self</span>::Identifier(id) =&gt; visitor.visit_identifier(id),
+            <span class="self">Self</span>::Pattern(pattern) =&gt; visitor.visit_pattern(pattern),
         }
     }
 
@@ -771,8 +763,8 @@
         </span>V: VisitorMut&lt;<span class="lifetime">&#39;a</span>&gt;,
     {
         <span class="kw">match </span><span class="self">self </span>{
-            Binding::Identifier(id) =&gt; visitor.visit_identifier_mut(id),
-            Binding::Pattern(pattern) =&gt; visitor.visit_pattern_mut(pattern),
+            <span class="self">Self</span>::Identifier(id) =&gt; visitor.visit_identifier_mut(id),
+            <span class="self">Self</span>::Pattern(pattern) =&gt; visitor.visit_pattern_mut(pattern),
         }
     }
 }

@@ -163,21 +163,21 @@
     <span class="doccomment">/// Gets the binary operation of the Expression.
     </span><span class="attribute">#[inline]
     #[must_use]
-    </span><span class="kw">pub fn </span>op(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; BinaryOp {
+    </span><span class="kw">pub const fn </span>op(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; BinaryOp {
         <span class="self">self</span>.op
     }
 
     <span class="doccomment">/// Gets the left hand side of the binary operation.
     </span><span class="attribute">#[inline]
     #[must_use]
-    </span><span class="kw">pub fn </span>lhs(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Expression {
+    </span><span class="kw">pub const fn </span>lhs(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Expression {
         <span class="kw-2">&amp;</span><span class="self">self</span>.lhs
     }
 
     <span class="doccomment">/// Gets the right hand side of the binary operation.
     </span><span class="attribute">#[inline]
     #[must_use]
-    </span><span class="kw">pub fn </span>rhs(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Expression {
+    </span><span class="kw">pub const fn </span>rhs(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Expression {
         <span class="kw-2">&amp;</span><span class="self">self</span>.rhs
     }
 }

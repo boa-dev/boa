@@ -118,20 +118,20 @@
     <span class="doccomment">/// Gets the constructor of the new expression.
     </span><span class="attribute">#[inline]
     #[must_use]
-    </span><span class="kw">pub fn </span>constructor(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Expression {
+    </span><span class="kw">pub const fn </span>constructor(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Expression {
         <span class="self">self</span>.call.function()
     }
 
     <span class="doccomment">/// Retrieves the arguments passed to the constructor.
     </span><span class="attribute">#[inline]
     #[must_use]
-    </span><span class="kw">pub fn </span>arguments(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[Expression] {
+    </span><span class="kw">pub const fn </span>arguments(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[Expression] {
         <span class="self">self</span>.call.args()
     }
 
     <span class="doccomment">/// Returns the inner call expression.
     </span><span class="attribute">#[must_use]
-    </span><span class="kw">pub fn </span>call(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Call {
+    </span><span class="kw">pub const fn </span>call(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Call {
         <span class="kw-2">&amp;</span><span class="self">self</span>.call
     }
 }

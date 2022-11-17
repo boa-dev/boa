@@ -219,21 +219,21 @@
     <span class="doccomment">/// Creates a `Case` AST node.
     </span><span class="attribute">#[inline]
     #[must_use]
-    </span><span class="kw">pub fn </span>new(condition: Expression, body: StatementList) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub const fn </span>new(condition: Expression, body: StatementList) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{ condition, body }
     }
 
     <span class="doccomment">/// Gets the condition of the case.
     </span><span class="attribute">#[inline]
     #[must_use]
-    </span><span class="kw">pub fn </span>condition(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Expression {
+    </span><span class="kw">pub const fn </span>condition(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Expression {
         <span class="kw-2">&amp;</span><span class="self">self</span>.condition
     }
 
     <span class="doccomment">/// Gets the statement listin the body of the case.
     </span><span class="attribute">#[inline]
     #[must_use]
-    </span><span class="kw">pub fn </span>body(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StatementList {
+    </span><span class="kw">pub const fn </span>body(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StatementList {
         <span class="kw-2">&amp;</span><span class="self">self</span>.body
     }
 }
@@ -296,21 +296,21 @@
     <span class="doccomment">/// Gets the value to switch.
     </span><span class="attribute">#[inline]
     #[must_use]
-    </span><span class="kw">pub fn </span>val(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Expression {
+    </span><span class="kw">pub const fn </span>val(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Expression {
         <span class="kw-2">&amp;</span><span class="self">self</span>.val
     }
 
     <span class="doccomment">/// Gets the list of cases for the switch statement.
     </span><span class="attribute">#[inline]
     #[must_use]
-    </span><span class="kw">pub fn </span>cases(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[Case] {
+    </span><span class="kw">pub const fn </span>cases(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[Case] {
         <span class="kw-2">&amp;</span><span class="self">self</span>.cases
     }
 
     <span class="doccomment">/// Gets the default statement list, if any.
     </span><span class="attribute">#[inline]
     #[must_use]
-    </span><span class="kw">pub fn </span>default(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>StatementList&gt; {
+    </span><span class="kw">pub const fn </span>default(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>StatementList&gt; {
         <span class="self">self</span>.default.as_ref()
     }
 }
