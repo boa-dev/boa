@@ -47,7 +47,7 @@ impl ArrayLiteral {
     /// Indicates if a spread operator in the array literal has a trailing comma.
     /// This is a syntax error in some cases.
     #[must_use]
-    pub fn has_trailing_comma_spread(&self) -> bool {
+    pub const fn has_trailing_comma_spread(&self) -> bool {
         self.has_trailing_comma_spread
     }
 

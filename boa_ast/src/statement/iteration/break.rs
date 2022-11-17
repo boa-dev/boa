@@ -28,24 +28,23 @@ pub struct Break {
 impl Break {
     /// Creates a `Break` AST node.
     #[must_use]
-    pub fn new(label: Option<Sym>) -> Self {
+    pub const fn new(label: Option<Sym>) -> Self {
         Self { label }
     }
 
     /// Gets the label of the break statement, if any.
     #[must_use]
-    pub fn label(&self) -> Option<Sym> {
+    pub const fn label(&self) -> Option<Sym> {
         self.label
     }
 }
 
 impl ToInternedString for Break {
     fn to_interned_string(&self, interner: &Interner) -> String {
-        if let Some(label) = self.label {
-            format!("break {}", interner.resolve_expect(label))
-        } else {
-            "break".to_owned()
-        }
+        self.label.map_or_else(
+            || "break".to_owned(),
+            |label| format!("break {}", interner.resolve_expect(label)),
+        )
     }
 }
 

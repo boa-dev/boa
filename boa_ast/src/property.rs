@@ -86,17 +86,17 @@ impl VisitWith for PropertyDefinition {
         V: Visitor<'a>,
     {
         match self {
-            PropertyDefinition::IdentifierReference(id) => visitor.visit_identifier(id),
-            PropertyDefinition::Property(pn, expr) => {
+            Self::IdentifierReference(id) => visitor.visit_identifier(id),
+            Self::Property(pn, expr) => {
                 try_break!(visitor.visit_property_name(pn));
                 visitor.visit_expression(expr)
             }
-            PropertyDefinition::MethodDefinition(pn, md) => {
+            Self::MethodDefinition(pn, md) => {
                 try_break!(visitor.visit_property_name(pn));
                 visitor.visit_method_definition(md)
             }
-            PropertyDefinition::SpreadObject(expr) => visitor.visit_expression(expr),
-            PropertyDefinition::CoverInitializedName(id, expr) => {
+            Self::SpreadObject(expr) => visitor.visit_expression(expr),
+            Self::CoverInitializedName(id, expr) => {
                 try_break!(visitor.visit_identifier(id));
                 visitor.visit_expression(expr)
             }
@@ -108,17 +108,17 @@ impl VisitWith for PropertyDefinition {
         V: VisitorMut<'a>,
     {
         match self {
-            PropertyDefinition::IdentifierReference(id) => visitor.visit_identifier_mut(id),
-            PropertyDefinition::Property(pn, expr) => {
+            Self::IdentifierReference(id) => visitor.visit_identifier_mut(id),
+            Self::Property(pn, expr) => {
                 try_break!(visitor.visit_property_name_mut(pn));
                 visitor.visit_expression_mut(expr)
             }
-            PropertyDefinition::MethodDefinition(pn, md) => {
+            Self::MethodDefinition(pn, md) => {
                 try_break!(visitor.visit_property_name_mut(pn));
                 visitor.visit_method_definition_mut(md)
             }
-            PropertyDefinition::SpreadObject(expr) => visitor.visit_expression_mut(expr),
-            PropertyDefinition::CoverInitializedName(id, expr) => {
+            Self::SpreadObject(expr) => visitor.visit_expression_mut(expr),
+            Self::CoverInitializedName(id, expr) => {
                 try_break!(visitor.visit_identifier_mut(id));
                 visitor.visit_expression_mut(expr)
             }
@@ -219,12 +219,10 @@ impl VisitWith for MethodDefinition {
         V: Visitor<'a>,
     {
         match self {
-            MethodDefinition::Get(f) | MethodDefinition::Set(f) | MethodDefinition::Ordinary(f) => {
-                visitor.visit_function(f)
-            }
-            MethodDefinition::Generator(g) => visitor.visit_generator(g),
-            MethodDefinition::AsyncGenerator(ag) => visitor.visit_async_generator(ag),
-            MethodDefinition::Async(af) => visitor.visit_async_function(af),
+            Self::Get(f) | Self::Set(f) | Self::Ordinary(f) => visitor.visit_function(f),
+            Self::Generator(g) => visitor.visit_generator(g),
+            Self::AsyncGenerator(ag) => visitor.visit_async_generator(ag),
+            Self::Async(af) => visitor.visit_async_function(af),
         }
     }
 
@@ -233,12 +231,10 @@ impl VisitWith for MethodDefinition {
         V: VisitorMut<'a>,
     {
         match self {
-            MethodDefinition::Get(f) | MethodDefinition::Set(f) | MethodDefinition::Ordinary(f) => {
-                visitor.visit_function_mut(f)
-            }
-            MethodDefinition::Generator(g) => visitor.visit_generator_mut(g),
-            MethodDefinition::AsyncGenerator(ag) => visitor.visit_async_generator_mut(ag),
-            MethodDefinition::Async(af) => visitor.visit_async_function_mut(af),
+            Self::Get(f) | Self::Set(f) | Self::Ordinary(f) => visitor.visit_function_mut(f),
+            Self::Generator(g) => visitor.visit_generator_mut(g),
+            Self::AsyncGenerator(ag) => visitor.visit_async_generator_mut(ag),
+            Self::Async(af) => visitor.visit_async_function_mut(af),
         }
     }
 }
@@ -273,7 +269,7 @@ pub enum PropertyName {
 impl PropertyName {
     /// Returns the literal property name if it exists.
     #[must_use]
-    pub fn literal(&self) -> Option<Sym> {
+    pub const fn literal(&self) -> Option<Sym> {
         if let Self::Literal(sym) = self {
             Some(*sym)
         } else {
@@ -283,7 +279,7 @@ impl PropertyName {
 
     /// Returns the expression if the property name is computed.
     #[must_use]
-    pub fn computed(&self) -> Option<&Expression> {
+    pub const fn computed(&self) -> Option<&Expression> {
         if let Self::Computed(expr) = self {
             Some(expr)
         } else {
@@ -293,11 +289,12 @@ impl PropertyName {
 
     /// Returns either the literal property name or the computed const string property name.
     #[must_use]
-    pub fn prop_name(&self) -> Option<Sym> {
+    pub const fn prop_name(&self) -> Option<Sym> {
         match self {
-            PropertyName::Literal(sym)
-            | PropertyName::Computed(Expression::Literal(Literal::String(sym))) => Some(*sym),
-            PropertyName::Computed(_) => None,
+            Self::Literal(sym) | Self::Computed(Expression::Literal(Literal::String(sym))) => {
+                Some(*sym)
+            }
+            Self::Computed(_) => None,
         }
     }
 }
@@ -305,8 +302,8 @@ impl PropertyName {
 impl ToInternedString for PropertyName {
     fn to_interned_string(&self, interner: &Interner) -> String {
         match self {
-            PropertyName::Literal(key) => interner.resolve_expect(*key).to_string(),
-            PropertyName::Computed(key) => key.to_interned_string(interner),
+            Self::Literal(key) => interner.resolve_expect(*key).to_string(),
+            Self::Computed(key) => key.to_interned_string(interner),
         }
     }
 }
@@ -329,8 +326,8 @@ impl VisitWith for PropertyName {
         V: Visitor<'a>,
     {
         match self {
-            PropertyName::Literal(sym) => visitor.visit_sym(sym),
-            PropertyName::Computed(expr) => visitor.visit_expression(expr),
+            Self::Literal(sym) => visitor.visit_sym(sym),
+            Self::Computed(expr) => visitor.visit_expression(expr),
         }
     }
 
@@ -339,8 +336,8 @@ impl VisitWith for PropertyName {
         V: VisitorMut<'a>,
     {
         match self {
-            PropertyName::Literal(sym) => visitor.visit_sym_mut(sym),
-            PropertyName::Computed(expr) => visitor.visit_expression_mut(expr),
+            Self::Literal(sym) => visitor.visit_sym_mut(sym),
+            Self::Computed(expr) => visitor.visit_expression_mut(expr),
         }
     }
 }

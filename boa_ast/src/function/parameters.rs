@@ -81,46 +81,46 @@ impl FormalParameterList {
     /// Returns the length of the parameter list.
     /// Note that this is not equal to the length of the parameters slice.
     #[must_use]
-    pub fn length(&self) -> u32 {
+    pub const fn length(&self) -> u32 {
         self.length
     }
 
     /// Returns the parameter list flags.
     #[must_use]
-    pub fn flags(&self) -> FormalParameterListFlags {
+    pub const fn flags(&self) -> FormalParameterListFlags {
         self.flags
     }
 
     /// Indicates if the parameter list is simple.
     #[must_use]
-    pub fn is_simple(&self) -> bool {
+    pub const fn is_simple(&self) -> bool {
         self.flags.contains(FormalParameterListFlags::IS_SIMPLE)
     }
 
     /// Indicates if the parameter list has duplicate parameters.
     #[must_use]
-    pub fn has_duplicates(&self) -> bool {
+    pub const fn has_duplicates(&self) -> bool {
         self.flags
             .contains(FormalParameterListFlags::HAS_DUPLICATES)
     }
 
     /// Indicates if the parameter list has a rest parameter.
     #[must_use]
-    pub fn has_rest_parameter(&self) -> bool {
+    pub const fn has_rest_parameter(&self) -> bool {
         self.flags
             .contains(FormalParameterListFlags::HAS_REST_PARAMETER)
     }
 
     /// Indicates if the parameter list has expressions in it's parameters.
     #[must_use]
-    pub fn has_expressions(&self) -> bool {
+    pub const fn has_expressions(&self) -> bool {
         self.flags
             .contains(FormalParameterListFlags::HAS_EXPRESSIONS)
     }
 
     /// Indicates if the parameter list has parameters named 'arguments'.
     #[must_use]
-    pub fn has_arguments(&self) -> bool {
+    pub const fn has_arguments(&self) -> bool {
         self.flags.contains(FormalParameterListFlags::HAS_ARGUMENTS)
     }
 }
@@ -235,25 +235,25 @@ impl FormalParameter {
 
     /// Gets the variable of the formal parameter
     #[must_use]
-    pub fn variable(&self) -> &Variable {
+    pub const fn variable(&self) -> &Variable {
         &self.variable
     }
 
     /// Gets the initialization node of the formal parameter, if any.
     #[must_use]
-    pub fn init(&self) -> Option<&Expression> {
+    pub const fn init(&self) -> Option<&Expression> {
         self.variable.init()
     }
 
     /// Returns `true` if the parameter is a rest parameter.
     #[must_use]
-    pub fn is_rest_param(&self) -> bool {
+    pub const fn is_rest_param(&self) -> bool {
         self.is_rest_param
     }
 
     /// Returns `true` if the parameter is an identifier.
     #[must_use]
-    pub fn is_identifier(&self) -> bool {
+    pub const fn is_identifier(&self) -> bool {
         matches!(&self.variable.binding(), Binding::Identifier(_))
     }
 }

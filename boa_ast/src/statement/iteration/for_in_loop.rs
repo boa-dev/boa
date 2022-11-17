@@ -38,21 +38,21 @@ impl ForInLoop {
     /// Gets the initializer of the for...in loop.
     #[inline]
     #[must_use]
-    pub fn initializer(&self) -> &IterableLoopInitializer {
+    pub const fn initializer(&self) -> &IterableLoopInitializer {
         &self.initializer
     }
 
     /// Gets the target object of the for...in loop.
     #[inline]
     #[must_use]
-    pub fn target(&self) -> &Expression {
+    pub const fn target(&self) -> &Expression {
         &self.target
     }
 
     /// Gets the body of the for...in loop.
     #[inline]
     #[must_use]
-    pub fn body(&self) -> &Statement {
+    pub const fn body(&self) -> &Statement {
         &self.body
     }
 }

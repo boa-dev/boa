@@ -31,14 +31,14 @@ impl DoWhileLoop {
     /// Gets the body of the do-while loop.
     #[inline]
     #[must_use]
-    pub fn body(&self) -> &Statement {
+    pub const fn body(&self) -> &Statement {
         &self.body
     }
 
     /// Gets the condition of the do-while loop.
     #[inline]
     #[must_use]
-    pub fn cond(&self) -> &Expression {
+    pub const fn cond(&self) -> &Expression {
         &self.condition
     }
     /// Creates a `DoWhileLoop` AST node.

@@ -29,8 +29,8 @@ pub enum LabelledItem {
 impl LabelledItem {
     pub(crate) fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
         match self {
-            LabelledItem::Function(f) => f.to_indented_string(interner, indentation),
-            LabelledItem::Statement(stmt) => stmt.to_indented_string(interner, indentation),
+            Self::Function(f) => f.to_indented_string(interner, indentation),
+            Self::Statement(stmt) => stmt.to_indented_string(interner, indentation),
         }
     }
 }
@@ -59,8 +59,8 @@ impl VisitWith for LabelledItem {
         V: Visitor<'a>,
     {
         match self {
-            LabelledItem::Function(f) => visitor.visit_function(f),
-            LabelledItem::Statement(s) => visitor.visit_statement(s),
+            Self::Function(f) => visitor.visit_function(f),
+            Self::Statement(s) => visitor.visit_statement(s),
         }
     }
 
@@ -69,8 +69,8 @@ impl VisitWith for LabelledItem {
         V: VisitorMut<'a>,
     {
         match self {
-            LabelledItem::Function(f) => visitor.visit_function_mut(f),
-            LabelledItem::Statement(s) => visitor.visit_statement_mut(s),
+            Self::Function(f) => visitor.visit_function_mut(f),
+            Self::Statement(s) => visitor.visit_statement_mut(s),
         }
     }
 }
@@ -101,13 +101,13 @@ impl Labelled {
 
     /// Gets the labelled item.
     #[must_use]
-    pub fn item(&self) -> &LabelledItem {
+    pub const fn item(&self) -> &LabelledItem {
         &self.item
     }
 
     /// Gets the label name.
     #[must_use]
-    pub fn label(&self) -> Sym {
+    pub const fn label(&self) -> Sym {
         self.label
     }
 

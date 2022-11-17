@@ -33,7 +33,7 @@ impl Spread {
     /// Gets the target expression to be expanded by the spread operator.
     #[inline]
     #[must_use]
-    pub fn target(&self) -> &Expression {
+    pub const fn target(&self) -> &Expression {
         &self.target
     }
 

@@ -30,7 +30,7 @@ pub enum StatementListItem {
 impl StatementListItem {
     /// Returns a node ordering based on the hoistability of each statement.
     #[must_use]
-    pub fn hoistable_order(a: &Self, b: &Self) -> Ordering {
+    pub const fn hoistable_order(a: &Self, b: &Self) -> Ordering {
         match (a, b) {
             (
                 Self::Declaration(Declaration::Function(_)),
@@ -59,10 +59,10 @@ impl ToIndentedString for StatementListItem {
         let mut buf = "    ".repeat(indentation);
 
         match self {
-            StatementListItem::Statement(stmt) => {
+            Self::Statement(stmt) => {
                 buf.push_str(&stmt.to_no_indent_string(interner, indentation));
             }
-            StatementListItem::Declaration(decl) => {
+            Self::Declaration(decl) => {
                 buf.push_str(&decl.to_indented_string(interner, indentation));
             }
         }
@@ -74,14 +74,14 @@ impl ToIndentedString for StatementListItem {
 impl From<Statement> for StatementListItem {
     #[inline]
     fn from(stmt: Statement) -> Self {
-        StatementListItem::Statement(stmt)
+        Self::Statement(stmt)
     }
 }
 
 impl From<Declaration> for StatementListItem {
     #[inline]
     fn from(decl: Declaration) -> Self {
-        StatementListItem::Declaration(decl)
+        Self::Declaration(decl)
     }
 }
 
@@ -91,8 +91,8 @@ impl VisitWith for StatementListItem {
         V: Visitor<'a>,
     {
         match self {
-            StatementListItem::Statement(statement) => visitor.visit_statement(statement),
-            StatementListItem::Declaration(declaration) => visitor.visit_declaration(declaration),
+            Self::Statement(statement) => visitor.visit_statement(statement),
+            Self::Declaration(declaration) => visitor.visit_declaration(declaration),
         }
     }
 
@@ -101,10 +101,8 @@ impl VisitWith for StatementListItem {
         V: VisitorMut<'a>,
     {
         match self {
-            StatementListItem::Statement(statement) => visitor.visit_statement_mut(statement),
-            StatementListItem::Declaration(declaration) => {
-                visitor.visit_declaration_mut(declaration)
-            }
+            Self::Statement(statement) => visitor.visit_statement_mut(statement),
+            Self::Declaration(declaration) => visitor.visit_declaration_mut(declaration),
         }
     }
 }
@@ -126,14 +124,14 @@ impl StatementList {
     /// Gets the list of statements.
     #[inline]
     #[must_use]
-    pub fn statements(&self) -> &[StatementListItem] {
+    pub const fn statements(&self) -> &[StatementListItem] {
         &self.statements
     }
 
     /// Get the strict mode.
     #[inline]
     #[must_use]
-    pub fn strict(&self) -> bool {
+    pub const fn strict(&self) -> bool {
         self.strict
     }
 

@@ -35,11 +35,9 @@ impl VisitWith for OptionalOperationKind {
         V: Visitor<'a>,
     {
         match self {
-            OptionalOperationKind::SimplePropertyAccess { field } => {
-                visitor.visit_property_access_field(field)
-            }
-            OptionalOperationKind::PrivatePropertyAccess { field } => visitor.visit_sym(field),
-            OptionalOperationKind::Call { args } => {
+            Self::SimplePropertyAccess { field } => visitor.visit_property_access_field(field),
+            Self::PrivatePropertyAccess { field } => visitor.visit_sym(field),
+            Self::Call { args } => {
                 for arg in args.iter() {
                     try_break!(visitor.visit_expression(arg));
                 }
@@ -53,11 +51,9 @@ impl VisitWith for OptionalOperationKind {
         V: VisitorMut<'a>,
     {
         match self {
-            OptionalOperationKind::SimplePropertyAccess { field } => {
-                visitor.visit_property_access_field_mut(field)
-            }
-            OptionalOperationKind::PrivatePropertyAccess { field } => visitor.visit_sym_mut(field),
-            OptionalOperationKind::Call { args } => {
+            Self::SimplePropertyAccess { field } => visitor.visit_property_access_field_mut(field),
+            Self::PrivatePropertyAccess { field } => visitor.visit_sym_mut(field),
+            Self::Call { args } => {
                 for arg in args.iter_mut() {
                     try_break!(visitor.visit_expression_mut(arg));
                 }
@@ -85,13 +81,13 @@ impl OptionalOperation {
     /// Creates a new `OptionalOperation`.
     #[inline]
     #[must_use]
-    pub fn new(kind: OptionalOperationKind, shorted: bool) -> Self {
+    pub const fn new(kind: OptionalOperationKind, shorted: bool) -> Self {
         Self { kind, shorted }
     }
     /// Gets the kind of operation.
     #[inline]
     #[must_use]
-    pub fn kind(&self) -> &OptionalOperationKind {
+    pub const fn kind(&self) -> &OptionalOperationKind {
         &self.kind
     }
 
@@ -99,7 +95,7 @@ impl OptionalOperation {
     /// `undefined` or `null`.
     #[inline]
     #[must_use]
-    pub fn shorted(&self) -> bool {
+    pub const fn shorted(&self) -> bool {
         self.shorted
     }
 }
@@ -236,7 +232,7 @@ impl Optional {
 
 impl From<Optional> for Expression {
     fn from(opt: Optional) -> Self {
-        Expression::Optional(opt)
+        Self::Optional(opt)
     }
 }
 

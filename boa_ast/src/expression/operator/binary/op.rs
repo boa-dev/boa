@@ -61,7 +61,7 @@ impl From<LogicalOp> for BinaryOp {
 
 impl BinaryOp {
     /// Retrieves the operation as a static string.
-    fn as_str(self) -> &'static str {
+    const fn as_str(self) -> &'static str {
         match self {
             Self::Arithmetic(ref op) => op.as_str(),
             Self::Bitwise(ref op) => op.as_str(),
@@ -171,7 +171,7 @@ pub enum ArithmeticOp {
 
 impl ArithmeticOp {
     /// Retrieves the operation as a static string.
-    fn as_str(self) -> &'static str {
+    const fn as_str(self) -> &'static str {
         match self {
             Self::Add => "+",
             Self::Sub => "-",
@@ -287,7 +287,7 @@ pub enum BitwiseOp {
 
 impl BitwiseOp {
     /// Retrieves the operation as a static string.
-    fn as_str(self) -> &'static str {
+    const fn as_str(self) -> &'static str {
         match self {
             Self::And => "&",
             Self::Or => "|",
@@ -481,7 +481,7 @@ pub enum RelationalOp {
 
 impl RelationalOp {
     /// Retrieves the operation as a static string.
-    fn as_str(self) -> &'static str {
+    const fn as_str(self) -> &'static str {
         match self {
             Self::Equal => "==",
             Self::NotEqual => "!=",
@@ -561,7 +561,7 @@ pub enum LogicalOp {
 
 impl LogicalOp {
     /// Retrieves the operation as a static string.
-    fn as_str(self) -> &'static str {
+    const fn as_str(self) -> &'static str {
         match self {
             Self::And => "&&",
             Self::Or => "||",
