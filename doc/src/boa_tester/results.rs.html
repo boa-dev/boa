@@ -515,7 +515,11 @@
 <span id="513">513</span>
 <span id="514">514</span>
 <span id="515">515</span>
+<span id="516">516</span>
+<span id="517">517</span>
+<span id="518">518</span>
 </pre><pre class="rust"><code><span class="kw">use </span><span class="kw">super</span>::SuiteResult;
+<span class="kw">use </span>color_eyre::{eyre::WrapErr, <span class="prelude-ty">Result</span>};
 <span class="kw">use </span>serde::{Deserialize, Serialize};
 <span class="kw">use </span>std::{
     env, fs,
@@ -725,16 +729,16 @@
 }
 
 <span class="doccomment">/// Compares the results of two test suite runs.
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>compare_results(base: <span class="kw-2">&amp;</span>Path, new: <span class="kw-2">&amp;</span>Path, markdown: bool) {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>compare_results(base: <span class="kw-2">&amp;</span>Path, new: <span class="kw-2">&amp;</span>Path, markdown: bool) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
     <span class="kw">let </span>base_results: ResultInfo = serde_json::from_reader(BufReader::new(
-        fs::File::open(base).expect(<span class="string">&quot;could not open the base results file&quot;</span>),
+        fs::File::open(base).wrap_err(<span class="string">&quot;could not open the base results file&quot;</span>)<span class="question-mark">?</span>,
     ))
-    .expect(<span class="string">&quot;could not read the base results&quot;</span>);
+    .wrap_err(<span class="string">&quot;could not read the base results&quot;</span>)<span class="question-mark">?</span>;
 
     <span class="kw">let </span>new_results: ResultInfo = serde_json::from_reader(BufReader::new(
-        fs::File::open(new).expect(<span class="string">&quot;could not open the new results file&quot;</span>),
+        fs::File::open(new).wrap_err(<span class="string">&quot;could not open the new results file&quot;</span>)<span class="question-mark">?</span>,
     ))
-    .expect(<span class="string">&quot;could not read the new results&quot;</span>);
+    .wrap_err(<span class="string">&quot;could not read the new results&quot;</span>)<span class="question-mark">?</span>;
 
     <span class="kw">let </span>base_total = base_results.results.total <span class="kw">as </span>isize;
     <span class="kw">let </span>new_total = new_results.results.total <span class="kw">as </span>isize;
@@ -950,6 +954,8 @@
             }
         }
     }
+
+    <span class="prelude-val">Ok</span>(())
 }
 
 <span class="doccomment">/// Test differences.

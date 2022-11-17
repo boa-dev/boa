@@ -409,36 +409,16 @@
 <span id="407">407</span>
 <span id="408">408</span>
 <span id="409">409</span>
-<span id="410">410</span>
-<span id="411">411</span>
-<span id="412">412</span>
-<span id="413">413</span>
-<span id="414">414</span>
-<span id="415">415</span>
-<span id="416">416</span>
-<span id="417">417</span>
-<span id="418">418</span>
-<span id="419">419</span>
-<span id="420">420</span>
-<span id="421">421</span>
-<span id="422">422</span>
-<span id="423">423</span>
-<span id="424">424</span>
-<span id="425">425</span>
-<span id="426">426</span>
-<span id="427">427</span>
-<span id="428">428</span>
-<span id="429">429</span>
-<span id="430">430</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Execution module for the test runner.
 
 </span><span class="kw">mod </span>js262;
 
+<span class="kw">use </span>std::borrow::Cow;
+
 <span class="kw">use </span><span class="kw">crate</span>::read::ErrorType;
 
 <span class="kw">use super</span>::{
-    Harness, Outcome, Phase, SuiteResult, Test, TestFlags, TestOutcomeResult, TestResult,
-    TestSuite, IGNORED,
+    Harness, Outcome, Phase, SuiteResult, Test, TestFlags, TestOutcomeResult, TestResult, TestSuite,
 };
 <span class="kw">use </span>boa_engine::{
     builtins::JsArgs, object::FunctionBuilder, property::Attribute, Context, JsNativeErrorKind,
@@ -562,180 +542,7 @@
 
     <span class="doccomment">/// Runs the test once, in strict or non-strict mode
     </span><span class="kw">fn </span>run_once(<span class="kw-2">&amp;</span><span class="self">self</span>, harness: <span class="kw-2">&amp;</span>Harness, strict: bool, verbose: u8) -&gt; TestResult {
-        <span class="kw">if </span>verbose &gt; <span class="number">1 </span>{
-            <span class="macro">println!</span>(
-                <span class="string">&quot;`{}`{}: starting&quot;</span>,
-                <span class="self">self</span>.name,
-                <span class="kw">if </span>strict { <span class="string">&quot; (strict mode)&quot; </span>} <span class="kw">else </span>{ <span class="string">&quot;&quot; </span>}
-            );
-        }
-
-        <span class="kw">let </span>test_content = <span class="kw">if </span>strict {
-            <span class="macro">format!</span>(<span class="string">&quot;\&quot;use strict\&quot;;\n{}&quot;</span>, <span class="self">self</span>.content)
-        } <span class="kw">else </span>{
-            <span class="self">self</span>.content.to_string()
-        };
-
-        <span class="kw">let </span>(result, result_text) = <span class="kw">if </span>!IGNORED.contains_any_flag(<span class="self">self</span>.flags)
-            &amp;&amp; !IGNORED.contains_test(<span class="kw-2">&amp;</span><span class="self">self</span>.name)
-            &amp;&amp; !IGNORED.contains_any_feature(<span class="kw-2">&amp;</span><span class="self">self</span>.features)
-            &amp;&amp; (<span class="macro">matches!</span>(<span class="self">self</span>.expected_outcome, Outcome::Positive)
-                || <span class="macro">matches!</span>(
-                    <span class="self">self</span>.expected_outcome,
-                    Outcome::Negative {
-                        phase: Phase::Parse,
-                        error_type: <span class="kw">_</span>,
-                    }
-                )
-                || <span class="macro">matches!</span>(
-                    <span class="self">self</span>.expected_outcome,
-                    Outcome::Negative {
-                        phase: Phase::Early,
-                        error_type: <span class="kw">_</span>,
-                    }
-                )
-                || <span class="macro">matches!</span>(
-                    <span class="self">self</span>.expected_outcome,
-                    Outcome::Negative {
-                        phase: Phase::Runtime,
-                        error_type: <span class="kw">_</span>,
-                    }
-                )) {
-            <span class="kw">let </span>res = std::panic::catch_unwind(|| <span class="kw">match </span><span class="self">self</span>.expected_outcome {
-                Outcome::Positive =&gt; {
-                    <span class="kw">let </span><span class="kw-2">mut </span>context = Context::default();
-                    <span class="kw">let </span>async_result = AsyncResult::default();
-
-                    <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = <span class="self">self</span>.set_up_env(harness, <span class="kw-2">&amp;mut </span>context, async_result.clone()) {
-                        <span class="kw">return </span>(<span class="bool-val">false</span>, e);
-                    }
-
-                    <span class="comment">// TODO: timeout
-                    </span><span class="kw">let </span>value = <span class="kw">match </span>context.eval(<span class="kw-2">&amp;</span>test_content) {
-                        <span class="prelude-val">Ok</span>(v) =&gt; v,
-                        <span class="prelude-val">Err</span>(e) =&gt; <span class="kw">return </span>(<span class="bool-val">false</span>, <span class="macro">format!</span>(<span class="string">&quot;Uncaught {e}&quot;</span>)),
-                    };
-
-                    <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = async_result.inner.borrow().as_ref() {
-                        <span class="kw">return </span>(<span class="bool-val">false</span>, <span class="macro">format!</span>(<span class="string">&quot;Uncaught {e}&quot;</span>));
-                    }
-
-                    (<span class="bool-val">true</span>, value.display().to_string())
-                }
-                Outcome::Negative {
-                    phase: Phase::Parse | Phase::Early,
-                    error_type,
-                } =&gt; {
-                    <span class="macro">assert_eq!</span>(
-                        error_type,
-                        ErrorType::SyntaxError,
-                        <span class="string">&quot;non-SyntaxError parsing/early error found in {}&quot;</span>,
-                        <span class="self">self</span>.name
-                    );
-
-                    <span class="kw">let </span><span class="kw-2">mut </span>context = Context::default();
-                    <span class="kw">match </span>context.parse(<span class="kw-2">&amp;</span>test_content) {
-                        <span class="prelude-val">Ok</span>(statement_list) =&gt; <span class="kw">match </span>context.compile(<span class="kw-2">&amp;</span>statement_list) {
-                            <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; (<span class="bool-val">false</span>, <span class="string">&quot;StatementList compilation should fail&quot;</span>.to_owned()),
-                            <span class="prelude-val">Err</span>(e) =&gt; (<span class="bool-val">true</span>, <span class="macro">format!</span>(<span class="string">&quot;Uncaught {e:?}&quot;</span>)),
-                        },
-                        <span class="prelude-val">Err</span>(e) =&gt; (<span class="bool-val">true</span>, <span class="macro">format!</span>(<span class="string">&quot;Uncaught {e}&quot;</span>)),
-                    }
-                }
-                Outcome::Negative {
-                    phase: Phase::Resolution,
-                    error_type: <span class="kw">_</span>,
-                } =&gt; <span class="macro">todo!</span>(<span class="string">&quot;check module resolution errors&quot;</span>),
-                Outcome::Negative {
-                    phase: Phase::Runtime,
-                    error_type,
-                } =&gt; {
-                    <span class="kw">let </span><span class="kw-2">mut </span>context = Context::default();
-                    <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = <span class="self">self</span>.set_up_env(harness, <span class="kw-2">&amp;mut </span>context, AsyncResult::default()) {
-                        <span class="kw">return </span>(<span class="bool-val">false</span>, e);
-                    }
-                    <span class="kw">let </span>code = <span class="kw">match </span>Parser::new(test_content.as_bytes())
-                        .parse_all(context.interner_mut())
-                        .map_err(Into::into)
-                        .and_then(|stmts| context.compile(<span class="kw-2">&amp;</span>stmts))
-                    {
-                        <span class="prelude-val">Ok</span>(code) =&gt; code,
-                        <span class="prelude-val">Err</span>(e) =&gt; <span class="kw">return </span>(<span class="bool-val">false</span>, <span class="macro">format!</span>(<span class="string">&quot;Uncaught {e}&quot;</span>)),
-                    };
-
-                    <span class="comment">// TODO: timeout
-                    </span><span class="kw">let </span>e = <span class="kw">match </span>context.execute(code) {
-                        <span class="prelude-val">Ok</span>(res) =&gt; <span class="kw">return </span>(<span class="bool-val">false</span>, res.display().to_string()),
-                        <span class="prelude-val">Err</span>(e) =&gt; e,
-                    };
-                    <span class="kw">if let </span><span class="prelude-val">Ok</span>(e) = e.try_native(<span class="kw-2">&amp;mut </span>context) {
-                        <span class="kw">match </span><span class="kw-2">&amp;</span>e.kind {
-                            JsNativeErrorKind::Syntax <span class="kw">if </span>error_type == ErrorType::SyntaxError =&gt; {}
-                            JsNativeErrorKind::Reference
-                                <span class="kw">if </span>error_type == ErrorType::ReferenceError =&gt; {}
-                            JsNativeErrorKind::Range <span class="kw">if </span>error_type == ErrorType::RangeError =&gt; {}
-                            JsNativeErrorKind::Type <span class="kw">if </span>error_type == ErrorType::TypeError =&gt; {}
-                            <span class="kw">_ </span>=&gt; <span class="kw">return </span>(<span class="bool-val">false</span>, <span class="macro">format!</span>(<span class="string">&quot;Uncaught {e}&quot;</span>)),
-                        }
-                        (<span class="bool-val">true</span>, <span class="macro">format!</span>(<span class="string">&quot;Uncaught {e}&quot;</span>))
-                    } <span class="kw">else </span>{
-                        <span class="kw">let </span>passed = e
-                            .as_opaque()
-                            .expect(<span class="string">&quot;try_native cannot fail if e is not opaque&quot;</span>)
-                            .as_object()
-                            .and_then(|o| o.get(<span class="string">&quot;constructor&quot;</span>, <span class="kw-2">&amp;mut </span>context).ok())
-                            .as_ref()
-                            .and_then(JsValue::as_object)
-                            .and_then(|o| o.get(<span class="string">&quot;name&quot;</span>, <span class="kw-2">&amp;mut </span>context).ok())
-                            .as_ref()
-                            .and_then(JsValue::as_string)
-                            .map(|s| s == error_type.as_str())
-                            .unwrap_or_default();
-                        (passed, <span class="macro">format!</span>(<span class="string">&quot;Uncaught {e}&quot;</span>))
-                    }
-                }
-            });
-
-            <span class="kw">let </span>result = res.map_or_else(
-                |<span class="kw">_</span>| {
-                    <span class="macro">eprintln!</span>(<span class="string">&quot;last panic was on test \&quot;{}\&quot;&quot;</span>, <span class="self">self</span>.name);
-                    (TestOutcomeResult::Panic, String::new())
-                },
-                |(res, text)| {
-                    <span class="kw">if </span>res {
-                        (TestOutcomeResult::Passed, text)
-                    } <span class="kw">else </span>{
-                        (TestOutcomeResult::Failed, text)
-                    }
-                },
-            );
-
-            <span class="kw">if </span>verbose &gt; <span class="number">1 </span>{
-                <span class="macro">println!</span>(
-                    <span class="string">&quot;`{}`{}: {}&quot;</span>,
-                    <span class="self">self</span>.name,
-                    <span class="kw">if </span>strict { <span class="string">&quot; (strict mode)&quot; </span>} <span class="kw">else </span>{ <span class="string">&quot;&quot; </span>},
-                    <span class="kw">if </span><span class="macro">matches!</span>(result, (TestOutcomeResult::Passed, <span class="kw">_</span>)) {
-                        <span class="string">&quot;Passed&quot;</span>.green()
-                    } <span class="kw">else if </span><span class="macro">matches!</span>(result, (TestOutcomeResult::Failed, <span class="kw">_</span>)) {
-                        <span class="string">&quot;Failed&quot;</span>.red()
-                    } <span class="kw">else </span>{
-                        <span class="string">&quot;⚠ Panic ⚠&quot;</span>.red()
-                    }
-                );
-            } <span class="kw">else </span>{
-                <span class="macro">print!</span>(
-                    <span class="string">&quot;{}&quot;</span>,
-                    <span class="kw">if </span><span class="macro">matches!</span>(result, (TestOutcomeResult::Passed, <span class="kw">_</span>)) {
-                        <span class="string">&quot;.&quot;</span>.green()
-                    } <span class="kw">else </span>{
-                        <span class="string">&quot;F&quot;</span>.red()
-                    }
-                );
-            }
-
-            result
-        } <span class="kw">else </span>{
+        <span class="kw">if </span><span class="self">self</span>.ignored {
             <span class="kw">if </span>verbose &gt; <span class="number">1 </span>{
                 <span class="macro">println!</span>(
                     <span class="string">&quot;`{}`{}: {}&quot;</span>,
@@ -746,8 +553,159 @@
             } <span class="kw">else </span>{
                 <span class="macro">print!</span>(<span class="string">&quot;{}&quot;</span>, <span class="string">&quot;-&quot;</span>.yellow());
             }
-            (TestOutcomeResult::Ignored, String::new())
+            <span class="kw">return </span>TestResult {
+                name: <span class="self">self</span>.name.clone(),
+                strict,
+                result: TestOutcomeResult::Ignored,
+                result_text: Box::default(),
+            };
+        }
+        <span class="kw">if </span>verbose &gt; <span class="number">1 </span>{
+            <span class="macro">println!</span>(
+                <span class="string">&quot;`{}`{}: starting&quot;</span>,
+                <span class="self">self</span>.name,
+                <span class="kw">if </span>strict { <span class="string">&quot; (strict mode)&quot; </span>} <span class="kw">else </span>{ <span class="string">&quot;&quot; </span>}
+            );
+        }
+
+        <span class="kw">let </span>test_content = <span class="kw">if </span>strict {
+            Cow::Owned(<span class="macro">format!</span>(<span class="string">&quot;\&quot;use strict\&quot;;\n{}&quot;</span>, <span class="self">self</span>.content))
+        } <span class="kw">else </span>{
+            Cow::Borrowed(<span class="kw-2">&amp;*</span><span class="self">self</span>.content)
         };
+
+        <span class="kw">let </span>result = std::panic::catch_unwind(|| <span class="kw">match </span><span class="self">self</span>.expected_outcome {
+            Outcome::Positive =&gt; {
+                <span class="kw">let </span><span class="kw-2">mut </span>context = Context::default();
+                <span class="kw">let </span>async_result = AsyncResult::default();
+
+                <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = <span class="self">self</span>.set_up_env(harness, <span class="kw-2">&amp;mut </span>context, async_result.clone()) {
+                    <span class="kw">return </span>(<span class="bool-val">false</span>, e);
+                }
+
+                <span class="comment">// TODO: timeout
+                </span><span class="kw">let </span>value = <span class="kw">match </span>context.eval(<span class="kw-2">&amp;*</span>test_content) {
+                    <span class="prelude-val">Ok</span>(v) =&gt; v,
+                    <span class="prelude-val">Err</span>(e) =&gt; <span class="kw">return </span>(<span class="bool-val">false</span>, <span class="macro">format!</span>(<span class="string">&quot;Uncaught {e}&quot;</span>)),
+                };
+
+                <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = async_result.inner.borrow().as_ref() {
+                    <span class="kw">return </span>(<span class="bool-val">false</span>, <span class="macro">format!</span>(<span class="string">&quot;Uncaught {e}&quot;</span>));
+                }
+
+                (<span class="bool-val">true</span>, value.display().to_string())
+            }
+            Outcome::Negative {
+                phase: Phase::Parse | Phase::Early,
+                error_type,
+            } =&gt; {
+                <span class="macro">assert_eq!</span>(
+                    error_type,
+                    ErrorType::SyntaxError,
+                    <span class="string">&quot;non-SyntaxError parsing/early error found in {}&quot;</span>,
+                    <span class="self">self</span>.name
+                );
+
+                <span class="kw">let </span><span class="kw-2">mut </span>context = Context::default();
+                <span class="kw">match </span>context.parse(<span class="kw-2">&amp;*</span>test_content) {
+                    <span class="prelude-val">Ok</span>(statement_list) =&gt; <span class="kw">match </span>context.compile(<span class="kw-2">&amp;</span>statement_list) {
+                        <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; (<span class="bool-val">false</span>, <span class="string">&quot;StatementList compilation should fail&quot;</span>.to_owned()),
+                        <span class="prelude-val">Err</span>(e) =&gt; (<span class="bool-val">true</span>, <span class="macro">format!</span>(<span class="string">&quot;Uncaught {e:?}&quot;</span>)),
+                    },
+                    <span class="prelude-val">Err</span>(e) =&gt; (<span class="bool-val">true</span>, <span class="macro">format!</span>(<span class="string">&quot;Uncaught {e}&quot;</span>)),
+                }
+            }
+            Outcome::Negative {
+                phase: Phase::Resolution,
+                error_type: <span class="kw">_</span>,
+            } =&gt; <span class="macro">todo!</span>(<span class="string">&quot;check module resolution errors&quot;</span>),
+            Outcome::Negative {
+                phase: Phase::Runtime,
+                error_type,
+            } =&gt; {
+                <span class="kw">let </span><span class="kw-2">mut </span>context = Context::default();
+                <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = <span class="self">self</span>.set_up_env(harness, <span class="kw-2">&amp;mut </span>context, AsyncResult::default()) {
+                    <span class="kw">return </span>(<span class="bool-val">false</span>, e);
+                }
+                <span class="kw">let </span>code = <span class="kw">match </span>Parser::new(test_content.as_bytes())
+                    .parse_all(context.interner_mut())
+                    .map_err(Into::into)
+                    .and_then(|stmts| context.compile(<span class="kw-2">&amp;</span>stmts))
+                {
+                    <span class="prelude-val">Ok</span>(code) =&gt; code,
+                    <span class="prelude-val">Err</span>(e) =&gt; <span class="kw">return </span>(<span class="bool-val">false</span>, <span class="macro">format!</span>(<span class="string">&quot;Uncaught {e}&quot;</span>)),
+                };
+
+                <span class="comment">// TODO: timeout
+                </span><span class="kw">let </span>e = <span class="kw">match </span>context.execute(code) {
+                    <span class="prelude-val">Ok</span>(res) =&gt; <span class="kw">return </span>(<span class="bool-val">false</span>, res.display().to_string()),
+                    <span class="prelude-val">Err</span>(e) =&gt; e,
+                };
+                <span class="kw">if let </span><span class="prelude-val">Ok</span>(e) = e.try_native(<span class="kw-2">&amp;mut </span>context) {
+                    <span class="kw">match </span><span class="kw-2">&amp;</span>e.kind {
+                        JsNativeErrorKind::Syntax <span class="kw">if </span>error_type == ErrorType::SyntaxError =&gt; {}
+                        JsNativeErrorKind::Reference <span class="kw">if </span>error_type == ErrorType::ReferenceError =&gt; {
+                        }
+                        JsNativeErrorKind::Range <span class="kw">if </span>error_type == ErrorType::RangeError =&gt; {}
+                        JsNativeErrorKind::Type <span class="kw">if </span>error_type == ErrorType::TypeError =&gt; {}
+                        <span class="kw">_ </span>=&gt; <span class="kw">return </span>(<span class="bool-val">false</span>, <span class="macro">format!</span>(<span class="string">&quot;Uncaught {e}&quot;</span>)),
+                    }
+                    (<span class="bool-val">true</span>, <span class="macro">format!</span>(<span class="string">&quot;Uncaught {e}&quot;</span>))
+                } <span class="kw">else </span>{
+                    <span class="kw">let </span>passed = e
+                        .as_opaque()
+                        .expect(<span class="string">&quot;try_native cannot fail if e is not opaque&quot;</span>)
+                        .as_object()
+                        .and_then(|o| o.get(<span class="string">&quot;constructor&quot;</span>, <span class="kw-2">&amp;mut </span>context).ok())
+                        .as_ref()
+                        .and_then(JsValue::as_object)
+                        .and_then(|o| o.get(<span class="string">&quot;name&quot;</span>, <span class="kw-2">&amp;mut </span>context).ok())
+                        .as_ref()
+                        .and_then(JsValue::as_string)
+                        .map(|s| s == error_type.as_str())
+                        .unwrap_or_default();
+                    (passed, <span class="macro">format!</span>(<span class="string">&quot;Uncaught {e}&quot;</span>))
+                }
+            }
+        });
+
+        <span class="kw">let </span>(result, result_text) = result.map_or_else(
+            |<span class="kw">_</span>| {
+                <span class="macro">eprintln!</span>(<span class="string">&quot;last panic was on test \&quot;{}\&quot;&quot;</span>, <span class="self">self</span>.name);
+                (TestOutcomeResult::Panic, String::new())
+            },
+            |(res, text)| {
+                <span class="kw">if </span>res {
+                    (TestOutcomeResult::Passed, text)
+                } <span class="kw">else </span>{
+                    (TestOutcomeResult::Failed, text)
+                }
+            },
+        );
+
+        <span class="kw">if </span>verbose &gt; <span class="number">1 </span>{
+            <span class="macro">println!</span>(
+                <span class="string">&quot;`{}`{}: {}&quot;</span>,
+                <span class="self">self</span>.name,
+                <span class="kw">if </span>strict { <span class="string">&quot; (strict mode)&quot; </span>} <span class="kw">else </span>{ <span class="string">&quot;&quot; </span>},
+                <span class="kw">if </span>result == TestOutcomeResult::Passed {
+                    <span class="string">&quot;Passed&quot;</span>.green()
+                } <span class="kw">else if </span>result == TestOutcomeResult::Failed {
+                    <span class="string">&quot;Failed&quot;</span>.red()
+                } <span class="kw">else </span>{
+                    <span class="string">&quot;⚠ Panic ⚠&quot;</span>.red()
+                }
+            );
+        } <span class="kw">else </span>{
+            <span class="macro">print!</span>(
+                <span class="string">&quot;{}&quot;</span>,
+                <span class="kw">if </span>result == TestOutcomeResult::Passed {
+                    <span class="string">&quot;.&quot;</span>.green()
+                } <span class="kw">else </span>{
+                    <span class="string">&quot;F&quot;</span>.red()
+                }
+            );
+        }
 
         <span class="kw">if </span>verbose &gt; <span class="number">2 </span>{
             <span class="macro">println!</span>(

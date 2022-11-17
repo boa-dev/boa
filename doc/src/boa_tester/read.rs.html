@@ -237,13 +237,20 @@
 <span id="235">235</span>
 <span id="236">236</span>
 <span id="237">237</span>
+<span id="238">238</span>
+<span id="239">239</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Module to read the list of test suites from disk.
 
-</span><span class="kw">use super</span>::{Harness, Locale, Phase, Test, TestSuite, IGNORED};
-<span class="kw">use </span>anyhow::Context;
+</span><span class="kw">use </span><span class="kw">crate</span>::Ignored;
+
+<span class="kw">use super</span>::{Harness, Locale, Phase, Test, TestSuite};
+<span class="kw">use </span>color_eyre::{
+    eyre::{eyre, WrapErr},
+    <span class="prelude-ty">Result</span>,
+};
 <span class="kw">use </span>fxhash::FxHashMap;
 <span class="kw">use </span>serde::Deserialize;
-<span class="kw">use </span>std::{fs, io, path::Path, str::FromStr};
+<span class="kw">use </span>std::{fs, io, path::Path};
 
 <span class="doccomment">/// Representation of the YAML metadata in Test262 tests.
 </span><span class="attribute">#[derive(Debug, Clone, Deserialize)]
@@ -316,31 +323,12 @@
     </span>NonDeterministic,
 }
 
-<span class="kw">impl </span>FromStr <span class="kw">for </span>TestFlag {
-    <span class="kw">type </span><span class="prelude-val">Err </span>= String; <span class="comment">// TODO: improve error type.
-
-    </span><span class="kw">fn </span>from_str(s: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <span class="self">Self</span>::Err&gt; {
-        <span class="kw">match </span>s {
-            <span class="string">&quot;onlyStrict&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::OnlyStrict),
-            <span class="string">&quot;noStrict&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::NoStrict),
-            <span class="string">&quot;module&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::Module),
-            <span class="string">&quot;raw&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::Raw),
-            <span class="string">&quot;async&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::Async),
-            <span class="string">&quot;generated&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::Generated),
-            <span class="string">&quot;CanBlockIsFalse&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::CanBlockIsFalse),
-            <span class="string">&quot;CanBlockIsTrue&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::CanBlockIsTrue),
-            <span class="string">&quot;non-deterministic&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::NonDeterministic),
-            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(<span class="macro">format!</span>(<span class="string">&quot;unknown test flag: {s}&quot;</span>)),
-        }
-    }
-}
-
 <span class="doccomment">/// Reads the Test262 defined bindings.
-</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>read_harness(test262_path: <span class="kw-2">&amp;</span>Path) -&gt; anyhow::Result&lt;Harness&gt; {
+</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>read_harness(test262_path: <span class="kw-2">&amp;</span>Path) -&gt; <span class="prelude-ty">Result</span>&lt;Harness&gt; {
     <span class="kw">let </span><span class="kw-2">mut </span>includes = FxHashMap::default();
 
-    <span class="kw">for </span>entry <span class="kw">in
-        </span>fs::read_dir(test262_path.join(<span class="string">&quot;harness&quot;</span>)).context(<span class="string">&quot;error reading the harness directory&quot;</span>)<span class="question-mark">?
+    <span class="kw">for </span>entry <span class="kw">in </span>fs::read_dir(test262_path.join(<span class="string">&quot;harness&quot;</span>))
+        .wrap_err(<span class="string">&quot;error reading the harness directory&quot;</span>)<span class="question-mark">?
     </span>{
         <span class="kw">let </span>entry = entry<span class="question-mark">?</span>;
         <span class="kw">let </span>file_name = entry.file_name();
@@ -351,7 +339,7 @@
         }
 
         <span class="kw">let </span>content = fs::read_to_string(entry.path())
-            .with_context(|| <span class="macro">format!</span>(<span class="string">&quot;error reading the harnes/{file_name}&quot;</span>))<span class="question-mark">?</span>;
+            .wrap_err_with(|| <span class="macro">format!</span>(<span class="string">&quot;error reading the harnes/{file_name}&quot;</span>))<span class="question-mark">?</span>;
 
         includes.insert(
             file_name.into_owned().into_boxed_str(),
@@ -359,13 +347,13 @@
         );
     }
     <span class="kw">let </span>assert = fs::read_to_string(test262_path.join(<span class="string">&quot;harness/assert.js&quot;</span>))
-        .context(<span class="string">&quot;error reading harnes/assert.js&quot;</span>)<span class="question-mark">?
+        .wrap_err(<span class="string">&quot;error reading harnes/assert.js&quot;</span>)<span class="question-mark">?
         </span>.into_boxed_str();
     <span class="kw">let </span>sta = fs::read_to_string(test262_path.join(<span class="string">&quot;harness/sta.js&quot;</span>))
-        .context(<span class="string">&quot;error reading harnes/sta.js&quot;</span>)<span class="question-mark">?
+        .wrap_err(<span class="string">&quot;error reading harnes/sta.js&quot;</span>)<span class="question-mark">?
         </span>.into_boxed_str();
     <span class="kw">let </span>doneprint_handle = fs::read_to_string(test262_path.join(<span class="string">&quot;harness/doneprintHandle.js&quot;</span>))
-        .context(<span class="string">&quot;error reading harnes/doneprintHandle.js&quot;</span>)<span class="question-mark">?
+        .wrap_err(<span class="string">&quot;error reading harnes/doneprintHandle.js&quot;</span>)<span class="question-mark">?
         </span>.into_boxed_str();
 
     <span class="prelude-val">Ok</span>(Harness {
@@ -377,38 +365,54 @@
 }
 
 <span class="doccomment">/// Reads a test suite in the given path.
-</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>read_suite(path: <span class="kw-2">&amp;</span>Path) -&gt; anyhow::Result&lt;TestSuite&gt; {
+</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>read_suite(
+    path: <span class="kw-2">&amp;</span>Path,
+    ignored: <span class="kw-2">&amp;</span>Ignored,
+    <span class="kw-2">mut </span>ignore_suite: bool,
+) -&gt; <span class="prelude-ty">Result</span>&lt;TestSuite&gt; {
     <span class="kw">let </span>name = path
         .file_name()
-        .with_context(|| <span class="macro">format!</span>(<span class="string">&quot;test suite with no name found: {}&quot;</span>, path.display()))<span class="question-mark">?
+        .ok_or_else(|| <span class="macro">eyre!</span>(<span class="macro">format!</span>(<span class="string">&quot;test suite with no name found: {}&quot;</span>, path.display())))<span class="question-mark">?
         </span>.to_str()
-        .with_context(|| <span class="macro">format!</span>(<span class="string">&quot;non-UTF-8 suite name found: {}&quot;</span>, path.display()))<span class="question-mark">?</span>;
+        .ok_or_else(|| <span class="macro">eyre!</span>(<span class="macro">format!</span>(<span class="string">&quot;non-UTF-8 suite name found: {}&quot;</span>, path.display())))<span class="question-mark">?</span>;
+
+    ignore_suite |= ignored.contains_test(name);
 
     <span class="kw">let </span><span class="kw-2">mut </span>suites = Vec::new();
     <span class="kw">let </span><span class="kw-2">mut </span>tests = Vec::new();
 
     <span class="comment">// TODO: iterate in parallel
-    </span><span class="kw">for </span>entry <span class="kw">in </span>path.read_dir().context(<span class="string">&quot;retrieving entry&quot;</span>)<span class="question-mark">? </span>{
+    </span><span class="kw">for </span>entry <span class="kw">in </span>path.read_dir().wrap_err(<span class="string">&quot;retrieving entry&quot;</span>)<span class="question-mark">? </span>{
         <span class="kw">let </span>entry = entry<span class="question-mark">?</span>;
 
-        <span class="kw">if </span>entry.file_type().context(<span class="string">&quot;retrieving file type&quot;</span>)<span class="question-mark">?</span>.is_dir() {
-            suites.push(read_suite(entry.path().as_path()).with_context(|| {
-                <span class="kw">let </span>path = entry.path();
-                <span class="kw">let </span>suite = path.display();
-                <span class="macro">format!</span>(<span class="string">&quot;error reading sub-suite {suite}&quot;</span>)
-            })<span class="question-mark">?</span>);
+        <span class="kw">if </span>entry.file_type().wrap_err(<span class="string">&quot;retrieving file type&quot;</span>)<span class="question-mark">?</span>.is_dir() {
+            suites.push(
+                read_suite(entry.path().as_path(), ignored, ignore_suite).wrap_err_with(|| {
+                    <span class="kw">let </span>path = entry.path();
+                    <span class="kw">let </span>suite = path.display();
+                    <span class="macro">format!</span>(<span class="string">&quot;error reading sub-suite {suite}&quot;</span>)
+                })<span class="question-mark">?</span>,
+            );
         } <span class="kw">else if </span>entry.file_name().to_string_lossy().contains(<span class="string">&quot;_FIXTURE&quot;</span>) {
             <span class="kw">continue</span>;
-        } <span class="kw">else if </span>IGNORED.contains_file(<span class="kw-2">&amp;</span>entry.file_name().to_string_lossy()) {
-            <span class="kw">let </span><span class="kw-2">mut </span>test = Test::default();
-            test.set_name(entry.file_name().to_string_lossy());
-            tests.push(test);
         } <span class="kw">else </span>{
-            tests.push(read_test(entry.path().as_path()).with_context(|| {
+            <span class="kw">let </span><span class="kw-2">mut </span>test = read_test(entry.path().as_path()).wrap_err_with(|| {
                 <span class="kw">let </span>path = entry.path();
                 <span class="kw">let </span>suite = path.display();
                 <span class="macro">format!</span>(<span class="string">&quot;error reading test {suite}&quot;</span>)
-            })<span class="question-mark">?</span>);
+            })<span class="question-mark">?</span>;
+
+            <span class="kw">if </span>ignore_suite
+                || ignored.contains_any_flag(test.flags)
+                || ignored.contains_test(<span class="kw-2">&amp;</span>test.name)
+                || test
+                    .features
+                    .iter()
+                    .any(|feat| ignored.contains_feature(feat))
+            {
+                test.set_ignored();
+            }
+            tests.push(test);
         }
     }
 

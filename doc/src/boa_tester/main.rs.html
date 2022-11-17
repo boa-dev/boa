@@ -553,10 +553,13 @@
 <span id="551">551</span>
 <span id="552">552</span>
 <span id="553">553</span>
+<span id="554">554</span>
+<span id="555">555</span>
+<span id="556">556</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Test262 test runner
 //!
 //! This crate will run the full ECMAScript test suite (Test262) and report compliance of the
-//! `boa` context.
+//! `boa` wrap_err.
 </span><span class="attribute">#![doc(
     html_logo_url = <span class="string">&quot;https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg&quot;</span>,
     html_favicon_url = <span class="string">&quot;https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg&quot;
@@ -625,27 +628,35 @@
     read::{read_harness, read_suite, read_test, MetaData, Negative, TestFlag},
     results::{compare_results, write_json},
 };
-<span class="kw">use </span>anyhow::{bail, Context};
 <span class="kw">use </span>bitflags::bitflags;
 <span class="kw">use </span>clap::{ArgAction, Parser, ValueHint};
+<span class="kw">use </span>color_eyre::{
+    eyre::{bail, WrapErr},
+    <span class="prelude-ty">Result</span>,
+};
 <span class="kw">use </span>colored::Colorize;
 <span class="kw">use </span>fxhash::{FxHashMap, FxHashSet};
-<span class="kw">use </span>once_cell::sync::Lazy;
 <span class="kw">use </span>read::ErrorType;
-<span class="kw">use </span>serde::{Deserialize, Serialize};
+<span class="kw">use </span>serde::{
+    de::{Unexpected, Visitor},
+    Deserialize, Deserializer, Serialize,
+};
 <span class="kw">use </span>std::{
-    fs,
+    fs::{<span class="self">self</span>, File},
+    io::Read,
     path::{Path, PathBuf},
 };
 
 <span class="doccomment">/// Structure to allow defining ignored tests, features and files that should
 /// be ignored even when reading.
-</span><span class="attribute">#[derive(Debug)]
+</span><span class="attribute">#[derive(Debug, Deserialize)]
 </span><span class="kw">struct </span>Ignored {
-    tests: FxHashSet&lt;Box&lt;str&gt;&gt;,
-    features: FxHashSet&lt;Box&lt;str&gt;&gt;,
-    files: FxHashSet&lt;Box&lt;str&gt;&gt;,
-    flags: TestFlags,
+    <span class="attribute">#[serde(default)]
+    </span>tests: FxHashSet&lt;Box&lt;str&gt;&gt;,
+    <span class="attribute">#[serde(default)]
+    </span>features: FxHashSet&lt;Box&lt;str&gt;&gt;,
+    <span class="attribute">#[serde(default = <span class="string">&quot;TestFlags::empty&quot;</span>)]
+    </span>flags: TestFlags,
 }
 
 <span class="kw">impl </span>Ignored {
@@ -657,16 +668,17 @@
 
     <span class="doccomment">/// Checks if the ignore list contains the given feature name in the list
     /// of features to ignore.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>contains_any_feature(<span class="kw-2">&amp;</span><span class="self">self</span>, features: <span class="kw-2">&amp;</span>[Box&lt;str&gt;]) -&gt; bool {
-        features
-            .iter()
-            .any(|feature| <span class="self">self</span>.features.contains(feature))
-    }
-
-    <span class="doccomment">/// Checks if the ignore list contains the given file name in the list to
-    /// ignore from reading.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>contains_file(<span class="kw-2">&amp;</span><span class="self">self</span>, file: <span class="kw-2">&amp;</span>str) -&gt; bool {
-        <span class="self">self</span>.files.contains(file)
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>contains_feature(<span class="kw-2">&amp;</span><span class="self">self</span>, feature: <span class="kw-2">&amp;</span>str) -&gt; bool {
+        <span class="kw">if </span><span class="self">self</span>.features.contains(feature) {
+            <span class="kw">return </span><span class="bool-val">true</span>;
+        }
+        <span class="comment">// Some features are an accessor instead of a simple feature name e.g. `Intl.DurationFormat`.
+        // This ensures those are also ignored.
+        </span>feature
+            .split(<span class="string">&#39;.&#39;</span>)
+            .next()
+            .map(|feat| <span class="self">self</span>.features.contains(feat))
+            .unwrap_or_default()
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>contains_any_flag(<span class="kw-2">&amp;</span><span class="self">self</span>, flags: TestFlags) -&gt; bool {
@@ -679,73 +691,10 @@
         <span class="self">Self </span>{
             tests: FxHashSet::default(),
             features: FxHashSet::default(),
-            files: FxHashSet::default(),
             flags: TestFlags::empty(),
         }
     }
 }
-
-<span class="doccomment">/// List of ignored tests.
-</span><span class="kw">static </span>IGNORED: Lazy&lt;Ignored&gt; = Lazy::new(|| {
-    <span class="kw">let </span>path = Path::new(<span class="string">&quot;test_ignore.txt&quot;</span>);
-    <span class="kw">if </span>path.exists() {
-        <span class="kw">let </span>filtered = fs::read_to_string(path).expect(<span class="string">&quot;could not read test filters&quot;</span>);
-        filtered
-            .lines()
-            .filter(|line| !line.is_empty() &amp;&amp; !line.starts_with(<span class="string">&quot;//&quot;</span>))
-            .fold(Ignored::default(), |<span class="kw-2">mut </span>ign, line| {
-                <span class="comment">// let mut line = line.to_owned();
-                </span><span class="kw">if </span>line.starts_with(<span class="string">&quot;file:&quot;</span>) {
-                    <span class="kw">let </span>file = line
-                        .strip_prefix(<span class="string">&quot;file:&quot;</span>)
-                        .expect(<span class="string">&quot;prefix disappeared&quot;</span>)
-                        .trim()
-                        .to_owned()
-                        .into_boxed_str();
-                    <span class="kw">let </span>test = <span class="kw">if </span>file.ends_with(<span class="string">&quot;.js&quot;</span>) {
-                        file.strip_suffix(<span class="string">&quot;.js&quot;</span>)
-                            .expect(<span class="string">&quot;suffix disappeared&quot;</span>)
-                            .to_owned()
-                            .into_boxed_str()
-                    } <span class="kw">else </span>{
-                        file.clone()
-                    };
-                    ign.files.insert(file);
-                    ign.tests.insert(test);
-                } <span class="kw">else if </span>line.starts_with(<span class="string">&quot;feature:&quot;</span>) {
-                    ign.features.insert(
-                        line.strip_prefix(<span class="string">&quot;feature:&quot;</span>)
-                            .expect(<span class="string">&quot;prefix disappeared&quot;</span>)
-                            .trim()
-                            .to_owned()
-                            .into_boxed_str(),
-                    );
-                } <span class="kw">else if </span>line.starts_with(<span class="string">&quot;flag:&quot;</span>) {
-                    <span class="kw">let </span>flag = line
-                        .strip_prefix(<span class="string">&quot;flag:&quot;</span>)
-                        .expect(<span class="string">&quot;prefix disappeared&quot;</span>)
-                        .trim()
-                        .parse::&lt;TestFlag&gt;()
-                        .expect(<span class="string">&quot;invalid flag found&quot;</span>);
-                    ign.flags.insert(flag.into());
-                } <span class="kw">else </span>{
-                    <span class="kw">let </span><span class="kw-2">mut </span>test = line.trim();
-                    <span class="kw">if </span>test
-                        .rsplit(<span class="string">&#39;.&#39;</span>)
-                        .next()
-                        .map(|ext| ext.eq_ignore_ascii_case(<span class="string">&quot;js&quot;</span>))
-                        == <span class="prelude-val">Some</span>(<span class="bool-val">true</span>)
-                    {
-                        test = test.strip_suffix(<span class="string">&quot;.js&quot;</span>).expect(<span class="string">&quot;suffix disappeared&quot;</span>);
-                    }
-                    ign.tests.insert(test.to_owned().into_boxed_str());
-                }
-                ign
-            })
-    } <span class="kw">else </span>{
-        Ignored::default()
-    }
-});
 
 <span class="doccomment">/// Boa test262 tester
 </span><span class="attribute">#[derive(Debug, Parser)]
@@ -772,6 +721,10 @@
         <span class="doccomment">/// Execute tests serially
         </span><span class="attribute">#[arg(short, long)]
         </span>disable_parallelism: bool,
+
+        <span class="doccomment">/// Path to a TOML file with the ignored tests, features, flags and/or files.
+        </span><span class="attribute">#[arg(short, long, default_value = <span class="string">&quot;test_ignore.toml&quot;</span>, value_hint = ValueHint::FilePath)]
+        </span>ignored: PathBuf,
     },
     <span class="doccomment">/// Compare two test suite results.
     </span>Compare {
@@ -790,7 +743,8 @@
 }
 
 <span class="doccomment">/// Program entry point.
-</span><span class="kw">fn </span>main() {
+</span><span class="kw">fn </span>main() -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+    color_eyre::install()<span class="question-mark">?</span>;
     <span class="kw">match </span>Cli::parse() {
         Cli::Run {
             verbose,
@@ -798,23 +752,15 @@
             suite,
             output,
             disable_parallelism,
-        } =&gt; {
-            <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = run_test_suite(
-                verbose,
-                !disable_parallelism,
-                test262_path.as_path(),
-                suite.as_path(),
-                output.as_deref(),
-            ) {
-                <span class="macro">eprintln!</span>(<span class="string">&quot;Error: {e}&quot;</span>);
-                <span class="kw">let </span><span class="kw-2">mut </span>src = e.source();
-                <span class="kw">while let </span><span class="prelude-val">Some</span>(e) = src {
-                    <span class="macro">eprintln!</span>(<span class="string">&quot;    caused by: {e}&quot;</span>);
-                    src = e.source();
-                }
-                std::process::exit(<span class="number">1</span>);
-            }
-        }
+            ignored: ignore,
+        } =&gt; run_test_suite(
+            verbose,
+            !disable_parallelism,
+            test262_path.as_path(),
+            suite.as_path(),
+            output.as_deref(),
+            ignore.as_path(),
+        ),
         Cli::Compare {
             base,
             new,
@@ -830,24 +776,33 @@
     test262_path: <span class="kw-2">&amp;</span>Path,
     suite: <span class="kw-2">&amp;</span>Path,
     output: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Path&gt;,
-) -&gt; anyhow::Result&lt;()&gt; {
+    ignored: <span class="kw-2">&amp;</span>Path,
+) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
     <span class="kw">if let </span><span class="prelude-val">Some</span>(path) = output {
         <span class="kw">if </span>path.exists() {
             <span class="kw">if </span>!path.is_dir() {
                 <span class="macro">bail!</span>(<span class="string">&quot;the output path must be a directory.&quot;</span>);
             }
         } <span class="kw">else </span>{
-            fs::create_dir_all(path).context(<span class="string">&quot;could not create the output directory&quot;</span>)<span class="question-mark">?</span>;
+            fs::create_dir_all(path).wrap_err(<span class="string">&quot;could not create the output directory&quot;</span>)<span class="question-mark">?</span>;
         }
     }
+
+    <span class="kw">let </span>ignored = {
+        <span class="kw">let </span><span class="kw-2">mut </span>input = String::new();
+        <span class="kw">let </span><span class="kw-2">mut </span>f = File::open(ignored).wrap_err(<span class="string">&quot;could not open ignored tests file&quot;</span>)<span class="question-mark">?</span>;
+        f.read_to_string(<span class="kw-2">&amp;mut </span>input)
+            .wrap_err(<span class="string">&quot;could not read ignored tests file&quot;</span>)<span class="question-mark">?</span>;
+        toml::from_str(<span class="kw-2">&amp;</span>input).wrap_err(<span class="string">&quot;could not decode ignored tests file&quot;</span>)<span class="question-mark">?
+    </span>};
 
     <span class="kw">if </span>verbose != <span class="number">0 </span>{
         <span class="macro">println!</span>(<span class="string">&quot;Loading the test suite...&quot;</span>);
     }
-    <span class="kw">let </span>harness = read_harness(test262_path).context(<span class="string">&quot;could not read harness&quot;</span>)<span class="question-mark">?</span>;
+    <span class="kw">let </span>harness = read_harness(test262_path).wrap_err(<span class="string">&quot;could not read harness&quot;</span>)<span class="question-mark">?</span>;
 
     <span class="kw">if </span>suite.to_string_lossy().ends_with(<span class="string">&quot;.js&quot;</span>) {
-        <span class="kw">let </span>test = read_test(<span class="kw-2">&amp;</span>test262_path.join(suite)).with_context(|| {
+        <span class="kw">let </span>test = read_test(<span class="kw-2">&amp;</span>test262_path.join(suite)).wrap_err_with(|| {
             <span class="kw">let </span>suite = suite.display();
             <span class="macro">format!</span>(<span class="string">&quot;could not read the test {suite}&quot;</span>)
         })<span class="question-mark">?</span>;
@@ -859,7 +814,7 @@
 
         <span class="macro">println!</span>();
     } <span class="kw">else </span>{
-        <span class="kw">let </span>suite = read_suite(<span class="kw-2">&amp;</span>test262_path.join(suite)).with_context(|| {
+        <span class="kw">let </span>suite = read_suite(<span class="kw-2">&amp;</span>test262_path.join(suite), <span class="kw-2">&amp;</span>ignored, <span class="bool-val">false</span>).wrap_err_with(|| {
             <span class="kw">let </span>suite = suite.display();
             <span class="macro">format!</span>(<span class="string">&quot;could not read the suite {suite}&quot;</span>)
         })<span class="question-mark">?</span>;
@@ -887,7 +842,7 @@
         </span>);
 
         write_json(results, output, verbose)
-            .context(<span class="string">&quot;could not write the results to the output JSON file&quot;</span>)<span class="question-mark">?</span>;
+            .wrap_err(<span class="string">&quot;could not write the results to the output JSON file&quot;</span>)<span class="question-mark">?</span>;
     }
 
     <span class="prelude-val">Ok</span>(())
@@ -974,6 +929,7 @@
     includes: Box&lt;[Box&lt;str&gt;]&gt;,
     locale: Locale,
     content: Box&lt;str&gt;,
+    ignored: bool,
 }
 
 <span class="kw">impl </span>Test {
@@ -995,15 +951,12 @@
             includes: metadata.includes,
             locale: metadata.locale,
             content: content.into(),
+            ignored: <span class="bool-val">false</span>,
         }
     }
 
-    <span class="doccomment">/// Sets the name of the test.
-    </span><span class="kw">fn </span>set_name&lt;N&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, name: N)
-    <span class="kw">where
-        </span>N: Into&lt;Box&lt;str&gt;&gt;,
-    {
-        <span class="self">self</span>.name = name.into();
+    <span class="kw">fn </span>set_ignored(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="self">self</span>.ignored = <span class="bool-val">true</span>;
     }
 }
 
@@ -1085,6 +1038,59 @@
             }
 
             result
+        }
+    }
+}
+
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>&gt; Deserialize&lt;<span class="lifetime">&#39;de</span>&gt; <span class="kw">for </span>TestFlags {
+    <span class="kw">fn </span>deserialize&lt;D&gt;(deserializer: D) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, D::Error&gt;
+    <span class="kw">where
+        </span>D: Deserializer&lt;<span class="lifetime">&#39;de</span>&gt;,
+    {
+        <span class="kw">struct </span>FlagsVisitor;
+
+        <span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>&gt; Visitor&lt;<span class="lifetime">&#39;de</span>&gt; <span class="kw">for </span>FlagsVisitor {
+            <span class="kw">type </span>Value = TestFlags;
+
+            <span class="kw">fn </span>expecting(<span class="kw-2">&amp;</span><span class="self">self</span>, formatter: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
+                <span class="macro">write!</span>(formatter, <span class="string">&quot;a sequence of flags&quot;</span>)
+            }
+
+            <span class="kw">fn </span>visit_seq&lt;A&gt;(<span class="self">self</span>, <span class="kw-2">mut </span>seq: A) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Value, A::Error&gt;
+            <span class="kw">where
+                </span>A: serde::de::SeqAccess&lt;<span class="lifetime">&#39;de</span>&gt;,
+            {
+                <span class="kw">let </span><span class="kw-2">mut </span>flags = TestFlags::empty();
+                <span class="kw">while let </span><span class="prelude-val">Some</span>(elem) = seq.next_element::&lt;TestFlag&gt;()<span class="question-mark">? </span>{
+                    flags |= elem.into();
+                }
+                <span class="prelude-val">Ok</span>(flags)
+            }
+        }
+
+        <span class="kw">struct </span>RawFlagsVisitor;
+
+        <span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>&gt; Visitor&lt;<span class="lifetime">&#39;de</span>&gt; <span class="kw">for </span>RawFlagsVisitor {
+            <span class="kw">type </span>Value = TestFlags;
+
+            <span class="kw">fn </span>expecting(<span class="kw-2">&amp;</span><span class="self">self</span>, formatter: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
+                <span class="macro">write!</span>(formatter, <span class="string">&quot;a flags number&quot;</span>)
+            }
+
+            <span class="kw">fn </span>visit_u16&lt;E&gt;(<span class="self">self</span>, v: u16) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Value, E&gt;
+            <span class="kw">where
+                </span>E: serde::de::Error,
+            {
+                TestFlags::from_bits(v).ok_or_else(|| {
+                    E::invalid_value(Unexpected::Unsigned(v.into()), <span class="kw-2">&amp;</span><span class="string">&quot;a valid flag number&quot;</span>)
+                })
+            }
+        }
+
+        <span class="kw">if </span>deserializer.is_human_readable() {
+            deserializer.deserialize_seq(FlagsVisitor)
+        } <span class="kw">else </span>{
+            deserializer.deserialize_u16(RawFlagsVisitor)
         }
     }
 }
