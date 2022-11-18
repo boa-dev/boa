@@ -20,5 +20,5 @@ phf = { version = "0.11.1", features = ["macros"] }
 rustc-hash = "1.1.0"
 static_assertions = "1.1.0"
 once_cell = "1.16.0"
-indexmap = "1.9.1"
+indexmap = "1.9.2"
 arbitrary = { version = "1", optional = true, features = ["derive"] }
