@@ -5,12 +5,14 @@
 //!
 //! [spec]: https://tc39.es/ecma262/#sec-update-expressions
 
-use super::{check_strict_arguments_or_eval, left_hand_side::LeftHandSideExpression};
 use crate::{
     lexer::{Error as LexError, TokenKind},
     parser::{
-        expression::unary::UnaryExpression, AllowAwait, AllowYield, Cursor, OrAbrupt, ParseResult,
-        TokenParser,
+        expression::{
+            check_strict_arguments_or_eval, left_hand_side::LeftHandSideExpression,
+            unary::UnaryExpression,
+        },
+        AllowAwait, AllowYield, Cursor, OrAbrupt, ParseResult, TokenParser,
     },
     Error,
 };

@@ -1,7 +1,6 @@
 //! This module implements lexing for regex literals used in the JavaScript programing language.
 
-use super::{Cursor, Error, Span, Tokenizer};
-use crate::lexer::{Token, TokenKind};
+use crate::lexer::{Cursor, Error, Span, Token, TokenKind, Tokenizer};
 use bitflags::bitflags;
 use boa_ast::Position;
 use boa_interner::{Interner, Sym};
@@ -141,12 +140,27 @@ bitflags! {
     /// Flags of a regular expression.
     #[derive(Default)]
     pub struct RegExpFlags: u8 {
+        /// Whether to test the regular expression against all possible matches in a string,
+        /// or only against the first.
         const GLOBAL = 0b0000_0001;
+
+        /// Whether to ignore case while attempting a match in a string.
         const IGNORE_CASE = 0b0000_0010;
+
+        /// Whether or not to search in strings across multiple lines.
         const MULTILINE = 0b0000_0100;
+
+        /// Whether `.` matches newlines or not.
         const DOT_ALL = 0b0000_1000;
+
+        /// Whether or not Unicode features are enabled.
         const UNICODE = 0b0001_0000;
+
+        /// Whether or not the search is sticky.
         const STICKY = 0b0010_0000;
+
+        /// Whether the regular expression result exposes the start and end indices of
+        /// captured substrings.
         const HAS_INDICES = 0b0100_0000;
     }
 }

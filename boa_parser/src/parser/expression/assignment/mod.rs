@@ -13,6 +13,7 @@ mod conditional;
 mod exponentiation;
 mod r#yield;
 
+use super::check_strict_arguments_or_eval;
 use crate::{
     lexer::{Error as LexError, InputElement, TokenKind},
     parser::{
@@ -40,8 +41,6 @@ use boa_profiler::Profiler;
 use std::io::Read;
 
 pub(super) use exponentiation::ExponentiationExpression;
-
-use super::check_strict_arguments_or_eval;
 
 /// Assignment expression parsing.
 ///

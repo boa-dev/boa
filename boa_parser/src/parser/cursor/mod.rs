@@ -89,8 +89,7 @@ where
     #[track_caller]
     #[allow(clippy::let_underscore_drop)]
     pub(super) fn advance(&mut self, interner: &mut Interner) {
-        let _ = self
-            .next(interner)
+        self.next(interner)
             .expect("tried to advance cursor, but the buffer was empty");
     }
 
@@ -108,7 +107,7 @@ where
 
     /// Gets the current strict mode for the cursor.
     #[inline]
-    pub(super) fn strict_mode(&self) -> bool {
+    pub(super) const fn strict_mode(&self) -> bool {
         self.buffered_lexer.strict_mode()
     }
 
@@ -120,7 +119,7 @@ where
 
     /// Returns if the cursor is currently in an arrow function declaration.
     #[inline]
-    pub(super) fn arrow(&self) -> bool {
+    pub(super) const fn arrow(&self) -> bool {
         self.arrow
     }
 
@@ -132,7 +131,7 @@ where
 
     /// Returns if the cursor is currently used in `JSON.parse`.
     #[inline]
-    pub(super) fn json_parse(&self) -> bool {
+    pub(super) const fn json_parse(&self) -> bool {
         self.json_parse
     }
 
@@ -156,15 +155,18 @@ where
         identifier: Sym,
         position: Position,
     ) -> ParseResult<()> {
-        if let Some(env) = self.private_environments_stack.last_mut() {
-            env.entry(identifier).or_insert(position);
-            Ok(())
-        } else {
-            Err(Error::general(
-                "private identifier declared outside of class",
-                position,
-            ))
-        }
+        self.private_environments_stack.last_mut().map_or_else(
+            || {
+                Err(Error::general(
+                    "private identifier declared outside of class",
+                    position,
+                ))
+            },
+            |env| {
+                env.entry(identifier).or_insert(position);
+                Ok(())
+            },
+        )
     }
 
     /// Pop the last private environment.
@@ -231,14 +233,14 @@ where
         &mut self,
         interner: &mut Interner,
     ) -> ParseResult<SemicolonResult<'_>> {
-        match self.buffered_lexer.peek(0, false, interner)? {
-            Some(tk) => match tk.kind() {
+        self.buffered_lexer.peek(0, false, interner)?.map_or(
+            Ok(SemicolonResult::Found(None)),
+            |tk| match tk.kind() {
                 TokenKind::Punctuator(Punctuator::Semicolon | Punctuator::CloseBlock)
                 | TokenKind::LineTerminator => Ok(SemicolonResult::Found(Some(tk))),
                 _ => Ok(SemicolonResult::NotFound(tk)),
             },
-            None => Ok(SemicolonResult::Found(None)),
-        }
+        )
     }
 
     /// Consumes the next token if it is a semicolon, or returns a `Errpr` if it's not.
@@ -306,11 +308,11 @@ where
         skip_n: usize,
         interner: &mut Interner,
     ) -> ParseResult<Option<bool>> {
-        if let Some(t) = self.buffered_lexer.peek(skip_n, false, interner)? {
-            Ok(Some(t.kind() == &TokenKind::LineTerminator))
-        } else {
-            Ok(None)
-        }
+        self.buffered_lexer
+            .peek(skip_n, false, interner)?
+            .map_or(Ok(None), |t| {
+                Ok(Some(t.kind() == &TokenKind::LineTerminator))
+            })
     }
 
     /// Advance the cursor to the next token and retrieve it, only if it's of `kind` type.

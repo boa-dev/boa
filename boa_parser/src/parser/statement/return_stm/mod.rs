@@ -1,5 +1,5 @@
 use crate::{
-    lexer::TokenKind,
+    lexer::{Token, TokenKind},
     parser::{
         cursor::{Cursor, SemicolonResult},
         expression::Expression,
@@ -50,11 +50,8 @@ where
         cursor.expect((Keyword::Return, false), "return statement", interner)?;
 
         if let SemicolonResult::Found(tok) = cursor.peek_semicolon(interner)? {
-            match tok {
-                Some(tok) if tok.kind() == &TokenKind::Punctuator(Punctuator::Semicolon) => {
-                    cursor.advance(interner);
-                }
-                _ => {}
+            if tok.map(Token::kind) == Some(&TokenKind::Punctuator(Punctuator::Semicolon)) {
+                cursor.advance(interner);
             }
 
             return Ok(Return::new(None));

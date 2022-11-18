@@ -1,7 +1,6 @@
 //! Error and result implementation for the parser.
 
 use crate::lexer::Error as LexError;
-
 use boa_ast::{Position, Span};
 use std::fmt;
 
@@ -26,34 +25,60 @@ impl From<LexError> for Error {
     }
 }
 
-/// An enum which represents errors encounted during parsing an expression
+/// An enum which represents errors encountered during parsing an expression
 #[derive(Debug)]
 pub enum Error {
     /// When it expected a certain kind of token, but got another as part of something
     Expected {
+        /// The token(s) that were expected.
         expected: Box<[String]>,
+
+        /// The token that was not expected.
         found: Box<str>,
-        span: Span,
+
+        /// The parsing context in which the error occurred.
         context: &'static str,
+
+        /// Position of the source code where the error occurred.
+        span: Span,
     },
+
     /// When a token is unexpected
     Unexpected {
-        found: Box<str>,
-        span: Span,
+        /// The error message.
         message: Option<&'static str>,
+
+        /// The token that was not expected.
+        found: Box<str>,
+
+        /// Position of the source code where the error occurred.
+        span: Span,
     },
+
     /// When there is an abrupt end to the parsing
     AbruptEnd,
+
     /// A lexing error.
-    Lex { err: LexError },
+    Lex {
+        /// The error that occurred during lexing.
+        err: LexError,
+    },
+
     /// Catch all General Error
     General {
+        /// The error message.
         message: &'static str,
+
+        /// Position of the source code where the error occurred.
         position: Position,
     },
+
     /// Unimplemented syntax error
     Unimplemented {
+        /// The error message.
         message: &'static str,
+
+        /// Position of the source code where the error occurred.
         position: Position,
     },
 }
@@ -100,12 +125,12 @@ impl Error {
     }
 
     /// Creates a "general" parsing error.
-    pub(crate) fn general(message: &'static str, position: Position) -> Self {
+    pub(crate) const fn general(message: &'static str, position: Position) -> Self {
         Self::General { message, position }
     }
 
     /// Creates a "general" parsing error with the specific error message for a wrong function declaration in non-strict mode.
-    pub(crate) fn wrong_function_declaration_non_strict(position: Position) -> Self {
+    pub(crate) const fn wrong_function_declaration_non_strict(position: Position) -> Self {
         Self::General {
             message: "In non-strict mode code, functions can only be declared at top level, inside a block, or as the body of an if statement.",
             position
@@ -114,7 +139,7 @@ impl Error {
 
     /// Creates a "general" parsing error with the specific error message for a wrong function declaration with label.
     #[inline]
-    pub(crate) fn wrong_labelled_function_declaration(position: Position) -> Self {
+    pub(crate) const fn wrong_labelled_function_declaration(position: Position) -> Self {
         Self::General {
             message: "Labelled functions can only be declared at top level or inside a block",
             position,
@@ -122,13 +147,13 @@ impl Error {
     }
 
     /// Creates a parsing error from a lexing error.
-    pub(crate) fn lex(e: LexError) -> Self {
+    pub(crate) const fn lex(e: LexError) -> Self {
         Self::Lex { err: e }
     }
 
     /// Creates a new `Unimplemented` parsing error.
     #[allow(dead_code)]
-    pub(crate) fn unimplemented(message: &'static str, position: Position) -> Self {
+    pub(crate) const fn unimplemented(message: &'static str, position: Position) -> Self {
         Self::Unimplemented { message, position }
     }
 }
@@ -180,11 +205,7 @@ impl fmt::Display for Error {
             } => write!(
                 f,
                 "unexpected token '{found}'{} at line {}, col {}",
-                if let Some(m) = message {
-                    format!(", {m}")
-                } else {
-                    String::new()
-                },
+                message.map_or_else(String::new, |m| format!(", {m}")),
                 span.start().line_number(),
                 span.start().column_number()
             ),
