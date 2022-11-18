@@ -2,13 +2,10 @@
 
 mod js262;
 
-use std::borrow::Cow;
-
-use crate::read::ErrorType;
-
 use super::{
     Harness, Outcome, Phase, SuiteResult, Test, TestFlags, TestOutcomeResult, TestResult, TestSuite,
 };
+use crate::read::ErrorType;
 use boa_engine::{
     builtins::JsArgs, object::FunctionBuilder, property::Attribute, Context, JsNativeErrorKind,
     JsResult, JsValue,
@@ -17,6 +14,7 @@ use boa_gc::{Finalize, Gc, GcCell, Trace};
 use boa_parser::Parser;
 use colored::Colorize;
 use rayon::prelude::*;
+use std::borrow::Cow;
 
 impl TestSuite {
     /// Runs the test suite.
