@@ -1,4 +1,4 @@
 mod ephemeron_box;
 mod gc_box;
 
-pub(crate) use {ephemeron_box::EphemeronBox, gc_box::GcBox};
+pub(crate) use {self::ephemeron_box::EphemeronBox, self::gc_box::GcBox};

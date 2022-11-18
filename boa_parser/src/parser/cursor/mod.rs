@@ -87,7 +87,6 @@ where
     /// This function will panic if there is no further token in the cursor.
     #[inline]
     #[track_caller]
-    #[allow(clippy::let_underscore_drop)]
     pub(super) fn advance(&mut self, interner: &mut Interner) {
         self.next(interner)
             .expect("tried to advance cursor, but the buffer was empty");

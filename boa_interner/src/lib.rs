@@ -130,12 +130,14 @@ pub struct JSInternedStrRef<'a, 'b> {
 impl<'a, 'b> JSInternedStrRef<'a, 'b> {
     /// Returns the inner reference to the interned string in `UTF-8` encoding.
     /// if the string is not representable in `UTF-8`, returns [`None`]
+    #[inline]
     #[must_use]
     pub const fn utf8(&self) -> Option<&'a str> {
         self.utf8
     }
 
     /// Returns the inner reference to the interned string in `UTF-16` encoding.
+    #[inline]
     #[must_use]
     pub const fn utf16(&self) -> &'b [u16] {
         self.utf16
