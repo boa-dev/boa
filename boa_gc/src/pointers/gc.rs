@@ -1,15 +1,19 @@
-use std::cell::Cell;
-use std::cmp::Ordering;
-use std::fmt::{self, Debug, Display};
-use std::hash::{Hash, Hasher};
-use std::marker::PhantomData;
-use std::ops::Deref;
-use std::ptr::{self, addr_of_mut, NonNull};
-use std::rc::Rc;
-
-use crate::internals::GcBox;
-use crate::trace::{Finalize, Trace};
-use crate::{finalizer_safe, Allocator};
+use crate::{
+    finalizer_safe,
+    internals::GcBox,
+    trace::{Finalize, Trace},
+    Allocator,
+};
+use std::{
+    cell::Cell,
+    cmp::Ordering,
+    fmt::{self, Debug, Display},
+    hash::{Hash, Hasher},
+    marker::PhantomData,
+    ops::Deref,
+    ptr::{self, addr_of_mut, NonNull},
+    rc::Rc,
+};
 
 // Technically, this function is safe, since we're just modifying the address of a pointer without
 // dereferencing it.

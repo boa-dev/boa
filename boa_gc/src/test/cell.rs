@@ -1,6 +1,5 @@
-use boa_gc::{Gc, GcCell};
-
 use super::run_test;
+use boa_gc::{Gc, GcCell};
 
 #[test]
 fn boa_borrow_mut_test() {
