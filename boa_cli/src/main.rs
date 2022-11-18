@@ -4,6 +4,7 @@
     html_logo_url = "https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg",
     html_favicon_url = "https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"
 )]
+#![cfg_attr(not(test), deny(clippy::unwrap_used))]
 #![warn(missing_docs, clippy::dbg_macro)]
 #![deny(
     // rustc lint groups https://doc.rust-lang.org/rustc/lints/groups.html
@@ -55,11 +56,7 @@
     clippy::pedantic,
     clippy::nursery,
 )]
-#![allow(
-    clippy::option_if_let_else,
-    clippy::unwrap_used,
-    clippy::redundant_pub_crate
-)]
+#![allow(clippy::option_if_let_else, clippy::redundant_pub_crate)]
 
 mod helper;
 
