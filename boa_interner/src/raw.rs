@@ -1,8 +1,6 @@
-use std::hash::Hash;
-
-use rustc_hash::FxHashMap;
-
 use crate::{fixed_string::FixedString, interned_str::InternedStr};
+use rustc_hash::FxHashMap;
+use std::hash::Hash;
 
 /// Raw string interner, generic by a char type.
 #[derive(Debug)]
