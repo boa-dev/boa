@@ -122,15 +122,13 @@
 <span id="122">122</span>
 <span id="123">123</span>
 <span id="124">124</span>
-<span id="125">125</span>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     finalizer_safe,
     internals::EphemeronBox,
     trace::{Finalize, Trace},
     Allocator, Gc, GcBox, EPHEMERON_QUEUE,
 };
-<span class="kw">use </span>std::cell::Cell;
-<span class="kw">use </span>std::ptr::NonNull;
+<span class="kw">use </span>std::{cell::Cell, ptr::NonNull};
 
 <span class="attribute">#[derive(Debug)]
 </span><span class="doccomment">/// A key-value pair where the value becomes unaccesible when the key is garbage collected.

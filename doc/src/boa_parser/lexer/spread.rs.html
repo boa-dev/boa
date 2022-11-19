@@ -59,11 +59,9 @@
 <span id="59">59</span>
 <span id="60">60</span>
 <span id="61">61</span>
-<span id="62">62</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements lexing for spread (...) literals used in the JavaScript programing language.
 
-</span><span class="kw">use super</span>::{Cursor, Error, Tokenizer};
-<span class="kw">use </span><span class="kw">crate</span>::lexer::Token;
+</span><span class="kw">use </span><span class="kw">crate</span>::lexer::{Cursor, Error, Token, Tokenizer};
 <span class="kw">use </span>boa_ast::{Position, Punctuator, Span};
 <span class="kw">use </span>boa_interner::Interner;
 <span class="kw">use </span>boa_profiler::Profiler;
@@ -84,9 +82,9 @@
 
 <span class="kw">impl </span>SpreadLiteral {
     <span class="doccomment">/// Creates a new string literal lexer.
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new() -&gt; <span class="self">Self </span>{
-        <span class="self">Self </span>{}
-    }
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">const fn </span>new() -&gt; <span class="self">Self </span>{
+        <span class="self">Self
+    </span>}
 }
 
 <span class="kw">impl</span>&lt;R&gt; Tokenizer&lt;R&gt; <span class="kw">for </span>SpreadLiteral {

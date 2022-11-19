@@ -974,7 +974,6 @@
 <span id="974">974</span>
 <span id="975">975</span>
 <span id="976">976</span>
-<span id="977">977</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Object initializer parsing.
 //!
 //! More information:
@@ -1098,10 +1097,9 @@
 
         <span class="kw">if let </span><span class="prelude-val">Some</span>(position) = duplicate_proto_position {
             <span class="kw">if </span>!cursor.json_parse()
-                &amp;&amp; <span class="kw">match </span>cursor.peek(<span class="number">0</span>, interner)<span class="question-mark">? </span>{
-                    <span class="prelude-val">Some</span>(token) =&gt; token.kind() != <span class="kw-2">&amp;</span>TokenKind::Punctuator(Punctuator::Assign),
-                    <span class="prelude-val">None </span>=&gt; <span class="bool-val">true</span>,
-                }
+                &amp;&amp; cursor.peek(<span class="number">0</span>, interner)<span class="question-mark">?</span>.map_or(<span class="bool-val">true</span>, |token| {
+                    token.kind() != <span class="kw-2">&amp;</span>TokenKind::Punctuator(Punctuator::Assign)
+                })
             {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(Error::general(
                     <span class="string">&quot;Duplicate __proto__ fields are not allowed in object literals.&quot;</span>,

@@ -294,13 +294,13 @@
 }
 
 <span class="kw">impl </span>ErrorType {
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>as_str(<span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str {
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">const fn </span>as_str(<span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str {
         <span class="kw">match </span><span class="self">self </span>{
-            ErrorType::Test262Error =&gt; <span class="string">&quot;Test262Error&quot;</span>,
-            ErrorType::SyntaxError =&gt; <span class="string">&quot;SyntaxError&quot;</span>,
-            ErrorType::ReferenceError =&gt; <span class="string">&quot;ReferenceError&quot;</span>,
-            ErrorType::RangeError =&gt; <span class="string">&quot;RangeError&quot;</span>,
-            ErrorType::TypeError =&gt; <span class="string">&quot;TypeError&quot;</span>,
+            <span class="self">Self</span>::Test262Error =&gt; <span class="string">&quot;Test262Error&quot;</span>,
+            <span class="self">Self</span>::SyntaxError =&gt; <span class="string">&quot;SyntaxError&quot;</span>,
+            <span class="self">Self</span>::ReferenceError =&gt; <span class="string">&quot;ReferenceError&quot;</span>,
+            <span class="self">Self</span>::RangeError =&gt; <span class="string">&quot;RangeError&quot;</span>,
+            <span class="self">Self</span>::TypeError =&gt; <span class="string">&quot;TypeError&quot;</span>,
         }
     }
 }

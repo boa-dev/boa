@@ -163,6 +163,8 @@
 <span id="163">163</span>
 <span id="164">164</span>
 <span id="165">165</span>
+<span id="166">166</span>
+<span id="167">167</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Update expression parsing.
 //!
 //! More information:
@@ -170,12 +172,14 @@
 //!
 //! [spec]: https://tc39.es/ecma262/#sec-update-expressions
 
-</span><span class="kw">use super</span>::{check_strict_arguments_or_eval, left_hand_side::LeftHandSideExpression};
-<span class="kw">use crate</span>::{
+</span><span class="kw">use crate</span>::{
     lexer::{Error <span class="kw">as </span>LexError, TokenKind},
     parser::{
-        expression::unary::UnaryExpression, AllowAwait, AllowYield, Cursor, OrAbrupt, ParseResult,
-        TokenParser,
+        expression::{
+            check_strict_arguments_or_eval, left_hand_side::LeftHandSideExpression,
+            unary::UnaryExpression,
+        },
+        AllowAwait, AllowYield, Cursor, OrAbrupt, ParseResult, TokenParser,
     },
     Error,
 };

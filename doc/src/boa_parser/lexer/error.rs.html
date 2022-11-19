@@ -57,6 +57,7 @@
 <span id="57">57</span>
 <span id="58">58</span>
 <span id="59">59</span>
+<span id="60">60</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module contains the errors used by the lexer.
 //!
 //! More information:
@@ -67,7 +68,8 @@
 </span><span class="kw">use </span>boa_ast::Position;
 <span class="kw">use </span>std::{error::Error <span class="kw">as </span>StdError, fmt, io};
 
-<span class="attribute">#[derive(Debug)]
+<span class="doccomment">/// An error that occurred during the lexing.
+</span><span class="attribute">#[derive(Debug)]
 </span><span class="kw">pub enum </span>Error {
     <span class="doccomment">/// An IO error is raised to indicate an issue when the lexer is reading data that isn&#39;t
     /// related to the sourcecode itself.

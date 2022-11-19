@@ -487,8 +487,6 @@
 <span id="487">487</span>
 <span id="488">488</span>
 <span id="489">489</span>
-<span id="490">490</span>
-<span id="491">491</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Function definition parsing.
 //!
 //! More information:
@@ -506,7 +504,7 @@
     parser::{
         expression::{BindingIdentifier, Initializer},
         statement::{ArrayBindingPattern, ObjectBindingPattern, StatementList},
-        AllowAwait, AllowYield, Cursor, TokenParser,
+        AllowAwait, AllowYield, Cursor, OrAbrupt, ParseResult, TokenParser,
     },
     Error,
 };
@@ -520,8 +518,6 @@
 <span class="kw">use </span>boa_macros::utf16;
 <span class="kw">use </span>boa_profiler::Profiler;
 <span class="kw">use </span>std::io::Read;
-
-<span class="kw">use super</span>::{OrAbrupt, ParseResult};
 
 <span class="doccomment">/// Formal parameters parsing.
 ///

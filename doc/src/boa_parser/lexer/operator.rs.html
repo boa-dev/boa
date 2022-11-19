@@ -183,16 +183,6 @@
 <span id="183">183</span>
 <span id="184">184</span>
 <span id="185">185</span>
-<span id="186">186</span>
-<span id="187">187</span>
-<span id="188">188</span>
-<span id="189">189</span>
-<span id="190">190</span>
-<span id="191">191</span>
-<span id="192">192</span>
-<span id="193">193</span>
-<span id="194">194</span>
-<span id="195">195</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements lexing for operators (+, - etc.) used in the JavaScript programing language.
 
 </span><span class="kw">use </span><span class="kw">crate</span>::lexer::{Cursor, Error, Token, TokenKind, Tokenizer};
@@ -232,16 +222,6 @@
             <span class="kw">_ </span>=&gt; <span class="macro-nonterminal">$op</span>,
         }
     });
-    (<span class="macro-nonterminal">$cursor</span>:ident, <span class="macro-nonterminal">$op</span>:expr, {$(<span class="macro-nonterminal">$case</span>:pat =&gt; <span class="macro-nonterminal">$block</span>:expr),+}) =&gt; {
-        <span class="kw">match </span><span class="macro-nonterminal">$cursor</span>.peek().ok_or_else(|| Error::syntax(<span class="string">&quot;could not preview next value&quot;</span>, <span class="macro-nonterminal">$cursor</span>.pos()))<span class="question-mark">? </span>{
-            $(<span class="macro-nonterminal">$case </span>=&gt; {
-                <span class="macro-nonterminal">$cursor</span>.next_byte()<span class="question-mark">?</span>;
-                <span class="macro-nonterminal">$cursor</span>.next_column();
-                <span class="macro-nonterminal">$block
-            </span>})+,
-            <span class="kw">_ </span>=&gt; <span class="macro-nonterminal">$op
-        </span>}
-    }
 }
 
 <span class="doccomment">/// The `op` macro handles binary operations or assignment operations and converts them into tokens.
@@ -278,7 +258,7 @@
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators
 </span><span class="kw">impl </span>Operator {
     <span class="doccomment">/// Creates a new operator lexer.
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new(init: u8) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">const fn </span>new(init: u8) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{ init }
     }
 }

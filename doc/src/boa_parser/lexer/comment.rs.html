@@ -133,11 +133,9 @@
 <span id="133">133</span>
 <span id="134">134</span>
 <span id="135">135</span>
-<span id="136">136</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements lexing for comments used in the JavaScript programing language.
 
-</span><span class="kw">use super</span>::{Cursor, Error, Tokenizer};
-<span class="kw">use </span><span class="kw">crate</span>::lexer::{Token, TokenKind};
+</span><span class="kw">use </span><span class="kw">crate</span>::lexer::{Cursor, Error, Token, TokenKind, Tokenizer};
 <span class="kw">use </span>boa_ast::{Position, Span};
 <span class="kw">use </span>boa_interner::Interner;
 <span class="kw">use </span>boa_profiler::Profiler;

@@ -1487,7 +1487,7 @@
 );
 
 <span class="doccomment">/// Returns an error if `arguments` or `eval` are used as identifier in strict mode.
-</span><span class="kw">fn </span>check_strict_arguments_or_eval(ident: Identifier, position: Position) -&gt; ParseResult&lt;()&gt; {
+</span><span class="kw">const fn </span>check_strict_arguments_or_eval(ident: Identifier, position: Position) -&gt; ParseResult&lt;()&gt; {
     <span class="kw">match </span>ident.sym() {
         Sym::ARGUMENTS =&gt; <span class="prelude-val">Err</span>(Error::general(
             <span class="string">&quot;unexpected identifier &#39;arguments&#39; in strict mode&quot;</span>,

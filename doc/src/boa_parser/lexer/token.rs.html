@@ -256,6 +256,8 @@
 <span id="256">256</span>
 <span id="257">257</span>
 <span id="258">258</span>
+<span id="259">259</span>
+<span id="260">260</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements all of the [Token]s used in the JavaScript programing language.
 //!
 //! More information:
@@ -287,21 +289,21 @@
     <span class="doccomment">/// Create a new detailed token from the token data, line number and column number
     </span><span class="attribute">#[inline]
     #[must_use]
-    </span><span class="kw">pub fn </span>new(kind: TokenKind, span: Span) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub const fn </span>new(kind: TokenKind, span: Span) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{ kind, span }
     }
 
     <span class="doccomment">/// Gets the kind of the token.
     </span><span class="attribute">#[inline]
     #[must_use]
-    </span><span class="kw">pub fn </span>kind(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>TokenKind {
+    </span><span class="kw">pub const fn </span>kind(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>TokenKind {
         <span class="kw-2">&amp;</span><span class="self">self</span>.kind
     }
 
     <span class="doccomment">/// Gets the token span in the original source code.
     </span><span class="attribute">#[inline]
     #[must_use]
-    </span><span class="kw">pub fn </span>span(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Span {
+    </span><span class="kw">pub const fn </span>span(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Span {
         <span class="self">self</span>.span
     }
 
@@ -321,7 +323,7 @@
     <span class="doccomment">/// An integer
     </span>Integer(i32),
 
-    <span class="comment">// A BigInt
+    <span class="doccomment">/// A BigInt
     </span>BigInt(Box&lt;BigInt&gt;),
 }
 
@@ -420,19 +422,19 @@
 <span class="kw">impl </span>TokenKind {
     <span class="doccomment">/// Creates a `BooleanLiteral` token kind.
     </span><span class="attribute">#[must_use]
-    </span><span class="kw">pub fn </span>boolean_literal(lit: bool) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub const fn </span>boolean_literal(lit: bool) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::BooleanLiteral(lit)
     }
 
     <span class="doccomment">/// Creates an `EOF` token kind.
     </span><span class="attribute">#[must_use]
-    </span><span class="kw">pub fn </span>eof() -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub const fn </span>eof() -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::EOF
     }
 
     <span class="doccomment">/// Creates an `Identifier` token type.
     </span><span class="attribute">#[must_use]
-    </span><span class="kw">pub fn </span>identifier(ident: Sym) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub const fn </span>identifier(ident: Sym) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::Identifier(ident)
     }
 
@@ -446,41 +448,43 @@
 
     <span class="doccomment">/// Creates a `Punctuator` token type.
     </span><span class="attribute">#[must_use]
-    </span><span class="kw">pub fn </span>punctuator(punc: Punctuator) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub const fn </span>punctuator(punc: Punctuator) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::Punctuator(punc)
     }
 
     <span class="doccomment">/// Creates a `StringLiteral` token type.
     </span><span class="attribute">#[must_use]
-    </span><span class="kw">pub fn </span>string_literal(lit: Sym) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub const fn </span>string_literal(lit: Sym) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::StringLiteral(lit)
     }
 
-    <span class="attribute">#[must_use]
-    </span><span class="kw">pub fn </span>template_middle(template_string: TemplateString) -&gt; <span class="self">Self </span>{
+    <span class="doccomment">/// Creates a `TemplateMiddle` token type.
+    </span><span class="attribute">#[must_use]
+    </span><span class="kw">pub const fn </span>template_middle(template_string: TemplateString) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::TemplateMiddle(template_string)
     }
 
-    <span class="attribute">#[must_use]
-    </span><span class="kw">pub fn </span>template_no_substitution(template_string: TemplateString) -&gt; <span class="self">Self </span>{
+    <span class="doccomment">/// Creates a `TemplateNoSubstitution` token type.
+    </span><span class="attribute">#[must_use]
+    </span><span class="kw">pub const fn </span>template_no_substitution(template_string: TemplateString) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::TemplateNoSubstitution(template_string)
     }
 
     <span class="doccomment">/// Creates a `RegularExpressionLiteral` token kind.
     </span><span class="attribute">#[must_use]
-    </span><span class="kw">pub fn </span>regular_expression_literal(body: Sym, flags: Sym) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub const fn </span>regular_expression_literal(body: Sym, flags: Sym) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::RegularExpressionLiteral(body, flags)
     }
 
     <span class="doccomment">/// Creates a `LineTerminator` token kind.
     </span><span class="attribute">#[must_use]
-    </span><span class="kw">pub fn </span>line_terminator() -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub const fn </span>line_terminator() -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::LineTerminator
     }
 
     <span class="doccomment">/// Creates a &#39;Comment&#39; token kind.
     </span><span class="attribute">#[must_use]
-    </span><span class="kw">pub fn </span>comment() -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub const fn </span>comment() -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::Comment
     }
 

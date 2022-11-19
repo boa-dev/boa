@@ -161,33 +161,25 @@
 <span id="161">161</span>
 <span id="162">162</span>
 <span id="163">163</span>
-<span id="164">164</span>
-<span id="165">165</span>
-<span id="166">166</span>
-<span id="167">167</span>
 </pre><pre class="rust"><code><span class="attribute">#[cfg(test)]
 </span><span class="kw">mod </span>tests;
-
-<span class="kw">use </span>std::io::Read;
-
-<span class="kw">use </span>boa_interner::{Interner, Sym};
-<span class="kw">use </span>boa_profiler::Profiler;
 
 <span class="kw">use crate</span>::{
     lexer::{Token, TokenKind},
     parser::{
-        cursor::Cursor, expression::Expression, AllowAwait, AllowYield, OrAbrupt, ParseResult,
-        TokenParser,
+        cursor::Cursor, expression::left_hand_side::arguments::Arguments, expression::Expression,
+        AllowAwait, AllowYield, OrAbrupt, ParseResult, TokenParser,
     },
     Error,
 };
-
-<span class="kw">use </span><span class="kw">super</span>::arguments::Arguments;
 <span class="kw">use </span>boa_ast::{
     <span class="self">self </span><span class="kw">as </span>ast,
     expression::{access::PropertyAccessField, Optional, OptionalOperation, OptionalOperationKind},
     Punctuator,
 };
+<span class="kw">use </span>boa_interner::{Interner, Sym};
+<span class="kw">use </span>boa_profiler::Profiler;
+<span class="kw">use </span>std::io::Read;
 
 <span class="doccomment">/// Parses an optional expression.
 ///

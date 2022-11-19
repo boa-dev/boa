@@ -104,7 +104,6 @@
 <span id="102">102</span>
 <span id="103">103</span>
 <span id="104">104</span>
-<span id="105">105</span>
 </pre><pre class="rust"><code><span class="kw">use </span>boa_engine::{
     builtins::JsArgs,
     object::{JsObject, ObjectInitializer},
@@ -185,8 +184,9 @@
 ///
 /// Accepts a string value as its first argument and executes it as an ECMAScript script.
 </span><span class="kw">fn </span>eval_script(_this: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
-    <span class="kw">if let </span><span class="prelude-val">Some</span>(source_text) = args.get(<span class="number">0</span>).and_then(JsValue::as_string) {
-        <span class="kw">match </span>context.parse(source_text.to_std_string_escaped()) {
+    args.get(<span class="number">0</span>).and_then(JsValue::as_string).map_or_else(
+        || <span class="prelude-val">Ok</span>(JsValue::undefined()),
+        |source_text| <span class="kw">match </span>context.parse(source_text.to_std_string_escaped()) {
             <span class="comment">// TODO: check strict
             </span><span class="prelude-val">Err</span>(e) =&gt; <span class="prelude-val">Err</span>(JsNativeError::typ()
                 .with_message(<span class="macro">format!</span>(<span class="string">&quot;Uncaught Syntax Error: {e}&quot;</span>))
@@ -194,10 +194,8 @@
             <span class="comment">// Calling eval here parses the code a second time.
             // TODO: We can fix this after we have have defined the public api for the vm executer.
             </span><span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; context.eval(source_text.to_std_string_escaped()),
-        }
-    } <span class="kw">else </span>{
-        <span class="prelude-val">Ok</span>(JsValue::undefined())
-    }
+        },
+    )
 }
 
 <span class="doccomment">/// The `$262.gc()` function.

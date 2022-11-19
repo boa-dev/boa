@@ -381,7 +381,6 @@
 <span id="381">381</span>
 <span id="382">382</span>
 <span id="383">383</span>
-<span id="384">384</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa parser implementation.
 
 </span><span class="kw">mod </span>cursor;
@@ -392,9 +391,6 @@
 
 <span class="attribute">#[cfg(test)]
 </span><span class="kw">mod </span>tests;
-
-<span class="kw">use </span>rustc_hash::FxHashSet;
-<span class="kw">use </span>std::io::Read;
 
 <span class="kw">use crate</span>::{
     error::ParseResult,
@@ -415,6 +411,8 @@
 };
 <span class="kw">use </span>boa_interner::Interner;
 <span class="kw">use </span>boa_macros::utf16;
+<span class="kw">use </span>rustc_hash::FxHashSet;
+<span class="kw">use </span>std::io::Read;
 
 <span class="doccomment">/// Trait implemented by parsers.
 ///
@@ -624,7 +622,7 @@
 <span class="kw">impl </span>Script {
     <span class="doccomment">/// Create a new `Script` parser.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">fn </span>new(direct_eval: bool) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">const fn </span>new(direct_eval: bool) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{ direct_eval }
     }
 }
@@ -699,7 +697,7 @@
 <span class="kw">impl </span>ScriptBody {
     <span class="doccomment">/// Create a new `ScriptBody` parser.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">fn </span>new(direct_eval: bool) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">const fn </span>new(direct_eval: bool) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{ direct_eval }
     }
 }

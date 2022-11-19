@@ -201,6 +201,7 @@
 <span id="199">199</span>
 <span id="200">200</span>
 <span id="201">201</span>
+<span id="202">202</span>
 </pre><pre class="rust"><code><span class="kw">use </span>boa_macros::utf16;
 <span class="kw">use </span>indexmap::IndexSet;
 <span class="kw">use </span>once_cell::sync::Lazy;
@@ -334,6 +335,7 @@
 
     <span class="doccomment">/// Returns the internal value of the [`Sym`]
     </span><span class="attribute">#[inline]
+    #[must_use]
     </span><span class="kw">pub const fn </span>get(<span class="self">self</span>) -&gt; usize {
         <span class="self">self</span>.value.get()
     }

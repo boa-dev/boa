@@ -82,14 +82,12 @@
 <span id="82">82</span>
 <span id="83">83</span>
 <span id="84">84</span>
-<span id="85">85</span>
-<span id="86">86</span>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     lexer::TokenKind,
     parser::{
         cursor::Cursor,
         expression::LabelIdentifier,
-        statement::{AllowAwait, AllowReturn, Statement},
+        statement::{declaration::FunctionDeclaration, AllowAwait, AllowReturn, Statement},
         AllowYield, OrAbrupt, ParseResult, TokenParser,
     },
     Error,
@@ -98,8 +96,6 @@
 <span class="kw">use </span>boa_interner::Interner;
 <span class="kw">use </span>boa_profiler::Profiler;
 <span class="kw">use </span>std::io::Read;
-
-<span class="kw">use </span><span class="kw">super</span>::declaration::FunctionDeclaration;
 
 <span class="doccomment">/// Labelled Statement Parsing
 ///

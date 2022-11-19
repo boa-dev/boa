@@ -194,13 +194,9 @@
 <span id="192">192</span>
 <span id="193">193</span>
 <span id="194">194</span>
-<span id="195">195</span>
-<span id="196">196</span>
-</pre><pre class="rust"><code><span class="kw">use </span>std::hash::Hash;
-
+</pre><pre class="rust"><code><span class="kw">use crate</span>::{fixed_string::FixedString, interned_str::InternedStr};
 <span class="kw">use </span>rustc_hash::FxHashMap;
-
-<span class="kw">use crate</span>::{fixed_string::FixedString, interned_str::InternedStr};
+<span class="kw">use </span>std::hash::Hash;
 
 <span class="doccomment">/// Raw string interner, generic by a char type.
 </span><span class="attribute">#[derive(Debug)]

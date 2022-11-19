@@ -350,11 +350,9 @@
 <span id="350">350</span>
 <span id="351">351</span>
 <span id="352">352</span>
-<span id="353">353</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements lexing for string literals used in the JavaScript programing language.
 
-</span><span class="kw">use super</span>::{Cursor, Error, Tokenizer};
-<span class="kw">use </span><span class="kw">crate</span>::lexer::{Token, TokenKind};
+</span><span class="kw">use </span><span class="kw">crate</span>::lexer::{Cursor, Error, Token, TokenKind, Tokenizer};
 <span class="kw">use </span>boa_ast::{Position, Span};
 <span class="kw">use </span>boa_interner::Interner;
 <span class="kw">use </span>boa_profiler::Profiler;
@@ -462,7 +460,7 @@
     ///
     /// [spec]: https://tc39.es/ecma262/#prod-LineTerminator
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>is_line_terminator(ch: u32) -&gt; bool {
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">const fn </span>is_line_terminator(ch: u32) -&gt; bool {
         <span class="macro">matches!</span>(
             ch,
             <span class="number">0x000A </span><span class="comment">/* &lt;LF&gt; */ </span>| <span class="number">0x000D </span><span class="comment">/* &lt;CR&gt; */ </span>| <span class="number">0x2028 </span><span class="comment">/* &lt;LS&gt; */ </span>| <span class="number">0x2029 </span><span class="comment">/* &lt;PS&gt; */

@@ -159,13 +159,11 @@
 <span id="159">159</span>
 <span id="160">160</span>
 <span id="161">161</span>
-<span id="162">162</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements lexing for template literals used in the JavaScript programing language.
 
-</span><span class="kw">use super</span>::{Cursor, Error, Tokenizer};
-<span class="kw">use </span><span class="kw">crate</span>::lexer::{
+</span><span class="kw">use </span><span class="kw">crate</span>::lexer::{
     string::{StringLiteral, UTF16CodeUnitsBuffer},
-    Token, TokenKind,
+    Cursor, Error, Token, TokenKind, Tokenizer,
 };
 <span class="kw">use </span>boa_ast::{Position, Span};
 <span class="kw">use </span>boa_interner::{Interner, Sym};
@@ -184,7 +182,7 @@
 
 <span class="kw">impl </span>TemplateString {
     <span class="doccomment">/// Creates a new `TemplateString` with the given raw template ans start position.
-    </span><span class="kw">pub fn </span>new(raw: Sym, start_pos: Position) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub const fn </span>new(raw: Sym, start_pos: Position) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{ raw, start_pos }
     }
 
@@ -194,7 +192,7 @@
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-templatestrings
-    </span><span class="kw">pub fn </span>as_raw(<span class="self">self</span>) -&gt; Sym {
+    </span><span class="kw">pub const fn </span>as_raw(<span class="self">self</span>) -&gt; Sym {
         <span class="self">self</span>.raw
     }
 

@@ -126,7 +126,7 @@
 //! [spec]: https://tc39.es/ecma262/#sec-do-while-statement
 
 </span><span class="kw">use crate</span>::{
-    lexer::TokenKind,
+    lexer::{Token, TokenKind},
     parser::{
         expression::Expression, statement::Statement, AllowAwait, AllowReturn, AllowYield, Cursor,
         OrAbrupt, ParseResult, TokenParser,
@@ -225,10 +225,10 @@
         <span class="comment">// Here, we only care to read the next token if it&#39;s a semicolon. If it&#39;s not, we
         // automatically &quot;enter&quot; or assume a semicolon, since we have just read the `)` token:
         // https://tc39.es/ecma262/#sec-automatic-semicolon-insertion
-        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(tok) = cursor.peek(<span class="number">0</span>, interner)<span class="question-mark">? </span>{
-            <span class="kw">if let </span>TokenKind::Punctuator(Punctuator::Semicolon) = <span class="kw-2">*</span>tok.kind() {
-                cursor.advance(interner);
-            }
+        </span><span class="kw">if </span>cursor.peek(<span class="number">0</span>, interner)<span class="question-mark">?</span>.map(Token::kind)
+            == <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>TokenKind::Punctuator(Punctuator::Semicolon))
+        {
+            cursor.advance(interner);
         }
 
         <span class="prelude-val">Ok</span>(DoWhileLoop::new(body, cond))

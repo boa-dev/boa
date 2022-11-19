@@ -193,10 +193,14 @@
 <span id="193">193</span>
 <span id="194">194</span>
 <span id="195">195</span>
+<span id="196">196</span>
+<span id="197">197</span>
 </pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::Trace;
-<span class="kw">use </span>std::cell::Cell;
-<span class="kw">use </span>std::fmt;
-<span class="kw">use </span>std::ptr::{<span class="self">self</span>, NonNull};
+<span class="kw">use </span>std::{
+    cell::Cell,
+    fmt,
+    ptr::{<span class="self">self</span>, NonNull},
+};
 
 <span class="comment">// Age and Weak Flags
 </span><span class="kw">const </span>MARK_MASK: usize = <span class="number">1 </span>&lt;&lt; (usize::BITS - <span class="number">2</span>);
@@ -378,7 +382,7 @@
 
     <span class="doccomment">/// Returns a reference to the `GcBox`&#39;s value.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>value(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>T {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>value(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>T {
         <span class="kw-2">&amp;</span><span class="self">self</span>.value
     }
 

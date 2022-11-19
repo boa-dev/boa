@@ -145,7 +145,6 @@
 <span id="145">145</span>
 <span id="146">146</span>
 <span id="147">147</span>
-<span id="148">148</span>
 </pre><pre class="rust"><code><span class="attribute">#[cfg(test)]
 </span><span class="kw">mod </span>tests;
 
@@ -225,10 +224,9 @@
             <span class="kw">if </span>cursor.strict_mode() &amp;&amp; [Sym::EVAL, Sym::ARGUMENTS].contains(<span class="kw-2">&amp;</span>name.sym()) {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(Error::lex(LexError::Syntax(
                     <span class="string">&quot;Unexpected eval or arguments in strict mode&quot;</span>.into(),
-                    <span class="kw">match </span>cursor.peek(<span class="number">0</span>, interner)<span class="question-mark">? </span>{
-                        <span class="prelude-val">Some</span>(token) =&gt; token.span().end(),
-                        <span class="prelude-val">None </span>=&gt; Position::new(<span class="number">1</span>, <span class="number">1</span>),
-                    },
+                    cursor
+                        .peek(<span class="number">0</span>, interner)<span class="question-mark">?
+                        </span>.map_or_else(|| Position::new(<span class="number">1</span>, <span class="number">1</span>), |token| token.span().end()),
                 )));
             }
         }

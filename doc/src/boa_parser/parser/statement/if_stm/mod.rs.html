@@ -156,15 +156,15 @@
 <span id="156">156</span>
 <span id="157">157</span>
 <span id="158">158</span>
-<span id="159">159</span>
 </pre><pre class="rust"><code><span class="attribute">#[cfg(test)]
 </span><span class="kw">mod </span>tests;
 
 <span class="kw">use crate</span>::{
     lexer::TokenKind,
     parser::{
-        expression::Expression, statement::declaration::FunctionDeclaration, AllowAwait,
-        AllowReturn, AllowYield, Cursor, OrAbrupt, ParseResult, TokenParser,
+        expression::Expression,
+        statement::{declaration::FunctionDeclaration, Statement},
+        AllowAwait, AllowReturn, AllowYield, Cursor, OrAbrupt, ParseResult, TokenParser,
     },
     Error,
 };
@@ -175,8 +175,6 @@
 <span class="kw">use </span>boa_interner::Interner;
 <span class="kw">use </span>boa_profiler::Profiler;
 <span class="kw">use </span>std::io::Read;
-
-<span class="kw">use </span><span class="kw">super</span>::Statement;
 
 <span class="doccomment">/// If statement parsing.
 ///

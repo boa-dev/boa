@@ -1920,7 +1920,7 @@
 
                 <span class="kw">match </span>class_element_name {
                     ClassElementName::PropertyName(property_name) <span class="kw">if </span>r#static =&gt; {
-                        <span class="kw">if let </span><span class="prelude-val">Some</span>(Sym::PROTOTYPE) = property_name.prop_name() {
+                        <span class="kw">if </span>property_name.prop_name() == <span class="prelude-val">Some</span>(Sym::PROTOTYPE) {
                             <span class="kw">return </span><span class="prelude-val">Err</span>(Error::general(
                                 <span class="string">&quot;class may not have static method definitions named &#39;prototype&#39;&quot;</span>,
                                 name_position,
@@ -1977,7 +1977,7 @@
                         cursor.set_strict_mode(strict);
                         <span class="kw">match </span>class_element_name {
                             ClassElementName::PropertyName(property_name) <span class="kw">if </span>r#static =&gt; {
-                                <span class="kw">if let </span><span class="prelude-val">Some</span>(Sym::PROTOTYPE) = property_name.prop_name() {
+                                <span class="kw">if </span>property_name.prop_name() == <span class="prelude-val">Some</span>(Sym::PROTOTYPE) {
                                     <span class="kw">return </span><span class="prelude-val">Err</span>(Error::general(
                                         <span class="string">&quot;class may not have static method definitions named &#39;prototype&#39;&quot;</span>,
                                         name_position,
@@ -2022,7 +2022,7 @@
 
                         <span class="kw">match </span>class_element_name {
                             ClassElementName::PropertyName(property_name) <span class="kw">if </span>r#static =&gt; {
-                                <span class="kw">if let </span><span class="prelude-val">Some</span>(Sym::PROTOTYPE) = property_name.prop_name() {
+                                <span class="kw">if </span>property_name.prop_name() == <span class="prelude-val">Some</span>(Sym::PROTOTYPE) {
                                     <span class="kw">return </span><span class="prelude-val">Err</span>(Error::general(
                                             <span class="string">&quot;class may not have static method definitions named &#39;prototype&#39;&quot;</span>,
                                             name_position,

@@ -79,9 +79,6 @@
 <span id="79">79</span>
 <span id="80">80</span>
 <span id="81">81</span>
-<span id="82">82</span>
-<span id="83">83</span>
-<span id="84">84</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Break expression parsing.
 //!
 //! More information:
@@ -95,7 +92,7 @@
 </span><span class="kw">mod </span>tests;
 
 <span class="kw">use crate</span>::{
-    lexer::TokenKind,
+    lexer::{Token, TokenKind},
     parser::{
         cursor::{Cursor, SemicolonResult},
         expression::LabelIdentifier,
@@ -146,11 +143,8 @@
         cursor.expect((Keyword::Break, <span class="bool-val">false</span>), <span class="string">&quot;break statement&quot;</span>, interner)<span class="question-mark">?</span>;
 
         <span class="kw">let </span>label = <span class="kw">if let </span>SemicolonResult::Found(tok) = cursor.peek_semicolon(interner)<span class="question-mark">? </span>{
-            <span class="kw">match </span>tok {
-                <span class="prelude-val">Some</span>(tok) <span class="kw">if </span>tok.kind() == <span class="kw-2">&amp;</span>TokenKind::Punctuator(Punctuator::Semicolon) =&gt; {
-                    cursor.advance(interner);
-                }
-                <span class="kw">_ </span>=&gt; {}
+            <span class="kw">if </span>tok.map(Token::kind) == <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>TokenKind::Punctuator(Punctuator::Semicolon)) {
+                cursor.advance(interner);
             }
 
             <span class="prelude-val">None

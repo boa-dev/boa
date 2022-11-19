@@ -134,8 +134,6 @@
 <span id="134">134</span>
 <span id="135">135</span>
 <span id="136">136</span>
-<span id="137">137</span>
-<span id="138">138</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Array initializer parsing.
 //!
 //! More information:
@@ -262,10 +260,8 @@
             }
         }
 
-        <span class="kw">if </span>last_spread {
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="prelude-val">None</span>) = elements.last() {
-                has_trailing_comma_spread = <span class="bool-val">true</span>;
-            }
+        <span class="kw">if </span>last_spread &amp;&amp; elements.last() == <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="prelude-val">None</span>) {
+            has_trailing_comma_spread = <span class="bool-val">true</span>;
         }
 
         <span class="prelude-val">Ok</span>(literal::ArrayLiteral::new(

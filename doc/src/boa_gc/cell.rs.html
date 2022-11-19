@@ -592,14 +592,19 @@
 <span id="592">592</span>
 <span id="593">593</span>
 <span id="594">594</span>
+<span id="595">595</span>
+<span id="596">596</span>
+<span id="597">597</span>
 </pre><pre class="rust"><code><span class="doccomment">//! A garbage collected cell implementation
-</span><span class="kw">use </span>std::cell::{Cell, UnsafeCell};
-<span class="kw">use </span>std::cmp::Ordering;
-<span class="kw">use </span>std::fmt::{<span class="self">self</span>, Debug, Display};
-<span class="kw">use </span>std::hash::Hash;
-<span class="kw">use </span>std::ops::{Deref, DerefMut};
 
-<span class="kw">use </span><span class="kw">crate</span>::trace::{Finalize, Trace};
+</span><span class="kw">use </span><span class="kw">crate</span>::trace::{Finalize, Trace};
+<span class="kw">use </span>std::{
+    cell::{Cell, UnsafeCell},
+    cmp::Ordering,
+    fmt::{<span class="self">self</span>, Debug, Display},
+    hash::Hash,
+    ops::{Deref, DerefMut},
+};
 
 <span class="doccomment">/// `BorrowFlag` represent the internal state of a `GcCell` and
 /// keeps track of the amount of current borrows.
@@ -628,7 +633,7 @@
 <span class="kw">impl </span>BorrowFlag {
     <span class="doccomment">/// Check the current `BorrowState` of `BorrowFlag`.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>borrowed(<span class="self">self</span>) -&gt; BorrowState {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>borrowed(<span class="self">self</span>) -&gt; BorrowState {
         <span class="kw">match </span><span class="self">self</span>.<span class="number">0 </span>&amp; !ROOT {
             UNUSED =&gt; BorrowState::Unused,
             WRITING =&gt; BorrowState::Writing,
@@ -638,20 +643,20 @@
 
     <span class="doccomment">/// Check whether the borrow bit is flagged.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>rooted(<span class="self">self</span>) -&gt; bool {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>rooted(<span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.<span class="number">0 </span>&amp; ROOT &gt; <span class="number">0
     </span>}
 
     <span class="doccomment">/// Set the `BorrowFlag`&#39;s state to writing.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_writing(<span class="self">self</span>) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>set_writing(<span class="self">self</span>) -&gt; <span class="self">Self </span>{
         <span class="comment">// Set every bit other than the root bit, which is preserved
         </span><span class="self">Self</span>(<span class="self">self</span>.<span class="number">0 </span>| WRITING)
     }
 
     <span class="doccomment">/// Remove the root flag on `BorrowFlag`
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_unused(<span class="self">self</span>) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>set_unused(<span class="self">self</span>) -&gt; <span class="self">Self </span>{
         <span class="comment">// Clear every bit other than the root bit, which is preserved
         </span><span class="self">Self</span>(<span class="self">self</span>.<span class="number">0 </span>&amp; ROOT)
     }
@@ -724,7 +729,7 @@
 <span class="kw">impl</span>&lt;T: Trace&gt; GcCell&lt;T&gt; {
     <span class="doccomment">/// Creates a new `GcCell` containing `value`.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>new(value: T) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub const fn </span>new(value: T) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             flags: Cell::new(BORROWFLAG_INIT),
             cell: UnsafeCell::new(value),
@@ -996,7 +1001,7 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T: <span class="question-mark">?</span>Sized&gt; Deref <span class="kw">for </span>GcCellRef&lt;<span class="lifetime">&#39;a</span>, T&gt; {
+<span class="kw">impl</span>&lt;T: <span class="question-mark">?</span>Sized&gt; Deref <span class="kw">for </span>GcCellRef&lt;<span class="lifetime">&#39;_</span>, T&gt; {
     <span class="kw">type </span>Target = T;
 
     <span class="attribute">#[inline]
@@ -1005,20 +1010,20 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T: <span class="question-mark">?</span>Sized&gt; Drop <span class="kw">for </span>GcCellRef&lt;<span class="lifetime">&#39;a</span>, T&gt; {
+<span class="kw">impl</span>&lt;T: <span class="question-mark">?</span>Sized&gt; Drop <span class="kw">for </span>GcCellRef&lt;<span class="lifetime">&#39;_</span>, T&gt; {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="macro">debug_assert!</span>(<span class="self">self</span>.flags.get().borrowed() == BorrowState::Reading);
         <span class="self">self</span>.flags.set(<span class="self">self</span>.flags.get().sub_reading());
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T: <span class="question-mark">?</span>Sized + Debug&gt; Debug <span class="kw">for </span>GcCellRef&lt;<span class="lifetime">&#39;a</span>, T&gt; {
+<span class="kw">impl</span>&lt;T: <span class="question-mark">?</span>Sized + Debug&gt; Debug <span class="kw">for </span>GcCellRef&lt;<span class="lifetime">&#39;_</span>, T&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
         Debug::fmt(<span class="kw-2">&amp;**</span><span class="self">self</span>, f)
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T: <span class="question-mark">?</span>Sized + Display&gt; Display <span class="kw">for </span>GcCellRef&lt;<span class="lifetime">&#39;a</span>, T&gt; {
+<span class="kw">impl</span>&lt;T: <span class="question-mark">?</span>Sized + Display&gt; Display <span class="kw">for </span>GcCellRef&lt;<span class="lifetime">&#39;_</span>, T&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
         Display::fmt(<span class="kw-2">&amp;**</span><span class="self">self</span>, f)
     }
@@ -1046,6 +1051,7 @@
         F: FnOnce(<span class="kw-2">&amp;mut </span>U) -&gt; <span class="kw-2">&amp;mut </span>V,
     {
         <span class="comment">// SAFETY: This is safe as `GcCellRefMut` is already borrowed, so the value is rooted.
+        </span><span class="attribute">#[allow(trivial_casts)]
         </span><span class="kw">let </span>value = <span class="kw">unsafe </span>{ <span class="kw-2">&amp;mut *</span>(orig.value <span class="kw">as </span><span class="kw-2">*mut </span>U) };
 
         <span class="kw">let </span>ret = GcCellRefMut {
@@ -1061,7 +1067,7 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T: Trace + <span class="question-mark">?</span>Sized, U: <span class="question-mark">?</span>Sized&gt; Deref <span class="kw">for </span>GcCellRefMut&lt;<span class="lifetime">&#39;a</span>, T, U&gt; {
+<span class="kw">impl</span>&lt;T: Trace + <span class="question-mark">?</span>Sized, U: <span class="question-mark">?</span>Sized&gt; Deref <span class="kw">for </span>GcCellRefMut&lt;<span class="lifetime">&#39;_</span>, T, U&gt; {
     <span class="kw">type </span>Target = U;
 
     <span class="attribute">#[inline]
@@ -1070,14 +1076,14 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T: Trace + <span class="question-mark">?</span>Sized, U: <span class="question-mark">?</span>Sized&gt; DerefMut <span class="kw">for </span>GcCellRefMut&lt;<span class="lifetime">&#39;a</span>, T, U&gt; {
+<span class="kw">impl</span>&lt;T: Trace + <span class="question-mark">?</span>Sized, U: <span class="question-mark">?</span>Sized&gt; DerefMut <span class="kw">for </span>GcCellRefMut&lt;<span class="lifetime">&#39;_</span>, T, U&gt; {
     <span class="attribute">#[inline]
     </span><span class="kw">fn </span>deref_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>U {
         <span class="self">self</span>.value
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T: Trace + <span class="question-mark">?</span>Sized, U: <span class="question-mark">?</span>Sized&gt; Drop <span class="kw">for </span>GcCellRefMut&lt;<span class="lifetime">&#39;a</span>, T, U&gt; {
+<span class="kw">impl</span>&lt;T: Trace + <span class="question-mark">?</span>Sized, U: <span class="question-mark">?</span>Sized&gt; Drop <span class="kw">for </span>GcCellRefMut&lt;<span class="lifetime">&#39;_</span>, T, U&gt; {
     <span class="attribute">#[inline]
     </span><span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="macro">debug_assert!</span>(<span class="self">self</span>.gc_cell.flags.get().borrowed() == BorrowState::Writing);
@@ -1096,13 +1102,13 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T: Trace + <span class="question-mark">?</span>Sized, U: Debug + <span class="question-mark">?</span>Sized&gt; Debug <span class="kw">for </span>GcCellRefMut&lt;<span class="lifetime">&#39;a</span>, T, U&gt; {
+<span class="kw">impl</span>&lt;T: Trace + <span class="question-mark">?</span>Sized, U: Debug + <span class="question-mark">?</span>Sized&gt; Debug <span class="kw">for </span>GcCellRefMut&lt;<span class="lifetime">&#39;_</span>, T, U&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
         Debug::fmt(<span class="kw-2">&amp;**</span><span class="self">self</span>, f)
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T: Trace + <span class="question-mark">?</span>Sized, U: Display + <span class="question-mark">?</span>Sized&gt; Display <span class="kw">for </span>GcCellRefMut&lt;<span class="lifetime">&#39;a</span>, T, U&gt; {
+<span class="kw">impl</span>&lt;T: Trace + <span class="question-mark">?</span>Sized, U: Display + <span class="question-mark">?</span>Sized&gt; Display <span class="kw">for </span>GcCellRefMut&lt;<span class="lifetime">&#39;_</span>, T, U&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
         Display::fmt(<span class="kw-2">&amp;**</span><span class="self">self</span>, f)
     }

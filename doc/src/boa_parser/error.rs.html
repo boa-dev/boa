@@ -205,10 +205,14 @@
 <span id="205">205</span>
 <span id="206">206</span>
 <span id="207">207</span>
+<span id="208">208</span>
+<span id="209">209</span>
+<span id="210">210</span>
+<span id="211">211</span>
+<span id="212">212</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Error and result implementation for the parser.
 
 </span><span class="kw">use </span><span class="kw">crate</span>::lexer::Error <span class="kw">as </span>LexError;
-
 <span class="kw">use </span>boa_ast::{Position, Span};
 <span class="kw">use </span>std::fmt;
 
@@ -233,35 +237,52 @@
     }
 }
 
-<span class="doccomment">/// An enum which represents errors encounted during parsing an expression
+<span class="doccomment">/// An enum which represents errors encountered during parsing an expression
 </span><span class="attribute">#[derive(Debug)]
 </span><span class="kw">pub enum </span>Error {
     <span class="doccomment">/// When it expected a certain kind of token, but got another as part of something
     </span>Expected {
-        expected: Box&lt;[String]&gt;,
-        found: Box&lt;str&gt;,
-        span: Span,
-        context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        <span class="doccomment">/// The token(s) that were expected.
+        </span>expected: Box&lt;[String]&gt;,
+
+        <span class="doccomment">/// The token that was not expected.
+        </span>found: Box&lt;str&gt;,
+
+        <span class="doccomment">/// The parsing context in which the error occurred.
+        </span>context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+
+        <span class="doccomment">/// Position of the source code where the error occurred.
+        </span>span: Span,
     },
+
     <span class="doccomment">/// When a token is unexpected
     </span>Unexpected {
-        found: Box&lt;str&gt;,
-        span: Span,
-        message: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt;,
+        <span class="doccomment">/// The error message.
+        </span>message: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt;,
+
+        <span class="doccomment">/// The token that was not expected.
+        </span>found: Box&lt;str&gt;,
+
+        <span class="doccomment">/// Position of the source code where the error occurred.
+        </span>span: Span,
     },
+
     <span class="doccomment">/// When there is an abrupt end to the parsing
     </span>AbruptEnd,
+
     <span class="doccomment">/// A lexing error.
-    </span>Lex { err: LexError },
+    </span>Lex {
+        <span class="doccomment">/// The error that occurred during lexing.
+        </span>err: LexError,
+    },
+
     <span class="doccomment">/// Catch all General Error
     </span>General {
-        message: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
-        position: Position,
-    },
-    <span class="doccomment">/// Unimplemented syntax error
-    </span>Unimplemented {
-        message: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
-        position: Position,
+        <span class="doccomment">/// The error message.
+        </span>message: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+
+        <span class="doccomment">/// Position of the source code where the error occurred.
+        </span>position: Position,
     },
 }
 
@@ -280,6 +301,7 @@
     }
 
     <span class="doccomment">/// Creates an `Expected` parsing error.
+    </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>expected&lt;E, F&gt;(expected: E, found: F, span: Span, context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str) -&gt; <span class="self">Self
     </span><span class="kw">where
         </span>E: Into&lt;Box&lt;[String]&gt;&gt;,
@@ -294,6 +316,7 @@
     }
 
     <span class="doccomment">/// Creates an `Expected` parsing error.
+    </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>unexpected&lt;F, C&gt;(found: F, span: Span, message: C) -&gt; <span class="self">Self
     </span><span class="kw">where
         </span>F: Into&lt;Box&lt;str&gt;&gt;,
@@ -307,12 +330,14 @@
     }
 
     <span class="doccomment">/// Creates a &quot;general&quot; parsing error.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>general(message: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str, position: Position) -&gt; <span class="self">Self </span>{
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>general(message: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str, position: Position) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::General { message, position }
     }
 
     <span class="doccomment">/// Creates a &quot;general&quot; parsing error with the specific error message for a wrong function declaration in non-strict mode.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>wrong_function_declaration_non_strict(position: Position) -&gt; <span class="self">Self </span>{
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>wrong_function_declaration_non_strict(position: Position) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::General {
             message: <span class="string">&quot;In non-strict mode code, functions can only be declared at top level, inside a block, or as the body of an if statement.&quot;</span>,
             position
@@ -321,7 +346,7 @@
 
     <span class="doccomment">/// Creates a &quot;general&quot; parsing error with the specific error message for a wrong function declaration with label.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>wrong_labelled_function_declaration(position: Position) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>wrong_labelled_function_declaration(position: Position) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::General {
             message: <span class="string">&quot;Labelled functions can only be declared at top level or inside a block&quot;</span>,
             position,
@@ -329,14 +354,9 @@
     }
 
     <span class="doccomment">/// Creates a parsing error from a lexing error.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>lex(e: LexError) -&gt; <span class="self">Self </span>{
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>lex(e: LexError) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::Lex { err: e }
-    }
-
-    <span class="doccomment">/// Creates a new `Unimplemented` parsing error.
-    </span><span class="attribute">#[allow(dead_code)]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>unimplemented(message: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str, position: Position) -&gt; <span class="self">Self </span>{
-        <span class="self">Self</span>::Unimplemented { message, position }
     }
 }
 
@@ -387,11 +407,7 @@
             } =&gt; <span class="macro">write!</span>(
                 f,
                 <span class="string">&quot;unexpected token &#39;{found}&#39;{} at line {}, col {}&quot;</span>,
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(m) = message {
-                    <span class="macro">format!</span>(<span class="string">&quot;, {m}&quot;</span>)
-                } <span class="kw">else </span>{
-                    String::new()
-                },
+                message.map_or_else(String::new, |m| <span class="macro">format!</span>(<span class="string">&quot;, {m}&quot;</span>)),
                 span.start().line_number(),
                 span.start().column_number()
             ),
@@ -403,12 +419,6 @@
                 position.column_number()
             ),
             <span class="self">Self</span>::Lex { err } =&gt; fmt::Display::fmt(err, f),
-            <span class="self">Self</span>::Unimplemented { message, position } =&gt; <span class="macro">write!</span>(
-                f,
-                <span class="string">&quot;{message} not yet implemented at line {}, col {}&quot;</span>,
-                position.line_number(),
-                position.column_number()
-            ),
         }
     }
 }

@@ -345,6 +345,7 @@
 <span id="345">345</span>
 <span id="346">346</span>
 <span id="347">347</span>
+<span id="348">348</span>
 </pre><pre class="rust"><code><span class="doccomment">//! A lexical analyzer for JavaScript source code.
 //!
 //! This module contains the Boa lexer or tokenizer implementation.
@@ -361,18 +362,19 @@
 //!
 //! [spec]: https://tc39.es/ecma262/#sec-ecmascript-language-lexical-grammar
 
-</span><span class="kw">mod </span>comment;
+</span><span class="kw">pub mod </span>error;
+<span class="kw">pub mod </span>regex;
+<span class="kw">pub mod </span>token;
+
+<span class="kw">mod </span>comment;
 <span class="kw">mod </span>cursor;
-<span class="kw">pub mod </span>error;
 <span class="kw">mod </span>identifier;
 <span class="kw">mod </span>number;
 <span class="kw">mod </span>operator;
 <span class="kw">mod </span>private_identifier;
-<span class="kw">pub mod </span>regex;
 <span class="kw">mod </span>spread;
 <span class="kw">mod </span>string;
 <span class="kw">mod </span>template;
-<span class="kw">pub mod </span>token;
 
 <span class="attribute">#[cfg(test)]
 </span><span class="kw">mod </span>tests;
@@ -427,7 +429,7 @@
     ///  * ECMAScript standard uses `\{Space_Separator}` + `\u{0009}`, `\u{000B}`, `\u{000C}`, `\u{FEFF}`
     ///
     /// [More information](https://tc39.es/ecma262/#table-32)
-    </span><span class="kw">fn </span>is_whitespace(ch: u32) -&gt; bool {
+    </span><span class="kw">const fn </span>is_whitespace(ch: u32) -&gt; bool {
         <span class="macro">matches!</span>(
             ch,
             <span class="number">0x0020 </span>| <span class="number">0x0009 </span>| <span class="number">0x000B </span>| <span class="number">0x000C </span>| <span class="number">0x00A0 </span>| <span class="number">0xFEFF </span>|
@@ -444,13 +446,13 @@
 
     <span class="doccomment">/// Gets the goal symbol the lexer is currently using.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_goal(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; InputElement {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>get_goal(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; InputElement {
         <span class="self">self</span>.goal_symbol
     }
 
     <span class="attribute">#[inline]
     </span><span class="doccomment">/// Returns if strict mode is currently active.
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>strict_mode(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">const fn </span>strict_mode(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.cursor.strict_mode()
     }
 

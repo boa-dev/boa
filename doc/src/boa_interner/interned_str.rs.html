@@ -111,7 +111,7 @@
     /// Not maintaining the invariants specified on the struct definition
     /// could cause Undefined Behaviour.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">unsafe fn </span>new(ptr: NonNull&lt;[Char]&gt;) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">const unsafe fn </span>new(ptr: NonNull&lt;[Char]&gt;) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{ ptr }
     }
 

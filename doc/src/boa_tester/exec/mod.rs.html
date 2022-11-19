@@ -407,19 +407,14 @@
 <span id="405">405</span>
 <span id="406">406</span>
 <span id="407">407</span>
-<span id="408">408</span>
-<span id="409">409</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Execution module for the test runner.
 
 </span><span class="kw">mod </span>js262;
 
-<span class="kw">use </span>std::borrow::Cow;
-
-<span class="kw">use </span><span class="kw">crate</span>::read::ErrorType;
-
 <span class="kw">use super</span>::{
     Harness, Outcome, Phase, SuiteResult, Test, TestFlags, TestOutcomeResult, TestResult, TestSuite,
 };
+<span class="kw">use </span><span class="kw">crate</span>::read::ErrorType;
 <span class="kw">use </span>boa_engine::{
     builtins::JsArgs, object::FunctionBuilder, property::Attribute, Context, JsNativeErrorKind,
     JsResult, JsValue,
@@ -428,6 +423,7 @@
 <span class="kw">use </span>boa_parser::Parser;
 <span class="kw">use </span>colored::Colorize;
 <span class="kw">use </span>rayon::prelude::<span class="kw-2">*</span>;
+<span class="kw">use </span>std::borrow::Cow;
 
 <span class="kw">impl </span>TestSuite {
     <span class="doccomment">/// Runs the test suite.

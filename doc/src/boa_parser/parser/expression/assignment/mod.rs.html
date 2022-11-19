@@ -297,7 +297,6 @@
 <span id="297">297</span>
 <span id="298">298</span>
 <span id="299">299</span>
-<span id="300">300</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Assignment operator parsing.
 //!
 //! More information:
@@ -313,6 +312,7 @@
 <span class="kw">mod </span>exponentiation;
 <span class="kw">mod </span>r#yield;
 
+<span class="kw">use </span><span class="kw">super</span>::check_strict_arguments_or_eval;
 <span class="kw">use crate</span>::{
     lexer::{Error <span class="kw">as </span>LexError, InputElement, TokenKind},
     parser::{
@@ -340,8 +340,6 @@
 <span class="kw">use </span>std::io::Read;
 
 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">use </span>exponentiation::ExponentiationExpression;
-
-<span class="kw">use </span><span class="kw">super</span>::check_strict_arguments_or_eval;
 
 <span class="doccomment">/// Assignment expression parsing.
 ///

@@ -215,10 +215,23 @@
 <span id="215">215</span>
 <span id="216">216</span>
 <span id="217">217</span>
+<span id="218">218</span>
+<span id="219">219</span>
+<span id="220">220</span>
+<span id="221">221</span>
+<span id="222">222</span>
+<span id="223">223</span>
+<span id="224">224</span>
+<span id="225">225</span>
+<span id="226">226</span>
+<span id="227">227</span>
+<span id="228">228</span>
+<span id="229">229</span>
+<span id="230">230</span>
+<span id="231">231</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements lexing for regex literals used in the JavaScript programing language.
 
-</span><span class="kw">use super</span>::{Cursor, Error, Span, Tokenizer};
-<span class="kw">use </span><span class="kw">crate</span>::lexer::{Token, TokenKind};
+</span><span class="kw">use </span><span class="kw">crate</span>::lexer::{Cursor, Error, Span, Token, TokenKind, Tokenizer};
 <span class="kw">use </span>bitflags::bitflags;
 <span class="kw">use </span>boa_ast::Position;
 <span class="kw">use </span>boa_interner::{Interner, Sym};
@@ -358,13 +371,28 @@
     <span class="doccomment">/// Flags of a regular expression.
     </span><span class="attribute">#[derive(Default)]
     </span><span class="kw">pub struct </span>RegExpFlags: u8 {
-        <span class="kw">const </span>GLOBAL = <span class="number">0b0000_0001</span>;
-        <span class="kw">const </span>IGNORE_CASE = <span class="number">0b0000_0010</span>;
-        <span class="kw">const </span>MULTILINE = <span class="number">0b0000_0100</span>;
-        <span class="kw">const </span>DOT_ALL = <span class="number">0b0000_1000</span>;
-        <span class="kw">const </span>UNICODE = <span class="number">0b0001_0000</span>;
-        <span class="kw">const </span>STICKY = <span class="number">0b0010_0000</span>;
-        <span class="kw">const </span>HAS_INDICES = <span class="number">0b0100_0000</span>;
+        <span class="doccomment">/// Whether to test the regular expression against all possible matches in a string,
+        /// or only against the first.
+        </span><span class="kw">const </span>GLOBAL = <span class="number">0b0000_0001</span>;
+
+        <span class="doccomment">/// Whether to ignore case while attempting a match in a string.
+        </span><span class="kw">const </span>IGNORE_CASE = <span class="number">0b0000_0010</span>;
+
+        <span class="doccomment">/// Whether or not to search in strings across multiple lines.
+        </span><span class="kw">const </span>MULTILINE = <span class="number">0b0000_0100</span>;
+
+        <span class="doccomment">/// Whether `.` matches newlines or not.
+        </span><span class="kw">const </span>DOT_ALL = <span class="number">0b0000_1000</span>;
+
+        <span class="doccomment">/// Whether or not Unicode features are enabled.
+        </span><span class="kw">const </span>UNICODE = <span class="number">0b0001_0000</span>;
+
+        <span class="doccomment">/// Whether or not the search is sticky.
+        </span><span class="kw">const </span>STICKY = <span class="number">0b0010_0000</span>;
+
+        <span class="doccomment">/// Whether the regular expression result exposes the start and end indices of
+        /// captured substrings.
+        </span><span class="kw">const </span>HAS_INDICES = <span class="number">0b0100_0000</span>;
     }
 }
 

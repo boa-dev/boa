@@ -273,18 +273,26 @@
 <span id="273">273</span>
 <span id="274">274</span>
 <span id="275">275</span>
-</pre><pre class="rust"><code><span class="kw">use </span>std::cell::Cell;
-<span class="kw">use </span>std::cmp::Ordering;
-<span class="kw">use </span>std::fmt::{<span class="self">self</span>, Debug, Display};
-<span class="kw">use </span>std::hash::{Hash, Hasher};
-<span class="kw">use </span>std::marker::PhantomData;
-<span class="kw">use </span>std::ops::Deref;
-<span class="kw">use </span>std::ptr::{<span class="self">self</span>, addr_of_mut, NonNull};
-<span class="kw">use </span>std::rc::Rc;
-
-<span class="kw">use </span><span class="kw">crate</span>::internals::GcBox;
-<span class="kw">use </span><span class="kw">crate</span>::trace::{Finalize, Trace};
-<span class="kw">use crate</span>::{finalizer_safe, Allocator};
+<span id="276">276</span>
+<span id="277">277</span>
+<span id="278">278</span>
+<span id="279">279</span>
+</pre><pre class="rust"><code><span class="kw">use crate</span>::{
+    finalizer_safe,
+    internals::GcBox,
+    trace::{Finalize, Trace},
+    Allocator,
+};
+<span class="kw">use </span>std::{
+    cell::Cell,
+    cmp::Ordering,
+    fmt::{<span class="self">self</span>, Debug, Display},
+    hash::{Hash, Hasher},
+    marker::PhantomData,
+    ops::Deref,
+    ptr::{<span class="self">self</span>, addr_of_mut, NonNull},
+    rc::Rc,
+};
 
 <span class="comment">// Technically, this function is safe, since we&#39;re just modifying the address of a pointer without
 // dereferencing it.

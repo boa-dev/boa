@@ -448,19 +448,23 @@
 <span id="448">448</span>
 <span id="449">449</span>
 <span id="450">450</span>
-</pre><pre class="rust"><code><span class="kw">use </span>std::borrow::{Cow, ToOwned};
-<span class="kw">use </span>std::collections::{BTreeMap, BTreeSet, BinaryHeap, HashMap, HashSet, LinkedList, VecDeque};
-<span class="kw">use </span>std::hash::{BuildHasher, Hash};
-<span class="kw">use </span>std::marker::PhantomData;
-<span class="kw">use </span>std::num::{
-    NonZeroI128, NonZeroI16, NonZeroI32, NonZeroI64, NonZeroI8, NonZeroIsize, NonZeroU128,
-    NonZeroU16, NonZeroU32, NonZeroU64, NonZeroU8, NonZeroUsize,
-};
-<span class="kw">use </span>std::path::{Path, PathBuf};
-<span class="kw">use </span>std::rc::Rc;
-<span class="kw">use </span>std::sync::atomic::{
-    AtomicBool, AtomicI16, AtomicI32, AtomicI64, AtomicI8, AtomicIsize, AtomicU16, AtomicU32,
-    AtomicU64, AtomicU8, AtomicUsize,
+<span id="451">451</span>
+<span id="452">452</span>
+</pre><pre class="rust"><code><span class="kw">use </span>std::{
+    borrow::{Cow, ToOwned},
+    collections::{BTreeMap, BTreeSet, BinaryHeap, HashMap, HashSet, LinkedList, VecDeque},
+    hash::{BuildHasher, Hash},
+    marker::PhantomData,
+    num::{
+        NonZeroI128, NonZeroI16, NonZeroI32, NonZeroI64, NonZeroI8, NonZeroIsize, NonZeroU128,
+        NonZeroU16, NonZeroU32, NonZeroU64, NonZeroU8, NonZeroUsize,
+    },
+    path::{Path, PathBuf},
+    rc::Rc,
+    sync::atomic::{
+        AtomicBool, AtomicI16, AtomicI32, AtomicI64, AtomicI8, AtomicIsize, AtomicU16, AtomicU32,
+        AtomicU64, AtomicU8, AtomicUsize,
+    },
 };
 
 <span class="doccomment">/// Substitute for the [`Drop`] trait for garbage collected types.

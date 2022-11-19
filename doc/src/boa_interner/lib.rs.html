@@ -430,6 +430,18 @@
 <span id="428">428</span>
 <span id="429">429</span>
 <span id="430">430</span>
+<span id="431">431</span>
+<span id="432">432</span>
+<span id="433">433</span>
+<span id="434">434</span>
+<span id="435">435</span>
+<span id="436">436</span>
+<span id="437">437</span>
+<span id="438">438</span>
+<span id="439">439</span>
+<span id="440">440</span>
+<span id="441">441</span>
+<span id="442">442</span>
 </pre><pre class="rust"><code><span class="doccomment">//! String interner for Boa.
 //!
 //! The idea behind using a string interner is that in most of the code, strings such as
@@ -445,62 +457,60 @@
     html_favicon_url = <span class="string">&quot;https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg&quot;
 </span>)]
 #![cfg_attr(not(test), forbid(clippy::unwrap_used))]
-#![warn(
-    clippy::perf,
-    clippy::single_match_else,
-    clippy::dbg_macro,
-    clippy::doc_markdown,
-    clippy::wildcard_imports,
-    clippy::struct_excessive_bools,
-    clippy::doc_markdown,
-    clippy::semicolon_if_nothing_returned,
-    clippy::pedantic
-)]
+#![warn(missing_docs, clippy::dbg_macro)]
 #![deny(
-    clippy::all,
-    clippy::cast_lossless,
-    clippy::redundant_closure_for_method_calls,
-    clippy::use_self,
-    clippy::unnested_or_patterns,
-    clippy::trivially_copy_pass_by_ref,
-    clippy::needless_pass_by_value,
-    clippy::match_wildcard_for_single_variants,
-    clippy::map_unwrap_or,
-    unused_qualifications,
-    unused_import_braces,
-    unused_lifetimes,
-    unreachable_pub,
-    trivial_numeric_casts,
-    <span class="comment">// rustdoc,
-    </span>missing_debug_implementations,
-    missing_copy_implementations,
-    deprecated_in_future,
-    meta_variable_misuse,
-    non_ascii_idents,
+    <span class="comment">// rustc lint groups https://doc.rust-lang.org/rustc/lints/groups.html
+    </span>warnings,
+    future_incompatible,
+    let_underscore,
+    nonstandard_style,
     rust_2018_compatibility,
     rust_2018_idioms,
-    future_incompatible,
-    nonstandard_style,
-    unsafe_op_in_unsafe_fn
+    rust_2021_compatibility,
+    unused,
+
+    <span class="comment">// rustc allowed-by-default lints https://doc.rust-lang.org/rustc/lints/listing/allowed-by-default.html
+    </span>macro_use_extern_crate,
+    meta_variable_misuse,
+    missing_abi,
+    missing_copy_implementations,
+    missing_debug_implementations,
+    non_ascii_idents,
+    noop_method_call,
+    trivial_casts,
+    trivial_numeric_casts,
+    unreachable_pub,
+    unsafe_op_in_unsafe_fn,
+    unused_crate_dependencies,
+    unused_import_braces,
+    unused_lifetimes,
+    unused_qualifications,
+    unused_tuple_struct_fields,
+    variant_size_differences,
+
+    <span class="comment">// rustdoc lints https://doc.rust-lang.org/rustdoc/lints.html
+    </span>rustdoc::broken_intra_doc_links,
+    rustdoc::private_intra_doc_links,
+    rustdoc::missing_crate_level_docs,
+    rustdoc::private_doc_tests,
+    rustdoc::invalid_codeblock_attributes,
+    rustdoc::invalid_rust_codeblocks,
+    rustdoc::bare_urls,
+
+    <span class="comment">// clippy categories https://doc.rust-lang.org/clippy/
+    </span>clippy::all,
+    clippy::correctness,
+    clippy::suspicious,
+    clippy::style,
+    clippy::complexity,
+    clippy::perf,
+    clippy::pedantic,
+    clippy::nursery,
 )]
 #![allow(
-    clippy::module_name_repetitions,
-    clippy::cast_possible_truncation,
-    clippy::cast_sign_loss,
-    clippy::cast_precision_loss,
-    clippy::cast_possible_wrap,
-    clippy::cast_ptr_alignment,
-    clippy::missing_panics_doc,
-    clippy::too_many_lines,
-    clippy::unreadable_literal,
-    clippy::missing_inline_in_public_items,
-    clippy::cognitive_complexity,
-    clippy::must_use_candidate,
-    clippy::missing_errors_doc,
-    clippy::as_conversions,
-    clippy::let_unit_value,
+    clippy::redundant_pub_crate,
     <span class="comment">// TODO deny once false positive is fixed (https://github.com/rust-lang/rust-clippy/issues/9626).
-    </span>clippy::trait_duplication_in_bounds,
+    </span>clippy::trait_duplication_in_bounds
 )]
 
 </span><span class="kw">extern crate </span>static_assertions <span class="kw">as </span>sa;
@@ -509,12 +519,13 @@
 <span class="kw">mod </span>interned_str;
 <span class="kw">mod </span>raw;
 <span class="kw">mod </span>sym;
+
 <span class="attribute">#[cfg(test)]
 </span><span class="kw">mod </span>tests;
 
+<span class="kw">use </span>raw::RawInterner;
 <span class="kw">use </span>std::borrow::Cow;
 
-<span class="kw">use </span>raw::RawInterner;
 <span class="kw">pub use </span>sym::<span class="kw-2">*</span>;
 
 <span class="doccomment">/// An enumeration of all slice types [`Interner`] can internally store.
@@ -523,8 +534,11 @@
 /// encodings [`Interner`] can store.
 </span><span class="attribute">#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 </span><span class="kw">pub enum </span>JStrRef&lt;<span class="lifetime">&#39;a</span>&gt; {
-    Utf8(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str),
-    Utf16(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u16]),
+    <span class="doccomment">/// A `UTF-8` string reference.
+    </span>Utf8(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str),
+
+    <span class="doccomment">/// A `UTF-16` string reference.
+    </span>Utf16(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u16]),
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str&gt; <span class="kw">for </span>JStrRef&lt;<span class="lifetime">&#39;a</span>&gt; {
@@ -560,12 +574,16 @@
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>&gt; JSInternedStrRef&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>&gt; {
     <span class="doccomment">/// Returns the inner reference to the interned string in `UTF-8` encoding.
     /// if the string is not representable in `UTF-8`, returns [`None`]
-    </span><span class="kw">pub fn </span>utf8(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str&gt; {
+    </span><span class="attribute">#[inline]
+    #[must_use]
+    </span><span class="kw">pub const fn </span>utf8(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str&gt; {
         <span class="self">self</span>.utf8
     }
 
     <span class="doccomment">/// Returns the inner reference to the interned string in `UTF-16` encoding.
-    </span><span class="kw">pub fn </span>utf16(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>[u16] {
+    </span><span class="attribute">#[inline]
+    #[must_use]
+    </span><span class="kw">pub const fn </span>utf16(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>[u16] {
         <span class="self">self</span>.utf16
     }
 
@@ -618,7 +636,7 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>&gt; std::fmt::Display <span class="kw">for </span>JSInternedStrRef&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>&gt; {
+<span class="kw">impl </span>std::fmt::Display <span class="kw">for </span>JSInternedStrRef&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
         <span class="self">self</span>.join_with_context(
             std::fmt::Display::fmt,
@@ -647,12 +665,14 @@
 <span class="kw">impl </span>Interner {
     <span class="doccomment">/// Creates a new [`Interner`].
     </span><span class="attribute">#[inline]
+    #[must_use]
     </span><span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::default()
     }
 
     <span class="doccomment">/// Creates a new [`Interner`] with the specified capacity.
     </span><span class="attribute">#[inline]
+    #[must_use]
     </span><span class="kw">pub fn </span>with_capacity(capacity: usize) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             utf8_interner: RawInterner::with_capacity(capacity),
@@ -662,6 +682,7 @@
 
     <span class="doccomment">/// Returns the number of strings interned by the interner.
     </span><span class="attribute">#[inline]
+    #[must_use]
     </span><span class="kw">pub fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
         <span class="comment">// `utf16_interner.len()` == `utf8_interner.len()`,
         // so we can use any of them.
@@ -670,6 +691,7 @@
 
     <span class="doccomment">/// Returns `true` if the [`Interner`] contains no interned strings.
     </span><span class="attribute">#[inline]
+    #[must_use]
     </span><span class="kw">pub fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         COMMON_STRINGS_UTF8.is_empty() &amp;&amp; <span class="self">self</span>.utf16_interner.is_empty()
     }
@@ -774,6 +796,7 @@
 
     <span class="doccomment">/// Returns the string for the given symbol if any.
     </span><span class="attribute">#[inline]
+    #[must_use]
     </span><span class="kw">pub fn </span>resolve(<span class="kw-2">&amp;</span><span class="self">self</span>, symbol: Sym) -&gt; <span class="prelude-ty">Option</span>&lt;JSInternedStrRef&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>&gt;&gt; {
         <span class="kw">let </span>index = symbol.get() - <span class="number">1</span>;
 
@@ -817,6 +840,7 @@
     ///
     /// If the interner cannot resolve the given symbol.
     </span><span class="attribute">#[inline]
+    #[must_use]
     </span><span class="kw">pub fn </span>resolve_expect(<span class="kw-2">&amp;</span><span class="self">self</span>, symbol: Sym) -&gt; JSInternedStrRef&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>&gt; {
         <span class="self">self</span>.resolve(symbol).expect(<span class="string">&quot;string disappeared&quot;</span>)
     }

@@ -518,12 +518,6 @@
 <span id="518">518</span>
 <span id="519">519</span>
 <span id="520">520</span>
-<span id="521">521</span>
-<span id="522">522</span>
-<span id="523">523</span>
-<span id="524">524</span>
-<span id="525">525</span>
-<span id="526">526</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Module implementing the lexer cursor. This is used for managing the input byte stream.
 </span><span class="kw">use </span>boa_ast::Position;
 <span class="kw">use </span>boa_profiler::Profiler;
@@ -540,9 +534,10 @@
 <span class="kw">impl</span>&lt;R&gt; Cursor&lt;R&gt; {
     <span class="doccomment">/// Gets the current position of the cursor in the source code.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>pos(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Position {
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">const fn </span>pos(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Position {
         <span class="self">self</span>.pos
     }
+
     <span class="doccomment">/// Advances the position to the next column.
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>next_column(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
@@ -560,7 +555,7 @@
 
     <span class="attribute">#[inline]
     </span><span class="doccomment">/// Returns if strict mode is currently active.
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>strict_mode(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">const fn </span>strict_mode(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.strict_mode
     }
 
@@ -646,11 +641,8 @@
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;cursor::next_is_ascii_pred()&quot;</span>, <span class="string">&quot;Lexing&quot;</span>);
 
         <span class="prelude-val">Ok</span>(<span class="kw">match </span><span class="self">self</span>.peek()<span class="question-mark">? </span>{
-            <span class="prelude-val">Some</span>(byte) =&gt; <span class="kw">match </span>byte {
-                <span class="number">0</span>..=<span class="number">0x7F </span>=&gt; pred(char::from(byte)),
-                <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
-            },
-            <span class="prelude-val">None </span>=&gt; <span class="bool-val">false</span>,
+            <span class="prelude-val">Some</span>(byte) <span class="kw">if </span>(<span class="number">0</span>..=<span class="number">0x7F</span>).contains(<span class="kw-2">&amp;</span>byte) =&gt; pred(char::from(byte)),
+            <span class="prelude-val">Some</span>(<span class="kw">_</span>) | <span class="prelude-val">None </span>=&gt; <span class="bool-val">false</span>,
         })
     }
 
@@ -667,11 +659,7 @@
     {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;cursor::next_is_char_pred()&quot;</span>, <span class="string">&quot;Lexing&quot;</span>);
 
-        <span class="prelude-val">Ok</span>(<span class="kw">if let </span><span class="prelude-val">Some</span>(peek) = <span class="self">self</span>.peek_char()<span class="question-mark">? </span>{
-            pred(peek)
-        } <span class="kw">else </span>{
-            <span class="bool-val">false
-        </span>})
+        <span class="prelude-val">Ok</span>(<span class="self">self</span>.peek_char()<span class="question-mark">?</span>.map_or(<span class="bool-val">false</span>, pred))
     }
 
     <span class="doccomment">/// Fills the buffer with all bytes until the stop byte is found.
@@ -829,7 +817,7 @@
 <span class="kw">impl</span>&lt;R&gt; InnerIter&lt;R&gt; {
     <span class="doccomment">/// Creates a new inner iterator.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">fn </span>new(iter: Bytes&lt;R&gt;) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">const fn </span>new(iter: Bytes&lt;R&gt;) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             iter,
             num_peeked_bytes: <span class="number">0</span>,
@@ -1029,7 +1017,7 @@
 <span class="doccomment">/// Checks whether the byte is a UTF-8 first byte (i.e., ascii byte or starts with the
 /// bits `11`).
 </span><span class="attribute">#[inline]
-</span><span class="kw">fn </span>utf8_is_first_byte(byte: u8) -&gt; bool {
+</span><span class="kw">const fn </span>utf8_is_first_byte(byte: u8) -&gt; bool {
     byte &lt;= <span class="number">0x7F </span>|| (byte &gt;&gt; <span class="number">6</span>) == <span class="number">0x11
 </span>}
 
@@ -1039,7 +1027,7 @@
 }
 
 <span class="attribute">#[inline]
-</span><span class="kw">fn </span>utf8_len(ch: u32) -&gt; u32 {
+</span><span class="kw">const fn </span>utf8_len(ch: u32) -&gt; u32 {
     <span class="kw">if </span>ch &lt;= <span class="number">0x7F </span>{
         <span class="number">1
     </span>} <span class="kw">else if </span>ch &lt;= <span class="number">0x7FF </span>{
