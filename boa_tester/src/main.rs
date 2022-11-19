@@ -2,64 +2,69 @@
 //!
 //! This crate will run the full ECMAScript test suite (Test262) and report compliance of the
 //! `boa` wrap_err.
+
 #![doc(
     html_logo_url = "https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg",
     html_favicon_url = "https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"
 )]
 #![cfg_attr(not(test), deny(clippy::unwrap_used))]
-#![warn(
-    clippy::perf,
-    clippy::single_match_else,
-    clippy::dbg_macro,
-    clippy::doc_markdown,
-    clippy::wildcard_imports,
-    clippy::struct_excessive_bools,
-    clippy::doc_markdown,
-    clippy::semicolon_if_nothing_returned,
-    clippy::pedantic
-)]
+#![warn(missing_docs, clippy::dbg_macro)]
 #![deny(
-    clippy::all,
-    clippy::cast_lossless,
-    clippy::redundant_closure_for_method_calls,
-    clippy::unnested_or_patterns,
-    clippy::trivially_copy_pass_by_ref,
-    clippy::needless_pass_by_value,
-    clippy::match_wildcard_for_single_variants,
-    clippy::map_unwrap_or,
-    unused_qualifications,
-    unused_import_braces,
-    unused_lifetimes,
-    unreachable_pub,
-    trivial_numeric_casts,
-    // rustdoc,
-    missing_debug_implementations,
-    missing_copy_implementations,
-    deprecated_in_future,
-    meta_variable_misuse,
-    non_ascii_idents,
+    // rustc lint groups https://doc.rust-lang.org/rustc/lints/groups.html
+    warnings,
+    future_incompatible,
+    let_underscore,
+    nonstandard_style,
     rust_2018_compatibility,
     rust_2018_idioms,
-    future_incompatible,
-    nonstandard_style,
+    rust_2021_compatibility,
+    unused,
+
+    // rustc allowed-by-default lints https://doc.rust-lang.org/rustc/lints/listing/allowed-by-default.html
+    macro_use_extern_crate,
+    meta_variable_misuse,
+    missing_abi,
+    missing_copy_implementations,
+    missing_debug_implementations,
+    non_ascii_idents,
+    noop_method_call,
+    single_use_lifetimes,
+    trivial_casts,
+    trivial_numeric_casts,
+    unreachable_pub,
+    unsafe_op_in_unsafe_fn,
+    unused_crate_dependencies,
+    unused_import_braces,
+    unused_lifetimes,
+    unused_qualifications,
+    unused_tuple_struct_fields,
+    variant_size_differences,
+
+    // rustdoc lints https://doc.rust-lang.org/rustdoc/lints.html
+    rustdoc::broken_intra_doc_links,
+    rustdoc::private_intra_doc_links,
+    rustdoc::missing_crate_level_docs,
+    rustdoc::private_doc_tests,
+    rustdoc::invalid_codeblock_attributes,
+    rustdoc::invalid_rust_codeblocks,
+    rustdoc::bare_urls,
+
+    // clippy categories https://doc.rust-lang.org/clippy/
+    clippy::all,
+    clippy::correctness,
+    clippy::suspicious,
+    clippy::style,
+    clippy::complexity,
+    clippy::perf,
+    clippy::pedantic,
+    clippy::nursery,
 )]
 #![allow(
-    clippy::use_self, // TODO: deny once false positives are fixed
-    clippy::module_name_repetitions,
-    clippy::cast_possible_truncation,
-    clippy::cast_sign_loss,
-    clippy::cast_precision_loss,
-    clippy::cast_possible_wrap,
-    clippy::cast_ptr_alignment,
-    clippy::missing_panics_doc,
+    clippy::use_self,
     clippy::too_many_lines,
-    clippy::unreadable_literal,
-    clippy::missing_inline_in_public_items,
-    clippy::cognitive_complexity,
-    clippy::must_use_candidate,
-    clippy::missing_errors_doc,
-    clippy::as_conversions,
-    clippy::let_unit_value,
+    clippy::redundant_pub_crate,
+    clippy::cast_precision_loss,
+    clippy::cast_possible_wrap
 )]
 
 mod exec;
@@ -123,7 +128,7 @@ impl Ignored {
             .unwrap_or_default()
     }
 
-    pub(crate) fn contains_any_flag(&self, flags: TestFlags) -> bool {
+    pub(crate) const fn contains_any_flag(&self, flags: TestFlags) -> bool {
         flags.intersects(self.flags)
     }
 }
@@ -427,15 +432,15 @@ impl From<Option<Negative>> for Outcome {
 
 bitflags! {
     struct TestFlags: u16 {
-        const STRICT = 0b000000001;
-        const NO_STRICT = 0b000000010;
-        const MODULE = 0b000000100;
-        const RAW = 0b000001000;
-        const ASYNC = 0b000010000;
-        const GENERATED = 0b000100000;
-        const CAN_BLOCK_IS_FALSE = 0b001000000;
-        const CAN_BLOCK_IS_TRUE = 0b010000000;
-        const NON_DETERMINISTIC = 0b100000000;
+        const STRICT = 0b0_0000_0001;
+        const NO_STRICT = 0b0_0000_0010;
+        const MODULE = 0b0_0000_0100;
+        const RAW = 0b0_0000_1000;
+        const ASYNC = 0b0_0001_0000;
+        const GENERATED = 0b0_0010_0000;
+        const CAN_BLOCK_IS_FALSE = 0b0_0100_0000;
+        const CAN_BLOCK_IS_TRUE = 0b0_1000_0000;
+        const NON_DETERMINISTIC = 0b1_0000_0000;
     }
 }
 
@@ -512,7 +517,7 @@ impl<'de> Deserialize<'de> for TestFlags {
 
         struct RawFlagsVisitor;
 
-        impl<'de> Visitor<'de> for RawFlagsVisitor {
+        impl Visitor<'_> for RawFlagsVisitor {
             type Value = TestFlags;
 
             fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {

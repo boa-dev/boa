@@ -1,63 +1,64 @@
+//! A ECMAScript REPL implementation based on boa_engine.
+
 #![doc(
     html_logo_url = "https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg",
     html_favicon_url = "https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"
 )]
 #![cfg_attr(not(test), deny(clippy::unwrap_used))]
-#![warn(
-    clippy::perf,
-    clippy::single_match_else,
-    clippy::dbg_macro,
-    clippy::doc_markdown,
-    clippy::wildcard_imports,
-    clippy::struct_excessive_bools,
-    clippy::doc_markdown,
-    clippy::semicolon_if_nothing_returned,
-    clippy::pedantic
-)]
+#![warn(missing_docs, clippy::dbg_macro)]
 #![deny(
-    clippy::all,
-    clippy::cast_lossless,
-    clippy::redundant_closure_for_method_calls,
-    clippy::use_self,
-    clippy::unnested_or_patterns,
-    clippy::trivially_copy_pass_by_ref,
-    clippy::needless_pass_by_value,
-    clippy::match_wildcard_for_single_variants,
-    clippy::map_unwrap_or,
-    unused_qualifications,
-    unused_import_braces,
-    unused_lifetimes,
-    unreachable_pub,
-    trivial_numeric_casts,
-    // rustdoc,
-    missing_debug_implementations,
-    missing_copy_implementations,
-    deprecated_in_future,
-    meta_variable_misuse,
-    non_ascii_idents,
+    // rustc lint groups https://doc.rust-lang.org/rustc/lints/groups.html
+    warnings,
+    future_incompatible,
+    let_underscore,
+    nonstandard_style,
     rust_2018_compatibility,
     rust_2018_idioms,
-    future_incompatible,
-    nonstandard_style,
+    rust_2021_compatibility,
+    unused,
+
+    // rustc allowed-by-default lints https://doc.rust-lang.org/rustc/lints/listing/allowed-by-default.html
+    macro_use_extern_crate,
+    meta_variable_misuse,
+    missing_abi,
+    missing_copy_implementations,
+    missing_debug_implementations,
+    non_ascii_idents,
+    noop_method_call,
+    single_use_lifetimes,
+    trivial_casts,
+    trivial_numeric_casts,
+    unreachable_pub,
+    unsafe_op_in_unsafe_fn,
+    unused_crate_dependencies,
+    unused_import_braces,
+    unused_lifetimes,
+    unused_qualifications,
+    unused_tuple_struct_fields,
+    variant_size_differences,
+
+    // rustdoc lints https://doc.rust-lang.org/rustdoc/lints.html
+    rustdoc::broken_intra_doc_links,
+    rustdoc::private_intra_doc_links,
+    rustdoc::missing_crate_level_docs,
+    rustdoc::private_doc_tests,
+    rustdoc::invalid_codeblock_attributes,
+    rustdoc::invalid_rust_codeblocks,
+    rustdoc::bare_urls,
+
+    // clippy categories https://doc.rust-lang.org/clippy/
+    clippy::all,
+    clippy::correctness,
+    clippy::suspicious,
+    clippy::style,
+    clippy::complexity,
+    clippy::perf,
+    clippy::pedantic,
+    clippy::nursery,
 )]
-#![allow(
-    clippy::module_name_repetitions,
-    clippy::cast_possible_truncation,
-    clippy::cast_sign_loss,
-    clippy::cast_precision_loss,
-    clippy::cast_possible_wrap,
-    clippy::cast_ptr_alignment,
-    clippy::missing_panics_doc,
-    clippy::too_many_lines,
-    clippy::unreadable_literal,
-    clippy::missing_inline_in_public_items,
-    clippy::cognitive_complexity,
-    clippy::must_use_candidate,
-    clippy::missing_errors_doc,
-    clippy::as_conversions,
-    clippy::let_unit_value,
-    rustdoc::missing_doc_code_examples
-)]
+#![allow(clippy::option_if_let_else, clippy::redundant_pub_crate)]
+
+mod helper;
 
 use boa_ast::StatementList;
 use boa_engine::Context;
@@ -65,7 +66,6 @@ use clap::{Parser, ValueEnum, ValueHint};
 use colored::{Color, Colorize};
 use rustyline::{config::Config, error::ReadlineError, EditMode, Editor};
 use std::{fs::read, fs::OpenOptions, io, path::PathBuf};
-mod helper;
 
 #[cfg(all(target_arch = "x86_64", target_os = "linux", target_env = "gnu"))]
 #[cfg_attr(
@@ -82,7 +82,6 @@ const READLINE_COLOR: Color = Color::Cyan;
 // Added #[allow(clippy::option_option)] because to StructOpt an Option<Option<T>>
 // is an optional argument that optionally takes a value ([--opt=[val]]).
 // https://docs.rs/structopt/0.3.11/structopt/#type-magic
-#[allow(clippy::option_option)]
 #[derive(Debug, Parser)]
 #[command(author, version, about, name = "boa")]
 struct Opt {
@@ -98,6 +97,7 @@ struct Opt {
         ignore_case = true,
         value_enum
     )]
+    #[allow(clippy::option_option)]
     dump_ast: Option<Option<DumpFormat>>,
 
     /// Dump the AST to stdout with the given format.
@@ -111,7 +111,7 @@ struct Opt {
 
 impl Opt {
     /// Returns whether a dump flag has been used.
-    fn has_dump_flag(&self) -> bool {
+    const fn has_dump_flag(&self) -> bool {
         self.dump_ast.is_some()
     }
 }
@@ -162,29 +162,23 @@ where
         let ast = parse_tokens(src, context)?;
 
         match arg {
-            Some(format) => match format {
-                DumpFormat::Debug => println!("{ast:#?}"),
-                DumpFormat::Json => println!(
-                    "{}",
-                    serde_json::to_string(&ast).expect("could not convert AST to a JSON string")
-                ),
-                DumpFormat::JsonPretty => {
-                    println!(
-                        "{}",
-                        serde_json::to_string_pretty(&ast)
-                            .expect("could not convert AST to a pretty JSON string")
-                    );
-                }
-            },
-            // Default ast dumping format.
-            None => println!("{ast:#?}"),
+            Some(DumpFormat::Json) => println!(
+                "{}",
+                serde_json::to_string(&ast).expect("could not convert AST to a JSON string")
+            ),
+            Some(DumpFormat::JsonPretty) => println!(
+                "{}",
+                serde_json::to_string_pretty(&ast)
+                    .expect("could not convert AST to a pretty JSON string")
+            ),
+            Some(DumpFormat::Debug) | None => println!("{ast:#?}"),
         }
     }
 
     Ok(())
 }
 
-pub fn main() -> Result<(), io::Error> {
+fn main() -> Result<(), io::Error> {
     let args = Opt::parse();
 
     let mut context = Context::default();

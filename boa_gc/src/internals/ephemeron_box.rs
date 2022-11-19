@@ -1,8 +1,5 @@
-use crate::trace::Trace;
-use crate::{finalizer_safe, GcBox};
-use crate::{Finalize, Gc};
-use std::cell::Cell;
-use std::ptr::NonNull;
+use crate::{finalizer_safe, trace::Trace, Finalize, Gc, GcBox};
+use std::{cell::Cell, ptr::NonNull};
 
 /// The inner allocation of an [`Ephemeron`][crate::Ephemeron] pointer.
 pub(crate) struct EphemeronBox<K: Trace + ?Sized + 'static, V: Trace + ?Sized + 'static> {
@@ -23,11 +20,7 @@ impl<K: Trace + ?Sized, V: Trace + ?Sized> EphemeronBox<K, V> {
     /// Checks if the key pointer is marked by Trace
     #[inline]
     pub(crate) fn is_marked(&self) -> bool {
-        if let Some(key) = self.inner_key() {
-            key.is_marked()
-        } else {
-            false
-        }
+        self.inner_key().map_or(false, GcBox::is_marked)
     }
 
     /// Returns some pointer to the `key`'s `GcBox` or None
@@ -46,28 +39,18 @@ impl<K: Trace + ?Sized, V: Trace + ?Sized> EphemeronBox<K, V> {
         // fetch either a live `GcBox` or None. The value of `key` is set
         // to None in the case where `EphemeronBox` and `key`'s `GcBox`
         // entered into `Collector::sweep()` as unmarked.
-        unsafe {
-            if let Some(inner_key) = self.inner_key_ptr() {
-                Some(&*inner_key)
-            } else {
-                None
-            }
-        }
+        unsafe { self.inner_key_ptr().map(|inner_key| &*inner_key) }
     }
 
     /// Returns a reference to the value of `key`'s `GcBox`
     #[inline]
     pub(crate) fn key(&self) -> Option<&K> {
-        if let Some(key_box) = self.inner_key() {
-            Some(key_box.value())
-        } else {
-            None
-        }
+        self.inner_key().map(GcBox::value)
     }
 
     /// Returns a reference to `value`
     #[inline]
-    pub(crate) fn value(&self) -> &V {
+    pub(crate) const fn value(&self) -> &V {
         &self.value
     }
 

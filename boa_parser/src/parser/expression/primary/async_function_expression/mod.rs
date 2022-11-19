@@ -77,10 +77,9 @@ where
             if cursor.strict_mode() && [Sym::EVAL, Sym::ARGUMENTS].contains(&name.sym()) {
                 return Err(Error::lex(LexError::Syntax(
                     "Unexpected eval or arguments in strict mode".into(),
-                    match cursor.peek(0, interner)? {
-                        Some(token) => token.span().end(),
-                        None => Position::new(1, 1),
-                    },
+                    cursor
+                        .peek(0, interner)?
+                        .map_or_else(|| Position::new(1, 1), |token| token.span().end()),
                 )));
             }
         }

@@ -4,8 +4,9 @@ mod tests;
 use crate::{
     lexer::TokenKind,
     parser::{
-        expression::Expression, statement::declaration::FunctionDeclaration, AllowAwait,
-        AllowReturn, AllowYield, Cursor, OrAbrupt, ParseResult, TokenParser,
+        expression::Expression,
+        statement::{declaration::FunctionDeclaration, Statement},
+        AllowAwait, AllowReturn, AllowYield, Cursor, OrAbrupt, ParseResult, TokenParser,
     },
     Error,
 };
@@ -16,8 +17,6 @@ use boa_ast::{
 use boa_interner::Interner;
 use boa_profiler::Profiler;
 use std::io::Read;
-
-use super::Statement;
 
 /// If statement parsing.
 ///

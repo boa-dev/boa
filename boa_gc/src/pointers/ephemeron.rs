@@ -4,8 +4,7 @@ use crate::{
     trace::{Finalize, Trace},
     Allocator, Gc, GcBox, EPHEMERON_QUEUE,
 };
-use std::cell::Cell;
-use std::ptr::NonNull;
+use std::{cell::Cell, ptr::NonNull};
 
 #[derive(Debug)]
 /// A key-value pair where the value becomes unaccesible when the key is garbage collected.

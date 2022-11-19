@@ -1,7 +1,6 @@
 //! This module implements lexing for private identifiers (#foo, #myvar, etc.) used in the JavaScript programing language.
 
-use super::{identifier::Identifier, Cursor, Error, Tokenizer};
-use crate::lexer::{Token, TokenKind};
+use crate::lexer::{identifier::Identifier, Cursor, Error, Token, TokenKind, Tokenizer};
 use boa_ast::{Position, Span};
 use boa_interner::Interner;
 use boa_profiler::Profiler;
@@ -18,7 +17,7 @@ pub(super) struct PrivateIdentifier;
 
 impl PrivateIdentifier {
     /// Creates a new private identifier lexer.
-    pub(super) fn new() -> Self {
+    pub(super) const fn new() -> Self {
         Self
     }
 }

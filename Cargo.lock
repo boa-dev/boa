@@ -107,7 +107,6 @@ version = "0.16.0"
 dependencies = [
  "boa_ast",
  "boa_engine",
- "boa_interner",
  "boa_parser",
  "clap 4.0.26",
  "colored",
@@ -179,7 +178,6 @@ version = "0.16.0"
 dependencies = [
  "boa_macros",
  "boa_profiler",
- "measureme",
 ]
 
 [[package]]
@@ -237,7 +235,6 @@ dependencies = [
  "bitflags",
  "boa_engine",
  "boa_gc",
- "boa_interner",
  "boa_parser",
  "clap 4.0.26",
  "color-eyre",

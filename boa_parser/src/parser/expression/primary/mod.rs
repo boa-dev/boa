@@ -450,8 +450,8 @@ where
             }
         };
 
-        let is_arrow = if let Some(TokenKind::Punctuator(Punctuator::Arrow)) =
-            cursor.peek(0, interner)?.map(Token::kind)
+        let is_arrow = if cursor.peek(0, interner)?.map(Token::kind)
+            == Some(&TokenKind::Punctuator(Punctuator::Arrow))
         {
             !cursor.peek_is_line_terminator(0, interner).or_abrupt()?
         } else {

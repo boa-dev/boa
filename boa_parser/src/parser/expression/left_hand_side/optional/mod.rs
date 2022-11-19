@@ -1,26 +1,22 @@
 #[cfg(test)]
 mod tests;
 
-use std::io::Read;
-
-use boa_interner::{Interner, Sym};
-use boa_profiler::Profiler;
-
 use crate::{
     lexer::{Token, TokenKind},
     parser::{
-        cursor::Cursor, expression::Expression, AllowAwait, AllowYield, OrAbrupt, ParseResult,
-        TokenParser,
+        cursor::Cursor, expression::left_hand_side::arguments::Arguments, expression::Expression,
+        AllowAwait, AllowYield, OrAbrupt, ParseResult, TokenParser,
     },
     Error,
 };
-
-use super::arguments::Arguments;
 use boa_ast::{
     self as ast,
     expression::{access::PropertyAccessField, Optional, OptionalOperation, OptionalOperationKind},
     Punctuator,
 };
+use boa_interner::{Interner, Sym};
+use boa_profiler::Profiler;
+use std::io::Read;
 
 /// Parses an optional expression.
 ///

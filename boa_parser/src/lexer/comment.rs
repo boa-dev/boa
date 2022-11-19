@@ -1,7 +1,6 @@
 //! This module implements lexing for comments used in the JavaScript programing language.
 
-use super::{Cursor, Error, Tokenizer};
-use crate::lexer::{Token, TokenKind};
+use crate::lexer::{Cursor, Error, Token, TokenKind, Tokenizer};
 use boa_ast::{Position, Span};
 use boa_interner::Interner;
 use boa_profiler::Profiler;

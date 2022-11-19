@@ -53,13 +53,13 @@ pub(super) enum ErrorType {
 }
 
 impl ErrorType {
-    pub(super) fn as_str(self) -> &'static str {
+    pub(super) const fn as_str(self) -> &'static str {
         match self {
-            ErrorType::Test262Error => "Test262Error",
-            ErrorType::SyntaxError => "SyntaxError",
-            ErrorType::ReferenceError => "ReferenceError",
-            ErrorType::RangeError => "RangeError",
-            ErrorType::TypeError => "TypeError",
+            Self::Test262Error => "Test262Error",
+            Self::SyntaxError => "SyntaxError",
+            Self::ReferenceError => "ReferenceError",
+            Self::RangeError => "RangeError",
+            Self::TypeError => "TypeError",
         }
     }
 }
