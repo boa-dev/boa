@@ -251,20 +251,18 @@ impl Set {
     /// [spec]: https://tc39.es/ecma262/#sec-set.prototype.clear
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set/clear
     pub(crate) fn clear(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        if let Some(object) = this.as_object() {
-            if object.borrow().is_set() {
-                this.set_data(ObjectData::set(OrderedSet::new()));
-                Ok(JsValue::undefined())
-            } else {
-                Err(JsNativeError::typ()
-                    .with_message("'this' is not a Set")
-                    .into())
-            }
-        } else {
-            Err(JsNativeError::typ()
-                .with_message("'this' is not a Set")
-                .into())
-        }
+        let mut object = this
+            .as_object()
+            .map(JsObject::borrow_mut)
+            .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Set"))?;
+
+        let set = object
+            .as_set_mut()
+            .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Set"))?;
+
+        set.clear();
+
+        Ok(JsValue::undefined())
     }
 
     /// `Set.prototype.delete( value )`
