@@ -82,7 +82,7 @@ fn date_ctor_call_string() {
     // Internal date is expressed as UTC
     assert_eq!(
         Some(
-            NaiveDate::from_ymd_opt(2020, 06, 08)
+            NaiveDate::from_ymd_opt(2020, 6, 8)
                 .unwrap()
                 .and_hms_milli_opt(15, 46, 15, 779)
                 .unwrap()
@@ -106,9 +106,9 @@ fn date_ctor_call_number() {
     let date_time = forward_dt(&mut context, "new Date(1594199775779)");
     assert_eq!(
         Some(
-            NaiveDate::from_ymd_opt(2020, 07, 08)
+            NaiveDate::from_ymd_opt(2020, 7, 8)
                 .unwrap()
-                .and_hms_milli_opt(09, 16, 15, 779)
+                .and_hms_milli_opt(9, 16, 15, 779)
                 .unwrap()
         ),
         date_time
@@ -123,9 +123,9 @@ fn date_ctor_call_date() {
 
     assert_eq!(
         Some(
-            NaiveDate::from_ymd_opt(2020, 07, 08)
+            NaiveDate::from_ymd_opt(2020, 7, 8)
                 .unwrap()
-                .and_hms_milli_opt(09, 16, 15, 779)
+                .and_hms_milli_opt(9, 16, 15, 779)
                 .unwrap()
         ),
         date_time
@@ -136,10 +136,10 @@ fn date_ctor_call_date() {
 fn date_ctor_call_multiple() {
     let mut context = Context::default();
 
-    let date_time = forward_dt(&mut context, "new Date(2020, 06, 08, 09, 16, 15, 779)");
+    let date_time = forward_dt(&mut context, "new Date(2020, 6, 8, 9, 16, 15, 779)");
 
     assert_eq!(
-        Some(datetime_from_local(2020, 07, 08, 09, 16, 15, 779)),
+        Some(datetime_from_local(2020, 7, 8, 9, 16, 15, 779)),
         date_time
     );
 }
@@ -148,10 +148,10 @@ fn date_ctor_call_multiple() {
 fn date_ctor_call_multiple_90s() {
     let mut context = Context::default();
 
-    let date_time = forward_dt(&mut context, "new Date(99, 06, 08, 09, 16, 15, 779)");
+    let date_time = forward_dt(&mut context, "new Date(99, 6, 8, 9, 16, 15, 779)");
 
     assert_eq!(
-        Some(datetime_from_local(1999, 07, 08, 09, 16, 15, 779)),
+        Some(datetime_from_local(1999, 7, 8, 9, 16, 15, 779)),
         date_time
     );
 }
@@ -164,13 +164,13 @@ fn date_ctor_call_multiple_nan() {
         assert_eq!(None, date_time);
     }
 
-    check("new Date(1/0, 06, 08, 09, 16, 15, 779)");
-    check("new Date(2020, 1/0, 08, 09, 16, 15, 779)");
-    check("new Date(2020, 06, 1/0, 09, 16, 15, 779)");
-    check("new Date(2020, 06, 08, 1/0, 16, 15, 779)");
-    check("new Date(2020, 06, 08, 09, 1/0, 15, 779)");
-    check("new Date(2020, 06, 08, 09, 16, 1/0, 779)");
-    check("new Date(2020, 06, 08, 09, 16, 15, 1/0)");
+    check("new Date(1/0, 6, 8, 9, 16, 15, 779)");
+    check("new Date(2020, 1/0, 8, 9, 16, 15, 779)");
+    check("new Date(2020, 6, 1/0, 9, 16, 15, 779)");
+    check("new Date(2020, 6, 8, 1/0, 16, 15, 779)");
+    check("new Date(2020, 6, 8, 9, 1/0, 15, 779)");
+    check("new Date(2020, 6, 8, 9, 16, 1/0, 779)");
+    check("new Date(2020, 6, 8, 9, 16, 15, 1/0)");
 }
 
 #[test]
@@ -201,7 +201,7 @@ fn date_ctor_parse_call() {
 fn date_ctor_utc_call() {
     let mut context = Context::default();
 
-    let date_time = forward_val(&mut context, "Date.UTC(2020, 06, 08, 09, 16, 15, 779)");
+    let date_time = forward_val(&mut context, "Date.UTC(2020, 6, 8, 9, 16, 15, 779)");
 
     assert_eq!(JsValue::new(1594199775779i64), date_time.unwrap());
 }
@@ -214,13 +214,13 @@ fn date_ctor_utc_call_nan() {
         assert_eq!(JsValue::nan(), date_time);
     }
 
-    check("Date.UTC(1/0, 06, 08, 09, 16, 15, 779)");
-    check("Date.UTC(2020, 1/0, 08, 09, 16, 15, 779)");
-    check("Date.UTC(2020, 06, 1/0, 09, 16, 15, 779)");
-    check("Date.UTC(2020, 06, 08, 1/0, 16, 15, 779)");
-    check("Date.UTC(2020, 06, 08, 09, 1/0, 15, 779)");
-    check("Date.UTC(2020, 06, 08, 09, 16, 1/0, 779)");
-    check("Date.UTC(2020, 06, 08, 09, 16, 15, 1/0)");
+    check("Date.UTC(1/0, 6, 8, 9, 16, 15, 779)");
+    check("Date.UTC(2020, 1/0, 8, 9, 16, 15, 779)");
+    check("Date.UTC(2020, 6, 1/0, 9, 16, 15, 779)");
+    check("Date.UTC(2020, 6, 8, 1/0, 16, 15, 779)");
+    check("Date.UTC(2020, 6, 8, 9, 1/0, 15, 779)");
+    check("Date.UTC(2020, 6, 8, 9, 16, 1/0, 779)");
+    check("Date.UTC(2020, 6, 8, 9, 16, 15, 1/0)");
 }
 
 #[test]
@@ -229,7 +229,7 @@ fn date_proto_get_date_call() {
 
     let actual = forward_val(
         &mut context,
-        "new Date(2020, 06, 08, 09, 16, 15, 779).getDate()",
+        "new Date(2020, 6, 8, 9, 16, 15, 779).getDate()",
     );
     assert_eq!(JsValue::new(8), actual.unwrap());
 
@@ -243,7 +243,7 @@ fn date_proto_get_day_call() {
 
     let actual = forward_val(
         &mut context,
-        "new Date(2020, 06, 08, 09, 16, 15, 779).getDay()",
+        "new Date(2020, 6, 8, 9, 16, 15, 779).getDay()",
     );
     assert_eq!(JsValue::new(3), actual.unwrap());
 
@@ -257,7 +257,7 @@ fn date_proto_get_full_year_call() {
 
     let actual = forward_val(
         &mut context,
-        "new Date(2020, 06, 08, 09, 16, 15, 779).getFullYear()",
+        "new Date(2020, 6, 8, 9, 16, 15, 779).getFullYear()",
     );
     assert_eq!(JsValue::new(2020), actual.unwrap());
 
@@ -271,7 +271,7 @@ fn date_proto_get_hours_call() {
 
     let actual = forward_val(
         &mut context,
-        "new Date(2020, 06, 08, 09, 16, 15, 779).getHours()",
+        "new Date(2020, 6, 8, 9, 16, 15, 779).getHours()",
     );
     assert_eq!(JsValue::new(9), actual.unwrap());
 
@@ -285,7 +285,7 @@ fn date_proto_get_milliseconds_call() {
 
     let actual = forward_val(
         &mut context,
-        "new Date(2020, 06, 08, 09, 16, 15, 779).getMilliseconds()",
+        "new Date(2020, 6, 8, 9, 16, 15, 779).getMilliseconds()",
     );
     assert_eq!(JsValue::new(779), actual.unwrap());
 
@@ -299,7 +299,7 @@ fn date_proto_get_minutes_call() {
 
     let actual = forward_val(
         &mut context,
-        "new Date(2020, 06, 08, 09, 16, 15, 779).getMinutes()",
+        "new Date(2020, 6, 8, 9, 16, 15, 779).getMinutes()",
     );
     assert_eq!(JsValue::new(16), actual.unwrap());
 
@@ -313,9 +313,9 @@ fn date_proto_get_month() {
 
     let actual = forward_val(
         &mut context,
-        "new Date(2020, 06, 08, 09, 16, 15, 779).getMonth()",
+        "new Date(2020, 6, 8, 9, 16, 15, 779).getMonth()",
     );
-    assert_eq!(JsValue::new(06), actual.unwrap());
+    assert_eq!(JsValue::new(6), actual.unwrap());
 
     let actual = forward_val(&mut context, "new Date(1/0).getMonth()");
     assert_eq!(JsValue::nan(), actual.unwrap());
@@ -327,7 +327,7 @@ fn date_proto_get_seconds() {
 
     let actual = forward_val(
         &mut context,
-        "new Date(2020, 06, 08, 09, 16, 15, 779).getSeconds()",
+        "new Date(2020, 6, 8, 9, 16, 15, 779).getSeconds()",
     );
     assert_eq!(JsValue::new(15), actual.unwrap());
 
@@ -341,11 +341,10 @@ fn date_proto_get_time() {
 
     let actual = forward_val(
         &mut context,
-        "new Date(2020, 06, 08, 09, 16, 15, 779).getTime()",
+        "new Date(2020, 6, 8, 9, 16, 15, 779).getTime()",
     );
 
-    let ts =
-        Local.with_ymd_and_hms(2020, 07, 08, 09, 16, 15).unwrap() + Duration::milliseconds(779);
+    let ts = Local.with_ymd_and_hms(2020, 7, 8, 9, 16, 15).unwrap() + Duration::milliseconds(779);
 
     assert_eq!(JsValue::new(ts.timestamp_millis()), actual.unwrap());
 
@@ -359,7 +358,7 @@ fn date_proto_get_year() {
 
     let actual = forward_val(
         &mut context,
-        "new Date(2020, 06, 08, 09, 16, 15, 779).getYear()",
+        "new Date(2020, 6, 8, 9, 16, 15, 779).getYear()",
     );
     assert_eq!(JsValue::new(120), actual.unwrap());
 
@@ -402,9 +401,9 @@ fn date_proto_get_utc_date_call() {
 
     let actual = forward_val(
         &mut context,
-        "new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)).getUTCDate()",
+        "new Date(Date.UTC(2020, 6, 8, 9, 16, 15, 779)).getUTCDate()",
     );
-    assert_eq!(JsValue::new(08), actual.unwrap());
+    assert_eq!(JsValue::new(8), actual.unwrap());
 
     let actual = forward_val(&mut context, "new Date(1/0).getUTCDate()");
     assert_eq!(JsValue::nan(), actual.unwrap());
@@ -416,7 +415,7 @@ fn date_proto_get_utc_day_call() {
 
     let actual = forward_val(
         &mut context,
-        "new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)).getUTCDay()",
+        "new Date(Date.UTC(2020, 6, 8, 9, 16, 15, 779)).getUTCDay()",
     );
     assert_eq!(JsValue::new(3), actual.unwrap());
 
@@ -430,7 +429,7 @@ fn date_proto_get_utc_full_year_call() {
 
     let actual = forward_val(
         &mut context,
-        "new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)).getUTCFullYear()",
+        "new Date(Date.UTC(2020, 6, 8, 9, 16, 15, 779)).getUTCFullYear()",
     );
     assert_eq!(JsValue::new(2020), actual.unwrap());
 
@@ -444,9 +443,9 @@ fn date_proto_get_utc_hours_call() {
 
     let actual = forward_val(
         &mut context,
-        "new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)).getUTCHours()",
+        "new Date(Date.UTC(2020, 6, 8, 9, 16, 15, 779)).getUTCHours()",
     );
-    assert_eq!(JsValue::new(09), actual.unwrap());
+    assert_eq!(JsValue::new(9), actual.unwrap());
 
     let actual = forward_val(&mut context, "new Date(1/0).getUTCHours()");
     assert_eq!(JsValue::nan(), actual.unwrap());
@@ -458,7 +457,7 @@ fn date_proto_get_utc_milliseconds_call() {
 
     let actual = forward_val(
         &mut context,
-        "new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)).getUTCMilliseconds()",
+        "new Date(Date.UTC(2020, 6, 8, 9, 16, 15, 779)).getUTCMilliseconds()",
     );
     assert_eq!(JsValue::new(779), actual.unwrap());
 
@@ -472,7 +471,7 @@ fn date_proto_get_utc_minutes_call() {
 
     let actual = forward_val(
         &mut context,
-        "new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)).getUTCMinutes()",
+        "new Date(Date.UTC(2020, 6, 8, 9, 16, 15, 779)).getUTCMinutes()",
     );
     assert_eq!(JsValue::new(16), actual.unwrap());
 
@@ -486,9 +485,9 @@ fn date_proto_get_utc_month() {
 
     let actual = forward_val(
         &mut context,
-        "new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)).getUTCMonth()",
+        "new Date(Date.UTC(2020, 6, 8, 9, 16, 15, 779)).getUTCMonth()",
     );
-    assert_eq!(JsValue::new(06), actual.unwrap());
+    assert_eq!(JsValue::new(6), actual.unwrap());
 
     let actual = forward_val(&mut context, "new Date(1/0).getUTCMonth()");
     assert_eq!(JsValue::nan(), actual.unwrap());
@@ -500,7 +499,7 @@ fn date_proto_get_utc_seconds() {
 
     let actual = forward_val(
         &mut context,
-        "new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)).getUTCSeconds()",
+        "new Date(Date.UTC(2020, 6, 8, 9, 16, 15, 779)).getUTCSeconds()",
     );
     assert_eq!(JsValue::new(15), actual.unwrap());
 
@@ -514,26 +513,26 @@ fn date_proto_set_date() {
 
     let actual = forward_dt(
         &mut context,
-        "let dt = new Date(2020, 06, 08, 09, 16, 15, 779); dt.setDate(21); dt",
+        "let dt = new Date(2020, 6, 8, 9, 16, 15, 779); dt.setDate(21); dt",
     );
     assert_eq!(
-        Some(datetime_from_local(2020, 07, 21, 09, 16, 15, 779)),
+        Some(datetime_from_local(2020, 7, 21, 9, 16, 15, 779)),
         actual
     );
 
     // Date wraps to previous month for 0.
     let actual = forward_dt(
         &mut context,
-        "dt = new Date(2020, 06, 08, 09, 16, 15, 779); dt.setDate(0); dt",
+        "dt = new Date(2020, 6, 8, 9, 16, 15, 779); dt.setDate(0); dt",
     );
     assert_eq!(
-        Some(datetime_from_local(2020, 06, 30, 09, 16, 15, 779)),
+        Some(datetime_from_local(2020, 6, 30, 9, 16, 15, 779)),
         actual
     );
 
     let actual = forward_dt(
         &mut context,
-        "dt = new Date(2020, 06, 08, 09, 16, 15, 779); dt.setDate(1/0); dt",
+        "dt = new Date(2020, 6, 8, 9, 16, 15, 779); dt.setDate(1/0); dt",
     );
     assert_eq!(None, actual);
 }
@@ -544,28 +543,28 @@ fn date_proto_set_full_year() {
 
     let actual = forward_dt(
         &mut context,
-        "let dt = new Date(2020, 06, 08, 09, 16, 15, 779); dt.setFullYear(2012); dt",
+        "let dt = new Date(2020, 6, 8, 9, 16, 15, 779); dt.setFullYear(2012); dt",
     );
     assert_eq!(
-        Some(datetime_from_local(2012, 07, 08, 09, 16, 15, 779)),
+        Some(datetime_from_local(2012, 7, 8, 9, 16, 15, 779)),
         actual
     );
 
     let actual = forward_dt(
         &mut context,
-        "dt = new Date(2020, 06, 08, 09, 16, 15, 779); dt.setFullYear(2012, 8); dt",
+        "dt = new Date(2020, 6, 8, 9, 16, 15, 779); dt.setFullYear(2012, 8); dt",
     );
     assert_eq!(
-        Some(datetime_from_local(2012, 09, 08, 09, 16, 15, 779)),
+        Some(datetime_from_local(2012, 9, 8, 9, 16, 15, 779)),
         actual
     );
 
     let actual = forward_dt(
         &mut context,
-        "dt = new Date(2020, 06, 08, 09, 16, 15, 779); dt.setFullYear(2012, 8, 10); dt",
+        "dt = new Date(2020, 6, 8, 9, 16, 15, 779); dt.setFullYear(2012, 8, 10); dt",
     );
     assert_eq!(
-        Some(datetime_from_local(2012, 09, 10, 09, 16, 15, 779)),
+        Some(datetime_from_local(2012, 9, 10, 9, 16, 15, 779)),
         actual
     );
 
@@ -573,37 +572,37 @@ fn date_proto_set_full_year() {
 
     let actual = forward_dt(
         &mut context,
-        "dt = new Date(2020, 07, 08, 09, 16, 15, 779); dt.setFullYear(2012, 35); dt",
+        "dt = new Date(2020, 7, 8, 9, 16, 15, 779); dt.setFullYear(2012, 35); dt",
     );
     assert_eq!(
-        Some(datetime_from_local(2014, 12, 08, 09, 16, 15, 779)),
+        Some(datetime_from_local(2014, 12, 8, 9, 16, 15, 779)),
         actual
     );
 
     let actual = forward_dt(
         &mut context,
-        "dt = new Date(2020, 07, 08, 09, 16, 15, 779); dt.setFullYear(2012, -35); dt",
+        "dt = new Date(2020, 7, 8, 9, 16, 15, 779); dt.setFullYear(2012, -35); dt",
     );
     assert_eq!(
-        Some(datetime_from_local(2009, 02, 08, 09, 16, 15, 779)),
+        Some(datetime_from_local(2009, 2, 8, 9, 16, 15, 779)),
         actual
     );
 
     let actual = forward_dt(
         &mut context,
-        "dt = new Date(2020, 07, 08, 09, 16, 15, 779); dt.setFullYear(2012, 9, 950); dt",
+        "dt = new Date(2020, 7, 8, 9, 16, 15, 779); dt.setFullYear(2012, 9, 950); dt",
     );
     assert_eq!(
-        Some(datetime_from_local(2015, 05, 08, 09, 16, 15, 779)),
+        Some(datetime_from_local(2015, 5, 8, 9, 16, 15, 779)),
         actual
     );
 
     let actual = forward_dt(
         &mut context,
-        "dt = new Date(2020, 07, 08, 09, 16, 15, 779); dt.setFullYear(2012, 9, -950); dt",
+        "dt = new Date(2020, 7, 8, 9, 16, 15, 779); dt.setFullYear(2012, 9, -950); dt",
     );
     assert_eq!(
-        Some(datetime_from_local(2010, 02, 23, 09, 16, 15, 779)),
+        Some(datetime_from_local(2010, 2, 23, 9, 16, 15, 779)),
         actual
     );
 }
@@ -614,37 +613,37 @@ fn date_proto_set_hours() {
 
     let actual = forward_dt(
         &mut context,
-        "let dt = new Date(2020, 06, 08, 09, 16, 15, 779); dt.setHours(11); dt",
+        "let dt = new Date(2020, 6, 8, 9, 16, 15, 779); dt.setHours(11); dt",
     );
     assert_eq!(
-        Some(datetime_from_local(2020, 07, 08, 11, 16, 15, 779)),
+        Some(datetime_from_local(2020, 7, 8, 11, 16, 15, 779)),
         actual
     );
 
     let actual = forward_dt(
         &mut context,
-        "dt = new Date(2020, 06, 08, 09, 16, 15, 779); dt.setHours(11, 35); dt",
+        "dt = new Date(2020, 6, 8, 9, 16, 15, 779); dt.setHours(11, 35); dt",
     );
     assert_eq!(
-        Some(datetime_from_local(2020, 07, 08, 11, 35, 15, 779)),
+        Some(datetime_from_local(2020, 7, 8, 11, 35, 15, 779)),
         actual
     );
 
     let actual = forward_dt(
         &mut context,
-        "dt = new Date(2020, 06, 08, 09, 16, 15, 779); dt.setHours(11, 35, 23); dt",
+        "dt = new Date(2020, 6, 8, 9, 16, 15, 779); dt.setHours(11, 35, 23); dt",
     );
     assert_eq!(
-        Some(datetime_from_local(2020, 07, 08, 11, 35, 23, 779)),
+        Some(datetime_from_local(2020, 7, 8, 11, 35, 23, 779)),
         actual
     );
 
     let actual = forward_dt(
         &mut context,
-        "dt = new Date(2020, 06, 08, 09, 16, 15, 779); dt.setHours(11, 35, 23, 537); dt",
+        "dt = new Date(2020, 6, 8, 9, 16, 15, 779); dt.setHours(11, 35, 23, 537); dt",
     );
     assert_eq!(
-        Some(datetime_from_local(2020, 07, 08, 11, 35, 23, 537)),
+        Some(datetime_from_local(2020, 7, 8, 11, 35, 23, 537)),
         actual
     );
 
@@ -652,10 +651,10 @@ fn date_proto_set_hours() {
 
     let actual = forward_dt(
         &mut context,
-        "dt = new Date(2020, 06, 08, 09, 16, 15, 779); dt.setHours(10000, 20000, 30000, 40123); dt",
+        "dt = new Date(2020, 6, 8, 9, 16, 15, 779); dt.setHours(10000, 20000, 30000, 40123); dt",
     );
     assert_eq!(
-        Some(datetime_from_local(2021, 09, 11, 21, 40, 40, 123)),
+        Some(datetime_from_local(2021, 9, 11, 21, 40, 40, 123)),
         actual
     );
 }
@@ -666,10 +665,10 @@ fn date_proto_set_milliseconds() {
 
     let actual = forward_dt(
         &mut context,
-        "let dt = new Date(2020, 06, 08, 09, 16, 15, 779); dt.setMilliseconds(597); dt",
+        "let dt = new Date(2020, 6, 8, 9, 16, 15, 779); dt.setMilliseconds(597); dt",
     );
     assert_eq!(
-        Some(datetime_from_local(2020, 07, 08, 09, 16, 15, 597)),
+        Some(datetime_from_local(2020, 7, 8, 9, 16, 15, 597)),
         actual
     );
 
@@ -678,10 +677,10 @@ fn date_proto_set_milliseconds() {
 
     let actual = forward_dt(
         &mut context,
-        "dt = new Date(2020, 06, 08, 09, 16, 15, 779); dt.setMilliseconds(40123); dt",
+        "dt = new Date(2020, 6, 8, 9, 16, 15, 779); dt.setMilliseconds(40123); dt",
     );
     assert_eq!(
-        Some(datetime_from_local(2020, 07, 08, 09, 16, 55, 123)),
+        Some(datetime_from_local(2020, 7, 8, 9, 16, 55, 123)),
         actual
     );
 }
@@ -692,28 +691,28 @@ fn date_proto_set_minutes() {
 
     let actual = forward_dt(
         &mut context,
-        "let dt = new Date(2020, 06, 08, 09, 16, 15, 779); dt.setMinutes(11); dt",
+        "let dt = new Date(2020, 6, 8, 9, 16, 15, 779); dt.setMinutes(11); dt",
     );
     assert_eq!(
-        Some(datetime_from_local(2020, 07, 08, 09, 11, 15, 779)),
+        Some(datetime_from_local(2020, 7, 8, 9, 11, 15, 779)),
         actual
     );
 
     let actual = forward_dt(
         &mut context,
-        "dt = new Date(2020, 06, 08, 09, 16, 15, 779); dt.setMinutes(11, 35); dt",
+        "dt = new Date(2020, 6, 8, 9, 16, 15, 779); dt.setMinutes(11, 35); dt",
     );
     assert_eq!(
-        Some(datetime_from_local(2020, 07, 08, 09, 11, 35, 779)),
+        Some(datetime_from_local(2020, 7, 8, 9, 11, 35, 779)),
         actual
     );
 
     let actual = forward_dt(
         &mut context,
-        "dt = new Date(2020, 06, 08, 09, 16, 15, 779); dt.setMinutes(11, 35, 537); dt",
+        "dt = new Date(2020, 6, 8, 9, 16, 15, 779); dt.setMinutes(11, 35, 537); dt",
     );
     assert_eq!(
-        Some(datetime_from_local(2020, 07, 08, 09, 11, 35, 537)),
+        Some(datetime_from_local(2020, 7, 8, 9, 11, 35, 537)),
         actual
     );
 
@@ -722,10 +721,10 @@ fn date_proto_set_minutes() {
 
     let actual = forward_dt(
         &mut context,
-        "dt = new Date(2020, 06, 08, 09, 16, 15, 779); dt.setMinutes(600000, 30000, 40123); dt",
+        "dt = new Date(2020, 6, 8, 9, 16, 15, 779); dt.setMinutes(600000, 30000, 40123); dt",
     );
     assert_eq!(
-        Some(datetime_from_local(2021, 08, 29, 09, 20, 40, 123)),
+        Some(datetime_from_local(2021, 8, 29, 9, 20, 40, 123)),
         actual
     );
 }
@@ -736,19 +735,19 @@ fn date_proto_set_month() {
 
     let actual = forward_dt(
         &mut context,
-        "let dt = new Date(2020, 06, 08, 09, 16, 15, 779); dt.setMonth(11); dt",
+        "let dt = new Date(2020, 6, 8, 9, 16, 15, 779); dt.setMonth(11); dt",
     );
     assert_eq!(
-        Some(datetime_from_local(2020, 12, 08, 09, 16, 15, 779)),
+        Some(datetime_from_local(2020, 12, 8, 9, 16, 15, 779)),
         actual
     );
 
     let actual = forward_dt(
         &mut context,
-        "dt = new Date(2020, 06, 08, 09, 16, 15, 779); dt.setMonth(11, 16); dt",
+        "dt = new Date(2020, 6, 8, 9, 16, 15, 779); dt.setMonth(11, 16); dt",
     );
     assert_eq!(
-        Some(datetime_from_local(2020, 12, 16, 09, 16, 15, 779)),
+        Some(datetime_from_local(2020, 12, 16, 9, 16, 15, 779)),
         actual
     );
 
@@ -757,10 +756,10 @@ fn date_proto_set_month() {
 
     let actual = forward_dt(
         &mut context,
-        "dt = new Date(2020, 07, 08, 09, 16, 15, 779); dt.setMonth(40, 83); dt",
+        "dt = new Date(2020, 7, 8, 9, 16, 15, 779); dt.setMonth(40, 83); dt",
     );
     assert_eq!(
-        Some(datetime_from_local(2023, 07, 22, 09, 16, 15, 779)),
+        Some(datetime_from_local(2023, 7, 22, 9, 16, 15, 779)),
         actual
     );
 }
@@ -771,19 +770,19 @@ fn date_proto_set_seconds() {
 
     let actual = forward_dt(
         &mut context,
-        "let dt = new Date(2020, 06, 08, 09, 16, 15, 779); dt.setSeconds(11); dt",
+        "let dt = new Date(2020, 6, 8, 9, 16, 15, 779); dt.setSeconds(11); dt",
     );
     assert_eq!(
-        Some(datetime_from_local(2020, 07, 08, 09, 16, 11, 779)),
+        Some(datetime_from_local(2020, 7, 8, 9, 16, 11, 779)),
         actual
     );
 
     let actual = forward_dt(
         &mut context,
-        "dt = new Date(2020, 06, 08, 09, 16, 15, 779); dt.setSeconds(11, 487); dt",
+        "dt = new Date(2020, 6, 8, 9, 16, 15, 779); dt.setSeconds(11, 487); dt",
     );
     assert_eq!(
-        Some(datetime_from_local(2020, 07, 08, 09, 16, 11, 487)),
+        Some(datetime_from_local(2020, 7, 8, 9, 16, 11, 487)),
         actual
     );
 
@@ -792,10 +791,10 @@ fn date_proto_set_seconds() {
 
     let actual = forward_dt(
         &mut context,
-        "dt = new Date(2020, 07, 08, 09, 16, 15, 779); dt.setSeconds(40000000, 40123); dt",
+        "dt = new Date(2020, 7, 8, 9, 16, 15, 779); dt.setSeconds(40000000, 40123); dt",
     );
     assert_eq!(
-        Some(datetime_from_local(2021, 11, 14, 08, 23, 20, 123)),
+        Some(datetime_from_local(2021, 11, 14, 8, 23, 20, 123)),
         actual
     );
 }
@@ -806,19 +805,19 @@ fn set_year() {
 
     let actual = forward_dt(
         &mut context,
-        "let dt = new Date(2020, 06, 08, 09, 16, 15, 779); dt.setYear(98); dt",
+        "let dt = new Date(2020, 6, 8, 9, 16, 15, 779); dt.setYear(98); dt",
     );
     assert_eq!(
-        Some(datetime_from_local(1998, 07, 08, 09, 16, 15, 779)),
+        Some(datetime_from_local(1998, 7, 8, 9, 16, 15, 779)),
         actual
     );
 
     let actual = forward_dt(
         &mut context,
-        "dt = new Date(2020, 06, 08, 09, 16, 15, 779); dt.setYear(2001); dt",
+        "dt = new Date(2020, 6, 8, 9, 16, 15, 779); dt.setYear(2001); dt",
     );
     assert_eq!(
-        Some(datetime_from_local(2001, 07, 08, 09, 16, 15, 779)),
+        Some(datetime_from_local(2001, 7, 8, 9, 16, 15, 779)),
         actual
     );
 }
@@ -829,10 +828,10 @@ fn date_proto_set_time() {
 
     let actual = forward_dt(
         &mut context,
-        "let dt = new Date(); dt.setTime(new Date(2020, 06, 08, 09, 16, 15, 779).getTime()); dt",
+        "let dt = new Date(); dt.setTime(new Date(2020, 6, 8, 9, 16, 15, 779).getTime()); dt",
     );
     assert_eq!(
-        Some(datetime_from_local(2020, 07, 08, 09, 16, 15, 779)),
+        Some(datetime_from_local(2020, 7, 8, 9, 16, 15, 779)),
         actual
     );
 }
@@ -843,13 +842,13 @@ fn date_proto_set_utc_date() {
 
     let actual = forward_dt(
         &mut context,
-        "let dt = new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)); dt.setUTCDate(21); dt",
+        "let dt = new Date(Date.UTC(2020, 6, 8, 9, 16, 15, 779)); dt.setUTCDate(21); dt",
     );
     assert_eq!(
         Some(
-            NaiveDate::from_ymd_opt(2020, 07, 21)
+            NaiveDate::from_ymd_opt(2020, 7, 21)
                 .unwrap()
-                .and_hms_milli_opt(09, 16, 15, 779)
+                .and_hms_milli_opt(9, 16, 15, 779)
                 .unwrap()
         ),
         actual
@@ -858,13 +857,13 @@ fn date_proto_set_utc_date() {
     // Date wraps to previous month for 0.
     let actual = forward_dt(
         &mut context,
-        "dt = new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)); dt.setUTCDate(0); dt",
+        "dt = new Date(Date.UTC(2020, 6, 8, 9, 16, 15, 779)); dt.setUTCDate(0); dt",
     );
     assert_eq!(
         Some(
-            NaiveDate::from_ymd_opt(2020, 06, 30)
+            NaiveDate::from_ymd_opt(2020, 6, 30)
                 .unwrap()
-                .and_hms_milli_opt(09, 16, 15, 779)
+                .and_hms_milli_opt(9, 16, 15, 779)
                 .unwrap()
         ),
         actual
@@ -872,7 +871,7 @@ fn date_proto_set_utc_date() {
 
     let actual = forward_dt(
         &mut context,
-        "dt = new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)); dt.setUTCDate(1/0); dt",
+        "dt = new Date(Date.UTC(2020, 6, 8, 9, 16, 15, 779)); dt.setUTCDate(1/0); dt",
     );
     assert_eq!(None, actual);
 }
@@ -883,13 +882,13 @@ fn date_proto_set_utc_full_year() {
 
     let actual = forward_dt(
         &mut context,
-        "let dt = new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)); dt.setUTCFullYear(2012); dt",
+        "let dt = new Date(Date.UTC(2020, 6, 8, 9, 16, 15, 779)); dt.setUTCFullYear(2012); dt",
     );
     assert_eq!(
         Some(
-            NaiveDate::from_ymd_opt(2012, 07, 08)
+            NaiveDate::from_ymd_opt(2012, 7, 8)
                 .unwrap()
-                .and_hms_milli_opt(09, 16, 15, 779)
+                .and_hms_milli_opt(9, 16, 15, 779)
                 .unwrap()
         ),
         actual
@@ -897,13 +896,13 @@ fn date_proto_set_utc_full_year() {
 
     let actual = forward_dt(
         &mut context,
-        "dt = new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)); dt.setUTCFullYear(2012, 8); dt",
+        "dt = new Date(Date.UTC(2020, 6, 8, 9, 16, 15, 779)); dt.setUTCFullYear(2012, 8); dt",
     );
     assert_eq!(
         Some(
-            NaiveDate::from_ymd_opt(2012, 09, 08)
+            NaiveDate::from_ymd_opt(2012, 9, 8)
                 .unwrap()
-                .and_hms_milli_opt(09, 16, 15, 779)
+                .and_hms_milli_opt(9, 16, 15, 779)
                 .unwrap()
         ),
         actual
@@ -911,13 +910,13 @@ fn date_proto_set_utc_full_year() {
 
     let actual = forward_dt(
         &mut context,
-        "dt = new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)); dt.setUTCFullYear(2012, 8, 10); dt",
+        "dt = new Date(Date.UTC(2020, 6, 8, 9, 16, 15, 779)); dt.setUTCFullYear(2012, 8, 10); dt",
     );
     assert_eq!(
         Some(
-            NaiveDate::from_ymd_opt(2012, 09, 10)
+            NaiveDate::from_ymd_opt(2012, 9, 10)
                 .unwrap()
-                .and_hms_milli_opt(09, 16, 15, 779)
+                .and_hms_milli_opt(9, 16, 15, 779)
                 .unwrap()
         ),
         actual
@@ -927,13 +926,13 @@ fn date_proto_set_utc_full_year() {
 
     let actual = forward_dt(
         &mut context,
-        "dt = new Date(Date.UTC(2020, 07, 08, 09, 16, 15, 779)); dt.setUTCFullYear(2012, 35); dt",
+        "dt = new Date(Date.UTC(2020, 7, 8, 9, 16, 15, 779)); dt.setUTCFullYear(2012, 35); dt",
     );
     assert_eq!(
         Some(
-            NaiveDate::from_ymd_opt(2014, 12, 08)
+            NaiveDate::from_ymd_opt(2014, 12, 8)
                 .unwrap()
-                .and_hms_milli_opt(09, 16, 15, 779)
+                .and_hms_milli_opt(9, 16, 15, 779)
                 .unwrap()
         ),
         actual
@@ -941,13 +940,13 @@ fn date_proto_set_utc_full_year() {
 
     let actual = forward_dt(
         &mut context,
-        "dt = new Date(Date.UTC(2020, 07, 08, 09, 16, 15, 779)); dt.setUTCFullYear(2012, -35); dt",
+        "dt = new Date(Date.UTC(2020, 7, 8, 9, 16, 15, 779)); dt.setUTCFullYear(2012, -35); dt",
     );
     assert_eq!(
         Some(
-            NaiveDate::from_ymd_opt(2009, 02, 08)
+            NaiveDate::from_ymd_opt(2009, 2, 8)
                 .unwrap()
-                .and_hms_milli_opt(09, 16, 15, 779)
+                .and_hms_milli_opt(9, 16, 15, 779)
                 .unwrap()
         ),
         actual
@@ -955,13 +954,13 @@ fn date_proto_set_utc_full_year() {
 
     let actual = forward_dt(
         &mut context,
-        "dt = new Date(Date.UTC(2020, 07, 08, 09, 16, 15, 779)); dt.setUTCFullYear(2012, 9, 950); dt",
+        "dt = new Date(Date.UTC(2020, 7, 8, 9, 16, 15, 779)); dt.setUTCFullYear(2012, 9, 950); dt",
     );
     assert_eq!(
         Some(
-            NaiveDate::from_ymd_opt(2015, 05, 08)
+            NaiveDate::from_ymd_opt(2015, 5, 8)
                 .unwrap()
-                .and_hms_milli_opt(09, 16, 15, 779)
+                .and_hms_milli_opt(9, 16, 15, 779)
                 .unwrap()
         ),
         actual
@@ -969,13 +968,13 @@ fn date_proto_set_utc_full_year() {
 
     let actual = forward_dt(
         &mut context,
-        "dt = new Date(Date.UTC(2020, 07, 08, 09, 16, 15, 779)); dt.setUTCFullYear(2012, 9, -950); dt",
+        "dt = new Date(Date.UTC(2020, 7, 8, 9, 16, 15, 779)); dt.setUTCFullYear(2012, 9, -950); dt",
     );
     assert_eq!(
         Some(
-            NaiveDate::from_ymd_opt(2010, 02, 23)
+            NaiveDate::from_ymd_opt(2010, 2, 23)
                 .unwrap()
-                .and_hms_milli_opt(09, 16, 15, 779)
+                .and_hms_milli_opt(9, 16, 15, 779)
                 .unwrap()
         ),
         actual
@@ -988,11 +987,11 @@ fn date_proto_set_utc_hours() {
 
     let actual = forward_dt(
         &mut context,
-        "let dt = new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)); dt.setUTCHours(11); dt",
+        "let dt = new Date(Date.UTC(2020, 6, 8, 9, 16, 15, 779)); dt.setUTCHours(11); dt",
     );
     assert_eq!(
         Some(
-            NaiveDate::from_ymd_opt(2020, 07, 08)
+            NaiveDate::from_ymd_opt(2020, 7, 8)
                 .unwrap()
                 .and_hms_milli_opt(11, 16, 15, 779)
                 .unwrap()
@@ -1002,11 +1001,11 @@ fn date_proto_set_utc_hours() {
 
     let actual = forward_dt(
         &mut context,
-        "dt = new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)); dt.setUTCHours(11, 35); dt",
+        "dt = new Date(Date.UTC(2020, 6, 8, 9, 16, 15, 779)); dt.setUTCHours(11, 35); dt",
     );
     assert_eq!(
         Some(
-            NaiveDate::from_ymd_opt(2020, 07, 08)
+            NaiveDate::from_ymd_opt(2020, 7, 8)
                 .unwrap()
                 .and_hms_milli_opt(11, 35, 15, 779)
                 .unwrap()
@@ -1016,11 +1015,11 @@ fn date_proto_set_utc_hours() {
 
     let actual = forward_dt(
         &mut context,
-        "dt = new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)); dt.setUTCHours(11, 35, 23); dt",
+        "dt = new Date(Date.UTC(2020, 6, 8, 9, 16, 15, 779)); dt.setUTCHours(11, 35, 23); dt",
     );
     assert_eq!(
         Some(
-            NaiveDate::from_ymd_opt(2020, 07, 08)
+            NaiveDate::from_ymd_opt(2020, 7, 8)
                 .unwrap()
                 .and_hms_milli_opt(11, 35, 23, 779)
                 .unwrap()
@@ -1030,11 +1029,11 @@ fn date_proto_set_utc_hours() {
 
     let actual = forward_dt(
         &mut context,
-        "dt = new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)); dt.setUTCHours(11, 35, 23, 537); dt",
+        "dt = new Date(Date.UTC(2020, 6, 8, 9, 16, 15, 779)); dt.setUTCHours(11, 35, 23, 537); dt",
     );
     assert_eq!(
         Some(
-            NaiveDate::from_ymd_opt(2020, 07, 08)
+            NaiveDate::from_ymd_opt(2020, 7, 8)
                 .unwrap()
                 .and_hms_milli_opt(11, 35, 23, 537)
                 .unwrap()
@@ -1046,11 +1045,11 @@ fn date_proto_set_utc_hours() {
 
     let actual = forward_dt(
         &mut context,
-        "dt = new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)); dt.setUTCHours(10000, 20000, 30000, 40123); dt",
+        "dt = new Date(Date.UTC(2020, 6, 8, 9, 16, 15, 779)); dt.setUTCHours(10000, 20000, 30000, 40123); dt",
     );
     assert_eq!(
         Some(
-            NaiveDate::from_ymd_opt(2021, 09, 11)
+            NaiveDate::from_ymd_opt(2021, 9, 11)
                 .unwrap()
                 .and_hms_milli_opt(21, 40, 40, 123)
                 .unwrap()
@@ -1065,13 +1064,13 @@ fn date_proto_set_utc_milliseconds() {
 
     let actual = forward_dt(
         &mut context,
-        "let dt = new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)); dt.setUTCMilliseconds(597); dt",
+        "let dt = new Date(Date.UTC(2020, 6, 8, 9, 16, 15, 779)); dt.setUTCMilliseconds(597); dt",
     );
     assert_eq!(
         Some(
-            NaiveDate::from_ymd_opt(2020, 07, 08)
+            NaiveDate::from_ymd_opt(2020, 7, 8)
                 .unwrap()
-                .and_hms_milli_opt(09, 16, 15, 597)
+                .and_hms_milli_opt(9, 16, 15, 597)
                 .unwrap()
         ),
         actual
@@ -1082,13 +1081,13 @@ fn date_proto_set_utc_milliseconds() {
 
     let actual = forward_dt(
         &mut context,
-        "dt = new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)); dt.setUTCMilliseconds(40123); dt",
+        "dt = new Date(Date.UTC(2020, 6, 8, 9, 16, 15, 779)); dt.setUTCMilliseconds(40123); dt",
     );
     assert_eq!(
         Some(
-            NaiveDate::from_ymd_opt(2020, 07, 08)
+            NaiveDate::from_ymd_opt(2020, 7, 8)
                 .unwrap()
-                .and_hms_milli_opt(09, 16, 55, 123)
+                .and_hms_milli_opt(9, 16, 55, 123)
                 .unwrap()
         ),
         actual
@@ -1101,13 +1100,13 @@ fn date_proto_set_utc_minutes() {
 
     let actual = forward_dt(
         &mut context,
-        "let dt = new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)); dt.setUTCMinutes(11); dt",
+        "let dt = new Date(Date.UTC(2020, 6, 8, 9, 16, 15, 779)); dt.setUTCMinutes(11); dt",
     );
     assert_eq!(
         Some(
-            NaiveDate::from_ymd_opt(2020, 07, 08)
+            NaiveDate::from_ymd_opt(2020, 7, 8)
                 .unwrap()
-                .and_hms_milli_opt(09, 11, 15, 779)
+                .and_hms_milli_opt(9, 11, 15, 779)
                 .unwrap()
         ),
         actual
@@ -1115,13 +1114,13 @@ fn date_proto_set_utc_minutes() {
 
     let actual = forward_dt(
         &mut context,
-        "dt = new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)); dt.setUTCMinutes(11, 35); dt",
+        "dt = new Date(Date.UTC(2020, 6, 8, 9, 16, 15, 779)); dt.setUTCMinutes(11, 35); dt",
     );
     assert_eq!(
         Some(
-            NaiveDate::from_ymd_opt(2020, 07, 08)
+            NaiveDate::from_ymd_opt(2020, 7, 8)
                 .unwrap()
-                .and_hms_milli_opt(09, 11, 35, 779)
+                .and_hms_milli_opt(9, 11, 35, 779)
                 .unwrap()
         ),
         actual
@@ -1129,13 +1128,13 @@ fn date_proto_set_utc_minutes() {
 
     let actual = forward_dt(
         &mut context,
-        "dt = new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)); dt.setUTCMinutes(11, 35, 537); dt",
+        "dt = new Date(Date.UTC(2020, 6, 8, 9, 16, 15, 779)); dt.setUTCMinutes(11, 35, 537); dt",
     );
     assert_eq!(
         Some(
-            NaiveDate::from_ymd_opt(2020, 07, 08)
+            NaiveDate::from_ymd_opt(2020, 7, 8)
                 .unwrap()
-                .and_hms_milli_opt(09, 11, 35, 537)
+                .and_hms_milli_opt(9, 11, 35, 537)
                 .unwrap()
         ),
         actual
@@ -1146,13 +1145,13 @@ fn date_proto_set_utc_minutes() {
 
     let actual = forward_dt(
         &mut context,
-        "dt = new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)); dt.setUTCMinutes(600000, 30000, 40123); dt",
+        "dt = new Date(Date.UTC(2020, 6, 8, 9, 16, 15, 779)); dt.setUTCMinutes(600000, 30000, 40123); dt",
     );
     assert_eq!(
         Some(
-            NaiveDate::from_ymd_opt(2021, 08, 29)
+            NaiveDate::from_ymd_opt(2021, 8, 29)
                 .unwrap()
-                .and_hms_milli_opt(09, 20, 40, 123)
+                .and_hms_milli_opt(9, 20, 40, 123)
                 .unwrap()
         ),
         actual
@@ -1165,13 +1164,13 @@ fn date_proto_set_utc_month() {
 
     let actual = forward_dt(
         &mut context,
-        "let dt = new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)); dt.setUTCMonth(11); dt",
+        "let dt = new Date(Date.UTC(2020, 6, 8, 9, 16, 15, 779)); dt.setUTCMonth(11); dt",
     );
     assert_eq!(
         Some(
-            NaiveDate::from_ymd_opt(2020, 12, 08)
+            NaiveDate::from_ymd_opt(2020, 12, 8)
                 .unwrap()
-                .and_hms_milli_opt(09, 16, 15, 779)
+                .and_hms_milli_opt(9, 16, 15, 779)
                 .unwrap()
         ),
         actual
@@ -1179,13 +1178,13 @@ fn date_proto_set_utc_month() {
 
     let actual = forward_dt(
         &mut context,
-        "dt = new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)); dt.setUTCMonth(11, 16); dt",
+        "dt = new Date(Date.UTC(2020, 6, 8, 9, 16, 15, 779)); dt.setUTCMonth(11, 16); dt",
     );
     assert_eq!(
         Some(
             NaiveDate::from_ymd_opt(2020, 12, 16)
                 .unwrap()
-                .and_hms_milli_opt(09, 16, 15, 779)
+                .and_hms_milli_opt(9, 16, 15, 779)
                 .unwrap()
         ),
         actual
@@ -1196,13 +1195,13 @@ fn date_proto_set_utc_month() {
 
     let actual = forward_dt(
         &mut context,
-        "dt = new Date(Date.UTC(2020, 07, 08, 09, 16, 15, 779)); dt.setUTCMonth(40, 83); dt",
+        "dt = new Date(Date.UTC(2020, 7, 8, 9, 16, 15, 779)); dt.setUTCMonth(40, 83); dt",
     );
     assert_eq!(
         Some(
-            NaiveDate::from_ymd_opt(2023, 07, 22)
+            NaiveDate::from_ymd_opt(2023, 7, 22)
                 .unwrap()
-                .and_hms_milli_opt(09, 16, 15, 779)
+                .and_hms_milli_opt(9, 16, 15, 779)
                 .unwrap()
         ),
         actual
@@ -1215,13 +1214,13 @@ fn date_proto_set_utc_seconds() {
 
     let actual = forward_dt(
         &mut context,
-        "let dt = new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)); dt.setUTCSeconds(11); dt",
+        "let dt = new Date(Date.UTC(2020, 6, 8, 9, 16, 15, 779)); dt.setUTCSeconds(11); dt",
     );
     assert_eq!(
         Some(
-            NaiveDate::from_ymd_opt(2020, 07, 08)
+            NaiveDate::from_ymd_opt(2020, 7, 8)
                 .unwrap()
-                .and_hms_milli_opt(09, 16, 11, 779)
+                .and_hms_milli_opt(9, 16, 11, 779)
                 .unwrap()
         ),
         actual
@@ -1229,13 +1228,13 @@ fn date_proto_set_utc_seconds() {
 
     let actual = forward_dt(
         &mut context,
-        "dt = new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)); dt.setUTCSeconds(11, 487); dt",
+        "dt = new Date(Date.UTC(2020, 6, 8, 9, 16, 15, 779)); dt.setUTCSeconds(11, 487); dt",
     );
     assert_eq!(
         Some(
-            NaiveDate::from_ymd_opt(2020, 07, 08)
+            NaiveDate::from_ymd_opt(2020, 7, 8)
                 .unwrap()
-                .and_hms_milli_opt(09, 16, 11, 487)
+                .and_hms_milli_opt(9, 16, 11, 487)
                 .unwrap()
         ),
         actual
@@ -1246,13 +1245,13 @@ fn date_proto_set_utc_seconds() {
 
     let actual = forward_dt(
         &mut context,
-        "dt = new Date(Date.UTC(2020, 07, 08, 09, 16, 15, 779)); dt.setUTCSeconds(40000000, 40123); dt",
+        "dt = new Date(Date.UTC(2020, 7, 8, 9, 16, 15, 779)); dt.setUTCSeconds(40000000, 40123); dt",
     );
     assert_eq!(
         Some(
             NaiveDate::from_ymd_opt(2021, 11, 14)
                 .unwrap()
-                .and_hms_milli_opt(08, 23, 20, 123)
+                .and_hms_milli_opt(8, 23, 20, 123)
                 .unwrap()
         ),
         actual
@@ -1265,10 +1264,10 @@ fn date_proto_to_date_string() {
 
     let actual = forward_val(
         &mut context,
-        "let dt = new Date(2020, 06, 08, 09, 16, 15, 779); dt.toDateString()",
+        "let dt = new Date(2020, 6, 8, 9, 16, 15, 779); dt.toDateString()",
     )
     .unwrap();
-    assert_eq!(JsValue::new("Wed Jul 08 2020"), actual);
+    assert_eq!(JsValue::new("Wed Jul 8 2020"), actual);
 }
 
 #[test]
@@ -1277,10 +1276,10 @@ fn date_proto_to_gmt_string() {
 
     let actual = forward_val(
         &mut context,
-        "let dt = new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)); dt.toGMTString()",
+        "let dt = new Date(Date.UTC(2020, 6, 8, 9, 16, 15, 779)); dt.toGMTString()",
     )
     .unwrap();
-    assert_eq!(JsValue::new("Wed, 08 Jul 2020 09:16:15 GMT"), actual);
+    assert_eq!(JsValue::new("Wed, 8 Jul 2020 9:16:15 GMT"), actual);
 }
 
 #[test]
@@ -1289,7 +1288,7 @@ fn date_proto_to_iso_string() {
 
     let actual = forward_val(
         &mut context,
-        "let dt = new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)); dt.toISOString()",
+        "let dt = new Date(Date.UTC(2020, 6, 8, 9, 16, 15, 779)); dt.toISOString()",
     )
     .unwrap();
     assert_eq!(JsValue::new("2020-07-08T09:16:15.779Z"), actual);
@@ -1301,7 +1300,7 @@ fn date_proto_to_json() {
 
     let actual = forward_val(
         &mut context,
-        "let dt = new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)); dt.toJSON()",
+        "let dt = new Date(Date.UTC(2020, 6, 8, 9, 16, 15, 779)); dt.toJSON()",
     )
     .unwrap();
     assert_eq!(JsValue::new("2020-07-08T09:16:15.779Z"), actual);
@@ -1313,7 +1312,7 @@ fn date_proto_to_string() {
 
     let actual = forward_val(
         &mut context,
-        "let dt = new Date(2020, 06, 08, 09, 16, 15, 779); dt.toString()",
+        "let dt = new Date(2020, 6, 8, 9, 16, 15, 779); dt.toString()",
     )
     .ok();
 
@@ -1326,7 +1325,7 @@ fn date_proto_to_string() {
                 ))
                 .earliest()
                 .unwrap()
-                .format("Wed Jul 08 2020 09:16:15 GMT%z")
+                .format("Wed Jul 8 2020 9:16:15 GMT%z")
                 .to_string()
         )),
         actual
@@ -1339,7 +1338,7 @@ fn date_proto_to_time_string() {
 
     let actual = forward_val(
         &mut context,
-        "let dt = new Date(2020, 06, 08, 09, 16, 15, 779); dt.toTimeString()",
+        "let dt = new Date(2020, 6, 8, 9, 16, 15, 779); dt.toTimeString()",
     )
     .ok();
 
@@ -1365,10 +1364,10 @@ fn date_proto_to_utc_string() {
 
     let actual = forward_val(
         &mut context,
-        "let dt = new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)); dt.toUTCString()",
+        "let dt = new Date(Date.UTC(2020, 6, 8, 9, 16, 15, 779)); dt.toUTCString()",
     )
     .unwrap();
-    assert_eq!(JsValue::new("Wed, 08 Jul 2020 09:16:15 GMT"), actual);
+    assert_eq!(JsValue::new("Wed, 8 Jul 2020 9:16:15 GMT"), actual);
 }
 
 #[test]
@@ -1377,7 +1376,7 @@ fn date_proto_value_of() {
 
     let actual = forward_val(
         &mut context,
-        "new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)).valueOf()",
+        "new Date(Date.UTC(2020, 6, 8, 9, 16, 15, 779)).valueOf()",
     )
     .unwrap();
     assert_eq!(JsValue::new(1594199775779i64), actual);
@@ -1389,7 +1388,7 @@ fn date_neg() {
 
     let actual = forward_val(
         &mut context,
-        "-new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779))",
+        "-new Date(Date.UTC(2020, 6, 8, 9, 16, 15, 779))",
     )
     .unwrap();
     assert_eq!(JsValue::new(-1594199775779i64), actual);
@@ -1401,7 +1400,7 @@ fn date_json() {
 
     let actual = forward_val(
         &mut context,
-        "JSON.stringify({ date: new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)) })",
+        "JSON.stringify({ date: new Date(Date.UTC(2020, 6, 8, 9, 16, 15, 779)) })",
     )
     .unwrap();
     assert_eq!(
