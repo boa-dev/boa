@@ -1183,12 +1183,12 @@ impl Date {
     }
 
     /// [`Date.prototype.setSeconds ( sec [ , ms ] )`[local] and
-    /// [`Date.prototype.setUTCSeconds ( sec [ , ms ] )`][utc]
+    /// [`Date.prototype.setUTCSeconds ( sec [ , ms ] )`][utc].
     ///
     /// The `setSeconds()` method sets the seconds for a specified date.
     ///
-    /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.setseconds
-    /// [mdn]: https://tc39.es/ecma262/#sec-date.prototype.setutcseconds
+    /// [local]: https://tc39.es/ecma262/#sec-date.prototype.setseconds
+    /// [utc]: https://tc39.es/ecma262/#sec-date.prototype.setutcseconds
     pub(crate) fn set_seconds<const LOCAL: bool>(
         this: &JsValue,
         args: &[JsValue],
@@ -1230,12 +1230,11 @@ impl Date {
         Ok(t.as_value())
     }
 
-    /// [`Date.prototype.setYear()`][spec]
+    /// [`Date.prototype.setYear()`][spec].
     ///
     /// The `setYear()` method sets the year for a specified date according to local time.
     ///
     /// # Note
-    ///
     ///
     /// The [`Self::set_full_year`] method is preferred for nearly all purposes, because it avoids
     /// the “year 2000 problem.”
@@ -1244,6 +1243,7 @@ impl Date {
     ///  - [MDN documentation][mdn]
     ///
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/setYear
+    /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.setyear
     pub(crate) fn set_year(
         this: &JsValue,
         args: &[JsValue],
@@ -1301,7 +1301,7 @@ impl Date {
         Ok(t.as_value())
     }
 
-    /// [`Date.prototype.setTime()`][spec]
+    /// [`Date.prototype.setTime()`][spec].
     ///
     /// The `setTime()` method sets the Date object to the time represented by a number of milliseconds
     /// since January 1, 1970, 00:00:00 UTC.
@@ -1335,7 +1335,7 @@ impl Date {
         Ok(t.as_value())
     }
 
-    /// [`Date.prototype.toDateString()`][spec]
+    /// [`Date.prototype.toDateString()`][spec].
     ///
     /// The `toDateString()` method returns the date portion of a Date object in English.
     ///
@@ -1366,7 +1366,7 @@ impl Date {
             .into())
     }
 
-    /// [`Date.prototype.toISOString()`][spec]
+    /// [`Date.prototype.toISOString()`][spec].
     ///
     /// The `toISOString()` method returns a string in simplified extended ISO format
     /// ([ISO 8601][iso8601]).
@@ -1392,7 +1392,7 @@ impl Date {
             .into())
     }
 
-    /// [`Date.prototype.toJSON()`][spec]
+    /// [`Date.prototype.toJSON()`][spec].
     ///
     /// The `toJSON()` method returns a string representation of the `Date` object.
     ///
@@ -1424,7 +1424,7 @@ impl Date {
         context.call(&func, &o.into(), &[])
     }
 
-    /// [`Date.prototype.toLocaleDateString()`][spec]
+    /// [`Date.prototype.toLocaleDateString()`][spec].
     ///
     /// The `toLocaleDateString()` method returns the date portion of the given Date instance according
     /// to language-specific conventions.
@@ -1442,7 +1442,7 @@ impl Date {
         Err(JsError::from_opaque(JsValue::new("Function Unimplemented")))
     }
 
-    /// [`Date.prototype.toLocaleString()`][spec]
+    /// [`Date.prototype.toLocaleString()`][spec].
     ///
     /// The `toLocaleString()` method returns a string representing the specified Date object.
     ///
@@ -1461,7 +1461,7 @@ impl Date {
         )))
     }
 
-    /// [`Date.prototype.toLocaleTimeString()`][spec]
+    /// [`Date.prototype.toLocaleTimeString()`][spec].
     ///
     /// The `toLocaleTimeString()` method returns the time portion of a Date object in human readable
     /// form in American English.
@@ -1481,7 +1481,7 @@ impl Date {
         )))
     }
 
-    /// [`Date.prototype.toString()`][spec]
+    /// [`Date.prototype.toString()`][spec].
     ///
     /// The `toString()` method returns a string representing the specified Date object.
     ///
@@ -1504,7 +1504,7 @@ impl Date {
             .into())
     }
 
-    /// [`Date.prototype.toTimeString()`][spec]
+    /// [`Date.prototype.toTimeString()`][spec].
     ///
     /// The `toTimeString()` method returns the time portion of a Date object in human readable form
     /// in American English.
@@ -1536,7 +1536,7 @@ impl Date {
             .into())
     }
 
-    /// [`Date.prototype.toUTCString()`][spec]
+    /// [`Date.prototype.toUTCString()`][spec].
     ///
     /// The `toUTCString()` method returns a string representing the specified Date object.
     ///
@@ -1570,7 +1570,7 @@ impl Date {
         Ok(JsValue::new(utc_string))
     }
 
-    /// [`Date.prototype.valueOf()`][spec]
+    /// [`Date.prototype.valueOf()`][spec].
     ///
     /// The `valueOf()` method returns the primitive value of a `Date` object.
     ///
@@ -1588,7 +1588,7 @@ impl Date {
         Ok(Date(this_time_value(this)?).as_value())
     }
 
-    /// [`Date.prototype [ @@toPrimitive ] ( hint )`][spec]
+    /// [`Date.prototype [ @@toPrimitive ] ( hint )`][spec].
     ///
     /// The <code>\[@@toPrimitive\]()</code> method converts a Date object to a primitive value.
     ///
@@ -1631,7 +1631,7 @@ impl Date {
         o.ordinary_to_primitive(context, try_first)
     }
 
-    /// [`Date.prototype.toGMTString ( )`][spec]
+    /// [`Date.prototype.toGMTString ( )`][spec].
     ///
     /// The `toGMTString()` method converts a date to a string, using Internet Greenwich Mean Time
     /// (GMT) conventions.
