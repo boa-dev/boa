@@ -10,6 +10,9 @@ on:
       - staging # bors
       - trying # bors
 
+permissions:
+  contents: read
+
 env:
   RUSTFLAGS: -Dwarnings
   MIRIFLAGS: -Zmiri-strict-provenance
