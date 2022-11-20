@@ -12,6 +12,7 @@ on:
 
 env:
   RUSTFLAGS: -Dwarnings
+  MIRIFLAGS: -Zmiri-strict-provenance
 
 jobs:
   coverage:
@@ -62,8 +63,6 @@ jobs:
         run: cargo nextest run --profile ci --cargo-profile ci --features intl
       - name: Miri Test
         run: cargo miri test
-          env:
-            MIRIFLAGS: -Zmiri-strict-provenance
 
   misc:
     name: Misc
