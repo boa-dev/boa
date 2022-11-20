@@ -1267,7 +1267,7 @@ fn date_proto_to_date_string() {
         "let dt = new Date(2020, 6, 8, 9, 16, 15, 779); dt.toDateString()",
     )
     .unwrap();
-    assert_eq!(JsValue::new("Wed Jul 8 2020"), actual);
+    assert_eq!(JsValue::new("Wed Jul 08 2020"), actual);
 }
 
 #[test]
@@ -1279,7 +1279,7 @@ fn date_proto_to_gmt_string() {
         "let dt = new Date(Date.UTC(2020, 6, 8, 9, 16, 15, 779)); dt.toGMTString()",
     )
     .unwrap();
-    assert_eq!(JsValue::new("Wed, 8 Jul 2020 9:16:15 GMT"), actual);
+    assert_eq!(JsValue::new("Wed, 08 Jul 2020 09:16:15 GMT"), actual);
 }
 
 #[test]
@@ -1325,7 +1325,7 @@ fn date_proto_to_string() {
                 ))
                 .earliest()
                 .unwrap()
-                .format("Wed Jul 8 2020 9:16:15 GMT%z")
+                .format("Wed Jul 08 2020 09:16:15 GMT%z")
                 .to_string()
         )),
         actual
@@ -1367,7 +1367,7 @@ fn date_proto_to_utc_string() {
         "let dt = new Date(Date.UTC(2020, 6, 8, 9, 16, 15, 779)); dt.toUTCString()",
     )
     .unwrap();
-    assert_eq!(JsValue::new("Wed, 8 Jul 2020 9:16:15 GMT"), actual);
+    assert_eq!(JsValue::new("Wed, 08 Jul 2020 09:16:15 GMT"), actual);
 }
 
 #[test]
