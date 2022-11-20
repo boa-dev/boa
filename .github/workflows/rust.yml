@@ -10,6 +10,9 @@ on:
       - staging # bors
       - trying # bors
 
+env:
+  RUSTFLAGS: -Dwarnings
+
 jobs:
   coverage:
     name: Coverage
@@ -42,6 +45,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: actions-rs/toolchain@v1.0.7
+      - uses: dtolnay/rust-toolchain@miri
         with:
           toolchain: stable
           override: true
@@ -56,6 +60,10 @@ jobs:
         uses: taiki-e/install-action@nextest
       - name: Test with nextest
         run: cargo nextest run --profile ci --cargo-profile ci --features intl
+      - name: Miri Test
+        run: cargo miri test
+          env:
+            MIRIFLAGS: -Zmiri-strict-provenance
 
   misc:
     name: Misc
