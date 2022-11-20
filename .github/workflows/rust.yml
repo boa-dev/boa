@@ -65,8 +65,9 @@ jobs:
       - name: Test with nextest
         run: cargo nextest run --profile ci --cargo-profile ci --features intl
       - name: Test with miri
+        if: matrix.os == 'macOS-latest'
         run: cargo miri test
-
+  
   misc:
     name: Misc
     runs-on: ubuntu-latest
