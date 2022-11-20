@@ -45,6 +45,7 @@ jobs:
           - windows-latest
     steps:
       - uses: actions/checkout@v3
+      - uses: dtolnay/rust-toolchain@miri
       - uses: actions-rs/toolchain@v1.0.7
         with:
           toolchain: stable
@@ -60,13 +61,14 @@ jobs:
         uses: taiki-e/install-action@nextest
       - name: Test with nextest
         run: cargo nextest run --profile ci --cargo-profile ci --features intl
+      - name: Test with miri
+        run: cargo miri test
 
   misc:
     name: Misc
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: dtolnay/rust-toolchain@miri
       - uses: actions-rs/toolchain@v1.0.7
         with:
           toolchain: stable
@@ -89,5 +91,3 @@ jobs:
         run: cargo build --quiet --profile ci
       - name: Run example classes
         run: cargo run --bin classes --profile ci
-      - name: Miri Test
-        run: cargo miri test
