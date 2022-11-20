@@ -73,7 +73,7 @@ jobs:
       - run: cargo miri test
         env:
           MIRIFLAGS: -Zmiri-strict-provenance
-  
+
   misc:
     name: Misc
     runs-on: ubuntu-latest
