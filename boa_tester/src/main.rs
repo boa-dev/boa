@@ -1,7 +1,7 @@
 //! Test262 test runner
 //!
 //! This crate will run the full ECMAScript test suite (Test262) and report compliance of the
-//! `boa` wrap_err.
+//! `boa` engine.
 
 #![doc(
     html_logo_url = "https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg",
