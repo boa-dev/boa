@@ -31,23 +31,33 @@ use tap::{Conv, Pipe};
 #[derive(Debug)]
 pub enum LogMessage {
     Log(String),
+    Trace(String),
+    Debug(String),
     Info(String),
     Warn(String),
     Error(String),
 }
 
-/// Helper function for logging messages.
-pub(crate) fn logger(msg: LogMessage, console_state: &Console) {
+/// Type of function for logging messages.
+pub type LoggerFunc = Box<dyn Fn(LogMessage, &Console)>;
+
+/// Default function for logging messages.
+pub fn default_logger(msg: LogMessage, console_state: &Console) {
     let indent = 2 * console_state.groups.len();
 
     match msg {
         LogMessage::Error(msg) => {
             eprintln!("{msg:>indent$}");
         }
-        LogMessage::Log(msg) | LogMessage::Info(msg) | LogMessage::Warn(msg) => {
+        LogMessage::Log(msg) | LogMessage::Trace(msg) | LogMessage::Debug(msg) | LogMessage::Info(msg) | LogMessage::Warn(msg) => {
             println!("{msg:>indent$}");
         }
     }
+}
+
+/// Helper function for logging messages.
+fn logger(msg: LogMessage, console_state: &Console) {
+    (console_state.logger)(msg, console_state);
 }
 
 /// This represents the `console` formatter.
@@ -128,11 +138,32 @@ pub fn formatter(data: &[JsValue], context: &mut Context) -> JsResult<String> {
 }
 
 /// This is the internal console object state.
-#[derive(Debug, Default)]
-pub(crate) struct Console {
-    count_map: FxHashMap<JsString, u32>,
-    timer_map: FxHashMap<JsString, u128>,
-    groups: Vec<String>,
+pub struct Console {
+    pub count_map: FxHashMap<JsString, u32>,
+    pub timer_map: FxHashMap<JsString, u128>,
+    pub groups: Vec<String>,
+    pub(crate) logger: LoggerFunc,
+}
+
+impl Default for Console {
+    fn default() -> Self {
+        Self{
+            count_map: Default::default(),
+            timer_map: Default::default(),
+            groups: Default::default(),
+            logger: Box::new(default_logger),
+        }
+    }
+}
+
+impl core::fmt::Debug for Console {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> Result<(), core::fmt::Error> {
+        f.debug_struct("Console")
+            .field("count_map", &self.count_map)
+            .field("timer_map", &self.timer_map)
+            .field("groups", &self.groups)
+            .finish()
+    }
 }
 
 impl BuiltIn for Console {
@@ -237,7 +268,7 @@ impl Console {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/debug
     pub(crate) fn debug(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         logger(
-            LogMessage::Log(formatter(args, context)?),
+            LogMessage::Debug(formatter(args, context)?),
             context.console(),
         );
         Ok(JsValue::undefined())
@@ -325,7 +356,7 @@ impl Console {
     pub(crate) fn trace(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         if !args.is_empty() {
             logger(
-                LogMessage::Log(formatter(args, context)?),
+                LogMessage::Trace(formatter(args, context)?),
                 context.console(),
             );
 

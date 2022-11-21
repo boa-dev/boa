@@ -566,6 +566,45 @@ impl Context {
         self.vm.trace = trace;
     }
 
+    /// Register a custom logger for current context.
+    /// Call ```context.set_custom_logger(None);``` to set the default logger.
+    ///
+    /// # Example
+    /// ```
+    /// use boa_engine::{
+    ///     builtins::console::{LogMessage},
+    ///     Context,
+    /// };
+    /// let instance_id = "boa_234";
+    /// let mut context = Context::default();
+    /// context.set_custom_logger(Some(Box::new(move |msg, console_state| {
+    ///     match msg {
+    ///         LogMessage::Log(msg)    => log::debug!("vm[{instance_id}]: {msg}"),
+    ///         LogMessage::Trace(msg)  => log::trace!("vm[{instance_id}]: {msg}"),
+    ///         LogMessage::Debug(msg)  => log::debug!("vm[{instance_id}]: {msg}"),
+    ///         LogMessage::Info(msg)   => log::info!("vm[{instance_id}]: {msg}"),
+    ///         LogMessage::Warn(msg)   => log::warn!("vm[{instance_id}]: {msg}"),
+    ///         LogMessage::Error(msg)  => log::error!("vm[{instance_id}]: {msg}"),
+    ///     }
+    /// })));
+    /// let js_code = r#"
+    ///     console.log('Hello World from a JS LOG!')
+    ///     console.trace('Hello World from a JS TRACE!')
+    ///     console.debug('Hello World from a JS DEBUG!')
+    ///     console.info('Hello World from a JS INFO!')
+    ///     console.warn('Hello World from a JS WARN!')
+    ///     console.error('Hello World from a JS ERROR!')
+    /// "#;
+    /// context.eval(js_code).unwrap();
+    /// ```
+    #[cfg(feature = "console")]
+    pub fn set_custom_logger(&mut self, logger: Option<builtins::console::LoggerFunc>) {
+        match logger {
+            Some(logger) => self.console.logger = logger,
+            None => self.console.logger = Box::new(builtins::console::default_logger),
+        }
+    }
+
     #[cfg(feature = "intl")]
     #[inline]
     /// Get the ICU related utilities
