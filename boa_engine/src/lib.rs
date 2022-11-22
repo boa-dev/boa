@@ -1,6 +1,6 @@
 //! **boa_engine** is the module for Boa that implements core JavaScript functionality, such as the JavaScript Context,
 //! and langugage execution via a bytecompiler and virtual machine.
-//! 
+//!
 //! # Crate Features
 //!  - **serde** - Enables serialization and deserialization of the AST (Abstract Syntax Tree).
 //!  - **console** - Enables `boa`'s [WHATWG `console`][whatwg] object implementation.
@@ -21,7 +21,7 @@
 //!  - **boa_tester** - Boa's Test262 runner
 //!  - **boa_unicode** - Boa's unicode identifier
 //!  - **boa_wasm** - Boa's WASM binding
-//! 
+//!
 //! [whatwg]: https://console.spec.whatwg.org
 //! [ecma-402]: https://tc39.es/ecma402
 //! [boa-conformance]: https://boa-dev.github.io/boa/test262/
