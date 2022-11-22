@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":[["EdgeStyle","Represents the edge (connection) style."],["EdgeType","Represents the edge type."]],"struct":[["Edge","Represents an edge/connection in the flowgraph."]]};

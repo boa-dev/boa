@@ -441,6 +441,9 @@
 <span id="439">439</span>
 <span id="440">440</span>
 <span id="441">441</span>
+<span id="442">442</span>
+<span id="443">443</span>
+<span id="444">444</span>
 </pre><pre class="rust"><code><span class="doccomment">//! The Virtual Machine (VM) handles generating instructions, then executing them.
 //! This module will provide an instruction set for the AST to use, various traits,
 //! plus an interpreter to execute those instructions
@@ -459,6 +462,9 @@
 <span class="kw">mod </span>call_frame;
 <span class="kw">mod </span>code_block;
 <span class="kw">mod </span>opcode;
+
+<span class="attribute">#[cfg(feature = <span class="string">&quot;flowgraph&quot;</span>)]
+</span><span class="kw">pub mod </span>flowgraph;
 
 <span class="kw">pub use </span>{call_frame::CallFrame, code_block::CodeBlock, opcode::Opcode};
 

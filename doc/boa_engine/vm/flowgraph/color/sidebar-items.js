@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":[["Color","Represents the color of a node or edge."]]};

@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":[["NodeShape","Reperesents the shape of a node in the flowgraph."]],"struct":[["Node","This represents a node in the flowgraph."]]};
