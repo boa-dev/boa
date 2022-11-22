@@ -1,7 +1,8 @@
 use boa_ast::{
-    statement::{Break, If, Labelled, LabelledItem, Switch},
+    statement::{Block, Break, If, Labelled, LabelledItem, Switch},
     Statement,
 };
+use boa_interner::Sym;
 
 use crate::{vm::Opcode, JsNativeError, JsResult};
 
@@ -49,42 +50,48 @@ pub(crate) fn compile_labeled<'b>(
     match labelled.item() {
         LabelledItem::Statement(stmt) => match stmt {
             Statement::ForLoop(for_loop) => {
-                byte_compiler.compile_for_loop(
+                compile_for_loop(
+                    byte_compiler,
                     for_loop,
                     Some(labelled.label()),
                     configurable_globals,
                 )?;
             }
             Statement::ForInLoop(for_in_loop) => {
-                byte_compiler.compile_for_in_loop(
+                compile_for_in_loop(
+                    byte_compiler,
                     for_in_loop,
                     Some(labelled.label()),
                     configurable_globals,
                 )?;
             }
             Statement::ForOfLoop(for_of_loop) => {
-                byte_compiler.compile_for_of_loop(
+                compile_for_of_loop(
+                    byte_compiler,
                     for_of_loop,
                     Some(labelled.label()),
                     configurable_globals,
                 )?;
             }
             Statement::WhileLoop(while_loop) => {
-                byte_compiler.compile_while_loop(
+                compile_while_loop(
+                    byte_compiler,
                     while_loop,
                     Some(labelled.label()),
                     configurable_globals,
                 )?;
             }
             Statement::DoWhileLoop(do_while_loop) => {
-                byte_compiler.compile_do_while_loop(
+                compile_do_while_loop(
+                    byte_compiler,
                     do_while_loop,
                     Some(labelled.label()),
                     configurable_globals,
                 )?;
             }
             Statement::Block(block) => {
-                byte_compiler.compile_block(
+                compile_block(
+                    byte_compiler,
                     block,
                     Some(labelled.label()),
                     use_expr,
@@ -208,5 +215,34 @@ pub(crate) fn compile_switch<'b>(
     byte_compiler.patch_jump_with_target(push_env.1, index_compile_environment as u32);
     byte_compiler.emit_opcode(Opcode::PopEnvironment);
 
+    Ok(())
+}
+
+pub(crate) fn compile_block<'b>(
+    byte_compiler: &mut ByteCompiler<'b>,
+    block: &Block,
+    label: Option<Sym>,
+    use_expr: bool,
+    configurable_globals: bool,
+) -> JsResult<()> {
+    if let Some(label) = label {
+        let next = byte_compiler.next_opcode_location();
+        byte_compiler.push_labelled_block_control_info(label, next);
+    }
+
+    byte_compiler.context.push_compile_time_environment(false);
+    let push_env = byte_compiler.emit_opcode_with_two_operands(Opcode::PushDeclarativeEnvironment);
+    byte_compiler.create_decls(block.statement_list(), configurable_globals);
+    byte_compiler.compile_statement_list(block.statement_list(), use_expr, configurable_globals)?;
+    let (num_bindings, compile_environment) = byte_compiler.context.pop_compile_time_environment();
+    let index_compile_environment = byte_compiler.push_compile_environment(compile_environment);
+    byte_compiler.patch_jump_with_target(push_env.0, num_bindings as u32);
+    byte_compiler.patch_jump_with_target(push_env.1, index_compile_environment as u32);
+
+    if label.is_some() {
+        byte_compiler.pop_labelled_block_control_info();
+    }
+
+    byte_compiler.emit_opcode(Opcode::PopEnvironment);
     Ok(())
 }

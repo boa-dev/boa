@@ -1439,92 +1439,6 @@ impl<'b> ByteCompiler<'b> {
 
     /// Compile a [`ForLoop`].
     #[inline]
-    fn compile_for_loop(
-        &mut self,
-        for_loop: &ForLoop,
-        label: Option<Sym>,
-        configurable_globals: bool,
-    ) -> JsResult<()> {
-        statement::compile_for_loop(self, for_loop, label, configurable_globals)
-    }
-
-    /// Compile a [`ForInLoop`].
-    #[inline]
-    fn compile_for_in_loop(
-        &mut self,
-        for_in_loop: &ForInLoop,
-        label: Option<Sym>,
-        configurable_globals: bool,
-    ) -> JsResult<()> {
-        statement::compile_for_in_loop(self, for_in_loop, label, configurable_globals)
-    }
-
-    /// Compile a [`ForOfLoop`].
-    #[inline]
-    fn compile_for_of_loop(
-        &mut self,
-        for_of_loop: &ForOfLoop,
-        label: Option<Sym>,
-        configurable_globals: bool,
-    ) -> JsResult<()> {
-        statement::compile_for_of_loop(self, for_of_loop, label, configurable_globals)
-    }
-
-    /// Compile a [`WhileLoop`].
-    #[inline]
-    fn compile_while_loop(
-        &mut self,
-        while_loop: &WhileLoop,
-        label: Option<Sym>,
-        configurable_globals: bool,
-    ) -> JsResult<()> {
-        statement::compile_while_loop(self, while_loop, label, configurable_globals)
-    }
-
-    /// Compile a [`DoWhileLoop`].
-    #[inline]
-    fn compile_do_while_loop(
-        &mut self,
-        do_while_loop: &DoWhileLoop,
-        label: Option<Sym>,
-        configurable_globals: bool,
-    ) -> JsResult<()> {
-        statement::compile_do_while_loop(self, do_while_loop, label, configurable_globals)
-    }
-
-    /// Compile a [`Block`].
-    #[inline]
-    pub fn compile_block(
-        &mut self,
-        block: &Block,
-        label: Option<Sym>,
-        use_expr: bool,
-        configurable_globals: bool,
-    ) -> JsResult<()> {
-        if let Some(label) = label {
-            let next = self.next_opcode_location();
-            self.push_labelled_block_control_info(label, next);
-        }
-
-        self.context.push_compile_time_environment(false);
-        let push_env = self.emit_opcode_with_two_operands(Opcode::PushDeclarativeEnvironment);
-        self.create_decls(block.statement_list(), configurable_globals);
-        self.compile_statement_list(block.statement_list(), use_expr, configurable_globals)?;
-        let (num_bindings, compile_environment) = self.context.pop_compile_time_environment();
-        let index_compile_environment = self.push_compile_environment(compile_environment);
-        self.patch_jump_with_target(push_env.0, num_bindings as u32);
-        self.patch_jump_with_target(push_env.1, index_compile_environment as u32);
-
-        if label.is_some() {
-            self.pop_labelled_block_control_info();
-        }
-
-        self.emit_opcode(Opcode::PopEnvironment);
-        Ok(())
-    }
-
-    /// Compile a [`Statement`].
-    #[inline]
     pub fn compile_stmt(
         &mut self,
         node: &Statement,
@@ -1535,22 +1449,22 @@ impl<'b> ByteCompiler<'b> {
             Statement::Var(var) => self.compile_var_decl(var)?,
             Statement::If(node) => statement::compile_if(self, node, configurable_globals)?,
             Statement::ForLoop(for_loop) => {
-                self.compile_for_loop(for_loop, None, configurable_globals)?;
+                statement::compile_for_loop(self, for_loop, None, configurable_globals)?;
             }
             Statement::ForInLoop(for_in_loop) => {
-                self.compile_for_in_loop(for_in_loop, None, configurable_globals)?;
+                statement::compile_for_in_loop(self, for_in_loop, None, configurable_globals)?;
             }
             Statement::ForOfLoop(for_of_loop) => {
-                self.compile_for_of_loop(for_of_loop, None, configurable_globals)?;
+                statement::compile_for_of_loop(self, for_of_loop, None, configurable_globals)?;
             }
             Statement::WhileLoop(while_loop) => {
-                self.compile_while_loop(while_loop, None, configurable_globals)?;
+                statement::compile_while_loop(self, while_loop, None, configurable_globals)?;
             }
             Statement::DoWhileLoop(do_while_loop) => {
-                self.compile_do_while_loop(do_while_loop, None, configurable_globals)?;
+                statement::compile_do_while_loop(self, do_while_loop, None, configurable_globals)?;
             }
             Statement::Block(block) => {
-                self.compile_block(block, None, use_expr, configurable_globals)?;
+                statement::compile_block(self, block, None, use_expr, configurable_globals)?;
             }
             Statement::Labelled(labelled) => {
                 statement::compile_labeled(self, labelled, use_expr, configurable_globals)?
