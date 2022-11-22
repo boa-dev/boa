@@ -19,6 +19,20 @@ pub struct JsArrayBuffer {
 
 impl JsArrayBuffer {
     /// Create a new array buffer with byte length.
+    ///
+    /// ```
+    /// # use boa_engine::{
+    /// # object::builtins::JsArrayBuffer,
+    /// # Context,
+    /// # };
+    /// # // Initialize context
+    /// # let context = &mut Context::default();
+    /// // Creates a blank array buffer of n bytes
+    /// let array_buffer = JsArrayBuffer::new(4, context).unwrap();
+    ///
+    /// assert_eq!(array_buffer.take().unwrap(), vec![0_u8; 4]);
+    /// 
+    /// ```
     #[inline]
     pub fn new(byte_length: usize, context: &mut Context) -> JsResult<Self> {
         let inner = ArrayBuffer::allocate(
@@ -40,6 +54,23 @@ impl JsArrayBuffer {
     /// This uses the passed byte block as the internal storage, it does not clone it!
     ///
     /// The `byte_length` will be set to `byte_block.len()`.
+    ///  
+    /// ```
+    /// # use boa_engine::{
+    /// # object::builtins::JsArrayBuffer,
+    /// # Context,
+    /// # };
+    /// 
+    /// # // Initialize context
+    /// # let context = &mut Context::default();
+    /// 
+    /// // Create a buffer from a chunk of data
+    /// let data_block: Vec<u8> = (0..5).collect();
+    /// let array_buffer = JsArrayBuffer::from_byte_block(data_block, context).unwrap();
+    /// 
+/// assert_eq!(array_buffer.take().unwrap(), (0..5).collect::<Vec<u8>>());
+    /// 
+    /// ```
     #[inline]
     pub fn from_byte_block(byte_block: Vec<u8>, context: &mut Context) -> JsResult<Self> {
         let byte_length = byte_block.len();
@@ -92,12 +123,65 @@ impl JsArrayBuffer {
     }
 
     /// Returns the byte length of the array buffer.
+    /// 
+    /// ```
+    /// # use boa_engine::{
+    /// # object::builtins::JsArrayBuffer,
+    /// # Context,
+    /// # };
+    /// # // Initialize context
+    /// # let context = &mut Context::default();
+    /// // Create a buffer from a chunk of data
+    /// let data_block: Vec<u8> = (0..5).collect();
+    /// let array_buffer = JsArrayBuffer::from_byte_block(data_block, context).unwrap();
+    ///
+    /// // Take the inner buffer
+    /// let buffer_length = array_buffer.byte_length(context);
+    /// 
+    /// assert_eq!(buffer_length, 5_usize);
+    /// ```
     #[inline]
     pub fn byte_length(&self, context: &mut Context) -> usize {
         ArrayBuffer::get_byte_length(&self.inner.clone().into(), &[], context)
             .expect("it should not throw")
             .as_number()
             .expect("expected a number") as usize
+    }
+
+    /// Take the inner `ArrayBuffer`'s `array_buffer_data` field and replace it with `None`
+    /// 
+    /// Note: This causes the pre-existing JsArrayBuffer to become detached.
+    /// 
+    /// ```
+    /// # use boa_engine::{
+    /// # object::builtins::JsArrayBuffer,
+    /// # Context,
+    /// # };
+    /// # // Initialize context
+    /// # let context = &mut Context::default();
+    /// // Create a buffer from a chunk of data
+    /// let data_block: Vec<u8> = (0..5).collect();
+    /// let array_buffer = JsArrayBuffer::from_byte_block(data_block, context).unwrap();
+    ///
+    /// // Take the inner buffer
+    /// let internal_buffer = array_buffer.take().unwrap();
+    /// 
+    /// assert_eq!(internal_buffer, (0..5).collect::<Vec<u8>>());
+    /// 
+    /// // Anymore interaction with the buffer will return an error
+    /// let detached_err = array_buffer.take();
+    /// assert!(detached_err.is_err());
+    /// 
+    /// ```
+    #[inline]
+    pub fn take(&self) -> JsResult<Vec<u8>> {
+        self.inner
+            .borrow_mut()
+            .as_array_buffer_mut()
+            .expect("inner must be an ArrayBuffer")
+            .array_buffer_data
+            .take()
+            .ok_or(JsNativeError::typ().with_message("ArrayBuffer is detached").into())
     }
 }
 
