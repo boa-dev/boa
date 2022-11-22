@@ -2,20 +2,19 @@
 
 mod js262;
 
-use crate::read::ErrorType;
-
 use super::{
-    Harness, Outcome, Phase, SuiteResult, Test, TestFlags, TestOutcomeResult, TestResult,
-    TestSuite, IGNORED,
+    Harness, Outcome, Phase, SuiteResult, Test, TestFlags, TestOutcomeResult, TestResult, TestSuite,
 };
+use crate::read::ErrorType;
 use boa_engine::{
     builtins::JsArgs, object::FunctionBuilder, property::Attribute, Context, JsNativeErrorKind,
     JsResult, JsValue,
 };
-use boa_gc::{Cell, Finalize, Gc, Trace};
+use boa_gc::{Finalize, Gc, GcCell, Trace};
 use boa_parser::Parser;
 use colored::Colorize;
 use rayon::prelude::*;
+use std::borrow::Cow;
 
 impl TestSuite {
     /// Runs the test suite.
@@ -130,180 +129,7 @@ impl Test {
 
     /// Runs the test once, in strict or non-strict mode
     fn run_once(&self, harness: &Harness, strict: bool, verbose: u8) -> TestResult {
-        if verbose > 1 {
-            println!(
-                "`{}`{}: starting",
-                self.name,
-                if strict { " (strict mode)" } else { "" }
-            );
-        }
-
-        let test_content = if strict {
-            format!("\"use strict\";\n{}", self.content)
-        } else {
-            self.content.to_string()
-        };
-
-        let (result, result_text) = if !IGNORED.contains_any_flag(self.flags)
-            && !IGNORED.contains_test(&self.name)
-            && !IGNORED.contains_any_feature(&self.features)
-            && (matches!(self.expected_outcome, Outcome::Positive)
-                || matches!(
-                    self.expected_outcome,
-                    Outcome::Negative {
-                        phase: Phase::Parse,
-                        error_type: _,
-                    }
-                )
-                || matches!(
-                    self.expected_outcome,
-                    Outcome::Negative {
-                        phase: Phase::Early,
-                        error_type: _,
-                    }
-                )
-                || matches!(
-                    self.expected_outcome,
-                    Outcome::Negative {
-                        phase: Phase::Runtime,
-                        error_type: _,
-                    }
-                )) {
-            let res = std::panic::catch_unwind(|| match self.expected_outcome {
-                Outcome::Positive => {
-                    let mut context = Context::default();
-                    let async_result = AsyncResult::default();
-
-                    if let Err(e) = self.set_up_env(harness, &mut context, async_result.clone()) {
-                        return (false, e);
-                    }
-
-                    // TODO: timeout
-                    let value = match context.eval(&test_content) {
-                        Ok(v) => v,
-                        Err(e) => return (false, format!("Uncaught {e}")),
-                    };
-
-                    if let Err(e) = async_result.inner.borrow().as_ref() {
-                        return (false, format!("Uncaught {e}"));
-                    }
-
-                    (true, value.display().to_string())
-                }
-                Outcome::Negative {
-                    phase: Phase::Parse | Phase::Early,
-                    error_type,
-                } => {
-                    assert_eq!(
-                        error_type,
-                        ErrorType::SyntaxError,
-                        "non-SyntaxError parsing/early error found in {}",
-                        self.name
-                    );
-
-                    let mut context = Context::default();
-                    match context.parse(&test_content) {
-                        Ok(statement_list) => match context.compile(&statement_list) {
-                            Ok(_) => (false, "StatementList compilation should fail".to_owned()),
-                            Err(e) => (true, format!("Uncaught {e:?}")),
-                        },
-                        Err(e) => (true, format!("Uncaught {e}")),
-                    }
-                }
-                Outcome::Negative {
-                    phase: Phase::Resolution,
-                    error_type: _,
-                } => todo!("check module resolution errors"),
-                Outcome::Negative {
-                    phase: Phase::Runtime,
-                    error_type,
-                } => {
-                    let mut context = Context::default();
-                    if let Err(e) = self.set_up_env(harness, &mut context, AsyncResult::default()) {
-                        return (false, e);
-                    }
-                    let code = match Parser::new(test_content.as_bytes())
-                        .parse_all(context.interner_mut())
-                        .map_err(Into::into)
-                        .and_then(|stmts| context.compile(&stmts))
-                    {
-                        Ok(code) => code,
-                        Err(e) => return (false, format!("Uncaught {e}")),
-                    };
-
-                    // TODO: timeout
-                    let e = match context.execute(code) {
-                        Ok(res) => return (false, res.display().to_string()),
-                        Err(e) => e,
-                    };
-                    if let Ok(e) = e.try_native(&mut context) {
-                        match &e.kind {
-                            JsNativeErrorKind::Syntax if error_type == ErrorType::SyntaxError => {}
-                            JsNativeErrorKind::Reference
-                                if error_type == ErrorType::ReferenceError => {}
-                            JsNativeErrorKind::Range if error_type == ErrorType::RangeError => {}
-                            JsNativeErrorKind::Type if error_type == ErrorType::TypeError => {}
-                            _ => return (false, format!("Uncaught {e}")),
-                        }
-                        (true, format!("Uncaught {e}"))
-                    } else {
-                        let passed = e
-                            .as_opaque()
-                            .expect("try_native cannot fail if e is not opaque")
-                            .as_object()
-                            .and_then(|o| o.get("constructor", &mut context).ok())
-                            .as_ref()
-                            .and_then(JsValue::as_object)
-                            .and_then(|o| o.get("name", &mut context).ok())
-                            .as_ref()
-                            .and_then(JsValue::as_string)
-                            .map(|s| s == error_type.as_str())
-                            .unwrap_or_default();
-                        (passed, format!("Uncaught {e}"))
-                    }
-                }
-            });
-
-            let result = res.map_or_else(
-                |_| {
-                    eprintln!("last panic was on test \"{}\"", self.name);
-                    (TestOutcomeResult::Panic, String::new())
-                },
-                |(res, text)| {
-                    if res {
-                        (TestOutcomeResult::Passed, text)
-                    } else {
-                        (TestOutcomeResult::Failed, text)
-                    }
-                },
-            );
-
-            if verbose > 1 {
-                println!(
-                    "`{}`{}: {}",
-                    self.name,
-                    if strict { " (strict mode)" } else { "" },
-                    if matches!(result, (TestOutcomeResult::Passed, _)) {
-                        "Passed".green()
-                    } else if matches!(result, (TestOutcomeResult::Failed, _)) {
-                        "Failed".red()
-                    } else {
-                        "⚠ Panic ⚠".red()
-                    }
-                );
-            } else {
-                print!(
-                    "{}",
-                    if matches!(result, (TestOutcomeResult::Passed, _)) {
-                        ".".green()
-                    } else {
-                        "F".red()
-                    }
-                );
-            }
-
-            result
-        } else {
+        if self.ignored {
             if verbose > 1 {
                 println!(
                     "`{}`{}: {}",
@@ -314,8 +140,159 @@ impl Test {
             } else {
                 print!("{}", "-".yellow());
             }
-            (TestOutcomeResult::Ignored, String::new())
+            return TestResult {
+                name: self.name.clone(),
+                strict,
+                result: TestOutcomeResult::Ignored,
+                result_text: Box::default(),
+            };
+        }
+        if verbose > 1 {
+            println!(
+                "`{}`{}: starting",
+                self.name,
+                if strict { " (strict mode)" } else { "" }
+            );
+        }
+
+        let test_content = if strict {
+            Cow::Owned(format!("\"use strict\";\n{}", self.content))
+        } else {
+            Cow::Borrowed(&*self.content)
         };
+
+        let result = std::panic::catch_unwind(|| match self.expected_outcome {
+            Outcome::Positive => {
+                let mut context = Context::default();
+                let async_result = AsyncResult::default();
+
+                if let Err(e) = self.set_up_env(harness, &mut context, async_result.clone()) {
+                    return (false, e);
+                }
+
+                // TODO: timeout
+                let value = match context.eval(&*test_content) {
+                    Ok(v) => v,
+                    Err(e) => return (false, format!("Uncaught {e}")),
+                };
+
+                if let Err(e) = async_result.inner.borrow().as_ref() {
+                    return (false, format!("Uncaught {e}"));
+                }
+
+                (true, value.display().to_string())
+            }
+            Outcome::Negative {
+                phase: Phase::Parse | Phase::Early,
+                error_type,
+            } => {
+                assert_eq!(
+                    error_type,
+                    ErrorType::SyntaxError,
+                    "non-SyntaxError parsing/early error found in {}",
+                    self.name
+                );
+
+                let mut context = Context::default();
+                match context.parse(&*test_content) {
+                    Ok(statement_list) => match context.compile(&statement_list) {
+                        Ok(_) => (false, "StatementList compilation should fail".to_owned()),
+                        Err(e) => (true, format!("Uncaught {e:?}")),
+                    },
+                    Err(e) => (true, format!("Uncaught {e}")),
+                }
+            }
+            Outcome::Negative {
+                phase: Phase::Resolution,
+                error_type: _,
+            } => todo!("check module resolution errors"),
+            Outcome::Negative {
+                phase: Phase::Runtime,
+                error_type,
+            } => {
+                let mut context = Context::default();
+                if let Err(e) = self.set_up_env(harness, &mut context, AsyncResult::default()) {
+                    return (false, e);
+                }
+                let code = match Parser::new(test_content.as_bytes())
+                    .parse_all(context.interner_mut())
+                    .map_err(Into::into)
+                    .and_then(|stmts| context.compile(&stmts))
+                {
+                    Ok(code) => code,
+                    Err(e) => return (false, format!("Uncaught {e}")),
+                };
+
+                // TODO: timeout
+                let e = match context.execute(code) {
+                    Ok(res) => return (false, res.display().to_string()),
+                    Err(e) => e,
+                };
+                if let Ok(e) = e.try_native(&mut context) {
+                    match &e.kind {
+                        JsNativeErrorKind::Syntax if error_type == ErrorType::SyntaxError => {}
+                        JsNativeErrorKind::Reference if error_type == ErrorType::ReferenceError => {
+                        }
+                        JsNativeErrorKind::Range if error_type == ErrorType::RangeError => {}
+                        JsNativeErrorKind::Type if error_type == ErrorType::TypeError => {}
+                        _ => return (false, format!("Uncaught {e}")),
+                    }
+                    (true, format!("Uncaught {e}"))
+                } else {
+                    let passed = e
+                        .as_opaque()
+                        .expect("try_native cannot fail if e is not opaque")
+                        .as_object()
+                        .and_then(|o| o.get("constructor", &mut context).ok())
+                        .as_ref()
+                        .and_then(JsValue::as_object)
+                        .and_then(|o| o.get("name", &mut context).ok())
+                        .as_ref()
+                        .and_then(JsValue::as_string)
+                        .map(|s| s == error_type.as_str())
+                        .unwrap_or_default();
+                    (passed, format!("Uncaught {e}"))
+                }
+            }
+        });
+
+        let (result, result_text) = result.map_or_else(
+            |_| {
+                eprintln!("last panic was on test \"{}\"", self.name);
+                (TestOutcomeResult::Panic, String::new())
+            },
+            |(res, text)| {
+                if res {
+                    (TestOutcomeResult::Passed, text)
+                } else {
+                    (TestOutcomeResult::Failed, text)
+                }
+            },
+        );
+
+        if verbose > 1 {
+            println!(
+                "`{}`{}: {}",
+                self.name,
+                if strict { " (strict mode)" } else { "" },
+                if result == TestOutcomeResult::Passed {
+                    "Passed".green()
+                } else if result == TestOutcomeResult::Failed {
+                    "Failed".red()
+                } else {
+                    "⚠ Panic ⚠".red()
+                }
+            );
+        } else {
+            print!(
+                "{}",
+                if result == TestOutcomeResult::Passed {
+                    ".".green()
+                } else {
+                    "F".red()
+                }
+            );
+        }
 
         if verbose > 2 {
             println!(
@@ -400,13 +377,13 @@ impl Test {
 /// Object which includes the result of the async operation.
 #[derive(Debug, Clone, Trace, Finalize)]
 struct AsyncResult {
-    inner: Gc<Cell<Result<(), String>>>,
+    inner: Gc<GcCell<Result<(), String>>>,
 }
 
 impl Default for AsyncResult {
     fn default() -> Self {
         Self {
-            inner: Gc::new(Cell::new(Ok(()))),
+            inner: Gc::new(GcCell::new(Ok(()))),
         }
     }
 }

@@ -1,9 +1,8 @@
 //! This module implements lexing for template literals used in the JavaScript programing language.
 
-use super::{Cursor, Error, Tokenizer};
 use crate::lexer::{
     string::{StringLiteral, UTF16CodeUnitsBuffer},
-    Token, TokenKind,
+    Cursor, Error, Token, TokenKind, Tokenizer,
 };
 use boa_ast::{Position, Span};
 use boa_interner::{Interner, Sym};
@@ -22,7 +21,7 @@ pub struct TemplateString {
 
 impl TemplateString {
     /// Creates a new `TemplateString` with the given raw template ans start position.
-    pub fn new(raw: Sym, start_pos: Position) -> Self {
+    pub const fn new(raw: Sym, start_pos: Position) -> Self {
         Self { raw, start_pos }
     }
 
@@ -32,7 +31,7 @@ impl TemplateString {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-templatestrings
-    pub fn as_raw(self) -> Sym {
+    pub const fn as_raw(self) -> Sym {
         self.raw
     }
 

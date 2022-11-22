@@ -8,6 +8,7 @@
 use boa_ast::Position;
 use std::{error::Error as StdError, fmt, io};
 
+/// An error that occurred during the lexing.
 #[derive(Debug)]
 pub enum Error {
     /// An IO error is raised to indicate an issue when the lexer is reading data that isn't

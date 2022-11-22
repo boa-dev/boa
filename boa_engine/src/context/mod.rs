@@ -97,9 +97,15 @@ pub struct Context {
     #[cfg(feature = "intl")]
     icu: icu::Icu,
 
+    /// Number of instructions remaining before a forced exit
+    #[cfg(feature = "fuzz")]
+    pub(crate) instructions_remaining: usize,
+
     pub(crate) vm: Vm,
 
     pub(crate) promise_job_queue: VecDeque<JobCallback>,
+
+    pub(crate) kept_alive: Vec<JsObject>,
 }
 
 impl Default for Context {
@@ -534,6 +540,7 @@ impl Context {
         self.realm.set_global_binding_number();
         let result = self.run();
         self.vm.pop_frame();
+        self.clear_kept_objects();
         self.run_queued_jobs()?;
         let (result, _) = result?;
         Ok(result)
@@ -543,6 +550,7 @@ impl Context {
     fn run_queued_jobs(&mut self) -> JsResult<()> {
         while let Some(job) = self.promise_job_queue.pop_front() {
             job.call_job_callback(&JsValue::Undefined, &[], self)?;
+            self.clear_kept_objects();
         }
         Ok(())
     }
@@ -576,6 +584,18 @@ impl Context {
         // TODO
         self.promise_job_queue.push_back(job);
     }
+
+    /// Abstract operation [`ClearKeptObjects`][clear].
+    ///
+    /// Clears all objects maintained alive by calls to the [`AddToKeptObjects`][add] abstract
+    /// operation, used within the [`WeakRef`][weak] constructor.
+    ///
+    /// [clear]: https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-clear-kept-objects
+    /// [add]: https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-addtokeptobjects
+    /// [weak]: https://tc39.es/ecma262/multipage/managing-memory.html#sec-weak-ref-objects
+    pub fn clear_kept_objects(&mut self) {
+        self.kept_alive.clear();
+    }
 }
 /// Builder for the [`Context`] type.
 ///
@@ -593,6 +613,8 @@ pub struct ContextBuilder {
     interner: Option<Interner>,
     #[cfg(feature = "intl")]
     icu: Option<icu::Icu>,
+    #[cfg(feature = "fuzz")]
+    instructions_remaining: usize,
 }
 
 impl ContextBuilder {
@@ -613,6 +635,15 @@ impl ContextBuilder {
     pub fn icu_provider(mut self, provider: Box<dyn icu::BoaProvider>) -> Result<Self, DataError> {
         self.icu = Some(icu::Icu::new(provider)?);
         Ok(self)
+    }
+
+    /// Specifies the number of instructions remaining to the [`Context`].
+    ///
+    /// This function is only available if the `fuzz` feature is enabled.
+    #[cfg(feature = "fuzz")]
+    pub fn instructions_remaining(mut self, instructions_remaining: usize) -> Self {
+        self.instructions_remaining = instructions_remaining;
+        self
     }
 
     /// Creates a new [`ContextBuilder`] with a default empty [`Interner`]
@@ -643,7 +674,10 @@ impl ContextBuilder {
                 icu::Icu::new(Box::new(icu_testdata::get_provider()))
                     .expect("Failed to initialize default icu data.")
             }),
+            #[cfg(feature = "fuzz")]
+            instructions_remaining: self.instructions_remaining,
             promise_job_queue: VecDeque::new(),
+            kept_alive: Vec::new(),
         };
 
         // Add new builtIns to Context Realm

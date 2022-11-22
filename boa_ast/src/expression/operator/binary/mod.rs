@@ -53,21 +53,21 @@ impl Binary {
     /// Gets the binary operation of the Expression.
     #[inline]
     #[must_use]
-    pub fn op(&self) -> BinaryOp {
+    pub const fn op(&self) -> BinaryOp {
         self.op
     }
 
     /// Gets the left hand side of the binary operation.
     #[inline]
     #[must_use]
-    pub fn lhs(&self) -> &Expression {
+    pub const fn lhs(&self) -> &Expression {
         &self.lhs
     }
 
     /// Gets the right hand side of the binary operation.
     #[inline]
     #[must_use]
-    pub fn rhs(&self) -> &Expression {
+    pub const fn rhs(&self) -> &Expression {
         &self.rhs
     }
 }

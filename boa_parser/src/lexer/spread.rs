@@ -1,7 +1,6 @@
 //! This module implements lexing for spread (...) literals used in the JavaScript programing language.
 
-use super::{Cursor, Error, Tokenizer};
-use crate::lexer::Token;
+use crate::lexer::{Cursor, Error, Token, Tokenizer};
 use boa_ast::{Position, Punctuator, Span};
 use boa_interner::Interner;
 use boa_profiler::Profiler;
@@ -22,8 +21,8 @@ pub(super) struct SpreadLiteral;
 
 impl SpreadLiteral {
     /// Creates a new string literal lexer.
-    pub(super) fn new() -> Self {
-        Self {}
+    pub(super) const fn new() -> Self {
+        Self
     }
 }
 

@@ -13,62 +13,60 @@
     html_favicon_url = "https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"
 )]
 #![cfg_attr(not(test), forbid(clippy::unwrap_used))]
-#![warn(
-    clippy::perf,
-    clippy::single_match_else,
-    clippy::dbg_macro,
-    clippy::doc_markdown,
-    clippy::wildcard_imports,
-    clippy::struct_excessive_bools,
-    clippy::doc_markdown,
-    clippy::semicolon_if_nothing_returned,
-    clippy::pedantic
-)]
+#![warn(missing_docs, clippy::dbg_macro)]
 #![deny(
-    clippy::all,
-    clippy::cast_lossless,
-    clippy::redundant_closure_for_method_calls,
-    clippy::use_self,
-    clippy::unnested_or_patterns,
-    clippy::trivially_copy_pass_by_ref,
-    clippy::needless_pass_by_value,
-    clippy::match_wildcard_for_single_variants,
-    clippy::map_unwrap_or,
-    unused_qualifications,
-    unused_import_braces,
-    unused_lifetimes,
-    unreachable_pub,
-    trivial_numeric_casts,
-    // rustdoc,
-    missing_debug_implementations,
-    missing_copy_implementations,
-    deprecated_in_future,
-    meta_variable_misuse,
-    non_ascii_idents,
+    // rustc lint groups https://doc.rust-lang.org/rustc/lints/groups.html
+    warnings,
+    future_incompatible,
+    let_underscore,
+    nonstandard_style,
     rust_2018_compatibility,
     rust_2018_idioms,
-    future_incompatible,
-    nonstandard_style,
-    unsafe_op_in_unsafe_fn
+    rust_2021_compatibility,
+    unused,
+
+    // rustc allowed-by-default lints https://doc.rust-lang.org/rustc/lints/listing/allowed-by-default.html
+    macro_use_extern_crate,
+    meta_variable_misuse,
+    missing_abi,
+    missing_copy_implementations,
+    missing_debug_implementations,
+    non_ascii_idents,
+    noop_method_call,
+    trivial_casts,
+    trivial_numeric_casts,
+    unreachable_pub,
+    unsafe_op_in_unsafe_fn,
+    unused_crate_dependencies,
+    unused_import_braces,
+    unused_lifetimes,
+    unused_qualifications,
+    unused_tuple_struct_fields,
+    variant_size_differences,
+
+    // rustdoc lints https://doc.rust-lang.org/rustdoc/lints.html
+    rustdoc::broken_intra_doc_links,
+    rustdoc::private_intra_doc_links,
+    rustdoc::missing_crate_level_docs,
+    rustdoc::private_doc_tests,
+    rustdoc::invalid_codeblock_attributes,
+    rustdoc::invalid_rust_codeblocks,
+    rustdoc::bare_urls,
+
+    // clippy categories https://doc.rust-lang.org/clippy/
+    clippy::all,
+    clippy::correctness,
+    clippy::suspicious,
+    clippy::style,
+    clippy::complexity,
+    clippy::perf,
+    clippy::pedantic,
+    clippy::nursery,
 )]
 #![allow(
-    clippy::module_name_repetitions,
-    clippy::cast_possible_truncation,
-    clippy::cast_sign_loss,
-    clippy::cast_precision_loss,
-    clippy::cast_possible_wrap,
-    clippy::cast_ptr_alignment,
-    clippy::missing_panics_doc,
-    clippy::too_many_lines,
-    clippy::unreadable_literal,
-    clippy::missing_inline_in_public_items,
-    clippy::cognitive_complexity,
-    clippy::must_use_candidate,
-    clippy::missing_errors_doc,
-    clippy::as_conversions,
-    clippy::let_unit_value,
+    clippy::redundant_pub_crate,
     // TODO deny once false positive is fixed (https://github.com/rust-lang/rust-clippy/issues/9626).
-    clippy::trait_duplication_in_bounds,
+    clippy::trait_duplication_in_bounds
 )]
 
 extern crate static_assertions as sa;
@@ -77,12 +75,13 @@ mod fixed_string;
 mod interned_str;
 mod raw;
 mod sym;
+
 #[cfg(test)]
 mod tests;
 
+use raw::RawInterner;
 use std::borrow::Cow;
 
-use raw::RawInterner;
 pub use sym::*;
 
 /// An enumeration of all slice types [`Interner`] can internally store.
@@ -91,7 +90,10 @@ pub use sym::*;
 /// encodings [`Interner`] can store.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum JStrRef<'a> {
+    /// A `UTF-8` string reference.
     Utf8(&'a str),
+
+    /// A `UTF-16` string reference.
     Utf16(&'a [u16]),
 }
 
@@ -128,12 +130,16 @@ pub struct JSInternedStrRef<'a, 'b> {
 impl<'a, 'b> JSInternedStrRef<'a, 'b> {
     /// Returns the inner reference to the interned string in `UTF-8` encoding.
     /// if the string is not representable in `UTF-8`, returns [`None`]
-    pub fn utf8(&self) -> Option<&'a str> {
+    #[inline]
+    #[must_use]
+    pub const fn utf8(&self) -> Option<&'a str> {
         self.utf8
     }
 
     /// Returns the inner reference to the interned string in `UTF-16` encoding.
-    pub fn utf16(&self) -> &'b [u16] {
+    #[inline]
+    #[must_use]
+    pub const fn utf16(&self) -> &'b [u16] {
         self.utf16
     }
 
@@ -186,7 +192,7 @@ impl<'a, 'b> JSInternedStrRef<'a, 'b> {
     }
 }
 
-impl<'a, 'b> std::fmt::Display for JSInternedStrRef<'a, 'b> {
+impl std::fmt::Display for JSInternedStrRef<'_, '_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.join_with_context(
             std::fmt::Display::fmt,
@@ -215,12 +221,14 @@ pub struct Interner {
 impl Interner {
     /// Creates a new [`Interner`].
     #[inline]
+    #[must_use]
     pub fn new() -> Self {
         Self::default()
     }
 
     /// Creates a new [`Interner`] with the specified capacity.
     #[inline]
+    #[must_use]
     pub fn with_capacity(capacity: usize) -> Self {
         Self {
             utf8_interner: RawInterner::with_capacity(capacity),
@@ -230,6 +238,7 @@ impl Interner {
 
     /// Returns the number of strings interned by the interner.
     #[inline]
+    #[must_use]
     pub fn len(&self) -> usize {
         // `utf16_interner.len()` == `utf8_interner.len()`,
         // so we can use any of them.
@@ -238,6 +247,7 @@ impl Interner {
 
     /// Returns `true` if the [`Interner`] contains no interned strings.
     #[inline]
+    #[must_use]
     pub fn is_empty(&self) -> bool {
         COMMON_STRINGS_UTF8.is_empty() && self.utf16_interner.is_empty()
     }
@@ -342,6 +352,7 @@ impl Interner {
 
     /// Returns the string for the given symbol if any.
     #[inline]
+    #[must_use]
     pub fn resolve(&self, symbol: Sym) -> Option<JSInternedStrRef<'_, '_>> {
         let index = symbol.get() - 1;
 
@@ -385,6 +396,7 @@ impl Interner {
     ///
     /// If the interner cannot resolve the given symbol.
     #[inline]
+    #[must_use]
     pub fn resolve_expect(&self, symbol: Sym) -> JSInternedStrRef<'_, '_> {
         self.resolve(symbol).expect("string disappeared")
     }

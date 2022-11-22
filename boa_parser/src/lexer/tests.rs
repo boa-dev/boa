@@ -5,11 +5,9 @@ use crate::lexer::{
     template::TemplateString, token::Numeric, Cursor, Error, Interner, Lexer, Position, Punctuator,
     Read, Span, TokenKind,
 };
-
 use boa_ast::Keyword;
 use boa_interner::Sym;
 use boa_macros::utf16;
-
 use std::str;
 
 fn span(start: (u32, u32), end: (u32, u32)) -> Span {
@@ -610,11 +608,9 @@ fn single_number_without_semicolon() {
     let mut lexer = Lexer::new(&b"1"[..]);
     let interner = &mut Interner::default();
 
-    if let Some(x) = lexer.next(interner).unwrap() {
-        assert_eq!(x.kind(), &TokenKind::numeric_literal(Numeric::Integer(1)));
-    } else {
-        panic!("Failed to lex 1 without semicolon");
-    }
+    let expected = [TokenKind::numeric_literal(Numeric::Integer(1))];
+
+    expect_tokens(&mut lexer, &expected, interner);
 }
 
 #[test]
@@ -864,11 +860,7 @@ fn take_while_char_pred_utf8_char() {
     let mut buf: Vec<u8> = Vec::new();
 
     cur.take_while_char_pred(&mut buf, &|c| {
-        if let Ok(c) = char::try_from(c) {
-            c == 'a' || c == 'b' || c == 'c' || c == '😀'
-        } else {
-            false
-        }
+        char::try_from(c).map_or(false, |c| c == 'a' || c == 'b' || c == 'c' || c == '😀')
     })
     .unwrap();
 

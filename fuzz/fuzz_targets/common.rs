@@ -2,7 +2,7 @@ use boa_ast::{
     visitor::{VisitWith, VisitorMut},
     Expression, StatementList,
 };
-use boa_interner::{Interner, Sym};
+use boa_interner::{Interner, Sym, ToInternedString};
 use libfuzzer_sys::arbitrary;
 use libfuzzer_sys::arbitrary::{Arbitrary, Unstructured};
 use std::fmt::{Debug, Formatter};
@@ -70,5 +70,27 @@ impl Debug for FuzzData {
         f.debug_struct("FuzzData")
             .field("ast", &self.ast)
             .finish_non_exhaustive()
+    }
+}
+
+pub struct FuzzSource {
+    pub interner: Interner,
+    pub source: String,
+}
+
+impl<'a> Arbitrary<'a> for FuzzSource {
+    fn arbitrary(u: &mut Unstructured<'a>) -> arbitrary::Result<Self> {
+        let data = FuzzData::arbitrary(u)?;
+        let source = data.ast.to_interned_string(&data.interner);
+        Ok(Self {
+            interner: data.interner,
+            source,
+        })
+    }
+}
+
+impl Debug for FuzzSource {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        f.write_fmt(format_args!("Fuzzed source:\n{}", self.source))
     }
 }

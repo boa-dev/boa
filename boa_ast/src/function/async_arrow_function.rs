@@ -31,7 +31,7 @@ impl AsyncArrowFunction {
     /// Creates a new `AsyncArrowFunction` AST Expression.
     #[inline]
     #[must_use]
-    pub fn new(
+    pub const fn new(
         name: Option<Identifier>,
         parameters: FormalParameterList,
         body: StatementList,
@@ -46,7 +46,7 @@ impl AsyncArrowFunction {
     /// Gets the name of the function declaration.
     #[inline]
     #[must_use]
-    pub fn name(&self) -> Option<Identifier> {
+    pub const fn name(&self) -> Option<Identifier> {
         self.name
     }
 
@@ -60,14 +60,14 @@ impl AsyncArrowFunction {
     /// Gets the list of parameters of the arrow function.
     #[inline]
     #[must_use]
-    pub fn parameters(&self) -> &FormalParameterList {
+    pub const fn parameters(&self) -> &FormalParameterList {
         &self.parameters
     }
 
     /// Gets the body of the arrow function.
     #[inline]
     #[must_use]
-    pub fn body(&self) -> &StatementList {
+    pub const fn body(&self) -> &StatementList {
         &self.body
     }
 }

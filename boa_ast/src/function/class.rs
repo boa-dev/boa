@@ -52,28 +52,28 @@ impl Class {
     /// Returns the name of the class.
     #[inline]
     #[must_use]
-    pub fn name(&self) -> Option<Identifier> {
+    pub const fn name(&self) -> Option<Identifier> {
         self.name
     }
 
     /// Returns the super class ref of the class.
     #[inline]
     #[must_use]
-    pub fn super_ref(&self) -> Option<&Expression> {
+    pub const fn super_ref(&self) -> Option<&Expression> {
         self.super_ref.as_ref()
     }
 
     /// Returns the constructor of the class.
     #[inline]
     #[must_use]
-    pub fn constructor(&self) -> Option<&Function> {
+    pub const fn constructor(&self) -> Option<&Function> {
         self.constructor.as_ref()
     }
 
     /// Gets the list of all fields defined on the class.
     #[inline]
     #[must_use]
-    pub fn elements(&self) -> &[ClassElement] {
+    pub const fn elements(&self) -> &[ClassElement] {
         &self.elements
     }
 }
@@ -90,21 +90,23 @@ impl ToIndentedString for Class {
         if self.elements.is_empty() && self.constructor().is_none() {
             return format!(
                 "class {class_name}{} {{}}",
-                if let Some(sup) = &self.super_ref {
-                    format!(" extends {}", sup.to_interned_string(interner))
-                } else {
-                    String::new()
-                }
+                self.super_ref
+                    .as_ref()
+                    .map_or_else(String::new, |sup| format!(
+                        " extends {}",
+                        sup.to_interned_string(interner)
+                    ))
             );
         }
         let indentation = "    ".repeat(indent_n + 1);
         let mut buf = format!(
             "class {class_name}{} {{\n",
-            if let Some(sup) = &self.super_ref {
-                format!("extends {}", sup.to_interned_string(interner))
-            } else {
-                String::new()
-            }
+            self.super_ref
+                .as_ref()
+                .map_or_else(String::new, |sup| format!(
+                    "extends {}",
+                    sup.to_interned_string(interner)
+                ))
         );
         if let Some(expr) = &self.constructor {
             buf.push_str(&format!(
@@ -438,13 +440,11 @@ impl VisitWith for ClassElement {
         V: Visitor<'a>,
     {
         match self {
-            ClassElement::MethodDefinition(pn, md)
-            | ClassElement::StaticMethodDefinition(pn, md) => {
+            Self::MethodDefinition(pn, md) | Self::StaticMethodDefinition(pn, md) => {
                 try_break!(visitor.visit_property_name(pn));
                 visitor.visit_method_definition(md)
             }
-            ClassElement::FieldDefinition(pn, maybe_expr)
-            | ClassElement::StaticFieldDefinition(pn, maybe_expr) => {
+            Self::FieldDefinition(pn, maybe_expr) | Self::StaticFieldDefinition(pn, maybe_expr) => {
                 try_break!(visitor.visit_property_name(pn));
                 if let Some(expr) = maybe_expr {
                     visitor.visit_expression(expr)
@@ -452,13 +452,13 @@ impl VisitWith for ClassElement {
                     ControlFlow::Continue(())
                 }
             }
-            ClassElement::PrivateMethodDefinition(sym, md)
-            | ClassElement::PrivateStaticMethodDefinition(sym, md) => {
+            Self::PrivateMethodDefinition(sym, md)
+            | Self::PrivateStaticMethodDefinition(sym, md) => {
                 try_break!(visitor.visit_sym(sym));
                 visitor.visit_method_definition(md)
             }
-            ClassElement::PrivateFieldDefinition(sym, maybe_expr)
-            | ClassElement::PrivateStaticFieldDefinition(sym, maybe_expr) => {
+            Self::PrivateFieldDefinition(sym, maybe_expr)
+            | Self::PrivateStaticFieldDefinition(sym, maybe_expr) => {
                 try_break!(visitor.visit_sym(sym));
                 if let Some(expr) = maybe_expr {
                     visitor.visit_expression(expr)
@@ -466,7 +466,7 @@ impl VisitWith for ClassElement {
                     ControlFlow::Continue(())
                 }
             }
-            ClassElement::StaticBlock(sl) => visitor.visit_statement_list(sl),
+            Self::StaticBlock(sl) => visitor.visit_statement_list(sl),
         }
     }
 
@@ -475,13 +475,11 @@ impl VisitWith for ClassElement {
         V: VisitorMut<'a>,
     {
         match self {
-            ClassElement::MethodDefinition(pn, md)
-            | ClassElement::StaticMethodDefinition(pn, md) => {
+            Self::MethodDefinition(pn, md) | Self::StaticMethodDefinition(pn, md) => {
                 try_break!(visitor.visit_property_name_mut(pn));
                 visitor.visit_method_definition_mut(md)
             }
-            ClassElement::FieldDefinition(pn, maybe_expr)
-            | ClassElement::StaticFieldDefinition(pn, maybe_expr) => {
+            Self::FieldDefinition(pn, maybe_expr) | Self::StaticFieldDefinition(pn, maybe_expr) => {
                 try_break!(visitor.visit_property_name_mut(pn));
                 if let Some(expr) = maybe_expr {
                     visitor.visit_expression_mut(expr)
@@ -489,13 +487,13 @@ impl VisitWith for ClassElement {
                     ControlFlow::Continue(())
                 }
             }
-            ClassElement::PrivateMethodDefinition(sym, md)
-            | ClassElement::PrivateStaticMethodDefinition(sym, md) => {
+            Self::PrivateMethodDefinition(sym, md)
+            | Self::PrivateStaticMethodDefinition(sym, md) => {
                 try_break!(visitor.visit_sym_mut(sym));
                 visitor.visit_method_definition_mut(md)
             }
-            ClassElement::PrivateFieldDefinition(sym, maybe_expr)
-            | ClassElement::PrivateStaticFieldDefinition(sym, maybe_expr) => {
+            Self::PrivateFieldDefinition(sym, maybe_expr)
+            | Self::PrivateStaticFieldDefinition(sym, maybe_expr) => {
                 try_break!(visitor.visit_sym_mut(sym));
                 if let Some(expr) = maybe_expr {
                     visitor.visit_expression_mut(expr)
@@ -503,7 +501,7 @@ impl VisitWith for ClassElement {
                     ControlFlow::Continue(())
                 }
             }
-            ClassElement::StaticBlock(sl) => visitor.visit_statement_list_mut(sl),
+            Self::StaticBlock(sl) => visitor.visit_statement_list_mut(sl),
         }
     }
 }

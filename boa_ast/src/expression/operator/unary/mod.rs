@@ -50,7 +50,7 @@ impl Unary {
     /// Gets the unary operation of the Expression.
     #[inline]
     #[must_use]
-    pub fn op(&self) -> UnaryOp {
+    pub const fn op(&self) -> UnaryOp {
         self.op
     }
 

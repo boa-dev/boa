@@ -660,7 +660,7 @@ where
 
                 match class_element_name {
                     ClassElementName::PropertyName(property_name) if r#static => {
-                        if let Some(Sym::PROTOTYPE) = property_name.prop_name() {
+                        if property_name.prop_name() == Some(Sym::PROTOTYPE) {
                             return Err(Error::general(
                                 "class may not have static method definitions named 'prototype'",
                                 name_position,
@@ -717,7 +717,7 @@ where
                         cursor.set_strict_mode(strict);
                         match class_element_name {
                             ClassElementName::PropertyName(property_name) if r#static => {
-                                if let Some(Sym::PROTOTYPE) = property_name.prop_name() {
+                                if property_name.prop_name() == Some(Sym::PROTOTYPE) {
                                     return Err(Error::general(
                                         "class may not have static method definitions named 'prototype'",
                                         name_position,
@@ -762,7 +762,7 @@ where
 
                         match class_element_name {
                             ClassElementName::PropertyName(property_name) if r#static => {
-                                if let Some(Sym::PROTOTYPE) = property_name.prop_name() {
+                                if property_name.prop_name() == Some(Sym::PROTOTYPE) {
                                     return Err(Error::general(
                                             "class may not have static method definitions named 'prototype'",
                                             name_position,

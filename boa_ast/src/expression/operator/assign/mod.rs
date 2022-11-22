@@ -50,21 +50,21 @@ impl Assign {
     /// Gets the operator of the assignment operation.
     #[inline]
     #[must_use]
-    pub fn op(&self) -> AssignOp {
+    pub const fn op(&self) -> AssignOp {
         self.op
     }
 
     /// Gets the left hand side of the assignment operation.
     #[inline]
     #[must_use]
-    pub fn lhs(&self) -> &AssignTarget {
+    pub const fn lhs(&self) -> &AssignTarget {
         &self.lhs
     }
 
     /// Gets the right hand side of the assignment operation.
     #[inline]
     #[must_use]
-    pub fn rhs(&self) -> &Expression {
+    pub const fn rhs(&self) -> &Expression {
         &self.rhs
     }
 }
@@ -151,9 +151,9 @@ impl ToInternedString for AssignTarget {
     #[inline]
     fn to_interned_string(&self, interner: &Interner) -> String {
         match self {
-            AssignTarget::Identifier(id) => id.to_interned_string(interner),
-            AssignTarget::Access(access) => access.to_interned_string(interner),
-            AssignTarget::Pattern(pattern) => pattern.to_interned_string(interner),
+            Self::Identifier(id) => id.to_interned_string(interner),
+            Self::Access(access) => access.to_interned_string(interner),
+            Self::Pattern(pattern) => pattern.to_interned_string(interner),
         }
     }
 }
@@ -171,9 +171,9 @@ impl VisitWith for AssignTarget {
         V: Visitor<'a>,
     {
         match self {
-            AssignTarget::Identifier(id) => visitor.visit_identifier(id),
-            AssignTarget::Access(pa) => visitor.visit_property_access(pa),
-            AssignTarget::Pattern(pat) => visitor.visit_pattern(pat),
+            Self::Identifier(id) => visitor.visit_identifier(id),
+            Self::Access(pa) => visitor.visit_property_access(pa),
+            Self::Pattern(pat) => visitor.visit_pattern(pat),
         }
     }
 
@@ -182,9 +182,9 @@ impl VisitWith for AssignTarget {
         V: VisitorMut<'a>,
     {
         match self {
-            AssignTarget::Identifier(id) => visitor.visit_identifier_mut(id),
-            AssignTarget::Access(pa) => visitor.visit_property_access_mut(pa),
-            AssignTarget::Pattern(pat) => visitor.visit_pattern_mut(pat),
+            Self::Identifier(id) => visitor.visit_identifier_mut(id),
+            Self::Access(pa) => visitor.visit_property_access_mut(pa),
+            Self::Pattern(pat) => visitor.visit_pattern_mut(pat),
         }
     }
 }

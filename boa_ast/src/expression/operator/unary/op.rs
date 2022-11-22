@@ -193,7 +193,7 @@ pub enum UnaryOp {
 
 impl UnaryOp {
     /// Retrieves the operation as a static string.
-    fn as_str(self) -> &'static str {
+    const fn as_str(self) -> &'static str {
         match self {
             Self::IncrementPost | Self::IncrementPre => "++",
             Self::DecrementPost | Self::DecrementPre => "--",

@@ -26,7 +26,7 @@ impl Await {
     /// Return the target expression that should be awaited.
     #[inline]
     #[must_use]
-    pub fn target(&self) -> &Expression {
+    pub const fn target(&self) -> &Expression {
         &self.target
     }
 }

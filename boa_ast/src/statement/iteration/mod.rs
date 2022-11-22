@@ -73,12 +73,10 @@ impl VisitWith for IterableLoopInitializer {
         V: Visitor<'a>,
     {
         match self {
-            IterableLoopInitializer::Identifier(id) => visitor.visit_identifier(id),
-            IterableLoopInitializer::Access(pa) => visitor.visit_property_access(pa),
-            IterableLoopInitializer::Var(b)
-            | IterableLoopInitializer::Let(b)
-            | IterableLoopInitializer::Const(b) => visitor.visit_binding(b),
-            IterableLoopInitializer::Pattern(p) => visitor.visit_pattern(p),
+            Self::Identifier(id) => visitor.visit_identifier(id),
+            Self::Access(pa) => visitor.visit_property_access(pa),
+            Self::Var(b) | Self::Let(b) | Self::Const(b) => visitor.visit_binding(b),
+            Self::Pattern(p) => visitor.visit_pattern(p),
         }
     }
 
@@ -87,12 +85,10 @@ impl VisitWith for IterableLoopInitializer {
         V: VisitorMut<'a>,
     {
         match self {
-            IterableLoopInitializer::Identifier(id) => visitor.visit_identifier_mut(id),
-            IterableLoopInitializer::Access(pa) => visitor.visit_property_access_mut(pa),
-            IterableLoopInitializer::Var(b)
-            | IterableLoopInitializer::Let(b)
-            | IterableLoopInitializer::Const(b) => visitor.visit_binding_mut(b),
-            IterableLoopInitializer::Pattern(p) => visitor.visit_pattern_mut(p),
+            Self::Identifier(id) => visitor.visit_identifier_mut(id),
+            Self::Access(pa) => visitor.visit_property_access_mut(pa),
+            Self::Var(b) | Self::Let(b) | Self::Const(b) => visitor.visit_binding_mut(b),
+            Self::Pattern(p) => visitor.visit_pattern_mut(p),
         }
     }
 }

@@ -47,13 +47,13 @@ pub enum Pattern {
 
 impl From<ObjectPattern> for Pattern {
     fn from(obj: ObjectPattern) -> Self {
-        Pattern::Object(obj)
+        Self::Object(obj)
     }
 }
 
 impl From<ArrayPattern> for Pattern {
     fn from(obj: ArrayPattern) -> Self {
-        Pattern::Array(obj)
+        Self::Array(obj)
     }
 }
 
@@ -71,8 +71,8 @@ impl From<Vec<ArrayPatternElement>> for Pattern {
 impl ToInternedString for Pattern {
     fn to_interned_string(&self, interner: &Interner) -> String {
         match &self {
-            Pattern::Object(o) => o.to_interned_string(interner),
-            Pattern::Array(a) => a.to_interned_string(interner),
+            Self::Object(o) => o.to_interned_string(interner),
+            Self::Array(a) => a.to_interned_string(interner),
         }
     }
 }
@@ -83,8 +83,8 @@ impl VisitWith for Pattern {
         V: Visitor<'a>,
     {
         match self {
-            Pattern::Object(op) => visitor.visit_object_pattern(op),
-            Pattern::Array(ap) => visitor.visit_array_pattern(ap),
+            Self::Object(op) => visitor.visit_object_pattern(op),
+            Self::Array(ap) => visitor.visit_array_pattern(ap),
         }
     }
 
@@ -93,8 +93,8 @@ impl VisitWith for Pattern {
         V: VisitorMut<'a>,
     {
         match self {
-            Pattern::Object(op) => visitor.visit_object_pattern_mut(op),
-            Pattern::Array(ap) => visitor.visit_array_pattern_mut(ap),
+            Self::Object(op) => visitor.visit_object_pattern_mut(op),
+            Self::Array(ap) => visitor.visit_array_pattern_mut(ap),
         }
     }
 }
@@ -151,14 +151,14 @@ impl ObjectPattern {
     /// Gets the bindings for the object binding pattern.
     #[inline]
     #[must_use]
-    pub fn bindings(&self) -> &[ObjectPatternElement] {
+    pub const fn bindings(&self) -> &[ObjectPatternElement] {
         &self.0
     }
 
     /// Returns true if the object binding pattern has a rest element.
     #[inline]
     #[must_use]
-    pub fn has_rest(&self) -> bool {
+    pub const fn has_rest(&self) -> bool {
         matches!(
             self.0.last(),
             Some(ObjectPatternElement::RestProperty { .. })
@@ -239,7 +239,7 @@ impl ArrayPattern {
     /// Gets the bindings for the array binding pattern.
     #[inline]
     #[must_use]
-    pub fn bindings(&self) -> &[ArrayPatternElement] {
+    pub const fn bindings(&self) -> &[ArrayPatternElement] {
         &self.0
     }
 }
@@ -468,7 +468,7 @@ impl VisitWith for ObjectPatternElement {
         V: Visitor<'a>,
     {
         match self {
-            ObjectPatternElement::SingleName {
+            Self::SingleName {
                 name,
                 ident,
                 default_init,
@@ -481,8 +481,8 @@ impl VisitWith for ObjectPatternElement {
                     ControlFlow::Continue(())
                 }
             }
-            ObjectPatternElement::RestProperty { ident, .. } => visitor.visit_identifier(ident),
-            ObjectPatternElement::AssignmentPropertyAccess {
+            Self::RestProperty { ident, .. } => visitor.visit_identifier(ident),
+            Self::AssignmentPropertyAccess {
                 name,
                 access,
                 default_init,
@@ -495,10 +495,10 @@ impl VisitWith for ObjectPatternElement {
                     ControlFlow::Continue(())
                 }
             }
-            ObjectPatternElement::AssignmentRestPropertyAccess { access, .. } => {
+            Self::AssignmentRestPropertyAccess { access, .. } => {
                 visitor.visit_property_access(access)
             }
-            ObjectPatternElement::Pattern {
+            Self::Pattern {
                 name,
                 pattern,
                 default_init,
@@ -519,7 +519,7 @@ impl VisitWith for ObjectPatternElement {
         V: VisitorMut<'a>,
     {
         match self {
-            ObjectPatternElement::SingleName {
+            Self::SingleName {
                 name,
                 ident,
                 default_init,
@@ -532,8 +532,8 @@ impl VisitWith for ObjectPatternElement {
                     ControlFlow::Continue(())
                 }
             }
-            ObjectPatternElement::RestProperty { ident, .. } => visitor.visit_identifier_mut(ident),
-            ObjectPatternElement::AssignmentPropertyAccess {
+            Self::RestProperty { ident, .. } => visitor.visit_identifier_mut(ident),
+            Self::AssignmentPropertyAccess {
                 name,
                 access,
                 default_init,
@@ -546,10 +546,10 @@ impl VisitWith for ObjectPatternElement {
                     ControlFlow::Continue(())
                 }
             }
-            ObjectPatternElement::AssignmentRestPropertyAccess { access, .. } => {
+            Self::AssignmentRestPropertyAccess { access, .. } => {
                 visitor.visit_property_access_mut(access)
             }
-            ObjectPatternElement::Pattern {
+            Self::Pattern {
                 name,
                 pattern,
                 default_init,
@@ -712,7 +712,7 @@ impl VisitWith for ArrayPatternElement {
         V: Visitor<'a>,
     {
         match self {
-            ArrayPatternElement::SingleName {
+            Self::SingleName {
                 ident,
                 default_init,
             } => {
@@ -723,11 +723,10 @@ impl VisitWith for ArrayPatternElement {
                     ControlFlow::Continue(())
                 }
             }
-            ArrayPatternElement::PropertyAccess { access }
-            | ArrayPatternElement::PropertyAccessRest { access } => {
+            Self::PropertyAccess { access } | Self::PropertyAccessRest { access } => {
                 visitor.visit_property_access(access)
             }
-            ArrayPatternElement::Pattern {
+            Self::Pattern {
                 pattern,
                 default_init,
             } => {
@@ -738,9 +737,9 @@ impl VisitWith for ArrayPatternElement {
                     ControlFlow::Continue(())
                 }
             }
-            ArrayPatternElement::SingleNameRest { ident } => visitor.visit_identifier(ident),
-            ArrayPatternElement::PatternRest { pattern } => visitor.visit_pattern(pattern),
-            ArrayPatternElement::Elision => {
+            Self::SingleNameRest { ident } => visitor.visit_identifier(ident),
+            Self::PatternRest { pattern } => visitor.visit_pattern(pattern),
+            Self::Elision => {
                 // special case to be handled by user
                 ControlFlow::Continue(())
             }
@@ -752,7 +751,7 @@ impl VisitWith for ArrayPatternElement {
         V: VisitorMut<'a>,
     {
         match self {
-            ArrayPatternElement::SingleName {
+            Self::SingleName {
                 ident,
                 default_init,
             } => {
@@ -763,11 +762,10 @@ impl VisitWith for ArrayPatternElement {
                     ControlFlow::Continue(())
                 }
             }
-            ArrayPatternElement::PropertyAccess { access }
-            | ArrayPatternElement::PropertyAccessRest { access } => {
+            Self::PropertyAccess { access } | Self::PropertyAccessRest { access } => {
                 visitor.visit_property_access_mut(access)
             }
-            ArrayPatternElement::Pattern {
+            Self::Pattern {
                 pattern,
                 default_init,
             } => {
@@ -778,9 +776,9 @@ impl VisitWith for ArrayPatternElement {
                     ControlFlow::Continue(())
                 }
             }
-            ArrayPatternElement::SingleNameRest { ident } => visitor.visit_identifier_mut(ident),
-            ArrayPatternElement::PatternRest { pattern } => visitor.visit_pattern_mut(pattern),
-            ArrayPatternElement::Elision => {
+            Self::SingleNameRest { ident } => visitor.visit_identifier_mut(ident),
+            Self::PatternRest { pattern } => visitor.visit_pattern_mut(pattern),
+            Self::Elision => {
                 // special case to be handled by user
                 ControlFlow::Continue(())
             }

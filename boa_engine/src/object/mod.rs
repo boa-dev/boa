@@ -56,7 +56,7 @@ use crate::{
     Context, JsBigInt, JsResult, JsString, JsSymbol, JsValue,
 };
 
-use boa_gc::{custom_trace, Finalize, Trace};
+use boa_gc::{custom_trace, Finalize, GcCell, Trace, WeakGc};
 use boa_interner::Sym;
 use rustc_hash::FxHashMap;
 use std::{
@@ -193,6 +193,7 @@ pub enum ObjectKind {
     NativeObject(Box<dyn NativeObject>),
     IntegerIndexed(IntegerIndexed),
     Promise(Promise),
+    WeakRef(WeakGc<GcCell<Object>>),
     #[cfg(feature = "intl")]
     DateTimeFormat(Box<DateTimeFormat>),
 }
@@ -222,6 +223,7 @@ unsafe impl Trace for ObjectKind {
             Self::DateTimeFormat(f) => mark(f),
             Self::Promise(p) => mark(p),
             Self::AsyncGenerator(g) => mark(g),
+            Self::WeakRef(wr) => mark(wr),
             Self::RegExp(_)
             | Self::BigInt(_)
             | Self::Boolean(_)
@@ -512,6 +514,14 @@ impl ObjectData {
         }
     }
 
+    /// Creates the `WeakRef` object data
+    pub fn weak_ref(weak_ref: WeakGc<GcCell<Object>>) -> Self {
+        Self {
+            kind: ObjectKind::WeakRef(weak_ref),
+            internal_methods: &ORDINARY_INTERNAL_METHODS,
+        }
+    }
+
     /// Create the `NativeObject` object data
     pub fn native_object(native_object: Box<dyn NativeObject>) -> Self {
         Self {
@@ -576,6 +586,7 @@ impl Display for ObjectKind {
             #[cfg(feature = "intl")]
             Self::DateTimeFormat(_) => "DateTimeFormat",
             Self::Promise(_) => "Promise",
+            Self::WeakRef(_) => "WeakRef",
         })
     }
 }
@@ -1420,6 +1431,18 @@ impl Object {
                 kind: ObjectKind::Promise(ref mut promise),
                 ..
             } => Some(promise),
+            _ => None,
+        }
+    }
+
+    /// Gets the `WeakRef`data if the object is a `WeakRef`.
+    #[inline]
+    pub fn as_weak_ref(&self) -> Option<&WeakGc<GcCell<Object>>> {
+        match self.data {
+            ObjectData {
+                kind: ObjectKind::WeakRef(ref weak_ref),
+                ..
+            } => Some(weak_ref),
             _ => None,
         }
     }

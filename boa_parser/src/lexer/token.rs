@@ -29,21 +29,21 @@ impl Token {
     /// Create a new detailed token from the token data, line number and column number
     #[inline]
     #[must_use]
-    pub fn new(kind: TokenKind, span: Span) -> Self {
+    pub const fn new(kind: TokenKind, span: Span) -> Self {
         Self { kind, span }
     }
 
     /// Gets the kind of the token.
     #[inline]
     #[must_use]
-    pub fn kind(&self) -> &TokenKind {
+    pub const fn kind(&self) -> &TokenKind {
         &self.kind
     }
 
     /// Gets the token span in the original source code.
     #[inline]
     #[must_use]
-    pub fn span(&self) -> Span {
+    pub const fn span(&self) -> Span {
         self.span
     }
 
@@ -63,7 +63,7 @@ pub enum Numeric {
     /// An integer
     Integer(i32),
 
-    // A BigInt
+    /// A BigInt
     BigInt(Box<BigInt>),
 }
 
@@ -162,19 +162,19 @@ impl From<Numeric> for TokenKind {
 impl TokenKind {
     /// Creates a `BooleanLiteral` token kind.
     #[must_use]
-    pub fn boolean_literal(lit: bool) -> Self {
+    pub const fn boolean_literal(lit: bool) -> Self {
         Self::BooleanLiteral(lit)
     }
 
     /// Creates an `EOF` token kind.
     #[must_use]
-    pub fn eof() -> Self {
+    pub const fn eof() -> Self {
         Self::EOF
     }
 
     /// Creates an `Identifier` token type.
     #[must_use]
-    pub fn identifier(ident: Sym) -> Self {
+    pub const fn identifier(ident: Sym) -> Self {
         Self::Identifier(ident)
     }
 
@@ -188,41 +188,43 @@ impl TokenKind {
 
     /// Creates a `Punctuator` token type.
     #[must_use]
-    pub fn punctuator(punc: Punctuator) -> Self {
+    pub const fn punctuator(punc: Punctuator) -> Self {
         Self::Punctuator(punc)
     }
 
     /// Creates a `StringLiteral` token type.
     #[must_use]
-    pub fn string_literal(lit: Sym) -> Self {
+    pub const fn string_literal(lit: Sym) -> Self {
         Self::StringLiteral(lit)
     }
 
+    /// Creates a `TemplateMiddle` token type.
     #[must_use]
-    pub fn template_middle(template_string: TemplateString) -> Self {
+    pub const fn template_middle(template_string: TemplateString) -> Self {
         Self::TemplateMiddle(template_string)
     }
 
+    /// Creates a `TemplateNoSubstitution` token type.
     #[must_use]
-    pub fn template_no_substitution(template_string: TemplateString) -> Self {
+    pub const fn template_no_substitution(template_string: TemplateString) -> Self {
         Self::TemplateNoSubstitution(template_string)
     }
 
     /// Creates a `RegularExpressionLiteral` token kind.
     #[must_use]
-    pub fn regular_expression_literal(body: Sym, flags: Sym) -> Self {
+    pub const fn regular_expression_literal(body: Sym, flags: Sym) -> Self {
         Self::RegularExpressionLiteral(body, flags)
     }
 
     /// Creates a `LineTerminator` token kind.
     #[must_use]
-    pub fn line_terminator() -> Self {
+    pub const fn line_terminator() -> Self {
         Self::LineTerminator
     }
 
     /// Creates a 'Comment' token kind.
     #[must_use]
-    pub fn comment() -> Self {
+    pub const fn comment() -> Self {
         Self::Comment
     }
 

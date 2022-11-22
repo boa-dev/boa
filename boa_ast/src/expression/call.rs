@@ -42,14 +42,14 @@ impl Call {
     /// Gets the target function of this call expression.
     #[inline]
     #[must_use]
-    pub fn function(&self) -> &Expression {
+    pub const fn function(&self) -> &Expression {
         &self.function
     }
 
     /// Retrieves the arguments passed to the function.
     #[inline]
     #[must_use]
-    pub fn args(&self) -> &[Expression] {
+    pub const fn args(&self) -> &[Expression] {
         &self.args
     }
 }
@@ -122,7 +122,7 @@ impl SuperCall {
 
     /// Retrieves the arguments of the super call.
     #[must_use]
-    pub fn arguments(&self) -> &[Expression] {
+    pub const fn arguments(&self) -> &[Expression] {
         &self.args
     }
 }

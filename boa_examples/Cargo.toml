@@ -17,4 +17,3 @@ boa_ast.workspace = true
 boa_interner.workspace = true
 boa_gc.workspace = true
 boa_parser.workspace = true
-gc = "0.4.1"

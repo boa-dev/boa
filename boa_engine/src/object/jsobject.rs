@@ -10,7 +10,7 @@ use crate::{
     value::PreferredType,
     Context, JsResult, JsValue,
 };
-use boa_gc::{self, Finalize, Gc, Trace};
+use boa_gc::{self, Finalize, Gc, GcCell, Trace};
 use rustc_hash::FxHashMap;
 use std::{
     cell::RefCell,
@@ -21,15 +21,15 @@ use std::{
 };
 
 /// A wrapper type for an immutably borrowed type T.
-pub type Ref<'a, T> = boa_gc::Ref<'a, T>;
+pub type Ref<'a, T> = boa_gc::GcCellRef<'a, T>;
 
 /// A wrapper type for a mutably borrowed type T.
-pub type RefMut<'a, T, U> = boa_gc::RefMut<'a, T, U>;
+pub type RefMut<'a, T, U> = boa_gc::GcCellRefMut<'a, T, U>;
 
 /// Garbage collected `Object`.
 #[derive(Trace, Finalize, Clone, Default)]
 pub struct JsObject {
-    inner: Gc<boa_gc::Cell<Object>>,
+    inner: Gc<GcCell<Object>>,
 }
 
 impl JsObject {
@@ -37,7 +37,7 @@ impl JsObject {
     #[inline]
     fn from_object(object: Object) -> Self {
         Self {
-            inner: Gc::new(boa_gc::Cell::new(object)),
+            inner: Gc::new(GcCell::new(object)),
         }
     }
 
@@ -736,12 +736,23 @@ Cannot both specify accessors and a value or writable attribute",
             }
         )
     }
+
+    pub(crate) fn inner(&self) -> &Gc<GcCell<Object>> {
+        &self.inner
+    }
 }
 
-impl AsRef<boa_gc::Cell<Object>> for JsObject {
+impl AsRef<GcCell<Object>> for JsObject {
     #[inline]
-    fn as_ref(&self) -> &boa_gc::Cell<Object> {
+    fn as_ref(&self) -> &GcCell<Object> {
         &self.inner
+    }
+}
+
+impl From<Gc<GcCell<Object>>> for JsObject {
+    #[inline]
+    fn from(inner: Gc<GcCell<Object>>) -> Self {
+        JsObject { inner }
     }
 }
 

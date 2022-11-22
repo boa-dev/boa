@@ -20,7 +20,7 @@ use crate::{
     vm::{CallFrame, GeneratorResumeKind, ReturnType},
     Context, JsError, JsResult,
 };
-use boa_gc::{Cell, Finalize, Gc, Trace};
+use boa_gc::{Finalize, Gc, GcCell, Trace};
 use boa_profiler::Profiler;
 
 /// Indicates the state of a generator.
@@ -52,7 +52,7 @@ pub struct Generator {
     pub(crate) state: GeneratorState,
 
     /// The `[[GeneratorContext]]` internal slot.
-    pub(crate) context: Option<Gc<Cell<GeneratorContext>>>,
+    pub(crate) context: Option<Gc<GcCell<GeneratorContext>>>,
 }
 
 impl BuiltIn for Generator {

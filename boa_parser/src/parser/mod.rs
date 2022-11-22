@@ -9,9 +9,6 @@ pub(crate) mod function;
 #[cfg(test)]
 mod tests;
 
-use rustc_hash::FxHashSet;
-use std::io::Read;
-
 use crate::{
     error::ParseResult,
     lexer::TokenKind,
@@ -31,6 +28,8 @@ use boa_ast::{
 };
 use boa_interner::Interner;
 use boa_macros::utf16;
+use rustc_hash::FxHashSet;
+use std::io::Read;
 
 /// Trait implemented by parsers.
 ///
@@ -240,7 +239,7 @@ pub struct Script {
 impl Script {
     /// Create a new `Script` parser.
     #[inline]
-    fn new(direct_eval: bool) -> Self {
+    const fn new(direct_eval: bool) -> Self {
         Self { direct_eval }
     }
 }
@@ -315,7 +314,7 @@ pub struct ScriptBody {
 impl ScriptBody {
     /// Create a new `ScriptBody` parser.
     #[inline]
-    fn new(direct_eval: bool) -> Self {
+    const fn new(direct_eval: bool) -> Self {
         Self { direct_eval }
     }
 }

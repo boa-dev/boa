@@ -24,7 +24,7 @@ use crate::{
     Context, JsResult, JsString, JsValue,
 };
 use boa_ast::{expression::Identifier, function::FormalParameterList};
-use boa_gc::{Cell, Finalize, Gc, Trace};
+use boa_gc::{Finalize, Gc, GcCell, Trace};
 use boa_interner::{Interner, Sym, ToInternedString};
 use boa_profiler::Profiler;
 use std::{collections::VecDeque, convert::TryInto, mem::size_of};
@@ -103,7 +103,7 @@ pub struct CodeBlock {
     pub(crate) arguments_binding: Option<BindingLocator>,
 
     /// Compile time environments in this function.
-    pub(crate) compile_environments: Vec<Gc<Cell<CompileTimeEnvironment>>>,
+    pub(crate) compile_environments: Vec<Gc<GcCell<CompileTimeEnvironment>>>,
 
     /// The `[[IsClassConstructor]]` internal slot.
     pub(crate) is_class_constructor: bool,
@@ -434,7 +434,7 @@ impl ToInternedString for CodeBlock {
             for (i, value) in self.literals.iter().enumerate() {
                 f.push_str(&format!(
                     "    {i:04}: <{}> {}\n",
-                    value.type_of().to_std_string_escaped(),
+                    value.type_of(),
                     value.display()
                 ));
             }
@@ -1099,7 +1099,7 @@ impl JsObject {
                     prototype,
                     ObjectData::generator(Generator {
                         state: GeneratorState::SuspendedStart,
-                        context: Some(Gc::new(Cell::new(GeneratorContext {
+                        context: Some(Gc::new(GcCell::new(GeneratorContext {
                             environments,
                             call_frame,
                             stack,
@@ -1242,7 +1242,7 @@ impl JsObject {
                     prototype,
                     ObjectData::async_generator(AsyncGenerator {
                         state: AsyncGeneratorState::SuspendedStart,
-                        context: Some(Gc::new(Cell::new(GeneratorContext {
+                        context: Some(Gc::new(GcCell::new(GeneratorContext {
                             environments,
                             call_frame,
                             stack,

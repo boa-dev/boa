@@ -26,24 +26,23 @@ pub struct Continue {
 impl Continue {
     /// Creates a `Continue` AST node.
     #[must_use]
-    pub fn new(label: Option<Sym>) -> Self {
+    pub const fn new(label: Option<Sym>) -> Self {
         Self { label }
     }
 
     /// Gets the label of this `Continue` statement.
     #[must_use]
-    pub fn label(&self) -> Option<Sym> {
+    pub const fn label(&self) -> Option<Sym> {
         self.label
     }
 }
 
 impl ToInternedString for Continue {
     fn to_interned_string(&self, interner: &Interner) -> String {
-        if let Some(label) = self.label {
-            format!("continue {}", interner.resolve_expect(label))
-        } else {
-            "continue".to_owned()
-        }
+        self.label.map_or_else(
+            || "continue".to_owned(),
+            |label| format!("continue {}", interner.resolve_expect(label)),
+        )
     }
 }
 

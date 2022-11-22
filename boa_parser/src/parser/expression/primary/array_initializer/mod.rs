@@ -124,10 +124,8 @@ where
             }
         }
 
-        if last_spread {
-            if let Some(None) = elements.last() {
-                has_trailing_comma_spread = true;
-            }
+        if last_spread && elements.last() == Some(&None) {
+            has_trailing_comma_spread = true;
         }
 
         Ok(literal::ArrayLiteral::new(

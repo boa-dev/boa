@@ -25,7 +25,7 @@ pub(super) struct NumberLiteral {
 
 impl NumberLiteral {
     /// Creates a new string literal lexer.
-    pub(super) fn new(init: u8) -> Self {
+    pub(super) const fn new(init: u8) -> Self {
         Self { init }
     }
 }
@@ -42,7 +42,7 @@ enum NumericKind {
 
 impl NumericKind {
     /// Get the base of the number kind.
-    fn base(self) -> u32 {
+    const fn base(self) -> u32 {
         match self {
             Self::Rational => 10,
             Self::Integer(base) | Self::BigInt(base) => base,
@@ -402,12 +402,10 @@ impl<R> Tokenizer<R> for NumberLiteral {
                 }
             },
             NumericKind::Integer(base) => {
-                if let Ok(num) = i32::from_str_radix(num_str, base) {
-                    Numeric::Integer(num)
-                } else {
+                i32::from_str_radix(num_str, base).map_or_else(|_| {
                     let num = BigInt::parse_bytes(num_str.as_bytes(), base).expect("Failed to parse integer after checks");
                     Numeric::Rational(num.to_f64().unwrap_or(f64::INFINITY))
-                }
+                }, Numeric::Integer)
             }
         };
 

@@ -2720,7 +2720,7 @@ fn instanceofoperator_rhs_not_object() {
 
     assert_eq!(
         &exec(scenario),
-        "\"TypeError: right-hand side of 'instanceof' should be an object, got number\""
+        "\"TypeError: right-hand side of 'instanceof' should be an object, got `number`\""
     );
 }
 

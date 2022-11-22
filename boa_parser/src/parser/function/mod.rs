@@ -15,7 +15,7 @@ use crate::{
     parser::{
         expression::{BindingIdentifier, Initializer},
         statement::{ArrayBindingPattern, ObjectBindingPattern, StatementList},
-        AllowAwait, AllowYield, Cursor, TokenParser,
+        AllowAwait, AllowYield, Cursor, OrAbrupt, ParseResult, TokenParser,
     },
     Error,
 };
@@ -29,8 +29,6 @@ use boa_interner::{Interner, Sym};
 use boa_macros::utf16;
 use boa_profiler::Profiler;
 use std::io::Read;
-
-use super::{OrAbrupt, ParseResult};
 
 /// Formal parameters parsing.
 ///

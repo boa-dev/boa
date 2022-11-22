@@ -2,7 +2,7 @@ use crate::{
     environments::runtime::BindingLocator, property::PropertyDescriptor, Context, JsString, JsValue,
 };
 use boa_ast::expression::Identifier;
-use boa_gc::{Cell, Finalize, Gc, Trace};
+use boa_gc::{Finalize, Gc, GcCell, Trace};
 
 use rustc_hash::FxHashMap;
 
@@ -22,7 +22,7 @@ struct CompileTimeBinding {
 /// A compile time environment also indicates, if it is a function environment.
 #[derive(Debug, Finalize, Trace)]
 pub(crate) struct CompileTimeEnvironment {
-    outer: Option<Gc<Cell<Self>>>,
+    outer: Option<Gc<GcCell<Self>>>,
     environment_index: usize,
     #[unsafe_ignore_trace]
     bindings: FxHashMap<Identifier, CompileTimeBinding>,
@@ -223,7 +223,7 @@ impl Context {
         let environment_index = self.realm.compile_env.borrow().environment_index + 1;
         let outer = self.realm.compile_env.clone();
 
-        self.realm.compile_env = Gc::new(Cell::new(CompileTimeEnvironment {
+        self.realm.compile_env = Gc::new(GcCell::new(CompileTimeEnvironment {
             outer: Some(outer),
             environment_index,
             bindings: FxHashMap::default(),
@@ -241,7 +241,7 @@ impl Context {
     #[inline]
     pub(crate) fn pop_compile_time_environment(
         &mut self,
-    ) -> (usize, Gc<Cell<CompileTimeEnvironment>>) {
+    ) -> (usize, Gc<GcCell<CompileTimeEnvironment>>) {
         let current_env_borrow = self.realm.compile_env.borrow();
         if let Some(outer) = &current_env_borrow.outer {
             let outer_clone = outer.clone();

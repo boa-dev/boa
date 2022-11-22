@@ -11,7 +11,5 @@ repository.workspace = true
 rust-version.workspace = true
 
 [dependencies]
-gc = { version = "0.4.1", features = ["derive"] }
-
-# Optional Dependencies
-measureme = { version = "10.1.0", optional = true }
+boa_profiler.workspace = true
+boa_macros.workspace = true

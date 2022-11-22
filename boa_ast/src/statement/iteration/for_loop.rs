@@ -44,28 +44,28 @@ impl ForLoop {
     /// Gets the initialization node.
     #[inline]
     #[must_use]
-    pub fn init(&self) -> Option<&ForLoopInitializer> {
+    pub const fn init(&self) -> Option<&ForLoopInitializer> {
         self.inner.init()
     }
 
     /// Gets the loop condition node.
     #[inline]
     #[must_use]
-    pub fn condition(&self) -> Option<&Expression> {
+    pub const fn condition(&self) -> Option<&Expression> {
         self.inner.condition()
     }
 
     /// Gets the final expression node.
     #[inline]
     #[must_use]
-    pub fn final_expr(&self) -> Option<&Expression> {
+    pub const fn final_expr(&self) -> Option<&Expression> {
         self.inner.final_expr()
     }
 
     /// Gets the body of the for loop.
     #[inline]
     #[must_use]
-    pub fn body(&self) -> &Statement {
+    pub const fn body(&self) -> &Statement {
         self.inner.body()
     }
 }
@@ -148,7 +148,7 @@ struct InnerForLoop {
 impl InnerForLoop {
     /// Creates a new inner for loop.
     #[inline]
-    fn new(
+    const fn new(
         init: Option<ForLoopInitializer>,
         condition: Option<Expression>,
         final_expr: Option<Expression>,
@@ -164,25 +164,25 @@ impl InnerForLoop {
 
     /// Gets the initialization node.
     #[inline]
-    fn init(&self) -> Option<&ForLoopInitializer> {
+    const fn init(&self) -> Option<&ForLoopInitializer> {
         self.init.as_ref()
     }
 
     /// Gets the loop condition node.
     #[inline]
-    fn condition(&self) -> Option<&Expression> {
+    const fn condition(&self) -> Option<&Expression> {
         self.condition.as_ref()
     }
 
     /// Gets the final expression node.
     #[inline]
-    fn final_expr(&self) -> Option<&Expression> {
+    const fn final_expr(&self) -> Option<&Expression> {
         self.final_expr.as_ref()
     }
 
     /// Gets the body of the for loop.
     #[inline]
-    fn body(&self) -> &Statement {
+    const fn body(&self) -> &Statement {
         &self.body
     }
 }
@@ -220,21 +220,21 @@ impl ToInternedString for ForLoopInitializer {
 impl From<Expression> for ForLoopInitializer {
     #[inline]
     fn from(expr: Expression) -> Self {
-        ForLoopInitializer::Expression(expr)
+        Self::Expression(expr)
     }
 }
 
 impl From<LexicalDeclaration> for ForLoopInitializer {
     #[inline]
     fn from(list: LexicalDeclaration) -> Self {
-        ForLoopInitializer::Lexical(list)
+        Self::Lexical(list)
     }
 }
 
 impl From<VarDeclaration> for ForLoopInitializer {
     #[inline]
     fn from(list: VarDeclaration) -> Self {
-        ForLoopInitializer::Var(list)
+        Self::Var(list)
     }
 }
 
@@ -244,9 +244,9 @@ impl VisitWith for ForLoopInitializer {
         V: Visitor<'a>,
     {
         match self {
-            ForLoopInitializer::Expression(expr) => visitor.visit_expression(expr),
-            ForLoopInitializer::Var(vd) => visitor.visit_var_declaration(vd),
-            ForLoopInitializer::Lexical(ld) => visitor.visit_lexical_declaration(ld),
+            Self::Expression(expr) => visitor.visit_expression(expr),
+            Self::Var(vd) => visitor.visit_var_declaration(vd),
+            Self::Lexical(ld) => visitor.visit_lexical_declaration(ld),
         }
     }
 
@@ -255,9 +255,9 @@ impl VisitWith for ForLoopInitializer {
         V: VisitorMut<'a>,
     {
         match self {
-            ForLoopInitializer::Expression(expr) => visitor.visit_expression_mut(expr),
-            ForLoopInitializer::Var(vd) => visitor.visit_var_declaration_mut(vd),
-            ForLoopInitializer::Lexical(ld) => visitor.visit_lexical_declaration_mut(ld),
+            Self::Expression(expr) => visitor.visit_expression_mut(expr),
+            Self::Var(vd) => visitor.visit_var_declaration_mut(vd),
+            Self::Lexical(ld) => visitor.visit_lexical_declaration_mut(ld),
         }
     }
 }

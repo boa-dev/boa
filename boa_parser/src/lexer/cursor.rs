@@ -14,9 +14,10 @@ pub(super) struct Cursor<R> {
 impl<R> Cursor<R> {
     /// Gets the current position of the cursor in the source code.
     #[inline]
-    pub(super) fn pos(&self) -> Position {
+    pub(super) const fn pos(&self) -> Position {
         self.pos
     }
+
     /// Advances the position to the next column.
     #[inline]
     pub(super) fn next_column(&mut self) {
@@ -34,7 +35,7 @@ impl<R> Cursor<R> {
 
     #[inline]
     /// Returns if strict mode is currently active.
-    pub(super) fn strict_mode(&self) -> bool {
+    pub(super) const fn strict_mode(&self) -> bool {
         self.strict_mode
     }
 
@@ -120,11 +121,8 @@ where
         let _timer = Profiler::global().start_event("cursor::next_is_ascii_pred()", "Lexing");
 
         Ok(match self.peek()? {
-            Some(byte) => match byte {
-                0..=0x7F => pred(char::from(byte)),
-                _ => false,
-            },
-            None => false,
+            Some(byte) if (0..=0x7F).contains(&byte) => pred(char::from(byte)),
+            Some(_) | None => false,
         })
     }
 
@@ -141,11 +139,7 @@ where
     {
         let _timer = Profiler::global().start_event("cursor::next_is_char_pred()", "Lexing");
 
-        Ok(if let Some(peek) = self.peek_char()? {
-            pred(peek)
-        } else {
-            false
-        })
+        Ok(self.peek_char()?.map_or(false, pred))
     }
 
     /// Fills the buffer with all bytes until the stop byte is found.
@@ -303,7 +297,7 @@ struct InnerIter<R> {
 impl<R> InnerIter<R> {
     /// Creates a new inner iterator.
     #[inline]
-    fn new(iter: Bytes<R>) -> Self {
+    const fn new(iter: Bytes<R>) -> Self {
         Self {
             iter,
             num_peeked_bytes: 0,
@@ -503,7 +497,7 @@ fn utf8_acc_cont_byte(ch: u32, byte: u8) -> u32 {
 /// Checks whether the byte is a UTF-8 first byte (i.e., ascii byte or starts with the
 /// bits `11`).
 #[inline]
-fn utf8_is_first_byte(byte: u8) -> bool {
+const fn utf8_is_first_byte(byte: u8) -> bool {
     byte <= 0x7F || (byte >> 6) == 0x11
 }
 
@@ -513,7 +507,7 @@ fn unwrap_or_0(opt: Option<u8>) -> u8 {
 }
 
 #[inline]
-fn utf8_len(ch: u32) -> u32 {
+const fn utf8_len(ch: u32) -> u32 {
     if ch <= 0x7F {
         1
     } else if ch <= 0x7FF {

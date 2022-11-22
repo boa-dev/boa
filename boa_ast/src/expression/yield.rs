@@ -31,7 +31,7 @@ impl Yield {
     /// Returns `true` if this `Yield` statement delegates to another generator or iterable object.
     #[inline]
     #[must_use]
-    pub fn delegate(&self) -> bool {
+    pub const fn delegate(&self) -> bool {
         self.delegate
     }
 
