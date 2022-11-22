@@ -570,30 +570,15 @@
 <span id="568">568</span>
 <span id="569">569</span>
 <span id="570">570</span>
-<span id="571">571</span>
-<span id="572">572</span>
-<span id="573">573</span>
-<span id="574">574</span>
-<span id="575">575</span>
-<span id="576">576</span>
-<span id="577">577</span>
-<span id="578">578</span>
-<span id="579">579</span>
-<span id="580">580</span>
-<span id="581">581</span>
-<span id="582">582</span>
-<span id="583">583</span>
-<span id="584">584</span>
-<span id="585">585</span>
-<span id="586">586</span>
 </pre><pre class="rust"><code><span class="kw">use </span>std::ops::Deref;
 
 <span class="kw">use </span>boa_gc::{Finalize, Trace};
+<span class="kw">use </span>chrono::DateTime;
 
 <span class="kw">use crate</span>::{
     builtins::Date,
-    object::{JsObject, JsObjectType},
-    Context, JsResult, JsValue,
+    object::{JsObject, JsObjectType, ObjectData},
+    Context, JsNativeError, JsResult, JsValue,
 };
 
 <span class="doccomment">/// `JsDate` is a wrapper for JavaScript `JsDate` builtin object
@@ -627,7 +612,8 @@
     <span class="doccomment">/// Create a new `Date` object with universal time.
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>new(context: <span class="kw-2">&amp;mut </span>Context) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span>inner = Date::date_create(<span class="prelude-val">None</span>, context);
+        <span class="kw">let </span>prototype = context.intrinsics().constructors().date().prototype();
+        <span class="kw">let </span>inner = JsObject::from_proto_and_data(prototype, ObjectData::date(Date::default()));
 
         <span class="self">Self </span>{ inner }
     }
@@ -667,7 +653,7 @@
     /// Same as JavaScript&#39;s `Date.prototype.getDate()`.
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>get_date(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
-        Date::get_date(<span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(), <span class="kw-2">&amp;</span>[JsValue::null()], context)
+        Date::get_date::&lt;<span class="bool-val">true</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(), <span class="kw-2">&amp;</span>[JsValue::null()], context)
     }
 
     <span class="doccomment">/// Returns the day of the week (0–6) for the specified date
@@ -676,7 +662,7 @@
     /// Same as JavaScript&#39;s `Date.prototype.getDay()`.
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>get_day(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
-        Date::get_day(<span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(), <span class="kw-2">&amp;</span>[JsValue::null()], context)
+        Date::get_day::&lt;<span class="bool-val">true</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(), <span class="kw-2">&amp;</span>[JsValue::null()], context)
     }
 
     <span class="doccomment">/// Returns the year (4 digits for 4-digit years) of the specified date
@@ -685,7 +671,7 @@
     /// Same as JavaScript&#39;s `Date.prototype.getFullYear()`.
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>get_full_year(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
-        Date::get_full_year(<span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(), <span class="kw-2">&amp;</span>[JsValue::null()], context)
+        Date::get_full_year::&lt;<span class="bool-val">true</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(), <span class="kw-2">&amp;</span>[JsValue::null()], context)
     }
 
     <span class="doccomment">/// Returns the hour (0–23) in the specified date according to local time.
@@ -693,7 +679,7 @@
     /// Same as JavaScript&#39;s `Date.prototype.getHours()`.
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>get_hours(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
-        Date::get_hours(<span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(), <span class="kw-2">&amp;</span>[JsValue::null()], context)
+        Date::get_hours::&lt;<span class="bool-val">true</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(), <span class="kw-2">&amp;</span>[JsValue::null()], context)
     }
 
     <span class="doccomment">/// Returns the milliseconds (0–999) in the specified date according
@@ -702,7 +688,7 @@
     /// Same as JavaScript&#39;s `Date.prototype.getMilliseconds()`.
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>get_milliseconds(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
-        Date::get_milliseconds(<span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(), <span class="kw-2">&amp;</span>[JsValue::null()], context)
+        Date::get_milliseconds::&lt;<span class="bool-val">true</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(), <span class="kw-2">&amp;</span>[JsValue::null()], context)
     }
 
     <span class="doccomment">/// Returns the minutes (0–59) in the specified date according to local time.
@@ -710,7 +696,7 @@
     /// Same as JavaScript&#39;s `Date.prototype.getMinutes()`.
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>get_minutes(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
-        Date::get_minutes(<span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(), <span class="kw-2">&amp;</span>[JsValue::null()], context)
+        Date::get_minutes::&lt;<span class="bool-val">true</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(), <span class="kw-2">&amp;</span>[JsValue::null()], context)
     }
 
     <span class="doccomment">/// Returns the month (0–11) in the specified date according to local time.
@@ -718,7 +704,7 @@
     /// Same as JavaScript&#39;s `Date.prototype.getMonth()`.
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>get_month(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
-        Date::get_month(<span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(), <span class="kw-2">&amp;</span>[JsValue::null()], context)
+        Date::get_month::&lt;<span class="bool-val">true</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(), <span class="kw-2">&amp;</span>[JsValue::null()], context)
     }
 
     <span class="doccomment">/// Returns the seconds (0–59) in the specified date according to local time.
@@ -726,7 +712,7 @@
     /// Same as JavaScript&#39;s `Date.prototype.getSeconds()`.
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>get_seconds(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
-        Date::get_seconds(<span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(), <span class="kw-2">&amp;</span>[JsValue::null()], context)
+        Date::get_seconds::&lt;<span class="bool-val">true</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(), <span class="kw-2">&amp;</span>[JsValue::null()], context)
     }
 
     <span class="doccomment">/// Returns the numeric value of the specified date as the number
@@ -753,7 +739,7 @@
     /// Same as JavaScript&#39;s `Date.prototype.getUTCDate()`.
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>get_utc_date(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
-        Date::get_utc_date(<span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(), <span class="kw-2">&amp;</span>[JsValue::null()], context)
+        Date::get_date::&lt;<span class="bool-val">false</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(), <span class="kw-2">&amp;</span>[JsValue::null()], context)
     }
 
     <span class="doccomment">/// Returns the day of the week (0–6) in the specified
@@ -762,7 +748,7 @@
     /// Same as JavaScript&#39;s `Date.prototype.getUTCDay()`.
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>get_utc_day(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
-        Date::get_utc_day(<span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(), <span class="kw-2">&amp;</span>[JsValue::null()], context)
+        Date::get_day::&lt;<span class="bool-val">false</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(), <span class="kw-2">&amp;</span>[JsValue::null()], context)
     }
 
     <span class="doccomment">/// Returns the year (4 digits for 4-digit years) in the specified
@@ -771,7 +757,7 @@
     /// Same as JavaScript&#39;s `Date.prototype.getUTCFullYear()`.
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>get_utc_full_year(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
-        Date::get_utc_full_year(<span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(), <span class="kw-2">&amp;</span>[JsValue::null()], context)
+        Date::get_full_year::&lt;<span class="bool-val">false</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(), <span class="kw-2">&amp;</span>[JsValue::null()], context)
     }
 
     <span class="doccomment">/// Returns the hours (0–23) in the specified date according
@@ -780,7 +766,7 @@
     /// Same as JavaScript&#39;s `Date.prototype.getUTCHours()`.
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>get_utc_hours(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
-        Date::get_utc_hours(<span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(), <span class="kw-2">&amp;</span>[JsValue::null()], context)
+        Date::get_hours::&lt;<span class="bool-val">false</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(), <span class="kw-2">&amp;</span>[JsValue::null()], context)
     }
 
     <span class="doccomment">/// Returns the milliseconds (0–999) in the specified date
@@ -789,7 +775,7 @@
     /// Same as JavaScript&#39;s `Date.prototype.getUTCMilliseconds()`.
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>get_utc_milliseconds(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
-        Date::get_utc_milliseconds(<span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(), <span class="kw-2">&amp;</span>[JsValue::null()], context)
+        Date::get_milliseconds::&lt;<span class="bool-val">false</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(), <span class="kw-2">&amp;</span>[JsValue::null()], context)
     }
 
     <span class="doccomment">/// Returns the minutes (0–59) in the specified date according
@@ -798,7 +784,7 @@
     /// Same as JavaScript&#39;s `Date.prototype.getUTCMinutes()`.
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>get_utc_minutes(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
-        Date::get_utc_minutes(<span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(), <span class="kw-2">&amp;</span>[JsValue::null()], context)
+        Date::get_minutes::&lt;<span class="bool-val">false</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(), <span class="kw-2">&amp;</span>[JsValue::null()], context)
     }
 
     <span class="doccomment">/// Returns the month (0–11) in the specified date according
@@ -807,7 +793,7 @@
     /// Same as JavaScript&#39;s `Date.prototype.getUTCMonth()`.
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>get_utc_month(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
-        Date::get_utc_month(<span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(), <span class="kw-2">&amp;</span>[JsValue::null()], context)
+        Date::get_month::&lt;<span class="bool-val">false</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(), <span class="kw-2">&amp;</span>[JsValue::null()], context)
     }
 
     <span class="doccomment">/// Returns the seconds (0–59) in the specified date according
@@ -816,19 +802,7 @@
     /// Same as JavaScript&#39;s `Date.prototype.getUTCSeconds()`.
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>get_utc_seconds(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
-        Date::get_utc_seconds(<span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(), <span class="kw-2">&amp;</span>[JsValue::null()], context)
-    }
-
-    <span class="doccomment">/// DEPRECATED: This feature is no longer recommended.
-    /// USE: `get_full_year()` instead.
-    /// Returns the year (usually 2–3 digits) in the specified date
-    /// according to local time.
-    ///
-    /// Same as JavaScript&#39;s `Date.prototype.getYear()`.
-    </span><span class="attribute">#[deprecated]
-    #[inline]
-    </span><span class="kw">pub fn </span>get_year(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
-        Date::get_year(<span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(), <span class="kw-2">&amp;</span>[JsValue::null()], context)
+        Date::get_seconds::&lt;<span class="bool-val">false</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(), <span class="kw-2">&amp;</span>[JsValue::null()], context)
     }
 
     <span class="doccomment">/// Sets the day of the month for a specified date according
@@ -843,7 +817,7 @@
     <span class="kw">where
         </span>T: Into&lt;JsValue&gt;,
     {
-        Date::set_date(<span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(), <span class="kw-2">&amp;</span>[value.into()], context)
+        Date::set_date::&lt;<span class="bool-val">true</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(), <span class="kw-2">&amp;</span>[value.into()], context)
     }
 
     <span class="doccomment">/// Sets the full year (e.g. 4 digits for 4-digit years) for a
@@ -855,7 +829,7 @@
     /// Same as JavaScript&#39;s `Date.prototype.setFullYear()`.
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>set_full_year(<span class="kw-2">&amp;</span><span class="self">self</span>, values: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
-        Date::set_full_year(<span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(), values, context)
+        Date::set_full_year::&lt;<span class="bool-val">true</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(), values, context)
     }
 
     <span class="doccomment">/// Sets the hours for a specified date according to local time.
@@ -866,7 +840,7 @@
     /// Same as JavaScript&#39;s `Date.prototype.setHours()`.
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>set_hours(<span class="kw-2">&amp;</span><span class="self">self</span>, values: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
-        Date::set_hours(<span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(), values, context)
+        Date::set_hours::&lt;<span class="bool-val">true</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(), values, context)
     }
 
     <span class="doccomment">/// Sets the milliseconds for a specified date according to local time.
@@ -880,7 +854,7 @@
     <span class="kw">where
         </span>T: Into&lt;JsValue&gt;,
     {
-        Date::set_milliseconds(<span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(), <span class="kw-2">&amp;</span>[value.into()], context)
+        Date::set_milliseconds::&lt;<span class="bool-val">true</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(), <span class="kw-2">&amp;</span>[value.into()], context)
     }
 
     <span class="doccomment">/// Sets the minutes for a specified date according to local time.
@@ -891,7 +865,7 @@
     /// Same as JavaScript&#39;s `Date.prototype.setMinutes()`.
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>set_minutes(<span class="kw-2">&amp;</span><span class="self">self</span>, values: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
-        Date::set_minutes(<span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(), values, context)
+        Date::set_minutes::&lt;<span class="bool-val">true</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(), values, context)
     }
 
     <span class="doccomment">/// Sets the month for a specified date according to local time.
@@ -902,7 +876,7 @@
     /// Same as JavaScript&#39;s `Date.prototype.setMonth()`.
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>set_month(<span class="kw-2">&amp;</span><span class="self">self</span>, values: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
-        Date::set_month(<span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(), values, context)
+        Date::set_month::&lt;<span class="bool-val">true</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(), values, context)
     }
 
     <span class="doccomment">/// Sets the seconds for a specified date according to local time.
@@ -913,7 +887,7 @@
     /// Same as JavaScript&#39;s `Date.prototype.setSeconds()`.
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>set_seconds(<span class="kw-2">&amp;</span><span class="self">self</span>, values: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
-        Date::set_seconds(<span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(), values, context)
+        Date::set_seconds::&lt;<span class="bool-val">true</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(), values, context)
     }
 
     <span class="doccomment">/// Sets the Date object to the time represented by a number
@@ -944,7 +918,7 @@
     <span class="kw">where
         </span>T: Into&lt;JsValue&gt;,
     {
-        Date::set_utc_date(<span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(), <span class="kw-2">&amp;</span>[value.into()], context)
+        Date::set_date::&lt;<span class="bool-val">false</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(), <span class="kw-2">&amp;</span>[value.into()], context)
     }
 
     <span class="doccomment">/// Sets the full year (e.g. 4 digits for 4-digit years) for a
@@ -960,7 +934,7 @@
         values: <span class="kw-2">&amp;</span>[JsValue],
         context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
-        Date::set_utc_full_year(<span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(), values, context)
+        Date::set_full_year::&lt;<span class="bool-val">false</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(), values, context)
     }
 
     <span class="doccomment">/// Sets the hours for a specified date according to universal time.
@@ -971,7 +945,7 @@
     /// Same as JavaScript&#39;s `Date.prototype.setUTCHours()`.
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>set_utc_hours(<span class="kw-2">&amp;</span><span class="self">self</span>, values: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
-        Date::set_utc_hours(<span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(), values, context)
+        Date::set_hours::&lt;<span class="bool-val">false</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(), values, context)
     }
 
     <span class="doccomment">/// Sets the milliseconds for a specified date according to universal time.
@@ -985,7 +959,7 @@
     <span class="kw">where
         </span>T: Into&lt;JsValue&gt;,
     {
-        Date::set_utc_milliseconds(<span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(), <span class="kw-2">&amp;</span>[value.into()], context)
+        Date::set_milliseconds::&lt;<span class="bool-val">false</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(), <span class="kw-2">&amp;</span>[value.into()], context)
     }
 
     <span class="doccomment">/// Sets the minutes for a specified date according to universal time.
@@ -996,7 +970,7 @@
     /// Same as JavaScript&#39;s `Date.prototype.setUTCMinutes()`.
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>set_utc_minutes(<span class="kw-2">&amp;</span><span class="self">self</span>, values: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
-        Date::set_utc_minutes(<span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(), values, context)
+        Date::set_minutes::&lt;<span class="bool-val">false</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(), values, context)
     }
 
     <span class="doccomment">/// Sets the month for a specified date according to universal time.
@@ -1007,7 +981,7 @@
     /// Same as JavaScript&#39;s `Date.prototype.setUTCMonth()`.
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>set_utc_month(<span class="kw-2">&amp;</span><span class="self">self</span>, values: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
-        Date::set_month(<span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(), values, context)
+        Date::set_month::&lt;<span class="bool-val">false</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(), values, context)
     }
 
     <span class="doccomment">/// Sets the seconds for a specified date according to universal time.
@@ -1018,23 +992,7 @@
     /// Same as JavaScript&#39;s `Date.prototype.setUTCSeconds()`.
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>set_utc_seconds(<span class="kw-2">&amp;</span><span class="self">self</span>, values: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
-        Date::set_utc_seconds(<span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(), values, context)
-    }
-
-    <span class="doccomment">/// DEPRECATED: This feature is no longer recommended.
-    /// USE: `set_full_year()` instead.
-    /// Sets the year for a specified date according to local time.
-    /// Return a `Number` representing the milliseconds elapsed since
-    /// the UNIX epoch.
-    ///
-    /// Same as JavaScript&#39;s legacy `Date.prototype.setYear()`.
-    </span><span class="attribute">#[deprecated]
-    #[inline]
-    </span><span class="kw">pub fn </span>set_year&lt;T&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, value: T, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt;
-    <span class="kw">where
-        </span>T: Into&lt;JsValue&gt;,
-    {
-        Date::set_year(<span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(), <span class="kw-2">&amp;</span>[value.into()], context)
+        Date::set_seconds::&lt;<span class="bool-val">false</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(), values, context)
     }
 
     <span class="doccomment">/// Returns the &quot;date&quot; portion of the Date as a human-readable string.
@@ -1142,9 +1100,19 @@
 
     <span class="doccomment">/// Utility create a `Date` object from RFC3339 string
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>new_from_parse(value: <span class="kw-2">&amp;</span>JsValue, context: <span class="kw-2">&amp;mut </span>Context) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span>inner = Date::create_obj(value, context);
-        <span class="self">Self </span>{ inner }
+    </span><span class="kw">pub fn </span>new_from_parse(value: <span class="kw-2">&amp;</span>JsValue, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
+        <span class="kw">let </span>prototype = context.intrinsics().constructors().date().prototype();
+        <span class="kw">let </span>string = value
+            .to_string(context)<span class="question-mark">?
+            </span>.to_std_string()
+            .map_err(|<span class="kw">_</span>| JsNativeError::typ().with_message(<span class="string">&quot;unpaired surrogate on date string&quot;</span>))<span class="question-mark">?</span>;
+        <span class="kw">let </span>date_time = DateTime::parse_from_rfc3339(<span class="kw-2">&amp;</span>string)
+            .map_err(|err| JsNativeError::typ().with_message(err.to_string()))<span class="question-mark">?</span>;
+        <span class="kw">let </span>date_time = Date::new(<span class="prelude-val">Some</span>(date_time.naive_local()));
+
+        <span class="prelude-val">Ok</span>(<span class="self">Self </span>{
+            inner: JsObject::from_proto_and_data(prototype, ObjectData::date(date_time)),
+        })
     }
 }
 

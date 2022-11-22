@@ -92,9 +92,33 @@
 <span id="90">90</span>
 <span id="91">91</span>
 <span id="92">92</span>
+<span id="93">93</span>
+<span id="94">94</span>
+<span id="95">95</span>
+<span id="96">96</span>
+<span id="97">97</span>
+<span id="98">98</span>
+<span id="99">99</span>
+<span id="100">100</span>
+<span id="101">101</span>
+<span id="102">102</span>
+<span id="103">103</span>
+<span id="104">104</span>
+<span id="105">105</span>
+<span id="106">106</span>
+<span id="107">107</span>
+<span id="108">108</span>
+<span id="109">109</span>
+<span id="110">110</span>
+<span id="111">111</span>
+<span id="112">112</span>
+<span id="113">113</span>
+<span id="114">114</span>
+<span id="115">115</span>
+<span id="116">116</span>
 </pre><pre class="rust"><code><span class="kw">use </span>std::cmp::Ordering;
 
-<span class="doccomment">/// Represents the result of `ToIntegerOrInfinity` operation
+<span class="doccomment">/// Represents the result of the `ToIntegerOrInfinity` operation
 </span><span class="attribute">#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 </span><span class="kw">pub enum </span>IntegerOrInfinity {
     PositiveInfinity,
@@ -182,6 +206,30 @@
             IntegerOrInfinity::Integer(i) =&gt; <span class="self">self</span>.partial_cmp(i),
             IntegerOrInfinity::NegativeInfinity =&gt; <span class="prelude-val">Some</span>(Ordering::Greater),
         }
+    }
+}
+
+<span class="doccomment">/// Represents the result of the `to_integer_or_nan` method.
+</span><span class="attribute">#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum </span>IntegerOrNan {
+    Integer(i64),
+    Nan,
+}
+
+<span class="kw">impl </span>IntegerOrNan {
+    <span class="doccomment">/// Gets the wrapped `i64` if the variant is an `Integer`.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>as_integer(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;i64&gt; {
+        <span class="kw">match </span><span class="self">self </span>{
+            <span class="self">Self</span>::Integer(i) =&gt; <span class="prelude-val">Some</span>(i),
+            <span class="self">Self</span>::Nan =&gt; <span class="prelude-val">None</span>,
+        }
+    }
+}
+
+<span class="kw">impl </span>From&lt;IntegerOrInfinity&gt; <span class="kw">for </span>IntegerOrNan {
+    <span class="kw">fn </span>from(ior: IntegerOrInfinity) -&gt; <span class="self">Self </span>{
+        ior.as_integer()
+            .map_or(IntegerOrNan::Nan, IntegerOrNan::Integer)
     }
 }
 </code></pre></div>

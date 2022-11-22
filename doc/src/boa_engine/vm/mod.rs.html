@@ -440,6 +440,7 @@
 <span id="438">438</span>
 <span id="439">439</span>
 <span id="440">440</span>
+<span id="441">441</span>
 </pre><pre class="rust"><code><span class="doccomment">//! The Virtual Machine (VM) handles generating instructions, then executing them.
 //! This module will provide an instruction set for the AST to use, various traits,
 //! plus an interpreter to execute those instructions
@@ -624,9 +625,10 @@
 
         <span class="kw">while </span><span class="self">self</span>.vm.frame().pc &lt; <span class="self">self</span>.vm.frame().code.code.len() {
             <span class="attribute">#[cfg(feature = <span class="string">&quot;fuzz&quot;</span>)]
-            </span><span class="kw">if </span><span class="self">self</span>.instructions_remaining == <span class="number">0 </span>{
-                <span class="kw">return </span><span class="prelude-val">Err</span>(JsError::from_native(JsNativeError::no_instructions_remain()));
-            } <span class="kw">else </span>{
+            </span>{
+                <span class="kw">if </span><span class="self">self</span>.instructions_remaining == <span class="number">0 </span>{
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(JsError::from_native(JsNativeError::no_instructions_remain()));
+                }
                 <span class="self">self</span>.instructions_remaining -= <span class="number">1</span>;
             }
 

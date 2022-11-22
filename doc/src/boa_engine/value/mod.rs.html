@@ -1101,6 +1101,16 @@
 <span id="1099">1099</span>
 <span id="1100">1100</span>
 <span id="1101">1101</span>
+<span id="1102">1102</span>
+<span id="1103">1103</span>
+<span id="1104">1104</span>
+<span id="1105">1105</span>
+<span id="1106">1106</span>
+<span id="1107">1107</span>
+<span id="1108">1108</span>
+<span id="1109">1109</span>
+<span id="1110">1110</span>
+<span id="1111">1111</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the JavaScript Value.
 //!
 //! Javascript values, utility methods and conversion between Javascript values and Rust values.
@@ -1146,6 +1156,8 @@
 <span class="kw">pub use </span>integer::IntegerOrInfinity;
 <span class="kw">pub use </span>operations::<span class="kw-2">*</span>;
 <span class="kw">pub use </span>r#type::Type;
+
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span><span class="self">self</span>::integer::IntegerOrNan;
 
 <span class="kw">static </span>TWO_E_64: Lazy&lt;BigInt&gt; = Lazy::new(|| {
     <span class="kw">const </span>TWO_E_64: u128 = <span class="number">2u128</span>.pow(<span class="number">64</span>);
@@ -1433,14 +1445,6 @@
                     .get_property(key)
             }
             <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
-        }
-    }
-
-    <span class="doccomment">/// Set the kind of an object.
-    </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>set_data(<span class="kw-2">&amp;</span><span class="self">self</span>, data: ObjectData) {
-        <span class="kw">if let </span><span class="self">Self</span>::Object(<span class="kw-2">ref </span>obj) = <span class="kw-2">*</span><span class="self">self </span>{
-            obj.borrow_mut().data = data;
         }
     }
 
@@ -1970,6 +1974,22 @@
 
         <span class="comment">// Continues on `IntegerOrInfinity::from::&lt;f64&gt;`
         </span><span class="prelude-val">Ok</span>(IntegerOrInfinity::from(number))
+    }
+
+    <span class="doccomment">/// Modified abstract operation `ToIntegerOrInfinity ( argument )`.
+    ///
+    /// This function is almost the same as [`Self::to_integer_or_infinity`], but with the exception
+    /// that this will return `Nan` if [`Self::to_number`] returns a non-finite number.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>to_integer_or_nan(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;IntegerOrNan&gt; {
+        <span class="comment">// 1. Let number be ? ToNumber(argument).
+        </span><span class="kw">let </span>number = <span class="self">self</span>.to_number(context)<span class="question-mark">?</span>;
+
+        <span class="kw">if </span>number.is_nan() {
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(IntegerOrNan::Nan);
+        }
+
+        <span class="comment">// Continues on `IntegerOrInfinity::from::&lt;f64&gt;`
+        </span><span class="prelude-val">Ok</span>(IntegerOrInfinity::from(number).into())
     }
 
     <span class="doccomment">/// Converts a value to a double precision floating point.

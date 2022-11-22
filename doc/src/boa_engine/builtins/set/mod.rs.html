@@ -458,8 +458,6 @@
 <span id="456">456</span>
 <span id="457">457</span>
 <span id="458">458</span>
-<span id="459">459</span>
-<span id="460">460</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `Set` object.
 //!
 //! The JavaScript `Set` class is a global object that is used in the construction of sets; which
@@ -713,20 +711,18 @@
     /// [spec]: https://tc39.es/ecma262/#sec-set.prototype.clear
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set/clear
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>clear(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(object) = this.as_object() {
-            <span class="kw">if </span>object.borrow().is_set() {
-                this.set_data(ObjectData::set(OrderedSet::new()));
-                <span class="prelude-val">Ok</span>(JsValue::undefined())
-            } <span class="kw">else </span>{
-                <span class="prelude-val">Err</span>(JsNativeError::typ()
-                    .with_message(<span class="string">&quot;&#39;this&#39; is not a Set&quot;</span>)
-                    .into())
-            }
-        } <span class="kw">else </span>{
-            <span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(<span class="string">&quot;&#39;this&#39; is not a Set&quot;</span>)
-                .into())
-        }
+        <span class="kw">let </span><span class="kw-2">mut </span>object = this
+            .as_object()
+            .map(JsObject::borrow_mut)
+            .ok_or_else(|| JsNativeError::typ().with_message(<span class="string">&quot;&#39;this&#39; is not a Set&quot;</span>))<span class="question-mark">?</span>;
+
+        <span class="kw">let </span>set = object
+            .as_set_mut()
+            .ok_or_else(|| JsNativeError::typ().with_message(<span class="string">&quot;&#39;this&#39; is not a Set&quot;</span>))<span class="question-mark">?</span>;
+
+        set.clear();
+
+        <span class="prelude-val">Ok</span>(JsValue::undefined())
     }
 
     <span class="doccomment">/// `Set.prototype.delete( value )`

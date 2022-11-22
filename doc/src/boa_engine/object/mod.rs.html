@@ -2283,6 +2283,17 @@
 <span id="2281">2281</span>
 <span id="2282">2282</span>
 <span id="2283">2283</span>
+<span id="2284">2284</span>
+<span id="2285">2285</span>
+<span id="2286">2286</span>
+<span id="2287">2287</span>
+<span id="2288">2288</span>
+<span id="2289">2289</span>
+<span id="2290">2290</span>
+<span id="2291">2291</span>
+<span id="2292">2292</span>
+<span id="2293">2293</span>
+<span id="2294">2294</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the Rust representation of a JavaScript object,
 //! see [`object::builtins`][builtins] for implementors.
 //!
@@ -3467,6 +3478,17 @@
         <span class="kw">match </span><span class="self">self</span>.data {
             ObjectData {
                 kind: ObjectKind::Date(<span class="kw-2">ref </span>date),
+                ..
+            } =&gt; <span class="prelude-val">Some</span>(date),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
+        }
+    }
+
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>as_date_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>Date&gt; {
+        <span class="kw">match </span><span class="self">self</span>.data {
+            ObjectData {
+                kind: ObjectKind::Date(<span class="kw-2">ref mut </span>date),
                 ..
             } =&gt; <span class="prelude-val">Some</span>(date),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,

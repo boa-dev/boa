@@ -690,6 +690,7 @@
 <span id="688">688</span>
 <span id="689">689</span>
 <span id="690">690</span>
+<span id="691">691</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Javascript context.
 
 </span><span class="kw">pub mod </span>intrinsics;
@@ -1333,6 +1334,7 @@
     ///
     /// This function is only available if the `fuzz` feature is enabled.
     </span><span class="attribute">#[cfg(feature = <span class="string">&quot;fuzz&quot;</span>)]
+    #[must_use]
     </span><span class="kw">pub fn </span>instructions_remaining(<span class="kw-2">mut </span><span class="self">self</span>, instructions_remaining: usize) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.instructions_remaining = instructions_remaining;
         <span class="self">self

@@ -137,6 +137,12 @@
 <span id="135">135</span>
 <span id="136">136</span>
 <span id="137">137</span>
+<span id="138">138</span>
+<span id="139">139</span>
+<span id="140">140</span>
+<span id="141">141</span>
+<span id="142">142</span>
+<span id="143">143</span>
 </pre><pre class="rust"><code><span class="kw">use </span>boa_gc::{custom_trace, Finalize, Trace};
 <span class="kw">use </span>indexmap::{
     set::{IntoIter, Iter},
@@ -227,6 +233,12 @@
     /// Computes in **O(n)** time (average).
     </span><span class="kw">pub fn </span>delete(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>V) -&gt; bool {
         <span class="self">self</span>.inner.shift_remove(value)
+    }
+
+    <span class="doccomment">/// Removes all elements in the set, while preserving its capacity.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>clear(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="self">self</span>.inner.clear();
     }
 
     <span class="doccomment">/// Checks if a given value is present in the set
