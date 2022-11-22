@@ -1,11 +1,12 @@
 use std::ops::Deref;
 
 use boa_gc::{Finalize, Trace};
+use chrono::DateTime;
 
 use crate::{
     builtins::Date,
-    object::{JsObject, JsObjectType},
-    Context, JsResult, JsValue,
+    object::{JsObject, JsObjectType, ObjectData},
+    Context, JsNativeError, JsResult, JsValue,
 };
 
 /// `JsDate` is a wrapper for JavaScript `JsDate` builtin object
@@ -39,7 +40,8 @@ impl JsDate {
     /// Create a new `Date` object with universal time.
     #[inline]
     pub fn new(context: &mut Context) -> Self {
-        let inner = Date::date_create(None, context);
+        let prototype = context.intrinsics().constructors().date().prototype();
+        let inner = JsObject::from_proto_and_data(prototype, ObjectData::date(Date::default()));
 
         Self { inner }
     }
@@ -79,7 +81,7 @@ impl JsDate {
     /// Same as JavaScript's `Date.prototype.getDate()`.
     #[inline]
     pub fn get_date(&self, context: &mut Context) -> JsResult<JsValue> {
-        Date::get_date(&self.inner.clone().into(), &[JsValue::null()], context)
+        Date::get_date::<true>(&self.inner.clone().into(), &[JsValue::null()], context)
     }
 
     /// Returns the day of the week (0–6) for the specified date
@@ -88,7 +90,7 @@ impl JsDate {
     /// Same as JavaScript's `Date.prototype.getDay()`.
     #[inline]
     pub fn get_day(&self, context: &mut Context) -> JsResult<JsValue> {
-        Date::get_day(&self.inner.clone().into(), &[JsValue::null()], context)
+        Date::get_day::<true>(&self.inner.clone().into(), &[JsValue::null()], context)
     }
 
     /// Returns the year (4 digits for 4-digit years) of the specified date
@@ -97,7 +99,7 @@ impl JsDate {
     /// Same as JavaScript's `Date.prototype.getFullYear()`.
     #[inline]
     pub fn get_full_year(&self, context: &mut Context) -> JsResult<JsValue> {
-        Date::get_full_year(&self.inner.clone().into(), &[JsValue::null()], context)
+        Date::get_full_year::<true>(&self.inner.clone().into(), &[JsValue::null()], context)
     }
 
     /// Returns the hour (0–23) in the specified date according to local time.
@@ -105,7 +107,7 @@ impl JsDate {
     /// Same as JavaScript's `Date.prototype.getHours()`.
     #[inline]
     pub fn get_hours(&self, context: &mut Context) -> JsResult<JsValue> {
-        Date::get_hours(&self.inner.clone().into(), &[JsValue::null()], context)
+        Date::get_hours::<true>(&self.inner.clone().into(), &[JsValue::null()], context)
     }
 
     /// Returns the milliseconds (0–999) in the specified date according
@@ -114,7 +116,7 @@ impl JsDate {
     /// Same as JavaScript's `Date.prototype.getMilliseconds()`.
     #[inline]
     pub fn get_milliseconds(&self, context: &mut Context) -> JsResult<JsValue> {
-        Date::get_milliseconds(&self.inner.clone().into(), &[JsValue::null()], context)
+        Date::get_milliseconds::<true>(&self.inner.clone().into(), &[JsValue::null()], context)
     }
 
     /// Returns the minutes (0–59) in the specified date according to local time.
@@ -122,7 +124,7 @@ impl JsDate {
     /// Same as JavaScript's `Date.prototype.getMinutes()`.
     #[inline]
     pub fn get_minutes(&self, context: &mut Context) -> JsResult<JsValue> {
-        Date::get_minutes(&self.inner.clone().into(), &[JsValue::null()], context)
+        Date::get_minutes::<true>(&self.inner.clone().into(), &[JsValue::null()], context)
     }
 
     /// Returns the month (0–11) in the specified date according to local time.
@@ -130,7 +132,7 @@ impl JsDate {
     /// Same as JavaScript's `Date.prototype.getMonth()`.
     #[inline]
     pub fn get_month(&self, context: &mut Context) -> JsResult<JsValue> {
-        Date::get_month(&self.inner.clone().into(), &[JsValue::null()], context)
+        Date::get_month::<true>(&self.inner.clone().into(), &[JsValue::null()], context)
     }
 
     /// Returns the seconds (0–59) in the specified date according to local time.
@@ -138,7 +140,7 @@ impl JsDate {
     /// Same as JavaScript's `Date.prototype.getSeconds()`.
     #[inline]
     pub fn get_seconds(&self, context: &mut Context) -> JsResult<JsValue> {
-        Date::get_seconds(&self.inner.clone().into(), &[JsValue::null()], context)
+        Date::get_seconds::<true>(&self.inner.clone().into(), &[JsValue::null()], context)
     }
 
     /// Returns the numeric value of the specified date as the number
@@ -165,7 +167,7 @@ impl JsDate {
     /// Same as JavaScript's `Date.prototype.getUTCDate()`.
     #[inline]
     pub fn get_utc_date(&self, context: &mut Context) -> JsResult<JsValue> {
-        Date::get_utc_date(&self.inner.clone().into(), &[JsValue::null()], context)
+        Date::get_date::<false>(&self.inner.clone().into(), &[JsValue::null()], context)
     }
 
     /// Returns the day of the week (0–6) in the specified
@@ -174,7 +176,7 @@ impl JsDate {
     /// Same as JavaScript's `Date.prototype.getUTCDay()`.
     #[inline]
     pub fn get_utc_day(&self, context: &mut Context) -> JsResult<JsValue> {
-        Date::get_utc_day(&self.inner.clone().into(), &[JsValue::null()], context)
+        Date::get_day::<false>(&self.inner.clone().into(), &[JsValue::null()], context)
     }
 
     /// Returns the year (4 digits for 4-digit years) in the specified
@@ -183,7 +185,7 @@ impl JsDate {
     /// Same as JavaScript's `Date.prototype.getUTCFullYear()`.
     #[inline]
     pub fn get_utc_full_year(&self, context: &mut Context) -> JsResult<JsValue> {
-        Date::get_utc_full_year(&self.inner.clone().into(), &[JsValue::null()], context)
+        Date::get_full_year::<false>(&self.inner.clone().into(), &[JsValue::null()], context)
     }
 
     /// Returns the hours (0–23) in the specified date according
@@ -192,7 +194,7 @@ impl JsDate {
     /// Same as JavaScript's `Date.prototype.getUTCHours()`.
     #[inline]
     pub fn get_utc_hours(&self, context: &mut Context) -> JsResult<JsValue> {
-        Date::get_utc_hours(&self.inner.clone().into(), &[JsValue::null()], context)
+        Date::get_hours::<false>(&self.inner.clone().into(), &[JsValue::null()], context)
     }
 
     /// Returns the milliseconds (0–999) in the specified date
@@ -201,7 +203,7 @@ impl JsDate {
     /// Same as JavaScript's `Date.prototype.getUTCMilliseconds()`.
     #[inline]
     pub fn get_utc_milliseconds(&self, context: &mut Context) -> JsResult<JsValue> {
-        Date::get_utc_milliseconds(&self.inner.clone().into(), &[JsValue::null()], context)
+        Date::get_milliseconds::<false>(&self.inner.clone().into(), &[JsValue::null()], context)
     }
 
     /// Returns the minutes (0–59) in the specified date according
@@ -210,7 +212,7 @@ impl JsDate {
     /// Same as JavaScript's `Date.prototype.getUTCMinutes()`.
     #[inline]
     pub fn get_utc_minutes(&self, context: &mut Context) -> JsResult<JsValue> {
-        Date::get_utc_minutes(&self.inner.clone().into(), &[JsValue::null()], context)
+        Date::get_minutes::<false>(&self.inner.clone().into(), &[JsValue::null()], context)
     }
 
     /// Returns the month (0–11) in the specified date according
@@ -219,7 +221,7 @@ impl JsDate {
     /// Same as JavaScript's `Date.prototype.getUTCMonth()`.
     #[inline]
     pub fn get_utc_month(&self, context: &mut Context) -> JsResult<JsValue> {
-        Date::get_utc_month(&self.inner.clone().into(), &[JsValue::null()], context)
+        Date::get_month::<false>(&self.inner.clone().into(), &[JsValue::null()], context)
     }
 
     /// Returns the seconds (0–59) in the specified date according
@@ -228,19 +230,7 @@ impl JsDate {
     /// Same as JavaScript's `Date.prototype.getUTCSeconds()`.
     #[inline]
     pub fn get_utc_seconds(&self, context: &mut Context) -> JsResult<JsValue> {
-        Date::get_utc_seconds(&self.inner.clone().into(), &[JsValue::null()], context)
-    }
-
-    /// DEPRECATED: This feature is no longer recommended.
-    /// USE: `get_full_year()` instead.
-    /// Returns the year (usually 2–3 digits) in the specified date
-    /// according to local time.
-    ///
-    /// Same as JavaScript's `Date.prototype.getYear()`.
-    #[deprecated]
-    #[inline]
-    pub fn get_year(&self, context: &mut Context) -> JsResult<JsValue> {
-        Date::get_year(&self.inner.clone().into(), &[JsValue::null()], context)
+        Date::get_seconds::<false>(&self.inner.clone().into(), &[JsValue::null()], context)
     }
 
     /// Sets the day of the month for a specified date according
@@ -255,7 +245,7 @@ impl JsDate {
     where
         T: Into<JsValue>,
     {
-        Date::set_date(&self.inner.clone().into(), &[value.into()], context)
+        Date::set_date::<true>(&self.inner.clone().into(), &[value.into()], context)
     }
 
     /// Sets the full year (e.g. 4 digits for 4-digit years) for a
@@ -267,7 +257,7 @@ impl JsDate {
     /// Same as JavaScript's `Date.prototype.setFullYear()`.
     #[inline]
     pub fn set_full_year(&self, values: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        Date::set_full_year(&self.inner.clone().into(), values, context)
+        Date::set_full_year::<true>(&self.inner.clone().into(), values, context)
     }
 
     /// Sets the hours for a specified date according to local time.
@@ -278,7 +268,7 @@ impl JsDate {
     /// Same as JavaScript's `Date.prototype.setHours()`.
     #[inline]
     pub fn set_hours(&self, values: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        Date::set_hours(&self.inner.clone().into(), values, context)
+        Date::set_hours::<true>(&self.inner.clone().into(), values, context)
     }
 
     /// Sets the milliseconds for a specified date according to local time.
@@ -292,7 +282,7 @@ impl JsDate {
     where
         T: Into<JsValue>,
     {
-        Date::set_milliseconds(&self.inner.clone().into(), &[value.into()], context)
+        Date::set_milliseconds::<true>(&self.inner.clone().into(), &[value.into()], context)
     }
 
     /// Sets the minutes for a specified date according to local time.
@@ -303,7 +293,7 @@ impl JsDate {
     /// Same as JavaScript's `Date.prototype.setMinutes()`.
     #[inline]
     pub fn set_minutes(&self, values: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        Date::set_minutes(&self.inner.clone().into(), values, context)
+        Date::set_minutes::<true>(&self.inner.clone().into(), values, context)
     }
 
     /// Sets the month for a specified date according to local time.
@@ -314,7 +304,7 @@ impl JsDate {
     /// Same as JavaScript's `Date.prototype.setMonth()`.
     #[inline]
     pub fn set_month(&self, values: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        Date::set_month(&self.inner.clone().into(), values, context)
+        Date::set_month::<true>(&self.inner.clone().into(), values, context)
     }
 
     /// Sets the seconds for a specified date according to local time.
@@ -325,7 +315,7 @@ impl JsDate {
     /// Same as JavaScript's `Date.prototype.setSeconds()`.
     #[inline]
     pub fn set_seconds(&self, values: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        Date::set_seconds(&self.inner.clone().into(), values, context)
+        Date::set_seconds::<true>(&self.inner.clone().into(), values, context)
     }
 
     /// Sets the Date object to the time represented by a number
@@ -356,7 +346,7 @@ impl JsDate {
     where
         T: Into<JsValue>,
     {
-        Date::set_utc_date(&self.inner.clone().into(), &[value.into()], context)
+        Date::set_date::<false>(&self.inner.clone().into(), &[value.into()], context)
     }
 
     /// Sets the full year (e.g. 4 digits for 4-digit years) for a
@@ -372,7 +362,7 @@ impl JsDate {
         values: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        Date::set_utc_full_year(&self.inner.clone().into(), values, context)
+        Date::set_full_year::<false>(&self.inner.clone().into(), values, context)
     }
 
     /// Sets the hours for a specified date according to universal time.
@@ -383,7 +373,7 @@ impl JsDate {
     /// Same as JavaScript's `Date.prototype.setUTCHours()`.
     #[inline]
     pub fn set_utc_hours(&self, values: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        Date::set_utc_hours(&self.inner.clone().into(), values, context)
+        Date::set_hours::<false>(&self.inner.clone().into(), values, context)
     }
 
     /// Sets the milliseconds for a specified date according to universal time.
@@ -397,7 +387,7 @@ impl JsDate {
     where
         T: Into<JsValue>,
     {
-        Date::set_utc_milliseconds(&self.inner.clone().into(), &[value.into()], context)
+        Date::set_milliseconds::<false>(&self.inner.clone().into(), &[value.into()], context)
     }
 
     /// Sets the minutes for a specified date according to universal time.
@@ -408,7 +398,7 @@ impl JsDate {
     /// Same as JavaScript's `Date.prototype.setUTCMinutes()`.
     #[inline]
     pub fn set_utc_minutes(&self, values: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        Date::set_utc_minutes(&self.inner.clone().into(), values, context)
+        Date::set_minutes::<false>(&self.inner.clone().into(), values, context)
     }
 
     /// Sets the month for a specified date according to universal time.
@@ -419,7 +409,7 @@ impl JsDate {
     /// Same as JavaScript's `Date.prototype.setUTCMonth()`.
     #[inline]
     pub fn set_utc_month(&self, values: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        Date::set_month(&self.inner.clone().into(), values, context)
+        Date::set_month::<false>(&self.inner.clone().into(), values, context)
     }
 
     /// Sets the seconds for a specified date according to universal time.
@@ -430,23 +420,7 @@ impl JsDate {
     /// Same as JavaScript's `Date.prototype.setUTCSeconds()`.
     #[inline]
     pub fn set_utc_seconds(&self, values: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        Date::set_utc_seconds(&self.inner.clone().into(), values, context)
-    }
-
-    /// DEPRECATED: This feature is no longer recommended.
-    /// USE: `set_full_year()` instead.
-    /// Sets the year for a specified date according to local time.
-    /// Return a `Number` representing the milliseconds elapsed since
-    /// the UNIX epoch.
-    ///
-    /// Same as JavaScript's legacy `Date.prototype.setYear()`.
-    #[deprecated]
-    #[inline]
-    pub fn set_year<T>(&self, value: T, context: &mut Context) -> JsResult<JsValue>
-    where
-        T: Into<JsValue>,
-    {
-        Date::set_year(&self.inner.clone().into(), &[value.into()], context)
+        Date::set_seconds::<false>(&self.inner.clone().into(), values, context)
     }
 
     /// Returns the "date" portion of the Date as a human-readable string.
@@ -554,9 +528,19 @@ impl JsDate {
 
     /// Utility create a `Date` object from RFC3339 string
     #[inline]
-    pub fn new_from_parse(value: &JsValue, context: &mut Context) -> Self {
-        let inner = Date::create_obj(value, context);
-        Self { inner }
+    pub fn new_from_parse(value: &JsValue, context: &mut Context) -> JsResult<Self> {
+        let prototype = context.intrinsics().constructors().date().prototype();
+        let string = value
+            .to_string(context)?
+            .to_std_string()
+            .map_err(|_| JsNativeError::typ().with_message("unpaired surrogate on date string"))?;
+        let date_time = DateTime::parse_from_rfc3339(&string)
+            .map_err(|err| JsNativeError::typ().with_message(err.to_string()))?;
+        let date_time = Date::new(Some(date_time.naive_local()));
+
+        Ok(Self {
+            inner: JsObject::from_proto_and_data(prototype, ObjectData::date(date_time)),
+        })
     }
 }
 

@@ -161,6 +161,6 @@ mod tests {
                 )
                 .unwrap(),
             JsValue::undefined()
-        )
+        );
     }
 }

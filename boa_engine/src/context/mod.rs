@@ -641,6 +641,7 @@ impl ContextBuilder {
     ///
     /// This function is only available if the `fuzz` feature is enabled.
     #[cfg(feature = "fuzz")]
+    #[must_use]
     pub fn instructions_remaining(mut self, instructions_remaining: usize) -> Self {
         self.instructions_remaining = instructions_remaining;
         self

@@ -90,6 +90,12 @@ where
         self.inner.shift_remove(value)
     }
 
+    /// Removes all elements in the set, while preserving its capacity.
+    #[inline]
+    pub fn clear(&mut self) {
+        self.inner.clear();
+    }
+
     /// Checks if a given value is present in the set
     ///
     /// Return `true` if `value` is present in set, false otherwise.

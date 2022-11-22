@@ -44,6 +44,8 @@ pub use integer::IntegerOrInfinity;
 pub use operations::*;
 pub use r#type::Type;
 
+pub(crate) use self::integer::IntegerOrNan;
+
 static TWO_E_64: Lazy<BigInt> = Lazy::new(|| {
     const TWO_E_64: u128 = 2u128.pow(64);
     BigInt::from(TWO_E_64)
@@ -330,14 +332,6 @@ impl JsValue {
                     .get_property(key)
             }
             _ => None,
-        }
-    }
-
-    /// Set the kind of an object.
-    #[inline]
-    pub fn set_data(&self, data: ObjectData) {
-        if let Self::Object(ref obj) = *self {
-            obj.borrow_mut().data = data;
         }
     }
 
@@ -867,6 +861,22 @@ impl JsValue {
 
         // Continues on `IntegerOrInfinity::from::<f64>`
         Ok(IntegerOrInfinity::from(number))
+    }
+
+    /// Modified abstract operation `ToIntegerOrInfinity ( argument )`.
+    ///
+    /// This function is almost the same as [`Self::to_integer_or_infinity`], but with the exception
+    /// that this will return `Nan` if [`Self::to_number`] returns a non-finite number.
+    pub(crate) fn to_integer_or_nan(&self, context: &mut Context) -> JsResult<IntegerOrNan> {
+        // 1. Let number be ? ToNumber(argument).
+        let number = self.to_number(context)?;
+
+        if number.is_nan() {
+            return Ok(IntegerOrNan::Nan);
+        }
+
+        // Continues on `IntegerOrInfinity::from::<f64>`
+        Ok(IntegerOrInfinity::from(number).into())
     }
 
     /// Converts a value to a double precision floating point.

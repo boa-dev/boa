@@ -1188,6 +1188,17 @@ impl Object {
         }
     }
 
+    #[inline]
+    pub fn as_date_mut(&mut self) -> Option<&mut Date> {
+        match self.data {
+            ObjectData {
+                kind: ObjectKind::Date(ref mut date),
+                ..
+            } => Some(date),
+            _ => None,
+        }
+    }
+
     /// Checks if it a `RegExp` object.
     #[inline]
     pub fn is_regexp(&self) -> bool {
