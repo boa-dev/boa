@@ -18,15 +18,18 @@ use std::ops::Deref;
 /// ```
 /// # use boa_engine::{
 /// #     object::builtins::{JsArrayBuffer, JsDataView},
-/// #     Context, JsValue
+/// #     Context, JsValue, JsResult,
 /// # };
-///
+/// # fn main() -> JsResult<()> {
 /// // Create a new context and ArrayBuffer
 /// let context = &mut Context::default();
-/// let array_buffer = JsArrayBuffer::new(4, context).unwrap();
+/// let array_buffer = JsArrayBuffer::new(4, context)?;
 ///
 /// // Create a new Dataview from pre-existing ArrayBuffer
-/// let data_view = JsDataView::from_js_array_buffer(&array_buffer, None, None, context).unwrap();
+/// let data_view = JsDataView::from_js_array_buffer(&array_buffer, None, None, context)?;
+///
+/// # Ok(())
+/// # }
 /// ```
 #[derive(Debug, Clone, Trace, Finalize)]
 pub struct JsDataView {
