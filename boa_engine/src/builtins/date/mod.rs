@@ -62,14 +62,15 @@ pub(super) fn this_time_value(value: &JsValue) -> JsResult<Option<NaiveDateTime>
 pub struct Date(Option<NaiveDateTime>);
 
 impl Date {
-    #[inline]
     /// Creates a new `Date`.
+    #[inline]
     pub(crate) fn new(dt: Option<NaiveDateTime>) -> Self {
         Self(dt)
     }
 
     /// Converts the `Date` into a `JsValue`, mapping `None` to `NaN` and `Some(datetime)` to
     /// `JsValue::from(datetime.timestamp_millis())`.
+    #[inline]
     fn as_value(&self) -> JsValue {
         self.0
             .map_or_else(|| f64::NAN.into(), |dt| dt.timestamp_millis().into())
