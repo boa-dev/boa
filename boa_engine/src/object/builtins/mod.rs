@@ -1,4 +1,6 @@
-//! Contains all the Rust representations of JavaScript objects.
+//! All Rust API wrappers for Boa's JavaScript objects.
+//! 
+//! The structs available in this module provide functionality to interact with the implemented JavaScript object from Rust.
 
 mod jsarray;
 mod jsarraybuffer;

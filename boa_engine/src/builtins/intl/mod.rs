@@ -1,4 +1,4 @@
-//! This module implements the global `Intl` object.
+//! Boa's implementation of JavaScript's global `Intl` object.
 //!
 //! `Intl` is a built-in object that has properties and methods for i18n. It's not a function object.
 //!

@@ -1,4 +1,4 @@
-//! This module implements the global `Number` object.
+//! Boa's implementation of JavaScript's global `Number` object.
 //!
 //! The `Number` JavaScript object is a wrapper object allowing you to work with numerical values.
 //! A `Number` object is created using the `Number()` constructor. A primitive type object number is created using the `Number()` **function**.

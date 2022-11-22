@@ -1,4 +1,4 @@
-//! This module implements the global `Set` object.
+//! Boa's implementation of JavaScript's global `Set` object.
 //!
 //! The JavaScript `Set` class is a global object that is used in the construction of sets; which
 //! are high-level, collections of values.

@@ -1,4 +1,4 @@
-//! This module implements a wrapper for the `ArrayBuffer` Builtin JavaScript Object
+//! A Rust API wrapper for Boa's `ArrayBuffer` Builtin JavaScript Object
 use crate::{
     builtins::array_buffer::ArrayBuffer,
     context::intrinsics::StandardConstructors,

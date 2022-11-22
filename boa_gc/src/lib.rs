@@ -1,5 +1,9 @@
 //! Garbage collector for the Boa JavaScript engine.
 
+#![doc(
+    html_logo_url = "https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg",
+    html_favicon_url = "https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"
+)]
 #![cfg_attr(not(test), forbid(clippy::unwrap_used))]
 #![warn(missing_docs, clippy::dbg_macro)]
 #![deny(

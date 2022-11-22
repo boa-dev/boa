@@ -13,9 +13,16 @@ use crate::{
     Context, JsNativeError, JsResult, JsValue,
 };
 
-/// The [`WeakRef`][wr] builtin object.
+/// Boa's implementation of JavaScript's `WeakRef` builtin object.
 ///
-/// [wr]: https://tc39.es/ecma262/#sec-weak-ref-objects
+/// The `WeakRef` is a way to refer to a target object without rooting the target and thus preserving it in garbage 
+/// collection. A `WeakRef` will allow the user to dereference the target as long as the target object has not been 
+/// collected by the garbage collector.
+/// 
+/// More Information:
+///  - [ECMAscript Reference][spec]
+/// 
+/// [spec]: https://tc39.es/ecma262/#sec-weak-ref-objects
 #[derive(Debug, Clone, Trace, Finalize)]
 pub(crate) struct WeakRef;
 

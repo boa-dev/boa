@@ -1,4 +1,4 @@
-//! This module implements a wrapper for the `SetIterator` Builtin JavaScript Object
+//! A Rust API wrapper for Boa's `SetIterator` Builtin JavaScript Object
 use std::ops::Deref;
 
 use boa_gc::{Finalize, Trace};

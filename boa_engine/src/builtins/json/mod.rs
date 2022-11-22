@@ -1,4 +1,4 @@
-//! This module implements the global `JSON` object.
+//! Boa's implementation of JavaScript's global `JSON` object.
 //!
 //! The `JSON` object contains methods for parsing [JavaScript Object Notation (JSON)][spec]
 //! and converting values to JSON. It can't be called or constructed, and aside from its

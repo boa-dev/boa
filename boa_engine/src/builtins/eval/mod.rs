@@ -1,4 +1,4 @@
-//! This module implements the global `eval` function.
+//! Boa's implementation of JavaScript's global `eval` function.
 //!
 //! The `eval()` function evaluates JavaScript code represented as a string.
 //!

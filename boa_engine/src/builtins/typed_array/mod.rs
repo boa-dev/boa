@@ -1,4 +1,4 @@
-//! This module implements the global `TypedArray` objects.
+//! Boa's implementation of JavaScript's global `TypedArray` objects.
 //!
 //! A `TypedArray` object describes an array-like view of an underlying binary data buffer.
 //! There is no global property named `TypedArray`, nor is there a directly visible `TypedArray` constructor.

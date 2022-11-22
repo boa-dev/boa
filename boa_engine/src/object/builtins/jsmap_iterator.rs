@@ -1,4 +1,4 @@
-//! This module implements a wrapper for the `MapIterator` Builtin JavaScript Object
+//! A Rust API wrapper for Boa's `MapIterator` Builtin JavaScript Object
 use crate::{
     builtins::map::map_iterator::MapIterator,
     error::JsNativeError,

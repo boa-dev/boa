@@ -1,4 +1,4 @@
-//! This module implements the global `Infinity` property.
+//! Boa's implementation of JavaScript's global `Infinity` property.
 //!
 //! The global property `Infinity` is a numeric value representing infinity.
 //!

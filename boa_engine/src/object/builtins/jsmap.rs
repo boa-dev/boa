@@ -1,4 +1,4 @@
-//! This module implements a wrapper for the `Map` Builtin JavaScript Object
+//! A Rust API wrapper for Boa's `Map` Builtin JavaScript Object
 use crate::{
     builtins::map::{add_entries_from_iterable, ordered_map::OrderedMap},
     builtins::Map,

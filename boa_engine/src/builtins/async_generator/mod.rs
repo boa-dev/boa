@@ -1,4 +1,4 @@
-//! This module implements the global `AsyncGenerator` object.
+//! Boa's implementation of JavaScript's global `AsyncGenerator` object.
 //!
 //! More information:
 //!  - [ECMAScript reference][spec]

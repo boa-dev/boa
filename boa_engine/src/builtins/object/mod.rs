@@ -1,4 +1,4 @@
-//! This module implements the global `Object` object.
+//! Boa's implementation of JavaScript's global `Object` object.
 //!
 //! The `Object` class represents one of JavaScript's data types.
 //!

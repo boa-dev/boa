@@ -1,4 +1,4 @@
-//! This module implements a wrapper for the `Generator` Builtin JavaScript Object
+//! A Rust API wrapper for Boa's `Generator` Builtin JavaScript Object
 use crate::{
     builtins::generator::{Generator, GeneratorState},
     object::{JsObject, JsObjectType, ObjectData},

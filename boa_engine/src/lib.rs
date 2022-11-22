@@ -1,14 +1,30 @@
-//! This is an experimental Javascript lexer, parser and compiler written in Rust. Currently, it
-//! has support for some of the language.
-//!
+//! **boa_engine** is the module for Boa that implements core JavaScript functionality, such as the JavaScript Context,
+//! and langugage execution via a bytecompiler and virtual machine.
+//! 
 //! # Crate Features
 //!  - **serde** - Enables serialization and deserialization of the AST (Abstract Syntax Tree).
 //!  - **console** - Enables `boa`'s [WHATWG `console`][whatwg] object implementation.
 //!  - **profiler** - Enables profiling with measureme (this is mostly internal).
 //!  - **intl** - Enables `boa`'s [ECMA-402 Internationalization API][ecma-402] (`Intl` object)
 //!
+//! # About Boa
+//! Boa is an open-source, experimental JavaScript Engine written in Rust for lexing, parsing and executing JavaScript. Currently, Boa
+//! supports some of the [language][boa-conformance].
+//!
+//! # Boa Crates
+//!  - **boa_ast** - Boa's JavaScript Abstract Syntax Tree.
+//!  - **boa_engine** - Boa's implementation of core langugage functionality and execution.
+//!  - **boa_gc** - Boa's Garbage Collector
+//!  - **boa_interner** - Boa's string interner
+//!  - **boa_macros** - Boa's derive macros
+//!  - **boa_profiler** - Boa's code profiler
+//!  - **boa_tester** - Boa's Test262 runner
+//!  - **boa_unicode** - Boa's unicode identifier
+//!  - **boa_wasm** - Boa's WASM binding
+//! 
 //! [whatwg]: https://console.spec.whatwg.org
 //! [ecma-402]: https://tc39.es/ecma402
+//! [boa-conformance]: https://boa-dev.github.io/boa/test262/
 
 #![doc(
     html_logo_url = "https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg",

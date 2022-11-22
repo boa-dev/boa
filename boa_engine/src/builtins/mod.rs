@@ -1,4 +1,4 @@
-//! Builtins live here, such as Object, String, Math, etc.
+//! Boa's JavaSript built-in object implementations, e.g. Object, String, Math, Array, etc.
 
 pub mod array;
 pub mod array_buffer;

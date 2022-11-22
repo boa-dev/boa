@@ -1,4 +1,4 @@
-//! This module implements the global `AsyncFunction` object.
+//! Boa's implementation of JavaScript's global `AsyncFunction` object.
 //!
 //! More information:
 //!  - [ECMAScript reference][spec]

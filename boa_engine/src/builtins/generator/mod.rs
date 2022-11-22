@@ -1,4 +1,4 @@
-//! This module implements the global `Generator` object.
+//! Boa's implementation of JavaScript's global `Generator` object.
 //!
 //! A Generator is an instance of a generator function and conforms to both the Iterator and Iterable interfaces.
 //!
