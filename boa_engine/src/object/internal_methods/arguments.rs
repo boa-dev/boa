@@ -141,7 +141,7 @@ pub(crate) fn arguments_exotic_define_own_property(
             }
 
             // ii. If Desc.[[Writable]] is present and its value is false, then
-            if let Some(false) = desc.writable() {
+            if desc.writable() == Some(false) {
                 // 1. Call map.[[Delete]](P).
                 map.delete(index);
             }

@@ -22,7 +22,12 @@ use boa_gc::{Finalize, Trace};
 use boa_profiler::Profiler;
 use regexp::{advance_string_index, RegExp};
 
-// TODO: See todos in create_regexp_string_iterator and next.
+/// The `RegExp String Iterator` object.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-regexp-string-iterator-objects
 #[derive(Debug, Clone, Finalize, Trace)]
 pub struct RegExpStringIterator {
     matcher: JsObject,
@@ -81,6 +86,12 @@ impl RegExpStringIterator {
         regexp_string_iterator.into()
     }
 
+    /// `%RegExpStringIteratorPrototype%.next ( )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-%regexpstringiteratorprototype%.next
     pub fn next(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let mut iterator = this.as_object().map(JsObject::borrow_mut);
         let iterator = iterator

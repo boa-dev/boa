@@ -15,11 +15,12 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/defineProperty
 //! [section]: https://tc39.es/ecma262/#sec-property-attributes
 
+mod attribute;
+
 use crate::{js_string, JsString, JsSymbol, JsValue};
 use boa_gc::{Finalize, Trace};
 use std::fmt;
 
-mod attribute;
 pub use attribute::Attribute;
 
 /// This represents a JavaScript Property AKA The Property Descriptor.
@@ -51,16 +52,28 @@ pub struct PropertyDescriptor {
     kind: DescriptorKind,
 }
 
+/// `DescriptorKind` represents the different kinds of property descriptors.
 #[derive(Debug, Clone, Trace, Finalize)]
 pub enum DescriptorKind {
+    /// A data property descriptor.
     Data {
+        /// The value of the property.
         value: Option<JsValue>,
+
+        /// Whether the property is writable.
         writable: Option<bool>,
     },
+
+    /// An accessor property descriptor.
     Accessor {
+        /// The getter of the property.
         get: Option<JsValue>,
+
+        /// The setter of the property.
         set: Option<JsValue>,
     },
+
+    /// A generic property descriptor.
     Generic,
 }
 
@@ -71,150 +84,179 @@ impl Default for DescriptorKind {
 }
 
 impl PropertyDescriptor {
-    /// An accessor Property Descriptor is one that includes any fields named either `[[Get]]` or `[[Set]]`.
+    /// An accessor property descriptor is one that includes any fields named either `[[Get]]` or `[[Set]]`.
     ///
     /// More information:
     /// - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-isaccessordescriptor
     #[inline]
-    pub fn is_accessor_descriptor(&self) -> bool {
+    pub const fn is_accessor_descriptor(&self) -> bool {
         matches!(self.kind, DescriptorKind::Accessor { .. })
     }
 
-    /// A data Property Descriptor is one that includes any fields named either `[[Value]]` or `[[Writable]]`.
+    /// A data property descriptor is one that includes any fields named either `[[Value]]` or `[[Writable]]`.
     ///
     /// More information:
     /// - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-isdatadescriptor
     #[inline]
-    pub fn is_data_descriptor(&self) -> bool {
+    pub const fn is_data_descriptor(&self) -> bool {
         matches!(self.kind, DescriptorKind::Data { .. })
     }
 
-    /// A generic Property Descriptor is one that is neither a data descriptor nor an accessor descriptor.
+    /// A generic property descriptor is one that is neither a data descriptor nor an accessor descriptor.
     ///
     /// More information:
     /// - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-isgenericdescriptor
     #[inline]
-    pub fn is_generic_descriptor(&self) -> bool {
+    pub const fn is_generic_descriptor(&self) -> bool {
         matches!(self.kind, DescriptorKind::Generic)
     }
 
+    /// Returns if the property descriptor is empty.
     #[inline]
-    pub fn is_empty(&self) -> bool {
+    pub const fn is_empty(&self) -> bool {
         self.is_generic_descriptor() && self.enumerable.is_none() && self.configurable.is_none()
     }
 
+    /// Returns if the property descriptor is enumerable.
+    /// Returns `None` if the `enumerable` field is not set.
     #[inline]
-    pub fn enumerable(&self) -> Option<bool> {
+    pub const fn enumerable(&self) -> Option<bool> {
         self.enumerable
     }
 
+    /// Returns if the property descriptor is configurable.
+    /// Returns `None` if the `configurable` field is not set.
     #[inline]
-    pub fn configurable(&self) -> Option<bool> {
+    pub const fn configurable(&self) -> Option<bool> {
         self.configurable
     }
 
+    /// Returns if the property descriptor is writable.
+    /// Returns `None` if the `writable` field is not set or the property descriptor is not a data descriptor.
     #[inline]
-    pub fn writable(&self) -> Option<bool> {
+    pub const fn writable(&self) -> Option<bool> {
         match self.kind {
             DescriptorKind::Data { writable, .. } => writable,
             _ => None,
         }
     }
 
+    /// Returns the value of the property descriptor.
+    /// Returns `None` if the value is not set or the property descriptor is not a data descriptor.
     #[inline]
-    pub fn value(&self) -> Option<&JsValue> {
+    pub const fn value(&self) -> Option<&JsValue> {
         match &self.kind {
             DescriptorKind::Data { value, .. } => value.as_ref(),
             _ => None,
         }
     }
 
+    /// Returns the getter of the property descriptor.
+    /// Returns `None` if the getter is not set or the property descriptor is not an accessor descriptor.
     #[inline]
-    pub fn get(&self) -> Option<&JsValue> {
+    pub const fn get(&self) -> Option<&JsValue> {
         match &self.kind {
             DescriptorKind::Accessor { get, .. } => get.as_ref(),
             _ => None,
         }
     }
 
+    /// Returns the setter of the property descriptor.
+    /// Returns `None` if the setter is not set or the property descriptor is not an accessor descriptor.
     #[inline]
-    pub fn set(&self) -> Option<&JsValue> {
+    pub const fn set(&self) -> Option<&JsValue> {
         match &self.kind {
             DescriptorKind::Accessor { set, .. } => set.as_ref(),
             _ => None,
         }
     }
 
+    /// Returns if the property descriptor is enumerable.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the `enumerable` field is not set.
     #[inline]
     pub fn expect_enumerable(&self) -> bool {
-        if let Some(enumerable) = self.enumerable {
-            enumerable
-        } else {
-            panic!("[[enumerable]] field not in property descriptor")
-        }
+        self.enumerable
+            .expect("[[enumerable]] field not in property descriptor")
     }
 
+    /// Returns if the property descriptor is configurable.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the `configurable` field is not set.
     #[inline]
     pub fn expect_configurable(&self) -> bool {
-        if let Some(configurable) = self.configurable {
-            configurable
-        } else {
-            panic!("[[configurable]] field not in property descriptor")
-        }
+        self.configurable
+            .expect("[[configurable]] field not in property descriptor")
     }
 
+    /// Returns if the property descriptor is writable.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the `writable` field is not set.
     #[inline]
     pub fn expect_writable(&self) -> bool {
-        if let Some(writable) = self.writable() {
-            writable
-        } else {
-            panic!("[[writable]] field not in property descriptor")
-        }
+        self.writable()
+            .expect("[[writable]] field not in property descriptor")
     }
 
+    /// Returns the value of the property descriptor.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the `value` field is not set.
     #[inline]
     pub fn expect_value(&self) -> &JsValue {
-        if let Some(value) = self.value() {
-            value
-        } else {
-            panic!("[[value]] field not in property descriptor")
-        }
+        self.value()
+            .expect("[[value]] field not in property descriptor")
     }
 
+    /// Returns the getter of the property descriptor.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the `getter` field is not set.
     #[inline]
     pub fn expect_get(&self) -> &JsValue {
-        if let Some(get) = self.get() {
-            get
-        } else {
-            panic!("[[get]] field not in property descriptor")
-        }
+        self.get()
+            .expect("[[get]] field not in property descriptor")
     }
 
+    /// Returns the setter of the property descriptor.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the `setter` field is not set.
     #[inline]
     pub fn expect_set(&self) -> &JsValue {
-        if let Some(set) = self.set() {
-            set
-        } else {
-            panic!("[[set]] field not in property descriptor")
-        }
+        self.set()
+            .expect("[[set]] field not in property descriptor")
     }
 
+    /// Returns the kind of the property descriptor.
     #[inline]
-    pub fn kind(&self) -> &DescriptorKind {
+    pub const fn kind(&self) -> &DescriptorKind {
         &self.kind
     }
 
+    /// Creates a new [`PropertyDescriptorBuilder`].
     #[inline]
+    #[must_use]
     pub fn builder() -> PropertyDescriptorBuilder {
         PropertyDescriptorBuilder::new()
     }
 
+    /// Creates an accessor property descriptor with default values.
     #[inline]
     #[must_use]
     pub fn into_accessor_defaulted(mut self) -> Self {
@@ -227,6 +269,7 @@ impl PropertyDescriptor {
             .build()
     }
 
+    /// Creates a data property descriptor with default values.
     #[must_use]
     pub fn into_data_defaulted(mut self) -> Self {
         self.kind = DescriptorKind::Data {
@@ -238,6 +281,7 @@ impl PropertyDescriptor {
             .build()
     }
 
+    /// Creates an generic property descriptor with default values.
     #[inline]
     #[must_use]
     pub fn complete_property_descriptor(self) -> Self {
@@ -246,6 +290,12 @@ impl PropertyDescriptor {
             .build()
     }
 
+    /// Fills the fields of the `PropertyDescriptor` that are not set
+    /// with fields from the given `PropertyDescriptor`.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the given `PropertyDescriptor` is not compatible with this one.
     #[inline]
     pub fn fill_with(&mut self, desc: &Self) {
         match (&mut self.kind, &desc.kind) {
@@ -290,16 +340,20 @@ impl PropertyDescriptor {
     }
 }
 
+/// A builder for [`PropertyDescriptor`].
 #[derive(Default, Debug, Clone)]
 pub struct PropertyDescriptorBuilder {
     inner: PropertyDescriptor,
 }
 
 impl PropertyDescriptorBuilder {
+    /// Creates a new [`PropertyDescriptorBuilder`].
+    #[must_use]
     pub fn new() -> Self {
         Self::default()
     }
 
+    /// Sets the `value` field of the property descriptor.
     #[must_use]
     pub fn value<V: Into<JsValue>>(mut self, value: V) -> Self {
         match self.inner.kind {
@@ -317,6 +371,7 @@ impl PropertyDescriptorBuilder {
         self
     }
 
+    /// Sets the `writable` field of the property descriptor.
     #[must_use]
     pub fn writable(mut self, writable: bool) -> Self {
         match self.inner.kind {
@@ -335,6 +390,7 @@ impl PropertyDescriptorBuilder {
         self
     }
 
+    /// Sets the `get` field of the property descriptor.
     #[must_use]
     pub fn get<V: Into<JsValue>>(mut self, get: V) -> Self {
         match self.inner.kind {
@@ -350,6 +406,7 @@ impl PropertyDescriptorBuilder {
         self
     }
 
+    /// Sets the `set` field of the property descriptor.
     #[must_use]
     pub fn set<V: Into<JsValue>>(mut self, set: V) -> Self {
         match self.inner.kind {
@@ -365,22 +422,25 @@ impl PropertyDescriptorBuilder {
         self
     }
 
+    /// Optionally sets the `enumerable` field of the property descriptor.
     #[must_use]
-    pub fn maybe_enumerable(mut self, enumerable: Option<bool>) -> Self {
+    pub const fn maybe_enumerable(mut self, enumerable: Option<bool>) -> Self {
         if let Some(enumerable) = enumerable {
             self = self.enumerable(enumerable);
         }
         self
     }
 
+    /// Optionally sets the `configurable` field of the property descriptor.
     #[must_use]
-    pub fn maybe_configurable(mut self, configurable: Option<bool>) -> Self {
+    pub const fn maybe_configurable(mut self, configurable: Option<bool>) -> Self {
         if let Some(configurable) = configurable {
             self = self.configurable(configurable);
         }
         self
     }
 
+    /// Optionally sets the `value` field of the property descriptor.
     #[must_use]
     pub fn maybe_value<V: Into<JsValue>>(mut self, value: Option<V>) -> Self {
         if let Some(value) = value {
@@ -389,6 +449,7 @@ impl PropertyDescriptorBuilder {
         self
     }
 
+    /// Optionally sets the `writable` field of the property descriptor.
     #[must_use]
     pub fn maybe_writable(mut self, writable: Option<bool>) -> Self {
         if let Some(writable) = writable {
@@ -397,6 +458,7 @@ impl PropertyDescriptorBuilder {
         self
     }
 
+    /// Optionally sets the `get` field of the property descriptor.
     #[must_use]
     pub fn maybe_get<V: Into<JsValue>>(mut self, get: Option<V>) -> Self {
         if let Some(get) = get {
@@ -405,6 +467,7 @@ impl PropertyDescriptorBuilder {
         self
     }
 
+    /// Optionally sets the `set` field of the property descriptor.
     #[must_use]
     pub fn maybe_set<V: Into<JsValue>>(mut self, set: Option<V>) -> Self {
         if let Some(set) = set {
@@ -413,18 +476,21 @@ impl PropertyDescriptorBuilder {
         self
     }
 
+    /// Sets the `enumerable` field of the property descriptor.
     #[must_use]
-    pub fn enumerable(mut self, enumerable: bool) -> Self {
+    pub const fn enumerable(mut self, enumerable: bool) -> Self {
         self.inner.enumerable = Some(enumerable);
         self
     }
 
+    /// Sets the `configurable` field of the property descriptor.
     #[must_use]
-    pub fn configurable(mut self, configurable: bool) -> Self {
+    pub const fn configurable(mut self, configurable: bool) -> Self {
         self.inner.configurable = Some(configurable);
         self
     }
 
+    /// Fill any missing fields in the property descriptor.
     #[must_use]
     pub fn complete_with_defaults(mut self) -> Self {
         match self.inner.kind {
@@ -466,10 +532,13 @@ impl PropertyDescriptorBuilder {
         self
     }
 
-    pub fn inner(&self) -> &PropertyDescriptor {
+    /// Returns a reference to the currently built [`PropertyDescriptor`].
+    pub const fn inner(&self) -> &PropertyDescriptor {
         &self.inner
     }
 
+    /// Consumes the builder and returns the [`PropertyDescriptor`].
+    #[allow(clippy::missing_const_for_fn)]
     pub fn build(self) -> PropertyDescriptor {
         self.inner
     }
@@ -490,52 +559,51 @@ impl From<PropertyDescriptorBuilder> for PropertyDescriptor {
 /// [spec]: https://tc39.es/ecma262/#sec-ispropertykey
 #[derive(PartialEq, Debug, Clone, Eq, Hash)]
 pub enum PropertyKey {
+    /// A string property key.
     String(JsString),
+
+    /// A symbol property key.
     Symbol(JsSymbol),
+
+    /// A numeric property key.
     Index(u32),
 }
 
 impl From<JsString> for PropertyKey {
     #[inline]
     fn from(string: JsString) -> Self {
-        if let Some(index) = string.to_std_string().ok().and_then(|s| s.parse().ok()) {
-            Self::Index(index)
-        } else {
-            Self::String(string)
-        }
+        string
+            .to_std_string()
+            .ok()
+            .and_then(|s| s.parse().ok())
+            .map_or(Self::String(string), Self::Index)
     }
 }
 
 impl From<&str> for PropertyKey {
     #[inline]
     fn from(string: &str) -> Self {
-        if let Ok(index) = string.parse() {
-            Self::Index(index)
-        } else {
-            Self::String(string.into())
-        }
+        string
+            .parse()
+            .map_or_else(|_| Self::String(string.into()), Self::Index)
     }
 }
 
 impl From<String> for PropertyKey {
     #[inline]
     fn from(string: String) -> Self {
-        if let Ok(index) = string.parse() {
-            Self::Index(index)
-        } else {
-            Self::String(string.into())
-        }
+        string
+            .parse()
+            .map_or_else(|_| Self::String(string.into()), Self::Index)
     }
 }
 
 impl From<Box<str>> for PropertyKey {
     #[inline]
     fn from(string: Box<str>) -> Self {
-        if let Ok(index) = string.parse() {
-            Self::Index(index)
-        } else {
-            Self::String(string.as_ref().into())
-        }
+        string
+            .parse()
+            .map_or_else(|_| Self::String(string.as_ref().into()), Self::Index)
     }
 }
 
@@ -564,11 +632,7 @@ impl From<&PropertyKey> for JsValue {
             PropertyKey::String(ref string) => string.clone().into(),
             PropertyKey::Symbol(ref symbol) => symbol.clone().into(),
             PropertyKey::Index(index) => {
-                if let Ok(integer) = i32::try_from(*index) {
-                    Self::new(integer)
-                } else {
-                    Self::new(*index)
-                }
+                i32::try_from(*index).map_or_else(|_| Self::new(*index), Self::new)
             }
         }
     }
@@ -605,51 +669,36 @@ impl From<u32> for PropertyKey {
 
 impl From<usize> for PropertyKey {
     fn from(value: usize) -> Self {
-        if let Ok(index) = u32::try_from(value) {
-            Self::Index(index)
-        } else {
-            Self::String(js_string!(value.to_string()))
-        }
+        u32::try_from(value)
+            .map_or_else(|_| Self::String(js_string!(value.to_string())), Self::Index)
     }
 }
 
 impl From<i64> for PropertyKey {
     fn from(value: i64) -> Self {
-        if let Ok(index) = u32::try_from(value) {
-            Self::Index(index)
-        } else {
-            Self::String(js_string!(value.to_string()))
-        }
+        u32::try_from(value)
+            .map_or_else(|_| Self::String(js_string!(value.to_string())), Self::Index)
     }
 }
 
 impl From<u64> for PropertyKey {
     fn from(value: u64) -> Self {
-        if let Ok(index) = u32::try_from(value) {
-            Self::Index(index)
-        } else {
-            Self::String(js_string!(value.to_string()))
-        }
+        u32::try_from(value)
+            .map_or_else(|_| Self::String(js_string!(value.to_string())), Self::Index)
     }
 }
 
 impl From<isize> for PropertyKey {
     fn from(value: isize) -> Self {
-        if let Ok(index) = u32::try_from(value) {
-            Self::Index(index)
-        } else {
-            Self::String(js_string!(value.to_string()))
-        }
+        u32::try_from(value)
+            .map_or_else(|_| Self::String(js_string!(value.to_string())), Self::Index)
     }
 }
 
 impl From<i32> for PropertyKey {
     fn from(value: i32) -> Self {
-        if let Ok(index) = u32::try_from(value) {
-            Self::Index(index)
-        } else {
-            Self::String(js_string!(value.to_string()))
-        }
+        u32::try_from(value)
+            .map_or_else(|_| Self::String(js_string!(value.to_string())), Self::Index)
     }
 }
 

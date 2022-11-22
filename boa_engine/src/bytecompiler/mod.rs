@@ -1,3 +1,5 @@
+//! This module contains the bytecode compiler.
+
 mod function;
 
 use crate::{
@@ -57,6 +59,7 @@ enum FunctionKind {
 
 /// Describes the complete specification of a function node.
 #[derive(Debug, Clone, Copy, PartialEq)]
+#[allow(single_use_lifetimes)]
 struct FunctionSpec<'a> {
     kind: FunctionKind,
     name: Option<Identifier>,
@@ -65,14 +68,14 @@ struct FunctionSpec<'a> {
     has_binding_identifier: bool,
 }
 
-impl<'a> FunctionSpec<'a> {
+impl FunctionSpec<'_> {
     #[inline]
-    fn is_arrow(&self) -> bool {
+    const fn is_arrow(&self) -> bool {
         matches!(self.kind, FunctionKind::Arrow | FunctionKind::AsyncArrow)
     }
 
     #[inline]
-    fn is_async(&self) -> bool {
+    const fn is_async(&self) -> bool {
         matches!(
             self.kind,
             FunctionKind::Async | FunctionKind::AsyncGenerator | FunctionKind::AsyncArrow
@@ -80,7 +83,7 @@ impl<'a> FunctionSpec<'a> {
     }
 
     #[inline]
-    fn is_generator(&self) -> bool {
+    const fn is_generator(&self) -> bool {
         matches!(
             self.kind,
             FunctionKind::Generator | FunctionKind::AsyncGenerator
@@ -208,7 +211,7 @@ enum Access<'a> {
 }
 
 impl Access<'_> {
-    fn from_assign_target(target: &AssignTarget) -> Result<Access<'_>, &Pattern> {
+    const fn from_assign_target(target: &AssignTarget) -> Result<Access<'_>, &Pattern> {
         match target {
             AssignTarget::Identifier(ident) => Ok(Access::Variable { name: *ident }),
             AssignTarget::Access(access) => Ok(Access::Property { access }),
@@ -216,7 +219,7 @@ impl Access<'_> {
         }
     }
 
-    fn from_expression(expr: &Expression) -> Option<Access<'_>> {
+    const fn from_expression(expr: &Expression) -> Option<Access<'_>> {
         match expr {
             Expression::Identifier(name) => Some(Access::Variable { name: *name }),
             Expression::PropertyAccess(access) => Some(Access::Property { access }),
@@ -226,6 +229,7 @@ impl Access<'_> {
     }
 }
 
+/// The [`ByteCompiler`] is used to compile ECMAScript AST from [`boa_ast`] to bytecode.
 #[derive(Debug)]
 pub struct ByteCompiler<'b> {
     code_block: CodeBlock,
@@ -242,6 +246,7 @@ impl<'b> ByteCompiler<'b> {
     /// Represents a placeholder address that will be patched later.
     const DUMMY_ADDRESS: u32 = u32::MAX;
 
+    /// Creates a new [`ByteCompiler`].
     #[inline]
     pub fn new(name: Sym, strict: bool, json_parse: bool, context: &'b mut Context) -> Self {
         Self {
@@ -865,6 +870,7 @@ impl<'b> ByteCompiler<'b> {
         Ok(())
     }
 
+    /// Compile a [`StatementList`].
     #[inline]
     pub fn compile_statement_list(
         &mut self,
@@ -910,6 +916,7 @@ impl<'b> ByteCompiler<'b> {
         Ok(())
     }
 
+    /// Compile an [`Expression`].
     #[inline]
     pub fn compile_expr(&mut self, expr: &Expression, use_expr: bool) -> JsResult<()> {
         match expr {
@@ -1747,7 +1754,8 @@ impl<'b> ByteCompiler<'b> {
         Ok(())
     }
 
-    pub fn compile_var_decl(&mut self, decl: &VarDeclaration) -> JsResult<()> {
+    /// Compile a [`VarDeclaration`].
+    fn compile_var_decl(&mut self, decl: &VarDeclaration) -> JsResult<()> {
         for variable in decl.0.as_ref() {
             match variable.binding() {
                 Binding::Identifier(ident) => {
@@ -1773,7 +1781,8 @@ impl<'b> ByteCompiler<'b> {
         Ok(())
     }
 
-    pub fn compile_lexical_decl(&mut self, decl: &LexicalDeclaration) -> JsResult<()> {
+    /// Compile a [`LexicalDeclaration`].
+    fn compile_lexical_decl(&mut self, decl: &LexicalDeclaration) -> JsResult<()> {
         match decl {
             LexicalDeclaration::Let(decls) => {
                 for variable in decls.as_ref() {
@@ -1826,8 +1835,9 @@ impl<'b> ByteCompiler<'b> {
         Ok(())
     }
 
+    /// Compile a [`StatementListItem`].
     #[inline]
-    pub fn compile_stmt_list_item(
+    fn compile_stmt_list_item(
         &mut self,
         item: &StatementListItem,
         use_expr: bool,
@@ -1841,6 +1851,7 @@ impl<'b> ByteCompiler<'b> {
         }
     }
 
+    /// Compile a [`Declaration`].
     #[inline]
     pub fn compile_decl(&mut self, decl: &Declaration) -> JsResult<()> {
         match decl {
@@ -1861,8 +1872,9 @@ impl<'b> ByteCompiler<'b> {
         }
     }
 
+    /// Compile a [`ForLoop`].
     #[inline]
-    pub fn compile_for_loop(
+    fn compile_for_loop(
         &mut self,
         for_loop: &ForLoop,
         label: Option<Sym>,
@@ -1921,8 +1933,9 @@ impl<'b> ByteCompiler<'b> {
         Ok(())
     }
 
+    /// Compile a [`ForInLoop`].
     #[inline]
-    pub fn compile_for_in_loop(
+    fn compile_for_in_loop(
         &mut self,
         for_in_loop: &ForInLoop,
         label: Option<Sym>,
@@ -2036,8 +2049,9 @@ impl<'b> ByteCompiler<'b> {
         Ok(())
     }
 
+    /// Compile a [`ForOfLoop`].
     #[inline]
-    pub fn compile_for_of_loop(
+    fn compile_for_of_loop(
         &mut self,
         for_of_loop: &ForOfLoop,
         label: Option<Sym>,
@@ -2160,8 +2174,9 @@ impl<'b> ByteCompiler<'b> {
         Ok(())
     }
 
+    /// Compile a [`WhileLoop`].
     #[inline]
-    pub fn compile_while_loop(
+    fn compile_while_loop(
         &mut self,
         while_loop: &WhileLoop,
         label: Option<Sym>,
@@ -2183,8 +2198,9 @@ impl<'b> ByteCompiler<'b> {
         Ok(())
     }
 
+    /// Compile a [`DoWhileLoop`].
     #[inline]
-    pub fn compile_do_while_loop(
+    fn compile_do_while_loop(
         &mut self,
         do_while_loop: &DoWhileLoop,
         label: Option<Sym>,
@@ -2212,6 +2228,7 @@ impl<'b> ByteCompiler<'b> {
         Ok(())
     }
 
+    /// Compile a [`Block`].
     #[inline]
     pub fn compile_block(
         &mut self,
@@ -2242,6 +2259,7 @@ impl<'b> ByteCompiler<'b> {
         Ok(())
     }
 
+    /// Compile a [`Statement`].
     #[inline]
     pub fn compile_stmt(
         &mut self,
@@ -2346,11 +2364,9 @@ impl<'b> ByteCompiler<'b> {
                     .filter(|info| info.kind == JumpControlInfoKind::Try)
                 {
                     let start_address = info.start_address;
-                    let in_finally = if let Some(finally_start) = info.finally_start {
-                        next > finally_start.index
-                    } else {
-                        false
-                    };
+                    let in_finally = info
+                        .finally_start
+                        .map_or(false, |finally_start| next > finally_start.index);
                     let in_catch_no_finally = !info.has_finally && info.in_catch;
 
                     if in_finally {
@@ -2358,11 +2374,10 @@ impl<'b> ByteCompiler<'b> {
                     }
                     if in_finally || in_catch_no_finally {
                         self.emit_opcode(Opcode::CatchEnd2);
-                        self.emit(Opcode::FinallySetJump, &[start_address]);
                     } else {
                         self.emit_opcode(Opcode::TryEnd);
-                        self.emit(Opcode::FinallySetJump, &[start_address]);
                     }
+                    self.emit(Opcode::FinallySetJump, &[start_address]);
                     let label = self.jump();
                     self.jump_info
                         .last_mut()
@@ -2428,11 +2443,9 @@ impl<'b> ByteCompiler<'b> {
                     .last()
                     .filter(|info| info.kind == JumpControlInfoKind::Try)
                 {
-                    let in_finally = if let Some(finally_start) = info.finally_start {
-                        next >= finally_start.index
-                    } else {
-                        false
-                    };
+                    let in_finally = info
+                        .finally_start
+                        .map_or(false, |finally_start| next >= finally_start.index);
                     let in_catch_no_finally = !info.has_finally && info.in_catch;
 
                     if in_finally {
@@ -2785,7 +2798,10 @@ impl<'b> ByteCompiler<'b> {
         Ok(())
     }
 
+    /// Finish compiling code with the [`ByteCompiler`] and return the generated [`CodeBlock`].
     #[inline]
+    #[must_use]
+    #[allow(clippy::missing_const_for_fn)]
     pub fn finish(self) -> CodeBlock {
         self.code_block
     }

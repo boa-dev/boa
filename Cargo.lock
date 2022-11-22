@@ -129,7 +129,6 @@ dependencies = [
  "boa_macros",
  "boa_parser",
  "boa_profiler",
- "boa_unicode",
  "chrono",
  "criterion",
  "dyn-clone",

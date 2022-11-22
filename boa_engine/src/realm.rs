@@ -25,6 +25,7 @@ pub struct Realm {
 }
 
 impl Realm {
+    /// Create a new Realm.
     #[inline]
     pub fn create(global_prototype: JsPrototype) -> Self {
         let _timer = Profiler::global().start_event("Realm::create", "realm");
@@ -46,7 +47,7 @@ impl Realm {
     }
 
     #[inline]
-    pub(crate) fn global_object(&self) -> &JsObject {
+    pub(crate) const fn global_object(&self) -> &JsObject {
         &self.global_object
     }
 

@@ -27,6 +27,7 @@ pub struct JsProxy {
 }
 
 impl JsProxy {
+    /// Creates a new [`JsProxyBuilder`] to easily construct a [`JsProxy`].
     pub fn builder(target: JsObject) -> JsProxyBuilder {
         JsProxyBuilder::new(target)
     }

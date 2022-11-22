@@ -236,10 +236,10 @@ impl Array {
         // 3. Let A be ! MakeBasicObject(« [[Prototype]], [[Extensible]] »).
         // 4. Set A.[[Prototype]] to proto.
         // 5. Set A.[[DefineOwnProperty]] as specified in 10.4.2.1.
-        let prototype = match prototype {
-            Some(prototype) => prototype,
-            None => context.intrinsics().constructors().array().prototype(),
-        };
+        let prototype = prototype.map_or_else(
+            || context.intrinsics().constructors().array().prototype(),
+            |prototype| prototype,
+        );
         let array = JsObject::from_proto_and_data(prototype, ObjectData::array());
 
         // 6. Perform ! OrdinaryDefineOwnProperty(A, "length", PropertyDescriptor { [[Value]]: 𝔽(length), [[Writable]]: true, [[Enumerable]]: false, [[Configurable]]: false }).
@@ -380,15 +380,15 @@ impl Array {
             return Self::array_create(length, None, context);
         }
 
-        // 7. If IsConstructor(C) is false, throw a TypeError exception.
         if let Some(c) = c.as_constructor() {
             // 8. Return ? Construct(C, « 𝔽(length) »).
-            c.construct(&[JsValue::new(length)], Some(c), context)
-        } else {
-            Err(JsNativeError::typ()
-                .with_message("Symbol.species must be a constructor")
-                .into())
+            return c.construct(&[JsValue::new(length)], Some(c), context);
         }
+
+        // 7. If IsConstructor(C) is false, throw a TypeError exception.
+        Err(JsNativeError::typ()
+            .with_message("Symbol.species must be a constructor")
+            .into())
     }
 
     /// `Array.from(arrayLike)`
@@ -670,7 +670,7 @@ impl Array {
         let mut n = 0;
         // 4. Prepend O to items.
         // 5. For each element E of items, do
-        for item in [JsValue::new(obj)].iter().chain(args.iter()) {
+        for item in std::iter::once(&JsValue::new(obj)).chain(args.iter()) {
             // a. Let spreadable be ? IsConcatSpreadable(E).
             let spreadable = Self::is_concat_spreadable(item, context)?;
             // b. If spreadable is true, then
@@ -1776,13 +1776,13 @@ impl Array {
                 }
 
                 // iii. Let shouldFlatten be false
-                let mut should_flatten = false;
-
                 // iv. If depth > 0, then
-                if depth > 0 {
+                let should_flatten = if depth > 0 {
                     // 1. Set shouldFlatten to ? IsArray(element).
-                    should_flatten = element.is_array()?;
-                }
+                    element.is_array()?
+                } else {
+                    false
+                };
 
                 // v. If shouldFlatten is true
                 if should_flatten {

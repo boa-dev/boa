@@ -88,6 +88,9 @@ pub(crate) trait JsObjectType:
 /// Static `prototype`, usually set on constructors as a key to point to their respective prototype object.
 pub static PROTOTYPE: &str = "prototype";
 
+/// A type alias for an object prototype.
+///
+/// A `None` values means that the prototype is the `null` value.
 pub type JsPrototype = Option<JsObject>;
 
 /// This trait allows Rust types to be passed around as objects.
@@ -104,12 +107,12 @@ pub trait NativeObject: Debug + Any + Trace {
 impl<T: Any + Debug + Trace> NativeObject for T {
     #[inline]
     fn as_any(&self) -> &dyn Any {
-        self as &dyn Any
+        self
     }
 
     #[inline]
     fn as_mut_any(&mut self) -> &mut dyn Any {
-        self as &mut dyn Any
+        self
     }
 }
 
@@ -142,10 +145,18 @@ unsafe impl Trace for Object {
 /// The representation of private object elements.
 #[derive(Clone, Debug, Trace, Finalize)]
 pub enum PrivateElement {
+    /// A private field.
     Field(JsValue),
+
+    /// A private method.
     Method(JsObject),
+
+    /// A private element accessor.
     Accessor {
+        /// A getter function.
         getter: Option<JsObject>,
+
+        /// A setter function.
         setter: Option<JsObject>,
     },
 }
@@ -160,40 +171,109 @@ pub struct ObjectData {
 /// Defines the different types of objects.
 #[derive(Debug, Finalize)]
 pub enum ObjectKind {
+    /// The `AsyncFromSyncIterator` object kind.
     AsyncFromSyncIterator(AsyncFromSyncIterator),
+
+    /// The `AsyncGenerator` object kind.
     AsyncGenerator(AsyncGenerator),
+
+    /// The `AsyncGeneratorFunction` object kind.
     AsyncGeneratorFunction(Function),
+
+    /// The `Array` object kind.
     Array,
+
+    /// The `ArrayIterator` object kind.
     ArrayIterator(ArrayIterator),
+
+    /// The `ArrayBuffer` object kind.
     ArrayBuffer(ArrayBuffer),
+
+    /// The `Map` object kind.
     Map(OrderedMap<JsValue>),
+
+    /// The `MapIterator` object kind.
     MapIterator(MapIterator),
+
+    /// The `RegExp` object kind.
     RegExp(Box<RegExp>),
+
+    /// The `RegExpStringIterator` object kind.
     RegExpStringIterator(RegExpStringIterator),
+
+    /// The `BigInt` object kind.
     BigInt(JsBigInt),
+
+    /// The `Boolean` object kind.
     Boolean(bool),
+
+    /// The `DataView` object kind.
     DataView(DataView),
+
+    /// The `ForInIterator` object kind.
     ForInIterator(ForInIterator),
+
+    /// The `Function` object kind.
     Function(Function),
+
+    /// The `BoundFunction` object kind.
     BoundFunction(BoundFunction),
+
+    /// The `Generator` object kind.
     Generator(Generator),
+
+    /// The `GeneratorFunction` object kind.
     GeneratorFunction(Function),
+
+    /// The `Set` object kind.
     Set(OrderedSet<JsValue>),
+
+    /// The `SetIterator` object kind.
     SetIterator(SetIterator),
+
+    /// The `String` object kind.
     String(JsString),
+
+    /// The `StringIterator` object kind.
     StringIterator(StringIterator),
+
+    /// The `Number` object kind.
     Number(f64),
+
+    /// The `Symbol` object kind.
     Symbol(JsSymbol),
+
+    /// The `Error` object kind.
     Error(ErrorKind),
+
+    /// The ordinary object kind.
     Ordinary,
+
+    /// The `Proxy` object kind.
     Proxy(Proxy),
+
+    /// The `Date` object kind.
     Date(Date),
+
+    /// The `Global` object kind.
     Global,
+
+    /// The arguments exotic object kind.
     Arguments(Arguments),
+
+    /// The rust native object kind.
     NativeObject(Box<dyn NativeObject>),
+
+    /// The integer-indexed exotic object kind.
     IntegerIndexed(IntegerIndexed),
+
+    /// The `Promise` object kind.
     Promise(Promise),
+
+    /// The `WeakRef` object kind.
     WeakRef(WeakGc<GcCell<Object>>),
+
+    /// The `Intl.DateTimeFormat` object kind.
     #[cfg(feature = "intl")]
     DateTimeFormat(Box<DateTimeFormat>),
 }
@@ -269,6 +349,7 @@ impl ObjectData {
     }
 
     /// Create the `Array` object data and reference its exclusive internal methods
+    #[must_use]
     pub fn array() -> Self {
         Self {
             kind: ObjectKind::Array,
@@ -293,6 +374,7 @@ impl ObjectData {
     }
 
     /// Create the `Map` object data
+    #[must_use]
     pub fn map(map: OrderedMap<JsValue>) -> Self {
         Self {
             kind: ObjectKind::Map(map),
@@ -309,6 +391,7 @@ impl ObjectData {
     }
 
     /// Create the `RegExp` object data
+    #[must_use]
     pub fn reg_exp(reg_exp: Box<RegExp>) -> Self {
         Self {
             kind: ObjectKind::RegExp(reg_exp),
@@ -325,6 +408,7 @@ impl ObjectData {
     }
 
     /// Create the `BigInt` object data
+    #[must_use]
     pub fn big_int(big_int: JsBigInt) -> Self {
         Self {
             kind: ObjectKind::BigInt(big_int),
@@ -333,6 +417,7 @@ impl ObjectData {
     }
 
     /// Create the `Boolean` object data
+    #[must_use]
     pub fn boolean(boolean: bool) -> Self {
         Self {
             kind: ObjectKind::Boolean(boolean),
@@ -409,6 +494,7 @@ impl ObjectData {
     }
 
     /// Create the `Set` object data
+    #[must_use]
     pub fn set(set: OrderedSet<JsValue>) -> Self {
         Self {
             kind: ObjectKind::Set(set),
@@ -425,6 +511,7 @@ impl ObjectData {
     }
 
     /// Create the `String` object data and reference its exclusive internal methods
+    #[must_use]
     pub fn string(string: JsString) -> Self {
         Self {
             kind: ObjectKind::String(string),
@@ -441,6 +528,7 @@ impl ObjectData {
     }
 
     /// Create the `Number` object data
+    #[must_use]
     pub fn number(number: f64) -> Self {
         Self {
             kind: ObjectKind::Number(number),
@@ -449,6 +537,7 @@ impl ObjectData {
     }
 
     /// Create the `Symbol` object data
+    #[must_use]
     pub fn symbol(symbol: JsSymbol) -> Self {
         Self {
             kind: ObjectKind::Symbol(symbol),
@@ -465,6 +554,7 @@ impl ObjectData {
     }
 
     /// Create the `Ordinary` object data
+    #[must_use]
     pub fn ordinary() -> Self {
         Self {
             kind: ObjectKind::Ordinary,
@@ -487,6 +577,7 @@ impl ObjectData {
     }
 
     /// Create the `Date` object data
+    #[must_use]
     pub fn date(date: Date) -> Self {
         Self {
             kind: ObjectKind::Date(date),
@@ -495,6 +586,7 @@ impl ObjectData {
     }
 
     /// Create the `Global` object data
+    #[must_use]
     pub fn global() -> Self {
         Self {
             kind: ObjectKind::Global,
@@ -523,6 +615,7 @@ impl ObjectData {
     }
 
     /// Create the `NativeObject` object data
+    #[must_use]
     pub fn native_object(native_object: Box<dyn NativeObject>) -> Self {
         Self {
             kind: ObjectKind::NativeObject(native_object),
@@ -540,6 +633,7 @@ impl ObjectData {
 
     /// Create the `DateTimeFormat` object data
     #[cfg(feature = "intl")]
+    #[must_use]
     pub fn date_time_format(date_time_fmt: Box<DateTimeFormat>) -> Self {
         Self {
             kind: ObjectKind::DateTimeFormat(date_time_fmt),
@@ -615,14 +709,15 @@ impl Default for Object {
 }
 
 impl Object {
+    /// Returns the kind of the object.
     #[inline]
-    pub fn kind(&self) -> &ObjectKind {
+    pub const fn kind(&self) -> &ObjectKind {
         &self.data.kind
     }
 
     /// Checks if it's an `AsyncFromSyncIterator` object.
     #[inline]
-    pub fn is_async_from_sync_iterator(&self) -> bool {
+    pub const fn is_async_from_sync_iterator(&self) -> bool {
         matches!(
             self.data,
             ObjectData {
@@ -634,7 +729,7 @@ impl Object {
 
     /// Returns a reference to the `AsyncFromSyncIterator` data on the object.
     #[inline]
-    pub fn as_async_from_sync_iterator(&self) -> Option<&AsyncFromSyncIterator> {
+    pub const fn as_async_from_sync_iterator(&self) -> Option<&AsyncFromSyncIterator> {
         match self.data {
             ObjectData {
                 kind: ObjectKind::AsyncFromSyncIterator(ref async_from_sync_iterator),
@@ -646,7 +741,7 @@ impl Object {
 
     /// Checks if it's an `AsyncGenerator` object.
     #[inline]
-    pub fn is_async_generator(&self) -> bool {
+    pub const fn is_async_generator(&self) -> bool {
         matches!(
             self.data,
             ObjectData {
@@ -658,7 +753,7 @@ impl Object {
 
     /// Returns a reference to the async generator data on the object.
     #[inline]
-    pub fn as_async_generator(&self) -> Option<&AsyncGenerator> {
+    pub const fn as_async_generator(&self) -> Option<&AsyncGenerator> {
         match self.data {
             ObjectData {
                 kind: ObjectKind::AsyncGenerator(ref async_generator),
@@ -680,9 +775,9 @@ impl Object {
         }
     }
 
-    /// Checks if it an `Array` object.
+    /// Checks if the object is a `Array` object.
     #[inline]
-    pub fn is_array(&self) -> bool {
+    pub const fn is_array(&self) -> bool {
         matches!(
             self.data,
             ObjectData {
@@ -692,37 +787,14 @@ impl Object {
         )
     }
 
-    /// Checks if it is an `ArrayIterator` object.
     #[inline]
-    pub fn is_array_iterator(&self) -> bool {
-        matches!(
-            self.data,
-            ObjectData {
-                kind: ObjectKind::ArrayIterator(_),
-                ..
-            }
-        )
-    }
-
-    #[inline]
-    pub fn as_array_iterator(&self) -> Option<&ArrayIterator> {
-        match self.data {
-            ObjectData {
-                kind: ObjectKind::ArrayIterator(ref iter),
-                ..
-            } => Some(iter),
-            _ => None,
-        }
-    }
-
-    #[inline]
-    pub(crate) fn has_viewed_array_buffer(&self) -> bool {
+    pub(crate) const fn has_viewed_array_buffer(&self) -> bool {
         self.is_typed_array() || self.is_data_view()
     }
 
-    /// Checks if it an `DataView` object.
+    /// Checks if the object is a `DataView` object.
     #[inline]
-    pub fn is_data_view(&self) -> bool {
+    pub const fn is_data_view(&self) -> bool {
         matches!(
             self.data,
             ObjectData {
@@ -732,9 +804,9 @@ impl Object {
         )
     }
 
-    /// Checks if it an `ArrayBuffer` object.
+    /// Checks if the object is a `ArrayBuffer` object.
     #[inline]
-    pub fn is_array_buffer(&self) -> bool {
+    pub const fn is_array_buffer(&self) -> bool {
         matches!(
             self.data,
             ObjectData {
@@ -744,8 +816,9 @@ impl Object {
         )
     }
 
+    /// Gets the array buffer data if the object is a `ArrayBuffer`.
     #[inline]
-    pub fn as_array_buffer(&self) -> Option<&ArrayBuffer> {
+    pub const fn as_array_buffer(&self) -> Option<&ArrayBuffer> {
         match &self.data {
             ObjectData {
                 kind: ObjectKind::ArrayBuffer(buffer),
@@ -755,6 +828,7 @@ impl Object {
         }
     }
 
+    /// Gets the mutable array buffer data if the object is a `ArrayBuffer`.
     #[inline]
     pub fn as_array_buffer_mut(&mut self) -> Option<&mut ArrayBuffer> {
         match &mut self.data {
@@ -766,6 +840,31 @@ impl Object {
         }
     }
 
+    /// Checks if the object is a `ArrayIterator` object.
+    #[inline]
+    pub const fn is_array_iterator(&self) -> bool {
+        matches!(
+            self.data,
+            ObjectData {
+                kind: ObjectKind::ArrayIterator(_),
+                ..
+            }
+        )
+    }
+
+    /// Gets the array-iterator data if the object is a `ArrayIterator`.
+    #[inline]
+    pub const fn as_array_iterator(&self) -> Option<&ArrayIterator> {
+        match self.data {
+            ObjectData {
+                kind: ObjectKind::ArrayIterator(ref iter),
+                ..
+            } => Some(iter),
+            _ => None,
+        }
+    }
+
+    /// Gets the mutable array-iterator data if the object is a `ArrayIterator`.
     #[inline]
     pub fn as_array_iterator_mut(&mut self) -> Option<&mut ArrayIterator> {
         match &mut self.data {
@@ -777,6 +876,7 @@ impl Object {
         }
     }
 
+    /// Gets the mutable string-iterator data if the object is a `StringIterator`.
     #[inline]
     pub fn as_string_iterator_mut(&mut self) -> Option<&mut StringIterator> {
         match &mut self.data {
@@ -788,6 +888,7 @@ impl Object {
         }
     }
 
+    /// Gets the mutable regexp-string-iterator data if the object is a `RegExpStringIterator`.
     #[inline]
     pub fn as_regexp_string_iterator_mut(&mut self) -> Option<&mut RegExpStringIterator> {
         match &mut self.data {
@@ -799,8 +900,9 @@ impl Object {
         }
     }
 
+    /// Gets the for-in-iterator data if the object is a `ForInIterator`.
     #[inline]
-    pub fn as_for_in_iterator(&self) -> Option<&ForInIterator> {
+    pub const fn as_for_in_iterator(&self) -> Option<&ForInIterator> {
         match &self.data {
             ObjectData {
                 kind: ObjectKind::ForInIterator(iter),
@@ -810,6 +912,7 @@ impl Object {
         }
     }
 
+    /// Gets the mutable for-in-iterator data if the object is a `ForInIterator`.
     #[inline]
     pub fn as_for_in_iterator_mut(&mut self) -> Option<&mut ForInIterator> {
         match &mut self.data {
@@ -821,9 +924,9 @@ impl Object {
         }
     }
 
-    /// Checks if it is a `Map` object.pub
+    /// Checks if the object is a `Map` object.
     #[inline]
-    pub fn is_map(&self) -> bool {
+    pub const fn is_map(&self) -> bool {
         matches!(
             self.data,
             ObjectData {
@@ -833,8 +936,9 @@ impl Object {
         )
     }
 
+    /// Gets the map data if the object is a `Map`.
     #[inline]
-    pub fn as_map_ref(&self) -> Option<&OrderedMap<JsValue>> {
+    pub const fn as_map(&self) -> Option<&OrderedMap<JsValue>> {
         match self.data {
             ObjectData {
                 kind: ObjectKind::Map(ref map),
@@ -844,6 +948,7 @@ impl Object {
         }
     }
 
+    /// Gets the mutable map data if the object is a `Map`.
     #[inline]
     pub fn as_map_mut(&mut self) -> Option<&mut OrderedMap<JsValue>> {
         match &mut self.data {
@@ -855,8 +960,9 @@ impl Object {
         }
     }
 
+    /// Checks if the object is a `MapIterator` object.
     #[inline]
-    pub fn is_map_iterator(&self) -> bool {
+    pub const fn is_map_iterator(&self) -> bool {
         matches!(
             self.data,
             ObjectData {
@@ -866,8 +972,9 @@ impl Object {
         )
     }
 
+    /// Gets the map iterator data if the object is a `MapIterator`.
     #[inline]
-    pub fn as_map_iterator_ref(&self) -> Option<&MapIterator> {
+    pub const fn as_map_iterator_ref(&self) -> Option<&MapIterator> {
         match &self.data {
             ObjectData {
                 kind: ObjectKind::MapIterator(iter),
@@ -877,6 +984,7 @@ impl Object {
         }
     }
 
+    /// Gets the mutable map iterator data if the object is a `MapIterator`.
     #[inline]
     pub fn as_map_iterator_mut(&mut self) -> Option<&mut MapIterator> {
         match &mut self.data {
@@ -888,8 +996,9 @@ impl Object {
         }
     }
 
+    /// Checks if the object is a `Set` object.
     #[inline]
-    pub fn is_set(&self) -> bool {
+    pub const fn is_set(&self) -> bool {
         matches!(
             self.data,
             ObjectData {
@@ -899,20 +1008,9 @@ impl Object {
         )
     }
 
-    /// Checks if it is an `SetIterator` object.
+    /// Gets the set data if the object is a `Set`.
     #[inline]
-    pub fn is_set_iterator(&self) -> bool {
-        matches!(
-            self.data,
-            ObjectData {
-                kind: ObjectKind::SetIterator(_),
-                ..
-            }
-        )
-    }
-
-    #[inline]
-    pub fn as_set_ref(&self) -> Option<&OrderedSet<JsValue>> {
+    pub const fn as_set(&self) -> Option<&OrderedSet<JsValue>> {
         match self.data {
             ObjectData {
                 kind: ObjectKind::Set(ref set),
@@ -922,6 +1020,7 @@ impl Object {
         }
     }
 
+    /// Gets the mutable set data if the object is a `Set`.
     #[inline]
     pub fn as_set_mut(&mut self) -> Option<&mut OrderedSet<JsValue>> {
         match &mut self.data {
@@ -933,6 +1032,19 @@ impl Object {
         }
     }
 
+    /// Checks if the object is a `SetIterator` object.
+    #[inline]
+    pub const fn is_set_iterator(&self) -> bool {
+        matches!(
+            self.data,
+            ObjectData {
+                kind: ObjectKind::SetIterator(_),
+                ..
+            }
+        )
+    }
+
+    /// Gets the mutable set iterator data if the object is a `SetIterator`.
     #[inline]
     pub fn as_set_iterator_mut(&mut self) -> Option<&mut SetIterator> {
         match &mut self.data {
@@ -944,9 +1056,9 @@ impl Object {
         }
     }
 
-    /// Checks if it a `String` object.
+    /// Checks if the object is a `String` object.
     #[inline]
-    pub fn is_string(&self) -> bool {
+    pub const fn is_string(&self) -> bool {
         matches!(
             self.data,
             ObjectData {
@@ -956,6 +1068,7 @@ impl Object {
         )
     }
 
+    /// Gets the string data if the object is a `String`.
     #[inline]
     pub fn as_string(&self) -> Option<JsString> {
         match self.data {
@@ -967,9 +1080,9 @@ impl Object {
         }
     }
 
-    /// Checks if it a `Function` object.
+    /// Checks if the object is a `Function` object.
     #[inline]
-    pub fn is_function(&self) -> bool {
+    pub const fn is_function(&self) -> bool {
         matches!(
             self.data,
             ObjectData {
@@ -979,8 +1092,9 @@ impl Object {
         )
     }
 
+    /// Gets the function data if the object is a `Function`.
     #[inline]
-    pub fn as_function(&self) -> Option<&Function> {
+    pub const fn as_function(&self) -> Option<&Function> {
         match self.data {
             ObjectData {
                 kind:
@@ -991,6 +1105,7 @@ impl Object {
         }
     }
 
+    /// Gets the mutable function data if the object is a `Function`.
     #[inline]
     pub fn as_function_mut(&mut self) -> Option<&mut Function> {
         match self.data {
@@ -1004,8 +1119,9 @@ impl Object {
         }
     }
 
+    /// Gets the bound function data if the object is a `BoundFunction`.
     #[inline]
-    pub fn as_bound_function(&self) -> Option<&BoundFunction> {
+    pub const fn as_bound_function(&self) -> Option<&BoundFunction> {
         match self.data {
             ObjectData {
                 kind: ObjectKind::BoundFunction(ref bound_function),
@@ -1015,9 +1131,9 @@ impl Object {
         }
     }
 
-    /// Checks if it's a `Generator` object.
+    /// Checks if the object is a `Generator` object.
     #[inline]
-    pub fn is_generator(&self) -> bool {
+    pub const fn is_generator(&self) -> bool {
         matches!(
             self.data,
             ObjectData {
@@ -1027,9 +1143,9 @@ impl Object {
         )
     }
 
-    /// Returns a reference to the generator data on the object.
+    /// Gets the generator data if the object is a `Generator`.
     #[inline]
-    pub fn as_generator(&self) -> Option<&Generator> {
+    pub const fn as_generator(&self) -> Option<&Generator> {
         match self.data {
             ObjectData {
                 kind: ObjectKind::Generator(ref generator),
@@ -1039,7 +1155,7 @@ impl Object {
         }
     }
 
-    /// Returns a mutable reference to the generator data on the object.
+    /// Gets the mutable generator data if the object is a `Generator`.
     #[inline]
     pub fn as_generator_mut(&mut self) -> Option<&mut Generator> {
         match self.data {
@@ -1051,9 +1167,9 @@ impl Object {
         }
     }
 
-    /// Checks if it a Symbol object.
+    /// Checks if the object is a `Symbol` object.
     #[inline]
-    pub fn is_symbol(&self) -> bool {
+    pub const fn is_symbol(&self) -> bool {
         matches!(
             self.data,
             ObjectData {
@@ -1063,6 +1179,7 @@ impl Object {
         )
     }
 
+    /// Gets the error data if the object is a `Symbol`.
     #[inline]
     pub fn as_symbol(&self) -> Option<JsSymbol> {
         match self.data {
@@ -1074,9 +1191,9 @@ impl Object {
         }
     }
 
-    /// Checks if it an Error object.
+    /// Checks if the object is a `Error` object.
     #[inline]
-    pub fn is_error(&self) -> bool {
+    pub const fn is_error(&self) -> bool {
         matches!(
             self.data,
             ObjectData {
@@ -1086,8 +1203,9 @@ impl Object {
         )
     }
 
+    /// Gets the error data if the object is a `Error`.
     #[inline]
-    pub fn as_error(&self) -> Option<ErrorKind> {
+    pub const fn as_error(&self) -> Option<ErrorKind> {
         match self.data {
             ObjectData {
                 kind: ObjectKind::Error(e),
@@ -1097,9 +1215,9 @@ impl Object {
         }
     }
 
-    /// Checks if it a Boolean object.
+    /// Checks if the object is a `Boolean` object.
     #[inline]
-    pub fn is_boolean(&self) -> bool {
+    pub const fn is_boolean(&self) -> bool {
         matches!(
             self.data,
             ObjectData {
@@ -1109,8 +1227,9 @@ impl Object {
         )
     }
 
+    /// Gets the boolean data if the object is a `Boolean`.
     #[inline]
-    pub fn as_boolean(&self) -> Option<bool> {
+    pub const fn as_boolean(&self) -> Option<bool> {
         match self.data {
             ObjectData {
                 kind: ObjectKind::Boolean(boolean),
@@ -1120,9 +1239,9 @@ impl Object {
         }
     }
 
-    /// Checks if it a `Number` object.
+    /// Checks if the object is a `Number` object.
     #[inline]
-    pub fn is_number(&self) -> bool {
+    pub const fn is_number(&self) -> bool {
         matches!(
             self.data,
             ObjectData {
@@ -1132,8 +1251,9 @@ impl Object {
         )
     }
 
+    /// Gets the number data if the object is a `Number`.
     #[inline]
-    pub fn as_number(&self) -> Option<f64> {
+    pub const fn as_number(&self) -> Option<f64> {
         match self.data {
             ObjectData {
                 kind: ObjectKind::Number(number),
@@ -1143,9 +1263,9 @@ impl Object {
         }
     }
 
-    /// Checks if it a `BigInt` object.
+    /// Checks if the object is a `BigInt` object.
     #[inline]
-    pub fn is_bigint(&self) -> bool {
+    pub const fn is_bigint(&self) -> bool {
         matches!(
             self.data,
             ObjectData {
@@ -1155,8 +1275,9 @@ impl Object {
         )
     }
 
+    /// Gets the bigint data if the object is a `BigInt`.
     #[inline]
-    pub fn as_bigint(&self) -> Option<&JsBigInt> {
+    pub const fn as_bigint(&self) -> Option<&JsBigInt> {
         match self.data {
             ObjectData {
                 kind: ObjectKind::BigInt(ref bigint),
@@ -1166,8 +1287,9 @@ impl Object {
         }
     }
 
+    /// Checks if the object is a `Date` object.
     #[inline]
-    pub fn is_date(&self) -> bool {
+    pub const fn is_date(&self) -> bool {
         matches!(
             self.data,
             ObjectData {
@@ -1177,8 +1299,9 @@ impl Object {
         )
     }
 
+    /// Gets the date data if the object is a `Date`.
     #[inline]
-    pub fn as_date(&self) -> Option<&Date> {
+    pub const fn as_date(&self) -> Option<&Date> {
         match self.data {
             ObjectData {
                 kind: ObjectKind::Date(ref date),
@@ -1201,7 +1324,7 @@ impl Object {
 
     /// Checks if it a `RegExp` object.
     #[inline]
-    pub fn is_regexp(&self) -> bool {
+    pub const fn is_regexp(&self) -> bool {
         matches!(
             self.data,
             ObjectData {
@@ -1213,7 +1336,7 @@ impl Object {
 
     /// Gets the regexp data if the object is a regexp.
     #[inline]
-    pub fn as_regexp(&self) -> Option<&RegExp> {
+    pub const fn as_regexp(&self) -> Option<&RegExp> {
         match self.data {
             ObjectData {
                 kind: ObjectKind::RegExp(ref regexp),
@@ -1225,7 +1348,7 @@ impl Object {
 
     /// Checks if it a `TypedArray` object.
     #[inline]
-    pub fn is_typed_array(&self) -> bool {
+    pub const fn is_typed_array(&self) -> bool {
         matches!(
             self.data,
             ObjectData {
@@ -1235,8 +1358,9 @@ impl Object {
         )
     }
 
+    /// Gets the data view data if the object is a `DataView`.
     #[inline]
-    pub fn as_data_view(&self) -> Option<&DataView> {
+    pub const fn as_data_view(&self) -> Option<&DataView> {
         match &self.data {
             ObjectData {
                 kind: ObjectKind::DataView(data_view),
@@ -1246,6 +1370,7 @@ impl Object {
         }
     }
 
+    /// Gets the mutable data view data if the object is a `DataView`.
     #[inline]
     pub fn as_data_view_mut(&mut self) -> Option<&mut DataView> {
         match &mut self.data {
@@ -1259,7 +1384,7 @@ impl Object {
 
     /// Checks if it is an `Arguments` object.
     #[inline]
-    pub fn is_arguments(&self) -> bool {
+    pub const fn is_arguments(&self) -> bool {
         matches!(
             self.data,
             ObjectData {
@@ -1271,7 +1396,7 @@ impl Object {
 
     /// Gets the mapped arguments data if this is a mapped arguments object.
     #[inline]
-    pub fn as_mapped_arguments(&self) -> Option<&ParameterMap> {
+    pub const fn as_mapped_arguments(&self) -> Option<&ParameterMap> {
         match self.data {
             ObjectData {
                 kind: ObjectKind::Arguments(Arguments::Mapped(ref args)),
@@ -1295,7 +1420,7 @@ impl Object {
 
     /// Gets the typed array data (integer indexed object) if this is a typed array.
     #[inline]
-    pub fn as_typed_array(&self) -> Option<&IntegerIndexed> {
+    pub const fn as_typed_array(&self) -> Option<&IntegerIndexed> {
         match self.data {
             ObjectData {
                 kind: ObjectKind::IntegerIndexed(ref integer_indexed_object),
@@ -1319,7 +1444,7 @@ impl Object {
 
     /// Checks if it an ordinary object.
     #[inline]
-    pub fn is_ordinary(&self) -> bool {
+    pub const fn is_ordinary(&self) -> bool {
         matches!(
             self.data,
             ObjectData {
@@ -1331,7 +1456,7 @@ impl Object {
 
     /// Checks if it's an proxy object.
     #[inline]
-    pub fn is_proxy(&self) -> bool {
+    pub const fn is_proxy(&self) -> bool {
         matches!(
             self.data,
             ObjectData {
@@ -1341,8 +1466,9 @@ impl Object {
         )
     }
 
+    /// Gets the proxy data if the object is a `Proxy`.
     #[inline]
-    pub fn as_proxy(&self) -> Option<&Proxy> {
+    pub const fn as_proxy(&self) -> Option<&Proxy> {
         match self.data {
             ObjectData {
                 kind: ObjectKind::Proxy(ref proxy),
@@ -1352,6 +1478,7 @@ impl Object {
         }
     }
 
+    /// Gets the mutable proxy data if the object is a `Proxy`.
     #[inline]
     pub fn as_proxy_mut(&mut self) -> Option<&mut Proxy> {
         match self.data {
@@ -1365,7 +1492,7 @@ impl Object {
 
     /// Gets the prototype instance of this object.
     #[inline]
-    pub fn prototype(&self) -> &JsPrototype {
+    pub const fn prototype(&self) -> &JsPrototype {
         &self.prototype
     }
 
@@ -1390,7 +1517,7 @@ impl Object {
 
     /// Returns `true` if it holds an Rust type that implements `NativeObject`.
     #[inline]
-    pub fn is_native_object(&self) -> bool {
+    pub const fn is_native_object(&self) -> bool {
         matches!(
             self.data,
             ObjectData {
@@ -1400,6 +1527,7 @@ impl Object {
         )
     }
 
+    /// Gets the native object data if the object is a `NativeObject`.
     #[inline]
     pub fn as_native_object(&self) -> Option<&dyn NativeObject> {
         match self.data {
@@ -1413,7 +1541,7 @@ impl Object {
 
     /// Checks if it is a `Promise` object.
     #[inline]
-    pub fn is_promise(&self) -> bool {
+    pub const fn is_promise(&self) -> bool {
         matches!(
             self.data,
             ObjectData {
@@ -1423,9 +1551,9 @@ impl Object {
         )
     }
 
-    /// Gets the promise data if the object is a promise.
+    /// Gets the promise data if the object is a `Promise`.
     #[inline]
-    pub fn as_promise(&self) -> Option<&Promise> {
+    pub const fn as_promise(&self) -> Option<&Promise> {
         match self.data {
             ObjectData {
                 kind: ObjectKind::Promise(ref promise),
@@ -1435,6 +1563,7 @@ impl Object {
         }
     }
 
+    /// Gets the mutable promise data if the object is a `Promise`.
     #[inline]
     pub fn as_promise_mut(&mut self) -> Option<&mut Promise> {
         match self.data {
@@ -1448,7 +1577,7 @@ impl Object {
 
     /// Gets the `WeakRef`data if the object is a `WeakRef`.
     #[inline]
-    pub fn as_weak_ref(&self) -> Option<&WeakGc<GcCell<Object>>> {
+    pub const fn as_weak_ref(&self) -> Option<&WeakGc<GcCell<Self>>> {
         match self.data {
             ObjectData {
                 kind: ObjectKind::WeakRef(ref weak_ref),
@@ -1505,8 +1634,9 @@ impl Object {
         }
     }
 
+    /// Returns the properties of the object.
     #[inline]
-    pub fn properties(&self) -> &PropertyMap {
+    pub const fn properties(&self) -> &PropertyMap {
         &self.properties
     }
 
@@ -1755,7 +1885,7 @@ impl<'context> FunctionBuilder<'context> {
     /// The default is `0`.
     #[inline]
     #[must_use]
-    pub fn length(mut self, length: usize) -> Self {
+    pub const fn length(mut self, length: usize) -> Self {
         self.length = length;
         self
     }

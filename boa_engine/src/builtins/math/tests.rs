@@ -394,7 +394,7 @@ fn hypot() {
     assert_eq!(b.to_number(&mut context).unwrap(), 5f64);
     assert_eq!(c.to_number(&mut context).unwrap(), 13f64);
     assert_eq!(d.to_number(&mut context).unwrap(), 7.071_067_811_865_475_5);
-    assert_eq!(e.to_number(&mut context).unwrap(), 8.774964387392123);
+    assert_eq!(e.to_number(&mut context).unwrap(), 8.774_964_387_392_123);
     assert!(f.to_number(&mut context).unwrap().is_infinite());
     assert_eq!(g.to_number(&mut context).unwrap(), 12f64);
 }

@@ -85,6 +85,7 @@ impl JsArray {
         Array::pop(&self.inner.clone().into(), &[], context)
     }
 
+    /// Calls `Array.prototype.at()`.
     #[inline]
     pub fn at<T>(&self, index: T, context: &mut Context) -> JsResult<JsValue>
     where
@@ -93,22 +94,26 @@ impl JsArray {
         Array::at(&self.inner.clone().into(), &[index.into().into()], context)
     }
 
+    /// Calls `Array.prototype.shift()`.
     #[inline]
     pub fn shift(&self, context: &mut Context) -> JsResult<JsValue> {
         Array::shift(&self.inner.clone().into(), &[], context)
     }
 
+    /// Calls `Array.prototype.unshift()`.
     #[inline]
     pub fn unshift(&self, items: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         Array::shift(&self.inner.clone().into(), items, context)
     }
 
+    /// Calls `Array.prototype.reverse()`.
     #[inline]
     pub fn reverse(&self, context: &mut Context) -> JsResult<Self> {
         Array::reverse(&self.inner.clone().into(), &[], context)?;
         Ok(self.clone())
     }
 
+    /// Calls `Array.prototype.concat()`.
     #[inline]
     pub fn concat(&self, items: &[JsValue], context: &mut Context) -> JsResult<Self> {
         let object = Array::concat(&self.inner.clone().into(), items, context)?
@@ -119,6 +124,7 @@ impl JsArray {
         Self::from_object(object)
     }
 
+    /// Calls `Array.prototype.join()`.
     #[inline]
     pub fn join(&self, separator: Option<JsString>, context: &mut Context) -> JsResult<JsString> {
         Array::join(
@@ -133,6 +139,7 @@ impl JsArray {
         })
     }
 
+    /// Calls `Array.prototype.fill()`.
     #[inline]
     pub fn fill<T>(
         &self,
@@ -156,6 +163,7 @@ impl JsArray {
         Ok(self.clone())
     }
 
+    /// Calls `Array.prototype.indexOf()`.
     #[inline]
     pub fn index_of<T>(
         &self,
@@ -182,6 +190,7 @@ impl JsArray {
         }
     }
 
+    /// Calls `Array.prototype.lastIndexOf()`.
     #[inline]
     pub fn last_index_of<T>(
         &self,
@@ -208,6 +217,7 @@ impl JsArray {
         }
     }
 
+    /// Calls `Array.prototype.find()`.
     #[inline]
     pub fn find(
         &self,
@@ -222,6 +232,7 @@ impl JsArray {
         )
     }
 
+    /// Calls `Array.prototype.filter()`.
     #[inline]
     pub fn filter(
         &self,
@@ -241,6 +252,7 @@ impl JsArray {
         Self::from_object(object)
     }
 
+    /// Calls `Array.prototype.map()`.
     #[inline]
     pub fn map(
         &self,
@@ -260,6 +272,7 @@ impl JsArray {
         Self::from_object(object)
     }
 
+    /// Calls `Array.prototype.every()`.
     #[inline]
     pub fn every(
         &self,
@@ -278,6 +291,7 @@ impl JsArray {
         Ok(result)
     }
 
+    /// Calls `Array.prototype.some()`.
     #[inline]
     pub fn some(
         &self,
@@ -296,6 +310,7 @@ impl JsArray {
         Ok(result)
     }
 
+    /// Calls `Array.prototype.sort()`.
     #[inline]
     pub fn sort(&self, compare_fn: Option<JsFunction>, context: &mut Context) -> JsResult<Self> {
         Array::sort(
@@ -307,6 +322,7 @@ impl JsArray {
         Ok(self.clone())
     }
 
+    /// Calls `Array.prototype.slice()`.
     #[inline]
     pub fn slice(
         &self,
@@ -326,6 +342,7 @@ impl JsArray {
         Self::from_object(object)
     }
 
+    /// Calls `Array.prototype.reduce()`.
     #[inline]
     pub fn reduce(
         &self,
@@ -340,6 +357,7 @@ impl JsArray {
         )
     }
 
+    /// Calls `Array.prototype.reduceRight()`.
     #[inline]
     pub fn reduce_right(
         &self,

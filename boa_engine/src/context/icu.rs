@@ -67,7 +67,7 @@ impl Icu {
     }
 
     /// Get the [`LocaleCanonicalizer`] tool.
-    pub(crate) fn locale_canonicalizer(&self) -> &LocaleCanonicalizer {
+    pub(crate) const fn locale_canonicalizer(&self) -> &LocaleCanonicalizer {
         &self.locale_canonicalizer
     }
 

@@ -1,3 +1,5 @@
+//! Implements a set type that preserves insertion order.
+
 use boa_gc::{custom_trace, Finalize, Trace};
 use indexmap::{
     set::{IntoIter, Iter},
@@ -43,12 +45,16 @@ impl<V> OrderedSet<V>
 where
     V: Hash + Eq,
 {
+    /// Creates a new empty `OrderedSet`.
+    #[must_use]
     pub fn new() -> Self {
         Self {
             inner: IndexSet::new(),
         }
     }
 
+    /// Creates a new empty `OrderedSet` with the specified capacity.
+    #[must_use]
     pub fn with_capacity(capacity: usize) -> Self {
         Self {
             inner: IndexSet::with_capacity(capacity),
@@ -58,6 +64,7 @@ where
     /// Return the number of key-value pairs in the map.
     ///
     /// Computes in **O(1)** time.
+    #[must_use]
     pub fn size(&self) -> usize {
         self.inner.len()
     }
@@ -65,6 +72,7 @@ where
     /// Returns true if the map contains no elements.
     ///
     /// Computes in **O(1)** time.
+    #[must_use]
     pub fn is_empty(&self) -> bool {
         self.inner.len() == 0
     }
@@ -108,11 +116,13 @@ where
     /// Get a key-value pair by index
     /// Valid indices are 0 <= index < self.len()
     /// Computes in O(1) time.
+    #[must_use]
     pub fn get_index(&self, index: usize) -> Option<&V> {
         self.inner.get_index(index)
     }
 
     /// Return an iterator over the values of the set, in their order
+    #[must_use]
     pub fn iter(&self) -> Iter<'_, V> {
         self.inner.iter()
     }

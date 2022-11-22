@@ -1,3 +1,5 @@
+//! Implements a map type that preserves insertion order.
+
 use crate::{object::JsObject, JsValue};
 use boa_gc::{custom_trace, Finalize, Trace};
 use indexmap::{Equivalent, IndexMap};
@@ -18,8 +20,8 @@ enum MapKey {
 impl Hash for MapKey {
     fn hash<H: Hasher>(&self, state: &mut H) {
         match self {
-            MapKey::Key(v) => v.hash(state),
-            MapKey::Empty(e) => e.hash(state),
+            Self::Key(v) => v.hash(state),
+            Self::Empty(e) => e.hash(state),
         }
     }
 }
@@ -66,6 +68,8 @@ impl<V> Default for OrderedMap<V> {
 }
 
 impl<V> OrderedMap<V> {
+    /// Creates a new empty `OrderedMap`.
+    #[must_use]
     pub fn new() -> Self {
         Self {
             map: IndexMap::new(),
@@ -74,6 +78,8 @@ impl<V> OrderedMap<V> {
         }
     }
 
+    /// Creates a new empty `OrderedMap` with the specified capacity.
+    #[must_use]
     pub fn with_capacity(capacity: usize) -> Self {
         Self {
             map: IndexMap::with_capacity(capacity),
@@ -85,6 +91,7 @@ impl<V> OrderedMap<V> {
     /// Return the number of key-value pairs in the map, including empty values.
     ///
     /// Computes in **O(1)** time.
+    #[must_use]
     pub fn full_len(&self) -> usize {
         self.map.len()
     }
@@ -92,6 +99,7 @@ impl<V> OrderedMap<V> {
     /// Gets the number of key-value pairs in the map, not including empty values.
     ///
     /// Computes in **O(1)** time.
+    #[must_use]
     pub fn len(&self) -> usize {
         self.map.len() - self.empty_count
     }
@@ -99,6 +107,7 @@ impl<V> OrderedMap<V> {
     /// Returns true if the map contains no elements.
     ///
     /// Computes in **O(1)** time.
+    #[must_use]
     pub fn is_empty(&self) -> bool {
         self.len() == 0
     }
@@ -160,6 +169,7 @@ impl<V> OrderedMap<V> {
     /// Valid indices are `0 <= index < self.full_len()`.
     ///
     /// Computes in O(1) time.
+    #[must_use]
     pub fn get_index(&self, index: usize) -> Option<(&JsValue, &V)> {
         if let (MapKey::Key(key), Some(value)) = self.map.get_index(index)? {
             Some((key, value))

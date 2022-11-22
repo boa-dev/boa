@@ -1,12 +1,10 @@
-use std::cell::Cell;
-
 use crate::{
     environments::CompileTimeEnvironment, error::JsNativeError, object::JsObject, Context, JsValue,
 };
-use boa_gc::{Finalize, Gc, GcCell, Trace};
-
 use boa_ast::expression::Identifier;
+use boa_gc::{Finalize, Gc, GcCell, Trace};
 use rustc_hash::FxHashSet;
+use std::cell::Cell;
 
 /// A declarative environment holds binding values at runtime.
 ///
@@ -46,7 +44,7 @@ pub(crate) enum EnvironmentSlots {
 
 impl EnvironmentSlots {
     /// Return the slots if they are part of a function environment.
-    pub(crate) fn as_function_slots(&self) -> Option<&GcCell<FunctionSlots>> {
+    pub(crate) const fn as_function_slots(&self) -> Option<&GcCell<FunctionSlots>> {
         if let Self::Function(env) = &self {
             Some(env)
         } else {
@@ -74,12 +72,12 @@ pub(crate) struct FunctionSlots {
 
 impl FunctionSlots {
     /// Returns the value of the `[[FunctionObject]]` internal slot.
-    pub(crate) fn function_object(&self) -> &JsObject {
+    pub(crate) const fn function_object(&self) -> &JsObject {
         &self.function_object
     }
 
     /// Returns the value of the `[[NewTarget]]` internal slot.
-    pub(crate) fn new_target(&self) -> Option<&JsObject> {
+    pub(crate) const fn new_target(&self) -> Option<&JsObject> {
         self.new_target.as_ref()
     }
 
@@ -183,7 +181,7 @@ enum ThisBindingStatus {
 
 impl DeclarativeEnvironment {
     /// Returns the internal slot data of the current environment.
-    pub(crate) fn slots(&self) -> Option<&EnvironmentSlots> {
+    pub(crate) const fn slots(&self) -> Option<&EnvironmentSlots> {
         self.slots.as_ref()
     }
 
@@ -408,11 +406,7 @@ impl DeclarativeEnvironmentStack {
             ThisBindingStatus::Uninitialized
         };
 
-        let this = if let Some(this) = this {
-            this
-        } else {
-            JsValue::Null
-        };
+        let this = this.map_or(JsValue::Null, |this| this);
 
         self.stack.push(Gc::new(DeclarativeEnvironment {
             bindings: GcCell::new(vec![None; num_bindings]),
@@ -786,7 +780,7 @@ pub(crate) struct BindingLocator {
 impl BindingLocator {
     /// Creates a new declarative binding locator that has knows indices.
     #[inline]
-    pub(in crate::environments) fn declarative(
+    pub(in crate::environments) const fn declarative(
         name: Identifier,
         environment_index: usize,
         binding_index: usize,
@@ -803,7 +797,7 @@ impl BindingLocator {
 
     /// Creates a binding locator that indicates that the binding is on the global object.
     #[inline]
-    pub(in crate::environments) fn global(name: Identifier) -> Self {
+    pub(in crate::environments) const fn global(name: Identifier) -> Self {
         Self {
             name,
             environment_index: 0,
@@ -817,7 +811,7 @@ impl BindingLocator {
     /// Creates a binding locator that indicates that it was attempted to mutate an immutable binding.
     /// At runtime this should always produce a type error.
     #[inline]
-    pub(in crate::environments) fn mutate_immutable(name: Identifier) -> Self {
+    pub(in crate::environments) const fn mutate_immutable(name: Identifier) -> Self {
         Self {
             name,
             environment_index: 0,
@@ -830,7 +824,7 @@ impl BindingLocator {
 
     /// Creates a binding locator that indicates that any action is silently ignored.
     #[inline]
-    pub(in crate::environments) fn silent(name: Identifier) -> Self {
+    pub(in crate::environments) const fn silent(name: Identifier) -> Self {
         Self {
             name,
             environment_index: 0,
@@ -843,31 +837,31 @@ impl BindingLocator {
 
     /// Returns the name of the binding.
     #[inline]
-    pub(crate) fn name(&self) -> Identifier {
+    pub(crate) const fn name(&self) -> Identifier {
         self.name
     }
 
     /// Returns if the binding is located on the global object.
     #[inline]
-    pub(crate) fn is_global(&self) -> bool {
+    pub(crate) const fn is_global(&self) -> bool {
         self.global
     }
 
     /// Returns the environment index of the binding.
     #[inline]
-    pub(crate) fn environment_index(&self) -> usize {
+    pub(crate) const fn environment_index(&self) -> usize {
         self.environment_index
     }
 
     /// Returns the binding index of the binding.
     #[inline]
-    pub(crate) fn binding_index(&self) -> usize {
+    pub(crate) const fn binding_index(&self) -> usize {
         self.binding_index
     }
 
     /// Returns if the binding is a silent operation.
     #[inline]
-    pub(crate) fn is_silent(&self) -> bool {
+    pub(crate) const fn is_silent(&self) -> bool {
         self.silent
     }
 

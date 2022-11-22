@@ -221,20 +221,30 @@ impl IndexedProperties {
     }
 }
 
+/// A [`PropertyMap`] contains all the properties of an object.
+///
+/// The property values are stored in different data structures based on keys.
 #[derive(Default, Debug, Trace, Finalize)]
 pub struct PropertyMap {
+    /// Properties stored with integers as keys.
     indexed_properties: IndexedProperties,
-    /// Properties
+
+    /// Properties stored with `String`s a keys.
     string_properties: OrderedHashMap<JsString>,
-    /// Symbol Properties
+
+    /// Properties stored with `Symbol`s a keys.
     symbol_properties: OrderedHashMap<JsSymbol>,
 }
 
 impl PropertyMap {
+    /// Create a new [`PropertyMap`].
+    #[must_use]
     pub fn new() -> Self {
         Self::default()
     }
 
+    /// Get the property with the given key from the [`PropertyMap`].
+    #[must_use]
     pub fn get(&self, key: &PropertyKey) -> Option<PropertyDescriptor> {
         match key {
             PropertyKey::Index(index) => self.indexed_properties.get(*index),
@@ -243,6 +253,7 @@ impl PropertyMap {
         }
     }
 
+    /// Insert the given property descriptor with the given key [`PropertyMap`].
     pub fn insert(
         &mut self,
         key: &PropertyKey,
@@ -259,6 +270,7 @@ impl PropertyMap {
         }
     }
 
+    /// Remove the property with the given key from the [`PropertyMap`].
     pub fn remove(&mut self, key: &PropertyKey) -> Option<PropertyDescriptor> {
         match key {
             PropertyKey::Index(index) => self.indexed_properties.remove(*index),
@@ -273,7 +285,7 @@ impl PropertyMap {
     }
 
     /// Returns the vec of dense indexed properties if they exist.
-    pub(crate) fn dense_indexed_properties(&self) -> Option<&Vec<JsValue>> {
+    pub(crate) const fn dense_indexed_properties(&self) -> Option<&Vec<JsValue>> {
         if let IndexedProperties::Dense(properties) = &self.indexed_properties {
             Some(properties)
         } else {
@@ -285,6 +297,7 @@ impl PropertyMap {
     ///
     /// This iterator does not recurse down the prototype chain.
     #[inline]
+    #[must_use]
     pub fn iter(&self) -> Iter<'_> {
         Iter {
             indexed_properties: self.indexed_properties.iter(),
@@ -297,6 +310,7 @@ impl PropertyMap {
     ///
     /// This iterator does not recurse down the prototype chain.
     #[inline]
+    #[must_use]
     pub fn keys(&self) -> Keys<'_> {
         Keys(self.iter())
     }
@@ -305,6 +319,7 @@ impl PropertyMap {
     ///
     /// This iterator does not recurse down the prototype chain.
     #[inline]
+    #[must_use]
     pub fn values(&self) -> Values<'_> {
         Values(self.iter())
     }
@@ -314,6 +329,7 @@ impl PropertyMap {
     ///
     /// This iterator does not recurse down the prototype chain.
     #[inline]
+    #[must_use]
     pub fn symbol_properties(&self) -> SymbolProperties<'_> {
         SymbolProperties(self.symbol_properties.0.iter())
     }
@@ -322,6 +338,7 @@ impl PropertyMap {
     ///
     /// This iterator does not recurse down the prototype chain.
     #[inline]
+    #[must_use]
     pub fn symbol_property_keys(&self) -> SymbolPropertyKeys<'_> {
         SymbolPropertyKeys(self.symbol_properties.0.keys())
     }
@@ -330,6 +347,7 @@ impl PropertyMap {
     ///
     /// This iterator does not recurse down the prototype chain.
     #[inline]
+    #[must_use]
     pub fn symbol_property_values(&self) -> SymbolPropertyValues<'_> {
         SymbolPropertyValues(self.symbol_properties.0.values())
     }
@@ -338,6 +356,7 @@ impl PropertyMap {
     ///
     /// This iterator does not recurse down the prototype chain.
     #[inline]
+    #[must_use]
     pub fn index_properties(&self) -> IndexProperties<'_> {
         self.indexed_properties.iter()
     }
@@ -346,6 +365,7 @@ impl PropertyMap {
     ///
     /// This iterator does not recurse down the prototype chain.
     #[inline]
+    #[must_use]
     pub fn index_property_keys(&self) -> IndexPropertyKeys<'_> {
         self.indexed_properties.keys()
     }
@@ -354,6 +374,7 @@ impl PropertyMap {
     ///
     /// This iterator does not recurse down the prototype chain.
     #[inline]
+    #[must_use]
     pub fn index_property_values(&self) -> IndexPropertyValues<'_> {
         self.indexed_properties.values()
     }
@@ -362,6 +383,7 @@ impl PropertyMap {
     ///
     /// This iterator does not recurse down the prototype chain.
     #[inline]
+    #[must_use]
     pub fn string_properties(&self) -> StringProperties<'_> {
         StringProperties(self.string_properties.0.iter())
     }
@@ -370,6 +392,7 @@ impl PropertyMap {
     ///
     /// This iterator does not recurse down the prototype chain.
     #[inline]
+    #[must_use]
     pub fn string_property_keys(&self) -> StringPropertyKeys<'_> {
         StringPropertyKeys(self.string_properties.0.keys())
     }
@@ -378,11 +401,14 @@ impl PropertyMap {
     ///
     /// This iterator does not recurse down the prototype chain.
     #[inline]
+    #[must_use]
     pub fn string_property_values(&self) -> StringPropertyValues<'_> {
         StringPropertyValues(self.string_properties.0.values())
     }
 
+    /// Returns `true` if the given key is contained in the [`PropertyMap`].
     #[inline]
+    #[must_use]
     pub fn contains_key(&self, key: &PropertyKey) -> bool {
         match key {
             PropertyKey::Index(index) => self.indexed_properties.contains_key(*index),
@@ -392,7 +418,7 @@ impl PropertyMap {
     }
 
     #[inline]
-    pub(crate) fn string_property_map(&self) -> &GlobalPropertyMap {
+    pub(crate) const fn string_property_map(&self) -> &GlobalPropertyMap {
         &self.string_properties.0
     }
 
@@ -410,7 +436,7 @@ pub struct Iter<'a> {
     symbol_properties: indexmap::map::Iter<'a, JsSymbol, PropertyDescriptor>,
 }
 
-impl<'a> Iterator for Iter<'a> {
+impl Iterator for Iter<'_> {
     type Item = (PropertyKey, PropertyDescriptor);
     fn next(&mut self) -> Option<Self::Item> {
         if let Some((key, value)) = self.indexed_properties.next() {
@@ -437,7 +463,7 @@ impl FusedIterator for Iter<'_> {}
 #[derive(Debug, Clone)]
 pub struct Keys<'a>(Iter<'a>);
 
-impl<'a> Iterator for Keys<'a> {
+impl Iterator for Keys<'_> {
     type Item = PropertyKey;
     fn next(&mut self) -> Option<Self::Item> {
         let (key, _) = self.0.next()?;
@@ -458,7 +484,7 @@ impl FusedIterator for Keys<'_> {}
 #[derive(Debug, Clone)]
 pub struct Values<'a>(Iter<'a>);
 
-impl<'a> Iterator for Values<'a> {
+impl Iterator for Values<'_> {
     type Item = PropertyDescriptor;
     fn next(&mut self) -> Option<Self::Item> {
         let (_, value) = self.0.next()?;
@@ -556,14 +582,17 @@ impl ExactSizeIterator for SymbolPropertyValues<'_> {
 
 impl FusedIterator for SymbolPropertyValues<'_> {}
 
-/// An iterator over the indexed property entries of an `Object`
+/// An iterator over the indexed property entries of an `Object`.
 #[derive(Debug, Clone)]
 pub enum IndexProperties<'a> {
+    /// An iterator over dense, Vec backed indexed property entries of an `Object`.
     Dense(std::iter::Enumerate<std::slice::Iter<'a, JsValue>>),
+
+    /// An iterator over sparse, HashMap backed indexed property entries of an `Object`.
     Sparse(hash_map::Iter<'a, u32, PropertyDescriptor>),
 }
 
-impl<'a> Iterator for IndexProperties<'a> {
+impl Iterator for IndexProperties<'_> {
     type Item = (u32, PropertyDescriptor);
 
     #[inline]
@@ -608,11 +637,14 @@ impl FusedIterator for IndexProperties<'_> {}
 /// An iterator over the index keys (`u32`) of an `Object`.
 #[derive(Debug, Clone)]
 pub enum IndexPropertyKeys<'a> {
+    /// An iterator over dense, Vec backed indexed property entries of an `Object`.
     Dense(std::ops::Range<u32>),
+
+    /// An iterator over sparse, HashMap backed indexed property entries of an `Object`.
     Sparse(hash_map::Keys<'a, u32, PropertyDescriptor>),
 }
 
-impl<'a> Iterator for IndexPropertyKeys<'a> {
+impl Iterator for IndexPropertyKeys<'_> {
     type Item = u32;
 
     #[inline]
@@ -647,11 +679,14 @@ impl FusedIterator for IndexPropertyKeys<'_> {}
 /// An iterator over the index values (`Property`) of an `Object`.
 #[derive(Debug, Clone)]
 pub enum IndexPropertyValues<'a> {
+    /// An iterator over dense, Vec backed indexed property entries of an `Object`.
     Dense(std::slice::Iter<'a, JsValue>),
+
+    /// An iterator over sparse, HashMap backed indexed property entries of an `Object`.
     Sparse(hash_map::Values<'a, u32, PropertyDescriptor>),
 }
 
-impl<'a> Iterator for IndexPropertyValues<'a> {
+impl Iterator for IndexPropertyValues<'_> {
     type Item = PropertyDescriptor;
 
     #[inline]

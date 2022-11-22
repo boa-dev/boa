@@ -103,6 +103,7 @@ macro_rules! generate_impl {
             $(,)?
         }
     ) => {
+        /// The opcodes of the vm.
         $(#[$outer])*
         pub enum $Type {
             $(
@@ -118,11 +119,16 @@ macro_rules! generate_impl {
             /// # Safety
             ///
             /// Does not check if `u8` type is a valid `Opcode`.
+            #[must_use]
             pub unsafe fn from_raw(value: u8) -> Self {
-                std::mem::transmute(value)
+                // Safety:
+                // The caller is responsible for ensuring that the value is a valid opcode.
+                unsafe { std::mem::transmute(value) }
             }
 
-            pub fn as_str(self) -> &'static str {
+            /// Name of this opcode.
+            #[must_use]
+            pub const fn as_str(self) -> &'static str {
                 match self {
                     $(
                         Self::$Variant => $Variant::NAME
@@ -130,8 +136,9 @@ macro_rules! generate_impl {
                 }
             }
 
-            /// Name of the profiler event for this opcode
-            pub fn as_instruction_str(self) -> &'static str {
+            /// Name of the profiler event for this opcode.
+            #[must_use]
+            pub const fn as_instruction_str(self) -> &'static str {
                 match self {
                     $(
                         Self::$Variant => $Variant::INSTRUCTION

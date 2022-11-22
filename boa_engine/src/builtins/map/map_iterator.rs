@@ -1,3 +1,10 @@
+//! This module implements the `MapIterator` object.
+//!
+//! More information:
+//!  - [ECMAScript reference][spec]
+//!
+//! [spec]: https://tc39.es/ecma262/#sec-map-iterator-objects
+
 use super::ordered_map::MapLock;
 use crate::{
     builtins::{function::make_builtin_fn, iterable::create_iter_result_object, Array, JsValue},
@@ -15,7 +22,7 @@ use boa_profiler::Profiler;
 /// More information:
 ///  - [ECMAScript reference][spec]
 ///
-/// [spec]: https://tc39.es/ecma262/#sec-array-iterator-objects
+/// [spec]: https://tc39.es/ecma262/#sec-map-iterator-objects
 #[derive(Debug, Clone, Finalize, Trace)]
 pub struct MapIterator {
     iterated_map: Option<JsObject>,
@@ -86,7 +93,7 @@ impl MapIterator {
         if let Some(obj) = map_iterator.iterated_map.take() {
             let e = {
                 let map = obj.borrow();
-                let entries = map.as_map_ref().expect("iterator should only iterate maps");
+                let entries = map.as_map().expect("iterator should only iterate maps");
                 let len = entries.full_len();
                 loop {
                     let element = entries

@@ -18,7 +18,7 @@ use crate::{
 };
 use boa_profiler::Profiler;
 
-/// The internal representation on a `AsyncGeneratorFunction` object.
+/// The internal representation of an `AsyncGeneratorFunction` object.
 #[derive(Debug, Clone, Copy)]
 pub struct AsyncGeneratorFunction;
 

@@ -205,6 +205,7 @@ pub fn init(context: &mut Context) {
     init_builtin::<console::Console>(context);
 }
 
+/// A utility trait to make working with function arguments easier.
 pub trait JsArgs {
     /// Utility function to `get` a parameter from a `[JsValue]` or default to `JsValue::Undefined`
     /// if `get` returns `None`.

@@ -112,13 +112,17 @@ macro_rules! js_string {
 /// [Unicode scalar value]: https://www.unicode.org/glossary/#unicode_scalar_value
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum CodePoint {
+    /// A valid Unicode scalar value.
     Unicode(char),
+
+    /// An unpaired surrogate.
     UnpairedSurrogate(u16),
 }
 
 impl CodePoint {
     /// Get the number of UTF-16 code units needed to encode this code point.
-    pub fn code_unit_count(self) -> usize {
+    #[must_use]
+    pub const fn code_unit_count(self) -> usize {
         match self {
             Self::Unicode(c) => c.len_utf16(),
             Self::UnpairedSurrogate(_) => 1,
@@ -126,6 +130,7 @@ impl CodePoint {
     }
 
     /// Convert the code point to its [`u32`] representation.
+    #[must_use]
     pub fn as_u32(self) -> u32 {
         match self {
             Self::Unicode(c) => u32::from(c),
@@ -135,7 +140,8 @@ impl CodePoint {
 
     /// If the code point represents a valid 'Unicode scalar value', returns its [`char`]
     /// representation, otherwise returns [`None`] on unpaired surrogates.
-    pub fn as_char(self) -> Option<char> {
+    #[must_use]
+    pub const fn as_char(self) -> Option<char> {
         match self {
             Self::Unicode(c) => Some(c),
             Self::UnpairedSurrogate(_) => None,
@@ -151,8 +157,8 @@ impl CodePoint {
     /// code point.
     pub fn encode_utf16(self, dst: &mut [u16]) -> &mut [u16] {
         match self {
-            CodePoint::Unicode(c) => c.encode_utf16(dst),
-            CodePoint::UnpairedSurrogate(surr) => {
+            Self::Unicode(c) => c.encode_utf16(dst),
+            Self::UnpairedSurrogate(surr) => {
                 dst[0] = surr;
                 &mut dst[0..=0]
             }
@@ -210,7 +216,7 @@ impl TaggedJsString {
     /// `inner` must point to a valid instance of [`RawJsString`], which should be deallocated only
     /// by [`JsString`].
     #[inline]
-    unsafe fn new_heap(inner: NonNull<RawJsString>) -> Self {
+    const unsafe fn new_heap(inner: NonNull<RawJsString>) -> Self {
         Self(inner)
     }
 
@@ -297,17 +303,20 @@ unsafe impl Trace for JsString {
 
 impl JsString {
     /// Obtains the underlying [`&[u16]`][slice] slice of a [`JsString`]
+    #[must_use]
     pub fn as_slice(&self) -> &[u16] {
         self
     }
 
     /// Creates a new [`JsString`] from the concatenation of `x` and `y`.
+    #[must_use]
     pub fn concat(x: &[u16], y: &[u16]) -> Self {
         Self::concat_array(&[x, y])
     }
 
     /// Creates a new [`JsString`] from the concatenation of every element of
     /// `strings`.
+    #[must_use]
     pub fn concat_array(strings: &[&[u16]]) -> Self {
         let mut full_count = 0usize;
         for &string in strings {
@@ -356,6 +365,7 @@ impl JsString {
 
     /// Decodes a [`JsString`] into a [`String`], replacing invalid data with its escaped representation
     /// in 4 digit hexadecimal.
+    #[must_use]
     pub fn to_std_string_escaped(&self) -> String {
         self.to_string_escaped()
     }
@@ -500,10 +510,10 @@ impl JsString {
             }
 
             // Slow path
-            let mut value = 0.0;
+            let mut value: f64 = 0.0;
             for c in s {
                 if let Some(digit) = char::from(c).to_digit(base) {
-                    value = value * f64::from(base) + f64::from(digit);
+                    value = value.mul_add(f64::from(base), f64::from(digit));
                 } else {
                     return f64::NAN;
                 }
@@ -577,6 +587,7 @@ impl JsString {
 
         debug_assert_eq!(offset, DATA_OFFSET);
 
+        #[allow(clippy::cast_ptr_alignment)]
         // SAFETY:
         // The layout size of `RawJsString` is never zero, since it has to store
         // the length of the string and the reference count.
@@ -767,7 +778,7 @@ impl From<&[u16]> for JsString {
 
 impl From<Vec<u16>> for JsString {
     fn from(vec: Vec<u16>) -> Self {
-        JsString::from(&vec[..])
+        Self::from(&vec[..])
     }
 }
 

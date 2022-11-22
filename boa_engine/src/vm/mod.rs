@@ -216,17 +216,11 @@ impl Context {
                     format!("{}μs", duration.as_micros()),
                     opcode.as_str(),
                     match self.vm.stack.last() {
+                        Some(value) if value.is_callable() => "[function]".to_string(),
+                        Some(value) if value.is_object() => "[object]".to_string(),
+                        Some(value) => value.display().to_string(),
                         None => "<empty>".to_string(),
-                        Some(value) => {
-                            if value.is_callable() {
-                                "[function]".to_string()
-                            } else if value.is_object() {
-                                "[object]".to_string()
-                            } else {
-                                value.display().to_string()
-                            }
-                        }
-                    },
+                    }
                 );
 
                 result

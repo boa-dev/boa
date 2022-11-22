@@ -37,7 +37,7 @@ use tap::{Conv, Pipe};
 #[cfg(test)]
 mod tests;
 
-/// The internal representation on a `RegExp` object.
+/// The internal representation of a `RegExp` object.
 #[derive(Debug, Clone)]
 pub struct RegExp {
     /// Regex matcher.
@@ -615,42 +615,42 @@ impl RegExp {
     ) -> JsResult<JsValue> {
         // 1. Let R be the this value.
         // 2. If Type(R) is not Object, throw a TypeError exception.
-        if let Some(object) = this.as_object() {
-            let object = object.borrow();
+        let object = if let Some(object) = this.as_object() {
+            object
+        } else {
+            return Err(JsNativeError::typ()
+                .with_message("RegExp.prototype.source method called on incompatible value")
+                .into());
+        };
 
-            match object.as_regexp() {
-                // 3. If R does not have an [[OriginalSource]] internal slot, then
-                None => {
-                    // a. If SameValue(R, %RegExp.prototype%) is true, return "(?:)".
-                    // b. Otherwise, throw a TypeError exception.
-                    if JsValue::same_value(
-                        this,
-                        &JsValue::new(context.intrinsics().constructors().regexp().prototype()),
-                    ) {
-                        Ok(JsValue::new("(?:)"))
-                    } else {
-                        Err(JsNativeError::typ()
-                            .with_message(
-                                "RegExp.prototype.source method called on incompatible value",
-                            )
-                            .into())
-                    }
-                }
-                // 4. Assert: R has an [[OriginalFlags]] internal slot.
-                Some(re) => {
-                    // 5. Let src be R.[[OriginalSource]].
-                    // 6. Let flags be R.[[OriginalFlags]].
-                    // 7. Return EscapeRegExpPattern(src, flags).
-                    Ok(Self::escape_pattern(
-                        &re.original_source,
-                        &re.original_flags,
-                    ))
+        let object = object.borrow();
+
+        match object.as_regexp() {
+            // 3. If R does not have an [[OriginalSource]] internal slot, then
+            None => {
+                // a. If SameValue(R, %RegExp.prototype%) is true, return "(?:)".
+                // b. Otherwise, throw a TypeError exception.
+                if JsValue::same_value(
+                    this,
+                    &JsValue::new(context.intrinsics().constructors().regexp().prototype()),
+                ) {
+                    Ok(JsValue::new("(?:)"))
+                } else {
+                    Err(JsNativeError::typ()
+                        .with_message("RegExp.prototype.source method called on incompatible value")
+                        .into())
                 }
             }
-        } else {
-            Err(JsNativeError::typ()
-                .with_message("RegExp.prototype.source method called on incompatible value")
-                .into())
+            // 4. Assert: R has an [[OriginalFlags]] internal slot.
+            Some(re) => {
+                // 5. Let src be R.[[OriginalSource]].
+                // 6. Let flags be R.[[OriginalFlags]].
+                // 7. Return EscapeRegExpPattern(src, flags).
+                Ok(Self::escape_pattern(
+                    &re.original_source,
+                    &re.original_flags,
+                ))
+            }
         }
     }
 
@@ -752,11 +752,8 @@ impl RegExp {
         let arg_str = args.get_or_undefined(0).to_string(context)?;
 
         // 4. Return ? RegExpBuiltinExec(R, S).
-        if let Some(v) = Self::abstract_builtin_exec(obj, &arg_str, context)? {
-            Ok(v.into())
-        } else {
-            Ok(JsValue::null())
-        }
+        (Self::abstract_builtin_exec(obj, &arg_str, context)?)
+            .map_or_else(|| Ok(JsValue::null()), |v| Ok(v.into()))
     }
 
     /// `22.2.5.2.1 RegExpExec ( R, S )`
@@ -1010,14 +1007,13 @@ impl RegExp {
             // a. Let captureI be ith element of r's captures List.
             let capture = match_value.group(i as usize);
 
-            let captured_value = match capture {
-                // b. If captureI is undefined, let capturedValue be undefined.
-                None => JsValue::undefined(),
-                // c. Else if fullUnicode is true, then
-                // d. Else,
-                // TODO: Full UTF-16 regex support
-                Some(range) => js_string!(&lossy_input[range]).into(),
-            };
+            // b. If captureI is undefined, let capturedValue be undefined.
+            // c. Else if fullUnicode is true, then
+            // d. Else,
+            // TODO: Full UTF-16 regex support
+            let captured_value = capture.map_or_else(JsValue::undefined, |range| {
+                js_string!(&lossy_input[range]).into()
+            });
 
             // e. Perform ! CreateDataPropertyOrThrow(A, ! ToString(𝔽(i)), capturedValue).
             a.create_data_property_or_throw(i, captured_value, context)
@@ -1060,11 +1056,8 @@ impl RegExp {
         #[allow(clippy::if_not_else)]
         if !global {
             // a. Return ? RegExpExec(rx, S).
-            if let Some(v) = Self::abstract_exec(rx, arg_str, context)? {
-                Ok(v.into())
-            } else {
-                Ok(JsValue::null())
-            }
+            (Self::abstract_exec(rx, arg_str, context)?)
+                .map_or_else(|| Ok(JsValue::null()), |v| Ok(v.into()))
         // 6. Else,
         } else {
             // a. Assert: global is true.
@@ -1365,8 +1358,7 @@ impl RegExp {
 
             // k. If functionalReplace is true, then
             // l. Else,
-            let replacement: JsString;
-            if functional_replace {
+            let replacement = if functional_replace {
                 // i. Let replacerArgs be « matched ».
                 let mut replacer_args = vec![JsValue::new(matched)];
 
@@ -1388,7 +1380,7 @@ impl RegExp {
                     context.call(&replace_value, &JsValue::undefined(), &replacer_args)?;
 
                 // vi. Let replacement be ? ToString(replValue).
-                replacement = repl_value.to_string(context)?;
+                repl_value.to_string(context)?
             } else {
                 // i. If namedCaptures is not undefined, then
                 if !named_captures.is_undefined() {
@@ -1397,7 +1389,7 @@ impl RegExp {
                 }
 
                 // ii. Let replacement be ? GetSubstitution(matched, S, position, captures, namedCaptures, replaceValue).
-                replacement = string::get_substitution(
+                string::get_substitution(
                     &matched,
                     &arg_str,
                     position,
@@ -1405,8 +1397,8 @@ impl RegExp {
                     &named_captures,
                     &replace_value.to_string(context)?,
                     context,
-                )?;
-            }
+                )?
+            };
 
             // m. If position ≥ nextSourcePosition, then
             if position >= next_source_position {
@@ -1481,11 +1473,10 @@ impl RegExp {
 
         // 9. If result is null, return -1𝔽.
         // 10. Return ? Get(result, "index").
-        if let Some(result) = result {
-            result.get("index", context)
-        } else {
-            Ok(JsValue::new(-1))
-        }
+        result.map_or_else(
+            || Ok(JsValue::new(-1)),
+            |result| result.get("index", context),
+        )
     }
 
     /// `RegExp.prototype [ @@split ] ( string, limit )`

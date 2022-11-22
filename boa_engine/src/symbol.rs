@@ -120,6 +120,7 @@ impl WellKnownSymbols {
     /// A method that returns the default `AsyncIterator` for an object.
     /// Called by the semantics of the `for-await-of` statement.
     #[inline]
+    #[must_use]
     pub fn async_iterator() -> JsSymbol {
         WELL_KNOW_SYMBOLS.with(|symbols| symbols.async_iterator.clone())
     }
@@ -130,6 +131,7 @@ impl WellKnownSymbols {
     /// recognizes an object as one of the `constructor`'s instances.
     /// Called by the semantics of the instanceof operator.
     #[inline]
+    #[must_use]
     pub fn has_instance() -> JsSymbol {
         WELL_KNOW_SYMBOLS.with(|symbols| symbols.has_instance.clone())
     }
@@ -140,6 +142,7 @@ impl WellKnownSymbols {
     /// an object should be flattened to its array elements
     /// by `Array.prototype.concat`.
     #[inline]
+    #[must_use]
     pub fn is_concat_spreadable() -> JsSymbol {
         WELL_KNOW_SYMBOLS.with(|symbols| symbols.is_concat_spreadable.clone())
     }
@@ -149,6 +152,7 @@ impl WellKnownSymbols {
     /// A method that returns the default Iterator for an object.
     /// Called by the semantics of the `for-of` statement.
     #[inline]
+    #[must_use]
     pub fn iterator() -> JsSymbol {
         WELL_KNOW_SYMBOLS.with(|symbols| symbols.iterator.clone())
     }
@@ -158,6 +162,7 @@ impl WellKnownSymbols {
     /// A regular expression method that matches the regular expression
     /// against a string. Called by the `String.prototype.match` method.
     #[inline]
+    #[must_use]
     pub fn r#match() -> JsSymbol {
         WELL_KNOW_SYMBOLS.with(|symbols| symbols.r#match.clone())
     }
@@ -168,6 +173,7 @@ impl WellKnownSymbols {
     /// matches of the regular expression against a string.
     /// Called by the `String.prototype.matchAll` method.
     #[inline]
+    #[must_use]
     pub fn match_all() -> JsSymbol {
         WELL_KNOW_SYMBOLS.with(|symbols| symbols.match_all.clone())
     }
@@ -177,6 +183,7 @@ impl WellKnownSymbols {
     /// A regular expression method that replaces matched substrings
     /// of a string. Called by the `String.prototype.replace` method.
     #[inline]
+    #[must_use]
     pub fn replace() -> JsSymbol {
         WELL_KNOW_SYMBOLS.with(|symbols| symbols.replace.clone())
     }
@@ -187,6 +194,7 @@ impl WellKnownSymbols {
     /// string that matches the regular expression.
     /// Called by the `String.prototype.search` method.
     #[inline]
+    #[must_use]
     pub fn search() -> JsSymbol {
         WELL_KNOW_SYMBOLS.with(|symbols| symbols.search.clone())
     }
@@ -196,6 +204,7 @@ impl WellKnownSymbols {
     /// A function valued property that is the `constructor` function
     /// that is used to create derived objects.
     #[inline]
+    #[must_use]
     pub fn species() -> JsSymbol {
         WELL_KNOW_SYMBOLS.with(|symbols| symbols.species.clone())
     }
@@ -206,6 +215,7 @@ impl WellKnownSymbols {
     /// that match the regular expression.
     /// Called by the `String.prototype.split` method.
     #[inline]
+    #[must_use]
     pub fn split() -> JsSymbol {
         WELL_KNOW_SYMBOLS.with(|symbols| symbols.split.clone())
     }
@@ -215,6 +225,7 @@ impl WellKnownSymbols {
     /// A method that converts an object to a corresponding primitive value.
     /// Called by the `ToPrimitive` (`Value::to_primitive`) abstract operation.
     #[inline]
+    #[must_use]
     pub fn to_primitive() -> JsSymbol {
         WELL_KNOW_SYMBOLS.with(|symbols| symbols.to_primitive.clone())
     }
@@ -225,6 +236,7 @@ impl WellKnownSymbols {
     /// string description of an object.
     /// Accessed by the built-in method `Object.prototype.toString`.
     #[inline]
+    #[must_use]
     pub fn to_string_tag() -> JsSymbol {
         WELL_KNOW_SYMBOLS.with(|symbols| symbols.to_string_tag.clone())
     }
@@ -234,6 +246,7 @@ impl WellKnownSymbols {
     /// An object valued property whose own and inherited property names are property
     /// names that are excluded from the `with` environment bindings of the associated object.
     #[inline]
+    #[must_use]
     pub fn unscopables() -> JsSymbol {
         WELL_KNOW_SYMBOLS.with(|symbols| symbols.unscopables.clone())
     }
@@ -261,6 +274,7 @@ unsafe impl Trace for JsSymbol {
 impl JsSymbol {
     /// Create a new symbol.
     #[inline]
+    #[must_use]
     pub fn new(description: Option<JsString>) -> Self {
         let hash = SYMBOL_HASH_COUNT.with(|count| {
             let hash = count.get();
@@ -283,6 +297,7 @@ impl JsSymbol {
 
     /// Returns the `Symbol`s description.
     #[inline]
+    #[must_use]
     pub fn description(&self) -> Option<JsString> {
         self.inner.description.clone()
     }
@@ -291,6 +306,7 @@ impl JsSymbol {
     ///
     /// The hash is guaranteed to be unique.
     #[inline]
+    #[must_use]
     pub fn hash(&self) -> u64 {
         self.inner.hash
     }
@@ -301,6 +317,7 @@ impl JsSymbol {
     /// - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-symboldescriptivestring
+    #[must_use]
     pub fn descriptive_string(&self) -> JsString {
         self.inner.description.as_ref().map_or_else(
             || js_string!("Symbol()"),

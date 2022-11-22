@@ -1,3 +1,5 @@
+//! This module contains the data structures for the microtask job queue.
+
 use crate::{prelude::JsObject, Context, JsResult, JsValue};
 use boa_gc::{Finalize, Trace};
 
@@ -38,6 +40,10 @@ impl JobCallback {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-hostcalljobcallback
+    ///
+    /// # Panics
+    ///
+    /// Panics if the `JobCallback` is not callable.
     pub fn call_job_callback(
         &self,
         v: &JsValue,

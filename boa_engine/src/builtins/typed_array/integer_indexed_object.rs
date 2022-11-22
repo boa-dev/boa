@@ -34,7 +34,7 @@ pub struct IntegerIndexed {
 }
 
 impl IntegerIndexed {
-    pub(crate) fn new(
+    pub(crate) const fn new(
         viewed_array_buffer: Option<JsObject>,
         typed_array_name: TypedArrayKind,
         byte_offset: u64,
@@ -101,7 +101,7 @@ impl IntegerIndexed {
     }
 
     /// Get the integer indexed object's byte offset.
-    pub(crate) fn byte_offset(&self) -> u64 {
+    pub(crate) const fn byte_offset(&self) -> u64 {
         self.byte_offset
     }
 
@@ -111,12 +111,12 @@ impl IntegerIndexed {
     }
 
     /// Get the integer indexed object's typed array name.
-    pub(crate) fn typed_array_name(&self) -> TypedArrayKind {
+    pub(crate) const fn typed_array_name(&self) -> TypedArrayKind {
         self.typed_array_name
     }
 
     /// Get a reference to the integer indexed object's viewed array buffer.
-    pub fn viewed_array_buffer(&self) -> Option<&JsObject> {
+    pub const fn viewed_array_buffer(&self) -> Option<&JsObject> {
         self.viewed_array_buffer.as_ref()
     }
 
@@ -126,7 +126,7 @@ impl IntegerIndexed {
     }
 
     /// Get the integer indexed object's byte length.
-    pub fn byte_length(&self) -> u64 {
+    pub const fn byte_length(&self) -> u64 {
         self.byte_length
     }
 
@@ -136,7 +136,7 @@ impl IntegerIndexed {
     }
 
     /// Get the integer indexed object's array length.
-    pub fn array_length(&self) -> u64 {
+    pub const fn array_length(&self) -> u64 {
         self.array_length
     }
 
