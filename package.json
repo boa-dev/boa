@@ -6,7 +6,7 @@
   },
   "devDependencies": {
     "@wasm-tool/wasm-pack-plugin": "^1.6.0",
-    "bootstrap": "^5.2.2",
+    "bootstrap": "^5.2.3",
     "clean-webpack-plugin": "^4.0.0",
     "copy-webpack-plugin": "^11.0.0",
     "css-loader": "^6.7.2",
