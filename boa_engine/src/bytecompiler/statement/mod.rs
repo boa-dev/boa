@@ -8,10 +8,13 @@ use crate::{vm::Opcode, JsNativeError, JsResult};
 use super::{ByteCompiler, JumpControlInfoKind, NodeKind};
 
 mod r#continue;
+mod r#loop;
 mod r#try;
 
 pub(crate) use r#continue::compile_continue;
+pub(crate) use r#loop::*;
 pub(crate) use r#try::compile_try;
+
 pub(crate) fn compile_if<'b>(
     byte_compiler: &mut ByteCompiler<'b>,
     node: &If,
