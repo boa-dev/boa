@@ -182,10 +182,10 @@ impl Context {
 
         while self.vm.frame().pc < self.vm.frame().code.code.len() {
             #[cfg(feature = "fuzz")]
-            #[allow(clippy::redundant_else)]
-            if self.instructions_remaining == 0 {
-                return Err(JsError::from_native(JsNativeError::no_instructions_remain()));
-            } else {
+            {
+                if self.instructions_remaining == 0 {
+                    return Err(JsError::from_native(JsNativeError::no_instructions_remain()));
+                }
                 self.instructions_remaining -= 1;
             }
 

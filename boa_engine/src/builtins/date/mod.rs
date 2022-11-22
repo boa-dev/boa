@@ -34,8 +34,6 @@ macro_rules! some_or_nan {
 
 /// Gets a mutable reference to the inner `Date` object of `val` and stores it on `var`, or returns
 /// a `TypeError` if `val` is not a `Date` object.
-///
-/// [spec]: https://tc39.es/ecma262/#sec-thistimevalue
 macro_rules! get_mut_date {
     (let $var:ident = $val:expr) => {
         let mut $var = $val
@@ -64,14 +62,17 @@ pub(super) fn this_time_value(value: &JsValue) -> JsResult<Option<NaiveDateTime>
 pub struct Date(Option<NaiveDateTime>);
 
 impl Date {
+    #[inline]
+    /// Creates a new `Date`.
     pub(crate) fn new(dt: Option<NaiveDateTime>) -> Self {
         Self(dt)
     }
+
+    /// Converts the `Date` into a `JsValue`, mapping `None` to `NaN` and `Some(datetime)` to
+    /// `JsValue::from(datetime.timestamp_millis())`.
     fn as_value(&self) -> JsValue {
-        match self.0 {
-            Some(dt) => JsValue::from(dt.timestamp_millis()),
-            None => JsValue::from(f64::NAN),
-        }
+        self.0
+            .map_or_else(|| f64::NAN.into(), |dt| dt.timestamp_millis().into())
     }
 }
 

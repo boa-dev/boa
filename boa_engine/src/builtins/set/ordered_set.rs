@@ -91,6 +91,7 @@ where
     }
 
     /// Removes all elements in the set, while preserving its capacity.
+    #[inline]
     pub fn clear(&mut self) {
         self.inner.clear();
     }
