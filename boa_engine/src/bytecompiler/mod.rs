@@ -22,12 +22,8 @@ use boa_ast::{
         FormalParameterList, Function, Generator,
     },
     operations::bound_names,
-    pattern::{ArrayPatternElement, ObjectPatternElement, Pattern},
+    pattern::Pattern,
     property::{MethodDefinition, PropertyName},
-    statement::{
-        iteration::{ForLoopInitializer, IterableLoopInitializer},
-        Block, DoWhileLoop, ForInLoop, ForLoop, ForOfLoop, LabelledItem, WhileLoop,
-    },
     Declaration, Expression, Statement, StatementList, StatementListItem,
 };
 use boa_gc::{Gc, GcCell};
@@ -923,7 +919,7 @@ impl<'b> ByteCompiler<'b> {
             Expression::Binary(binary) => expression::compile_binary(self, binary, use_expr)?,
             Expression::Assign(assign) => expression::compile_assign(self, assign, use_expr)?,
             Expression::ObjectLiteral(object) => {
-                expression::compile_object_literal(self, object, use_expr)?
+                expression::compile_object_literal(self, object, use_expr)?;
             }
             Expression::Identifier(name) => {
                 self.access_get(Access::Variable { name: *name }, use_expr)?;
@@ -980,7 +976,7 @@ impl<'b> ByteCompiler<'b> {
             Expression::Call(call) => self.call(Callable::Call(call), use_expr)?,
             Expression::New(new) => self.call(Callable::New(new), use_expr)?,
             Expression::TemplateLiteral(template_literal) => {
-                expression::compile_template_literal(self, template_literal, use_expr)?
+                expression::compile_template_literal(self, template_literal, use_expr)?;
             }
             Expression::Await(expr) => {
                 self.compile_expr(expr.target(), true)?;
@@ -1467,7 +1463,7 @@ impl<'b> ByteCompiler<'b> {
                 statement::compile_block(self, block, None, use_expr, configurable_globals)?;
             }
             Statement::Labelled(labelled) => {
-                statement::compile_labeled(self, labelled, use_expr, configurable_globals)?
+                statement::compile_labeled(self, labelled, use_expr, configurable_globals)?;
             }
             Statement::Continue(node) => statement::compile_continue(self, node)?,
             Statement::Break(node) => statement::compile_break(self, node)?,
@@ -1476,7 +1472,7 @@ impl<'b> ByteCompiler<'b> {
                 self.emit(Opcode::Throw, &[]);
             }
             Statement::Switch(switch) => {
-                statement::compile_switch(self, switch, configurable_globals)?
+                statement::compile_switch(self, switch, configurable_globals)?;
             }
             Statement::Return(ret) => {
                 if let Some(expr) = ret.target() {
