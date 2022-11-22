@@ -120,6 +120,7 @@ struct Opt {
         value_enum,
         group = "graph"
     )]
+    #[allow(clippy::option_option)]
     flowgraph: Option<Option<FlowgraphFormat>>,
 
     /// Specifies the direction of the flowgraph. Default is TopToBottom.
