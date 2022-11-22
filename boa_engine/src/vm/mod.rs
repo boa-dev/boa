@@ -17,6 +17,9 @@ mod call_frame;
 mod code_block;
 mod opcode;
 
+#[cfg(feature = "flowgraph")]
+pub mod flowgraph;
+
 pub use {call_frame::CallFrame, code_block::CodeBlock, opcode::Opcode};
 
 pub(crate) use {

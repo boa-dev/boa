@@ -61,7 +61,10 @@
 mod helper;
 
 use boa_ast::StatementList;
-use boa_engine::Context;
+use boa_engine::{
+    vm::flowgraph::{Direction, Graph},
+    Context, JsResult,
+};
 use clap::{Parser, ValueEnum, ValueHint};
 use colored::{Color, Colorize};
 use rustyline::{config::Config, error::ReadlineError, EditMode, Editor};
@@ -95,18 +98,40 @@ struct Opt {
         short = 'a',
         value_name = "FORMAT",
         ignore_case = true,
-        value_enum
+        value_enum,
+        conflicts_with = "graph"
     )]
     #[allow(clippy::option_option)]
     dump_ast: Option<Option<DumpFormat>>,
 
     /// Dump the AST to stdout with the given format.
-    #[arg(long, short)]
+    #[arg(long, short, conflicts_with = "graph")]
     trace: bool,
 
     /// Use vi mode in the REPL
     #[arg(long = "vi")]
     vi_mode: bool,
+
+    /// Generate instruction flowgraph. Default is Graphviz.
+    #[arg(
+        long,
+        value_name = "FORMAT",
+        ignore_case = true,
+        value_enum,
+        group = "graph"
+    )]
+    #[allow(clippy::option_option)]
+    flowgraph: Option<Option<FlowgraphFormat>>,
+
+    /// Specifies the direction of the flowgraph. Default is TopToBottom.
+    #[arg(
+        long,
+        value_name = "FORMAT",
+        ignore_case = true,
+        value_enum,
+        requires = "graph"
+    )]
+    flowgraph_direction: Option<FlowgraphDirection>,
 }
 
 impl Opt {
@@ -134,6 +159,28 @@ enum DumpFormat {
 
     // This is a pretty printed json format.
     JsonPretty,
+}
+
+/// Represents the format of the instruction flowgraph.
+#[derive(Debug, Clone, Copy, ValueEnum)]
+enum FlowgraphFormat {
+    /// Generates in [graphviz][graphviz] format.
+    ///
+    /// [graphviz]: https://graphviz.org/
+    Graphviz,
+    /// Generates in [mermaid][mermaid] format.
+    ///
+    /// [mermaid]: https://mermaid-js.github.io/mermaid/#/
+    Mermaid,
+}
+
+/// Represents the direction of the instruction flowgraph.
+#[derive(Debug, Clone, Copy, ValueEnum)]
+enum FlowgraphDirection {
+    TopToBottom,
+    BottomToTop,
+    LeftToRight,
+    RightToLeft,
 }
 
 /// Parses the the token stream into an AST and returns it.
@@ -178,6 +225,31 @@ where
     Ok(())
 }
 
+fn generate_flowgraph(
+    context: &mut Context,
+    src: &[u8],
+    format: FlowgraphFormat,
+    direction: Option<FlowgraphDirection>,
+) -> JsResult<String> {
+    let ast = context.parse(src)?;
+    let code = context.compile(&ast)?;
+
+    let direction = match direction {
+        Some(FlowgraphDirection::TopToBottom) | None => Direction::TopToBottom,
+        Some(FlowgraphDirection::BottomToTop) => Direction::BottomToTop,
+        Some(FlowgraphDirection::LeftToRight) => Direction::LeftToRight,
+        Some(FlowgraphDirection::RightToLeft) => Direction::RightToLeft,
+    };
+
+    let mut graph = Graph::new(direction);
+    code.to_graph(context.interner(), graph.subgraph(String::default()));
+    let result = match format {
+        FlowgraphFormat::Graphviz => graph.to_graphviz_format(),
+        FlowgraphFormat::Mermaid => graph.to_mermaid_format(),
+    };
+    Ok(result)
+}
+
 fn main() -> Result<(), io::Error> {
     let args = Opt::parse();
 
@@ -192,6 +264,16 @@ fn main() -> Result<(), io::Error> {
         if args.has_dump_flag() {
             if let Err(e) = dump(&buffer, &args, &mut context) {
                 eprintln!("{e}");
+            }
+        } else if let Some(flowgraph) = args.flowgraph {
+            match generate_flowgraph(
+                &mut context,
+                &buffer,
+                flowgraph.unwrap_or(FlowgraphFormat::Graphviz),
+                args.flowgraph_direction,
+            ) {
+                Ok(v) => println!("{}", v),
+                Err(v) => eprintln!("Uncaught {v}"),
             }
         } else {
             match context.eval(&buffer) {
@@ -238,6 +320,16 @@ fn main() -> Result<(), io::Error> {
                     if args.has_dump_flag() {
                         if let Err(e) = dump(&line, &args, &mut context) {
                             eprintln!("{e}");
+                        }
+                    } else if let Some(flowgraph) = args.flowgraph {
+                        match generate_flowgraph(
+                            &mut context,
+                            line.trim_end().as_bytes(),
+                            flowgraph.unwrap_or(FlowgraphFormat::Graphviz),
+                            args.flowgraph_direction,
+                        ) {
+                            Ok(v) => println!("{}", v),
+                            Err(v) => eprintln!("Uncaught {v}"),
                         }
                     } else {
                         match context.eval(line.trim_end()) {
