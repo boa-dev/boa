@@ -16,13 +16,21 @@ pub enum Color {
     /// Represents the color purple.
     Purple,
     /// Represents a RGB color.
-    Rgb { r: u8, g: u8, b: u8 },
+    Rgb {
+        /// Red.
+        r: u8,
+        /// Green.
+        g: u8,
+        /// Blue.
+        b: u8,
+    },
 }
 
 impl Color {
     /// Function for converting HSV to RGB color format.
     #[allow(clippy::many_single_char_names)]
     #[inline]
+    #[must_use]
     pub fn hsv_to_rgb(h: f64, s: f64, v: f64) -> Self {
         let h_i = (h * 6.0) as i64;
         let f = h * 6.0 - h_i as f64;
@@ -50,8 +58,9 @@ impl Color {
     /// This funcition takes a random value and converts it to
     /// a pleasant to look at RGB color.
     #[inline]
+    #[must_use]
     pub fn from_random_number(mut random: f64) -> Self {
-        const GOLDEN_RATIO_CONJUGATE: f64 = 0.618033988749895;
+        const GOLDEN_RATIO_CONJUGATE: f64 = 0.618_033_988_749_895;
         random += GOLDEN_RATIO_CONJUGATE;
         random %= 1.0;
 
@@ -60,6 +69,7 @@ impl Color {
 
     /// Check if the color is [`Self::None`].
     #[inline]
+    #[must_use]
     pub fn is_none(&self) -> bool {
         *self == Self::None
     }

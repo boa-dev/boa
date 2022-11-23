@@ -73,7 +73,10 @@ mod sealed {
     pub trait Sealed {}
     impl<T: Copy> Sealed for T {}
 }
+
+/// This trait is implemented by any type that implements [`core::marker::Copy`].
 pub trait DynCopy: sealed::Sealed {}
+
 impl<T: Copy> DynCopy for T {}
 
 /// Trait representing a native built-in closure.
@@ -94,26 +97,41 @@ impl<T> ClosureFunctionSignature for T where
 // Allows cloning Box<dyn ClosureFunctionSignature>
 dyn_clone::clone_trait_object!(ClosureFunctionSignature);
 
+/// Represents the `[[ThisMode]]` internal slot of function objects.
+///
+/// More information:
+///  - [ECMAScript specification][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-ecmascript-function-objects
 #[derive(Debug, Trace, Finalize, PartialEq, Eq, Clone)]
 pub enum ThisMode {
+    /// The `this` value refers to the `this` value of a lexically enclosing function.
     Lexical,
+
+    /// The `this` value is used exactly as provided by an invocation of the function.
     Strict,
+
+    /// The `this` value of `undefined` or `null` is interpreted as a reference to the global object,
+    /// and any other `this` value is first passed to `ToObject`.
     Global,
 }
 
 impl ThisMode {
     /// Returns `true` if the this mode is `Lexical`.
-    pub fn is_lexical(&self) -> bool {
+    #[must_use]
+    pub const fn is_lexical(&self) -> bool {
         matches!(self, Self::Lexical)
     }
 
     /// Returns `true` if the this mode is `Strict`.
-    pub fn is_strict(&self) -> bool {
+    #[must_use]
+    pub const fn is_strict(&self) -> bool {
         matches!(self, Self::Strict)
     }
 
     /// Returns `true` if the this mode is `Global`.
-    pub fn is_global(&self) -> bool {
+    #[must_use]
+    pub const fn is_global(&self) -> bool {
         matches!(self, Self::Global)
     }
 }
@@ -126,18 +144,23 @@ impl ThisMode {
 /// [spec]: https://tc39.es/ecma262/#sec-ecmascript-function-objects
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum ConstructorKind {
+    /// The class constructor is not derived.
     Base,
+
+    /// The class constructor is a derived class constructor.
     Derived,
 }
 
 impl ConstructorKind {
     /// Returns `true` if the constructor kind is `Base`.
-    pub fn is_base(&self) -> bool {
+    #[must_use]
+    pub const fn is_base(&self) -> bool {
         matches!(self, Self::Base)
     }
 
     /// Returns `true` if the constructor kind is `Derived`.
-    pub fn is_derived(&self) -> bool {
+    #[must_use]
+    pub const fn is_derived(&self) -> bool {
         matches!(self, Self::Derived)
     }
 }
@@ -150,7 +173,10 @@ impl ConstructorKind {
 /// [spec]: https://tc39.es/ecma262/#sec-classfielddefinition-record-specification-type
 #[derive(Clone, Debug, Finalize)]
 pub enum ClassFieldDefinition {
+    /// A class field definition with a `string` or `symbol` as a name.
     Public(PropertyKey, JsFunction),
+
+    /// A class field definition with a private name.
     Private(Sym, JsFunction),
 }
 
@@ -216,17 +242,33 @@ impl Captures {
 /// <https://tc39.es/ecma262/#sec-ecmascript-function-objects>
 #[derive(Finalize)]
 pub enum Function {
+    /// A rust function.
     Native {
+        /// The rust function.
         function: NativeFunctionSignature,
+
+        /// The kind of the function constructor if it is a constructor.
         constructor: Option<ConstructorKind>,
     },
+
+    /// A rust function that may contain captured values.
     Closure {
+        /// The rust function.
         function: Box<dyn ClosureFunctionSignature>,
+
+        /// The kind of the function constructor if it is a constructor.
         constructor: Option<ConstructorKind>,
+
+        /// The captured values.
         captures: Captures,
     },
+
+    /// A bytecode function.
     Ordinary {
+        /// The code block containing the compiled function.
         code: Gc<crate::vm::CodeBlock>,
+
+        /// The `[[Environment]]` internal slot.
         environments: DeclarativeEnvironmentStack,
 
         /// The `[[ConstructorKind]]` internal slot.
@@ -241,22 +283,42 @@ pub enum Function {
         /// The `[[PrivateMethods]]` internal slot.
         private_methods: Vec<(Sym, PrivateElement)>,
     },
+
+    /// A bytecode async function.
     Async {
+        /// The code block containing the compiled function.
         code: Gc<crate::vm::CodeBlock>,
+
+        /// The `[[Environment]]` internal slot.
         environments: DeclarativeEnvironmentStack,
+
         /// The `[[HomeObject]]` internal slot.
         home_object: Option<JsObject>,
+
+        /// The promise capability record of the async function.
         promise_capability: PromiseCapability,
     },
+
+    /// A bytecode generator function.
     Generator {
+        /// The code block containing the compiled function.
         code: Gc<crate::vm::CodeBlock>,
+
+        /// The `[[Environment]]` internal slot.
         environments: DeclarativeEnvironmentStack,
+
         /// The `[[HomeObject]]` internal slot.
         home_object: Option<JsObject>,
     },
+
+    /// A bytecode async generator function.
     AsyncGenerator {
+        /// The code block containing the compiled function.
         code: Gc<crate::vm::CodeBlock>,
+
+        /// The `[[Environment]]` internal slot.
         environments: DeclarativeEnvironmentStack,
+
         /// The `[[HomeObject]]` internal slot.
         home_object: Option<JsObject>,
     },
@@ -311,7 +373,7 @@ impl Function {
     }
 
     /// Returns true if the function object is a derived constructor.
-    pub(crate) fn is_derived_constructor(&self) -> bool {
+    pub(crate) const fn is_derived_constructor(&self) -> bool {
         if let Self::Ordinary {
             constructor_kind, ..
         } = self
@@ -323,7 +385,7 @@ impl Function {
     }
 
     /// Returns a reference to the function `[[HomeObject]]` slot if present.
-    pub(crate) fn get_home_object(&self) -> Option<&JsObject> {
+    pub(crate) const fn get_home_object(&self) -> Option<&JsObject> {
         match self {
             Self::Ordinary { home_object, .. }
             | Self::Async { home_object, .. }
@@ -390,7 +452,7 @@ impl Function {
     }
 
     /// Returns the promise capability if the function is an async function.
-    pub(crate) fn get_promise_capability(&self) -> Option<&PromiseCapability> {
+    pub(crate) const fn get_promise_capability(&self) -> Option<&PromiseCapability> {
         if let Self::Async {
             promise_capability, ..
         } = self
@@ -461,11 +523,12 @@ pub(crate) fn make_builtin_fn<N>(
     );
 }
 
+/// The internal representation of a `Function` object.
 #[derive(Debug, Clone, Copy)]
 pub struct BuiltInFunctionObject;
 
 impl BuiltInFunctionObject {
-    pub const LENGTH: usize = 1;
+    const LENGTH: usize = 1;
 
     /// `Function ( p1, p2, … , pn, body )`
     ///
@@ -946,13 +1009,12 @@ fn set_function_name(
     let mut name = match name {
         PropertyKey::Symbol(sym) => {
             // a. Let description be name's [[Description]] value.
-            if let Some(desc) = sym.description() {
-                // c. Else, set name to the string-concatenation of "[", description, and "]".
-                js_string!(utf16!("["), &desc, utf16!("]"))
-            } else {
-                // b. If description is undefined, set name to the empty String.
-                js_string!()
-            }
+            // b. If description is undefined, set name to the empty String.
+            // c. Else, set name to the string-concatenation of "[", description, and "]".
+            sym.description().map_or_else(
+                || js_string!(),
+                |desc| js_string!(utf16!("["), &desc, utf16!("]")),
+            )
         }
         PropertyKey::String(string) => string.clone(),
         PropertyKey::Index(index) => js_string!(format!("{}", index)),
@@ -1038,12 +1100,12 @@ impl BoundFunction {
     }
 
     /// Get a reference to the bound function's this.
-    pub fn this(&self) -> &JsValue {
+    pub const fn this(&self) -> &JsValue {
         &self.this
     }
 
     /// Get a reference to the bound function's target function.
-    pub fn target_function(&self) -> &JsObject {
+    pub const fn target_function(&self) -> &JsObject {
         &self.target_function
     }
 

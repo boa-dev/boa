@@ -66,17 +66,35 @@ enum Repr {
 /// The error type returned by the [`JsError::try_native`] method.
 #[derive(Debug, Clone, Error)]
 pub enum TryNativeError {
+    /// This error is returned when a property of the error object has an invalid type.
     #[error("invalid type of property `{0}`")]
     InvalidPropertyType(&'static str),
+
+    /// This error is returned when the message of the error object could not be decoded.
     #[error("property `message` cannot contain unpaired surrogates")]
     InvalidMessageEncoding,
+
+    /// This error is returned when a property of the error object is not accessible.
     #[error("could not access property `{property}`")]
     InaccessibleProperty {
+        /// The name of the property that could not be accessed.
         property: &'static str,
+
+        /// The source error.
         source: JsError,
     },
+
+    /// This error is returned when any inner error of an aggregate error is not accessible.
     #[error("could not get element `{index}` of property `errors`")]
-    InvalidErrorsIndex { index: u64, source: JsError },
+    InvalidErrorsIndex {
+        /// The index of the error that could not be accessed.
+        index: u64,
+
+        /// The source error.
+        source: JsError,
+    },
+
+    /// This error is returned when the error value not an error object.
     #[error("opaque error of type `{:?}` is not an Error object", .0.get_type())]
     NotAnErrorObject(JsValue),
 }
@@ -101,7 +119,8 @@ impl JsError {
     ///
     /// assert!(error.as_native().is_some());
     /// ```
-    pub fn from_native(err: JsNativeError) -> Self {
+    #[must_use]
+    pub const fn from_native(err: JsNativeError) -> Self {
         Self {
             inner: Repr::Native(err),
         }
@@ -117,7 +136,7 @@ impl JsError {
     ///
     /// assert!(error.as_opaque().is_some());
     /// ```
-    pub fn from_opaque(value: JsValue) -> Self {
+    pub const fn from_opaque(value: JsValue) -> Self {
         Self {
             inner: Repr::Opaque(value),
         }
@@ -246,7 +265,7 @@ impl JsError {
                                     }
                                 })?;
                                 for i in 0..length {
-                                    error_list.push(JsError::from_opaque(
+                                    error_list.push(Self::from_opaque(
                                         errors.get(i, context).map_err(|e| {
                                             TryNativeError::InvalidErrorsIndex {
                                                 index: i,
@@ -266,7 +285,7 @@ impl JsError {
                 Ok(JsNativeError {
                     kind,
                     message,
-                    cause: cause.map(|v| Box::new(JsError::from_opaque(v))),
+                    cause: cause.map(|v| Box::new(Self::from_opaque(v))),
                 })
             }
         }
@@ -289,7 +308,7 @@ impl JsError {
     ///
     /// assert!(error.as_opaque().is_some());
     /// ```
-    pub fn as_opaque(&self) -> Option<&JsValue> {
+    pub const fn as_opaque(&self) -> Option<&JsValue> {
         match self.inner {
             Repr::Native(_) => None,
             Repr::Opaque(ref v) => Some(v),
@@ -311,7 +330,7 @@ impl JsError {
     ///
     /// assert!(error.as_native().is_none());
     /// ```
-    pub fn as_native(&self) -> Option<&JsNativeError> {
+    pub const fn as_native(&self) -> Option<&JsNativeError> {
         match self.inner {
             Repr::Native(ref e) => Some(e),
             Repr::Opaque(_) => None,
@@ -401,6 +420,7 @@ impl JsNativeError {
     ///     JsNativeErrorKind::Aggregate(ref errors) if errors.len() == 2
     /// ));
     /// ```
+    #[must_use]
     pub fn aggregate(errors: Vec<JsError>) -> Self {
         Self::new(JsNativeErrorKind::Aggregate(errors), Box::default(), None)
     }
@@ -415,6 +435,7 @@ impl JsNativeError {
     ///
     /// assert!(matches!(error.kind, JsNativeErrorKind::Error));
     /// ```
+    #[must_use]
     pub fn error() -> Self {
         Self::new(JsNativeErrorKind::Error, Box::default(), None)
     }
@@ -429,6 +450,7 @@ impl JsNativeError {
     ///
     /// assert!(matches!(error.kind, JsNativeErrorKind::Eval));
     /// ```
+    #[must_use]
     pub fn eval() -> Self {
         Self::new(JsNativeErrorKind::Eval, Box::default(), None)
     }
@@ -443,6 +465,7 @@ impl JsNativeError {
     ///
     /// assert!(matches!(error.kind, JsNativeErrorKind::Range));
     /// ```
+    #[must_use]
     pub fn range() -> Self {
         Self::new(JsNativeErrorKind::Range, Box::default(), None)
     }
@@ -457,6 +480,7 @@ impl JsNativeError {
     ///
     /// assert!(matches!(error.kind, JsNativeErrorKind::Reference));
     /// ```
+    #[must_use]
     pub fn reference() -> Self {
         Self::new(JsNativeErrorKind::Reference, Box::default(), None)
     }
@@ -471,6 +495,7 @@ impl JsNativeError {
     ///
     /// assert!(matches!(error.kind, JsNativeErrorKind::Syntax));
     /// ```
+    #[must_use]
     pub fn syntax() -> Self {
         Self::new(JsNativeErrorKind::Syntax, Box::default(), None)
     }
@@ -485,6 +510,7 @@ impl JsNativeError {
     ///
     /// assert!(matches!(error.kind, JsNativeErrorKind::Type));
     /// ```
+    #[must_use]
     pub fn typ() -> Self {
         Self::new(JsNativeErrorKind::Type, Box::default(), None)
     }
@@ -499,6 +525,7 @@ impl JsNativeError {
     ///
     /// assert!(matches!(error.kind, JsNativeErrorKind::Uri));
     /// ```
+    #[must_use]
     pub fn uri() -> Self {
         Self::new(JsNativeErrorKind::Uri, Box::default(), None)
     }
@@ -506,6 +533,7 @@ impl JsNativeError {
     /// Creates a new `JsNativeError` that indicates that the context hit its execution limit. This
     /// is only used in a fuzzing context.
     #[cfg(feature = "fuzz")]
+    #[must_use]
     pub fn no_instructions_remain() -> Self {
         Self::new(
             JsNativeErrorKind::NoInstructionsRemain,
@@ -568,7 +596,8 @@ impl JsNativeError {
     ///
     /// assert_eq!(error.message(), "number too large");
     /// ```
-    pub fn message(&self) -> &str {
+    #[must_use]
+    pub const fn message(&self) -> &str {
         &self.message
     }
 
@@ -588,6 +617,7 @@ impl JsNativeError {
     ///
     /// assert!(error.cause().unwrap().as_native().is_some());
     /// ```
+    #[must_use]
     pub fn cause(&self) -> Option<&JsError> {
         self.cause.as_deref()
     }
@@ -773,16 +803,16 @@ pub enum JsNativeErrorKind {
 impl std::fmt::Display for JsNativeErrorKind {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            JsNativeErrorKind::Aggregate(_) => "AggregateError",
-            JsNativeErrorKind::Error => "Error",
-            JsNativeErrorKind::Eval => "EvalError",
-            JsNativeErrorKind::Range => "RangeError",
-            JsNativeErrorKind::Reference => "ReferenceError",
-            JsNativeErrorKind::Syntax => "SyntaxError",
-            JsNativeErrorKind::Type => "TypeError",
-            JsNativeErrorKind::Uri => "UriError",
+            Self::Aggregate(_) => "AggregateError",
+            Self::Error => "Error",
+            Self::Eval => "EvalError",
+            Self::Range => "RangeError",
+            Self::Reference => "ReferenceError",
+            Self::Syntax => "SyntaxError",
+            Self::Type => "TypeError",
+            Self::Uri => "UriError",
             #[cfg(feature = "fuzz")]
-            JsNativeErrorKind::NoInstructionsRemain => "NoInstructionsRemain",
+            Self::NoInstructionsRemain => "NoInstructionsRemain",
         }
         .fmt(f)
     }

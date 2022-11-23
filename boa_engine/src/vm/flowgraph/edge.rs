@@ -40,7 +40,7 @@ pub struct Edge {
 impl Edge {
     /// Construct a new edge.
     #[inline]
-    pub(super) fn new(
+    pub(super) const fn new(
         from: usize,
         to: usize,
         label: Option<Box<str>>,

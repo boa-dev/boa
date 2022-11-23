@@ -34,7 +34,7 @@ pub mod ordered_map;
 mod tests;
 
 #[derive(Debug, Clone)]
-pub(crate) struct Map(OrderedMap<JsValue>);
+pub(crate) struct Map;
 
 impl BuiltIn for Map {
     const NAME: &'static str = "Map";
@@ -334,7 +334,7 @@ impl Map {
         if let JsValue::Object(ref object) = this {
             // 2. Perform ? RequireInternalSlot(M, [[MapData]]).
             // 3. Let entries be the List that is M.[[MapData]].
-            if let Some(map) = object.borrow().as_map_ref() {
+            if let Some(map) = object.borrow().as_map() {
                 // 4. For each Record { [[Key]], [[Value]] } p of entries, do
                 // a. If p.[[Key]] is not empty and SameValueZero(p.[[Key]], key) is true, return p.[[Value]].
                 // 5. Return undefined.
@@ -406,7 +406,7 @@ impl Map {
         if let JsValue::Object(ref object) = this {
             // 2. Perform ? RequireInternalSlot(M, [[MapData]]).
             // 3. Let entries be the List that is M.[[MapData]].
-            if let Some(map) = object.borrow().as_map_ref() {
+            if let Some(map) = object.borrow().as_map() {
                 // 4. For each Record { [[Key]], [[Value]] } p of entries, do
                 // a. If p.[[Key]] is not empty and SameValueZero(p.[[Key]], key) is true, return true.
                 // 5. Return false.
@@ -470,7 +470,7 @@ impl Map {
         loop {
             let arguments = {
                 let map = map.borrow();
-                let map = map.as_map_ref().expect("checked that `this` was a map");
+                let map = map.as_map().expect("checked that `this` was a map");
                 if index < map.full_len() {
                     map.get_index(index)
                         .map(|(k, v)| [v.clone(), k.clone(), this.clone()])

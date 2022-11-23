@@ -1,3 +1,10 @@
+//! This module implements the `ArrayIterator` object.
+//!
+//! More information:
+//!  - [ECMAScript reference][spec]
+//!
+//! [spec]: https://tc39.es/ecma262/#sec-array-iterator-objects
+
 use crate::{
     builtins::{function::make_builtin_fn, iterable::create_iter_result_object, Array, JsValue},
     error::JsNativeError,

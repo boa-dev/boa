@@ -64,16 +64,14 @@ impl JsValue {
             //    a. Let n be ! StringToBigInt(y).
             //    b. If n is NaN, return false.
             //    c. Return the result of the comparison x == n.
-            (Self::BigInt(ref a), Self::String(ref b)) => match b.to_big_int() {
-                Some(ref b) => a == b,
-                None => false,
-            },
+            (Self::BigInt(ref a), Self::String(ref b)) => {
+                b.to_big_int().as_ref().map_or(false, |b| a == b)
+            }
 
             // 7. If Type(x) is String and Type(y) is BigInt, return the result of the comparison y == x.
-            (Self::String(ref a), Self::BigInt(ref b)) => match a.to_big_int() {
-                Some(ref a) => a == b,
-                None => false,
-            },
+            (Self::String(ref a), Self::BigInt(ref b)) => {
+                a.to_big_int().as_ref().map_or(false, |a| a == b)
+            }
 
             // 8. If Type(x) is Boolean, return the result of the comparison ! ToNumber(x) == y.
             (Self::Boolean(x), _) => return other.equals(&Self::new(i32::from(*x)), context),
@@ -170,16 +168,12 @@ impl JsValue {
         match (x, y) {
             // 2. If Type(x) is Number or BigInt, then
             //    a. Return ! Type(x)::SameValueZero(x, y).
-            (JsValue::BigInt(x), JsValue::BigInt(y)) => JsBigInt::same_value_zero(x, y),
+            (Self::BigInt(x), Self::BigInt(y)) => JsBigInt::same_value_zero(x, y),
 
-            (JsValue::Rational(x), JsValue::Rational(y)) => Number::same_value_zero(*x, *y),
-            (JsValue::Rational(x), JsValue::Integer(y)) => {
-                Number::same_value_zero(*x, f64::from(*y))
-            }
-            (JsValue::Integer(x), JsValue::Rational(y)) => {
-                Number::same_value_zero(f64::from(*x), *y)
-            }
-            (JsValue::Integer(x), JsValue::Integer(y)) => x == y,
+            (Self::Rational(x), Self::Rational(y)) => Number::same_value_zero(*x, *y),
+            (Self::Rational(x), Self::Integer(y)) => Number::same_value_zero(*x, f64::from(*y)),
+            (Self::Integer(x), Self::Rational(y)) => Number::same_value_zero(f64::from(*x), *y),
+            (Self::Integer(x), Self::Integer(y)) => x == y,
 
             // 3. Return ! SameValueNonNumeric(x, y).
             (_, _) => Self::same_value_non_numeric(x, y),

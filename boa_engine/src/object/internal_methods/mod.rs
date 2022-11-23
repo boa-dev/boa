@@ -259,9 +259,9 @@ impl JsObject {
     pub(crate) fn __construct__(
         &self,
         args: &[JsValue],
-        new_target: &JsObject,
+        new_target: &Self,
         context: &mut Context,
-    ) -> JsResult<JsObject> {
+    ) -> JsResult<Self> {
         let _timer = Profiler::global().start_event("Object::__construct__", "object");
         let func = self.borrow().data.internal_methods.__construct__;
         func.expect("called `[[Construct]]` for object without a `[[Construct]]` internal method")(

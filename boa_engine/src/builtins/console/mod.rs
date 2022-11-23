@@ -29,7 +29,7 @@ use tap::{Conv, Pipe};
 
 /// This represents the different types of log messages.
 #[derive(Debug)]
-pub enum LogMessage {
+enum LogMessage {
     Log(String),
     Info(String),
     Warn(String),
@@ -37,7 +37,7 @@ pub enum LogMessage {
 }
 
 /// Helper function for logging messages.
-pub(crate) fn logger(msg: LogMessage, console_state: &Console) {
+fn logger(msg: LogMessage, console_state: &Console) {
     let indent = 2 * console_state.groups.len();
 
     match msg {

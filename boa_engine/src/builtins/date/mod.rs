@@ -1,5 +1,15 @@
+//! This module implements the global `Date` object.
+//!
+//! More information:
+//!  - [ECMAScript reference][spec]
+//!  - [MDN documentation][mdn]
+//!
+//! [spec]: https://tc39.es/ecma262/#sec-date-objects
+//! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date
+
 mod utils;
 use utils::{make_date, make_day, make_time, replace_params, time_clip, DateParameters};
+
 #[cfg(test)]
 mod tests;
 
@@ -58,13 +68,14 @@ pub(super) fn this_time_value(value: &JsValue) -> JsResult<Option<NaiveDateTime>
         .0)
 }
 
+/// The internal representation of a `Date` object.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Date(Option<NaiveDateTime>);
 
 impl Date {
     /// Creates a new `Date`.
     #[inline]
-    pub(crate) fn new(dt: Option<NaiveDateTime>) -> Self {
+    pub(crate) const fn new(dt: Option<NaiveDateTime>) -> Self {
         Self(dt)
     }
 

@@ -104,6 +104,10 @@ impl JsValue {
     /// #
     /// # assert_eq!(json, back_to_json);
     /// ```
+    ///
+    /// # Panics
+    ///
+    /// Panics if the `JsValue` is `Undefined`.
     pub fn to_json(&self, context: &mut Context) -> JsResult<Value> {
         match self {
             Self::Null => Ok(Value::Null),
@@ -279,6 +283,6 @@ mod tests {
 
         let pow: u32 = serde_json::from_value(pow.to_json(&mut context).unwrap()).unwrap();
 
-        assert_eq!(pow, 60466176);
+        assert_eq!(pow, 60_466_176);
     }
 }

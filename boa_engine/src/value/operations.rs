@@ -10,6 +10,7 @@ use crate::{
 };
 
 impl JsValue {
+    /// Perform the binary `+` operator on the value and return the result.
     #[inline]
     pub fn add(&self, other: &Self, context: &mut Context) -> JsResult<Self> {
         Ok(match (self, other) {
@@ -50,6 +51,7 @@ impl JsValue {
         })
     }
 
+    /// Perform the binary `-` operator on the value and return the result.
     #[inline]
     pub fn sub(&self, other: &Self, context: &mut Context) -> JsResult<Self> {
         Ok(match (self, other) {
@@ -76,6 +78,7 @@ impl JsValue {
         })
     }
 
+    /// Perform the binary `*` operator on the value and return the result.
     #[inline]
     pub fn mul(&self, other: &Self, context: &mut Context) -> JsResult<Self> {
         Ok(match (self, other) {
@@ -102,6 +105,7 @@ impl JsValue {
         })
     }
 
+    /// Perform the binary `/` operator on the value and return the result.
     #[inline]
     pub fn div(&self, other: &Self, context: &mut Context) -> JsResult<Self> {
         Ok(match (self, other) {
@@ -143,6 +147,7 @@ impl JsValue {
         })
     }
 
+    /// Perform the binary `%` operator on the value and return the result.
     #[inline]
     pub fn rem(&self, other: &Self, context: &mut Context) -> JsResult<Self> {
         Ok(match (self, other) {
@@ -194,6 +199,7 @@ impl JsValue {
         })
     }
 
+    /// Perform the binary `**` operator on the value and return the result.
     #[inline]
     pub fn pow(&self, other: &Self, context: &mut Context) -> JsResult<Self> {
         Ok(match (self, other) {
@@ -221,6 +227,7 @@ impl JsValue {
         })
     }
 
+    /// Perform the binary `&` operator on the value and return the result.
     #[inline]
     pub fn bitand(&self, other: &Self, context: &mut Context) -> JsResult<Self> {
         Ok(match (self, other) {
@@ -251,6 +258,7 @@ impl JsValue {
         })
     }
 
+    /// Perform the binary `|` operator on the value and return the result.
     #[inline]
     pub fn bitor(&self, other: &Self, context: &mut Context) -> JsResult<Self> {
         Ok(match (self, other) {
@@ -281,6 +289,7 @@ impl JsValue {
         })
     }
 
+    /// Perform the binary `^` operator on the value and return the result.
     #[inline]
     pub fn bitxor(&self, other: &Self, context: &mut Context) -> JsResult<Self> {
         Ok(match (self, other) {
@@ -311,6 +320,7 @@ impl JsValue {
         })
     }
 
+    /// Perform the binary `<<` operator on the value and return the result.
     #[inline]
     pub fn shl(&self, other: &Self, context: &mut Context) -> JsResult<Self> {
         Ok(match (self, other) {
@@ -343,6 +353,7 @@ impl JsValue {
         })
     }
 
+    /// Perform the binary `>>` operator on the value and return the result.
     #[inline]
     pub fn shr(&self, other: &Self, context: &mut Context) -> JsResult<Self> {
         Ok(match (self, other) {
@@ -375,6 +386,7 @@ impl JsValue {
         })
     }
 
+    /// Perform the binary `>>>` operator on the value and return the result.
     #[inline]
     pub fn ushr(&self, other: &Self, context: &mut Context) -> JsResult<Self> {
         Ok(match (self, other) {
@@ -449,14 +461,15 @@ impl JsValue {
         }
     }
 
+    /// Returns the negated value.
     #[inline]
     pub fn neg(&self, context: &mut Context) -> JsResult<Self> {
         Ok(match *self {
             Self::Symbol(_) | Self::Undefined => Self::new(f64::NAN),
-            Self::Object(_) => Self::new(match self.to_numeric_number(context) {
-                Ok(num) => -num,
-                Err(_) => f64::NAN,
-            }),
+            Self::Object(_) => Self::new(
+                self.to_numeric_number(context)
+                    .map_or(f64::NAN, std::ops::Neg::neg),
+            ),
             Self::String(ref str) => Self::new(-str.to_number()),
             Self::Rational(num) => Self::new(-num),
             Self::Integer(num) if num == 0 => Self::new(-f64::from(0)),
@@ -467,8 +480,9 @@ impl JsValue {
         })
     }
 
+    /// Returns the negated boolean value.
     #[inline]
-    pub fn not(&self, _: &mut Context) -> JsResult<bool> {
+    pub fn not(&self) -> JsResult<bool> {
         Ok(!self.to_boolean())
     }
 
@@ -518,20 +532,12 @@ impl JsValue {
 
                 match (px, py) {
                     (Self::String(ref x), Self::String(ref y)) => (x < y).into(),
-                    (Self::BigInt(ref x), Self::String(ref y)) => {
-                        if let Some(y) = y.to_big_int() {
-                            (*x < y).into()
-                        } else {
-                            AbstractRelation::Undefined
-                        }
-                    }
-                    (Self::String(ref x), Self::BigInt(ref y)) => {
-                        if let Some(x) = x.to_big_int() {
-                            (x < *y).into()
-                        } else {
-                            AbstractRelation::Undefined
-                        }
-                    }
+                    (Self::BigInt(ref x), Self::String(ref y)) => y
+                        .to_big_int()
+                        .map_or(AbstractRelation::Undefined, |y| (*x < y).into()),
+                    (Self::String(ref x), Self::BigInt(ref y)) => x
+                        .to_big_int()
+                        .map_or(AbstractRelation::Undefined, |x| (x < *y).into()),
                     (px, py) => match (px.to_numeric(context)?, py.to_numeric(context)?) {
                         (Numeric::Number(x), Numeric::Number(y)) => Number::less_than(x, y),
                         (Numeric::BigInt(ref x), Numeric::BigInt(ref y)) => (x < y).into(),

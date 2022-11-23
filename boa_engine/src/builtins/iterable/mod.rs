@@ -1,3 +1,5 @@
+//! This module implements the global iterator prototype objects.
+
 mod async_from_sync_iterator;
 
 use crate::{
@@ -17,25 +19,34 @@ use boa_profiler::Profiler;
 
 pub(crate) use async_from_sync_iterator::AsyncFromSyncIterator;
 
+/// The built-in iterator prototypes.
 #[derive(Debug, Default)]
 pub struct IteratorPrototypes {
-    /// %IteratorPrototype%
+    /// The `IteratorPrototype` object.
     iterator_prototype: JsObject,
-    /// %AsyncIteratorPrototype%
+
+    /// The `AsyncIteratorPrototype` object.
     async_iterator_prototype: JsObject,
-    /// %AsyncFromSyncIteratorPrototype%
+
+    /// The `AsyncFromSyncIteratorPrototype` prototype object.
     async_from_sync_iterator_prototype: JsObject,
-    /// %MapIteratorPrototype%
+
+    /// The `ArrayIteratorPrototype` prototype object.
     array_iterator: JsObject,
-    /// %SetIteratorPrototype%
+
+    /// The `SetIteratorPrototype` prototype object.
     set_iterator: JsObject,
-    /// %StringIteratorPrototype%
+
+    /// The `StringIteratorPrototype` prototype object.
     string_iterator: JsObject,
-    /// %RegExpStringIteratorPrototype%
+
+    /// The `RegExpStringIteratorPrototype` prototype object.
     regexp_string_iterator: JsObject,
-    /// %MapIteratorPrototype%
+
+    /// The `MapIteratorPrototype` prototype object.
     map_iterator: JsObject,
-    /// %ForInIteratorPrototype%
+
+    /// The `ForInIteratorPrototype` prototype object.
     for_in_iterator: JsObject,
 }
 
@@ -62,46 +73,55 @@ impl IteratorPrototypes {
         }
     }
 
+    /// Returns the `ArrayIteratorPrototype` object.
     #[inline]
     pub fn array_iterator(&self) -> JsObject {
         self.array_iterator.clone()
     }
 
+    /// Returns the `IteratorPrototype` object.
     #[inline]
     pub fn iterator_prototype(&self) -> JsObject {
         self.iterator_prototype.clone()
     }
 
+    /// Returns the `AsyncIteratorPrototype` object.
     #[inline]
     pub fn async_iterator_prototype(&self) -> JsObject {
         self.async_iterator_prototype.clone()
     }
 
+    /// Returns the `AsyncFromSyncIteratorPrototype` object.
     #[inline]
     pub fn async_from_sync_iterator_prototype(&self) -> JsObject {
         self.async_from_sync_iterator_prototype.clone()
     }
 
+    /// Returns the `SetIteratorPrototype` object.
     #[inline]
     pub fn set_iterator(&self) -> JsObject {
         self.set_iterator.clone()
     }
 
+    /// Returns the `StringIteratorPrototype` object.
     #[inline]
     pub fn string_iterator(&self) -> JsObject {
         self.string_iterator.clone()
     }
 
+    /// Returns the `RegExpStringIteratorPrototype` object.
     #[inline]
     pub fn regexp_string_iterator(&self) -> JsObject {
         self.regexp_string_iterator.clone()
     }
 
+    /// Returns the `MapIteratorPrototype` object.
     #[inline]
     pub fn map_iterator(&self) -> JsObject {
         self.map_iterator.clone()
     }
 
+    /// Returns the `ForInIteratorPrototype` object.
     #[inline]
     pub fn for_in_iterator(&self) -> JsObject {
         self.for_in_iterator.clone()
@@ -132,7 +152,10 @@ pub fn create_iter_result_object(value: JsValue, done: bool, context: &mut Conte
 /// Iterator hint for `GetIterator`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum IteratorHint {
+    /// Hints that the iterator should be sync.
     Sync,
+
+    /// Hints that the iterator should be async.
     Async,
 }
 
@@ -311,19 +334,19 @@ impl IteratorRecord {
 
     /// Get the `[[Iterator]]` field of the `IteratorRecord`.
     #[inline]
-    pub(crate) fn iterator(&self) -> &JsObject {
+    pub(crate) const fn iterator(&self) -> &JsObject {
         &self.iterator
     }
 
     /// Get the `[[NextMethod]]` field of the `IteratorRecord`.
     #[inline]
-    pub(crate) fn next_method(&self) -> &JsValue {
+    pub(crate) const fn next_method(&self) -> &JsValue {
         &self.next_method
     }
 
     /// Get the `[[Done]]` field of the `IteratorRecord`.
     #[inline]
-    pub(crate) fn done(&self) -> bool {
+    pub(crate) const fn done(&self) -> bool {
         self.done
     }
 

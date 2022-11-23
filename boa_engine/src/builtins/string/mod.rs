@@ -41,7 +41,7 @@ pub(crate) enum Placement {
 
 /// Helper function to check if a `char` is trimmable.
 #[inline]
-pub(crate) fn is_trimmable_whitespace(c: char) -> bool {
+pub(crate) const fn is_trimmable_whitespace(c: char) -> bool {
     // The rust implementation of `trim` does not regard the same characters whitespace as ecma standard does
     //
     // Rust uses \p{White_Space} by default, which also includes:
@@ -258,7 +258,7 @@ impl String {
             }
 
             // c. If ℝ(nextCP) < 0 or ℝ(nextCP) > 0x10FFFF, throw a RangeError exception.
-            if nextcp < 0.0 || nextcp > f64::from(0x10FFFF) {
+            if nextcp < 0.0 || nextcp > f64::from(0x0010_FFFF) {
                 return Err(JsNativeError::range()
                     .with_message(format!("invalid code point: {nextcp}"))
                     .into());

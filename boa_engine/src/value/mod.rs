@@ -2,6 +2,16 @@
 //!
 //! Javascript values, utility methods and conversion between Javascript values and Rust values.
 
+mod conversions;
+mod equality;
+mod hash;
+mod integer;
+mod operations;
+mod serde_json;
+mod r#type;
+
+pub(crate) mod display;
+
 #[cfg(test)]
 mod tests;
 
@@ -29,16 +39,8 @@ use std::{
     ops::Sub,
 };
 
-mod conversions;
-pub(crate) mod display;
-mod equality;
-mod hash;
-mod integer;
-mod operations;
-mod serde_json;
-mod r#type;
+pub(crate) use conversions::*;
 
-pub use conversions::*;
 pub use display::ValueDisplay;
 pub use integer::IntegerOrInfinity;
 pub use operations::*;
@@ -99,42 +101,48 @@ impl JsValue {
 
     /// Creates a new `undefined` value.
     #[inline]
-    pub fn undefined() -> Self {
+    #[must_use]
+    pub const fn undefined() -> Self {
         Self::Undefined
     }
 
     /// Creates a new `null` value.
     #[inline]
-    pub fn null() -> Self {
+    #[must_use]
+    pub const fn null() -> Self {
         Self::Null
     }
 
     /// Creates a new number with `NaN` value.
     #[inline]
-    pub fn nan() -> Self {
+    #[must_use]
+    pub const fn nan() -> Self {
         Self::Rational(f64::NAN)
     }
 
     /// Creates a new number with `Infinity` value.
     #[inline]
-    pub fn positive_infinity() -> Self {
+    #[must_use]
+    pub const fn positive_infinity() -> Self {
         Self::Rational(f64::INFINITY)
     }
 
     /// Creates a new number with `-Infinity` value.
     #[inline]
-    pub fn negative_infinity() -> Self {
+    #[must_use]
+    pub const fn negative_infinity() -> Self {
         Self::Rational(f64::NEG_INFINITY)
     }
 
-    /// Returns true if the value is an object
+    /// Returns true if the value is an object.
     #[inline]
-    pub fn is_object(&self) -> bool {
+    pub const fn is_object(&self) -> bool {
         matches!(self, Self::Object(_))
     }
 
+    /// Returns the object if the value is object, otherwise `None`.
     #[inline]
-    pub fn as_object(&self) -> Option<&JsObject> {
+    pub const fn as_object(&self) -> Option<&JsObject> {
         match *self {
             Self::Object(ref o) => Some(o),
             _ => None,
@@ -152,6 +160,7 @@ impl JsValue {
         matches!(self, Self::Object(obj) if obj.is_callable())
     }
 
+    /// Returns the callable value if the value is callable, otherwise `None`.
     #[inline]
     pub fn as_callable(&self) -> Option<&JsObject> {
         self.as_object().filter(|obj| obj.is_callable())
@@ -163,6 +172,7 @@ impl JsValue {
         matches!(self, Self::Object(obj) if obj.is_constructor())
     }
 
+    /// Returns the constructor if the value is a constructor, otherwise `None`.
     #[inline]
     pub fn as_constructor(&self) -> Option<&JsObject> {
         self.as_object().filter(|obj| obj.is_constructor())
@@ -174,6 +184,7 @@ impl JsValue {
         matches!(self, Self::Object(obj) if obj.is_promise())
     }
 
+    /// Returns the promise if the value is a promise, otherwise `None`.
     #[inline]
     pub fn as_promise(&self) -> Option<&JsObject> {
         self.as_object().filter(|obj| obj.is_promise())
@@ -181,10 +192,11 @@ impl JsValue {
 
     /// Returns true if the value is a symbol.
     #[inline]
-    pub fn is_symbol(&self) -> bool {
+    pub const fn is_symbol(&self) -> bool {
         matches!(self, Self::Symbol(_))
     }
 
+    /// Returns the symbol if the value is a symbol, otherwise `None`.
     pub fn as_symbol(&self) -> Option<JsSymbol> {
         match self {
             Self::Symbol(symbol) => Some(symbol.clone()),
@@ -194,25 +206,25 @@ impl JsValue {
 
     /// Returns true if the value is undefined.
     #[inline]
-    pub fn is_undefined(&self) -> bool {
+    pub const fn is_undefined(&self) -> bool {
         matches!(self, Self::Undefined)
     }
 
     /// Returns true if the value is null.
     #[inline]
-    pub fn is_null(&self) -> bool {
+    pub const fn is_null(&self) -> bool {
         matches!(self, Self::Null)
     }
 
     /// Returns true if the value is null or undefined.
     #[inline]
-    pub fn is_null_or_undefined(&self) -> bool {
+    pub const fn is_null_or_undefined(&self) -> bool {
         matches!(self, Self::Null | Self::Undefined)
     }
 
     /// Returns true if the value is a 64-bit floating-point number.
     #[inline]
-    pub fn is_double(&self) -> bool {
+    pub const fn is_double(&self) -> bool {
         matches!(self, Self::Rational(_))
     }
 
@@ -233,10 +245,11 @@ impl JsValue {
 
     /// Returns true if the value is a number.
     #[inline]
-    pub fn is_number(&self) -> bool {
+    pub const fn is_number(&self) -> bool {
         matches!(self, Self::Rational(_) | Self::Integer(_))
     }
 
+    /// Returns the number if the value is a number, otherwise `None`.
     #[inline]
     pub fn as_number(&self) -> Option<f64> {
         match *self {
@@ -248,13 +261,13 @@ impl JsValue {
 
     /// Returns true if the value is a string.
     #[inline]
-    pub fn is_string(&self) -> bool {
+    pub const fn is_string(&self) -> bool {
         matches!(self, Self::String(_))
     }
 
-    /// Returns the string if the values is a string, otherwise `None`.
+    /// Returns the string if the value is a string, otherwise `None`.
     #[inline]
-    pub fn as_string(&self) -> Option<&JsString> {
+    pub const fn as_string(&self) -> Option<&JsString> {
         match self {
             Self::String(ref string) => Some(string),
             _ => None,
@@ -263,12 +276,13 @@ impl JsValue {
 
     /// Returns true if the value is a boolean.
     #[inline]
-    pub fn is_boolean(&self) -> bool {
+    pub const fn is_boolean(&self) -> bool {
         matches!(self, Self::Boolean(_))
     }
 
+    /// Returns the boolean if the value is a boolean, otherwise `None`.
     #[inline]
-    pub fn as_boolean(&self) -> Option<bool> {
+    pub const fn as_boolean(&self) -> Option<bool> {
         match self {
             Self::Boolean(boolean) => Some(*boolean),
             _ => None,
@@ -277,13 +291,13 @@ impl JsValue {
 
     /// Returns true if the value is a bigint.
     #[inline]
-    pub fn is_bigint(&self) -> bool {
+    pub const fn is_bigint(&self) -> bool {
         matches!(self, Self::BigInt(_))
     }
 
     /// Returns an optional reference to a `BigInt` if the value is a `BigInt` primitive.
     #[inline]
-    pub fn as_bigint(&self) -> Option<&JsBigInt> {
+    pub const fn as_bigint(&self) -> Option<&JsBigInt> {
         match self {
             Self::BigInt(bigint) => Some(bigint),
             _ => None,
@@ -404,18 +418,17 @@ impl JsValue {
             Self::Undefined => Err(JsNativeError::typ()
                 .with_message("cannot convert undefined to a BigInt")
                 .into()),
-            Self::String(ref string) => {
-                if let Some(value) = string.to_big_int() {
-                    Ok(value)
-                } else {
+            Self::String(ref string) => string.to_big_int().map_or_else(
+                || {
                     Err(JsNativeError::syntax()
                         .with_message(format!(
                             "cannot convert string '{}' to bigint primitive",
                             string.to_std_string_escaped()
                         ))
                         .into())
-                }
-            }
+                },
+                Ok,
+            ),
             Self::Boolean(true) => Ok(JsBigInt::one()),
             Self::Boolean(false) => Ok(JsBigInt::zero()),
             Self::Integer(_) | Self::Rational(_) => Err(JsNativeError::typ()
@@ -447,7 +460,7 @@ impl JsValue {
     /// println!("{}", value.display());
     /// ```
     #[inline]
-    pub fn display(&self) -> ValueDisplay<'_> {
+    pub const fn display(&self) -> ValueDisplay<'_> {
         ValueDisplay {
             value: self,
             internals: false,
@@ -588,8 +601,10 @@ impl JsValue {
     /// See: <https://tc39.es/ecma262/#sec-touint32>
     pub fn to_u32(&self, context: &mut Context) -> JsResult<u32> {
         // This is the fast path, if the value is Integer we can just return it.
-        if let JsValue::Integer(number) = *self {
-            return Ok(number as u32);
+        if let Self::Integer(number) = *self {
+            if let Ok(number) = u32::try_from(number) {
+                return Ok(number);
+            }
         }
         let number = self.to_number(context)?;
 
@@ -601,7 +616,7 @@ impl JsValue {
     /// See: <https://tc39.es/ecma262/#sec-toint32>
     pub fn to_i32(&self, context: &mut Context) -> JsResult<i32> {
         // This is the fast path, if the value is Integer we can just return it.
-        if let JsValue::Integer(number) = *self {
+        if let Self::Integer(number) = *self {
             return Ok(number);
         }
         let number = self.to_number(context)?;
@@ -940,6 +955,12 @@ impl JsValue {
         }
     }
 
+    /// The abstract operation `ToPropertyDescriptor`.
+    ///
+    /// More information:
+    /// - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-topropertydescriptor
     #[inline]
     pub fn to_property_descriptor(&self, context: &mut Context) -> JsResult<PropertyDescriptor> {
         // 1. If Type(Obj) is not Object, throw a TypeError exception.
@@ -991,13 +1012,8 @@ impl JsValue {
         // The main part of the function is implemented for JsObject.
 
         // 1. If Type(argument) is not Object, return false.
-        if let Some(object) = self.as_object() {
-            object.is_array_abstract()
-        }
-        // 4. Return false.
-        else {
-            Ok(false)
-        }
+        self.as_object()
+            .map_or(Ok(false), JsObject::is_array_abstract)
     }
 }
 
@@ -1010,8 +1026,13 @@ impl Default for JsValue {
 /// The preferred type to convert an object to a primitive `Value`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum PreferredType {
+    /// Prefer to convert to a `String` primitive.
     String,
+
+    /// Prefer to convert to a `Number` primitive.
     Number,
+
+    /// Do not prefer a type to convert to.
     Default,
 }
 

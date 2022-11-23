@@ -44,7 +44,7 @@ pub(crate) struct GeneratorContext {
     pub(crate) stack: Vec<JsValue>,
 }
 
-/// The internal representation on a `Generator` object.
+/// The internal representation of a `Generator` object.
 #[derive(Debug, Clone, Finalize, Trace)]
 pub struct Generator {
     /// The `[[GeneratorState]]` internal slot.
@@ -148,14 +148,14 @@ impl Generator {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Return ? GeneratorResume(this value, value, empty).
-        match this.as_object() {
-            Some(obj) if obj.is_generator() => {
-                Self::generator_resume(obj, args.get_or_undefined(0), context)
-            }
-            _ => Err(JsNativeError::typ()
-                .with_message("Generator.prototype.next called on non generator")
-                .into()),
-        }
+        this.as_object().map_or_else(
+            || {
+                Err(JsNativeError::typ()
+                    .with_message("Generator.prototype.next called on non generator")
+                    .into())
+            },
+            |obj| Self::generator_resume(obj, args.get_or_undefined(0), context),
+        )
     }
 
     /// `Generator.prototype.return ( value )`

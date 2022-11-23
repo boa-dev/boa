@@ -34,6 +34,7 @@ pub struct JsDataView {
 }
 
 impl JsDataView {
+    /// Create a new `JsDataView` object from an existing `JsArrayBuffer`.
     #[inline]
     pub fn from_js_array_buffer(
         array_buffer: &JsArrayBuffer,
@@ -105,6 +106,7 @@ impl JsDataView {
         Ok(Self { inner: obj })
     }
 
+    /// Create a new `JsDataView` object from an existing object.
     #[inline]
     pub fn from_object(object: JsObject) -> JsResult<Self> {
         if object.borrow().is_data_view() {

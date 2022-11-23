@@ -3,7 +3,7 @@ use crate::vm::flowgraph::Color;
 /// Reperesents the shape of a node in the flowgraph.
 #[derive(Debug, Clone, Copy)]
 pub enum NodeShape {
-    // Represents the default shape used in the graph.
+    /// Represents the default shape used in the graph.
     None,
     /// Represents a rectangular node shape.
     Record,

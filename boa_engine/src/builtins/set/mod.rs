@@ -33,7 +33,7 @@ pub mod set_iterator;
 mod tests;
 
 #[derive(Debug, Clone)]
-pub(crate) struct Set(OrderedSet<JsValue>);
+pub(crate) struct Set;
 
 impl BuiltIn for Set {
     const NAME: &'static str = "Set";
@@ -363,7 +363,7 @@ impl Set {
             let arguments = this
                 .as_object()
                 .and_then(|obj| {
-                    obj.borrow().as_set_ref().map(|set| {
+                    obj.borrow().as_set().map(|set| {
                         set.get_index(index)
                             .map(|value| [value.clone(), value.clone(), this.clone()])
                     })
@@ -394,11 +394,7 @@ impl Set {
         let value = args.get_or_undefined(0);
 
         this.as_object()
-            .and_then(|obj| {
-                obj.borrow()
-                    .as_set_ref()
-                    .map(|set| set.contains(value).into())
-            })
+            .and_then(|obj| obj.borrow().as_set().map(|set| set.contains(value).into()))
             .ok_or_else(|| {
                 JsNativeError::typ()
                     .with_message("'this' is not a Set")
@@ -448,7 +444,7 @@ impl Set {
     /// Helper function to get the size of the `Set` object.
     pub(crate) fn get_size(set: &JsValue) -> JsResult<usize> {
         set.as_object()
-            .and_then(|obj| obj.borrow().as_set_ref().map(OrderedSet::size))
+            .and_then(|obj| obj.borrow().as_set().map(OrderedSet::size))
             .ok_or_else(|| {
                 JsNativeError::typ()
                     .with_message("'this' is not a Set")

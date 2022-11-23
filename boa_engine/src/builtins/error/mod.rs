@@ -60,13 +60,68 @@ use super::JsArgs;
 /// [spec]: https://tc39.es/ecma262/#sec-error-objects
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
 pub enum ErrorKind {
+    /// The `AggregateError` object type.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-aggregate-error-objects
     Aggregate,
+
+    /// The `Error` object type.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-error-objects
     Error,
+
+    /// The `EvalError` type.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-native-error-types-used-in-this-standard-evalerror
     Eval,
+
+    /// The `TypeError` type.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-native-error-types-used-in-this-standard-typeerror
     Type,
+
+    /// The `RangeError` type.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-native-error-types-used-in-this-standard-rangeerror
     Range,
+
+    /// The `ReferenceError` type.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-native-error-types-used-in-this-standard-referenceerror
     Reference,
+
+    /// The `SyntaxError` type.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-native-error-types-used-in-this-standard-syntaxerror
     Syntax,
+
+    /// The `URIError` type.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-native-error-types-used-in-this-standard-urierror
     Uri,
 }
 

@@ -33,7 +33,6 @@ flowgraph = []
 console = []
 
 [dependencies]
-boa_unicode.workspace = true
 boa_interner.workspace = true
 boa_gc.workspace = true
 boa_profiler.workspace = true

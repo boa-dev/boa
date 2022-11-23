@@ -65,6 +65,7 @@ pub(crate) enum PromiseState {
     Rejected(JsValue),
 }
 
+/// The internal representation of a `Promise` object.
 #[derive(Debug, Clone, Trace, Finalize)]
 pub struct Promise {
     promise_state: PromiseState,
@@ -73,24 +74,52 @@ pub struct Promise {
     promise_is_handled: bool,
 }
 
+/// The internal `PromiseReaction` data type.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-promisereaction-records
 #[derive(Debug, Clone, Trace, Finalize)]
-pub struct ReactionRecord {
+pub(crate) struct ReactionRecord {
+    /// The `[[Capability]]` field.
     promise_capability: Option<PromiseCapability>,
+
+    /// The `[[Type]]` field.
     #[unsafe_ignore_trace]
     reaction_type: ReactionType,
+
+    /// The `[[Handler]]` field.
     handler: Option<JobCallback>,
 }
 
+/// The `[[Type]]` field values of a `PromiseReaction` record.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-promisereaction-records
 #[derive(Debug, Clone, Copy)]
 enum ReactionType {
     Fulfill,
     Reject,
 }
 
+/// The internal `PromiseCapability` data type.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-promisecapability-records
 #[derive(Debug, Clone, Trace, Finalize)]
 pub struct PromiseCapability {
+    /// The `[[Promise]]` field.
     promise: JsObject,
+
+    /// The `[[Resolve]]` field.
     resolve: JsFunction,
+
+    /// The `[[Reject]]` field.
     reject: JsFunction,
 }
 
@@ -202,17 +231,17 @@ impl PromiseCapability {
     }
 
     /// Returns the promise object.
-    pub(crate) fn promise(&self) -> &JsObject {
+    pub(crate) const fn promise(&self) -> &JsObject {
         &self.promise
     }
 
     /// Returns the resolve function.
-    pub(crate) fn resolve(&self) -> &JsFunction {
+    pub(crate) const fn resolve(&self) -> &JsFunction {
         &self.resolve
     }
 
     /// Returns the reject function.
-    pub(crate) fn reject(&self) -> &JsFunction {
+    pub(crate) const fn reject(&self) -> &JsFunction {
         &self.reject
     }
 }
@@ -276,7 +305,7 @@ impl Promise {
     const LENGTH: usize = 1;
 
     /// Gets the current state of the promise.
-    pub(crate) fn state(&self) -> &PromiseState {
+    pub(crate) const fn state(&self) -> &PromiseState {
         &self.promise_state
     }
 
@@ -1277,7 +1306,7 @@ impl Promise {
                     .borrow_mut()
                     .as_promise_mut()
                     .expect("Expected promise to be a Promise")
-                    .fulfill_promise(resolution, context)?;
+                    .fulfill_promise(resolution, context);
 
                     //   b. Return undefined.
                     return Ok(JsValue::Undefined);
@@ -1310,7 +1339,7 @@ impl Promise {
                             .borrow_mut()
                             .as_promise_mut()
                             .expect("Expected promise to be a Promise")
-                            .fulfill_promise(resolution, context)?;
+                            .fulfill_promise(resolution, context);
 
                         //   b. Return undefined.
                         return Ok(JsValue::Undefined);
@@ -1406,7 +1435,11 @@ impl Promise {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-fulfillpromise
-    pub fn fulfill_promise(&mut self, value: &JsValue, context: &mut Context) -> JsResult<()> {
+    ///
+    /// # Panics
+    ///
+    /// Panics if `Promise` is not pending.
+    fn fulfill_promise(&mut self, value: &JsValue, context: &mut Context) {
         // 1. Assert: The value of promise.[[PromiseState]] is pending.
         assert!(
             matches!(self.promise_state, PromiseState::Pending),
@@ -1431,7 +1464,6 @@ impl Promise {
         self.promise_state = PromiseState::Fulfilled(value.clone());
 
         // 8. Return unused.
-        Ok(())
     }
 
     /// `RejectPromise ( promise, reason )`
@@ -1443,6 +1475,10 @@ impl Promise {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-rejectpromise
+    ///
+    /// # Panics
+    ///
+    /// Panics if `Promise` is not pending.
     pub fn reject_promise(&mut self, reason: &JsValue, context: &mut Context) {
         // 1. Assert: The value of promise.[[PromiseState]] is pending.
         assert!(
@@ -1488,7 +1524,7 @@ impl Promise {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-triggerpromisereactions
-    pub fn trigger_promise_reactions(
+    fn trigger_promise_reactions(
         reactions: &[ReactionRecord],
         argument: &JsValue,
         context: &mut Context,
@@ -1745,7 +1781,7 @@ impl Promise {
         let c = promise_obj.species_constructor(StandardConstructors::promise, context)?;
 
         // 4. Assert: IsConstructor(C) is true.
-        assert!(c.is_constructor());
+        debug_assert!(c.is_constructor());
 
         let on_finally = args.get_or_undefined(0);
 
@@ -2065,13 +2101,13 @@ impl Promise {
         let promise_resolve = promise_constructor.get("resolve", context)?;
 
         // 2. If IsCallable(promiseResolve) is false, throw a TypeError exception.
-        if let Some(promise_resolve) = promise_resolve.as_callable() {
-            // 3. Return promiseResolve.
-            Ok(promise_resolve.clone())
-        } else {
-            Err(JsNativeError::typ()
-                .with_message("retrieving a non-callable promise resolver")
-                .into())
-        }
+        promise_resolve.as_callable().map_or_else(
+            || {
+                Err(JsNativeError::typ()
+                    .with_message("retrieving a non-callable promise resolver")
+                    .into())
+            },
+            |promise_resolve| Ok(promise_resolve.clone()),
+        )
     }
 }

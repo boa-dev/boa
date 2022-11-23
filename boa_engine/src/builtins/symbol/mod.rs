@@ -70,6 +70,7 @@ impl GlobalSymbolRegistry {
     }
 }
 
+/// The internal representation of a `Symbol` object.
 #[derive(Debug, Clone, Copy)]
 pub struct Symbol;
 
@@ -253,12 +254,14 @@ impl Symbol {
         _: &[JsValue],
         _: &mut Context,
     ) -> JsResult<JsValue> {
-        let symbol = Self::this_symbol_value(this)?;
-        if let Some(ref description) = symbol.description() {
-            Ok(description.clone().into())
-        } else {
-            Ok(JsValue::undefined())
-        }
+        // 1. Let s be the this value.
+        // 2. Let sym be ? thisSymbolValue(s).
+        let sym = Self::this_symbol_value(this)?;
+
+        // 3. Return sym.[[Description]].
+        Ok(sym
+            .description()
+            .map_or(JsValue::undefined(), JsValue::from))
     }
 
     /// `Symbol.for( key )`

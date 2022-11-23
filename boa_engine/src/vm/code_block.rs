@@ -117,6 +117,7 @@ pub struct CodeBlock {
 
 impl CodeBlock {
     /// Constructs a new `CodeBlock`.
+    #[must_use]
     pub fn new(name: Sym, length: u32, strict: bool) -> Self {
         Self {
             code: Vec::new(),
@@ -147,9 +148,12 @@ impl CodeBlock {
     where
         T: Readable,
     {
+        // Safety:
+        // The function caller must ensure that the read is in bounds.
+        //
         // This has to be an unaligned read because we can't guarantee that
         // the types are aligned.
-        self.code.as_ptr().add(offset).cast::<T>().read_unaligned()
+        unsafe { self.code.as_ptr().add(offset).cast::<T>().read_unaligned() }
     }
 
     /// Read type T from code.
@@ -1085,15 +1089,14 @@ impl JsObject {
                 std::mem::swap(&mut environments, &mut context.realm.environments);
                 std::mem::swap(&mut context.vm.stack, &mut stack);
 
-                let prototype = if let Some(prototype) = this_function_object
+                let prototype = this_function_object
                     .get("prototype", context)
                     .expect("GeneratorFunction must have a prototype property")
                     .as_object()
-                {
-                    prototype.clone()
-                } else {
-                    context.intrinsics().constructors().generator().prototype()
-                };
+                    .map_or_else(
+                        || context.intrinsics().constructors().generator().prototype(),
+                        Clone::clone,
+                    );
 
                 let generator = Self::from_proto_and_data(
                     prototype,
@@ -1224,19 +1227,20 @@ impl JsObject {
                 std::mem::swap(&mut environments, &mut context.realm.environments);
                 std::mem::swap(&mut context.vm.stack, &mut stack);
 
-                let prototype = if let Some(prototype) = this_function_object
+                let prototype = this_function_object
                     .get("prototype", context)
                     .expect("AsyncGeneratorFunction must have a prototype property")
                     .as_object()
-                {
-                    prototype.clone()
-                } else {
-                    context
-                        .intrinsics()
-                        .constructors()
-                        .async_generator()
-                        .prototype()
-                };
+                    .map_or_else(
+                        || {
+                            context
+                                .intrinsics()
+                                .constructors()
+                                .async_generator()
+                                .prototype()
+                        },
+                        Clone::clone,
+                    );
 
                 let generator = Self::from_proto_and_data(
                     prototype,
@@ -1272,7 +1276,7 @@ impl JsObject {
         args: &[JsValue],
         this_target: &JsValue,
         context: &mut Context,
-    ) -> JsResult<JsObject> {
+    ) -> JsResult<Self> {
         let this_function_object = self.clone();
 
         let create_this = |context| {

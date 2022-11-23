@@ -5,6 +5,7 @@
 use crate::{object::JsObject, vm::CodeBlock};
 use boa_gc::{Finalize, Gc, Trace};
 
+/// A `CallFrame` holds the state of a function call.
 #[derive(Clone, Debug, Finalize, Trace)]
 pub struct CallFrame {
     pub(crate) code: Gc<CodeBlock>,

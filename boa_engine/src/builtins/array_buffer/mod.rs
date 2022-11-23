@@ -1,3 +1,12 @@
+//! This module implements the global `ArrayBuffer` object.
+//!
+//! More information:
+//!  - [ECMAScript reference][spec]
+//!  - [MDN documentation][mdn]
+//!
+//! [spec]: https://tc39.es/ecma262/#sec-arraybuffer-objects
+//! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer
+
 #[cfg(test)]
 mod tests;
 
@@ -19,15 +28,21 @@ use boa_profiler::Profiler;
 use num_traits::{Signed, ToPrimitive};
 use tap::{Conv, Pipe};
 
+/// The internal representation of an `ArrayBuffer` object.
 #[derive(Debug, Clone, Trace, Finalize)]
 pub struct ArrayBuffer {
+    /// The `[[ArrayBufferData]]` internal slot.
     pub array_buffer_data: Option<Vec<u8>>,
+
+    /// The `[[ArrayBufferByteLength]]` internal slot.
     pub array_buffer_byte_length: u64,
+
+    /// The `[[ArrayBufferDetachKey]]` internal slot.
     pub array_buffer_detach_key: JsValue,
 }
 
 impl ArrayBuffer {
-    pub(crate) fn array_buffer_byte_length(&self) -> u64 {
+    pub(crate) const fn array_buffer_byte_length(&self) -> u64 {
         self.array_buffer_byte_length
     }
 }
@@ -349,7 +364,7 @@ impl ArrayBuffer {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-isdetachedbuffer
-    pub(crate) fn is_detached_buffer(&self) -> bool {
+    pub(crate) const fn is_detached_buffer(&self) -> bool {
         // 1. If arrayBuffer.[[ArrayBufferData]] is null, return true.
         // 2. Return false.
         self.array_buffer_data.is_none()
@@ -407,7 +422,7 @@ impl ArrayBuffer {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-isunclampedintegerelementtype
-    fn is_unclamped_integer_element_type(t: TypedArrayKind) -> bool {
+    const fn is_unclamped_integer_element_type(t: TypedArrayKind) -> bool {
         // 1. If type is Int8, Uint8, Int16, Uint16, Int32, or Uint32, return true.
         // 2. Return false.
         matches!(
@@ -427,7 +442,7 @@ impl ArrayBuffer {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-isbigintelementtype
-    fn is_big_int_element_type(t: TypedArrayKind) -> bool {
+    const fn is_big_int_element_type(t: TypedArrayKind) -> bool {
         // 1. If type is BigUint64 or BigInt64, return true.
         // 2. Return false.
         matches!(t, TypedArrayKind::BigUint64 | TypedArrayKind::BigInt64)
@@ -441,7 +456,7 @@ impl ArrayBuffer {
     /// [spec]: https://tc39.es/ecma262/#sec-isnotearconfiguration
     // TODO: Allow unused function until shared array buffers are implemented.
     #[allow(dead_code)]
-    fn is_no_tear_configuration(t: TypedArrayKind, order: SharedMemoryOrder) -> bool {
+    const fn is_no_tear_configuration(t: TypedArrayKind, order: SharedMemoryOrder) -> bool {
         // 1. If ! IsUnclampedIntegerElementType(type) is true, return true.
         if Self::is_unclamped_integer_element_type(t) {
             return true;

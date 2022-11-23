@@ -1,3 +1,12 @@
+//! This module implements the global `DataView` object.
+//!
+//! More information:
+//!  - [ECMAScript reference][spec]
+//!  - [MDN documentation][mdn]
+//!
+//! [spec]: https://tc39.es/ecma262/#sec-dataview-objects
+//! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView
+
 use crate::{
     builtins::{array_buffer::SharedMemoryOrder, typed_array::TypedArrayKind, BuiltIn, JsArgs},
     context::intrinsics::StandardConstructors,
@@ -14,6 +23,7 @@ use crate::{
 use boa_gc::{Finalize, Trace};
 use tap::{Conv, Pipe};
 
+/// The internal representation of a `DataView` object.
 #[derive(Debug, Clone, Trace, Finalize)]
 pub struct DataView {
     pub(crate) viewed_array_buffer: JsObject,
