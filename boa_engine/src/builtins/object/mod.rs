@@ -790,10 +790,9 @@ impl Object {
             // 12. Else if O has a [[DateValue]] internal slot, let builtinTag be "Date".
             // 13. Else if O has a [[RegExpMatcher]] internal slot, let builtinTag be "RegExp".
             // 14. Else, let builtinTag be "Object".
-            let o = o.borrow();
-            match o.kind() {
+            match o.borrow().kind() {
                 ObjectKind::Arguments(_) => utf16!("Arguments"),
-                ObjectKind::Function(_) => utf16!("Function"),
+                _ if o.is_callable() => utf16!("Function"),
                 ObjectKind::Error(_) => utf16!("Error"),
                 ObjectKind::Boolean(_) => utf16!("Boolean"),
                 ObjectKind::Number(_) => utf16!("Number"),
