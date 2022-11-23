@@ -282,7 +282,7 @@ fn unicode_extension_components(extension: &str) -> UniExtRecord {
         let e = extension[k..].find('-');
 
         // b. If e = -1, let len be size - k; else let len be e - k.
-        let len = e.map_or(size - k, |pos| pos);
+        let len = e.unwrap_or(size - k);
 
         // c. Let subtag be the String value equal to the substring of extension consisting of the
         // code units at indices k (inclusive) through k + len (exclusive).

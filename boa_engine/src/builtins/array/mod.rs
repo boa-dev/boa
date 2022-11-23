@@ -236,10 +236,8 @@ impl Array {
         // 3. Let A be ! MakeBasicObject(« [[Prototype]], [[Extensible]] »).
         // 4. Set A.[[Prototype]] to proto.
         // 5. Set A.[[DefineOwnProperty]] as specified in 10.4.2.1.
-        let prototype = prototype.map_or_else(
-            || context.intrinsics().constructors().array().prototype(),
-            |prototype| prototype,
-        );
+        let prototype =
+            prototype.unwrap_or_else(|| context.intrinsics().constructors().array().prototype());
         let array = JsObject::from_proto_and_data(prototype, ObjectData::array());
 
         // 6. Perform ! OrdinaryDefineOwnProperty(A, "length", PropertyDescriptor { [[Value]]: 𝔽(length), [[Writable]]: true, [[Enumerable]]: false, [[Configurable]]: false }).
