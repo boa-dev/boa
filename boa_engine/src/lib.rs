@@ -10,7 +10,7 @@
 //! # About Boa
 //! Boa is an open-source, experimental JavaScript Engine written in Rust for lexing, parsing and executing JavaScript. Currently, Boa
 //! supports some of the [language][boa-conformance]. More information can be viewed at [Boa's website][boa-web].
-//! 
+//!
 //! Try out the most recent release with Boa's live demo [playground][boa-playground].  
 //!
 //! # Boa Crates
