@@ -1,4 +1,4 @@
-//! This module implements ECMAScript `Environment Records`.
+//! Boa's implementation of ECMAScript's `Environment Records`.
 //!
 //! Environments contain the bindings of identifiers to their values.
 //! The implementation differs from the methods defined by the specification,

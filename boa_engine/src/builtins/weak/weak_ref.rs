@@ -20,7 +20,7 @@ use crate::{
 /// collected by the garbage collector.
 ///
 /// More Information:
-///  - [ECMAscript Reference][spec]
+///  - [ECMAScript Reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-weak-ref-objects
 #[derive(Debug, Clone, Trace, Finalize)]

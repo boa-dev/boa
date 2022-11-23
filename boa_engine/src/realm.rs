@@ -1,3 +1,5 @@
+//! Boa's implementation of ECMAScript's `Realm Records`
+//! 
 //! Conceptually, a realm consists of a set of intrinsic objects, an ECMAScript global environment,
 //! all of the ECMAScript code that is loaded within the scope of that global environment,
 //! and other associated state and resources.
