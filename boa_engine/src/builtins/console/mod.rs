@@ -49,7 +49,11 @@ pub fn default_logger(msg: LogMessage, console_state: &Console) {
         LogMessage::Error(msg) => {
             eprintln!("{msg:>indent$}");
         }
-        LogMessage::Log(msg) | LogMessage::Trace(msg) | LogMessage::Debug(msg) | LogMessage::Info(msg) | LogMessage::Warn(msg) => {
+        LogMessage::Log(msg)
+        | LogMessage::Trace(msg)
+        | LogMessage::Debug(msg)
+        | LogMessage::Info(msg)
+        | LogMessage::Warn(msg) => {
             println!("{msg:>indent$}");
         }
     }
@@ -147,7 +151,7 @@ pub struct Console {
 
 impl Default for Console {
     fn default() -> Self {
-        Self{
+        Self {
             count_map: Default::default(),
             timer_map: Default::default(),
             groups: Default::default(),
