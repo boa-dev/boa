@@ -239,6 +239,7 @@ pub struct PropertyMap {
 impl PropertyMap {
     /// Create a new [`PropertyMap`].
     #[must_use]
+    #[inline]
     pub fn new() -> Self {
         Self::default()
     }

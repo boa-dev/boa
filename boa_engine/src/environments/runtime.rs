@@ -406,7 +406,7 @@ impl DeclarativeEnvironmentStack {
             ThisBindingStatus::Uninitialized
         };
 
-        let this = this.map_or(JsValue::Null, |this| this);
+        let this = this.unwrap_or(JsValue::Null);
 
         self.stack.push(Gc::new(DeclarativeEnvironment {
             bindings: GcCell::new(vec![None; num_bindings]),

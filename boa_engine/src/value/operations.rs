@@ -466,9 +466,10 @@ impl JsValue {
     pub fn neg(&self, context: &mut Context) -> JsResult<Self> {
         Ok(match *self {
             Self::Symbol(_) | Self::Undefined => Self::new(f64::NAN),
-            Self::Object(_) => {
-                Self::new(self.to_numeric_number(context).map_or(f64::NAN, |num| -num))
-            }
+            Self::Object(_) => Self::new(
+                self.to_numeric_number(context)
+                    .map_or(f64::NAN, std::ops::Neg::neg),
+            ),
             Self::String(ref str) => Self::new(-str.to_number()),
             Self::Rational(num) => Self::new(-num),
             Self::Integer(num) if num == 0 => Self::new(-f64::from(0)),
