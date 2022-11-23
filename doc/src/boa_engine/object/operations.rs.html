@@ -844,6 +844,9 @@
 <span id="842">842</span>
 <span id="843">843</span>
 <span id="844">844</span>
+<span id="845">845</span>
+<span id="846">846</span>
+<span id="847">847</span>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     builtins::Array,
     context::intrinsics::{StandardConstructor, StandardConstructors},
@@ -878,12 +881,14 @@
 
 <span class="kw">impl </span>IntegrityLevel {
     <span class="doccomment">/// Returns `true` if the integrity level is sealed.
-    </span><span class="kw">pub fn </span>is_sealed(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+    </span><span class="attribute">#[must_use]
+    </span><span class="kw">pub const fn </span>is_sealed(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="macro">matches!</span>(<span class="self">self</span>, <span class="self">Self</span>::Sealed)
     }
 
     <span class="doccomment">/// Returns `true` if the integrity level is frozen.
-    </span><span class="kw">pub fn </span>is_frozen(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+    </span><span class="attribute">#[must_use]
+    </span><span class="kw">pub const fn </span>is_frozen(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="macro">matches!</span>(<span class="self">self</span>, <span class="self">Self</span>::Frozen)
     }
 }
@@ -1181,9 +1186,9 @@
     </span><span class="kw">pub fn </span>construct(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        new_target: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>JsObject&gt;,
+        new_target: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="self">Self</span>&gt;,
         context: <span class="kw-2">&amp;mut </span>Context,
-    ) -&gt; JsResult&lt;JsObject&gt; {
+    ) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
         <span class="comment">// 1. If newTarget is not present, set newTarget to F.
         </span><span class="kw">let </span>new_target = new_target.unwrap_or(<span class="self">self</span>);
         <span class="comment">// 2. If argumentsList is not present, set argumentsList to a new empty List.
@@ -1361,13 +1366,14 @@
         }
 
         <span class="comment">// 7. If IsConstructor(S) is true, return S.
-        // 8. Throw a TypeError exception.
-        </span><span class="kw">match </span>s.as_object() {
-            <span class="prelude-val">Some</span>(obj) <span class="kw">if </span>obj.is_constructor() =&gt; <span class="prelude-val">Ok</span>(obj.clone()),
-            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(<span class="string">&quot;property &#39;constructor&#39; is not a constructor&quot;</span>)
-                .into()),
+        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(s) = s.as_constructor() {
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(s.clone());
         }
+
+        <span class="comment">// 8. Throw a TypeError exception.
+        </span><span class="prelude-val">Err</span>(JsNativeError::typ()
+            .with_message(<span class="string">&quot;property &#39;constructor&#39; is not a constructor&quot;</span>)
+            .into())
     }
 
     <span class="doccomment">/// It is used to iterate over names of object&#39;s keys.

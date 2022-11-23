@@ -393,7 +393,7 @@
             }
 
             <span class="comment">// ii. If Desc.[[Writable]] is present and its value is false, then
-            </span><span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="bool-val">false</span>) = desc.writable() {
+            </span><span class="kw">if </span>desc.writable() == <span class="prelude-val">Some</span>(<span class="bool-val">false</span>) {
                 <span class="comment">// 1. Call map.[[Delete]](P).
                 </span>map.delete(index);
             }

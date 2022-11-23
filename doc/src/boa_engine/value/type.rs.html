@@ -35,19 +35,49 @@
 <span id="33">33</span>
 <span id="34">34</span>
 <span id="35">35</span>
+<span id="36">36</span>
+<span id="37">37</span>
+<span id="38">38</span>
+<span id="39">39</span>
+<span id="40">40</span>
+<span id="41">41</span>
+<span id="42">42</span>
+<span id="43">43</span>
+<span id="44">44</span>
+<span id="45">45</span>
+<span id="46">46</span>
+<span id="47">47</span>
+<span id="48">48</span>
+<span id="49">49</span>
+<span id="50">50</span>
 </pre><pre class="rust"><code><span class="kw">use </span><span class="kw">super</span>::JsValue;
 
 <span class="doccomment">/// Possible types of values as defined at &lt;https://tc39.es/ecma262/#sec-typeof-operator&gt;.
 </span><span class="attribute">#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 </span><span class="kw">pub enum </span>Type {
-    Undefined,
-    Null,
-    Boolean,
-    Number,
-    String,
-    Symbol,
-    BigInt,
-    Object,
+    <span class="doccomment">/// The &quot;undefined&quot; type.
+    </span>Undefined,
+
+    <span class="doccomment">/// The &quot;null&quot; type.
+    </span>Null,
+
+    <span class="doccomment">/// The &quot;boolean&quot; type.
+    </span>Boolean,
+
+    <span class="doccomment">/// The &quot;number&quot; type.
+    </span>Number,
+
+    <span class="doccomment">/// The &quot;string&quot; type.
+    </span>String,
+
+    <span class="doccomment">/// The &quot;symbol&quot; type.
+    </span>Symbol,
+
+    <span class="doccomment">/// The &quot;bigint&quot; type.
+    </span>BigInt,
+
+    <span class="doccomment">/// The &quot;object&quot; type.
+    </span>Object,
 }
 
 <span class="kw">impl </span>JsValue {
@@ -57,7 +87,7 @@
     /// &lt;https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-ecmascript-language-types&gt;.
     ///
     /// Check [`JsValue::type_of`] if you need to call the `typeof` operator.
-    </span><span class="kw">pub fn </span>get_type(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Type {
+    </span><span class="kw">pub const fn </span>get_type(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Type {
         <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
             <span class="self">Self</span>::Rational(<span class="kw">_</span>) | <span class="self">Self</span>::Integer(<span class="kw">_</span>) =&gt; Type::Number,
             <span class="self">Self</span>::String(<span class="kw">_</span>) =&gt; Type::String,

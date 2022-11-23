@@ -99,7 +99,25 @@
 <span id="97">97</span>
 <span id="98">98</span>
 <span id="99">99</span>
-</pre><pre class="rust"><code><span class="kw">use crate</span>::{
+<span id="100">100</span>
+<span id="101">101</span>
+<span id="102">102</span>
+<span id="103">103</span>
+<span id="104">104</span>
+<span id="105">105</span>
+<span id="106">106</span>
+<span id="107">107</span>
+<span id="108">108</span>
+<span id="109">109</span>
+<span id="110">110</span>
+</pre><pre class="rust"><code><span class="doccomment">//! This module implements the `StringIterator` object.
+//!
+//! More information:
+//!  - [ECMAScript reference][spec]
+//!
+//! [spec]: https://tc39.es/ecma262/#sec-string-iterator-objects
+
+</span><span class="kw">use crate</span>::{
     builtins::{function::make_builtin_fn, iterable::create_iter_result_object},
     error::JsNativeError,
     object::{JsObject, ObjectData},
@@ -110,33 +128,37 @@
 <span class="kw">use </span>boa_gc::{Finalize, Trace};
 <span class="kw">use </span>boa_profiler::Profiler;
 
-<span class="attribute">#[derive(Debug, Clone, Finalize, Trace)]
+<span class="doccomment">/// The `StringIterator` object represents an iteration over a string. It implements the iterator protocol.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-string-iterator-objects
+</span><span class="attribute">#[derive(Debug, Clone, Finalize, Trace)]
 </span><span class="kw">pub struct </span>StringIterator {
     string: JsValue,
     next_index: usize,
 }
 
 <span class="kw">impl </span>StringIterator {
-    <span class="kw">fn </span>new(string: JsValue) -&gt; <span class="self">Self </span>{
-        <span class="self">Self </span>{
-            string,
-            next_index: <span class="number">0</span>,
-        }
-    }
-
-    <span class="kw">pub fn </span>create_string_iterator(string: JsValue, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+    <span class="doccomment">/// Create a new `StringIterator`.
+    </span><span class="kw">pub fn </span>create_string_iterator(string: JsValue, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="kw">let </span>string_iterator = JsObject::from_proto_and_data(
             context
                 .intrinsics()
                 .objects()
                 .iterator_prototypes()
                 .string_iterator(),
-            ObjectData::string_iterator(<span class="self">Self</span>::new(string)),
+            ObjectData::string_iterator(<span class="self">Self </span>{
+                string,
+                next_index: <span class="number">0</span>,
+            }),
         );
         <span class="prelude-val">Ok</span>(string_iterator.into())
     }
 
-    <span class="kw">pub fn </span>next(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+    <span class="doccomment">/// `StringIterator.prototype.next( )`
+    </span><span class="kw">pub fn </span>next(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>string_iterator = this.as_object().map(JsObject::borrow_mut);
         <span class="kw">let </span>string_iterator = string_iterator
             .as_mut()

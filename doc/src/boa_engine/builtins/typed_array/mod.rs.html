@@ -3572,9 +3572,6 @@
 <span id="3570">3570</span>
 <span id="3571">3571</span>
 <span id="3572">3572</span>
-<span id="3573">3573</span>
-<span id="3574">3574</span>
-<span id="3575">3575</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `TypedArray` objects.
 //!
 //! A `TypedArray` object describes an array-like view of an underlying binary data buffer.
@@ -6334,9 +6331,6 @@
                 {
                     <span class="kw">return </span><span class="prelude-val">Ok</span>(Ordering::Greater);
                 }
-
-                <span class="comment">// 10. Return +0𝔽.
-                </span><span class="prelude-val">Ok</span>(Ordering::Equal)
             } <span class="kw">else </span>{
                 <span class="kw">let </span>x = x
                     .as_number()
@@ -6379,10 +6373,10 @@
                 </span><span class="kw">if </span>x.is_zero() &amp;&amp; y.is_zero() &amp;&amp; x.is_sign_positive() &amp;&amp; y.is_sign_negative() {
                     <span class="kw">return </span><span class="prelude-val">Ok</span>(Ordering::Greater);
                 }
-
-                <span class="comment">// 10. Return +0𝔽.
-                </span><span class="prelude-val">Ok</span>(Ordering::Equal)
             }
+
+            <span class="comment">// 10. Return +0𝔽.
+            </span><span class="prelude-val">Ok</span>(Ordering::Equal)
         };
 
         <span class="comment">// 8. Sort items using an implementation-defined sequence of calls to SortCompare.
@@ -7119,7 +7113,7 @@
         }
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_big_int_element_type(<span class="self">self</span>) -&gt; bool {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>is_big_int_element_type(<span class="self">self</span>) -&gt; bool {
         <span class="macro">matches!</span>(<span class="self">self</span>, <span class="self">Self</span>::BigUint64 | <span class="self">Self</span>::BigInt64)
     }
 }

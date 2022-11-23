@@ -155,7 +155,21 @@
 <span id="153">153</span>
 <span id="154">154</span>
 <span id="155">155</span>
-</pre><pre class="rust"><code><span class="kw">use crate</span>::{
+<span id="156">156</span>
+<span id="157">157</span>
+<span id="158">158</span>
+<span id="159">159</span>
+<span id="160">160</span>
+<span id="161">161</span>
+<span id="162">162</span>
+</pre><pre class="rust"><code><span class="doccomment">//! This module implements the `SetIterator` object.
+//!
+//! More information:
+//!  - [ECMAScript reference][spec]
+//!
+//! [spec]: https://tc39.es/ecma262/#sec-set-iterator-objects
+
+</span><span class="kw">use crate</span>::{
     builtins::{function::make_builtin_fn, iterable::create_iter_result_object, Array, JsValue},
     error::JsNativeError,
     object::{JsObject, ObjectData},
@@ -184,7 +198,7 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;SetIterator&quot;</span>;
 
     <span class="doccomment">/// Constructs a new `SetIterator`, that will iterate over `set`, starting at index 0
-    </span><span class="kw">fn </span>new(set: JsValue, kind: PropertyNameKind) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">const fn </span>new(set: JsValue, kind: PropertyNameKind) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             iterated_set: set,
             next_index: <span class="number">0</span>,
@@ -247,7 +261,7 @@
             <span class="kw">let </span>entries = m.as_object().map(JsObject::borrow);
             <span class="kw">let </span>entries = entries
                 .as_ref()
-                .and_then(|obj| obj.as_set_ref())
+                .and_then(|obj| obj.as_set())
                 .ok_or_else(|| JsNativeError::typ().with_message(<span class="string">&quot;&#39;this&#39; is not a Set&quot;</span>))<span class="question-mark">?</span>;
 
             <span class="kw">let </span>num_entries = entries.size();

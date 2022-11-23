@@ -1474,6 +1474,13 @@
 <span id="1472">1472</span>
 <span id="1473">1473</span>
 <span id="1474">1474</span>
+<span id="1475">1475</span>
+<span id="1476">1476</span>
+<span id="1477">1477</span>
+<span id="1478">1478</span>
+<span id="1479">1479</span>
+<span id="1480">1480</span>
+<span id="1481">1481</span>
 </pre><pre class="rust"><code><span class="doccomment">/// The opcodes of the vm.
 </span><span class="kw">use crate</span>::{vm::ShouldExit, Context, JsResult};
 
@@ -1579,7 +1586,8 @@
             $(,)<span class="question-mark">?
         </span>}
     ) =&gt; {
-        $(<span class="attribute">#[<span class="macro-nonterminal">$outer</span>]</span>)*
+        <span class="doccomment">/// The opcodes of the vm.
+        </span>$(<span class="attribute">#[<span class="macro-nonterminal">$outer</span>]</span>)*
         <span class="kw">pub enum </span><span class="macro-nonterminal">$Type </span>{
             $(
                 $(<span class="attribute">#[<span class="macro-nonterminal">$inner </span>$(<span class="macro-nonterminal">$args</span>)<span class="kw-2">*</span>]</span>)*
@@ -1594,11 +1602,16 @@
             /// # Safety
             ///
             /// Does not check if `u8` type is a valid `Opcode`.
+            </span><span class="attribute">#[must_use]
             </span><span class="kw">pub unsafe fn </span>from_raw(value: u8) -&gt; <span class="self">Self </span>{
-                std::mem::transmute(value)
+                <span class="comment">// Safety:
+                // The caller is responsible for ensuring that the value is a valid opcode.
+                </span><span class="kw">unsafe </span>{ std::mem::transmute(value) }
             }
 
-            <span class="kw">pub fn </span>as_str(<span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str {
+            <span class="doccomment">/// Name of this opcode.
+            </span><span class="attribute">#[must_use]
+            </span><span class="kw">pub const fn </span>as_str(<span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str {
                 <span class="kw">match </span><span class="self">self </span>{
                     $(
                         <span class="self">Self</span>::<span class="macro-nonterminal">$Variant </span>=&gt; <span class="macro-nonterminal">$Variant::NAME
@@ -1606,8 +1619,9 @@
                 }
             }
 
-            <span class="doccomment">/// Name of the profiler event for this opcode
-            </span><span class="kw">pub fn </span>as_instruction_str(<span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str {
+            <span class="doccomment">/// Name of the profiler event for this opcode.
+            </span><span class="attribute">#[must_use]
+            </span><span class="kw">pub const fn </span>as_instruction_str(<span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str {
                 <span class="kw">match </span><span class="self">self </span>{
                     $(
                         <span class="self">Self</span>::<span class="macro-nonterminal">$Variant </span>=&gt; <span class="macro-nonterminal">$Variant::INSTRUCTION

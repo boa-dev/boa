@@ -385,8 +385,6 @@
 <span id="383">383</span>
 <span id="384">384</span>
 <span id="385">385</span>
-<span id="386">386</span>
-<span id="387">387</span>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     environments::runtime::BindingLocator, property::PropertyDescriptor, Context, JsString, JsValue,
 };
@@ -446,7 +444,7 @@
 
     <span class="doccomment">/// Check if the environment is a function environment.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_function(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>is_function(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.function_scope
     }
 
@@ -558,13 +556,14 @@
                     .borrow()
                     .initialize_mutable_binding(name, function_scope);
             }
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(binding) = <span class="self">self</span>.bindings.get(<span class="kw-2">&amp;</span>name) {
-                BindingLocator::declarative(name, <span class="self">self</span>.environment_index, binding.index)
-            } <span class="kw">else </span>{
-                outer
-                    .borrow()
-                    .initialize_mutable_binding(name, function_scope)
-            }
+            <span class="self">self</span>.bindings.get(<span class="kw-2">&amp;</span>name).map_or_else(
+                || {
+                    outer
+                        .borrow()
+                        .initialize_mutable_binding(name, function_scope)
+                },
+                |binding| BindingLocator::declarative(name, <span class="self">self</span>.environment_index, binding.index),
+            )
         } <span class="kw">else if let </span><span class="prelude-val">Some</span>(binding) = <span class="self">self</span>.bindings.get(<span class="kw-2">&amp;</span>name) {
             BindingLocator::declarative(name, <span class="self">self</span>.environment_index, binding.index)
         } <span class="kw">else </span>{
@@ -592,13 +591,10 @@
             }
             <span class="prelude-val">Some</span>(binding) <span class="kw">if </span>binding.strict =&gt; BindingLocator::mutate_immutable(name),
             <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; BindingLocator::silent(name),
-            <span class="prelude-val">None </span>=&gt; {
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(outer) = <span class="kw-2">&amp;</span><span class="self">self</span>.outer {
-                    outer.borrow().set_mutable_binding_recursive(name)
-                } <span class="kw">else </span>{
-                    BindingLocator::global(name)
-                }
-            }
+            <span class="prelude-val">None </span>=&gt; <span class="self">self</span>.outer.as_ref().map_or_else(
+                || BindingLocator::global(name),
+                |outer| outer.borrow().set_mutable_binding_recursive(name),
+            ),
         }
     }
 }

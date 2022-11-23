@@ -1466,8 +1466,29 @@
 <span id="1464">1464</span>
 <span id="1465">1465</span>
 <span id="1466">1466</span>
-</pre><pre class="rust"><code><span class="kw">mod </span>utils;
+<span id="1467">1467</span>
+<span id="1468">1468</span>
+<span id="1469">1469</span>
+<span id="1470">1470</span>
+<span id="1471">1471</span>
+<span id="1472">1472</span>
+<span id="1473">1473</span>
+<span id="1474">1474</span>
+<span id="1475">1475</span>
+<span id="1476">1476</span>
+<span id="1477">1477</span>
+</pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `Date` object.
+//!
+//! More information:
+//!  - [ECMAScript reference][spec]
+//!  - [MDN documentation][mdn]
+//!
+//! [spec]: https://tc39.es/ecma262/#sec-date-objects
+//! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date
+
+</span><span class="kw">mod </span>utils;
 <span class="kw">use </span>utils::{make_date, make_day, make_time, replace_params, time_clip, DateParameters};
+
 <span class="attribute">#[cfg(test)]
 </span><span class="kw">mod </span>tests;
 
@@ -1526,13 +1547,14 @@
         </span>.<span class="number">0</span>)
 }
 
-<span class="attribute">#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+<span class="doccomment">/// The internal representation of a `Date` object.
+</span><span class="attribute">#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 </span><span class="kw">pub struct </span>Date(<span class="prelude-ty">Option</span>&lt;NaiveDateTime&gt;);
 
 <span class="kw">impl </span>Date {
     <span class="doccomment">/// Creates a new `Date`.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(dt: <span class="prelude-ty">Option</span>&lt;NaiveDateTime&gt;) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>new(dt: <span class="prelude-ty">Option</span>&lt;NaiveDateTime&gt;) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>(dt)
     }
 

@@ -691,6 +691,8 @@
 <span id="689">689</span>
 <span id="690">690</span>
 <span id="691">691</span>
+<span id="692">692</span>
+<span id="693">693</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Javascript context.
 
 </span><span class="kw">pub mod </span>intrinsics;
@@ -810,12 +812,14 @@
 <span class="kw">impl </span>Context {
     <span class="doccomment">/// Create a new [`ContextBuilder`] to specify the [`Interner`] and/or
     /// the icu data provider.
+    </span><span class="attribute">#[must_use]
     </span><span class="kw">pub fn </span>builder() -&gt; ContextBuilder {
         ContextBuilder::default()
     }
+
     <span class="doccomment">/// Gets the string interner.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>interner(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Interner {
+    </span><span class="kw">pub const fn </span>interner(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Interner {
         <span class="kw-2">&amp;</span><span class="self">self</span>.interner
     }
 
@@ -827,7 +831,7 @@
 
     <span class="doccomment">/// A helper function for getting an immutable reference to the `console` object.
     </span><span class="attribute">#[cfg(feature = <span class="string">&quot;console&quot;</span>)]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>console(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Console {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>console(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Console {
         <span class="kw-2">&amp;</span><span class="self">self</span>.console
     }
 
@@ -900,7 +904,7 @@
 
     <span class="doccomment">/// Return the global object.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>global_object(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>JsObject {
+    </span><span class="kw">pub const fn </span>global_object(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>JsObject {
         <span class="self">self</span>.realm.global_object()
     }
 
@@ -1057,11 +1061,8 @@
     <span class="doccomment">/// &lt;https://tc39.es/ecma262/#sec-hasproperty&gt;
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>has_property(<span class="kw-2">&amp;mut </span><span class="self">self</span>, obj: <span class="kw-2">&amp;</span>JsValue, key: <span class="kw-2">&amp;</span>PropertyKey) -&gt; JsResult&lt;bool&gt; {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(obj) = obj.as_object() {
-            obj.__has_property__(key, <span class="self">self</span>)
-        } <span class="kw">else </span>{
-            <span class="prelude-val">Ok</span>(<span class="bool-val">false</span>)
-        }
+        obj.as_object()
+            .map_or(<span class="prelude-val">Ok</span>(<span class="bool-val">false</span>), |obj| obj.__has_property__(key, <span class="self">self</span>))
     }
 
     <span class="doccomment">/// Register a global class of type `T`, where `T` implements `Class`.
@@ -1250,7 +1251,7 @@
 
     <span class="doccomment">/// Return the intrinsic constructors and objects.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>intrinsics(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Intrinsics {
+    </span><span class="kw">pub const fn </span>intrinsics(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Intrinsics {
         <span class="kw-2">&amp;</span><span class="self">self</span>.intrinsics
     }
 
@@ -1262,7 +1263,7 @@
     <span class="attribute">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
     #[inline]
     </span><span class="doccomment">/// Get the ICU related utilities
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>icu(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>icu::Icu {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>icu(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>icu::Icu {
         <span class="kw-2">&amp;</span><span class="self">self</span>.icu
     }
 
@@ -1316,6 +1317,7 @@
     /// This is useful when you want to initialize an [`Interner`] with
     /// a collection of words before parsing.
     </span><span class="attribute">#[must_use]
+    #[allow(clippy::missing_const_for_fn)]
     </span><span class="kw">pub fn </span>interner(<span class="kw-2">mut </span><span class="self">self</span>, interner: Interner) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.interner = <span class="prelude-val">Some</span>(interner);
         <span class="self">self
@@ -1335,19 +1337,21 @@
     /// This function is only available if the `fuzz` feature is enabled.
     </span><span class="attribute">#[cfg(feature = <span class="string">&quot;fuzz&quot;</span>)]
     #[must_use]
-    </span><span class="kw">pub fn </span>instructions_remaining(<span class="kw-2">mut </span><span class="self">self</span>, instructions_remaining: usize) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub const fn </span>instructions_remaining(<span class="kw-2">mut </span><span class="self">self</span>, instructions_remaining: usize) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.instructions_remaining = instructions_remaining;
         <span class="self">self
     </span>}
 
     <span class="doccomment">/// Creates a new [`ContextBuilder`] with a default empty [`Interner`]
     /// and a default [`BoaProvider`] if the `intl` feature is enabled.
+    </span><span class="attribute">#[must_use]
     </span><span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::default()
     }
 
     <span class="doccomment">/// Builds a new [`Context`] with the provided parameters, and defaults
     /// all missing parameters to their default values.
+    </span><span class="attribute">#[must_use]
     </span><span class="kw">pub fn </span>build(<span class="self">self</span>) -&gt; Context {
         <span class="kw">let </span>intrinsics = Intrinsics::default();
         <span class="kw">let </span><span class="kw-2">mut </span>context = Context {

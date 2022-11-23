@@ -477,7 +477,7 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) stack: Vec&lt;JsValue&gt;,
 }
 
-<span class="doccomment">/// The internal representation on a `Generator` object.
+<span class="doccomment">/// The internal representation of a `Generator` object.
 </span><span class="attribute">#[derive(Debug, Clone, Finalize, Trace)]
 </span><span class="kw">pub struct </span>Generator {
     <span class="doccomment">/// The `[[GeneratorState]]` internal slot.
@@ -581,14 +581,14 @@
         context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Return ? GeneratorResume(this value, value, empty).
-        </span><span class="kw">match </span>this.as_object() {
-            <span class="prelude-val">Some</span>(obj) <span class="kw">if </span>obj.is_generator() =&gt; {
-                <span class="self">Self</span>::generator_resume(obj, args.get_or_undefined(<span class="number">0</span>), context)
-            }
-            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(<span class="string">&quot;Generator.prototype.next called on non generator&quot;</span>)
-                .into()),
-        }
+        </span>this.as_object().map_or_else(
+            || {
+                <span class="prelude-val">Err</span>(JsNativeError::typ()
+                    .with_message(<span class="string">&quot;Generator.prototype.next called on non generator&quot;</span>)
+                    .into())
+            },
+            |obj| <span class="self">Self</span>::generator_resume(obj, args.get_or_undefined(<span class="number">0</span>), context),
+        )
     }
 
     <span class="doccomment">/// `Generator.prototype.return ( value )`

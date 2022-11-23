@@ -194,12 +194,6 @@
 <span id="192">192</span>
 <span id="193">193</span>
 <span id="194">194</span>
-<span id="195">195</span>
-<span id="196">196</span>
-<span id="197">197</span>
-<span id="198">198</span>
-<span id="199">199</span>
-<span id="200">200</span>
 </pre><pre class="rust"><code><span class="kw">use super</span>::{JsBigInt, JsObject, JsResult, JsValue, PreferredType};
 <span class="kw">use crate</span>::{builtins::Number, Context};
 
@@ -266,16 +260,14 @@
             //    a. Let n be ! StringToBigInt(y).
             //    b. If n is NaN, return false.
             //    c. Return the result of the comparison x == n.
-            </span>(<span class="self">Self</span>::BigInt(<span class="kw-2">ref </span>a), <span class="self">Self</span>::String(<span class="kw-2">ref </span>b)) =&gt; <span class="kw">match </span>b.to_big_int() {
-                <span class="prelude-val">Some</span>(<span class="kw-2">ref </span>b) =&gt; a == b,
-                <span class="prelude-val">None </span>=&gt; <span class="bool-val">false</span>,
-            },
+            </span>(<span class="self">Self</span>::BigInt(<span class="kw-2">ref </span>a), <span class="self">Self</span>::String(<span class="kw-2">ref </span>b)) =&gt; {
+                b.to_big_int().as_ref().map_or(<span class="bool-val">false</span>, |b| a == b)
+            }
 
             <span class="comment">// 7. If Type(x) is String and Type(y) is BigInt, return the result of the comparison y == x.
-            </span>(<span class="self">Self</span>::String(<span class="kw-2">ref </span>a), <span class="self">Self</span>::BigInt(<span class="kw-2">ref </span>b)) =&gt; <span class="kw">match </span>a.to_big_int() {
-                <span class="prelude-val">Some</span>(<span class="kw-2">ref </span>a) =&gt; a == b,
-                <span class="prelude-val">None </span>=&gt; <span class="bool-val">false</span>,
-            },
+            </span>(<span class="self">Self</span>::String(<span class="kw-2">ref </span>a), <span class="self">Self</span>::BigInt(<span class="kw-2">ref </span>b)) =&gt; {
+                a.to_big_int().as_ref().map_or(<span class="bool-val">false</span>, |a| a == b)
+            }
 
             <span class="comment">// 8. If Type(x) is Boolean, return the result of the comparison ! ToNumber(x) == y.
             </span>(<span class="self">Self</span>::Boolean(x), <span class="kw">_</span>) =&gt; <span class="kw">return </span>other.equals(<span class="kw-2">&amp;</span><span class="self">Self</span>::new(i32::from(<span class="kw-2">*</span>x)), context),
@@ -372,16 +364,12 @@
         <span class="kw">match </span>(x, y) {
             <span class="comment">// 2. If Type(x) is Number or BigInt, then
             //    a. Return ! Type(x)::SameValueZero(x, y).
-            </span>(JsValue::BigInt(x), JsValue::BigInt(y)) =&gt; JsBigInt::same_value_zero(x, y),
+            </span>(<span class="self">Self</span>::BigInt(x), <span class="self">Self</span>::BigInt(y)) =&gt; JsBigInt::same_value_zero(x, y),
 
-            (JsValue::Rational(x), JsValue::Rational(y)) =&gt; Number::same_value_zero(<span class="kw-2">*</span>x, <span class="kw-2">*</span>y),
-            (JsValue::Rational(x), JsValue::Integer(y)) =&gt; {
-                Number::same_value_zero(<span class="kw-2">*</span>x, f64::from(<span class="kw-2">*</span>y))
-            }
-            (JsValue::Integer(x), JsValue::Rational(y)) =&gt; {
-                Number::same_value_zero(f64::from(<span class="kw-2">*</span>x), <span class="kw-2">*</span>y)
-            }
-            (JsValue::Integer(x), JsValue::Integer(y)) =&gt; x == y,
+            (<span class="self">Self</span>::Rational(x), <span class="self">Self</span>::Rational(y)) =&gt; Number::same_value_zero(<span class="kw-2">*</span>x, <span class="kw-2">*</span>y),
+            (<span class="self">Self</span>::Rational(x), <span class="self">Self</span>::Integer(y)) =&gt; Number::same_value_zero(<span class="kw-2">*</span>x, f64::from(<span class="kw-2">*</span>y)),
+            (<span class="self">Self</span>::Integer(x), <span class="self">Self</span>::Rational(y)) =&gt; Number::same_value_zero(f64::from(<span class="kw-2">*</span>x), <span class="kw-2">*</span>y),
+            (<span class="self">Self</span>::Integer(x), <span class="self">Self</span>::Integer(y)) =&gt; x == y,
 
             <span class="comment">// 3. Return ! SameValueNonNumeric(x, y).
             </span>(<span class="kw">_</span>, <span class="kw">_</span>) =&gt; <span class="self">Self</span>::same_value_non_numeric(x, y),

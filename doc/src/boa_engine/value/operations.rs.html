@@ -667,6 +667,12 @@
 <span id="665">665</span>
 <span id="666">666</span>
 <span id="667">667</span>
+<span id="668">668</span>
+<span id="669">669</span>
+<span id="670">670</span>
+<span id="671">671</span>
+<span id="672">672</span>
+<span id="673">673</span>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     builtins::{
         number::{f64_to_int32, f64_to_uint32},
@@ -679,7 +685,8 @@
 };
 
 <span class="kw">impl </span>JsValue {
-    <span class="attribute">#[inline]
+    <span class="doccomment">/// Perform the binary `+` operator on the value and return the result.
+    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>add(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
         <span class="prelude-val">Ok</span>(<span class="kw">match </span>(<span class="self">self</span>, other) {
             <span class="comment">// Fast path:
@@ -719,7 +726,8 @@
         })
     }
 
-    <span class="attribute">#[inline]
+    <span class="doccomment">/// Perform the binary `-` operator on the value and return the result.
+    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>sub(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
         <span class="prelude-val">Ok</span>(<span class="kw">match </span>(<span class="self">self</span>, other) {
             <span class="comment">// Fast path:
@@ -745,7 +753,8 @@
         })
     }
 
-    <span class="attribute">#[inline]
+    <span class="doccomment">/// Perform the binary `*` operator on the value and return the result.
+    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>mul(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
         <span class="prelude-val">Ok</span>(<span class="kw">match </span>(<span class="self">self</span>, other) {
             <span class="comment">// Fast path:
@@ -771,7 +780,8 @@
         })
     }
 
-    <span class="attribute">#[inline]
+    <span class="doccomment">/// Perform the binary `/` operator on the value and return the result.
+    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>div(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
         <span class="prelude-val">Ok</span>(<span class="kw">match </span>(<span class="self">self</span>, other) {
             <span class="comment">// Fast path:
@@ -812,7 +822,8 @@
         })
     }
 
-    <span class="attribute">#[inline]
+    <span class="doccomment">/// Perform the binary `%` operator on the value and return the result.
+    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>rem(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
         <span class="prelude-val">Ok</span>(<span class="kw">match </span>(<span class="self">self</span>, other) {
             <span class="comment">// Fast path:
@@ -863,7 +874,8 @@
         })
     }
 
-    <span class="attribute">#[inline]
+    <span class="doccomment">/// Perform the binary `**` operator on the value and return the result.
+    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>pow(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
         <span class="prelude-val">Ok</span>(<span class="kw">match </span>(<span class="self">self</span>, other) {
             <span class="comment">// Fast path:
@@ -890,7 +902,8 @@
         })
     }
 
-    <span class="attribute">#[inline]
+    <span class="doccomment">/// Perform the binary `&amp;` operator on the value and return the result.
+    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>bitand(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
         <span class="prelude-val">Ok</span>(<span class="kw">match </span>(<span class="self">self</span>, other) {
             <span class="comment">// Fast path:
@@ -920,7 +933,8 @@
         })
     }
 
-    <span class="attribute">#[inline]
+    <span class="doccomment">/// Perform the binary `|` operator on the value and return the result.
+    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>bitor(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
         <span class="prelude-val">Ok</span>(<span class="kw">match </span>(<span class="self">self</span>, other) {
             <span class="comment">// Fast path:
@@ -950,7 +964,8 @@
         })
     }
 
-    <span class="attribute">#[inline]
+    <span class="doccomment">/// Perform the binary `^` operator on the value and return the result.
+    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>bitxor(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
         <span class="prelude-val">Ok</span>(<span class="kw">match </span>(<span class="self">self</span>, other) {
             <span class="comment">// Fast path:
@@ -980,7 +995,8 @@
         })
     }
 
-    <span class="attribute">#[inline]
+    <span class="doccomment">/// Perform the binary `&lt;&lt;` operator on the value and return the result.
+    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>shl(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
         <span class="prelude-val">Ok</span>(<span class="kw">match </span>(<span class="self">self</span>, other) {
             <span class="comment">// Fast path:
@@ -1012,7 +1028,8 @@
         })
     }
 
-    <span class="attribute">#[inline]
+    <span class="doccomment">/// Perform the binary `&gt;&gt;` operator on the value and return the result.
+    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>shr(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
         <span class="prelude-val">Ok</span>(<span class="kw">match </span>(<span class="self">self</span>, other) {
             <span class="comment">// Fast path:
@@ -1044,7 +1061,8 @@
         })
     }
 
-    <span class="attribute">#[inline]
+    <span class="doccomment">/// Perform the binary `&gt;&gt;&gt;` operator on the value and return the result.
+    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>ushr(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
         <span class="prelude-val">Ok</span>(<span class="kw">match </span>(<span class="self">self</span>, other) {
             <span class="comment">// Fast path:
@@ -1118,14 +1136,15 @@
         }
     }
 
-    <span class="attribute">#[inline]
+    <span class="doccomment">/// Returns the negated value.
+    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>neg(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
         <span class="prelude-val">Ok</span>(<span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
             <span class="self">Self</span>::Symbol(<span class="kw">_</span>) | <span class="self">Self</span>::Undefined =&gt; <span class="self">Self</span>::new(f64::NAN),
-            <span class="self">Self</span>::Object(<span class="kw">_</span>) =&gt; <span class="self">Self</span>::new(<span class="kw">match </span><span class="self">self</span>.to_numeric_number(context) {
-                <span class="prelude-val">Ok</span>(num) =&gt; -num,
-                <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; f64::NAN,
-            }),
+            <span class="self">Self</span>::Object(<span class="kw">_</span>) =&gt; <span class="self">Self</span>::new(
+                <span class="self">self</span>.to_numeric_number(context)
+                    .map_or(f64::NAN, std::ops::Neg::neg),
+            ),
             <span class="self">Self</span>::String(<span class="kw-2">ref </span>str) =&gt; <span class="self">Self</span>::new(-str.to_number()),
             <span class="self">Self</span>::Rational(num) =&gt; <span class="self">Self</span>::new(-num),
             <span class="self">Self</span>::Integer(num) <span class="kw">if </span>num == <span class="number">0 </span>=&gt; <span class="self">Self</span>::new(-f64::from(<span class="number">0</span>)),
@@ -1136,8 +1155,9 @@
         })
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>not(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;bool&gt; {
+    <span class="doccomment">/// Returns the negated boolean value.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>not(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsResult&lt;bool&gt; {
         <span class="prelude-val">Ok</span>(!<span class="self">self</span>.to_boolean())
     }
 
@@ -1187,20 +1207,12 @@
 
                 <span class="kw">match </span>(px, py) {
                     (<span class="self">Self</span>::String(<span class="kw-2">ref </span>x), <span class="self">Self</span>::String(<span class="kw-2">ref </span>y)) =&gt; (x &lt; y).into(),
-                    (<span class="self">Self</span>::BigInt(<span class="kw-2">ref </span>x), <span class="self">Self</span>::String(<span class="kw-2">ref </span>y)) =&gt; {
-                        <span class="kw">if let </span><span class="prelude-val">Some</span>(y) = y.to_big_int() {
-                            (<span class="kw-2">*</span>x &lt; y).into()
-                        } <span class="kw">else </span>{
-                            AbstractRelation::Undefined
-                        }
-                    }
-                    (<span class="self">Self</span>::String(<span class="kw-2">ref </span>x), <span class="self">Self</span>::BigInt(<span class="kw-2">ref </span>y)) =&gt; {
-                        <span class="kw">if let </span><span class="prelude-val">Some</span>(x) = x.to_big_int() {
-                            (x &lt; <span class="kw-2">*</span>y).into()
-                        } <span class="kw">else </span>{
-                            AbstractRelation::Undefined
-                        }
-                    }
+                    (<span class="self">Self</span>::BigInt(<span class="kw-2">ref </span>x), <span class="self">Self</span>::String(<span class="kw-2">ref </span>y)) =&gt; y
+                        .to_big_int()
+                        .map_or(AbstractRelation::Undefined, |y| (<span class="kw-2">*</span>x &lt; y).into()),
+                    (<span class="self">Self</span>::String(<span class="kw-2">ref </span>x), <span class="self">Self</span>::BigInt(<span class="kw-2">ref </span>y)) =&gt; x
+                        .to_big_int()
+                        .map_or(AbstractRelation::Undefined, |x| (x &lt; <span class="kw-2">*</span>y).into()),
                     (px, py) =&gt; <span class="kw">match </span>(px.to_numeric(context)<span class="question-mark">?</span>, py.to_numeric(context)<span class="question-mark">?</span>) {
                         (Numeric::Number(x), Numeric::Number(y)) =&gt; Number::less_than(x, y),
                         (Numeric::BigInt(<span class="kw-2">ref </span>x), Numeric::BigInt(<span class="kw-2">ref </span>y)) =&gt; (x &lt; y).into(),

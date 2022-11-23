@@ -64,6 +64,7 @@
 <span id="62">62</span>
 <span id="63">63</span>
 <span id="64">64</span>
+<span id="65">65</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Conceptually, a realm consists of a set of intrinsic objects, an ECMAScript global environment,
 //! all of the ECMAScript code that is loaded within the scope of that global environment,
 //! and other associated state and resources.
@@ -91,7 +92,8 @@
 }
 
 <span class="kw">impl </span>Realm {
-    <span class="attribute">#[inline]
+    <span class="doccomment">/// Create a new Realm.
+    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>create(global_prototype: JsPrototype) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Realm::create&quot;</span>, <span class="string">&quot;realm&quot;</span>);
         <span class="comment">// Create brand new global object
@@ -112,7 +114,7 @@
     }
 
     <span class="attribute">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>global_object(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>JsObject {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>global_object(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>JsObject {
         <span class="kw-2">&amp;</span><span class="self">self</span>.global_object
     }
 

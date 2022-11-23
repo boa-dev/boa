@@ -3734,7 +3734,25 @@
 <span id="3732">3732</span>
 <span id="3733">3733</span>
 <span id="3734">3734</span>
-</pre><pre class="rust"><code><span class="kw">mod </span>function;
+<span id="3735">3735</span>
+<span id="3736">3736</span>
+<span id="3737">3737</span>
+<span id="3738">3738</span>
+<span id="3739">3739</span>
+<span id="3740">3740</span>
+<span id="3741">3741</span>
+<span id="3742">3742</span>
+<span id="3743">3743</span>
+<span id="3744">3744</span>
+<span id="3745">3745</span>
+<span id="3746">3746</span>
+<span id="3747">3747</span>
+<span id="3748">3748</span>
+<span id="3749">3749</span>
+<span id="3750">3750</span>
+</pre><pre class="rust"><code><span class="doccomment">//! This module contains the bytecode compiler.
+
+</span><span class="kw">mod </span>function;
 
 <span class="kw">use crate</span>::{
     environments::{BindingLocator, CompileTimeEnvironment},
@@ -3793,6 +3811,7 @@
 
 <span class="doccomment">/// Describes the complete specification of a function node.
 </span><span class="attribute">#[derive(Debug, Clone, Copy, PartialEq)]
+#[allow(single_use_lifetimes)]
 </span><span class="kw">struct </span>FunctionSpec&lt;<span class="lifetime">&#39;a</span>&gt; {
     kind: FunctionKind,
     name: <span class="prelude-ty">Option</span>&lt;Identifier&gt;,
@@ -3801,14 +3820,14 @@
     has_binding_identifier: bool,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; FunctionSpec&lt;<span class="lifetime">&#39;a</span>&gt; {
+<span class="kw">impl </span>FunctionSpec&lt;<span class="lifetime">&#39;_</span>&gt; {
     <span class="attribute">#[inline]
-    </span><span class="kw">fn </span>is_arrow(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+    </span><span class="kw">const fn </span>is_arrow(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="macro">matches!</span>(<span class="self">self</span>.kind, FunctionKind::Arrow | FunctionKind::AsyncArrow)
     }
 
     <span class="attribute">#[inline]
-    </span><span class="kw">fn </span>is_async(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+    </span><span class="kw">const fn </span>is_async(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="macro">matches!</span>(
             <span class="self">self</span>.kind,
             FunctionKind::Async | FunctionKind::AsyncGenerator | FunctionKind::AsyncArrow
@@ -3816,7 +3835,7 @@
     }
 
     <span class="attribute">#[inline]
-    </span><span class="kw">fn </span>is_generator(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+    </span><span class="kw">const fn </span>is_generator(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="macro">matches!</span>(
             <span class="self">self</span>.kind,
             FunctionKind::Generator | FunctionKind::AsyncGenerator
@@ -3944,7 +3963,7 @@
 }
 
 <span class="kw">impl </span>Access&lt;<span class="lifetime">&#39;_</span>&gt; {
-    <span class="kw">fn </span>from_assign_target(target: <span class="kw-2">&amp;</span>AssignTarget) -&gt; <span class="prelude-ty">Result</span>&lt;Access&lt;<span class="lifetime">&#39;_</span>&gt;, <span class="kw-2">&amp;</span>Pattern&gt; {
+    <span class="kw">const fn </span>from_assign_target(target: <span class="kw-2">&amp;</span>AssignTarget) -&gt; <span class="prelude-ty">Result</span>&lt;Access&lt;<span class="lifetime">&#39;_</span>&gt;, <span class="kw-2">&amp;</span>Pattern&gt; {
         <span class="kw">match </span>target {
             AssignTarget::Identifier(ident) =&gt; <span class="prelude-val">Ok</span>(Access::Variable { name: <span class="kw-2">*</span>ident }),
             AssignTarget::Access(access) =&gt; <span class="prelude-val">Ok</span>(Access::Property { access }),
@@ -3952,7 +3971,7 @@
         }
     }
 
-    <span class="kw">fn </span>from_expression(expr: <span class="kw-2">&amp;</span>Expression) -&gt; <span class="prelude-ty">Option</span>&lt;Access&lt;<span class="lifetime">&#39;_</span>&gt;&gt; {
+    <span class="kw">const fn </span>from_expression(expr: <span class="kw-2">&amp;</span>Expression) -&gt; <span class="prelude-ty">Option</span>&lt;Access&lt;<span class="lifetime">&#39;_</span>&gt;&gt; {
         <span class="kw">match </span>expr {
             Expression::Identifier(name) =&gt; <span class="prelude-val">Some</span>(Access::Variable { name: <span class="kw-2">*</span>name }),
             Expression::PropertyAccess(access) =&gt; <span class="prelude-val">Some</span>(Access::Property { access }),
@@ -3962,7 +3981,8 @@
     }
 }
 
-<span class="attribute">#[derive(Debug)]
+<span class="doccomment">/// The [`ByteCompiler`] is used to compile ECMAScript AST from [`boa_ast`] to bytecode.
+</span><span class="attribute">#[derive(Debug)]
 </span><span class="kw">pub struct </span>ByteCompiler&lt;<span class="lifetime">&#39;b</span>&gt; {
     code_block: CodeBlock,
     literals_map: FxHashMap&lt;Literal, u32&gt;,
@@ -3978,7 +3998,8 @@
     <span class="doccomment">/// Represents a placeholder address that will be patched later.
     </span><span class="kw">const </span>DUMMY_ADDRESS: u32 = u32::MAX;
 
-    <span class="attribute">#[inline]
+    <span class="doccomment">/// Creates a new [`ByteCompiler`].
+    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>new(name: Sym, strict: bool, json_parse: bool, context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span><span class="kw-2">mut </span>Context) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             code_block: CodeBlock::new(name, <span class="number">0</span>, strict),
@@ -4601,7 +4622,8 @@
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="attribute">#[inline]
+    <span class="doccomment">/// Compile a [`StatementList`].
+    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>compile_statement_list(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         list: <span class="kw-2">&amp;</span>StatementList,
@@ -4646,7 +4668,8 @@
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="attribute">#[inline]
+    <span class="doccomment">/// Compile an [`Expression`].
+    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>compile_expr(<span class="kw-2">&amp;mut </span><span class="self">self</span>, expr: <span class="kw-2">&amp;</span>Expression, use_expr: bool) -&gt; JsResult&lt;()&gt; {
         <span class="kw">match </span>expr {
             Expression::Literal(lit) =&gt; {
@@ -5483,7 +5506,8 @@
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">pub fn </span>compile_var_decl(<span class="kw-2">&amp;mut </span><span class="self">self</span>, decl: <span class="kw-2">&amp;</span>VarDeclaration) -&gt; JsResult&lt;()&gt; {
+    <span class="doccomment">/// Compile a [`VarDeclaration`].
+    </span><span class="kw">fn </span>compile_var_decl(<span class="kw-2">&amp;mut </span><span class="self">self</span>, decl: <span class="kw-2">&amp;</span>VarDeclaration) -&gt; JsResult&lt;()&gt; {
         <span class="kw">for </span>variable <span class="kw">in </span>decl.<span class="number">0</span>.as_ref() {
             <span class="kw">match </span>variable.binding() {
                 Binding::Identifier(ident) =&gt; {
@@ -5509,7 +5533,8 @@
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">pub fn </span>compile_lexical_decl(<span class="kw-2">&amp;mut </span><span class="self">self</span>, decl: <span class="kw-2">&amp;</span>LexicalDeclaration) -&gt; JsResult&lt;()&gt; {
+    <span class="doccomment">/// Compile a [`LexicalDeclaration`].
+    </span><span class="kw">fn </span>compile_lexical_decl(<span class="kw-2">&amp;mut </span><span class="self">self</span>, decl: <span class="kw-2">&amp;</span>LexicalDeclaration) -&gt; JsResult&lt;()&gt; {
         <span class="kw">match </span>decl {
             LexicalDeclaration::Let(decls) =&gt; {
                 <span class="kw">for </span>variable <span class="kw">in </span>decls.as_ref() {
@@ -5562,8 +5587,9 @@
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>compile_stmt_list_item(
+    <span class="doccomment">/// Compile a [`StatementListItem`].
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">fn </span>compile_stmt_list_item(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         item: <span class="kw-2">&amp;</span>StatementListItem,
         use_expr: bool,
@@ -5577,7 +5603,8 @@
         }
     }
 
-    <span class="attribute">#[inline]
+    <span class="doccomment">/// Compile a [`Declaration`].
+    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>compile_decl(<span class="kw-2">&amp;mut </span><span class="self">self</span>, decl: <span class="kw-2">&amp;</span>Declaration) -&gt; JsResult&lt;()&gt; {
         <span class="kw">match </span>decl {
             Declaration::Function(function) =&gt; {
@@ -5597,8 +5624,9 @@
         }
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>compile_for_loop(
+    <span class="doccomment">/// Compile a [`ForLoop`].
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">fn </span>compile_for_loop(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         for_loop: <span class="kw-2">&amp;</span>ForLoop,
         label: <span class="prelude-ty">Option</span>&lt;Sym&gt;,
@@ -5657,8 +5685,9 @@
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>compile_for_in_loop(
+    <span class="doccomment">/// Compile a [`ForInLoop`].
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">fn </span>compile_for_in_loop(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         for_in_loop: <span class="kw-2">&amp;</span>ForInLoop,
         label: <span class="prelude-ty">Option</span>&lt;Sym&gt;,
@@ -5772,8 +5801,9 @@
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>compile_for_of_loop(
+    <span class="doccomment">/// Compile a [`ForOfLoop`].
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">fn </span>compile_for_of_loop(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         for_of_loop: <span class="kw-2">&amp;</span>ForOfLoop,
         label: <span class="prelude-ty">Option</span>&lt;Sym&gt;,
@@ -5896,8 +5926,9 @@
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>compile_while_loop(
+    <span class="doccomment">/// Compile a [`WhileLoop`].
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">fn </span>compile_while_loop(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         while_loop: <span class="kw-2">&amp;</span>WhileLoop,
         label: <span class="prelude-ty">Option</span>&lt;Sym&gt;,
@@ -5919,8 +5950,9 @@
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>compile_do_while_loop(
+    <span class="doccomment">/// Compile a [`DoWhileLoop`].
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">fn </span>compile_do_while_loop(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         do_while_loop: <span class="kw-2">&amp;</span>DoWhileLoop,
         label: <span class="prelude-ty">Option</span>&lt;Sym&gt;,
@@ -5948,7 +5980,8 @@
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="attribute">#[inline]
+    <span class="doccomment">/// Compile a [`Block`].
+    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>compile_block(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         block: <span class="kw-2">&amp;</span>Block,
@@ -5978,7 +6011,8 @@
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="attribute">#[inline]
+    <span class="doccomment">/// Compile a [`Statement`].
+    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>compile_stmt(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         node: <span class="kw-2">&amp;</span>Statement,
@@ -6082,11 +6116,9 @@
                     .filter(|info| info.kind == JumpControlInfoKind::Try)
                 {
                     <span class="kw">let </span>start_address = info.start_address;
-                    <span class="kw">let </span>in_finally = <span class="kw">if let </span><span class="prelude-val">Some</span>(finally_start) = info.finally_start {
-                        next &gt; finally_start.index
-                    } <span class="kw">else </span>{
-                        <span class="bool-val">false
-                    </span>};
+                    <span class="kw">let </span>in_finally = info
+                        .finally_start
+                        .map_or(<span class="bool-val">false</span>, |finally_start| next &gt; finally_start.index);
                     <span class="kw">let </span>in_catch_no_finally = !info.has_finally &amp;&amp; info.in_catch;
 
                     <span class="kw">if </span>in_finally {
@@ -6094,11 +6126,10 @@
                     }
                     <span class="kw">if </span>in_finally || in_catch_no_finally {
                         <span class="self">self</span>.emit_opcode(Opcode::CatchEnd2);
-                        <span class="self">self</span>.emit(Opcode::FinallySetJump, <span class="kw-2">&amp;</span>[start_address]);
                     } <span class="kw">else </span>{
                         <span class="self">self</span>.emit_opcode(Opcode::TryEnd);
-                        <span class="self">self</span>.emit(Opcode::FinallySetJump, <span class="kw-2">&amp;</span>[start_address]);
                     }
+                    <span class="self">self</span>.emit(Opcode::FinallySetJump, <span class="kw-2">&amp;</span>[start_address]);
                     <span class="kw">let </span>label = <span class="self">self</span>.jump();
                     <span class="self">self</span>.jump_info
                         .last_mut()
@@ -6164,11 +6195,9 @@
                     .last()
                     .filter(|info| info.kind == JumpControlInfoKind::Try)
                 {
-                    <span class="kw">let </span>in_finally = <span class="kw">if let </span><span class="prelude-val">Some</span>(finally_start) = info.finally_start {
-                        next &gt;= finally_start.index
-                    } <span class="kw">else </span>{
-                        <span class="bool-val">false
-                    </span>};
+                    <span class="kw">let </span>in_finally = info
+                        .finally_start
+                        .map_or(<span class="bool-val">false</span>, |finally_start| next &gt;= finally_start.index);
                     <span class="kw">let </span>in_catch_no_finally = !info.has_finally &amp;&amp; info.in_catch;
 
                     <span class="kw">if </span>in_finally {
@@ -6521,7 +6550,10 @@
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="attribute">#[inline]
+    <span class="doccomment">/// Finish compiling code with the [`ByteCompiler`] and return the generated [`CodeBlock`].
+    </span><span class="attribute">#[inline]
+    #[must_use]
+    #[allow(clippy::missing_const_for_fn)]
     </span><span class="kw">pub fn </span>finish(<span class="self">self</span>) -&gt; CodeBlock {
         <span class="self">self</span>.code_block
     }

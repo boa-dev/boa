@@ -149,7 +149,21 @@
 <span id="147">147</span>
 <span id="148">148</span>
 <span id="149">149</span>
-</pre><pre class="rust"><code><span class="kw">use crate</span>::{
+<span id="150">150</span>
+<span id="151">151</span>
+<span id="152">152</span>
+<span id="153">153</span>
+<span id="154">154</span>
+<span id="155">155</span>
+<span id="156">156</span>
+</pre><pre class="rust"><code><span class="doccomment">//! This module implements the `ArrayIterator` object.
+//!
+//! More information:
+//!  - [ECMAScript reference][spec]
+//!
+//! [spec]: https://tc39.es/ecma262/#sec-array-iterator-objects
+
+</span><span class="kw">use crate</span>::{
     builtins::{function::make_builtin_fn, iterable::create_iter_result_object, Array, JsValue},
     error::JsNativeError,
     object::{JsObject, ObjectData},

@@ -92,10 +92,10 @@
 </span><span class="attribute">#[inline]
 #[allow(clippy::float_cmp)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>f64_to_int32(number: f64) -&gt; i32 {
-    <span class="kw">const </span>SIGN_MASK: u64 = <span class="number">0x8000000000000000</span>;
-    <span class="kw">const </span>EXPONENT_MASK: u64 = <span class="number">0x7FF0000000000000</span>;
-    <span class="kw">const </span>SIGNIFICAND_MASK: u64 = <span class="number">0x000FFFFFFFFFFFFF</span>;
-    <span class="kw">const </span>HIDDEN_BIT: u64 = <span class="number">0x0010000000000000</span>;
+    <span class="kw">const </span>SIGN_MASK: u64 = <span class="number">0x8000_0000_0000_0000</span>;
+    <span class="kw">const </span>EXPONENT_MASK: u64 = <span class="number">0x7FF0_0000_0000_0000</span>;
+    <span class="kw">const </span>SIGNIFICAND_MASK: u64 = <span class="number">0x000F_FFFF_FFFF_FFFF</span>;
+    <span class="kw">const </span>HIDDEN_BIT: u64 = <span class="number">0x0010_0000_0000_0000</span>;
     <span class="kw">const </span>PHYSICAL_SIGNIFICAND_SIZE: i32 = <span class="number">52</span>; <span class="comment">// Excludes the hidden bit.
     </span><span class="kw">const </span>SIGNIFICAND_SIZE: i32 = <span class="number">53</span>;
 
@@ -159,7 +159,7 @@
             <span class="kw">return </span><span class="number">0</span>;
         }
 
-        (significand(number) &lt;&lt; exponent) &amp; <span class="number">0xFFFFFFFF
+        (significand(number) &lt;&lt; exponent) &amp; <span class="number">0xFFFF_FFFF
     </span>};
 
     (sign(number) * (bits <span class="kw">as </span>i64)) <span class="kw">as </span>i32

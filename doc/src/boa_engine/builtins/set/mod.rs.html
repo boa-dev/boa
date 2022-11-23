@@ -454,10 +454,6 @@
 <span id="452">452</span>
 <span id="453">453</span>
 <span id="454">454</span>
-<span id="455">455</span>
-<span id="456">456</span>
-<span id="457">457</span>
-<span id="458">458</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `Set` object.
 //!
 //! The JavaScript `Set` class is a global object that is used in the construction of sets; which
@@ -493,7 +489,7 @@
 </span><span class="kw">mod </span>tests;
 
 <span class="attribute">#[derive(Debug, Clone)]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Set(OrderedSet&lt;JsValue&gt;);
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Set;
 
 <span class="kw">impl </span>BuiltIn <span class="kw">for </span>Set {
     <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;Set&quot;</span>;
@@ -823,7 +819,7 @@
             <span class="kw">let </span>arguments = this
                 .as_object()
                 .and_then(|obj| {
-                    obj.borrow().as_set_ref().map(|set| {
+                    obj.borrow().as_set().map(|set| {
                         set.get_index(index)
                             .map(|value| [value.clone(), value.clone(), this.clone()])
                     })
@@ -854,11 +850,7 @@
         <span class="kw">let </span>value = args.get_or_undefined(<span class="number">0</span>);
 
         this.as_object()
-            .and_then(|obj| {
-                obj.borrow()
-                    .as_set_ref()
-                    .map(|set| set.contains(value).into())
-            })
+            .and_then(|obj| obj.borrow().as_set().map(|set| set.contains(value).into()))
             .ok_or_else(|| {
                 JsNativeError::typ()
                     .with_message(<span class="string">&quot;&#39;this&#39; is not a Set&quot;</span>)
@@ -908,7 +900,7 @@
     <span class="doccomment">/// Helper function to get the size of the `Set` object.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_size(set: <span class="kw-2">&amp;</span>JsValue) -&gt; JsResult&lt;usize&gt; {
         set.as_object()
-            .and_then(|obj| obj.borrow().as_set_ref().map(OrderedSet::size))
+            .and_then(|obj| obj.borrow().as_set().map(OrderedSet::size))
             .ok_or_else(|| {
                 JsNativeError::typ()
                     .with_message(<span class="string">&quot;&#39;this&#39; is not a Set&quot;</span>)

@@ -480,6 +480,7 @@
 <span id="478">478</span>
 <span id="479">479</span>
 <span id="480">480</span>
+<span id="481">481</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements a wrapper for the `Proxy` Builtin JavaScript Object
 </span><span class="kw">use </span>boa_gc::{Finalize, Trace};
 
@@ -509,7 +510,8 @@
 }
 
 <span class="kw">impl </span>JsProxy {
-    <span class="kw">pub fn </span>builder(target: JsObject) -&gt; JsProxyBuilder {
+    <span class="doccomment">/// Creates a new [`JsProxyBuilder`] to easily construct a [`JsProxy`].
+    </span><span class="kw">pub fn </span>builder(target: JsObject) -&gt; JsProxyBuilder {
         JsProxyBuilder::new(target)
     }
 }

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["JsBigInt","JavaScript bigint primitive rust type."],["TryFromF64Error",""]],"type":[["RawBigInt","The raw bigint type."]]};
+window.SIDEBAR_ITEMS = {"struct":[["JsBigInt","JavaScript bigint primitive rust type."],["TryFromF64Error","The error indicates that the conversion from [`f64`] to [`JsBigInt`] failed."]],"type":[["RawBigInt","The raw bigint type."]]};

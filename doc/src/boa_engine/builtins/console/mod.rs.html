@@ -626,7 +626,7 @@
 
 <span class="doccomment">/// This represents the different types of log messages.
 </span><span class="attribute">#[derive(Debug)]
-</span><span class="kw">pub enum </span>LogMessage {
+</span><span class="kw">enum </span>LogMessage {
     Log(String),
     Info(String),
     Warn(String),
@@ -634,7 +634,7 @@
 }
 
 <span class="doccomment">/// Helper function for logging messages.
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>logger(msg: LogMessage, console_state: <span class="kw-2">&amp;</span>Console) {
+</span><span class="kw">fn </span>logger(msg: LogMessage, console_state: <span class="kw-2">&amp;</span>Console) {
     <span class="kw">let </span>indent = <span class="number">2 </span>* console_state.groups.len();
 
     <span class="kw">match </span>msg {

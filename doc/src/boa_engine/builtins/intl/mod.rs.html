@@ -842,11 +842,6 @@
 <span id="840">840</span>
 <span id="841">841</span>
 <span id="842">842</span>
-<span id="843">843</span>
-<span id="844">844</span>
-<span id="845">845</span>
-<span id="846">846</span>
-<span id="847">847</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `Intl` object.
 //!
 //! `Intl` is a built-in object that has properties and methods for i18n. It&#39;s not a function object.
@@ -953,7 +948,8 @@
 ///
 /// [spec]: https://tc39.es/ecma402/#sec-defaultlocale
 </span><span class="kw">fn </span>default_locale(canonicalizer: <span class="kw-2">&amp;</span>LocaleCanonicalizer) -&gt; Locale {
-    sys_locale::get_locale()
+    <span class="attribute">#[allow(clippy::string_lit_as_bytes)]
+    </span>sys_locale::get_locale()
         .and_then(|loc| loc.parse::&lt;Locale&gt;().ok())
         .tap_some_mut(|loc| canonicalize_unicode_locale_id(loc, canonicalizer))
         .unwrap_or(<span class="macro">locale!</span>(<span class="string">&quot;en-US&quot;</span>))
@@ -1130,10 +1126,7 @@
         </span><span class="kw">let </span>e = extension[k..].find(<span class="string">&#39;-&#39;</span>);
 
         <span class="comment">// b. If e = -1, let len be size - k; else let len be e - k.
-        </span><span class="kw">let </span>len = <span class="kw">match </span>e {
-            <span class="prelude-val">Some</span>(pos) =&gt; pos,
-            <span class="prelude-val">None </span>=&gt; size - k,
-        };
+        </span><span class="kw">let </span>len = e.unwrap_or(size - k);
 
         <span class="comment">// c. Let subtag be the String value equal to the substring of extension consisting of the
         // code units at indices k (inclusive) through k + len (exclusive).
@@ -1436,24 +1429,21 @@
     </span><span class="kw">for </span><span class="kw-2">&amp;</span>key <span class="kw">in </span>relevant_extension_keys {
         <span class="comment">// a. Let foundLocaleData be localeData.[[&lt;foundLocale&gt;]].
         // TODO b. Assert: Type(foundLocaleData) is Record.
-        </span><span class="kw">let </span>found_locale_data = <span class="kw">match </span>locale_data.get(<span class="kw-2">&amp;</span>found_locale) {
-            <span class="prelude-val">Some</span>(locale_value) =&gt; locale_value.clone(),
-            <span class="prelude-val">None </span>=&gt; FxHashMap::default(),
-        };
+        </span><span class="kw">let </span>found_locale_data = locale_data
+            .get(<span class="kw-2">&amp;</span>found_locale)
+            .map_or_else(FxHashMap::default, Clone::clone);
 
         <span class="comment">// c. Let keyLocaleData be foundLocaleData.[[&lt;key&gt;]].
         // TODO d. Assert: Type(keyLocaleData) is List.
-        </span><span class="kw">let </span>key_locale_data = <span class="kw">match </span>found_locale_data.get(key) {
-            <span class="prelude-val">Some</span>(locale_vec) =&gt; locale_vec.clone(),
-            <span class="prelude-val">None </span>=&gt; Vec::new(),
-        };
+        </span><span class="kw">let </span>key_locale_data = found_locale_data
+            .get(key)
+            .map_or_else(Vec::new, Clone::clone);
 
         <span class="comment">// e. Let value be keyLocaleData[0].
         // TODO f. Assert: Type(value) is either String or Null.
-        </span><span class="kw">let </span><span class="kw-2">mut </span>value = <span class="kw">match </span>key_locale_data.get(<span class="number">0</span>) {
-            <span class="prelude-val">Some</span>(first_elt) =&gt; first_elt.clone().into(),
-            <span class="prelude-val">None </span>=&gt; JsValue::null(),
-        };
+        </span><span class="kw">let </span><span class="kw-2">mut </span>value = key_locale_data
+            .get(<span class="number">0</span>)
+            .map_or_else(JsValue::null, |first_elt| first_elt.clone().into());
 
         <span class="comment">// g. Let supportedExtensionAddition be &quot;&quot;.
         </span><span class="kw">let </span><span class="kw-2">mut </span>supported_extension_addition = String::new();

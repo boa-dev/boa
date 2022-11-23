@@ -772,6 +772,42 @@
 <span id="770">770</span>
 <span id="771">771</span>
 <span id="772">772</span>
+<span id="773">773</span>
+<span id="774">774</span>
+<span id="775">775</span>
+<span id="776">776</span>
+<span id="777">777</span>
+<span id="778">778</span>
+<span id="779">779</span>
+<span id="780">780</span>
+<span id="781">781</span>
+<span id="782">782</span>
+<span id="783">783</span>
+<span id="784">784</span>
+<span id="785">785</span>
+<span id="786">786</span>
+<span id="787">787</span>
+<span id="788">788</span>
+<span id="789">789</span>
+<span id="790">790</span>
+<span id="791">791</span>
+<span id="792">792</span>
+<span id="793">793</span>
+<span id="794">794</span>
+<span id="795">795</span>
+<span id="796">796</span>
+<span id="797">797</span>
+<span id="798">798</span>
+<span id="799">799</span>
+<span id="800">800</span>
+<span id="801">801</span>
+<span id="802">802</span>
+<span id="803">803</span>
+<span id="804">804</span>
+<span id="805">805</span>
+<span id="806">806</span>
+<span id="807">807</span>
+<span id="808">808</span>
 </pre><pre class="rust"><code><span class="kw">use super</span>::{PropertyDescriptor, PropertyKey};
 <span class="kw">use crate</span>::{property::PropertyDescriptorBuilder, JsString, JsSymbol, JsValue};
 <span class="kw">use </span>boa_gc::{custom_trace, Finalize, Trace};
@@ -995,21 +1031,32 @@
     }
 }
 
-<span class="attribute">#[derive(Default, Debug, Trace, Finalize)]
+<span class="doccomment">/// A [`PropertyMap`] contains all the properties of an object.
+///
+/// The property values are stored in different data structures based on keys.
+</span><span class="attribute">#[derive(Default, Debug, Trace, Finalize)]
 </span><span class="kw">pub struct </span>PropertyMap {
-    indexed_properties: IndexedProperties,
-    <span class="doccomment">/// Properties
+    <span class="doccomment">/// Properties stored with integers as keys.
+    </span>indexed_properties: IndexedProperties,
+
+    <span class="doccomment">/// Properties stored with `String`s a keys.
     </span>string_properties: OrderedHashMap&lt;JsString&gt;,
-    <span class="doccomment">/// Symbol Properties
+
+    <span class="doccomment">/// Properties stored with `Symbol`s a keys.
     </span>symbol_properties: OrderedHashMap&lt;JsSymbol&gt;,
 }
 
 <span class="kw">impl </span>PropertyMap {
-    <span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
+    <span class="doccomment">/// Create a new [`PropertyMap`].
+    </span><span class="attribute">#[must_use]
+    #[inline]
+    </span><span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::default()
     }
 
-    <span class="kw">pub fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>PropertyKey) -&gt; <span class="prelude-ty">Option</span>&lt;PropertyDescriptor&gt; {
+    <span class="doccomment">/// Get the property with the given key from the [`PropertyMap`].
+    </span><span class="attribute">#[must_use]
+    </span><span class="kw">pub fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>PropertyKey) -&gt; <span class="prelude-ty">Option</span>&lt;PropertyDescriptor&gt; {
         <span class="kw">match </span>key {
             PropertyKey::Index(index) =&gt; <span class="self">self</span>.indexed_properties.get(<span class="kw-2">*</span>index),
             PropertyKey::String(string) =&gt; <span class="self">self</span>.string_properties.<span class="number">0</span>.get(string).cloned(),
@@ -1017,7 +1064,8 @@
         }
     }
 
-    <span class="kw">pub fn </span>insert(
+    <span class="doccomment">/// Insert the given property descriptor with the given key [`PropertyMap`].
+    </span><span class="kw">pub fn </span>insert(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         key: <span class="kw-2">&amp;</span>PropertyKey,
         property: PropertyDescriptor,
@@ -1033,7 +1081,8 @@
         }
     }
 
-    <span class="kw">pub fn </span>remove(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>PropertyKey) -&gt; <span class="prelude-ty">Option</span>&lt;PropertyDescriptor&gt; {
+    <span class="doccomment">/// Remove the property with the given key from the [`PropertyMap`].
+    </span><span class="kw">pub fn </span>remove(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>PropertyKey) -&gt; <span class="prelude-ty">Option</span>&lt;PropertyDescriptor&gt; {
         <span class="kw">match </span>key {
             PropertyKey::Index(index) =&gt; <span class="self">self</span>.indexed_properties.remove(<span class="kw-2">*</span>index),
             PropertyKey::String(string) =&gt; <span class="self">self</span>.string_properties.<span class="number">0</span>.shift_remove(string),
@@ -1047,7 +1096,7 @@
     }
 
     <span class="doccomment">/// Returns the vec of dense indexed properties if they exist.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>dense_indexed_properties(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Vec&lt;JsValue&gt;&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>dense_indexed_properties(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Vec&lt;JsValue&gt;&gt; {
         <span class="kw">if let </span>IndexedProperties::Dense(properties) = <span class="kw-2">&amp;</span><span class="self">self</span>.indexed_properties {
             <span class="prelude-val">Some</span>(properties)
         } <span class="kw">else </span>{
@@ -1059,6 +1108,7 @@
     ///
     /// This iterator does not recurse down the prototype chain.
     </span><span class="attribute">#[inline]
+    #[must_use]
     </span><span class="kw">pub fn </span>iter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Iter&lt;<span class="lifetime">&#39;_</span>&gt; {
         Iter {
             indexed_properties: <span class="self">self</span>.indexed_properties.iter(),
@@ -1071,6 +1121,7 @@
     ///
     /// This iterator does not recurse down the prototype chain.
     </span><span class="attribute">#[inline]
+    #[must_use]
     </span><span class="kw">pub fn </span>keys(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Keys&lt;<span class="lifetime">&#39;_</span>&gt; {
         Keys(<span class="self">self</span>.iter())
     }
@@ -1079,6 +1130,7 @@
     ///
     /// This iterator does not recurse down the prototype chain.
     </span><span class="attribute">#[inline]
+    #[must_use]
     </span><span class="kw">pub fn </span>values(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Values&lt;<span class="lifetime">&#39;_</span>&gt; {
         Values(<span class="self">self</span>.iter())
     }
@@ -1088,6 +1140,7 @@
     ///
     /// This iterator does not recurse down the prototype chain.
     </span><span class="attribute">#[inline]
+    #[must_use]
     </span><span class="kw">pub fn </span>symbol_properties(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; SymbolProperties&lt;<span class="lifetime">&#39;_</span>&gt; {
         SymbolProperties(<span class="self">self</span>.symbol_properties.<span class="number">0</span>.iter())
     }
@@ -1096,6 +1149,7 @@
     ///
     /// This iterator does not recurse down the prototype chain.
     </span><span class="attribute">#[inline]
+    #[must_use]
     </span><span class="kw">pub fn </span>symbol_property_keys(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; SymbolPropertyKeys&lt;<span class="lifetime">&#39;_</span>&gt; {
         SymbolPropertyKeys(<span class="self">self</span>.symbol_properties.<span class="number">0</span>.keys())
     }
@@ -1104,6 +1158,7 @@
     ///
     /// This iterator does not recurse down the prototype chain.
     </span><span class="attribute">#[inline]
+    #[must_use]
     </span><span class="kw">pub fn </span>symbol_property_values(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; SymbolPropertyValues&lt;<span class="lifetime">&#39;_</span>&gt; {
         SymbolPropertyValues(<span class="self">self</span>.symbol_properties.<span class="number">0</span>.values())
     }
@@ -1112,6 +1167,7 @@
     ///
     /// This iterator does not recurse down the prototype chain.
     </span><span class="attribute">#[inline]
+    #[must_use]
     </span><span class="kw">pub fn </span>index_properties(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; IndexProperties&lt;<span class="lifetime">&#39;_</span>&gt; {
         <span class="self">self</span>.indexed_properties.iter()
     }
@@ -1120,6 +1176,7 @@
     ///
     /// This iterator does not recurse down the prototype chain.
     </span><span class="attribute">#[inline]
+    #[must_use]
     </span><span class="kw">pub fn </span>index_property_keys(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; IndexPropertyKeys&lt;<span class="lifetime">&#39;_</span>&gt; {
         <span class="self">self</span>.indexed_properties.keys()
     }
@@ -1128,6 +1185,7 @@
     ///
     /// This iterator does not recurse down the prototype chain.
     </span><span class="attribute">#[inline]
+    #[must_use]
     </span><span class="kw">pub fn </span>index_property_values(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; IndexPropertyValues&lt;<span class="lifetime">&#39;_</span>&gt; {
         <span class="self">self</span>.indexed_properties.values()
     }
@@ -1136,6 +1194,7 @@
     ///
     /// This iterator does not recurse down the prototype chain.
     </span><span class="attribute">#[inline]
+    #[must_use]
     </span><span class="kw">pub fn </span>string_properties(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; StringProperties&lt;<span class="lifetime">&#39;_</span>&gt; {
         StringProperties(<span class="self">self</span>.string_properties.<span class="number">0</span>.iter())
     }
@@ -1144,6 +1203,7 @@
     ///
     /// This iterator does not recurse down the prototype chain.
     </span><span class="attribute">#[inline]
+    #[must_use]
     </span><span class="kw">pub fn </span>string_property_keys(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; StringPropertyKeys&lt;<span class="lifetime">&#39;_</span>&gt; {
         StringPropertyKeys(<span class="self">self</span>.string_properties.<span class="number">0</span>.keys())
     }
@@ -1152,11 +1212,14 @@
     ///
     /// This iterator does not recurse down the prototype chain.
     </span><span class="attribute">#[inline]
+    #[must_use]
     </span><span class="kw">pub fn </span>string_property_values(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; StringPropertyValues&lt;<span class="lifetime">&#39;_</span>&gt; {
         StringPropertyValues(<span class="self">self</span>.string_properties.<span class="number">0</span>.values())
     }
 
-    <span class="attribute">#[inline]
+    <span class="doccomment">/// Returns `true` if the given key is contained in the [`PropertyMap`].
+    </span><span class="attribute">#[inline]
+    #[must_use]
     </span><span class="kw">pub fn </span>contains_key(<span class="kw-2">&amp;</span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>PropertyKey) -&gt; bool {
         <span class="kw">match </span>key {
             PropertyKey::Index(index) =&gt; <span class="self">self</span>.indexed_properties.contains_key(<span class="kw-2">*</span>index),
@@ -1166,7 +1229,7 @@
     }
 
     <span class="attribute">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>string_property_map(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>GlobalPropertyMap {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>string_property_map(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>GlobalPropertyMap {
         <span class="kw-2">&amp;</span><span class="self">self</span>.string_properties.<span class="number">0
     </span>}
 
@@ -1184,7 +1247,7 @@
     symbol_properties: indexmap::map::Iter&lt;<span class="lifetime">&#39;a</span>, JsSymbol, PropertyDescriptor&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Iterator <span class="kw">for </span>Iter&lt;<span class="lifetime">&#39;a</span>&gt; {
+<span class="kw">impl </span>Iterator <span class="kw">for </span>Iter&lt;<span class="lifetime">&#39;_</span>&gt; {
     <span class="kw">type </span>Item = (PropertyKey, PropertyDescriptor);
     <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
         <span class="kw">if let </span><span class="prelude-val">Some</span>((key, value)) = <span class="self">self</span>.indexed_properties.next() {
@@ -1211,7 +1274,7 @@
 </span><span class="attribute">#[derive(Debug, Clone)]
 </span><span class="kw">pub struct </span>Keys&lt;<span class="lifetime">&#39;a</span>&gt;(Iter&lt;<span class="lifetime">&#39;a</span>&gt;);
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Iterator <span class="kw">for </span>Keys&lt;<span class="lifetime">&#39;a</span>&gt; {
+<span class="kw">impl </span>Iterator <span class="kw">for </span>Keys&lt;<span class="lifetime">&#39;_</span>&gt; {
     <span class="kw">type </span>Item = PropertyKey;
     <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
         <span class="kw">let </span>(key, <span class="kw">_</span>) = <span class="self">self</span>.<span class="number">0</span>.next()<span class="question-mark">?</span>;
@@ -1232,7 +1295,7 @@
 </span><span class="attribute">#[derive(Debug, Clone)]
 </span><span class="kw">pub struct </span>Values&lt;<span class="lifetime">&#39;a</span>&gt;(Iter&lt;<span class="lifetime">&#39;a</span>&gt;);
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Iterator <span class="kw">for </span>Values&lt;<span class="lifetime">&#39;a</span>&gt; {
+<span class="kw">impl </span>Iterator <span class="kw">for </span>Values&lt;<span class="lifetime">&#39;_</span>&gt; {
     <span class="kw">type </span>Item = PropertyDescriptor;
     <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
         <span class="kw">let </span>(<span class="kw">_</span>, value) = <span class="self">self</span>.<span class="number">0</span>.next()<span class="question-mark">?</span>;
@@ -1330,14 +1393,17 @@
 
 <span class="kw">impl </span>FusedIterator <span class="kw">for </span>SymbolPropertyValues&lt;<span class="lifetime">&#39;_</span>&gt; {}
 
-<span class="doccomment">/// An iterator over the indexed property entries of an `Object`
+<span class="doccomment">/// An iterator over the indexed property entries of an `Object`.
 </span><span class="attribute">#[derive(Debug, Clone)]
 </span><span class="kw">pub enum </span>IndexProperties&lt;<span class="lifetime">&#39;a</span>&gt; {
-    Dense(std::iter::Enumerate&lt;std::slice::Iter&lt;<span class="lifetime">&#39;a</span>, JsValue&gt;&gt;),
-    Sparse(hash_map::Iter&lt;<span class="lifetime">&#39;a</span>, u32, PropertyDescriptor&gt;),
+    <span class="doccomment">/// An iterator over dense, Vec backed indexed property entries of an `Object`.
+    </span>Dense(std::iter::Enumerate&lt;std::slice::Iter&lt;<span class="lifetime">&#39;a</span>, JsValue&gt;&gt;),
+
+    <span class="doccomment">/// An iterator over sparse, HashMap backed indexed property entries of an `Object`.
+    </span>Sparse(hash_map::Iter&lt;<span class="lifetime">&#39;a</span>, u32, PropertyDescriptor&gt;),
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Iterator <span class="kw">for </span>IndexProperties&lt;<span class="lifetime">&#39;a</span>&gt; {
+<span class="kw">impl </span>Iterator <span class="kw">for </span>IndexProperties&lt;<span class="lifetime">&#39;_</span>&gt; {
     <span class="kw">type </span>Item = (u32, PropertyDescriptor);
 
     <span class="attribute">#[inline]
@@ -1382,11 +1448,14 @@
 <span class="doccomment">/// An iterator over the index keys (`u32`) of an `Object`.
 </span><span class="attribute">#[derive(Debug, Clone)]
 </span><span class="kw">pub enum </span>IndexPropertyKeys&lt;<span class="lifetime">&#39;a</span>&gt; {
-    Dense(std::ops::Range&lt;u32&gt;),
-    Sparse(hash_map::Keys&lt;<span class="lifetime">&#39;a</span>, u32, PropertyDescriptor&gt;),
+    <span class="doccomment">/// An iterator over dense, Vec backed indexed property entries of an `Object`.
+    </span>Dense(std::ops::Range&lt;u32&gt;),
+
+    <span class="doccomment">/// An iterator over sparse, HashMap backed indexed property entries of an `Object`.
+    </span>Sparse(hash_map::Keys&lt;<span class="lifetime">&#39;a</span>, u32, PropertyDescriptor&gt;),
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Iterator <span class="kw">for </span>IndexPropertyKeys&lt;<span class="lifetime">&#39;a</span>&gt; {
+<span class="kw">impl </span>Iterator <span class="kw">for </span>IndexPropertyKeys&lt;<span class="lifetime">&#39;_</span>&gt; {
     <span class="kw">type </span>Item = u32;
 
     <span class="attribute">#[inline]
@@ -1421,11 +1490,14 @@
 <span class="doccomment">/// An iterator over the index values (`Property`) of an `Object`.
 </span><span class="attribute">#[derive(Debug, Clone)]
 </span><span class="kw">pub enum </span>IndexPropertyValues&lt;<span class="lifetime">&#39;a</span>&gt; {
-    Dense(std::slice::Iter&lt;<span class="lifetime">&#39;a</span>, JsValue&gt;),
-    Sparse(hash_map::Values&lt;<span class="lifetime">&#39;a</span>, u32, PropertyDescriptor&gt;),
+    <span class="doccomment">/// An iterator over dense, Vec backed indexed property entries of an `Object`.
+    </span>Dense(std::slice::Iter&lt;<span class="lifetime">&#39;a</span>, JsValue&gt;),
+
+    <span class="doccomment">/// An iterator over sparse, HashMap backed indexed property entries of an `Object`.
+    </span>Sparse(hash_map::Values&lt;<span class="lifetime">&#39;a</span>, u32, PropertyDescriptor&gt;),
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Iterator <span class="kw">for </span>IndexPropertyValues&lt;<span class="lifetime">&#39;a</span>&gt; {
+<span class="kw">impl </span>Iterator <span class="kw">for </span>IndexPropertyValues&lt;<span class="lifetime">&#39;_</span>&gt; {
     <span class="kw">type </span>Item = PropertyDescriptor;
 
     <span class="attribute">#[inline]

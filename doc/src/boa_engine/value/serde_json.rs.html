@@ -284,6 +284,10 @@
 <span id="282">282</span>
 <span id="283">283</span>
 <span id="284">284</span>
+<span id="285">285</span>
+<span id="286">286</span>
+<span id="287">287</span>
+<span id="288">288</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the conversions from and into [`serde_json::Value`].
 
 </span><span class="kw">use </span><span class="kw">super</span>::JsValue;
@@ -390,6 +394,10 @@
     /// #
     /// # assert_eq!(json, back_to_json);
     /// ```
+    ///
+    /// # Panics
+    ///
+    /// Panics if the `JsValue` is `Undefined`.
     </span><span class="kw">pub fn </span>to_json(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;Value&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::Null =&gt; <span class="prelude-val">Ok</span>(Value::Null),
@@ -565,7 +573,7 @@
 
         <span class="kw">let </span>pow: u32 = serde_json::from_value(pow.to_json(<span class="kw-2">&amp;mut </span>context).unwrap()).unwrap();
 
-        <span class="macro">assert_eq!</span>(pow, <span class="number">60466176</span>);
+        <span class="macro">assert_eq!</span>(pow, <span class="number">60_466_176</span>);
     }
 }
 </code></pre></div>

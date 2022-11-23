@@ -454,7 +454,270 @@
 <span id="452">452</span>
 <span id="453">453</span>
 <span id="454">454</span>
-</pre><pre class="rust"><code><span class="kw">use crate</span>::{
+<span id="455">455</span>
+<span id="456">456</span>
+<span id="457">457</span>
+<span id="458">458</span>
+<span id="459">459</span>
+<span id="460">460</span>
+<span id="461">461</span>
+<span id="462">462</span>
+<span id="463">463</span>
+<span id="464">464</span>
+<span id="465">465</span>
+<span id="466">466</span>
+<span id="467">467</span>
+<span id="468">468</span>
+<span id="469">469</span>
+<span id="470">470</span>
+<span id="471">471</span>
+<span id="472">472</span>
+<span id="473">473</span>
+<span id="474">474</span>
+<span id="475">475</span>
+<span id="476">476</span>
+<span id="477">477</span>
+<span id="478">478</span>
+<span id="479">479</span>
+<span id="480">480</span>
+<span id="481">481</span>
+<span id="482">482</span>
+<span id="483">483</span>
+<span id="484">484</span>
+<span id="485">485</span>
+<span id="486">486</span>
+<span id="487">487</span>
+<span id="488">488</span>
+<span id="489">489</span>
+<span id="490">490</span>
+<span id="491">491</span>
+<span id="492">492</span>
+<span id="493">493</span>
+<span id="494">494</span>
+<span id="495">495</span>
+<span id="496">496</span>
+<span id="497">497</span>
+<span id="498">498</span>
+<span id="499">499</span>
+<span id="500">500</span>
+<span id="501">501</span>
+<span id="502">502</span>
+<span id="503">503</span>
+<span id="504">504</span>
+<span id="505">505</span>
+<span id="506">506</span>
+<span id="507">507</span>
+<span id="508">508</span>
+<span id="509">509</span>
+<span id="510">510</span>
+<span id="511">511</span>
+<span id="512">512</span>
+<span id="513">513</span>
+<span id="514">514</span>
+<span id="515">515</span>
+<span id="516">516</span>
+<span id="517">517</span>
+<span id="518">518</span>
+<span id="519">519</span>
+<span id="520">520</span>
+<span id="521">521</span>
+<span id="522">522</span>
+<span id="523">523</span>
+<span id="524">524</span>
+<span id="525">525</span>
+<span id="526">526</span>
+<span id="527">527</span>
+<span id="528">528</span>
+<span id="529">529</span>
+<span id="530">530</span>
+<span id="531">531</span>
+<span id="532">532</span>
+<span id="533">533</span>
+<span id="534">534</span>
+<span id="535">535</span>
+<span id="536">536</span>
+<span id="537">537</span>
+<span id="538">538</span>
+<span id="539">539</span>
+<span id="540">540</span>
+<span id="541">541</span>
+<span id="542">542</span>
+<span id="543">543</span>
+<span id="544">544</span>
+<span id="545">545</span>
+<span id="546">546</span>
+<span id="547">547</span>
+<span id="548">548</span>
+<span id="549">549</span>
+<span id="550">550</span>
+<span id="551">551</span>
+<span id="552">552</span>
+<span id="553">553</span>
+<span id="554">554</span>
+<span id="555">555</span>
+<span id="556">556</span>
+<span id="557">557</span>
+<span id="558">558</span>
+<span id="559">559</span>
+<span id="560">560</span>
+<span id="561">561</span>
+<span id="562">562</span>
+<span id="563">563</span>
+<span id="564">564</span>
+<span id="565">565</span>
+<span id="566">566</span>
+<span id="567">567</span>
+<span id="568">568</span>
+<span id="569">569</span>
+<span id="570">570</span>
+<span id="571">571</span>
+<span id="572">572</span>
+<span id="573">573</span>
+<span id="574">574</span>
+<span id="575">575</span>
+<span id="576">576</span>
+<span id="577">577</span>
+<span id="578">578</span>
+<span id="579">579</span>
+<span id="580">580</span>
+<span id="581">581</span>
+<span id="582">582</span>
+<span id="583">583</span>
+<span id="584">584</span>
+<span id="585">585</span>
+<span id="586">586</span>
+<span id="587">587</span>
+<span id="588">588</span>
+<span id="589">589</span>
+<span id="590">590</span>
+<span id="591">591</span>
+<span id="592">592</span>
+<span id="593">593</span>
+<span id="594">594</span>
+<span id="595">595</span>
+<span id="596">596</span>
+<span id="597">597</span>
+<span id="598">598</span>
+<span id="599">599</span>
+<span id="600">600</span>
+<span id="601">601</span>
+<span id="602">602</span>
+<span id="603">603</span>
+<span id="604">604</span>
+<span id="605">605</span>
+<span id="606">606</span>
+<span id="607">607</span>
+<span id="608">608</span>
+<span id="609">609</span>
+<span id="610">610</span>
+<span id="611">611</span>
+<span id="612">612</span>
+<span id="613">613</span>
+<span id="614">614</span>
+<span id="615">615</span>
+<span id="616">616</span>
+<span id="617">617</span>
+<span id="618">618</span>
+<span id="619">619</span>
+<span id="620">620</span>
+<span id="621">621</span>
+<span id="622">622</span>
+<span id="623">623</span>
+<span id="624">624</span>
+<span id="625">625</span>
+<span id="626">626</span>
+<span id="627">627</span>
+<span id="628">628</span>
+<span id="629">629</span>
+<span id="630">630</span>
+<span id="631">631</span>
+<span id="632">632</span>
+<span id="633">633</span>
+<span id="634">634</span>
+<span id="635">635</span>
+<span id="636">636</span>
+<span id="637">637</span>
+<span id="638">638</span>
+<span id="639">639</span>
+<span id="640">640</span>
+<span id="641">641</span>
+<span id="642">642</span>
+<span id="643">643</span>
+<span id="644">644</span>
+<span id="645">645</span>
+<span id="646">646</span>
+<span id="647">647</span>
+<span id="648">648</span>
+<span id="649">649</span>
+<span id="650">650</span>
+<span id="651">651</span>
+<span id="652">652</span>
+<span id="653">653</span>
+<span id="654">654</span>
+<span id="655">655</span>
+<span id="656">656</span>
+<span id="657">657</span>
+<span id="658">658</span>
+<span id="659">659</span>
+<span id="660">660</span>
+<span id="661">661</span>
+<span id="662">662</span>
+<span id="663">663</span>
+<span id="664">664</span>
+<span id="665">665</span>
+<span id="666">666</span>
+<span id="667">667</span>
+<span id="668">668</span>
+<span id="669">669</span>
+<span id="670">670</span>
+<span id="671">671</span>
+<span id="672">672</span>
+<span id="673">673</span>
+<span id="674">674</span>
+<span id="675">675</span>
+<span id="676">676</span>
+<span id="677">677</span>
+<span id="678">678</span>
+<span id="679">679</span>
+<span id="680">680</span>
+<span id="681">681</span>
+<span id="682">682</span>
+<span id="683">683</span>
+<span id="684">684</span>
+<span id="685">685</span>
+<span id="686">686</span>
+<span id="687">687</span>
+<span id="688">688</span>
+<span id="689">689</span>
+<span id="690">690</span>
+<span id="691">691</span>
+<span id="692">692</span>
+<span id="693">693</span>
+<span id="694">694</span>
+<span id="695">695</span>
+<span id="696">696</span>
+<span id="697">697</span>
+<span id="698">698</span>
+<span id="699">699</span>
+<span id="700">700</span>
+<span id="701">701</span>
+<span id="702">702</span>
+<span id="703">703</span>
+<span id="704">704</span>
+<span id="705">705</span>
+<span id="706">706</span>
+<span id="707">707</span>
+<span id="708">708</span>
+<span id="709">709</span>
+<span id="710">710</span>
+<span id="711">711</span>
+<span id="712">712</span>
+<span id="713">713</span>
+<span id="714">714</span>
+<span id="715">715</span>
+</pre><pre class="rust"><code><span class="doccomment">//! This module implements the data structures that contain intrinsic objects and constructors.
+
+</span><span class="kw">use crate</span>::{
     builtins::{
         array::Array, error::r#type::create_throw_type_error, iterable::IteratorPrototypes,
     },
@@ -463,7 +726,8 @@
     Context,
 };
 
-<span class="attribute">#[derive(Debug, Default)]
+<span class="doccomment">/// The intrinsic objects and constructors.
+</span><span class="attribute">#[derive(Debug, Default)]
 </span><span class="kw">pub struct </span>Intrinsics {
     <span class="doccomment">/// Cached standard constructors
     </span><span class="kw">pub</span>(<span class="kw">super</span>) constructors: StandardConstructors,
@@ -474,13 +738,13 @@
 <span class="kw">impl </span>Intrinsics {
     <span class="doccomment">/// Return the cached intrinsic objects.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>objects(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>IntrinsicObjects {
+    </span><span class="kw">pub const fn </span>objects(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>IntrinsicObjects {
         <span class="kw-2">&amp;</span><span class="self">self</span>.objects
     }
 
     <span class="doccomment">/// Return the cached standard constructors.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>constructors(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructors {
+    </span><span class="kw">pub const fn </span>constructors(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructors {
         <span class="kw-2">&amp;</span><span class="self">self</span>.constructors
     }
 }
@@ -651,218 +915,476 @@
 }
 
 <span class="kw">impl </span>StandardConstructors {
-    <span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>async_generator_function(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
+    <span class="doccomment">/// Returns the `AsyncGeneratorFunction` constructor.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-asyncgeneratorfunction-constructor
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub const fn </span>async_generator_function(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
         <span class="kw-2">&amp;</span><span class="self">self</span>.async_generator_function
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>async_generator(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
+    <span class="doccomment">/// Returns the `AsyncGenerator` constructor.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-asyncgenerator-objects
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub const fn </span>async_generator(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
         <span class="kw-2">&amp;</span><span class="self">self</span>.async_generator
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>object(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
+    <span class="doccomment">/// Returns the `Object` constructor.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-object-constructor
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub const fn </span>object(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
         <span class="kw-2">&amp;</span><span class="self">self</span>.object
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>proxy(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
+    <span class="doccomment">/// Returns the `Proxy` constructor.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-proxy-constructor
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub const fn </span>proxy(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
         <span class="kw-2">&amp;</span><span class="self">self</span>.proxy
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>date(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
+    <span class="doccomment">/// Returns the `Date` constructor.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-date-constructor
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub const fn </span>date(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
         <span class="kw-2">&amp;</span><span class="self">self</span>.date
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>function(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
+    <span class="doccomment">/// Returns the `Function` constructor.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-function-constructor
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub const fn </span>function(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
         <span class="kw-2">&amp;</span><span class="self">self</span>.function
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>async_function(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
+    <span class="doccomment">/// Returns the `AsyncFunction` constructor.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-async-function-constructor
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub const fn </span>async_function(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
         <span class="kw-2">&amp;</span><span class="self">self</span>.async_function
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>generator(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
+    <span class="doccomment">/// Returns the `Generator` constructor.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-generator-objects
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub const fn </span>generator(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
         <span class="kw-2">&amp;</span><span class="self">self</span>.generator
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>generator_function(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
+    <span class="doccomment">/// Returns the `GeneratorFunction` constructor.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-generatorfunction-constructor
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub const fn </span>generator_function(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
         <span class="kw-2">&amp;</span><span class="self">self</span>.generator_function
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>array(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
+    <span class="doccomment">/// Returns the `Array` constructor.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-array-constructor
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub const fn </span>array(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
         <span class="kw-2">&amp;</span><span class="self">self</span>.array
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>bigint_object(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
+    <span class="doccomment">/// Returns the `BigInt` constructor.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-bigint-constructor
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub const fn </span>bigint_object(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
         <span class="kw-2">&amp;</span><span class="self">self</span>.bigint
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>number(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
+    <span class="doccomment">/// Returns the `Number` constructor.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-number-constructor
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub const fn </span>number(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
         <span class="kw-2">&amp;</span><span class="self">self</span>.number
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>boolean(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
+    <span class="doccomment">/// Returns the `Boolean` constructor.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-boolean-constructor
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub const fn </span>boolean(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
         <span class="kw-2">&amp;</span><span class="self">self</span>.boolean
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>string(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
+    <span class="doccomment">/// Returns the `String` constructor.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-string-constructor
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub const fn </span>string(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
         <span class="kw-2">&amp;</span><span class="self">self</span>.string
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>regexp(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
+    <span class="doccomment">/// Returns the `RegExp` constructor.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-regexp-constructor
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub const fn </span>regexp(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
         <span class="kw-2">&amp;</span><span class="self">self</span>.regexp
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>symbol(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
+    <span class="doccomment">/// Returns the `Symbol` constructor.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-symbol-constructor
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub const fn </span>symbol(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
         <span class="kw-2">&amp;</span><span class="self">self</span>.symbol
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>error(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
+    <span class="doccomment">/// Returns the `Error` constructor.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-error-constructor
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub const fn </span>error(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
         <span class="kw-2">&amp;</span><span class="self">self</span>.error
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>reference_error(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
+    <span class="doccomment">/// Returns the `ReferenceError` constructor.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-native-error-types-used-in-this-standard-referenceerror
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub const fn </span>reference_error(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
         <span class="kw-2">&amp;</span><span class="self">self</span>.reference_error
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>type_error(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
+    <span class="doccomment">/// Returns the `TypeError` constructor.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-native-error-types-used-in-this-standard-typeerror
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub const fn </span>type_error(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
         <span class="kw-2">&amp;</span><span class="self">self</span>.type_error
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>range_error(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
+    <span class="doccomment">/// Returns the `RangeError` constructor.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-native-error-types-used-in-this-standard-rangeerror
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub const fn </span>range_error(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
         <span class="kw-2">&amp;</span><span class="self">self</span>.range_error
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>syntax_error(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
+    <span class="doccomment">/// Returns the `SyntaxError` constructor.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-native-error-types-used-in-this-standard-syntaxerror
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub const fn </span>syntax_error(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
         <span class="kw-2">&amp;</span><span class="self">self</span>.syntax_error
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>eval_error(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
+    <span class="doccomment">/// Returns the `EvalError` constructor.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-native-error-types-used-in-this-standard-evalerror
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub const fn </span>eval_error(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
         <span class="kw-2">&amp;</span><span class="self">self</span>.eval_error
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>uri_error(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
+    <span class="doccomment">/// Returns the `URIError` constructor.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-native-error-types-used-in-this-standard-urierror
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub const fn </span>uri_error(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
         <span class="kw-2">&amp;</span><span class="self">self</span>.uri_error
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>aggregate_error(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
+    <span class="doccomment">/// Returns the `AggregateError` constructor.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-aggregate-error-constructor
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub const fn </span>aggregate_error(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
         <span class="kw-2">&amp;</span><span class="self">self</span>.aggregate_error
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>map(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
+    <span class="doccomment">/// Returns the `Map` constructor.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-map-constructor
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub const fn </span>map(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
         <span class="kw-2">&amp;</span><span class="self">self</span>.map
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>set(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
+    <span class="doccomment">/// Returns the `Set` constructor.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-set-constructor
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub const fn </span>set(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
         <span class="kw-2">&amp;</span><span class="self">self</span>.set
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>typed_array(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
+    <span class="doccomment">/// Returns the `TypedArray` constructor.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-typedarray-constructors
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub const fn </span>typed_array(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
         <span class="kw-2">&amp;</span><span class="self">self</span>.typed_array
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>typed_int8_array(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
+    <span class="doccomment">/// Returns the `Int8Array` constructor.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-typedarray-constructors
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub const fn </span>typed_int8_array(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
         <span class="kw-2">&amp;</span><span class="self">self</span>.typed_int8_array
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>typed_uint8_array(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
+    <span class="doccomment">/// Returns the `Uint8Array` constructor.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-typedarray-constructors
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub const fn </span>typed_uint8_array(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
         <span class="kw-2">&amp;</span><span class="self">self</span>.typed_uint8_array
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>typed_uint8clamped_array(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
+    <span class="doccomment">/// Returns the `Uint8ClampedArray` constructor.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-typedarray-constructors
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub const fn </span>typed_uint8clamped_array(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
         <span class="kw-2">&amp;</span><span class="self">self</span>.typed_uint8clamped_array
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>typed_int16_array(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
+    <span class="doccomment">/// Returns the `Int16Array` constructor.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-typedarray-constructors
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub const fn </span>typed_int16_array(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
         <span class="kw-2">&amp;</span><span class="self">self</span>.typed_int16_array
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>typed_uint16_array(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
+    <span class="doccomment">/// Returns the `Uint16Array` constructor.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-typedarray-constructors
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub const fn </span>typed_uint16_array(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
         <span class="kw-2">&amp;</span><span class="self">self</span>.typed_uint16_array
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>typed_uint32_array(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
+    <span class="doccomment">/// Returns the `Uint32Array` constructor.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-typedarray-constructors
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub const fn </span>typed_uint32_array(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
         <span class="kw-2">&amp;</span><span class="self">self</span>.typed_uint32_array
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>typed_int32_array(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
+    <span class="doccomment">/// Returns the `Int32Array` constructor.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-typedarray-constructors
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub const fn </span>typed_int32_array(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
         <span class="kw-2">&amp;</span><span class="self">self</span>.typed_int32_array
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>typed_bigint64_array(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
+    <span class="doccomment">/// Returns the `BigInt64Array` constructor.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-typedarray-constructors
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub const fn </span>typed_bigint64_array(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
         <span class="kw-2">&amp;</span><span class="self">self</span>.typed_bigint64_array
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>typed_biguint64_array(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
+    <span class="doccomment">/// Returns the `BigUint64Array` constructor.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-typedarray-constructors
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub const fn </span>typed_biguint64_array(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
         <span class="kw-2">&amp;</span><span class="self">self</span>.typed_biguint64_array
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>typed_float32_array(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
+    <span class="doccomment">/// Returns the `Float32Array` constructor.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-typedarray-constructors
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub const fn </span>typed_float32_array(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
         <span class="kw-2">&amp;</span><span class="self">self</span>.typed_float32_array
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>typed_float64_array(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
+    <span class="doccomment">/// Returns the `Float64Array` constructor.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-typedarray-constructors
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub const fn </span>typed_float64_array(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
         <span class="kw-2">&amp;</span><span class="self">self</span>.typed_float64_array
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>array_buffer(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
+    <span class="doccomment">/// Returns the `ArrayBuffer` constructor.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-arraybuffer-constructor
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub const fn </span>array_buffer(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
         <span class="kw-2">&amp;</span><span class="self">self</span>.array_buffer
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>data_view(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
+    <span class="doccomment">/// Returns the `DataView` constructor.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-dataview-constructor
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub const fn </span>data_view(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
         <span class="kw-2">&amp;</span><span class="self">self</span>.data_view
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>date_time_format(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
+    <span class="doccomment">/// Returns the `Intl.DateTimeFormat` constructor.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma402/#sec-intl-datetimeformat-constructor
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub const fn </span>date_time_format(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
         <span class="kw-2">&amp;</span><span class="self">self</span>.date_time_format
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>promise(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
+    <span class="doccomment">/// Returns the `Promise` constructor.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-promise-constructor
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub const fn </span>promise(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
         <span class="kw-2">&amp;</span><span class="self">self</span>.promise
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>weak_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
+    <span class="doccomment">/// Returns the `WeakRef` constructor.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-weak-ref-constructor
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub const fn </span>weak_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
         <span class="kw-2">&amp;</span><span class="self">self</span>.weak_ref
     }
 }
@@ -904,7 +1426,7 @@
 
     <span class="doccomment">/// Get the cached iterator prototypes.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>iterator_prototypes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>IteratorPrototypes {
+    </span><span class="kw">pub const fn </span>iterator_prototypes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>IteratorPrototypes {
         <span class="kw-2">&amp;</span><span class="self">self</span>.iterator_prototypes
     }
 }

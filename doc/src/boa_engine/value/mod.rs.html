@@ -1111,11 +1111,42 @@
 <span id="1109">1109</span>
 <span id="1110">1110</span>
 <span id="1111">1111</span>
+<span id="1112">1112</span>
+<span id="1113">1113</span>
+<span id="1114">1114</span>
+<span id="1115">1115</span>
+<span id="1116">1116</span>
+<span id="1117">1117</span>
+<span id="1118">1118</span>
+<span id="1119">1119</span>
+<span id="1120">1120</span>
+<span id="1121">1121</span>
+<span id="1122">1122</span>
+<span id="1123">1123</span>
+<span id="1124">1124</span>
+<span id="1125">1125</span>
+<span id="1126">1126</span>
+<span id="1127">1127</span>
+<span id="1128">1128</span>
+<span id="1129">1129</span>
+<span id="1130">1130</span>
+<span id="1131">1131</span>
+<span id="1132">1132</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the JavaScript Value.
 //!
 //! Javascript values, utility methods and conversion between Javascript values and Rust values.
 
-</span><span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>conversions;
+<span class="kw">mod </span>equality;
+<span class="kw">mod </span>hash;
+<span class="kw">mod </span>integer;
+<span class="kw">mod </span>operations;
+<span class="kw">mod </span>serde_json;
+<span class="kw">mod </span>r#type;
+
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>display;
+
+<span class="attribute">#[cfg(test)]
 </span><span class="kw">mod </span>tests;
 
 <span class="kw">use crate</span>::{
@@ -1142,16 +1173,8 @@
     ops::Sub,
 };
 
-<span class="kw">mod </span>conversions;
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>display;
-<span class="kw">mod </span>equality;
-<span class="kw">mod </span>hash;
-<span class="kw">mod </span>integer;
-<span class="kw">mod </span>operations;
-<span class="kw">mod </span>serde_json;
-<span class="kw">mod </span>r#type;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>conversions::<span class="kw-2">*</span>;
 
-<span class="kw">pub use </span>conversions::<span class="kw-2">*</span>;
 <span class="kw">pub use </span>display::ValueDisplay;
 <span class="kw">pub use </span>integer::IntegerOrInfinity;
 <span class="kw">pub use </span>operations::<span class="kw-2">*</span>;
@@ -1212,42 +1235,48 @@
 
     <span class="doccomment">/// Creates a new `undefined` value.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>undefined() -&gt; <span class="self">Self </span>{
+    #[must_use]
+    </span><span class="kw">pub const fn </span>undefined() -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::Undefined
     }
 
     <span class="doccomment">/// Creates a new `null` value.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>null() -&gt; <span class="self">Self </span>{
+    #[must_use]
+    </span><span class="kw">pub const fn </span>null() -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::Null
     }
 
     <span class="doccomment">/// Creates a new number with `NaN` value.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>nan() -&gt; <span class="self">Self </span>{
+    #[must_use]
+    </span><span class="kw">pub const fn </span>nan() -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::Rational(f64::NAN)
     }
 
     <span class="doccomment">/// Creates a new number with `Infinity` value.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>positive_infinity() -&gt; <span class="self">Self </span>{
+    #[must_use]
+    </span><span class="kw">pub const fn </span>positive_infinity() -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::Rational(f64::INFINITY)
     }
 
     <span class="doccomment">/// Creates a new number with `-Infinity` value.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>negative_infinity() -&gt; <span class="self">Self </span>{
+    #[must_use]
+    </span><span class="kw">pub const fn </span>negative_infinity() -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::Rational(f64::NEG_INFINITY)
     }
 
-    <span class="doccomment">/// Returns true if the value is an object
+    <span class="doccomment">/// Returns true if the value is an object.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>is_object(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+    </span><span class="kw">pub const fn </span>is_object(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="macro">matches!</span>(<span class="self">self</span>, <span class="self">Self</span>::Object(<span class="kw">_</span>))
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>as_object(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>JsObject&gt; {
+    <span class="doccomment">/// Returns the object if the value is object, otherwise `None`.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub const fn </span>as_object(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>JsObject&gt; {
         <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
             <span class="self">Self</span>::Object(<span class="kw-2">ref </span>o) =&gt; <span class="prelude-val">Some</span>(o),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
@@ -1265,7 +1294,8 @@
         <span class="macro">matches!</span>(<span class="self">self</span>, <span class="self">Self</span>::Object(obj) <span class="kw">if </span>obj.is_callable())
     }
 
-    <span class="attribute">#[inline]
+    <span class="doccomment">/// Returns the callable value if the value is callable, otherwise `None`.
+    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>as_callable(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>JsObject&gt; {
         <span class="self">self</span>.as_object().filter(|obj| obj.is_callable())
     }
@@ -1276,7 +1306,8 @@
         <span class="macro">matches!</span>(<span class="self">self</span>, <span class="self">Self</span>::Object(obj) <span class="kw">if </span>obj.is_constructor())
     }
 
-    <span class="attribute">#[inline]
+    <span class="doccomment">/// Returns the constructor if the value is a constructor, otherwise `None`.
+    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>as_constructor(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>JsObject&gt; {
         <span class="self">self</span>.as_object().filter(|obj| obj.is_constructor())
     }
@@ -1287,18 +1318,20 @@
         <span class="macro">matches!</span>(<span class="self">self</span>, <span class="self">Self</span>::Object(obj) <span class="kw">if </span>obj.is_promise())
     }
 
-    <span class="attribute">#[inline]
+    <span class="doccomment">/// Returns the promise if the value is a promise, otherwise `None`.
+    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>as_promise(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>JsObject&gt; {
         <span class="self">self</span>.as_object().filter(|obj| obj.is_promise())
     }
 
     <span class="doccomment">/// Returns true if the value is a symbol.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>is_symbol(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+    </span><span class="kw">pub const fn </span>is_symbol(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="macro">matches!</span>(<span class="self">self</span>, <span class="self">Self</span>::Symbol(<span class="kw">_</span>))
     }
 
-    <span class="kw">pub fn </span>as_symbol(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;JsSymbol&gt; {
+    <span class="doccomment">/// Returns the symbol if the value is a symbol, otherwise `None`.
+    </span><span class="kw">pub fn </span>as_symbol(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;JsSymbol&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::Symbol(symbol) =&gt; <span class="prelude-val">Some</span>(symbol.clone()),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
@@ -1307,25 +1340,25 @@
 
     <span class="doccomment">/// Returns true if the value is undefined.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>is_undefined(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+    </span><span class="kw">pub const fn </span>is_undefined(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="macro">matches!</span>(<span class="self">self</span>, <span class="self">Self</span>::Undefined)
     }
 
     <span class="doccomment">/// Returns true if the value is null.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>is_null(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+    </span><span class="kw">pub const fn </span>is_null(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="macro">matches!</span>(<span class="self">self</span>, <span class="self">Self</span>::Null)
     }
 
     <span class="doccomment">/// Returns true if the value is null or undefined.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>is_null_or_undefined(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+    </span><span class="kw">pub const fn </span>is_null_or_undefined(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="macro">matches!</span>(<span class="self">self</span>, <span class="self">Self</span>::Null | <span class="self">Self</span>::Undefined)
     }
 
     <span class="doccomment">/// Returns true if the value is a 64-bit floating-point number.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>is_double(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+    </span><span class="kw">pub const fn </span>is_double(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="macro">matches!</span>(<span class="self">self</span>, <span class="self">Self</span>::Rational(<span class="kw">_</span>))
     }
 
@@ -1346,11 +1379,12 @@
 
     <span class="doccomment">/// Returns true if the value is a number.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>is_number(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+    </span><span class="kw">pub const fn </span>is_number(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="macro">matches!</span>(<span class="self">self</span>, <span class="self">Self</span>::Rational(<span class="kw">_</span>) | <span class="self">Self</span>::Integer(<span class="kw">_</span>))
     }
 
-    <span class="attribute">#[inline]
+    <span class="doccomment">/// Returns the number if the value is a number, otherwise `None`.
+    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>as_number(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;f64&gt; {
         <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
             <span class="self">Self</span>::Integer(integer) =&gt; <span class="prelude-val">Some</span>(integer.into()),
@@ -1361,13 +1395,13 @@
 
     <span class="doccomment">/// Returns true if the value is a string.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>is_string(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+    </span><span class="kw">pub const fn </span>is_string(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="macro">matches!</span>(<span class="self">self</span>, <span class="self">Self</span>::String(<span class="kw">_</span>))
     }
 
-    <span class="doccomment">/// Returns the string if the values is a string, otherwise `None`.
+    <span class="doccomment">/// Returns the string if the value is a string, otherwise `None`.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>as_string(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>JsString&gt; {
+    </span><span class="kw">pub const fn </span>as_string(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>JsString&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::String(<span class="kw-2">ref </span>string) =&gt; <span class="prelude-val">Some</span>(string),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
@@ -1376,12 +1410,13 @@
 
     <span class="doccomment">/// Returns true if the value is a boolean.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>is_boolean(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+    </span><span class="kw">pub const fn </span>is_boolean(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="macro">matches!</span>(<span class="self">self</span>, <span class="self">Self</span>::Boolean(<span class="kw">_</span>))
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>as_boolean(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;bool&gt; {
+    <span class="doccomment">/// Returns the boolean if the value is a boolean, otherwise `None`.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub const fn </span>as_boolean(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;bool&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::Boolean(boolean) =&gt; <span class="prelude-val">Some</span>(<span class="kw-2">*</span>boolean),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
@@ -1390,13 +1425,13 @@
 
     <span class="doccomment">/// Returns true if the value is a bigint.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>is_bigint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+    </span><span class="kw">pub const fn </span>is_bigint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="macro">matches!</span>(<span class="self">self</span>, <span class="self">Self</span>::BigInt(<span class="kw">_</span>))
     }
 
     <span class="doccomment">/// Returns an optional reference to a `BigInt` if the value is a `BigInt` primitive.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>as_bigint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>JsBigInt&gt; {
+    </span><span class="kw">pub const fn </span>as_bigint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>JsBigInt&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::BigInt(bigint) =&gt; <span class="prelude-val">Some</span>(bigint),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
@@ -1517,18 +1552,17 @@
             <span class="self">Self</span>::Undefined =&gt; <span class="prelude-val">Err</span>(JsNativeError::typ()
                 .with_message(<span class="string">&quot;cannot convert undefined to a BigInt&quot;</span>)
                 .into()),
-            <span class="self">Self</span>::String(<span class="kw-2">ref </span>string) =&gt; {
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(value) = string.to_big_int() {
-                    <span class="prelude-val">Ok</span>(value)
-                } <span class="kw">else </span>{
+            <span class="self">Self</span>::String(<span class="kw-2">ref </span>string) =&gt; string.to_big_int().map_or_else(
+                || {
                     <span class="prelude-val">Err</span>(JsNativeError::syntax()
                         .with_message(<span class="macro">format!</span>(
                             <span class="string">&quot;cannot convert string &#39;{}&#39; to bigint primitive&quot;</span>,
                             string.to_std_string_escaped()
                         ))
                         .into())
-                }
-            }
+                },
+                <span class="prelude-val">Ok</span>,
+            ),
             <span class="self">Self</span>::Boolean(<span class="bool-val">true</span>) =&gt; <span class="prelude-val">Ok</span>(JsBigInt::one()),
             <span class="self">Self</span>::Boolean(<span class="bool-val">false</span>) =&gt; <span class="prelude-val">Ok</span>(JsBigInt::zero()),
             <span class="self">Self</span>::Integer(<span class="kw">_</span>) | <span class="self">Self</span>::Rational(<span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(JsNativeError::typ()
@@ -1560,7 +1594,7 @@
     /// println!(&quot;{}&quot;, value.display());
     /// ```
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>display(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; ValueDisplay&lt;<span class="lifetime">&#39;_</span>&gt; {
+    </span><span class="kw">pub const fn </span>display(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; ValueDisplay&lt;<span class="lifetime">&#39;_</span>&gt; {
         ValueDisplay {
             value: <span class="self">self</span>,
             internals: <span class="bool-val">false</span>,
@@ -1701,8 +1735,10 @@
     /// See: &lt;https://tc39.es/ecma262/#sec-touint32&gt;
     </span><span class="kw">pub fn </span>to_u32(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;u32&gt; {
         <span class="comment">// This is the fast path, if the value is Integer we can just return it.
-        </span><span class="kw">if let </span>JsValue::Integer(number) = <span class="kw-2">*</span><span class="self">self </span>{
-            <span class="kw">return </span><span class="prelude-val">Ok</span>(number <span class="kw">as </span>u32);
+        </span><span class="kw">if let </span><span class="self">Self</span>::Integer(number) = <span class="kw-2">*</span><span class="self">self </span>{
+            <span class="kw">if let </span><span class="prelude-val">Ok</span>(number) = u32::try_from(number) {
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(number);
+            }
         }
         <span class="kw">let </span>number = <span class="self">self</span>.to_number(context)<span class="question-mark">?</span>;
 
@@ -1714,7 +1750,7 @@
     /// See: &lt;https://tc39.es/ecma262/#sec-toint32&gt;
     </span><span class="kw">pub fn </span>to_i32(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;i32&gt; {
         <span class="comment">// This is the fast path, if the value is Integer we can just return it.
-        </span><span class="kw">if let </span>JsValue::Integer(number) = <span class="kw-2">*</span><span class="self">self </span>{
+        </span><span class="kw">if let </span><span class="self">Self</span>::Integer(number) = <span class="kw-2">*</span><span class="self">self </span>{
             <span class="kw">return </span><span class="prelude-val">Ok</span>(number);
         }
         <span class="kw">let </span>number = <span class="self">self</span>.to_number(context)<span class="question-mark">?</span>;
@@ -2053,7 +2089,13 @@
         }
     }
 
-    <span class="attribute">#[inline]
+    <span class="doccomment">/// The abstract operation `ToPropertyDescriptor`.
+    ///
+    /// More information:
+    /// - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-topropertydescriptor
+    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>to_property_descriptor(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;PropertyDescriptor&gt; {
         <span class="comment">// 1. If Type(Obj) is not Object, throw a TypeError exception.
         </span><span class="self">self</span>.as_object()
@@ -2104,13 +2146,8 @@
         // The main part of the function is implemented for JsObject.
 
         // 1. If Type(argument) is not Object, return false.
-        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(object) = <span class="self">self</span>.as_object() {
-            object.is_array_abstract()
-        }
-        <span class="comment">// 4. Return false.
-        </span><span class="kw">else </span>{
-            <span class="prelude-val">Ok</span>(<span class="bool-val">false</span>)
-        }
+        </span><span class="self">self</span>.as_object()
+            .map_or(<span class="prelude-val">Ok</span>(<span class="bool-val">false</span>), JsObject::is_array_abstract)
     }
 }
 
@@ -2123,9 +2160,14 @@
 <span class="doccomment">/// The preferred type to convert an object to a primitive `Value`.
 </span><span class="attribute">#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 </span><span class="kw">pub enum </span>PreferredType {
-    String,
-    Number,
-    Default,
+    <span class="doccomment">/// Prefer to convert to a `String` primitive.
+    </span>String,
+
+    <span class="doccomment">/// Prefer to convert to a `Number` primitive.
+    </span>Number,
+
+    <span class="doccomment">/// Do not prefer a type to convert to.
+    </span>Default,
 }
 
 <span class="doccomment">/// Numeric value which can be of two types `Number`, `BigInt`.

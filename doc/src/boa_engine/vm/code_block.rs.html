@@ -1576,6 +1576,10 @@
 <span id="1574">1574</span>
 <span id="1575">1575</span>
 <span id="1576">1576</span>
+<span id="1577">1577</span>
+<span id="1578">1578</span>
+<span id="1579">1579</span>
+<span id="1580">1580</span>
 </pre><pre class="rust"><code><span class="doccomment">//! `CodeBlock`
 //!
 //! This module is for the `CodeBlock` which implements a function representation in the VM
@@ -1695,6 +1699,7 @@
 
 <span class="kw">impl </span>CodeBlock {
     <span class="doccomment">/// Constructs a new `CodeBlock`.
+    </span><span class="attribute">#[must_use]
     </span><span class="kw">pub fn </span>new(name: Sym, length: u32, strict: bool) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             code: Vec::new(),
@@ -1725,9 +1730,12 @@
     <span class="kw">where
         </span>T: Readable,
     {
-        <span class="comment">// This has to be an unaligned read because we can&#39;t guarantee that
+        <span class="comment">// Safety:
+        // The function caller must ensure that the read is in bounds.
+        //
+        // This has to be an unaligned read because we can&#39;t guarantee that
         // the types are aligned.
-        </span><span class="self">self</span>.code.as_ptr().add(offset).cast::&lt;T&gt;().read_unaligned()
+        </span><span class="kw">unsafe </span>{ <span class="self">self</span>.code.as_ptr().add(offset).cast::&lt;T&gt;().read_unaligned() }
     }
 
     <span class="doccomment">/// Read type T from code.
@@ -2663,15 +2671,14 @@
                 std::mem::swap(<span class="kw-2">&amp;mut </span>environments, <span class="kw-2">&amp;mut </span>context.realm.environments);
                 std::mem::swap(<span class="kw-2">&amp;mut </span>context.vm.stack, <span class="kw-2">&amp;mut </span>stack);
 
-                <span class="kw">let </span>prototype = <span class="kw">if let </span><span class="prelude-val">Some</span>(prototype) = this_function_object
+                <span class="kw">let </span>prototype = this_function_object
                     .get(<span class="string">&quot;prototype&quot;</span>, context)
                     .expect(<span class="string">&quot;GeneratorFunction must have a prototype property&quot;</span>)
                     .as_object()
-                {
-                    prototype.clone()
-                } <span class="kw">else </span>{
-                    context.intrinsics().constructors().generator().prototype()
-                };
+                    .map_or_else(
+                        || context.intrinsics().constructors().generator().prototype(),
+                        Clone::clone,
+                    );
 
                 <span class="kw">let </span>generator = <span class="self">Self</span>::from_proto_and_data(
                     prototype,
@@ -2802,19 +2809,20 @@
                 std::mem::swap(<span class="kw-2">&amp;mut </span>environments, <span class="kw-2">&amp;mut </span>context.realm.environments);
                 std::mem::swap(<span class="kw-2">&amp;mut </span>context.vm.stack, <span class="kw-2">&amp;mut </span>stack);
 
-                <span class="kw">let </span>prototype = <span class="kw">if let </span><span class="prelude-val">Some</span>(prototype) = this_function_object
+                <span class="kw">let </span>prototype = this_function_object
                     .get(<span class="string">&quot;prototype&quot;</span>, context)
                     .expect(<span class="string">&quot;AsyncGeneratorFunction must have a prototype property&quot;</span>)
                     .as_object()
-                {
-                    prototype.clone()
-                } <span class="kw">else </span>{
-                    context
-                        .intrinsics()
-                        .constructors()
-                        .async_generator()
-                        .prototype()
-                };
+                    .map_or_else(
+                        || {
+                            context
+                                .intrinsics()
+                                .constructors()
+                                .async_generator()
+                                .prototype()
+                        },
+                        Clone::clone,
+                    );
 
                 <span class="kw">let </span>generator = <span class="self">Self</span>::from_proto_and_data(
                     prototype,
@@ -2850,7 +2858,7 @@
         args: <span class="kw-2">&amp;</span>[JsValue],
         this_target: <span class="kw-2">&amp;</span>JsValue,
         context: <span class="kw-2">&amp;mut </span>Context,
-    ) -&gt; JsResult&lt;JsObject&gt; {
+    ) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
         <span class="kw">let </span>this_function_object = <span class="self">self</span>.clone();
 
         <span class="kw">let </span>create_this = |context| {

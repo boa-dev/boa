@@ -432,6 +432,25 @@
 <span id="430">430</span>
 <span id="431">431</span>
 <span id="432">432</span>
+<span id="433">433</span>
+<span id="434">434</span>
+<span id="435">435</span>
+<span id="436">436</span>
+<span id="437">437</span>
+<span id="438">438</span>
+<span id="439">439</span>
+<span id="440">440</span>
+<span id="441">441</span>
+<span id="442">442</span>
+<span id="443">443</span>
+<span id="444">444</span>
+<span id="445">445</span>
+<span id="446">446</span>
+<span id="447">447</span>
+<span id="448">448</span>
+<span id="449">449</span>
+<span id="450">450</span>
+<span id="451">451</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements a wrapper for the `TypedArray` Builtin JavaScript Object
 </span><span class="kw">use crate</span>::{
     builtins::typed_array::TypedArray,
@@ -483,7 +502,8 @@
         <span class="prelude-val">Ok</span>(<span class="self">self</span>.length(context)<span class="question-mark">? </span>== <span class="number">0</span>)
     }
 
-    <span class="attribute">#[inline]
+    <span class="doccomment">/// Calls `TypedArray.prototype.at()`.
+    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>at&lt;T&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, index: T, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt;
     <span class="kw">where
         </span>T: Into&lt;i64&gt;,
@@ -491,7 +511,8 @@
         TypedArray::at(<span class="kw-2">&amp;</span><span class="self">self</span>.inner, <span class="kw-2">&amp;</span>[index.into().into()], context)
     }
 
-    <span class="attribute">#[inline]
+    <span class="doccomment">/// Returns `TypedArray.prototype.byteLength`.
+    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>byte_length(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;usize&gt; {
         <span class="prelude-val">Ok</span>(TypedArray::byte_length(<span class="kw-2">&amp;</span><span class="self">self</span>.inner, <span class="kw-2">&amp;</span>[], context)<span class="question-mark">?
             </span>.as_number()
@@ -499,7 +520,8 @@
             .expect(<span class="string">&quot;byteLength should return a number&quot;</span>))
     }
 
-    <span class="attribute">#[inline]
+    <span class="doccomment">/// Returns `TypedArray.prototype.byteOffset`.
+    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>byte_offset(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;usize&gt; {
         <span class="prelude-val">Ok</span>(TypedArray::byte_offset(<span class="kw-2">&amp;</span><span class="self">self</span>.inner, <span class="kw-2">&amp;</span>[], context)<span class="question-mark">?
             </span>.as_number()
@@ -507,7 +529,8 @@
             .expect(<span class="string">&quot;byteLength should return a number&quot;</span>))
     }
 
-    <span class="attribute">#[inline]
+    <span class="doccomment">/// Calls `TypedArray.prototype.fill()`.
+    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>fill&lt;T&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         value: T,
@@ -530,7 +553,8 @@
         <span class="prelude-val">Ok</span>(<span class="self">self</span>.clone())
     }
 
-    <span class="kw">pub fn </span>every(
+    <span class="doccomment">/// Calls `TypedArray.prototype.every()`.
+    </span><span class="kw">pub fn </span>every(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         predicate: JsFunction,
         this_arg: <span class="prelude-ty">Option</span>&lt;JsValue&gt;,
@@ -547,7 +571,8 @@
         <span class="prelude-val">Ok</span>(result)
     }
 
-    <span class="attribute">#[inline]
+    <span class="doccomment">/// Calls `TypedArray.prototype.some()`.
+    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>some(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         callback: JsFunction,
@@ -565,14 +590,16 @@
         <span class="prelude-val">Ok</span>(result)
     }
 
-    <span class="attribute">#[inline]
+    <span class="doccomment">/// Calls `TypedArray.prototype.sort()`.
+    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>sort(<span class="kw-2">&amp;</span><span class="self">self</span>, compare_fn: <span class="prelude-ty">Option</span>&lt;JsFunction&gt;, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
         TypedArray::sort(<span class="kw-2">&amp;</span><span class="self">self</span>.inner, <span class="kw-2">&amp;</span>[compare_fn.into_or_undefined()], context)<span class="question-mark">?</span>;
 
         <span class="prelude-val">Ok</span>(<span class="self">self</span>.clone())
     }
 
-    <span class="attribute">#[inline]
+    <span class="doccomment">/// Calls `TypedArray.prototype.filter()`.
+    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>filter(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         callback: JsFunction,
@@ -588,7 +615,8 @@
         <span class="prelude-val">Ok</span>(<span class="self">Self </span>{ inner: object })
     }
 
-    <span class="attribute">#[inline]
+    <span class="doccomment">/// Calls `TypedArray.prototype.map()`.
+    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>map(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         callback: JsFunction,
@@ -604,7 +632,8 @@
         <span class="prelude-val">Ok</span>(<span class="self">Self </span>{ inner: object })
     }
 
-    <span class="attribute">#[inline]
+    <span class="doccomment">/// Calls `TypedArray.prototype.reduce()`.
+    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>reduce(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         callback: JsFunction,
@@ -618,7 +647,8 @@
         )
     }
 
-    <span class="attribute">#[inline]
+    <span class="doccomment">/// Calls `TypedArray.prototype.reduceRight()`.
+    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>reduce_right(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         callback: JsFunction,
@@ -632,13 +662,15 @@
         )
     }
 
-    <span class="attribute">#[inline]
+    <span class="doccomment">/// Calls `TypedArray.prototype.reverse()`.
+    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>reverse(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
         TypedArray::reverse(<span class="kw-2">&amp;</span><span class="self">self</span>.inner, <span class="kw-2">&amp;</span>[], context)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(<span class="self">self</span>.clone())
     }
 
-    <span class="attribute">#[inline]
+    <span class="doccomment">/// Calls `TypedArray.prototype.slice()`.
+    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>slice(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         start: <span class="prelude-ty">Option</span>&lt;usize&gt;,
@@ -654,7 +686,8 @@
         <span class="prelude-val">Ok</span>(<span class="self">Self </span>{ inner: object })
     }
 
-    <span class="attribute">#[inline]
+    <span class="doccomment">/// Calls `TypedArray.prototype.find()`.
+    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>find(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         predicate: JsFunction,
@@ -668,7 +701,8 @@
         )
     }
 
-    <span class="attribute">#[inline]
+    <span class="doccomment">/// Calls `TypedArray.prototype.indexOf()`.
+    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>index_of&lt;T&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         search_element: T,
@@ -694,7 +728,8 @@
         }
     }
 
-    <span class="attribute">#[inline]
+    <span class="doccomment">/// Calls `TypedArray.prototype.lastIndexOf()`.
+    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>last_index_of&lt;T&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         search_element: T,
@@ -720,7 +755,8 @@
         }
     }
 
-    <span class="attribute">#[inline]
+    <span class="doccomment">/// Calls `TypedArray.prototype.join()`.
+    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>join(<span class="kw-2">&amp;</span><span class="self">self</span>, separator: <span class="prelude-ty">Option</span>&lt;JsString&gt;, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsString&gt; {
         TypedArray::join(<span class="kw-2">&amp;</span><span class="self">self</span>.inner, <span class="kw-2">&amp;</span>[separator.into_or_undefined()], context).map(|x| {
             x.as_string()
@@ -767,7 +803,8 @@
         }
 
         <span class="kw">impl </span><span class="macro-nonterminal">$name </span>{
-            <span class="attribute">#[inline]
+            <span class="doccomment">/// Create the typed array from a [`JsArrayBuffer`].
+            </span><span class="attribute">#[inline]
             </span><span class="kw">pub fn </span>from_array_buffer(
                 array_buffer: JsArrayBuffer,
                 context: <span class="kw-2">&amp;mut </span>Context,
@@ -794,7 +831,8 @@
                 })
             }
 
-            <span class="attribute">#[inline]
+            <span class="doccomment">/// Create the typed array from an iterator.
+            </span><span class="attribute">#[inline]
             </span><span class="kw">pub fn </span>from_iter&lt;I&gt;(elements: I, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="self">Self</span>&gt;
             <span class="kw">where
                 </span>I: IntoIterator&lt;Item = <span class="macro-nonterminal">$element</span>&gt;,

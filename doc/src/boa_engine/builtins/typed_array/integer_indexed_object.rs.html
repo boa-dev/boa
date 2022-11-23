@@ -183,7 +183,7 @@
 }
 
 <span class="kw">impl </span>IntegerIndexed {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>new(
         viewed_array_buffer: <span class="prelude-ty">Option</span>&lt;JsObject&gt;,
         typed_array_name: TypedArrayKind,
         byte_offset: u64,
@@ -250,7 +250,7 @@
     }
 
     <span class="doccomment">/// Get the integer indexed object&#39;s byte offset.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>byte_offset(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64 {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>byte_offset(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64 {
         <span class="self">self</span>.byte_offset
     }
 
@@ -260,12 +260,12 @@
     }
 
     <span class="doccomment">/// Get the integer indexed object&#39;s typed array name.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>typed_array_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; TypedArrayKind {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>typed_array_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; TypedArrayKind {
         <span class="self">self</span>.typed_array_name
     }
 
     <span class="doccomment">/// Get a reference to the integer indexed object&#39;s viewed array buffer.
-    </span><span class="kw">pub fn </span>viewed_array_buffer(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>JsObject&gt; {
+    </span><span class="kw">pub const fn </span>viewed_array_buffer(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>JsObject&gt; {
         <span class="self">self</span>.viewed_array_buffer.as_ref()
     }
 
@@ -275,7 +275,7 @@
     }
 
     <span class="doccomment">/// Get the integer indexed object&#39;s byte length.
-    </span><span class="kw">pub fn </span>byte_length(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64 {
+    </span><span class="kw">pub const fn </span>byte_length(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64 {
         <span class="self">self</span>.byte_length
     }
 
@@ -285,7 +285,7 @@
     }
 
     <span class="doccomment">/// Get the integer indexed object&#39;s array length.
-    </span><span class="kw">pub fn </span>array_length(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64 {
+    </span><span class="kw">pub const fn </span>array_length(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64 {
         <span class="self">self</span>.array_length
     }
 

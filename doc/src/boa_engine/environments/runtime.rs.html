@@ -883,21 +883,13 @@
 <span id="881">881</span>
 <span id="882">882</span>
 <span id="883">883</span>
-<span id="884">884</span>
-<span id="885">885</span>
-<span id="886">886</span>
-<span id="887">887</span>
-<span id="888">888</span>
-<span id="889">889</span>
-</pre><pre class="rust"><code><span class="kw">use </span>std::cell::Cell;
-
-<span class="kw">use crate</span>::{
+</pre><pre class="rust"><code><span class="kw">use crate</span>::{
     environments::CompileTimeEnvironment, error::JsNativeError, object::JsObject, Context, JsValue,
 };
-<span class="kw">use </span>boa_gc::{Finalize, Gc, GcCell, Trace};
-
 <span class="kw">use </span>boa_ast::expression::Identifier;
+<span class="kw">use </span>boa_gc::{Finalize, Gc, GcCell, Trace};
 <span class="kw">use </span>rustc_hash::FxHashSet;
+<span class="kw">use </span>std::cell::Cell;
 
 <span class="doccomment">/// A declarative environment holds binding values at runtime.
 ///
@@ -937,7 +929,7 @@
 
 <span class="kw">impl </span>EnvironmentSlots {
     <span class="doccomment">/// Return the slots if they are part of a function environment.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>as_function_slots(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>GcCell&lt;FunctionSlots&gt;&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>as_function_slots(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>GcCell&lt;FunctionSlots&gt;&gt; {
         <span class="kw">if let </span><span class="self">Self</span>::Function(env) = <span class="kw-2">&amp;</span><span class="self">self </span>{
             <span class="prelude-val">Some</span>(env)
         } <span class="kw">else </span>{
@@ -965,12 +957,12 @@
 
 <span class="kw">impl </span>FunctionSlots {
     <span class="doccomment">/// Returns the value of the `[[FunctionObject]]` internal slot.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>function_object(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>JsObject {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>function_object(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>JsObject {
         <span class="kw-2">&amp;</span><span class="self">self</span>.function_object
     }
 
     <span class="doccomment">/// Returns the value of the `[[NewTarget]]` internal slot.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new_target(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>JsObject&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>new_target(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>JsObject&gt; {
         <span class="self">self</span>.new_target.as_ref()
     }
 
@@ -1074,7 +1066,7 @@
 
 <span class="kw">impl </span>DeclarativeEnvironment {
     <span class="doccomment">/// Returns the internal slot data of the current environment.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>slots(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>EnvironmentSlots&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>slots(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>EnvironmentSlots&gt; {
         <span class="self">self</span>.slots.as_ref()
     }
 
@@ -1299,11 +1291,7 @@
             ThisBindingStatus::Uninitialized
         };
 
-        <span class="kw">let </span>this = <span class="kw">if let </span><span class="prelude-val">Some</span>(this) = this {
-            this
-        } <span class="kw">else </span>{
-            JsValue::Null
-        };
+        <span class="kw">let </span>this = this.unwrap_or(JsValue::Null);
 
         <span class="self">self</span>.stack.push(Gc::new(DeclarativeEnvironment {
             bindings: GcCell::new(<span class="macro">vec!</span>[<span class="prelude-val">None</span>; num_bindings]),
@@ -1677,7 +1665,7 @@
 <span class="kw">impl </span>BindingLocator {
     <span class="doccomment">/// Creates a new declarative binding locator that has knows indices.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">in </span><span class="kw">crate</span>::environments) <span class="kw">fn </span>declarative(
+    </span><span class="kw">pub</span>(<span class="kw">in </span><span class="kw">crate</span>::environments) <span class="kw">const fn </span>declarative(
         name: Identifier,
         environment_index: usize,
         binding_index: usize,
@@ -1694,7 +1682,7 @@
 
     <span class="doccomment">/// Creates a binding locator that indicates that the binding is on the global object.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">in </span><span class="kw">crate</span>::environments) <span class="kw">fn </span>global(name: Identifier) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub</span>(<span class="kw">in </span><span class="kw">crate</span>::environments) <span class="kw">const fn </span>global(name: Identifier) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             name,
             environment_index: <span class="number">0</span>,
@@ -1708,7 +1696,7 @@
     <span class="doccomment">/// Creates a binding locator that indicates that it was attempted to mutate an immutable binding.
     /// At runtime this should always produce a type error.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">in </span><span class="kw">crate</span>::environments) <span class="kw">fn </span>mutate_immutable(name: Identifier) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub</span>(<span class="kw">in </span><span class="kw">crate</span>::environments) <span class="kw">const fn </span>mutate_immutable(name: Identifier) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             name,
             environment_index: <span class="number">0</span>,
@@ -1721,7 +1709,7 @@
 
     <span class="doccomment">/// Creates a binding locator that indicates that any action is silently ignored.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">in </span><span class="kw">crate</span>::environments) <span class="kw">fn </span>silent(name: Identifier) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub</span>(<span class="kw">in </span><span class="kw">crate</span>::environments) <span class="kw">const fn </span>silent(name: Identifier) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             name,
             environment_index: <span class="number">0</span>,
@@ -1734,31 +1722,31 @@
 
     <span class="doccomment">/// Returns the name of the binding.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Identifier {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Identifier {
         <span class="self">self</span>.name
     }
 
     <span class="doccomment">/// Returns if the binding is located on the global object.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_global(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>is_global(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.global
     }
 
     <span class="doccomment">/// Returns the environment index of the binding.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>environment_index(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>environment_index(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
         <span class="self">self</span>.environment_index
     }
 
     <span class="doccomment">/// Returns the binding index of the binding.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>binding_index(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>binding_index(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
         <span class="self">self</span>.binding_index
     }
 
     <span class="doccomment">/// Returns if the binding is a silent operation.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_silent(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>is_silent(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.silent
     }
 

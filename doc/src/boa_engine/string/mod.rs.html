@@ -1079,6 +1079,17 @@
 <span id="1077">1077</span>
 <span id="1078">1078</span>
 <span id="1079">1079</span>
+<span id="1080">1080</span>
+<span id="1081">1081</span>
+<span id="1082">1082</span>
+<span id="1083">1083</span>
+<span id="1084">1084</span>
+<span id="1085">1085</span>
+<span id="1086">1086</span>
+<span id="1087">1087</span>
+<span id="1088">1088</span>
+<span id="1089">1089</span>
+<span id="1090">1090</span>
 </pre><pre class="rust"><code><span class="doccomment">//! A UTF-16–encoded, reference counted, immutable string.
 //!
 //! This module contains the [`JsString`] type, the [`js_string`][crate::js_string] macro and the
@@ -1193,13 +1204,17 @@
 /// [Unicode scalar value]: https://www.unicode.org/glossary/#unicode_scalar_value
 </span><span class="attribute">#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 </span><span class="kw">pub enum </span>CodePoint {
-    Unicode(char),
-    UnpairedSurrogate(u16),
+    <span class="doccomment">/// A valid Unicode scalar value.
+    </span>Unicode(char),
+
+    <span class="doccomment">/// An unpaired surrogate.
+    </span>UnpairedSurrogate(u16),
 }
 
 <span class="kw">impl </span>CodePoint {
     <span class="doccomment">/// Get the number of UTF-16 code units needed to encode this code point.
-    </span><span class="kw">pub fn </span>code_unit_count(<span class="self">self</span>) -&gt; usize {
+    </span><span class="attribute">#[must_use]
+    </span><span class="kw">pub const fn </span>code_unit_count(<span class="self">self</span>) -&gt; usize {
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::Unicode(c) =&gt; c.len_utf16(),
             <span class="self">Self</span>::UnpairedSurrogate(<span class="kw">_</span>) =&gt; <span class="number">1</span>,
@@ -1207,6 +1222,7 @@
     }
 
     <span class="doccomment">/// Convert the code point to its [`u32`] representation.
+    </span><span class="attribute">#[must_use]
     </span><span class="kw">pub fn </span>as_u32(<span class="self">self</span>) -&gt; u32 {
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::Unicode(c) =&gt; u32::from(c),
@@ -1216,7 +1232,8 @@
 
     <span class="doccomment">/// If the code point represents a valid &#39;Unicode scalar value&#39;, returns its [`char`]
     /// representation, otherwise returns [`None`] on unpaired surrogates.
-    </span><span class="kw">pub fn </span>as_char(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;char&gt; {
+    </span><span class="attribute">#[must_use]
+    </span><span class="kw">pub const fn </span>as_char(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;char&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::Unicode(c) =&gt; <span class="prelude-val">Some</span>(c),
             <span class="self">Self</span>::UnpairedSurrogate(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
@@ -1232,8 +1249,8 @@
     /// code point.
     </span><span class="kw">pub fn </span>encode_utf16(<span class="self">self</span>, dst: <span class="kw-2">&amp;mut </span>[u16]) -&gt; <span class="kw-2">&amp;mut </span>[u16] {
         <span class="kw">match </span><span class="self">self </span>{
-            CodePoint::Unicode(c) =&gt; c.encode_utf16(dst),
-            CodePoint::UnpairedSurrogate(surr) =&gt; {
+            <span class="self">Self</span>::Unicode(c) =&gt; c.encode_utf16(dst),
+            <span class="self">Self</span>::UnpairedSurrogate(surr) =&gt; {
                 dst[<span class="number">0</span>] = surr;
                 <span class="kw-2">&amp;mut </span>dst[<span class="number">0</span>..=<span class="number">0</span>]
             }
@@ -1291,7 +1308,7 @@
     /// `inner` must point to a valid instance of [`RawJsString`], which should be deallocated only
     /// by [`JsString`].
     </span><span class="attribute">#[inline]
-    </span><span class="kw">unsafe fn </span>new_heap(inner: NonNull&lt;RawJsString&gt;) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">const unsafe fn </span>new_heap(inner: NonNull&lt;RawJsString&gt;) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>(inner)
     }
 
@@ -1378,17 +1395,20 @@
 
 <span class="kw">impl </span>JsString {
     <span class="doccomment">/// Obtains the underlying [`&amp;[u16]`][slice] slice of a [`JsString`]
+    </span><span class="attribute">#[must_use]
     </span><span class="kw">pub fn </span>as_slice(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[u16] {
         <span class="self">self
     </span>}
 
     <span class="doccomment">/// Creates a new [`JsString`] from the concatenation of `x` and `y`.
+    </span><span class="attribute">#[must_use]
     </span><span class="kw">pub fn </span>concat(x: <span class="kw-2">&amp;</span>[u16], y: <span class="kw-2">&amp;</span>[u16]) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::concat_array(<span class="kw-2">&amp;</span>[x, y])
     }
 
     <span class="doccomment">/// Creates a new [`JsString`] from the concatenation of every element of
     /// `strings`.
+    </span><span class="attribute">#[must_use]
     </span><span class="kw">pub fn </span>concat_array(strings: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>[u16]]) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span><span class="kw-2">mut </span>full_count = <span class="number">0usize</span>;
         <span class="kw">for </span><span class="kw-2">&amp;</span>string <span class="kw">in </span>strings {
@@ -1437,6 +1457,7 @@
 
     <span class="doccomment">/// Decodes a [`JsString`] into a [`String`], replacing invalid data with its escaped representation
     /// in 4 digit hexadecimal.
+    </span><span class="attribute">#[must_use]
     </span><span class="kw">pub fn </span>to_std_string_escaped(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; String {
         <span class="self">self</span>.to_string_escaped()
     }
@@ -1581,10 +1602,10 @@
             }
 
             <span class="comment">// Slow path
-            </span><span class="kw">let </span><span class="kw-2">mut </span>value = <span class="number">0.0</span>;
+            </span><span class="kw">let </span><span class="kw-2">mut </span>value: f64 = <span class="number">0.0</span>;
             <span class="kw">for </span>c <span class="kw">in </span>s {
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(digit) = char::from(c).to_digit(base) {
-                    value = value * f64::from(base) + f64::from(digit);
+                    value = value.mul_add(f64::from(base), f64::from(digit));
                 } <span class="kw">else </span>{
                     <span class="kw">return </span>f64::NAN;
                 }
@@ -1658,7 +1679,8 @@
 
         <span class="macro">debug_assert_eq!</span>(offset, DATA_OFFSET);
 
-        <span class="comment">// SAFETY:
+        <span class="attribute">#[allow(clippy::cast_ptr_alignment)]
+        </span><span class="comment">// SAFETY:
         // The layout size of `RawJsString` is never zero, since it has to store
         // the length of the string and the reference count.
         </span><span class="kw">let </span>inner = <span class="kw">unsafe </span>{ alloc(layout).cast::&lt;RawJsString&gt;() };
@@ -1848,7 +1870,7 @@
 
 <span class="kw">impl </span>From&lt;Vec&lt;u16&gt;&gt; <span class="kw">for </span>JsString {
     <span class="kw">fn </span>from(vec: Vec&lt;u16&gt;) -&gt; <span class="self">Self </span>{
-        JsString::from(<span class="kw-2">&amp;</span>vec[..])
+        <span class="self">Self</span>::from(<span class="kw-2">&amp;</span>vec[..])
     }
 }
 

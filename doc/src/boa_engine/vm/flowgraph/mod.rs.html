@@ -489,14 +489,11 @@
 <span id="487">487</span>
 <span id="488">488</span>
 <span id="489">489</span>
-<span id="490">490</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module is responsible for generating the vm instruction flowgraph.
 
-</span><span class="kw">use </span>std::mem::size_of;
-
+</span><span class="kw">use </span><span class="kw">crate</span>::vm::{CodeBlock, Opcode};
 <span class="kw">use </span>boa_interner::{Interner, Sym};
-
-<span class="kw">use </span><span class="kw">crate</span>::vm::{CodeBlock, Opcode};
+<span class="kw">use </span>std::mem::size_of;
 
 <span class="kw">mod </span>color;
 <span class="kw">mod </span>edge;
@@ -512,11 +509,12 @@
     <span class="doccomment">/// Output the [`CodeBlock`] VM instructions into a [`Graph`].
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>to_graph(<span class="kw-2">&amp;</span><span class="self">self</span>, interner: <span class="kw-2">&amp;</span>Interner, graph: <span class="kw-2">&amp;mut </span>SubGraph) {
-        <span class="kw">let </span><span class="kw-2">mut </span>name = interner.resolve_expect(<span class="self">self</span>.name).to_string();
         <span class="comment">// Have to remove any invalid graph chars like `&lt;` or `&gt;`.
-        </span><span class="kw">if </span><span class="self">self</span>.name == Sym::MAIN {
-            name = <span class="string">&quot;__main__&quot;</span>.to_string();
-        }
+        </span><span class="kw">let </span>name = <span class="kw">if </span><span class="self">self</span>.name == Sym::MAIN {
+            <span class="string">&quot;__main__&quot;</span>.to_string()
+        } <span class="kw">else </span>{
+            interner.resolve_expect(<span class="self">self</span>.name).to_string()
+        };
 
         graph.set_label(name);
 

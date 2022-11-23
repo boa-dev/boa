@@ -1377,7 +1377,7 @@
         </span><span class="kw">match </span><span class="kw-2">&amp;</span>target_desc {
             <span class="prelude-val">Some</span>(desc) <span class="kw">if </span>!desc.expect_configurable() =&gt; {
                 <span class="comment">// b. If resultDesc has a [[Writable]] field and resultDesc.[[Writable]] is false, then
-                </span><span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="bool-val">false</span>) = result_desc.writable() {
+                </span><span class="kw">if </span>result_desc.writable() == <span class="prelude-val">Some</span>(<span class="bool-val">false</span>) {
                     <span class="comment">// i. If targetDesc.[[Writable]] is true, throw a TypeError exception.
                     </span><span class="kw">if </span>desc.expect_writable() {
                         <span class="kw">return

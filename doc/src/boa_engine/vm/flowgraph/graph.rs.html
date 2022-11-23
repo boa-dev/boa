@@ -303,15 +303,32 @@
 <span id="301">301</span>
 <span id="302">302</span>
 <span id="303">303</span>
+<span id="304">304</span>
+<span id="305">305</span>
+<span id="306">306</span>
+<span id="307">307</span>
+<span id="308">308</span>
+<span id="309">309</span>
+<span id="310">310</span>
+<span id="311">311</span>
+<span id="312">312</span>
+<span id="313">313</span>
 </pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::vm::flowgraph::{Color, Edge, EdgeStyle, EdgeType, Node, NodeShape};
 
 <span class="doccomment">/// This represents the direction of flow in the flowgraph.
 </span><span class="attribute">#[derive(Debug, Clone, Copy)]
 </span><span class="kw">pub enum </span>Direction {
-    TopToBottom,
-    BottomToTop,
-    LeftToRight,
-    RightToLeft,
+    <span class="doccomment">/// Represents a top to bottom direction.
+    </span>TopToBottom,
+
+    <span class="doccomment">/// Represents a bottom to top direction.
+    </span>BottomToTop,
+
+    <span class="doccomment">/// Represents a left to right direction.
+    </span>LeftToRight,
+
+    <span class="doccomment">/// Represents a right to left direction.
+    </span>RightToLeft,
 }
 
 <span class="doccomment">/// Represents a sub-graph in the graph.
@@ -546,6 +563,7 @@
 <span class="kw">impl </span>Graph {
     <span class="doccomment">/// Construct a [`Graph`]
     </span><span class="attribute">#[inline]
+    #[must_use]
     </span><span class="kw">pub fn </span>new(direction: Direction) -&gt; <span class="self">Self </span>{
         Graph {
             subgraphs: Vec::default(),
@@ -567,6 +585,7 @@
 
     <span class="doccomment">/// Output the graph into the graphviz format.
     </span><span class="attribute">#[inline]
+    #[must_use]
     </span><span class="kw">pub fn </span>to_graphviz_format(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; String {
         <span class="kw">let </span><span class="kw-2">mut </span>result = String::new();
         result += <span class="string">&quot;digraph {\n&quot;</span>;
@@ -589,6 +608,7 @@
 
     <span class="doccomment">/// Output the graph into the mermaid format.
     </span><span class="attribute">#[inline]
+    #[must_use]
     </span><span class="kw">pub fn </span>to_mermaid_format(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; String {
         <span class="kw">let </span><span class="kw-2">mut </span>result = String::new();
         <span class="kw">let </span>rankdir = <span class="kw">match </span><span class="self">self</span>.direction {

@@ -1053,7 +1053,26 @@
 <span id="1051">1051</span>
 <span id="1052">1052</span>
 <span id="1053">1053</span>
-</pre><pre class="rust"><code><span class="kw">use crate</span>::{
+<span id="1054">1054</span>
+<span id="1055">1055</span>
+<span id="1056">1056</span>
+<span id="1057">1057</span>
+<span id="1058">1058</span>
+<span id="1059">1059</span>
+<span id="1060">1060</span>
+<span id="1061">1061</span>
+<span id="1062">1062</span>
+<span id="1063">1063</span>
+</pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `DataView` object.
+//!
+//! More information:
+//!  - [ECMAScript reference][spec]
+//!  - [MDN documentation][mdn]
+//!
+//! [spec]: https://tc39.es/ecma262/#sec-dataview-objects
+//! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView
+
+</span><span class="kw">use crate</span>::{
     builtins::{array_buffer::SharedMemoryOrder, typed_array::TypedArrayKind, BuiltIn, JsArgs},
     context::intrinsics::StandardConstructors,
     error::JsNativeError,
@@ -1069,7 +1088,8 @@
 <span class="kw">use </span>boa_gc::{Finalize, Trace};
 <span class="kw">use </span>tap::{Conv, Pipe};
 
-<span class="attribute">#[derive(Debug, Clone, Trace, Finalize)]
+<span class="doccomment">/// The internal representation of a `DataView` object.
+</span><span class="attribute">#[derive(Debug, Clone, Trace, Finalize)]
 </span><span class="kw">pub struct </span>DataView {
     <span class="kw">pub</span>(<span class="kw">crate</span>) viewed_array_buffer: JsObject,
     <span class="kw">pub</span>(<span class="kw">crate</span>) byte_length: u64,

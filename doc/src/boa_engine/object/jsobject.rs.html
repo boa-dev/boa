@@ -889,6 +889,14 @@
 <span id="887">887</span>
 <span id="888">888</span>
 <span id="889">889</span>
+<span id="890">890</span>
+<span id="891">891</span>
+<span id="892">892</span>
+<span id="893">893</span>
+<span id="894">894</span>
+<span id="895">895</span>
+<span id="896">896</span>
+<span id="897">897</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the `JsObject` structure.
 //!
 //! The `JsObject` is a garbage collected Object.
@@ -934,6 +942,7 @@
 
     <span class="doccomment">/// Create a new empty `JsObject`, with `prototype` set to `JsValue::Null`
     /// and `data` set to `ObjectData::ordinary`
+    </span><span class="attribute">#[must_use]
     </span><span class="kw">pub fn </span>empty() -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::from_object(Object::default())
     }
@@ -1394,7 +1403,13 @@
         <span class="self">self</span>.borrow().is_native_object()
     }
 
-    <span class="kw">pub fn </span>to_property_descriptor(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;PropertyDescriptor&gt; {
+    <span class="doccomment">/// The abstract operation `ToPropertyDescriptor`.
+    ///
+    /// More information:
+    /// - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-topropertydescriptor
+    </span><span class="kw">pub fn </span>to_property_descriptor(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;PropertyDescriptor&gt; {
         <span class="comment">// 1 is implemented on the method `to_property_descriptor` of value
 
         // 2. Let desc be a new Property Descriptor that initially has no fields.
@@ -1628,7 +1643,7 @@ Cannot both specify accessors and a value or writable attribute&quot;</span>,
         )
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>inner(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Gc&lt;GcCell&lt;Object&gt;&gt; {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>inner(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Gc&lt;GcCell&lt;Object&gt;&gt; {
         <span class="kw-2">&amp;</span><span class="self">self</span>.inner
     }
 }
@@ -1643,7 +1658,7 @@ Cannot both specify accessors and a value or writable attribute&quot;</span>,
 <span class="kw">impl </span>From&lt;Gc&lt;GcCell&lt;Object&gt;&gt;&gt; <span class="kw">for </span>JsObject {
     <span class="attribute">#[inline]
     </span><span class="kw">fn </span>from(inner: Gc&lt;GcCell&lt;Object&gt;&gt;) -&gt; <span class="self">Self </span>{
-        JsObject { inner }
+        <span class="self">Self </span>{ inner }
     }
 }
 
@@ -1739,6 +1754,7 @@ Cannot both specify accessors and a value or writable attribute&quot;</span>,
     /// by the hashset.
     </span><span class="kw">pub fn </span>new(o: <span class="kw-2">&amp;</span>JsObject) -&gt; <span class="self">Self </span>{
         <span class="comment">// We shouldn&#39;t have to worry too much about this being moved during Debug::fmt.
+        </span><span class="attribute">#[allow(trivial_casts)]
         </span><span class="kw">let </span>ptr = (o.as_ref() <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>) <span class="kw">as </span>usize;
         <span class="kw">let </span>(top_level, visited, live) = <span class="self">Self</span>::SEEN.with(|hm| {
             <span class="kw">let </span><span class="kw-2">mut </span>hm = hm.borrow_mut();

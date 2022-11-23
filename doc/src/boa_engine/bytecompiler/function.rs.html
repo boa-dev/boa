@@ -253,7 +253,7 @@
 <span class="kw">impl </span>FunctionCompiler {
     <span class="doccomment">/// Create a new `FunctionCompiler`.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new() -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>new() -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             name: Sym::EMPTY_STRING,
             generator: <span class="bool-val">false</span>,
@@ -279,34 +279,34 @@
 
     <span class="doccomment">/// Indicate if the function is an arrow function.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>arrow(<span class="kw-2">mut </span><span class="self">self</span>, arrow: bool) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>arrow(<span class="kw-2">mut </span><span class="self">self</span>, arrow: bool) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.arrow = arrow;
         <span class="self">self
     </span>}
     <span class="doccomment">/// Indicate if the function is a generator function.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>generator(<span class="kw-2">mut </span><span class="self">self</span>, generator: bool) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>generator(<span class="kw-2">mut </span><span class="self">self</span>, generator: bool) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.generator = generator;
         <span class="self">self
     </span>}
 
     <span class="doccomment">/// Indicate if the function is an async function.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>r#async(<span class="kw-2">mut </span><span class="self">self</span>, r#async: bool) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>r#async(<span class="kw-2">mut </span><span class="self">self</span>, r#async: bool) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.r#async = r#async;
         <span class="self">self
     </span>}
 
     <span class="doccomment">/// Indicate if the function is in a strict context.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>strict(<span class="kw-2">mut </span><span class="self">self</span>, strict: bool) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>strict(<span class="kw-2">mut </span><span class="self">self</span>, strict: bool) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.strict = strict;
         <span class="self">self
     </span>}
 
     <span class="doccomment">/// Indicate if the function has a binding identifier.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>has_binding_identifier(<span class="kw-2">mut </span><span class="self">self</span>, has_binding_identifier: bool) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>has_binding_identifier(<span class="kw-2">mut </span><span class="self">self</span>, has_binding_identifier: bool) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.has_binding_identifier = has_binding_identifier;
         <span class="self">self
     </span>}

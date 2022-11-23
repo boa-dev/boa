@@ -123,6 +123,7 @@
 <span id="121">121</span>
 <span id="122">122</span>
 <span id="123">123</span>
+<span id="124">124</span>
 </pre><pre class="rust"><code><span class="doccomment">//! `CallFrame`
 //!
 //! This module will provides everything needed to implement the `CallFrame`
@@ -130,7 +131,8 @@
 </span><span class="kw">use crate</span>::{object::JsObject, vm::CodeBlock};
 <span class="kw">use </span>boa_gc::{Finalize, Gc, Trace};
 
-<span class="attribute">#[derive(Clone, Debug, Finalize, Trace)]
+<span class="doccomment">/// A `CallFrame` holds the state of a function call.
+</span><span class="attribute">#[derive(Clone, Debug, Finalize, Trace)]
 </span><span class="kw">pub struct </span>CallFrame {
     <span class="kw">pub</span>(<span class="kw">crate</span>) code: Gc&lt;CodeBlock&gt;,
     <span class="kw">pub</span>(<span class="kw">crate</span>) pc: usize,

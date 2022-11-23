@@ -2294,6 +2294,137 @@
 <span id="2292">2292</span>
 <span id="2293">2293</span>
 <span id="2294">2294</span>
+<span id="2295">2295</span>
+<span id="2296">2296</span>
+<span id="2297">2297</span>
+<span id="2298">2298</span>
+<span id="2299">2299</span>
+<span id="2300">2300</span>
+<span id="2301">2301</span>
+<span id="2302">2302</span>
+<span id="2303">2303</span>
+<span id="2304">2304</span>
+<span id="2305">2305</span>
+<span id="2306">2306</span>
+<span id="2307">2307</span>
+<span id="2308">2308</span>
+<span id="2309">2309</span>
+<span id="2310">2310</span>
+<span id="2311">2311</span>
+<span id="2312">2312</span>
+<span id="2313">2313</span>
+<span id="2314">2314</span>
+<span id="2315">2315</span>
+<span id="2316">2316</span>
+<span id="2317">2317</span>
+<span id="2318">2318</span>
+<span id="2319">2319</span>
+<span id="2320">2320</span>
+<span id="2321">2321</span>
+<span id="2322">2322</span>
+<span id="2323">2323</span>
+<span id="2324">2324</span>
+<span id="2325">2325</span>
+<span id="2326">2326</span>
+<span id="2327">2327</span>
+<span id="2328">2328</span>
+<span id="2329">2329</span>
+<span id="2330">2330</span>
+<span id="2331">2331</span>
+<span id="2332">2332</span>
+<span id="2333">2333</span>
+<span id="2334">2334</span>
+<span id="2335">2335</span>
+<span id="2336">2336</span>
+<span id="2337">2337</span>
+<span id="2338">2338</span>
+<span id="2339">2339</span>
+<span id="2340">2340</span>
+<span id="2341">2341</span>
+<span id="2342">2342</span>
+<span id="2343">2343</span>
+<span id="2344">2344</span>
+<span id="2345">2345</span>
+<span id="2346">2346</span>
+<span id="2347">2347</span>
+<span id="2348">2348</span>
+<span id="2349">2349</span>
+<span id="2350">2350</span>
+<span id="2351">2351</span>
+<span id="2352">2352</span>
+<span id="2353">2353</span>
+<span id="2354">2354</span>
+<span id="2355">2355</span>
+<span id="2356">2356</span>
+<span id="2357">2357</span>
+<span id="2358">2358</span>
+<span id="2359">2359</span>
+<span id="2360">2360</span>
+<span id="2361">2361</span>
+<span id="2362">2362</span>
+<span id="2363">2363</span>
+<span id="2364">2364</span>
+<span id="2365">2365</span>
+<span id="2366">2366</span>
+<span id="2367">2367</span>
+<span id="2368">2368</span>
+<span id="2369">2369</span>
+<span id="2370">2370</span>
+<span id="2371">2371</span>
+<span id="2372">2372</span>
+<span id="2373">2373</span>
+<span id="2374">2374</span>
+<span id="2375">2375</span>
+<span id="2376">2376</span>
+<span id="2377">2377</span>
+<span id="2378">2378</span>
+<span id="2379">2379</span>
+<span id="2380">2380</span>
+<span id="2381">2381</span>
+<span id="2382">2382</span>
+<span id="2383">2383</span>
+<span id="2384">2384</span>
+<span id="2385">2385</span>
+<span id="2386">2386</span>
+<span id="2387">2387</span>
+<span id="2388">2388</span>
+<span id="2389">2389</span>
+<span id="2390">2390</span>
+<span id="2391">2391</span>
+<span id="2392">2392</span>
+<span id="2393">2393</span>
+<span id="2394">2394</span>
+<span id="2395">2395</span>
+<span id="2396">2396</span>
+<span id="2397">2397</span>
+<span id="2398">2398</span>
+<span id="2399">2399</span>
+<span id="2400">2400</span>
+<span id="2401">2401</span>
+<span id="2402">2402</span>
+<span id="2403">2403</span>
+<span id="2404">2404</span>
+<span id="2405">2405</span>
+<span id="2406">2406</span>
+<span id="2407">2407</span>
+<span id="2408">2408</span>
+<span id="2409">2409</span>
+<span id="2410">2410</span>
+<span id="2411">2411</span>
+<span id="2412">2412</span>
+<span id="2413">2413</span>
+<span id="2414">2414</span>
+<span id="2415">2415</span>
+<span id="2416">2416</span>
+<span id="2417">2417</span>
+<span id="2418">2418</span>
+<span id="2419">2419</span>
+<span id="2420">2420</span>
+<span id="2421">2421</span>
+<span id="2422">2422</span>
+<span id="2423">2423</span>
+<span id="2424">2424</span>
+<span id="2425">2425</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the Rust representation of a JavaScript object,
 //! see [`object::builtins`][builtins] for implementors.
 //!
@@ -2384,7 +2515,10 @@
 <span class="doccomment">/// Static `prototype`, usually set on constructors as a key to point to their respective prototype object.
 </span><span class="kw">pub static </span>PROTOTYPE: <span class="kw-2">&amp;</span>str = <span class="string">&quot;prototype&quot;</span>;
 
-<span class="kw">pub type </span>JsPrototype = <span class="prelude-ty">Option</span>&lt;JsObject&gt;;
+<span class="doccomment">/// A type alias for an object prototype.
+///
+/// A `None` values means that the prototype is the `null` value.
+</span><span class="kw">pub type </span>JsPrototype = <span class="prelude-ty">Option</span>&lt;JsObject&gt;;
 
 <span class="doccomment">/// This trait allows Rust types to be passed around as objects.
 ///
@@ -2400,13 +2534,13 @@
 <span class="kw">impl</span>&lt;T: Any + Debug + Trace&gt; NativeObject <span class="kw">for </span>T {
     <span class="attribute">#[inline]
     </span><span class="kw">fn </span>as_any(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw">dyn </span>Any {
-        <span class="self">self </span><span class="kw">as </span><span class="kw-2">&amp;</span><span class="kw">dyn </span>Any
-    }
+        <span class="self">self
+    </span>}
 
     <span class="attribute">#[inline]
     </span><span class="kw">fn </span>as_mut_any(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any {
-        <span class="self">self </span><span class="kw">as </span><span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any
-    }
+        <span class="self">self
+    </span>}
 }
 
 <span class="doccomment">/// The internal representation of a JavaScript object.
@@ -2438,11 +2572,19 @@
 <span class="doccomment">/// The representation of private object elements.
 </span><span class="attribute">#[derive(Clone, Debug, Trace, Finalize)]
 </span><span class="kw">pub enum </span>PrivateElement {
-    Field(JsValue),
-    Method(JsObject),
-    Accessor {
-        getter: <span class="prelude-ty">Option</span>&lt;JsObject&gt;,
-        setter: <span class="prelude-ty">Option</span>&lt;JsObject&gt;,
+    <span class="doccomment">/// A private field.
+    </span>Field(JsValue),
+
+    <span class="doccomment">/// A private method.
+    </span>Method(JsObject),
+
+    <span class="doccomment">/// A private element accessor.
+    </span>Accessor {
+        <span class="doccomment">/// A getter function.
+        </span>getter: <span class="prelude-ty">Option</span>&lt;JsObject&gt;,
+
+        <span class="doccomment">/// A setter function.
+        </span>setter: <span class="prelude-ty">Option</span>&lt;JsObject&gt;,
     },
 }
 
@@ -2456,41 +2598,110 @@
 <span class="doccomment">/// Defines the different types of objects.
 </span><span class="attribute">#[derive(Debug, Finalize)]
 </span><span class="kw">pub enum </span>ObjectKind {
-    AsyncFromSyncIterator(AsyncFromSyncIterator),
-    AsyncGenerator(AsyncGenerator),
-    AsyncGeneratorFunction(Function),
-    Array,
-    ArrayIterator(ArrayIterator),
-    ArrayBuffer(ArrayBuffer),
-    Map(OrderedMap&lt;JsValue&gt;),
-    MapIterator(MapIterator),
-    RegExp(Box&lt;RegExp&gt;),
-    RegExpStringIterator(RegExpStringIterator),
-    BigInt(JsBigInt),
-    Boolean(bool),
-    DataView(DataView),
-    ForInIterator(ForInIterator),
-    Function(Function),
-    BoundFunction(BoundFunction),
-    Generator(Generator),
-    GeneratorFunction(Function),
-    Set(OrderedSet&lt;JsValue&gt;),
-    SetIterator(SetIterator),
-    String(JsString),
-    StringIterator(StringIterator),
-    Number(f64),
-    Symbol(JsSymbol),
-    Error(ErrorKind),
-    Ordinary,
-    Proxy(Proxy),
-    Date(Date),
-    Global,
-    Arguments(Arguments),
-    NativeObject(Box&lt;<span class="kw">dyn </span>NativeObject&gt;),
-    IntegerIndexed(IntegerIndexed),
-    Promise(Promise),
-    WeakRef(WeakGc&lt;GcCell&lt;Object&gt;&gt;),
-    <span class="attribute">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
+    <span class="doccomment">/// The `AsyncFromSyncIterator` object kind.
+    </span>AsyncFromSyncIterator(AsyncFromSyncIterator),
+
+    <span class="doccomment">/// The `AsyncGenerator` object kind.
+    </span>AsyncGenerator(AsyncGenerator),
+
+    <span class="doccomment">/// The `AsyncGeneratorFunction` object kind.
+    </span>AsyncGeneratorFunction(Function),
+
+    <span class="doccomment">/// The `Array` object kind.
+    </span>Array,
+
+    <span class="doccomment">/// The `ArrayIterator` object kind.
+    </span>ArrayIterator(ArrayIterator),
+
+    <span class="doccomment">/// The `ArrayBuffer` object kind.
+    </span>ArrayBuffer(ArrayBuffer),
+
+    <span class="doccomment">/// The `Map` object kind.
+    </span>Map(OrderedMap&lt;JsValue&gt;),
+
+    <span class="doccomment">/// The `MapIterator` object kind.
+    </span>MapIterator(MapIterator),
+
+    <span class="doccomment">/// The `RegExp` object kind.
+    </span>RegExp(Box&lt;RegExp&gt;),
+
+    <span class="doccomment">/// The `RegExpStringIterator` object kind.
+    </span>RegExpStringIterator(RegExpStringIterator),
+
+    <span class="doccomment">/// The `BigInt` object kind.
+    </span>BigInt(JsBigInt),
+
+    <span class="doccomment">/// The `Boolean` object kind.
+    </span>Boolean(bool),
+
+    <span class="doccomment">/// The `DataView` object kind.
+    </span>DataView(DataView),
+
+    <span class="doccomment">/// The `ForInIterator` object kind.
+    </span>ForInIterator(ForInIterator),
+
+    <span class="doccomment">/// The `Function` object kind.
+    </span>Function(Function),
+
+    <span class="doccomment">/// The `BoundFunction` object kind.
+    </span>BoundFunction(BoundFunction),
+
+    <span class="doccomment">/// The `Generator` object kind.
+    </span>Generator(Generator),
+
+    <span class="doccomment">/// The `GeneratorFunction` object kind.
+    </span>GeneratorFunction(Function),
+
+    <span class="doccomment">/// The `Set` object kind.
+    </span>Set(OrderedSet&lt;JsValue&gt;),
+
+    <span class="doccomment">/// The `SetIterator` object kind.
+    </span>SetIterator(SetIterator),
+
+    <span class="doccomment">/// The `String` object kind.
+    </span>String(JsString),
+
+    <span class="doccomment">/// The `StringIterator` object kind.
+    </span>StringIterator(StringIterator),
+
+    <span class="doccomment">/// The `Number` object kind.
+    </span>Number(f64),
+
+    <span class="doccomment">/// The `Symbol` object kind.
+    </span>Symbol(JsSymbol),
+
+    <span class="doccomment">/// The `Error` object kind.
+    </span>Error(ErrorKind),
+
+    <span class="doccomment">/// The ordinary object kind.
+    </span>Ordinary,
+
+    <span class="doccomment">/// The `Proxy` object kind.
+    </span>Proxy(Proxy),
+
+    <span class="doccomment">/// The `Date` object kind.
+    </span>Date(Date),
+
+    <span class="doccomment">/// The `Global` object kind.
+    </span>Global,
+
+    <span class="doccomment">/// The arguments exotic object kind.
+    </span>Arguments(Arguments),
+
+    <span class="doccomment">/// The rust native object kind.
+    </span>NativeObject(Box&lt;<span class="kw">dyn </span>NativeObject&gt;),
+
+    <span class="doccomment">/// The integer-indexed exotic object kind.
+    </span>IntegerIndexed(IntegerIndexed),
+
+    <span class="doccomment">/// The `Promise` object kind.
+    </span>Promise(Promise),
+
+    <span class="doccomment">/// The `WeakRef` object kind.
+    </span>WeakRef(WeakGc&lt;GcCell&lt;Object&gt;&gt;),
+
+    <span class="doccomment">/// The `Intl.DateTimeFormat` object kind.
+    </span><span class="attribute">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
     </span>DateTimeFormat(Box&lt;DateTimeFormat&gt;),
 }
 
@@ -2565,6 +2776,7 @@
     }
 
     <span class="doccomment">/// Create the `Array` object data and reference its exclusive internal methods
+    </span><span class="attribute">#[must_use]
     </span><span class="kw">pub fn </span>array() -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             kind: ObjectKind::Array,
@@ -2589,6 +2801,7 @@
     }
 
     <span class="doccomment">/// Create the `Map` object data
+    </span><span class="attribute">#[must_use]
     </span><span class="kw">pub fn </span>map(map: OrderedMap&lt;JsValue&gt;) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             kind: ObjectKind::Map(map),
@@ -2605,6 +2818,7 @@
     }
 
     <span class="doccomment">/// Create the `RegExp` object data
+    </span><span class="attribute">#[must_use]
     </span><span class="kw">pub fn </span>reg_exp(reg_exp: Box&lt;RegExp&gt;) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             kind: ObjectKind::RegExp(reg_exp),
@@ -2621,6 +2835,7 @@
     }
 
     <span class="doccomment">/// Create the `BigInt` object data
+    </span><span class="attribute">#[must_use]
     </span><span class="kw">pub fn </span>big_int(big_int: JsBigInt) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             kind: ObjectKind::BigInt(big_int),
@@ -2629,6 +2844,7 @@
     }
 
     <span class="doccomment">/// Create the `Boolean` object data
+    </span><span class="attribute">#[must_use]
     </span><span class="kw">pub fn </span>boolean(boolean: bool) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             kind: ObjectKind::Boolean(boolean),
@@ -2705,6 +2921,7 @@
     }
 
     <span class="doccomment">/// Create the `Set` object data
+    </span><span class="attribute">#[must_use]
     </span><span class="kw">pub fn </span>set(set: OrderedSet&lt;JsValue&gt;) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             kind: ObjectKind::Set(set),
@@ -2721,6 +2938,7 @@
     }
 
     <span class="doccomment">/// Create the `String` object data and reference its exclusive internal methods
+    </span><span class="attribute">#[must_use]
     </span><span class="kw">pub fn </span>string(string: JsString) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             kind: ObjectKind::String(string),
@@ -2737,6 +2955,7 @@
     }
 
     <span class="doccomment">/// Create the `Number` object data
+    </span><span class="attribute">#[must_use]
     </span><span class="kw">pub fn </span>number(number: f64) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             kind: ObjectKind::Number(number),
@@ -2745,6 +2964,7 @@
     }
 
     <span class="doccomment">/// Create the `Symbol` object data
+    </span><span class="attribute">#[must_use]
     </span><span class="kw">pub fn </span>symbol(symbol: JsSymbol) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             kind: ObjectKind::Symbol(symbol),
@@ -2761,6 +2981,7 @@
     }
 
     <span class="doccomment">/// Create the `Ordinary` object data
+    </span><span class="attribute">#[must_use]
     </span><span class="kw">pub fn </span>ordinary() -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             kind: ObjectKind::Ordinary,
@@ -2783,6 +3004,7 @@
     }
 
     <span class="doccomment">/// Create the `Date` object data
+    </span><span class="attribute">#[must_use]
     </span><span class="kw">pub fn </span>date(date: Date) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             kind: ObjectKind::Date(date),
@@ -2791,6 +3013,7 @@
     }
 
     <span class="doccomment">/// Create the `Global` object data
+    </span><span class="attribute">#[must_use]
     </span><span class="kw">pub fn </span>global() -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             kind: ObjectKind::Global,
@@ -2819,6 +3042,7 @@
     }
 
     <span class="doccomment">/// Create the `NativeObject` object data
+    </span><span class="attribute">#[must_use]
     </span><span class="kw">pub fn </span>native_object(native_object: Box&lt;<span class="kw">dyn </span>NativeObject&gt;) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             kind: ObjectKind::NativeObject(native_object),
@@ -2836,6 +3060,7 @@
 
     <span class="doccomment">/// Create the `DateTimeFormat` object data
     </span><span class="attribute">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
+    #[must_use]
     </span><span class="kw">pub fn </span>date_time_format(date_time_fmt: Box&lt;DateTimeFormat&gt;) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             kind: ObjectKind::DateTimeFormat(date_time_fmt),
@@ -2911,14 +3136,15 @@
 }
 
 <span class="kw">impl </span>Object {
-    <span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>kind(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>ObjectKind {
+    <span class="doccomment">/// Returns the kind of the object.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub const fn </span>kind(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>ObjectKind {
         <span class="kw-2">&amp;</span><span class="self">self</span>.data.kind
     }
 
     <span class="doccomment">/// Checks if it&#39;s an `AsyncFromSyncIterator` object.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>is_async_from_sync_iterator(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+    </span><span class="kw">pub const fn </span>is_async_from_sync_iterator(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="macro">matches!</span>(
             <span class="self">self</span>.data,
             ObjectData {
@@ -2930,7 +3156,7 @@
 
     <span class="doccomment">/// Returns a reference to the `AsyncFromSyncIterator` data on the object.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>as_async_from_sync_iterator(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>AsyncFromSyncIterator&gt; {
+    </span><span class="kw">pub const fn </span>as_async_from_sync_iterator(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>AsyncFromSyncIterator&gt; {
         <span class="kw">match </span><span class="self">self</span>.data {
             ObjectData {
                 kind: ObjectKind::AsyncFromSyncIterator(<span class="kw-2">ref </span>async_from_sync_iterator),
@@ -2942,7 +3168,7 @@
 
     <span class="doccomment">/// Checks if it&#39;s an `AsyncGenerator` object.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>is_async_generator(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+    </span><span class="kw">pub const fn </span>is_async_generator(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="macro">matches!</span>(
             <span class="self">self</span>.data,
             ObjectData {
@@ -2954,7 +3180,7 @@
 
     <span class="doccomment">/// Returns a reference to the async generator data on the object.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>as_async_generator(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>AsyncGenerator&gt; {
+    </span><span class="kw">pub const fn </span>as_async_generator(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>AsyncGenerator&gt; {
         <span class="kw">match </span><span class="self">self</span>.data {
             ObjectData {
                 kind: ObjectKind::AsyncGenerator(<span class="kw-2">ref </span>async_generator),
@@ -2976,9 +3202,9 @@
         }
     }
 
-    <span class="doccomment">/// Checks if it an `Array` object.
+    <span class="doccomment">/// Checks if the object is a `Array` object.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>is_array(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+    </span><span class="kw">pub const fn </span>is_array(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="macro">matches!</span>(
             <span class="self">self</span>.data,
             ObjectData {
@@ -2988,37 +3214,14 @@
         )
     }
 
-    <span class="doccomment">/// Checks if it is an `ArrayIterator` object.
-    </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>is_array_iterator(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-        <span class="macro">matches!</span>(
-            <span class="self">self</span>.data,
-            ObjectData {
-                kind: ObjectKind::ArrayIterator(<span class="kw">_</span>),
-                ..
-            }
-        )
-    }
-
     <span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>as_array_iterator(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>ArrayIterator&gt; {
-        <span class="kw">match </span><span class="self">self</span>.data {
-            ObjectData {
-                kind: ObjectKind::ArrayIterator(<span class="kw-2">ref </span>iter),
-                ..
-            } =&gt; <span class="prelude-val">Some</span>(iter),
-            <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
-        }
-    }
-
-    <span class="attribute">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>has_viewed_array_buffer(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>has_viewed_array_buffer(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.is_typed_array() || <span class="self">self</span>.is_data_view()
     }
 
-    <span class="doccomment">/// Checks if it an `DataView` object.
+    <span class="doccomment">/// Checks if the object is a `DataView` object.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>is_data_view(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+    </span><span class="kw">pub const fn </span>is_data_view(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="macro">matches!</span>(
             <span class="self">self</span>.data,
             ObjectData {
@@ -3028,9 +3231,9 @@
         )
     }
 
-    <span class="doccomment">/// Checks if it an `ArrayBuffer` object.
+    <span class="doccomment">/// Checks if the object is a `ArrayBuffer` object.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>is_array_buffer(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+    </span><span class="kw">pub const fn </span>is_array_buffer(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="macro">matches!</span>(
             <span class="self">self</span>.data,
             ObjectData {
@@ -3040,8 +3243,9 @@
         )
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>as_array_buffer(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>ArrayBuffer&gt; {
+    <span class="doccomment">/// Gets the array buffer data if the object is a `ArrayBuffer`.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub const fn </span>as_array_buffer(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>ArrayBuffer&gt; {
         <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.data {
             ObjectData {
                 kind: ObjectKind::ArrayBuffer(buffer),
@@ -3051,7 +3255,8 @@
         }
     }
 
-    <span class="attribute">#[inline]
+    <span class="doccomment">/// Gets the mutable array buffer data if the object is a `ArrayBuffer`.
+    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>as_array_buffer_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>ArrayBuffer&gt; {
         <span class="kw">match </span><span class="kw-2">&amp;mut </span><span class="self">self</span>.data {
             ObjectData {
@@ -3062,7 +3267,32 @@
         }
     }
 
-    <span class="attribute">#[inline]
+    <span class="doccomment">/// Checks if the object is a `ArrayIterator` object.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub const fn </span>is_array_iterator(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="macro">matches!</span>(
+            <span class="self">self</span>.data,
+            ObjectData {
+                kind: ObjectKind::ArrayIterator(<span class="kw">_</span>),
+                ..
+            }
+        )
+    }
+
+    <span class="doccomment">/// Gets the array-iterator data if the object is a `ArrayIterator`.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub const fn </span>as_array_iterator(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>ArrayIterator&gt; {
+        <span class="kw">match </span><span class="self">self</span>.data {
+            ObjectData {
+                kind: ObjectKind::ArrayIterator(<span class="kw-2">ref </span>iter),
+                ..
+            } =&gt; <span class="prelude-val">Some</span>(iter),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
+        }
+    }
+
+    <span class="doccomment">/// Gets the mutable array-iterator data if the object is a `ArrayIterator`.
+    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>as_array_iterator_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>ArrayIterator&gt; {
         <span class="kw">match </span><span class="kw-2">&amp;mut </span><span class="self">self</span>.data {
             ObjectData {
@@ -3073,7 +3303,8 @@
         }
     }
 
-    <span class="attribute">#[inline]
+    <span class="doccomment">/// Gets the mutable string-iterator data if the object is a `StringIterator`.
+    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>as_string_iterator_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>StringIterator&gt; {
         <span class="kw">match </span><span class="kw-2">&amp;mut </span><span class="self">self</span>.data {
             ObjectData {
@@ -3084,7 +3315,8 @@
         }
     }
 
-    <span class="attribute">#[inline]
+    <span class="doccomment">/// Gets the mutable regexp-string-iterator data if the object is a `RegExpStringIterator`.
+    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>as_regexp_string_iterator_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>RegExpStringIterator&gt; {
         <span class="kw">match </span><span class="kw-2">&amp;mut </span><span class="self">self</span>.data {
             ObjectData {
@@ -3095,8 +3327,9 @@
         }
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>as_for_in_iterator(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>ForInIterator&gt; {
+    <span class="doccomment">/// Gets the for-in-iterator data if the object is a `ForInIterator`.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub const fn </span>as_for_in_iterator(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>ForInIterator&gt; {
         <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.data {
             ObjectData {
                 kind: ObjectKind::ForInIterator(iter),
@@ -3106,7 +3339,8 @@
         }
     }
 
-    <span class="attribute">#[inline]
+    <span class="doccomment">/// Gets the mutable for-in-iterator data if the object is a `ForInIterator`.
+    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>as_for_in_iterator_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>ForInIterator&gt; {
         <span class="kw">match </span><span class="kw-2">&amp;mut </span><span class="self">self</span>.data {
             ObjectData {
@@ -3117,9 +3351,9 @@
         }
     }
 
-    <span class="doccomment">/// Checks if it is a `Map` object.pub
+    <span class="doccomment">/// Checks if the object is a `Map` object.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>is_map(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+    </span><span class="kw">pub const fn </span>is_map(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="macro">matches!</span>(
             <span class="self">self</span>.data,
             ObjectData {
@@ -3129,8 +3363,9 @@
         )
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>as_map_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>OrderedMap&lt;JsValue&gt;&gt; {
+    <span class="doccomment">/// Gets the map data if the object is a `Map`.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub const fn </span>as_map(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>OrderedMap&lt;JsValue&gt;&gt; {
         <span class="kw">match </span><span class="self">self</span>.data {
             ObjectData {
                 kind: ObjectKind::Map(<span class="kw-2">ref </span>map),
@@ -3140,7 +3375,8 @@
         }
     }
 
-    <span class="attribute">#[inline]
+    <span class="doccomment">/// Gets the mutable map data if the object is a `Map`.
+    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>as_map_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>OrderedMap&lt;JsValue&gt;&gt; {
         <span class="kw">match </span><span class="kw-2">&amp;mut </span><span class="self">self</span>.data {
             ObjectData {
@@ -3151,8 +3387,9 @@
         }
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>is_map_iterator(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+    <span class="doccomment">/// Checks if the object is a `MapIterator` object.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub const fn </span>is_map_iterator(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="macro">matches!</span>(
             <span class="self">self</span>.data,
             ObjectData {
@@ -3162,8 +3399,9 @@
         )
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>as_map_iterator_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>MapIterator&gt; {
+    <span class="doccomment">/// Gets the map iterator data if the object is a `MapIterator`.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub const fn </span>as_map_iterator_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>MapIterator&gt; {
         <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.data {
             ObjectData {
                 kind: ObjectKind::MapIterator(iter),
@@ -3173,7 +3411,8 @@
         }
     }
 
-    <span class="attribute">#[inline]
+    <span class="doccomment">/// Gets the mutable map iterator data if the object is a `MapIterator`.
+    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>as_map_iterator_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>MapIterator&gt; {
         <span class="kw">match </span><span class="kw-2">&amp;mut </span><span class="self">self</span>.data {
             ObjectData {
@@ -3184,8 +3423,9 @@
         }
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>is_set(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+    <span class="doccomment">/// Checks if the object is a `Set` object.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub const fn </span>is_set(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="macro">matches!</span>(
             <span class="self">self</span>.data,
             ObjectData {
@@ -3195,20 +3435,9 @@
         )
     }
 
-    <span class="doccomment">/// Checks if it is an `SetIterator` object.
+    <span class="doccomment">/// Gets the set data if the object is a `Set`.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>is_set_iterator(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-        <span class="macro">matches!</span>(
-            <span class="self">self</span>.data,
-            ObjectData {
-                kind: ObjectKind::SetIterator(<span class="kw">_</span>),
-                ..
-            }
-        )
-    }
-
-    <span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>as_set_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>OrderedSet&lt;JsValue&gt;&gt; {
+    </span><span class="kw">pub const fn </span>as_set(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>OrderedSet&lt;JsValue&gt;&gt; {
         <span class="kw">match </span><span class="self">self</span>.data {
             ObjectData {
                 kind: ObjectKind::Set(<span class="kw-2">ref </span>set),
@@ -3218,7 +3447,8 @@
         }
     }
 
-    <span class="attribute">#[inline]
+    <span class="doccomment">/// Gets the mutable set data if the object is a `Set`.
+    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>as_set_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>OrderedSet&lt;JsValue&gt;&gt; {
         <span class="kw">match </span><span class="kw-2">&amp;mut </span><span class="self">self</span>.data {
             ObjectData {
@@ -3229,7 +3459,20 @@
         }
     }
 
-    <span class="attribute">#[inline]
+    <span class="doccomment">/// Checks if the object is a `SetIterator` object.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub const fn </span>is_set_iterator(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="macro">matches!</span>(
+            <span class="self">self</span>.data,
+            ObjectData {
+                kind: ObjectKind::SetIterator(<span class="kw">_</span>),
+                ..
+            }
+        )
+    }
+
+    <span class="doccomment">/// Gets the mutable set iterator data if the object is a `SetIterator`.
+    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>as_set_iterator_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>SetIterator&gt; {
         <span class="kw">match </span><span class="kw-2">&amp;mut </span><span class="self">self</span>.data {
             ObjectData {
@@ -3240,9 +3483,9 @@
         }
     }
 
-    <span class="doccomment">/// Checks if it a `String` object.
+    <span class="doccomment">/// Checks if the object is a `String` object.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>is_string(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+    </span><span class="kw">pub const fn </span>is_string(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="macro">matches!</span>(
             <span class="self">self</span>.data,
             ObjectData {
@@ -3252,7 +3495,8 @@
         )
     }
 
-    <span class="attribute">#[inline]
+    <span class="doccomment">/// Gets the string data if the object is a `String`.
+    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>as_string(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;JsString&gt; {
         <span class="kw">match </span><span class="self">self</span>.data {
             ObjectData {
@@ -3263,9 +3507,9 @@
         }
     }
 
-    <span class="doccomment">/// Checks if it a `Function` object.
+    <span class="doccomment">/// Checks if the object is a `Function` object.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>is_function(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+    </span><span class="kw">pub const fn </span>is_function(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="macro">matches!</span>(
             <span class="self">self</span>.data,
             ObjectData {
@@ -3275,8 +3519,9 @@
         )
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>as_function(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Function&gt; {
+    <span class="doccomment">/// Gets the function data if the object is a `Function`.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub const fn </span>as_function(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Function&gt; {
         <span class="kw">match </span><span class="self">self</span>.data {
             ObjectData {
                 kind:
@@ -3287,7 +3532,8 @@
         }
     }
 
-    <span class="attribute">#[inline]
+    <span class="doccomment">/// Gets the mutable function data if the object is a `Function`.
+    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>as_function_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>Function&gt; {
         <span class="kw">match </span><span class="self">self</span>.data {
             ObjectData {
@@ -3300,8 +3546,9 @@
         }
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>as_bound_function(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>BoundFunction&gt; {
+    <span class="doccomment">/// Gets the bound function data if the object is a `BoundFunction`.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub const fn </span>as_bound_function(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>BoundFunction&gt; {
         <span class="kw">match </span><span class="self">self</span>.data {
             ObjectData {
                 kind: ObjectKind::BoundFunction(<span class="kw-2">ref </span>bound_function),
@@ -3311,9 +3558,9 @@
         }
     }
 
-    <span class="doccomment">/// Checks if it&#39;s a `Generator` object.
+    <span class="doccomment">/// Checks if the object is a `Generator` object.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>is_generator(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+    </span><span class="kw">pub const fn </span>is_generator(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="macro">matches!</span>(
             <span class="self">self</span>.data,
             ObjectData {
@@ -3323,9 +3570,9 @@
         )
     }
 
-    <span class="doccomment">/// Returns a reference to the generator data on the object.
+    <span class="doccomment">/// Gets the generator data if the object is a `Generator`.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>as_generator(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Generator&gt; {
+    </span><span class="kw">pub const fn </span>as_generator(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Generator&gt; {
         <span class="kw">match </span><span class="self">self</span>.data {
             ObjectData {
                 kind: ObjectKind::Generator(<span class="kw-2">ref </span>generator),
@@ -3335,7 +3582,7 @@
         }
     }
 
-    <span class="doccomment">/// Returns a mutable reference to the generator data on the object.
+    <span class="doccomment">/// Gets the mutable generator data if the object is a `Generator`.
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>as_generator_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>Generator&gt; {
         <span class="kw">match </span><span class="self">self</span>.data {
@@ -3347,9 +3594,9 @@
         }
     }
 
-    <span class="doccomment">/// Checks if it a Symbol object.
+    <span class="doccomment">/// Checks if the object is a `Symbol` object.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>is_symbol(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+    </span><span class="kw">pub const fn </span>is_symbol(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="macro">matches!</span>(
             <span class="self">self</span>.data,
             ObjectData {
@@ -3359,7 +3606,8 @@
         )
     }
 
-    <span class="attribute">#[inline]
+    <span class="doccomment">/// Gets the error data if the object is a `Symbol`.
+    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>as_symbol(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;JsSymbol&gt; {
         <span class="kw">match </span><span class="self">self</span>.data {
             ObjectData {
@@ -3370,9 +3618,9 @@
         }
     }
 
-    <span class="doccomment">/// Checks if it an Error object.
+    <span class="doccomment">/// Checks if the object is a `Error` object.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>is_error(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+    </span><span class="kw">pub const fn </span>is_error(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="macro">matches!</span>(
             <span class="self">self</span>.data,
             ObjectData {
@@ -3382,8 +3630,9 @@
         )
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>as_error(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;ErrorKind&gt; {
+    <span class="doccomment">/// Gets the error data if the object is a `Error`.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub const fn </span>as_error(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;ErrorKind&gt; {
         <span class="kw">match </span><span class="self">self</span>.data {
             ObjectData {
                 kind: ObjectKind::Error(e),
@@ -3393,9 +3642,9 @@
         }
     }
 
-    <span class="doccomment">/// Checks if it a Boolean object.
+    <span class="doccomment">/// Checks if the object is a `Boolean` object.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>is_boolean(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+    </span><span class="kw">pub const fn </span>is_boolean(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="macro">matches!</span>(
             <span class="self">self</span>.data,
             ObjectData {
@@ -3405,8 +3654,9 @@
         )
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>as_boolean(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;bool&gt; {
+    <span class="doccomment">/// Gets the boolean data if the object is a `Boolean`.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub const fn </span>as_boolean(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;bool&gt; {
         <span class="kw">match </span><span class="self">self</span>.data {
             ObjectData {
                 kind: ObjectKind::Boolean(boolean),
@@ -3416,9 +3666,9 @@
         }
     }
 
-    <span class="doccomment">/// Checks if it a `Number` object.
+    <span class="doccomment">/// Checks if the object is a `Number` object.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>is_number(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+    </span><span class="kw">pub const fn </span>is_number(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="macro">matches!</span>(
             <span class="self">self</span>.data,
             ObjectData {
@@ -3428,8 +3678,9 @@
         )
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>as_number(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;f64&gt; {
+    <span class="doccomment">/// Gets the number data if the object is a `Number`.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub const fn </span>as_number(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;f64&gt; {
         <span class="kw">match </span><span class="self">self</span>.data {
             ObjectData {
                 kind: ObjectKind::Number(number),
@@ -3439,9 +3690,9 @@
         }
     }
 
-    <span class="doccomment">/// Checks if it a `BigInt` object.
+    <span class="doccomment">/// Checks if the object is a `BigInt` object.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>is_bigint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+    </span><span class="kw">pub const fn </span>is_bigint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="macro">matches!</span>(
             <span class="self">self</span>.data,
             ObjectData {
@@ -3451,8 +3702,9 @@
         )
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>as_bigint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>JsBigInt&gt; {
+    <span class="doccomment">/// Gets the bigint data if the object is a `BigInt`.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub const fn </span>as_bigint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>JsBigInt&gt; {
         <span class="kw">match </span><span class="self">self</span>.data {
             ObjectData {
                 kind: ObjectKind::BigInt(<span class="kw-2">ref </span>bigint),
@@ -3462,8 +3714,9 @@
         }
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>is_date(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+    <span class="doccomment">/// Checks if the object is a `Date` object.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub const fn </span>is_date(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="macro">matches!</span>(
             <span class="self">self</span>.data,
             ObjectData {
@@ -3473,8 +3726,9 @@
         )
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>as_date(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Date&gt; {
+    <span class="doccomment">/// Gets the date data if the object is a `Date`.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub const fn </span>as_date(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Date&gt; {
         <span class="kw">match </span><span class="self">self</span>.data {
             ObjectData {
                 kind: ObjectKind::Date(<span class="kw-2">ref </span>date),
@@ -3484,7 +3738,8 @@
         }
     }
 
-    <span class="attribute">#[inline]
+    <span class="doccomment">/// Gets the mutable date data if the object is a `Date`.
+    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>as_date_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>Date&gt; {
         <span class="kw">match </span><span class="self">self</span>.data {
             ObjectData {
@@ -3497,7 +3752,7 @@
 
     <span class="doccomment">/// Checks if it a `RegExp` object.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>is_regexp(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+    </span><span class="kw">pub const fn </span>is_regexp(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="macro">matches!</span>(
             <span class="self">self</span>.data,
             ObjectData {
@@ -3509,7 +3764,7 @@
 
     <span class="doccomment">/// Gets the regexp data if the object is a regexp.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>as_regexp(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>RegExp&gt; {
+    </span><span class="kw">pub const fn </span>as_regexp(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>RegExp&gt; {
         <span class="kw">match </span><span class="self">self</span>.data {
             ObjectData {
                 kind: ObjectKind::RegExp(<span class="kw-2">ref </span>regexp),
@@ -3521,7 +3776,7 @@
 
     <span class="doccomment">/// Checks if it a `TypedArray` object.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>is_typed_array(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+    </span><span class="kw">pub const fn </span>is_typed_array(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="macro">matches!</span>(
             <span class="self">self</span>.data,
             ObjectData {
@@ -3531,8 +3786,9 @@
         )
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>as_data_view(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>DataView&gt; {
+    <span class="doccomment">/// Gets the data view data if the object is a `DataView`.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub const fn </span>as_data_view(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>DataView&gt; {
         <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.data {
             ObjectData {
                 kind: ObjectKind::DataView(data_view),
@@ -3542,7 +3798,8 @@
         }
     }
 
-    <span class="attribute">#[inline]
+    <span class="doccomment">/// Gets the mutable data view data if the object is a `DataView`.
+    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>as_data_view_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>DataView&gt; {
         <span class="kw">match </span><span class="kw-2">&amp;mut </span><span class="self">self</span>.data {
             ObjectData {
@@ -3555,7 +3812,7 @@
 
     <span class="doccomment">/// Checks if it is an `Arguments` object.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>is_arguments(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+    </span><span class="kw">pub const fn </span>is_arguments(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="macro">matches!</span>(
             <span class="self">self</span>.data,
             ObjectData {
@@ -3567,7 +3824,7 @@
 
     <span class="doccomment">/// Gets the mapped arguments data if this is a mapped arguments object.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>as_mapped_arguments(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>ParameterMap&gt; {
+    </span><span class="kw">pub const fn </span>as_mapped_arguments(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>ParameterMap&gt; {
         <span class="kw">match </span><span class="self">self</span>.data {
             ObjectData {
                 kind: ObjectKind::Arguments(Arguments::Mapped(<span class="kw-2">ref </span>args)),
@@ -3591,7 +3848,7 @@
 
     <span class="doccomment">/// Gets the typed array data (integer indexed object) if this is a typed array.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>as_typed_array(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>IntegerIndexed&gt; {
+    </span><span class="kw">pub const fn </span>as_typed_array(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>IntegerIndexed&gt; {
         <span class="kw">match </span><span class="self">self</span>.data {
             ObjectData {
                 kind: ObjectKind::IntegerIndexed(<span class="kw-2">ref </span>integer_indexed_object),
@@ -3615,7 +3872,7 @@
 
     <span class="doccomment">/// Checks if it an ordinary object.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>is_ordinary(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+    </span><span class="kw">pub const fn </span>is_ordinary(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="macro">matches!</span>(
             <span class="self">self</span>.data,
             ObjectData {
@@ -3627,7 +3884,7 @@
 
     <span class="doccomment">/// Checks if it&#39;s an proxy object.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>is_proxy(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+    </span><span class="kw">pub const fn </span>is_proxy(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="macro">matches!</span>(
             <span class="self">self</span>.data,
             ObjectData {
@@ -3637,8 +3894,9 @@
         )
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>as_proxy(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Proxy&gt; {
+    <span class="doccomment">/// Gets the proxy data if the object is a `Proxy`.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub const fn </span>as_proxy(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Proxy&gt; {
         <span class="kw">match </span><span class="self">self</span>.data {
             ObjectData {
                 kind: ObjectKind::Proxy(<span class="kw-2">ref </span>proxy),
@@ -3648,7 +3906,8 @@
         }
     }
 
-    <span class="attribute">#[inline]
+    <span class="doccomment">/// Gets the mutable proxy data if the object is a `Proxy`.
+    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>as_proxy_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>Proxy&gt; {
         <span class="kw">match </span><span class="self">self</span>.data {
             ObjectData {
@@ -3661,7 +3920,7 @@
 
     <span class="doccomment">/// Gets the prototype instance of this object.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>prototype(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>JsPrototype {
+    </span><span class="kw">pub const fn </span>prototype(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>JsPrototype {
         <span class="kw-2">&amp;</span><span class="self">self</span>.prototype
     }
 
@@ -3686,7 +3945,7 @@
 
     <span class="doccomment">/// Returns `true` if it holds an Rust type that implements `NativeObject`.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>is_native_object(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+    </span><span class="kw">pub const fn </span>is_native_object(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="macro">matches!</span>(
             <span class="self">self</span>.data,
             ObjectData {
@@ -3696,7 +3955,8 @@
         )
     }
 
-    <span class="attribute">#[inline]
+    <span class="doccomment">/// Gets the native object data if the object is a `NativeObject`.
+    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>as_native_object(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="kw">dyn </span>NativeObject&gt; {
         <span class="kw">match </span><span class="self">self</span>.data {
             ObjectData {
@@ -3709,7 +3969,7 @@
 
     <span class="doccomment">/// Checks if it is a `Promise` object.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>is_promise(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+    </span><span class="kw">pub const fn </span>is_promise(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="macro">matches!</span>(
             <span class="self">self</span>.data,
             ObjectData {
@@ -3719,9 +3979,9 @@
         )
     }
 
-    <span class="doccomment">/// Gets the promise data if the object is a promise.
+    <span class="doccomment">/// Gets the promise data if the object is a `Promise`.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>as_promise(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Promise&gt; {
+    </span><span class="kw">pub const fn </span>as_promise(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Promise&gt; {
         <span class="kw">match </span><span class="self">self</span>.data {
             ObjectData {
                 kind: ObjectKind::Promise(<span class="kw-2">ref </span>promise),
@@ -3731,7 +3991,8 @@
         }
     }
 
-    <span class="attribute">#[inline]
+    <span class="doccomment">/// Gets the mutable promise data if the object is a `Promise`.
+    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>as_promise_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>Promise&gt; {
         <span class="kw">match </span><span class="self">self</span>.data {
             ObjectData {
@@ -3744,7 +4005,7 @@
 
     <span class="doccomment">/// Gets the `WeakRef`data if the object is a `WeakRef`.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>as_weak_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>WeakGc&lt;GcCell&lt;Object&gt;&gt;&gt; {
+    </span><span class="kw">pub const fn </span>as_weak_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>WeakGc&lt;GcCell&lt;<span class="self">Self</span>&gt;&gt;&gt; {
         <span class="kw">match </span><span class="self">self</span>.data {
             ObjectData {
                 kind: ObjectKind::WeakRef(<span class="kw-2">ref </span>weak_ref),
@@ -3801,8 +4062,9 @@
         }
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>properties(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>PropertyMap {
+    <span class="doccomment">/// Returns the properties of the object.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub const fn </span>properties(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>PropertyMap {
         <span class="kw-2">&amp;</span><span class="self">self</span>.properties
     }
 
@@ -4051,7 +4313,7 @@
     /// The default is `0`.
     </span><span class="attribute">#[inline]
     #[must_use]
-    </span><span class="kw">pub fn </span>length(<span class="kw-2">mut </span><span class="self">self</span>, length: usize) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub const fn </span>length(<span class="kw-2">mut </span><span class="self">self</span>, length: usize) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.length = length;
         <span class="self">self
     </span>}

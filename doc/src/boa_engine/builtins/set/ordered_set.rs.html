@@ -143,7 +143,19 @@
 <span id="141">141</span>
 <span id="142">142</span>
 <span id="143">143</span>
-</pre><pre class="rust"><code><span class="kw">use </span>boa_gc::{custom_trace, Finalize, Trace};
+<span id="144">144</span>
+<span id="145">145</span>
+<span id="146">146</span>
+<span id="147">147</span>
+<span id="148">148</span>
+<span id="149">149</span>
+<span id="150">150</span>
+<span id="151">151</span>
+<span id="152">152</span>
+<span id="153">153</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Implements a set type that preserves insertion order.
+
+</span><span class="kw">use </span>boa_gc::{custom_trace, Finalize, Trace};
 <span class="kw">use </span>indexmap::{
     set::{IntoIter, Iter},
     IndexSet,
@@ -188,13 +200,17 @@
 <span class="kw">where
     </span>V: Hash + Eq,
 {
-    <span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
+    <span class="doccomment">/// Creates a new empty `OrderedSet`.
+    </span><span class="attribute">#[must_use]
+    </span><span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             inner: IndexSet::new(),
         }
     }
 
-    <span class="kw">pub fn </span>with_capacity(capacity: usize) -&gt; <span class="self">Self </span>{
+    <span class="doccomment">/// Creates a new empty `OrderedSet` with the specified capacity.
+    </span><span class="attribute">#[must_use]
+    </span><span class="kw">pub fn </span>with_capacity(capacity: usize) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             inner: IndexSet::with_capacity(capacity),
         }
@@ -203,6 +219,7 @@
     <span class="doccomment">/// Return the number of key-value pairs in the map.
     ///
     /// Computes in **O(1)** time.
+    </span><span class="attribute">#[must_use]
     </span><span class="kw">pub fn </span>size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
         <span class="self">self</span>.inner.len()
     }
@@ -210,6 +227,7 @@
     <span class="doccomment">/// Returns true if the map contains no elements.
     ///
     /// Computes in **O(1)** time.
+    </span><span class="attribute">#[must_use]
     </span><span class="kw">pub fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.inner.len() == <span class="number">0
     </span>}
@@ -253,11 +271,13 @@
     <span class="doccomment">/// Get a key-value pair by index
     /// Valid indices are 0 &lt;= index &lt; self.len()
     /// Computes in O(1) time.
+    </span><span class="attribute">#[must_use]
     </span><span class="kw">pub fn </span>get_index(<span class="kw-2">&amp;</span><span class="self">self</span>, index: usize) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>V&gt; {
         <span class="self">self</span>.inner.get_index(index)
     }
 
     <span class="doccomment">/// Return an iterator over the values of the set, in their order
+    </span><span class="attribute">#[must_use]
     </span><span class="kw">pub fn </span>iter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Iter&lt;<span class="lifetime">&#39;_</span>, V&gt; {
         <span class="self">self</span>.inner.iter()
     }

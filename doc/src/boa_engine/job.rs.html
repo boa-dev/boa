@@ -58,7 +58,15 @@
 <span id="56">56</span>
 <span id="57">57</span>
 <span id="58">58</span>
-</pre><pre class="rust"><code><span class="kw">use crate</span>::{prelude::JsObject, Context, JsResult, JsValue};
+<span id="59">59</span>
+<span id="60">60</span>
+<span id="61">61</span>
+<span id="62">62</span>
+<span id="63">63</span>
+<span id="64">64</span>
+</pre><pre class="rust"><code><span class="doccomment">//! This module contains the data structures for the microtask job queue.
+
+</span><span class="kw">use crate</span>::{prelude::JsObject, Context, JsResult, JsValue};
 <span class="kw">use </span>boa_gc::{Finalize, Trace};
 
 <span class="doccomment">/// `JobCallback` records
@@ -98,6 +106,10 @@
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-hostcalljobcallback
+    ///
+    /// # Panics
+    ///
+    /// Panics if the `JobCallback` is not callable.
     </span><span class="kw">pub fn </span>call_job_callback(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         v: <span class="kw-2">&amp;</span>JsValue,

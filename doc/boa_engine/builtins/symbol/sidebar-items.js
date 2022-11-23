@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"constant":[["GLOBAL_SYMBOL_REGISTRY",""]],"struct":[["GlobalSymbolRegistry",""],["Symbol",""]]};
+window.SIDEBAR_ITEMS = {"constant":[["GLOBAL_SYMBOL_REGISTRY",""]],"struct":[["GlobalSymbolRegistry",""],["Symbol","The internal representation of a `Symbol` object."]]};

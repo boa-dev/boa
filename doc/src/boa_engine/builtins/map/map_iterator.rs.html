@@ -148,7 +148,21 @@
 <span id="146">146</span>
 <span id="147">147</span>
 <span id="148">148</span>
-</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">super</span>::ordered_map::MapLock;
+<span id="149">149</span>
+<span id="150">150</span>
+<span id="151">151</span>
+<span id="152">152</span>
+<span id="153">153</span>
+<span id="154">154</span>
+<span id="155">155</span>
+</pre><pre class="rust"><code><span class="doccomment">//! This module implements the `MapIterator` object.
+//!
+//! More information:
+//!  - [ECMAScript reference][spec]
+//!
+//! [spec]: https://tc39.es/ecma262/#sec-map-iterator-objects
+
+</span><span class="kw">use </span><span class="kw">super</span>::ordered_map::MapLock;
 <span class="kw">use crate</span>::{
     builtins::{function::make_builtin_fn, iterable::create_iter_result_object, Array, JsValue},
     error::JsNativeError,
@@ -165,7 +179,7 @@
 /// More information:
 ///  - [ECMAScript reference][spec]
 ///
-/// [spec]: https://tc39.es/ecma262/#sec-array-iterator-objects
+/// [spec]: https://tc39.es/ecma262/#sec-map-iterator-objects
 </span><span class="attribute">#[derive(Debug, Clone, Finalize, Trace)]
 </span><span class="kw">pub struct </span>MapIterator {
     iterated_map: <span class="prelude-ty">Option</span>&lt;JsObject&gt;,
@@ -236,7 +250,7 @@
         <span class="kw">if let </span><span class="prelude-val">Some</span>(obj) = map_iterator.iterated_map.take() {
             <span class="kw">let </span>e = {
                 <span class="kw">let </span>map = obj.borrow();
-                <span class="kw">let </span>entries = map.as_map_ref().expect(<span class="string">&quot;iterator should only iterate maps&quot;</span>);
+                <span class="kw">let </span>entries = map.as_map().expect(<span class="string">&quot;iterator should only iterate maps&quot;</span>);
                 <span class="kw">let </span>len = entries.full_len();
                 <span class="kw">loop </span>{
                     <span class="kw">let </span>element = entries

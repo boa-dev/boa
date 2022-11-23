@@ -789,6 +789,36 @@
 <span id="787">787</span>
 <span id="788">788</span>
 <span id="789">789</span>
+<span id="790">790</span>
+<span id="791">791</span>
+<span id="792">792</span>
+<span id="793">793</span>
+<span id="794">794</span>
+<span id="795">795</span>
+<span id="796">796</span>
+<span id="797">797</span>
+<span id="798">798</span>
+<span id="799">799</span>
+<span id="800">800</span>
+<span id="801">801</span>
+<span id="802">802</span>
+<span id="803">803</span>
+<span id="804">804</span>
+<span id="805">805</span>
+<span id="806">806</span>
+<span id="807">807</span>
+<span id="808">808</span>
+<span id="809">809</span>
+<span id="810">810</span>
+<span id="811">811</span>
+<span id="812">812</span>
+<span id="813">813</span>
+<span id="814">814</span>
+<span id="815">815</span>
+<span id="816">816</span>
+<span id="817">817</span>
+<span id="818">818</span>
+<span id="819">819</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Error-related types and conversions.
 
 </span><span class="kw">use crate</span>::{
@@ -857,18 +887,36 @@
 <span class="doccomment">/// The error type returned by the [`JsError::try_native`] method.
 </span><span class="attribute">#[derive(Debug, Clone, Error)]
 </span><span class="kw">pub enum </span>TryNativeError {
-    <span class="attribute">#[error(<span class="string">&quot;invalid type of property `{0}`&quot;</span>)]
+    <span class="doccomment">/// This error is returned when a property of the error object has an invalid type.
+    </span><span class="attribute">#[error(<span class="string">&quot;invalid type of property `{0}`&quot;</span>)]
     </span>InvalidPropertyType(<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str),
-    <span class="attribute">#[error(<span class="string">&quot;property `message` cannot contain unpaired surrogates&quot;</span>)]
+
+    <span class="doccomment">/// This error is returned when the message of the error object could not be decoded.
+    </span><span class="attribute">#[error(<span class="string">&quot;property `message` cannot contain unpaired surrogates&quot;</span>)]
     </span>InvalidMessageEncoding,
-    <span class="attribute">#[error(<span class="string">&quot;could not access property `{property}`&quot;</span>)]
+
+    <span class="doccomment">/// This error is returned when a property of the error object is not accessible.
+    </span><span class="attribute">#[error(<span class="string">&quot;could not access property `{property}`&quot;</span>)]
     </span>InaccessibleProperty {
-        property: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
-        source: JsError,
+        <span class="doccomment">/// The name of the property that could not be accessed.
+        </span>property: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+
+        <span class="doccomment">/// The source error.
+        </span>source: JsError,
     },
-    <span class="attribute">#[error(<span class="string">&quot;could not get element `{index}` of property `errors`&quot;</span>)]
-    </span>InvalidErrorsIndex { index: u64, source: JsError },
-    <span class="attribute">#[error(<span class="string">&quot;opaque error of type `{:?}` is not an Error object&quot;</span>, .<span class="number">0</span>.get_type())]
+
+    <span class="doccomment">/// This error is returned when any inner error of an aggregate error is not accessible.
+    </span><span class="attribute">#[error(<span class="string">&quot;could not get element `{index}` of property `errors`&quot;</span>)]
+    </span>InvalidErrorsIndex {
+        <span class="doccomment">/// The index of the error that could not be accessed.
+        </span>index: u64,
+
+        <span class="doccomment">/// The source error.
+        </span>source: JsError,
+    },
+
+    <span class="doccomment">/// This error is returned when the error value not an error object.
+    </span><span class="attribute">#[error(<span class="string">&quot;opaque error of type `{:?}` is not an Error object&quot;</span>, .<span class="number">0</span>.get_type())]
     </span>NotAnErrorObject(JsValue),
 }
 
@@ -892,7 +940,8 @@
     ///
     /// assert!(error.as_native().is_some());
     /// ```
-    </span><span class="kw">pub fn </span>from_native(err: JsNativeError) -&gt; <span class="self">Self </span>{
+    </span><span class="attribute">#[must_use]
+    </span><span class="kw">pub const fn </span>from_native(err: JsNativeError) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             inner: Repr::Native(err),
         }
@@ -908,7 +957,7 @@
     ///
     /// assert!(error.as_opaque().is_some());
     /// ```
-    </span><span class="kw">pub fn </span>from_opaque(value: JsValue) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub const fn </span>from_opaque(value: JsValue) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             inner: Repr::Opaque(value),
         }
@@ -1037,7 +1086,7 @@
                                     }
                                 })<span class="question-mark">?</span>;
                                 <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..length {
-                                    error_list.push(JsError::from_opaque(
+                                    error_list.push(<span class="self">Self</span>::from_opaque(
                                         errors.get(i, context).map_err(|e| {
                                             TryNativeError::InvalidErrorsIndex {
                                                 index: i,
@@ -1057,7 +1106,7 @@
                 <span class="prelude-val">Ok</span>(JsNativeError {
                     kind,
                     message,
-                    cause: cause.map(|v| Box::new(JsError::from_opaque(v))),
+                    cause: cause.map(|v| Box::new(<span class="self">Self</span>::from_opaque(v))),
                 })
             }
         }
@@ -1080,7 +1129,7 @@
     ///
     /// assert!(error.as_opaque().is_some());
     /// ```
-    </span><span class="kw">pub fn </span>as_opaque(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>JsValue&gt; {
+    </span><span class="kw">pub const fn </span>as_opaque(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>JsValue&gt; {
         <span class="kw">match </span><span class="self">self</span>.inner {
             Repr::Native(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
             Repr::Opaque(<span class="kw-2">ref </span>v) =&gt; <span class="prelude-val">Some</span>(v),
@@ -1102,7 +1151,7 @@
     ///
     /// assert!(error.as_native().is_none());
     /// ```
-    </span><span class="kw">pub fn </span>as_native(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>JsNativeError&gt; {
+    </span><span class="kw">pub const fn </span>as_native(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>JsNativeError&gt; {
         <span class="kw">match </span><span class="self">self</span>.inner {
             Repr::Native(<span class="kw-2">ref </span>e) =&gt; <span class="prelude-val">Some</span>(e),
             Repr::Opaque(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
@@ -1192,6 +1241,7 @@
     ///     JsNativeErrorKind::Aggregate(ref errors) if errors.len() == 2
     /// ));
     /// ```
+    </span><span class="attribute">#[must_use]
     </span><span class="kw">pub fn </span>aggregate(errors: Vec&lt;JsError&gt;) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::new(JsNativeErrorKind::Aggregate(errors), Box::default(), <span class="prelude-val">None</span>)
     }
@@ -1206,6 +1256,7 @@
     ///
     /// assert!(matches!(error.kind, JsNativeErrorKind::Error));
     /// ```
+    </span><span class="attribute">#[must_use]
     </span><span class="kw">pub fn </span>error() -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::new(JsNativeErrorKind::Error, Box::default(), <span class="prelude-val">None</span>)
     }
@@ -1220,6 +1271,7 @@
     ///
     /// assert!(matches!(error.kind, JsNativeErrorKind::Eval));
     /// ```
+    </span><span class="attribute">#[must_use]
     </span><span class="kw">pub fn </span>eval() -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::new(JsNativeErrorKind::Eval, Box::default(), <span class="prelude-val">None</span>)
     }
@@ -1234,6 +1286,7 @@
     ///
     /// assert!(matches!(error.kind, JsNativeErrorKind::Range));
     /// ```
+    </span><span class="attribute">#[must_use]
     </span><span class="kw">pub fn </span>range() -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::new(JsNativeErrorKind::Range, Box::default(), <span class="prelude-val">None</span>)
     }
@@ -1248,6 +1301,7 @@
     ///
     /// assert!(matches!(error.kind, JsNativeErrorKind::Reference));
     /// ```
+    </span><span class="attribute">#[must_use]
     </span><span class="kw">pub fn </span>reference() -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::new(JsNativeErrorKind::Reference, Box::default(), <span class="prelude-val">None</span>)
     }
@@ -1262,6 +1316,7 @@
     ///
     /// assert!(matches!(error.kind, JsNativeErrorKind::Syntax));
     /// ```
+    </span><span class="attribute">#[must_use]
     </span><span class="kw">pub fn </span>syntax() -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::new(JsNativeErrorKind::Syntax, Box::default(), <span class="prelude-val">None</span>)
     }
@@ -1276,6 +1331,7 @@
     ///
     /// assert!(matches!(error.kind, JsNativeErrorKind::Type));
     /// ```
+    </span><span class="attribute">#[must_use]
     </span><span class="kw">pub fn </span>typ() -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::new(JsNativeErrorKind::Type, Box::default(), <span class="prelude-val">None</span>)
     }
@@ -1290,6 +1346,7 @@
     ///
     /// assert!(matches!(error.kind, JsNativeErrorKind::Uri));
     /// ```
+    </span><span class="attribute">#[must_use]
     </span><span class="kw">pub fn </span>uri() -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::new(JsNativeErrorKind::Uri, Box::default(), <span class="prelude-val">None</span>)
     }
@@ -1297,6 +1354,7 @@
     <span class="doccomment">/// Creates a new `JsNativeError` that indicates that the context hit its execution limit. This
     /// is only used in a fuzzing context.
     </span><span class="attribute">#[cfg(feature = <span class="string">&quot;fuzz&quot;</span>)]
+    #[must_use]
     </span><span class="kw">pub fn </span>no_instructions_remain() -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::new(
             JsNativeErrorKind::NoInstructionsRemain,
@@ -1359,7 +1417,8 @@
     ///
     /// assert_eq!(error.message(), &quot;number too large&quot;);
     /// ```
-    </span><span class="kw">pub fn </span>message(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
+    </span><span class="attribute">#[must_use]
+    </span><span class="kw">pub const fn </span>message(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
         <span class="kw-2">&amp;</span><span class="self">self</span>.message
     }
 
@@ -1379,6 +1438,7 @@
     ///
     /// assert!(error.cause().unwrap().as_native().is_some());
     /// ```
+    </span><span class="attribute">#[must_use]
     </span><span class="kw">pub fn </span>cause(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>JsError&gt; {
         <span class="self">self</span>.cause.as_deref()
     }
@@ -1564,16 +1624,16 @@
 <span class="kw">impl </span>std::fmt::Display <span class="kw">for </span>JsNativeErrorKind {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
         <span class="kw">match </span><span class="self">self </span>{
-            JsNativeErrorKind::Aggregate(<span class="kw">_</span>) =&gt; <span class="string">&quot;AggregateError&quot;</span>,
-            JsNativeErrorKind::Error =&gt; <span class="string">&quot;Error&quot;</span>,
-            JsNativeErrorKind::Eval =&gt; <span class="string">&quot;EvalError&quot;</span>,
-            JsNativeErrorKind::Range =&gt; <span class="string">&quot;RangeError&quot;</span>,
-            JsNativeErrorKind::Reference =&gt; <span class="string">&quot;ReferenceError&quot;</span>,
-            JsNativeErrorKind::Syntax =&gt; <span class="string">&quot;SyntaxError&quot;</span>,
-            JsNativeErrorKind::Type =&gt; <span class="string">&quot;TypeError&quot;</span>,
-            JsNativeErrorKind::Uri =&gt; <span class="string">&quot;UriError&quot;</span>,
+            <span class="self">Self</span>::Aggregate(<span class="kw">_</span>) =&gt; <span class="string">&quot;AggregateError&quot;</span>,
+            <span class="self">Self</span>::Error =&gt; <span class="string">&quot;Error&quot;</span>,
+            <span class="self">Self</span>::Eval =&gt; <span class="string">&quot;EvalError&quot;</span>,
+            <span class="self">Self</span>::Range =&gt; <span class="string">&quot;RangeError&quot;</span>,
+            <span class="self">Self</span>::Reference =&gt; <span class="string">&quot;ReferenceError&quot;</span>,
+            <span class="self">Self</span>::Syntax =&gt; <span class="string">&quot;SyntaxError&quot;</span>,
+            <span class="self">Self</span>::Type =&gt; <span class="string">&quot;TypeError&quot;</span>,
+            <span class="self">Self</span>::Uri =&gt; <span class="string">&quot;UriError&quot;</span>,
             <span class="attribute">#[cfg(feature = <span class="string">&quot;fuzz&quot;</span>)]
-            </span>JsNativeErrorKind::NoInstructionsRemain =&gt; <span class="string">&quot;NoInstructionsRemain&quot;</span>,
+            </span><span class="self">Self</span>::NoInstructionsRemain =&gt; <span class="string">&quot;NoInstructionsRemain&quot;</span>,
         }
         .fmt(f)
     }

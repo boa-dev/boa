@@ -226,6 +226,7 @@
 <span id="224">224</span>
 <span id="225">225</span>
 <span id="226">226</span>
+<span id="227">227</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Builtins live here, such as Object, String, Math, etc.
 
 </span><span class="kw">pub mod </span>array;
@@ -433,7 +434,8 @@
     </span>init_builtin::&lt;console::Console&gt;(context);
 }
 
-<span class="kw">pub trait </span>JsArgs {
+<span class="doccomment">/// A utility trait to make working with function arguments easier.
+</span><span class="kw">pub trait </span>JsArgs {
     <span class="doccomment">/// Utility function to `get` a parameter from a `[JsValue]` or default to `JsValue::Undefined`
     /// if `get` returns `None`.
     ///

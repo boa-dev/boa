@@ -1690,15 +1690,6 @@
 <span id="1688">1688</span>
 <span id="1689">1689</span>
 <span id="1690">1690</span>
-<span id="1691">1691</span>
-<span id="1692">1692</span>
-<span id="1693">1693</span>
-<span id="1694">1694</span>
-<span id="1695">1695</span>
-<span id="1696">1696</span>
-<span id="1697">1697</span>
-<span id="1698">1698</span>
-<span id="1699">1699</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `RegExp` object.
 //!
 //! The `RegExp` object is used for matching text with a pattern.
@@ -1738,7 +1729,7 @@
 <span class="attribute">#[cfg(test)]
 </span><span class="kw">mod </span>tests;
 
-<span class="doccomment">/// The internal representation on a `RegExp` object.
+<span class="doccomment">/// The internal representation of a `RegExp` object.
 </span><span class="attribute">#[derive(Debug, Clone)]
 </span><span class="kw">pub struct </span>RegExp {
     <span class="doccomment">/// Regex matcher.
@@ -2316,42 +2307,42 @@
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let R be the this value.
         // 2. If Type(R) is not Object, throw a TypeError exception.
-        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(object) = this.as_object() {
-            <span class="kw">let </span>object = object.borrow();
+        </span><span class="kw">let </span>object = <span class="kw">if let </span><span class="prelude-val">Some</span>(object) = this.as_object() {
+            object
+        } <span class="kw">else </span>{
+            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
+                .with_message(<span class="string">&quot;RegExp.prototype.source method called on incompatible value&quot;</span>)
+                .into());
+        };
 
-            <span class="kw">match </span>object.as_regexp() {
-                <span class="comment">// 3. If R does not have an [[OriginalSource]] internal slot, then
-                </span><span class="prelude-val">None </span>=&gt; {
-                    <span class="comment">// a. If SameValue(R, %RegExp.prototype%) is true, return &quot;(?:)&quot;.
-                    // b. Otherwise, throw a TypeError exception.
-                    </span><span class="kw">if </span>JsValue::same_value(
-                        this,
-                        <span class="kw-2">&amp;</span>JsValue::new(context.intrinsics().constructors().regexp().prototype()),
-                    ) {
-                        <span class="prelude-val">Ok</span>(JsValue::new(<span class="string">&quot;(?:)&quot;</span>))
-                    } <span class="kw">else </span>{
-                        <span class="prelude-val">Err</span>(JsNativeError::typ()
-                            .with_message(
-                                <span class="string">&quot;RegExp.prototype.source method called on incompatible value&quot;</span>,
-                            )
-                            .into())
-                    }
-                }
-                <span class="comment">// 4. Assert: R has an [[OriginalFlags]] internal slot.
-                </span><span class="prelude-val">Some</span>(re) =&gt; {
-                    <span class="comment">// 5. Let src be R.[[OriginalSource]].
-                    // 6. Let flags be R.[[OriginalFlags]].
-                    // 7. Return EscapeRegExpPattern(src, flags).
-                    </span><span class="prelude-val">Ok</span>(<span class="self">Self</span>::escape_pattern(
-                        <span class="kw-2">&amp;</span>re.original_source,
-                        <span class="kw-2">&amp;</span>re.original_flags,
-                    ))
+        <span class="kw">let </span>object = object.borrow();
+
+        <span class="kw">match </span>object.as_regexp() {
+            <span class="comment">// 3. If R does not have an [[OriginalSource]] internal slot, then
+            </span><span class="prelude-val">None </span>=&gt; {
+                <span class="comment">// a. If SameValue(R, %RegExp.prototype%) is true, return &quot;(?:)&quot;.
+                // b. Otherwise, throw a TypeError exception.
+                </span><span class="kw">if </span>JsValue::same_value(
+                    this,
+                    <span class="kw-2">&amp;</span>JsValue::new(context.intrinsics().constructors().regexp().prototype()),
+                ) {
+                    <span class="prelude-val">Ok</span>(JsValue::new(<span class="string">&quot;(?:)&quot;</span>))
+                } <span class="kw">else </span>{
+                    <span class="prelude-val">Err</span>(JsNativeError::typ()
+                        .with_message(<span class="string">&quot;RegExp.prototype.source method called on incompatible value&quot;</span>)
+                        .into())
                 }
             }
-        } <span class="kw">else </span>{
-            <span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(<span class="string">&quot;RegExp.prototype.source method called on incompatible value&quot;</span>)
-                .into())
+            <span class="comment">// 4. Assert: R has an [[OriginalFlags]] internal slot.
+            </span><span class="prelude-val">Some</span>(re) =&gt; {
+                <span class="comment">// 5. Let src be R.[[OriginalSource]].
+                // 6. Let flags be R.[[OriginalFlags]].
+                // 7. Return EscapeRegExpPattern(src, flags).
+                </span><span class="prelude-val">Ok</span>(<span class="self">Self</span>::escape_pattern(
+                    <span class="kw-2">&amp;</span>re.original_source,
+                    <span class="kw-2">&amp;</span>re.original_flags,
+                ))
+            }
         }
     }
 
@@ -2453,11 +2444,8 @@
         </span><span class="kw">let </span>arg_str = args.get_or_undefined(<span class="number">0</span>).to_string(context)<span class="question-mark">?</span>;
 
         <span class="comment">// 4. Return ? RegExpBuiltinExec(R, S).
-        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(v) = <span class="self">Self</span>::abstract_builtin_exec(obj, <span class="kw-2">&amp;</span>arg_str, context)<span class="question-mark">? </span>{
-            <span class="prelude-val">Ok</span>(v.into())
-        } <span class="kw">else </span>{
-            <span class="prelude-val">Ok</span>(JsValue::null())
-        }
+        </span>(<span class="self">Self</span>::abstract_builtin_exec(obj, <span class="kw-2">&amp;</span>arg_str, context)<span class="question-mark">?</span>)
+            .map_or_else(|| <span class="prelude-val">Ok</span>(JsValue::null()), |v| <span class="prelude-val">Ok</span>(v.into()))
     }
 
     <span class="doccomment">/// `22.2.5.2.1 RegExpExec ( R, S )`
@@ -2711,14 +2699,13 @@
             <span class="comment">// a. Let captureI be ith element of r&#39;s captures List.
             </span><span class="kw">let </span>capture = match_value.group(i <span class="kw">as </span>usize);
 
-            <span class="kw">let </span>captured_value = <span class="kw">match </span>capture {
-                <span class="comment">// b. If captureI is undefined, let capturedValue be undefined.
-                </span><span class="prelude-val">None </span>=&gt; JsValue::undefined(),
-                <span class="comment">// c. Else if fullUnicode is true, then
-                // d. Else,
-                // TODO: Full UTF-16 regex support
-                </span><span class="prelude-val">Some</span>(range) =&gt; <span class="macro">js_string!</span>(<span class="kw-2">&amp;</span>lossy_input[range]).into(),
-            };
+            <span class="comment">// b. If captureI is undefined, let capturedValue be undefined.
+            // c. Else if fullUnicode is true, then
+            // d. Else,
+            // TODO: Full UTF-16 regex support
+            </span><span class="kw">let </span>captured_value = capture.map_or_else(JsValue::undefined, |range| {
+                <span class="macro">js_string!</span>(<span class="kw-2">&amp;</span>lossy_input[range]).into()
+            });
 
             <span class="comment">// e. Perform ! CreateDataPropertyOrThrow(A, ! ToString(𝔽(i)), capturedValue).
             </span>a.create_data_property_or_throw(i, captured_value, context)
@@ -2761,11 +2748,8 @@
         </span><span class="attribute">#[allow(clippy::if_not_else)]
         </span><span class="kw">if </span>!global {
             <span class="comment">// a. Return ? RegExpExec(rx, S).
-            </span><span class="kw">if let </span><span class="prelude-val">Some</span>(v) = <span class="self">Self</span>::abstract_exec(rx, arg_str, context)<span class="question-mark">? </span>{
-                <span class="prelude-val">Ok</span>(v.into())
-            } <span class="kw">else </span>{
-                <span class="prelude-val">Ok</span>(JsValue::null())
-            }
+            </span>(<span class="self">Self</span>::abstract_exec(rx, arg_str, context)<span class="question-mark">?</span>)
+                .map_or_else(|| <span class="prelude-val">Ok</span>(JsValue::null()), |v| <span class="prelude-val">Ok</span>(v.into()))
         <span class="comment">// 6. Else,
         </span>} <span class="kw">else </span>{
             <span class="comment">// a. Assert: global is true.
@@ -3066,8 +3050,7 @@
 
             <span class="comment">// k. If functionalReplace is true, then
             // l. Else,
-            </span><span class="kw">let </span>replacement: JsString;
-            <span class="kw">if </span>functional_replace {
+            </span><span class="kw">let </span>replacement = <span class="kw">if </span>functional_replace {
                 <span class="comment">// i. Let replacerArgs be « matched ».
                 </span><span class="kw">let </span><span class="kw-2">mut </span>replacer_args = <span class="macro">vec!</span>[JsValue::new(matched)];
 
@@ -3089,8 +3072,8 @@
                     context.call(<span class="kw-2">&amp;</span>replace_value, <span class="kw-2">&amp;</span>JsValue::undefined(), <span class="kw-2">&amp;</span>replacer_args)<span class="question-mark">?</span>;
 
                 <span class="comment">// vi. Let replacement be ? ToString(replValue).
-                </span>replacement = repl_value.to_string(context)<span class="question-mark">?</span>;
-            } <span class="kw">else </span>{
+                </span>repl_value.to_string(context)<span class="question-mark">?
+            </span>} <span class="kw">else </span>{
                 <span class="comment">// i. If namedCaptures is not undefined, then
                 </span><span class="kw">if </span>!named_captures.is_undefined() {
                     <span class="comment">// 1. Set namedCaptures to ? ToObject(namedCaptures).
@@ -3098,7 +3081,7 @@
                 }
 
                 <span class="comment">// ii. Let replacement be ? GetSubstitution(matched, S, position, captures, namedCaptures, replaceValue).
-                </span>replacement = string::get_substitution(
+                </span>string::get_substitution(
                     <span class="kw-2">&amp;</span>matched,
                     <span class="kw-2">&amp;</span>arg_str,
                     position,
@@ -3106,8 +3089,8 @@
                     <span class="kw-2">&amp;</span>named_captures,
                     <span class="kw-2">&amp;</span>replace_value.to_string(context)<span class="question-mark">?</span>,
                     context,
-                )<span class="question-mark">?</span>;
-            }
+                )<span class="question-mark">?
+            </span>};
 
             <span class="comment">// m. If position ≥ nextSourcePosition, then
             </span><span class="kw">if </span>position &gt;= next_source_position {
@@ -3182,11 +3165,10 @@
 
         <span class="comment">// 9. If result is null, return -1𝔽.
         // 10. Return ? Get(result, &quot;index&quot;).
-        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(result) = result {
-            result.get(<span class="string">&quot;index&quot;</span>, context)
-        } <span class="kw">else </span>{
-            <span class="prelude-val">Ok</span>(JsValue::new(-<span class="number">1</span>))
-        }
+        </span>result.map_or_else(
+            || <span class="prelude-val">Ok</span>(JsValue::new(-<span class="number">1</span>)),
+            |result| result.get(<span class="string">&quot;index&quot;</span>, context),
+        )
     }
 
     <span class="doccomment">/// `RegExp.prototype [ @@split ] ( string, limit )`

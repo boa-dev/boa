@@ -2351,7 +2351,7 @@
 
 <span class="doccomment">/// Helper function to check if a `char` is trimmable.
 </span><span class="attribute">#[inline]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_trimmable_whitespace(c: char) -&gt; bool {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>is_trimmable_whitespace(c: char) -&gt; bool {
     <span class="comment">// The rust implementation of `trim` does not regard the same characters whitespace as ecma standard does
     //
     // Rust uses \p{White_Space} by default, which also includes:
@@ -2568,7 +2568,7 @@
             }
 
             <span class="comment">// c. If ℝ(nextCP) &lt; 0 or ℝ(nextCP) &gt; 0x10FFFF, throw a RangeError exception.
-            </span><span class="kw">if </span>nextcp &lt; <span class="number">0.0 </span>|| nextcp &gt; f64::from(<span class="number">0x10FFFF</span>) {
+            </span><span class="kw">if </span>nextcp &lt; <span class="number">0.0 </span>|| nextcp &gt; f64::from(<span class="number">0x0010_FFFF</span>) {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::range()
                     .with_message(<span class="macro">format!</span>(<span class="string">&quot;invalid code point: {nextcp}&quot;</span>))
                     .into());

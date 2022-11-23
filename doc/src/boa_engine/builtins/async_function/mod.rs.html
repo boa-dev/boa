@@ -107,6 +107,7 @@
 <span id="105">105</span>
 <span id="106">106</span>
 <span id="107">107</span>
+<span id="108">108</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `AsyncFunction` object.
 //!
 //! More information:
@@ -128,7 +129,8 @@
 };
 <span class="kw">use </span>boa_profiler::Profiler;
 
-<span class="attribute">#[derive(Debug, Clone, Copy)]
+<span class="doccomment">/// The internal representation of an `AsyncFunction` object.
+</span><span class="attribute">#[derive(Debug, Clone, Copy)]
 </span><span class="kw">pub struct </span>AsyncFunction;
 
 <span class="kw">impl </span>BuiltIn <span class="kw">for </span>AsyncFunction {

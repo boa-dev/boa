@@ -823,7 +823,31 @@
 <span id="821">821</span>
 <span id="822">822</span>
 <span id="823">823</span>
-</pre><pre class="rust"><code><span class="attribute">#[cfg(test)]
+<span id="824">824</span>
+<span id="825">825</span>
+<span id="826">826</span>
+<span id="827">827</span>
+<span id="828">828</span>
+<span id="829">829</span>
+<span id="830">830</span>
+<span id="831">831</span>
+<span id="832">832</span>
+<span id="833">833</span>
+<span id="834">834</span>
+<span id="835">835</span>
+<span id="836">836</span>
+<span id="837">837</span>
+<span id="838">838</span>
+</pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `ArrayBuffer` object.
+//!
+//! More information:
+//!  - [ECMAScript reference][spec]
+//!  - [MDN documentation][mdn]
+//!
+//! [spec]: https://tc39.es/ecma262/#sec-arraybuffer-objects
+//! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer
+
+</span><span class="attribute">#[cfg(test)]
 </span><span class="kw">mod </span>tests;
 
 <span class="kw">use crate</span>::{
@@ -844,15 +868,21 @@
 <span class="kw">use </span>num_traits::{Signed, ToPrimitive};
 <span class="kw">use </span>tap::{Conv, Pipe};
 
-<span class="attribute">#[derive(Debug, Clone, Trace, Finalize)]
+<span class="doccomment">/// The internal representation of an `ArrayBuffer` object.
+</span><span class="attribute">#[derive(Debug, Clone, Trace, Finalize)]
 </span><span class="kw">pub struct </span>ArrayBuffer {
-    <span class="kw">pub </span>array_buffer_data: <span class="prelude-ty">Option</span>&lt;Vec&lt;u8&gt;&gt;,
-    <span class="kw">pub </span>array_buffer_byte_length: u64,
-    <span class="kw">pub </span>array_buffer_detach_key: JsValue,
+    <span class="doccomment">/// The `[[ArrayBufferData]]` internal slot.
+    </span><span class="kw">pub </span>array_buffer_data: <span class="prelude-ty">Option</span>&lt;Vec&lt;u8&gt;&gt;,
+
+    <span class="doccomment">/// The `[[ArrayBufferByteLength]]` internal slot.
+    </span><span class="kw">pub </span>array_buffer_byte_length: u64,
+
+    <span class="doccomment">/// The `[[ArrayBufferDetachKey]]` internal slot.
+    </span><span class="kw">pub </span>array_buffer_detach_key: JsValue,
 }
 
 <span class="kw">impl </span>ArrayBuffer {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>array_buffer_byte_length(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64 {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>array_buffer_byte_length(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64 {
         <span class="self">self</span>.array_buffer_byte_length
     }
 }
@@ -1174,7 +1204,7 @@
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-isdetachedbuffer
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_detached_buffer(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>is_detached_buffer(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="comment">// 1. If arrayBuffer.[[ArrayBufferData]] is null, return true.
         // 2. Return false.
         </span><span class="self">self</span>.array_buffer_data.is_none()
@@ -1232,7 +1262,7 @@
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-isunclampedintegerelementtype
-    </span><span class="kw">fn </span>is_unclamped_integer_element_type(t: TypedArrayKind) -&gt; bool {
+    </span><span class="kw">const fn </span>is_unclamped_integer_element_type(t: TypedArrayKind) -&gt; bool {
         <span class="comment">// 1. If type is Int8, Uint8, Int16, Uint16, Int32, or Uint32, return true.
         // 2. Return false.
         </span><span class="macro">matches!</span>(
@@ -1252,7 +1282,7 @@
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-isbigintelementtype
-    </span><span class="kw">fn </span>is_big_int_element_type(t: TypedArrayKind) -&gt; bool {
+    </span><span class="kw">const fn </span>is_big_int_element_type(t: TypedArrayKind) -&gt; bool {
         <span class="comment">// 1. If type is BigUint64 or BigInt64, return true.
         // 2. Return false.
         </span><span class="macro">matches!</span>(t, TypedArrayKind::BigUint64 | TypedArrayKind::BigInt64)
@@ -1266,7 +1296,7 @@
     /// [spec]: https://tc39.es/ecma262/#sec-isnotearconfiguration
     </span><span class="comment">// TODO: Allow unused function until shared array buffers are implemented.
     </span><span class="attribute">#[allow(dead_code)]
-    </span><span class="kw">fn </span>is_no_tear_configuration(t: TypedArrayKind, order: SharedMemoryOrder) -&gt; bool {
+    </span><span class="kw">const fn </span>is_no_tear_configuration(t: TypedArrayKind, order: SharedMemoryOrder) -&gt; bool {
         <span class="comment">// 1. If ! IsUnclampedIntegerElementType(type) is true, return true.
         </span><span class="kw">if </span><span class="self">Self</span>::is_unclamped_integer_element_type(t) {
             <span class="kw">return </span><span class="bool-val">true</span>;

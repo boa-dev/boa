@@ -1054,6 +1054,68 @@
 <span id="1052">1052</span>
 <span id="1053">1053</span>
 <span id="1054">1054</span>
+<span id="1055">1055</span>
+<span id="1056">1056</span>
+<span id="1057">1057</span>
+<span id="1058">1058</span>
+<span id="1059">1059</span>
+<span id="1060">1060</span>
+<span id="1061">1061</span>
+<span id="1062">1062</span>
+<span id="1063">1063</span>
+<span id="1064">1064</span>
+<span id="1065">1065</span>
+<span id="1066">1066</span>
+<span id="1067">1067</span>
+<span id="1068">1068</span>
+<span id="1069">1069</span>
+<span id="1070">1070</span>
+<span id="1071">1071</span>
+<span id="1072">1072</span>
+<span id="1073">1073</span>
+<span id="1074">1074</span>
+<span id="1075">1075</span>
+<span id="1076">1076</span>
+<span id="1077">1077</span>
+<span id="1078">1078</span>
+<span id="1079">1079</span>
+<span id="1080">1080</span>
+<span id="1081">1081</span>
+<span id="1082">1082</span>
+<span id="1083">1083</span>
+<span id="1084">1084</span>
+<span id="1085">1085</span>
+<span id="1086">1086</span>
+<span id="1087">1087</span>
+<span id="1088">1088</span>
+<span id="1089">1089</span>
+<span id="1090">1090</span>
+<span id="1091">1091</span>
+<span id="1092">1092</span>
+<span id="1093">1093</span>
+<span id="1094">1094</span>
+<span id="1095">1095</span>
+<span id="1096">1096</span>
+<span id="1097">1097</span>
+<span id="1098">1098</span>
+<span id="1099">1099</span>
+<span id="1100">1100</span>
+<span id="1101">1101</span>
+<span id="1102">1102</span>
+<span id="1103">1103</span>
+<span id="1104">1104</span>
+<span id="1105">1105</span>
+<span id="1106">1106</span>
+<span id="1107">1107</span>
+<span id="1108">1108</span>
+<span id="1109">1109</span>
+<span id="1110">1110</span>
+<span id="1111">1111</span>
+<span id="1112">1112</span>
+<span id="1113">1113</span>
+<span id="1114">1114</span>
+<span id="1115">1115</span>
+<span id="1116">1116</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `Function` object as well as creates Native Functions.
 //!
 //! Objects wrap `Function`s and expose them via call/construct slots.
@@ -1129,7 +1191,10 @@
     <span class="kw">pub trait </span>Sealed {}
     <span class="kw">impl</span>&lt;T: Copy&gt; Sealed <span class="kw">for </span>T {}
 }
-<span class="kw">pub trait </span>DynCopy: sealed::Sealed {}
+
+<span class="doccomment">/// This trait is implemented by any type that implements [`core::marker::Copy`].
+</span><span class="kw">pub trait </span>DynCopy: sealed::Sealed {}
+
 <span class="kw">impl</span>&lt;T: Copy&gt; DynCopy <span class="kw">for </span>T {}
 
 <span class="doccomment">/// Trait representing a native built-in closure.
@@ -1150,26 +1215,41 @@
 <span class="comment">// Allows cloning Box&lt;dyn ClosureFunctionSignature&gt;
 </span><span class="macro">dyn_clone::clone_trait_object!</span>(ClosureFunctionSignature);
 
-<span class="attribute">#[derive(Debug, Trace, Finalize, PartialEq, Eq, Clone)]
+<span class="doccomment">/// Represents the `[[ThisMode]]` internal slot of function objects.
+///
+/// More information:
+///  - [ECMAScript specification][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-ecmascript-function-objects
+</span><span class="attribute">#[derive(Debug, Trace, Finalize, PartialEq, Eq, Clone)]
 </span><span class="kw">pub enum </span>ThisMode {
-    Lexical,
-    Strict,
-    Global,
+    <span class="doccomment">/// The `this` value refers to the `this` value of a lexically enclosing function.
+    </span>Lexical,
+
+    <span class="doccomment">/// The `this` value is used exactly as provided by an invocation of the function.
+    </span>Strict,
+
+    <span class="doccomment">/// The `this` value of `undefined` or `null` is interpreted as a reference to the global object,
+    /// and any other `this` value is first passed to `ToObject`.
+    </span>Global,
 }
 
 <span class="kw">impl </span>ThisMode {
     <span class="doccomment">/// Returns `true` if the this mode is `Lexical`.
-    </span><span class="kw">pub fn </span>is_lexical(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+    </span><span class="attribute">#[must_use]
+    </span><span class="kw">pub const fn </span>is_lexical(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="macro">matches!</span>(<span class="self">self</span>, <span class="self">Self</span>::Lexical)
     }
 
     <span class="doccomment">/// Returns `true` if the this mode is `Strict`.
-    </span><span class="kw">pub fn </span>is_strict(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+    </span><span class="attribute">#[must_use]
+    </span><span class="kw">pub const fn </span>is_strict(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="macro">matches!</span>(<span class="self">self</span>, <span class="self">Self</span>::Strict)
     }
 
     <span class="doccomment">/// Returns `true` if the this mode is `Global`.
-    </span><span class="kw">pub fn </span>is_global(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+    </span><span class="attribute">#[must_use]
+    </span><span class="kw">pub const fn </span>is_global(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="macro">matches!</span>(<span class="self">self</span>, <span class="self">Self</span>::Global)
     }
 }
@@ -1182,18 +1262,23 @@
 /// [spec]: https://tc39.es/ecma262/#sec-ecmascript-function-objects
 </span><span class="attribute">#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 </span><span class="kw">pub enum </span>ConstructorKind {
-    Base,
-    Derived,
+    <span class="doccomment">/// The class constructor is not derived.
+    </span>Base,
+
+    <span class="doccomment">/// The class constructor is a derived class constructor.
+    </span>Derived,
 }
 
 <span class="kw">impl </span>ConstructorKind {
     <span class="doccomment">/// Returns `true` if the constructor kind is `Base`.
-    </span><span class="kw">pub fn </span>is_base(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+    </span><span class="attribute">#[must_use]
+    </span><span class="kw">pub const fn </span>is_base(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="macro">matches!</span>(<span class="self">self</span>, <span class="self">Self</span>::Base)
     }
 
     <span class="doccomment">/// Returns `true` if the constructor kind is `Derived`.
-    </span><span class="kw">pub fn </span>is_derived(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+    </span><span class="attribute">#[must_use]
+    </span><span class="kw">pub const fn </span>is_derived(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="macro">matches!</span>(<span class="self">self</span>, <span class="self">Self</span>::Derived)
     }
 }
@@ -1206,8 +1291,11 @@
 /// [spec]: https://tc39.es/ecma262/#sec-classfielddefinition-record-specification-type
 </span><span class="attribute">#[derive(Clone, Debug, Finalize)]
 </span><span class="kw">pub enum </span>ClassFieldDefinition {
-    Public(PropertyKey, JsFunction),
-    Private(Sym, JsFunction),
+    <span class="doccomment">/// A class field definition with a `string` or `symbol` as a name.
+    </span>Public(PropertyKey, JsFunction),
+
+    <span class="doccomment">/// A class field definition with a private name.
+    </span>Private(Sym, JsFunction),
 }
 
 <span class="kw">unsafe impl </span>Trace <span class="kw">for </span>ClassFieldDefinition {
@@ -1272,18 +1360,34 @@
 /// &lt;https://tc39.es/ecma262/#sec-ecmascript-function-objects&gt;
 </span><span class="attribute">#[derive(Finalize)]
 </span><span class="kw">pub enum </span>Function {
-    Native {
-        function: NativeFunctionSignature,
-        constructor: <span class="prelude-ty">Option</span>&lt;ConstructorKind&gt;,
+    <span class="doccomment">/// A rust function.
+    </span>Native {
+        <span class="doccomment">/// The rust function.
+        </span>function: NativeFunctionSignature,
+
+        <span class="doccomment">/// The kind of the function constructor if it is a constructor.
+        </span>constructor: <span class="prelude-ty">Option</span>&lt;ConstructorKind&gt;,
     },
-    Closure {
-        function: Box&lt;<span class="kw">dyn </span>ClosureFunctionSignature&gt;,
-        constructor: <span class="prelude-ty">Option</span>&lt;ConstructorKind&gt;,
-        captures: Captures,
+
+    <span class="doccomment">/// A rust function that may contain captured values.
+    </span>Closure {
+        <span class="doccomment">/// The rust function.
+        </span>function: Box&lt;<span class="kw">dyn </span>ClosureFunctionSignature&gt;,
+
+        <span class="doccomment">/// The kind of the function constructor if it is a constructor.
+        </span>constructor: <span class="prelude-ty">Option</span>&lt;ConstructorKind&gt;,
+
+        <span class="doccomment">/// The captured values.
+        </span>captures: Captures,
     },
-    Ordinary {
-        code: Gc&lt;<span class="kw">crate</span>::vm::CodeBlock&gt;,
-        environments: DeclarativeEnvironmentStack,
+
+    <span class="doccomment">/// A bytecode function.
+    </span>Ordinary {
+        <span class="doccomment">/// The code block containing the compiled function.
+        </span>code: Gc&lt;<span class="kw">crate</span>::vm::CodeBlock&gt;,
+
+        <span class="doccomment">/// The `[[Environment]]` internal slot.
+        </span>environments: DeclarativeEnvironmentStack,
 
         <span class="doccomment">/// The `[[ConstructorKind]]` internal slot.
         </span>constructor_kind: ConstructorKind,
@@ -1297,22 +1401,42 @@
         <span class="doccomment">/// The `[[PrivateMethods]]` internal slot.
         </span>private_methods: Vec&lt;(Sym, PrivateElement)&gt;,
     },
-    Async {
-        code: Gc&lt;<span class="kw">crate</span>::vm::CodeBlock&gt;,
-        environments: DeclarativeEnvironmentStack,
+
+    <span class="doccomment">/// A bytecode async function.
+    </span>Async {
+        <span class="doccomment">/// The code block containing the compiled function.
+        </span>code: Gc&lt;<span class="kw">crate</span>::vm::CodeBlock&gt;,
+
+        <span class="doccomment">/// The `[[Environment]]` internal slot.
+        </span>environments: DeclarativeEnvironmentStack,
+
         <span class="doccomment">/// The `[[HomeObject]]` internal slot.
         </span>home_object: <span class="prelude-ty">Option</span>&lt;JsObject&gt;,
-        promise_capability: PromiseCapability,
+
+        <span class="doccomment">/// The promise capability record of the async function.
+        </span>promise_capability: PromiseCapability,
     },
-    Generator {
-        code: Gc&lt;<span class="kw">crate</span>::vm::CodeBlock&gt;,
-        environments: DeclarativeEnvironmentStack,
+
+    <span class="doccomment">/// A bytecode generator function.
+    </span>Generator {
+        <span class="doccomment">/// The code block containing the compiled function.
+        </span>code: Gc&lt;<span class="kw">crate</span>::vm::CodeBlock&gt;,
+
+        <span class="doccomment">/// The `[[Environment]]` internal slot.
+        </span>environments: DeclarativeEnvironmentStack,
+
         <span class="doccomment">/// The `[[HomeObject]]` internal slot.
         </span>home_object: <span class="prelude-ty">Option</span>&lt;JsObject&gt;,
     },
-    AsyncGenerator {
-        code: Gc&lt;<span class="kw">crate</span>::vm::CodeBlock&gt;,
-        environments: DeclarativeEnvironmentStack,
+
+    <span class="doccomment">/// A bytecode async generator function.
+    </span>AsyncGenerator {
+        <span class="doccomment">/// The code block containing the compiled function.
+        </span>code: Gc&lt;<span class="kw">crate</span>::vm::CodeBlock&gt;,
+
+        <span class="doccomment">/// The `[[Environment]]` internal slot.
+        </span>environments: DeclarativeEnvironmentStack,
+
         <span class="doccomment">/// The `[[HomeObject]]` internal slot.
         </span>home_object: <span class="prelude-ty">Option</span>&lt;JsObject&gt;,
     },
@@ -1367,7 +1491,7 @@
     }
 
     <span class="doccomment">/// Returns true if the function object is a derived constructor.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_derived_constructor(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>is_derived_constructor(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="kw">if let </span><span class="self">Self</span>::Ordinary {
             constructor_kind, ..
         } = <span class="self">self
@@ -1379,7 +1503,7 @@
     }
 
     <span class="doccomment">/// Returns a reference to the function `[[HomeObject]]` slot if present.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_home_object(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>JsObject&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>get_home_object(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>JsObject&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::Ordinary { home_object, .. }
             | <span class="self">Self</span>::Async { home_object, .. }
@@ -1446,7 +1570,7 @@
     }
 
     <span class="doccomment">/// Returns the promise capability if the function is an async function.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_promise_capability(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>PromiseCapability&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>get_promise_capability(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>PromiseCapability&gt; {
         <span class="kw">if let </span><span class="self">Self</span>::Async {
             promise_capability, ..
         } = <span class="self">self
@@ -1517,11 +1641,12 @@
     );
 }
 
-<span class="attribute">#[derive(Debug, Clone, Copy)]
+<span class="doccomment">/// The internal representation of a `Function` object.
+</span><span class="attribute">#[derive(Debug, Clone, Copy)]
 </span><span class="kw">pub struct </span>BuiltInFunctionObject;
 
 <span class="kw">impl </span>BuiltInFunctionObject {
-    <span class="kw">pub const </span>LENGTH: usize = <span class="number">1</span>;
+    <span class="kw">const </span>LENGTH: usize = <span class="number">1</span>;
 
     <span class="doccomment">/// `Function ( p1, p2, … , pn, body )`
     ///
@@ -2002,13 +2127,12 @@
     </span><span class="kw">let </span><span class="kw-2">mut </span>name = <span class="kw">match </span>name {
         PropertyKey::Symbol(sym) =&gt; {
             <span class="comment">// a. Let description be name&#39;s [[Description]] value.
-            </span><span class="kw">if let </span><span class="prelude-val">Some</span>(desc) = sym.description() {
-                <span class="comment">// c. Else, set name to the string-concatenation of &quot;[&quot;, description, and &quot;]&quot;.
-                </span><span class="macro">js_string!</span>(<span class="macro">utf16!</span>(<span class="string">&quot;[&quot;</span>), <span class="kw-2">&amp;</span>desc, <span class="macro">utf16!</span>(<span class="string">&quot;]&quot;</span>))
-            } <span class="kw">else </span>{
-                <span class="comment">// b. If description is undefined, set name to the empty String.
-                </span><span class="macro">js_string!</span>()
-            }
+            // b. If description is undefined, set name to the empty String.
+            // c. Else, set name to the string-concatenation of &quot;[&quot;, description, and &quot;]&quot;.
+            </span>sym.description().map_or_else(
+                || <span class="macro">js_string!</span>(),
+                |desc| <span class="macro">js_string!</span>(<span class="macro">utf16!</span>(<span class="string">&quot;[&quot;</span>), <span class="kw-2">&amp;</span>desc, <span class="macro">utf16!</span>(<span class="string">&quot;]&quot;</span>)),
+            )
         }
         PropertyKey::String(string) =&gt; string.clone(),
         PropertyKey::Index(index) =&gt; <span class="macro">js_string!</span>(<span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, index)),
@@ -2094,12 +2218,12 @@
     }
 
     <span class="doccomment">/// Get a reference to the bound function&#39;s this.
-    </span><span class="kw">pub fn </span>this(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>JsValue {
+    </span><span class="kw">pub const fn </span>this(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>JsValue {
         <span class="kw-2">&amp;</span><span class="self">self</span>.this
     }
 
     <span class="doccomment">/// Get a reference to the bound function&#39;s target function.
-    </span><span class="kw">pub fn </span>target_function(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>JsObject {
+    </span><span class="kw">pub const fn </span>target_function(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>JsObject {
         <span class="kw-2">&amp;</span><span class="self">self</span>.target_function
     }
 

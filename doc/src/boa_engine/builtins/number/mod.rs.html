@@ -1190,7 +1190,6 @@
 <span id="1188">1188</span>
 <span id="1189">1189</span>
 <span id="1190">1190</span>
-<span id="1191">1191</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `Number` object.
 //!
 //! The `Number` JavaScript object is a wrapper object allowing you to work with numerical values.
@@ -2185,15 +2184,14 @@
         args: <span class="kw-2">&amp;</span>[JsValue],
         _ctx: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
-        <span class="prelude-val">Ok</span>(JsValue::new(<span class="kw">if let </span><span class="prelude-val">Some</span>(val) = args.get(<span class="number">0</span>) {
-            <span class="kw">match </span>val {
-                JsValue::Integer(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
-                JsValue::Rational(number) =&gt; number.is_finite(),
-                <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
-            }
-        } <span class="kw">else </span>{
-            <span class="bool-val">false
-        </span>}))
+        <span class="comment">// 1. If number is not a Number, return false.
+        // 2. If number is not finite, return false.
+        // 3. Otherwise, return true.
+        </span><span class="prelude-val">Ok</span>(JsValue::new(args.get(<span class="number">0</span>).map_or(<span class="bool-val">false</span>, |val| <span class="kw">match </span>val {
+            JsValue::Integer(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
+            JsValue::Rational(number) =&gt; number.is_finite(),
+            <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
+        })))
     }
 
     <span class="doccomment">/// `Number.isInteger( number )`

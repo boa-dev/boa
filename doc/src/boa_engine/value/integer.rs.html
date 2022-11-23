@@ -116,19 +116,40 @@
 <span id="114">114</span>
 <span id="115">115</span>
 <span id="116">116</span>
+<span id="117">117</span>
+<span id="118">118</span>
+<span id="119">119</span>
+<span id="120">120</span>
+<span id="121">121</span>
+<span id="122">122</span>
+<span id="123">123</span>
+<span id="124">124</span>
+<span id="125">125</span>
+<span id="126">126</span>
+<span id="127">127</span>
 </pre><pre class="rust"><code><span class="kw">use </span>std::cmp::Ordering;
 
 <span class="doccomment">/// Represents the result of the `ToIntegerOrInfinity` operation
 </span><span class="attribute">#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 </span><span class="kw">pub enum </span>IntegerOrInfinity {
-    PositiveInfinity,
-    Integer(i64),
-    NegativeInfinity,
+    <span class="doccomment">/// Positive infinity.
+    </span>PositiveInfinity,
+
+    <span class="doccomment">/// An integer.
+    </span>Integer(i64),
+
+    <span class="doccomment">/// Negative infinity.
+    </span>NegativeInfinity,
 }
 
 <span class="kw">impl </span>IntegerOrInfinity {
     <span class="doccomment">/// Clamps an `IntegerOrInfinity` between two `i64`, effectively converting
     /// it to an i64.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `min &gt; max`.
+    </span><span class="attribute">#[must_use]
     </span><span class="kw">pub fn </span>clamp_finite(<span class="self">self</span>, min: i64, max: i64) -&gt; i64 {
         <span class="macro">assert!</span>(min &lt;= max);
 
@@ -140,7 +161,8 @@
     }
 
     <span class="doccomment">/// Gets the wrapped `i64` if the variant is an `Integer`.
-    </span><span class="kw">pub fn </span>as_integer(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;i64&gt; {
+    </span><span class="attribute">#[must_use]
+    </span><span class="kw">pub const fn </span>as_integer(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;i64&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::Integer(i) =&gt; <span class="prelude-val">Some</span>(i),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
@@ -218,7 +240,7 @@
 
 <span class="kw">impl </span>IntegerOrNan {
     <span class="doccomment">/// Gets the wrapped `i64` if the variant is an `Integer`.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>as_integer(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;i64&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>as_integer(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;i64&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::Integer(i) =&gt; <span class="prelude-val">Some</span>(i),
             <span class="self">Self</span>::Nan =&gt; <span class="prelude-val">None</span>,

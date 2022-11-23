@@ -350,6 +350,23 @@
 <span id="348">348</span>
 <span id="349">349</span>
 <span id="350">350</span>
+<span id="351">351</span>
+<span id="352">352</span>
+<span id="353">353</span>
+<span id="354">354</span>
+<span id="355">355</span>
+<span id="356">356</span>
+<span id="357">357</span>
+<span id="358">358</span>
+<span id="359">359</span>
+<span id="360">360</span>
+<span id="361">361</span>
+<span id="362">362</span>
+<span id="363">363</span>
+<span id="364">364</span>
+<span id="365">365</span>
+<span id="366">366</span>
+<span id="367">367</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `Symbol` object.
 //!
 //! The data type symbol is a primitive data type.
@@ -472,6 +489,7 @@
     /// A method that returns the default `AsyncIterator` for an object.
     /// Called by the semantics of the `for-await-of` statement.
     </span><span class="attribute">#[inline]
+    #[must_use]
     </span><span class="kw">pub fn </span>async_iterator() -&gt; JsSymbol {
         WELL_KNOW_SYMBOLS.with(|symbols| symbols.async_iterator.clone())
     }
@@ -482,6 +500,7 @@
     /// recognizes an object as one of the `constructor`&#39;s instances.
     /// Called by the semantics of the instanceof operator.
     </span><span class="attribute">#[inline]
+    #[must_use]
     </span><span class="kw">pub fn </span>has_instance() -&gt; JsSymbol {
         WELL_KNOW_SYMBOLS.with(|symbols| symbols.has_instance.clone())
     }
@@ -492,6 +511,7 @@
     /// an object should be flattened to its array elements
     /// by `Array.prototype.concat`.
     </span><span class="attribute">#[inline]
+    #[must_use]
     </span><span class="kw">pub fn </span>is_concat_spreadable() -&gt; JsSymbol {
         WELL_KNOW_SYMBOLS.with(|symbols| symbols.is_concat_spreadable.clone())
     }
@@ -501,6 +521,7 @@
     /// A method that returns the default Iterator for an object.
     /// Called by the semantics of the `for-of` statement.
     </span><span class="attribute">#[inline]
+    #[must_use]
     </span><span class="kw">pub fn </span>iterator() -&gt; JsSymbol {
         WELL_KNOW_SYMBOLS.with(|symbols| symbols.iterator.clone())
     }
@@ -510,6 +531,7 @@
     /// A regular expression method that matches the regular expression
     /// against a string. Called by the `String.prototype.match` method.
     </span><span class="attribute">#[inline]
+    #[must_use]
     </span><span class="kw">pub fn </span>r#match() -&gt; JsSymbol {
         WELL_KNOW_SYMBOLS.with(|symbols| symbols.r#match.clone())
     }
@@ -520,6 +542,7 @@
     /// matches of the regular expression against a string.
     /// Called by the `String.prototype.matchAll` method.
     </span><span class="attribute">#[inline]
+    #[must_use]
     </span><span class="kw">pub fn </span>match_all() -&gt; JsSymbol {
         WELL_KNOW_SYMBOLS.with(|symbols| symbols.match_all.clone())
     }
@@ -529,6 +552,7 @@
     /// A regular expression method that replaces matched substrings
     /// of a string. Called by the `String.prototype.replace` method.
     </span><span class="attribute">#[inline]
+    #[must_use]
     </span><span class="kw">pub fn </span>replace() -&gt; JsSymbol {
         WELL_KNOW_SYMBOLS.with(|symbols| symbols.replace.clone())
     }
@@ -539,6 +563,7 @@
     /// string that matches the regular expression.
     /// Called by the `String.prototype.search` method.
     </span><span class="attribute">#[inline]
+    #[must_use]
     </span><span class="kw">pub fn </span>search() -&gt; JsSymbol {
         WELL_KNOW_SYMBOLS.with(|symbols| symbols.search.clone())
     }
@@ -548,6 +573,7 @@
     /// A function valued property that is the `constructor` function
     /// that is used to create derived objects.
     </span><span class="attribute">#[inline]
+    #[must_use]
     </span><span class="kw">pub fn </span>species() -&gt; JsSymbol {
         WELL_KNOW_SYMBOLS.with(|symbols| symbols.species.clone())
     }
@@ -558,6 +584,7 @@
     /// that match the regular expression.
     /// Called by the `String.prototype.split` method.
     </span><span class="attribute">#[inline]
+    #[must_use]
     </span><span class="kw">pub fn </span>split() -&gt; JsSymbol {
         WELL_KNOW_SYMBOLS.with(|symbols| symbols.split.clone())
     }
@@ -567,6 +594,7 @@
     /// A method that converts an object to a corresponding primitive value.
     /// Called by the `ToPrimitive` (`Value::to_primitive`) abstract operation.
     </span><span class="attribute">#[inline]
+    #[must_use]
     </span><span class="kw">pub fn </span>to_primitive() -&gt; JsSymbol {
         WELL_KNOW_SYMBOLS.with(|symbols| symbols.to_primitive.clone())
     }
@@ -577,6 +605,7 @@
     /// string description of an object.
     /// Accessed by the built-in method `Object.prototype.toString`.
     </span><span class="attribute">#[inline]
+    #[must_use]
     </span><span class="kw">pub fn </span>to_string_tag() -&gt; JsSymbol {
         WELL_KNOW_SYMBOLS.with(|symbols| symbols.to_string_tag.clone())
     }
@@ -586,6 +615,7 @@
     /// An object valued property whose own and inherited property names are property
     /// names that are excluded from the `with` environment bindings of the associated object.
     </span><span class="attribute">#[inline]
+    #[must_use]
     </span><span class="kw">pub fn </span>unscopables() -&gt; JsSymbol {
         WELL_KNOW_SYMBOLS.with(|symbols| symbols.unscopables.clone())
     }
@@ -613,6 +643,7 @@
 <span class="kw">impl </span>JsSymbol {
     <span class="doccomment">/// Create a new symbol.
     </span><span class="attribute">#[inline]
+    #[must_use]
     </span><span class="kw">pub fn </span>new(description: <span class="prelude-ty">Option</span>&lt;JsString&gt;) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span>hash = SYMBOL_HASH_COUNT.with(|count| {
             <span class="kw">let </span>hash = count.get();
@@ -635,6 +666,7 @@
 
     <span class="doccomment">/// Returns the `Symbol`s description.
     </span><span class="attribute">#[inline]
+    #[must_use]
     </span><span class="kw">pub fn </span>description(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;JsString&gt; {
         <span class="self">self</span>.inner.description.clone()
     }
@@ -643,6 +675,7 @@
     ///
     /// The hash is guaranteed to be unique.
     </span><span class="attribute">#[inline]
+    #[must_use]
     </span><span class="kw">pub fn </span>hash(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64 {
         <span class="self">self</span>.inner.hash
     }
@@ -653,6 +686,7 @@
     /// - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-symboldescriptivestring
+    </span><span class="attribute">#[must_use]
     </span><span class="kw">pub fn </span>descriptive_string(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsString {
         <span class="self">self</span>.inner.description.as_ref().map_or_else(
             || <span class="macro">js_string!</span>(<span class="string">&quot;Symbol()&quot;</span>),

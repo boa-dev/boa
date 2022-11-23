@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":[["array_iterator",""]],"struct":[["Array","JavaScript `Array` built-in implementation."]]};
+window.SIDEBAR_ITEMS = {"mod":[["array_iterator","This module implements the `ArrayIterator` object."]],"struct":[["Array","JavaScript `Array` built-in implementation."]]};

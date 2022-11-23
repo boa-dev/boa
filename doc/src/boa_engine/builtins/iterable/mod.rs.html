@@ -564,7 +564,32 @@
 <span id="562">562</span>
 <span id="563">563</span>
 <span id="564">564</span>
-</pre><pre class="rust"><code><span class="kw">mod </span>async_from_sync_iterator;
+<span id="565">565</span>
+<span id="566">566</span>
+<span id="567">567</span>
+<span id="568">568</span>
+<span id="569">569</span>
+<span id="570">570</span>
+<span id="571">571</span>
+<span id="572">572</span>
+<span id="573">573</span>
+<span id="574">574</span>
+<span id="575">575</span>
+<span id="576">576</span>
+<span id="577">577</span>
+<span id="578">578</span>
+<span id="579">579</span>
+<span id="580">580</span>
+<span id="581">581</span>
+<span id="582">582</span>
+<span id="583">583</span>
+<span id="584">584</span>
+<span id="585">585</span>
+<span id="586">586</span>
+<span id="587">587</span>
+</pre><pre class="rust"><code><span class="doccomment">//! This module implements the global iterator prototype objects.
+
+</span><span class="kw">mod </span>async_from_sync_iterator;
 
 <span class="kw">use crate</span>::{
     builtins::{
@@ -583,25 +608,34 @@
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>async_from_sync_iterator::AsyncFromSyncIterator;
 
-<span class="attribute">#[derive(Debug, Default)]
+<span class="doccomment">/// The built-in iterator prototypes.
+</span><span class="attribute">#[derive(Debug, Default)]
 </span><span class="kw">pub struct </span>IteratorPrototypes {
-    <span class="doccomment">/// %IteratorPrototype%
+    <span class="doccomment">/// The `IteratorPrototype` object.
     </span>iterator_prototype: JsObject,
-    <span class="doccomment">/// %AsyncIteratorPrototype%
+
+    <span class="doccomment">/// The `AsyncIteratorPrototype` object.
     </span>async_iterator_prototype: JsObject,
-    <span class="doccomment">/// %AsyncFromSyncIteratorPrototype%
+
+    <span class="doccomment">/// The `AsyncFromSyncIteratorPrototype` prototype object.
     </span>async_from_sync_iterator_prototype: JsObject,
-    <span class="doccomment">/// %MapIteratorPrototype%
+
+    <span class="doccomment">/// The `ArrayIteratorPrototype` prototype object.
     </span>array_iterator: JsObject,
-    <span class="doccomment">/// %SetIteratorPrototype%
+
+    <span class="doccomment">/// The `SetIteratorPrototype` prototype object.
     </span>set_iterator: JsObject,
-    <span class="doccomment">/// %StringIteratorPrototype%
+
+    <span class="doccomment">/// The `StringIteratorPrototype` prototype object.
     </span>string_iterator: JsObject,
-    <span class="doccomment">/// %RegExpStringIteratorPrototype%
+
+    <span class="doccomment">/// The `RegExpStringIteratorPrototype` prototype object.
     </span>regexp_string_iterator: JsObject,
-    <span class="doccomment">/// %MapIteratorPrototype%
+
+    <span class="doccomment">/// The `MapIteratorPrototype` prototype object.
     </span>map_iterator: JsObject,
-    <span class="doccomment">/// %ForInIteratorPrototype%
+
+    <span class="doccomment">/// The `ForInIteratorPrototype` prototype object.
     </span>for_in_iterator: JsObject,
 }
 
@@ -628,47 +662,56 @@
         }
     }
 
-    <span class="attribute">#[inline]
+    <span class="doccomment">/// Returns the `ArrayIteratorPrototype` object.
+    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>array_iterator(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsObject {
         <span class="self">self</span>.array_iterator.clone()
     }
 
-    <span class="attribute">#[inline]
+    <span class="doccomment">/// Returns the `IteratorPrototype` object.
+    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>iterator_prototype(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsObject {
         <span class="self">self</span>.iterator_prototype.clone()
     }
 
-    <span class="attribute">#[inline]
+    <span class="doccomment">/// Returns the `AsyncIteratorPrototype` object.
+    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>async_iterator_prototype(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsObject {
         <span class="self">self</span>.async_iterator_prototype.clone()
     }
 
-    <span class="attribute">#[inline]
+    <span class="doccomment">/// Returns the `AsyncFromSyncIteratorPrototype` object.
+    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>async_from_sync_iterator_prototype(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsObject {
         <span class="self">self</span>.async_from_sync_iterator_prototype.clone()
     }
 
-    <span class="attribute">#[inline]
+    <span class="doccomment">/// Returns the `SetIteratorPrototype` object.
+    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>set_iterator(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsObject {
         <span class="self">self</span>.set_iterator.clone()
     }
 
-    <span class="attribute">#[inline]
+    <span class="doccomment">/// Returns the `StringIteratorPrototype` object.
+    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>string_iterator(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsObject {
         <span class="self">self</span>.string_iterator.clone()
     }
 
-    <span class="attribute">#[inline]
+    <span class="doccomment">/// Returns the `RegExpStringIteratorPrototype` object.
+    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>regexp_string_iterator(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsObject {
         <span class="self">self</span>.regexp_string_iterator.clone()
     }
 
-    <span class="attribute">#[inline]
+    <span class="doccomment">/// Returns the `MapIteratorPrototype` object.
+    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>map_iterator(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsObject {
         <span class="self">self</span>.map_iterator.clone()
     }
 
-    <span class="attribute">#[inline]
+    <span class="doccomment">/// Returns the `ForInIteratorPrototype` object.
+    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>for_in_iterator(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsObject {
         <span class="self">self</span>.for_in_iterator.clone()
     }
@@ -698,8 +741,11 @@
 <span class="doccomment">/// Iterator hint for `GetIterator`.
 </span><span class="attribute">#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 </span><span class="kw">pub enum </span>IteratorHint {
-    Sync,
-    Async,
+    <span class="doccomment">/// Hints that the iterator should be sync.
+    </span>Sync,
+
+    <span class="doccomment">/// Hints that the iterator should be async.
+    </span>Async,
 }
 
 <span class="kw">impl </span>JsValue {
@@ -877,19 +923,19 @@
 
     <span class="doccomment">/// Get the `[[Iterator]]` field of the `IteratorRecord`.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>iterator(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>JsObject {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>iterator(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>JsObject {
         <span class="kw-2">&amp;</span><span class="self">self</span>.iterator
     }
 
     <span class="doccomment">/// Get the `[[NextMethod]]` field of the `IteratorRecord`.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>next_method(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>JsValue {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>next_method(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>JsValue {
         <span class="kw-2">&amp;</span><span class="self">self</span>.next_method
     }
 
     <span class="doccomment">/// Get the `[[Done]]` field of the `IteratorRecord`.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>done(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>done(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.done
     }
 

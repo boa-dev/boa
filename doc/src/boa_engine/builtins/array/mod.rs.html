@@ -2941,8 +2941,6 @@
 <span id="2939">2939</span>
 <span id="2940">2940</span>
 <span id="2941">2941</span>
-<span id="2942">2942</span>
-<span id="2943">2943</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `Array` object.
 //!
 //! The JavaScript `Array` class is a global object that is used in the construction of arrays; which are high-level, list-like objects.
@@ -3181,10 +3179,8 @@
         // 3. Let A be ! MakeBasicObject(« [[Prototype]], [[Extensible]] »).
         // 4. Set A.[[Prototype]] to proto.
         // 5. Set A.[[DefineOwnProperty]] as specified in 10.4.2.1.
-        </span><span class="kw">let </span>prototype = <span class="kw">match </span>prototype {
-            <span class="prelude-val">Some</span>(prototype) =&gt; prototype,
-            <span class="prelude-val">None </span>=&gt; context.intrinsics().constructors().array().prototype(),
-        };
+        </span><span class="kw">let </span>prototype =
+            prototype.unwrap_or_else(|| context.intrinsics().constructors().array().prototype());
         <span class="kw">let </span>array = JsObject::from_proto_and_data(prototype, ObjectData::array());
 
         <span class="comment">// 6. Perform ! OrdinaryDefineOwnProperty(A, &quot;length&quot;, PropertyDescriptor { [[Value]]: 𝔽(length), [[Writable]]: true, [[Enumerable]]: false, [[Configurable]]: false }).
@@ -3325,15 +3321,15 @@
             <span class="kw">return </span><span class="self">Self</span>::array_create(length, <span class="prelude-val">None</span>, context);
         }
 
-        <span class="comment">// 7. If IsConstructor(C) is false, throw a TypeError exception.
-        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(c) = c.as_constructor() {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(c) = c.as_constructor() {
             <span class="comment">// 8. Return ? Construct(C, « 𝔽(length) »).
-            </span>c.construct(<span class="kw-2">&amp;</span>[JsValue::new(length)], <span class="prelude-val">Some</span>(c), context)
-        } <span class="kw">else </span>{
-            <span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(<span class="string">&quot;Symbol.species must be a constructor&quot;</span>)
-                .into())
+            </span><span class="kw">return </span>c.construct(<span class="kw-2">&amp;</span>[JsValue::new(length)], <span class="prelude-val">Some</span>(c), context);
         }
+
+        <span class="comment">// 7. If IsConstructor(C) is false, throw a TypeError exception.
+        </span><span class="prelude-val">Err</span>(JsNativeError::typ()
+            .with_message(<span class="string">&quot;Symbol.species must be a constructor&quot;</span>)
+            .into())
     }
 
     <span class="doccomment">/// `Array.from(arrayLike)`
@@ -3615,7 +3611,7 @@
         </span><span class="kw">let </span><span class="kw-2">mut </span>n = <span class="number">0</span>;
         <span class="comment">// 4. Prepend O to items.
         // 5. For each element E of items, do
-        </span><span class="kw">for </span>item <span class="kw">in </span>[JsValue::new(obj)].iter().chain(args.iter()) {
+        </span><span class="kw">for </span>item <span class="kw">in </span>std::iter::once(<span class="kw-2">&amp;</span>JsValue::new(obj)).chain(args.iter()) {
             <span class="comment">// a. Let spreadable be ? IsConcatSpreadable(E).
             </span><span class="kw">let </span>spreadable = <span class="self">Self</span>::is_concat_spreadable(item, context)<span class="question-mark">?</span>;
             <span class="comment">// b. If spreadable is true, then
@@ -4721,13 +4717,13 @@
                 }
 
                 <span class="comment">// iii. Let shouldFlatten be false
-                </span><span class="kw">let </span><span class="kw-2">mut </span>should_flatten = <span class="bool-val">false</span>;
-
-                <span class="comment">// iv. If depth &gt; 0, then
-                </span><span class="kw">if </span>depth &gt; <span class="number">0 </span>{
+                // iv. If depth &gt; 0, then
+                </span><span class="kw">let </span>should_flatten = <span class="kw">if </span>depth &gt; <span class="number">0 </span>{
                     <span class="comment">// 1. Set shouldFlatten to ? IsArray(element).
-                    </span>should_flatten = element.is_array()<span class="question-mark">?</span>;
-                }
+                    </span>element.is_array()<span class="question-mark">?
+                </span>} <span class="kw">else </span>{
+                    <span class="bool-val">false
+                </span>};
 
                 <span class="comment">// v. If shouldFlatten is true
                 </span><span class="kw">if </span>should_flatten {

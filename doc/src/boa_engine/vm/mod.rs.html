@@ -438,12 +438,6 @@
 <span id="436">436</span>
 <span id="437">437</span>
 <span id="438">438</span>
-<span id="439">439</span>
-<span id="440">440</span>
-<span id="441">441</span>
-<span id="442">442</span>
-<span id="443">443</span>
-<span id="444">444</span>
 </pre><pre class="rust"><code><span class="doccomment">//! The Virtual Machine (VM) handles generating instructions, then executing them.
 //! This module will provide an instruction set for the AST to use, various traits,
 //! plus an interpreter to execute those instructions
@@ -662,17 +656,11 @@
                     <span class="macro">format!</span>(<span class="string">&quot;{}μs&quot;</span>, duration.as_micros()),
                     opcode.as_str(),
                     <span class="kw">match </span><span class="self">self</span>.vm.stack.last() {
+                        <span class="prelude-val">Some</span>(value) <span class="kw">if </span>value.is_callable() =&gt; <span class="string">&quot;[function]&quot;</span>.to_string(),
+                        <span class="prelude-val">Some</span>(value) <span class="kw">if </span>value.is_object() =&gt; <span class="string">&quot;[object]&quot;</span>.to_string(),
+                        <span class="prelude-val">Some</span>(value) =&gt; value.display().to_string(),
                         <span class="prelude-val">None </span>=&gt; <span class="string">&quot;&lt;empty&gt;&quot;</span>.to_string(),
-                        <span class="prelude-val">Some</span>(value) =&gt; {
-                            <span class="kw">if </span>value.is_callable() {
-                                <span class="string">&quot;[function]&quot;</span>.to_string()
-                            } <span class="kw">else if </span>value.is_object() {
-                                <span class="string">&quot;[object]&quot;</span>.to_string()
-                            } <span class="kw">else </span>{
-                                value.display().to_string()
-                            }
-                        }
-                    },
+                    }
                 );
 
                 result

@@ -173,6 +173,17 @@
 <span id="171">171</span>
 <span id="172">172</span>
 <span id="173">173</span>
+<span id="174">174</span>
+<span id="175">175</span>
+<span id="176">176</span>
+<span id="177">177</span>
+<span id="178">178</span>
+<span id="179">179</span>
+<span id="180">180</span>
+<span id="181">181</span>
+<span id="182">182</span>
+<span id="183">183</span>
+<span id="184">184</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `RegExp String Iterator` object.
 //!
 //! A `RegExp` String Iterator is an object, that represents a specific iteration over some
@@ -197,7 +208,12 @@
 <span class="kw">use </span>boa_profiler::Profiler;
 <span class="kw">use </span>regexp::{advance_string_index, RegExp};
 
-<span class="comment">// TODO: See todos in create_regexp_string_iterator and next.
+<span class="doccomment">/// The `RegExp String Iterator` object.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-regexp-string-iterator-objects
 </span><span class="attribute">#[derive(Debug, Clone, Finalize, Trace)]
 </span><span class="kw">pub struct </span>RegExpStringIterator {
     matcher: JsObject,
@@ -256,7 +272,13 @@
         regexp_string_iterator.into()
     }
 
-    <span class="kw">pub fn </span>next(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+    <span class="doccomment">/// `%RegExpStringIteratorPrototype%.next ( )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-%regexpstringiteratorprototype%.next
+    </span><span class="kw">pub fn </span>next(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>iterator = this.as_object().map(JsObject::borrow_mut);
         <span class="kw">let </span>iterator = iterator
             .as_mut()

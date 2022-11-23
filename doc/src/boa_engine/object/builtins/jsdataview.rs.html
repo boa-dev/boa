@@ -483,6 +483,8 @@
 <span id="481">481</span>
 <span id="482">482</span>
 <span id="483">483</span>
+<span id="484">484</span>
+<span id="485">485</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements a wrapper for the `DataView` Builtin JavaScript Object
 </span><span class="kw">use crate</span>::{
     builtins::DataView,
@@ -519,7 +521,8 @@
 }
 
 <span class="kw">impl </span>JsDataView {
-    <span class="attribute">#[inline]
+    <span class="doccomment">/// Create a new `JsDataView` object from an existing `JsArrayBuffer`.
+    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>from_js_array_buffer(
         array_buffer: <span class="kw-2">&amp;</span>JsArrayBuffer,
         offset: <span class="prelude-ty">Option</span>&lt;u64&gt;,
@@ -590,7 +593,8 @@
         <span class="prelude-val">Ok</span>(<span class="self">Self </span>{ inner: obj })
     }
 
-    <span class="attribute">#[inline]
+    <span class="doccomment">/// Create a new `JsDataView` object from an existing object.
+    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>from_object(object: JsObject) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
         <span class="kw">if </span>object.borrow().is_data_view() {
             <span class="prelude-val">Ok</span>(<span class="self">Self </span>{ inner: object })

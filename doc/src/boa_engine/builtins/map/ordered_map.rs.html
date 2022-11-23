@@ -225,7 +225,19 @@
 <span id="223">223</span>
 <span id="224">224</span>
 <span id="225">225</span>
-</pre><pre class="rust"><code><span class="kw">use crate</span>::{object::JsObject, JsValue};
+<span id="226">226</span>
+<span id="227">227</span>
+<span id="228">228</span>
+<span id="229">229</span>
+<span id="230">230</span>
+<span id="231">231</span>
+<span id="232">232</span>
+<span id="233">233</span>
+<span id="234">234</span>
+<span id="235">235</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Implements a map type that preserves insertion order.
+
+</span><span class="kw">use crate</span>::{object::JsObject, JsValue};
 <span class="kw">use </span>boa_gc::{custom_trace, Finalize, Trace};
 <span class="kw">use </span>indexmap::{Equivalent, IndexMap};
 <span class="kw">use </span>std::{
@@ -245,8 +257,8 @@
 </span><span class="kw">impl </span>Hash <span class="kw">for </span>MapKey {
     <span class="kw">fn </span>hash&lt;H: Hasher&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, state: <span class="kw-2">&amp;mut </span>H) {
         <span class="kw">match </span><span class="self">self </span>{
-            MapKey::Key(v) =&gt; v.hash(state),
-            MapKey::Empty(e) =&gt; e.hash(state),
+            <span class="self">Self</span>::Key(v) =&gt; v.hash(state),
+            <span class="self">Self</span>::Empty(e) =&gt; e.hash(state),
         }
     }
 }
@@ -293,7 +305,9 @@
 }
 
 <span class="kw">impl</span>&lt;V&gt; OrderedMap&lt;V&gt; {
-    <span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
+    <span class="doccomment">/// Creates a new empty `OrderedMap`.
+    </span><span class="attribute">#[must_use]
+    </span><span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             map: IndexMap::new(),
             lock: <span class="number">0</span>,
@@ -301,7 +315,9 @@
         }
     }
 
-    <span class="kw">pub fn </span>with_capacity(capacity: usize) -&gt; <span class="self">Self </span>{
+    <span class="doccomment">/// Creates a new empty `OrderedMap` with the specified capacity.
+    </span><span class="attribute">#[must_use]
+    </span><span class="kw">pub fn </span>with_capacity(capacity: usize) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             map: IndexMap::with_capacity(capacity),
             lock: <span class="number">0</span>,
@@ -312,6 +328,7 @@
     <span class="doccomment">/// Return the number of key-value pairs in the map, including empty values.
     ///
     /// Computes in **O(1)** time.
+    </span><span class="attribute">#[must_use]
     </span><span class="kw">pub fn </span>full_len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
         <span class="self">self</span>.map.len()
     }
@@ -319,6 +336,7 @@
     <span class="doccomment">/// Gets the number of key-value pairs in the map, not including empty values.
     ///
     /// Computes in **O(1)** time.
+    </span><span class="attribute">#[must_use]
     </span><span class="kw">pub fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
         <span class="self">self</span>.map.len() - <span class="self">self</span>.empty_count
     }
@@ -326,6 +344,7 @@
     <span class="doccomment">/// Returns true if the map contains no elements.
     ///
     /// Computes in **O(1)** time.
+    </span><span class="attribute">#[must_use]
     </span><span class="kw">pub fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.len() == <span class="number">0
     </span>}
@@ -387,6 +406,7 @@
     /// Valid indices are `0 &lt;= index &lt; self.full_len()`.
     ///
     /// Computes in O(1) time.
+    </span><span class="attribute">#[must_use]
     </span><span class="kw">pub fn </span>get_index(<span class="kw-2">&amp;</span><span class="self">self</span>, index: usize) -&gt; <span class="prelude-ty">Option</span>&lt;(<span class="kw-2">&amp;</span>JsValue, <span class="kw-2">&amp;</span>V)&gt; {
         <span class="kw">if let </span>(MapKey::Key(key), <span class="prelude-val">Some</span>(value)) = <span class="self">self</span>.map.get_index(index)<span class="question-mark">? </span>{
             <span class="prelude-val">Some</span>((key, value))

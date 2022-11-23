@@ -343,6 +343,9 @@
 <span id="341">341</span>
 <span id="342">342</span>
 <span id="343">343</span>
+<span id="344">344</span>
+<span id="345">345</span>
+<span id="346">346</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `Symbol` object.
 //!
 //! The data type symbol is a primitive data type.
@@ -415,7 +418,8 @@
     </span>}
 }
 
-<span class="attribute">#[derive(Debug, Clone, Copy)]
+<span class="doccomment">/// The internal representation of a `Symbol` object.
+</span><span class="attribute">#[derive(Debug, Clone, Copy)]
 </span><span class="kw">pub struct </span>Symbol;
 
 <span class="kw">impl </span>BuiltIn <span class="kw">for </span>Symbol {
@@ -598,12 +602,14 @@
         <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue],
         <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
-        <span class="kw">let </span>symbol = <span class="self">Self</span>::this_symbol_value(this)<span class="question-mark">?</span>;
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>description) = symbol.description() {
-            <span class="prelude-val">Ok</span>(description.clone().into())
-        } <span class="kw">else </span>{
-            <span class="prelude-val">Ok</span>(JsValue::undefined())
-        }
+        <span class="comment">// 1. Let s be the this value.
+        // 2. Let sym be ? thisSymbolValue(s).
+        </span><span class="kw">let </span>sym = <span class="self">Self</span>::this_symbol_value(this)<span class="question-mark">?</span>;
+
+        <span class="comment">// 3. Return sym.[[Description]].
+        </span><span class="prelude-val">Ok</span>(sym
+            .description()
+            .map_or(JsValue::undefined(), JsValue::from))
     }
 
     <span class="doccomment">/// `Symbol.for( key )`

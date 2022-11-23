@@ -102,6 +102,9 @@
 <span id="100">100</span>
 <span id="101">101</span>
 <span id="102">102</span>
+<span id="103">103</span>
+<span id="104">104</span>
+<span id="105">105</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the `Attribute` struct which contains the attibutes for property descriptors.
 
 </span><span class="kw">use </span>bitflags::bitflags;
@@ -159,7 +162,8 @@
 
     <span class="doccomment">/// Gets the `writable` flag.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>writable(<span class="self">self</span>) -&gt; bool {
+    #[must_use]
+    </span><span class="kw">pub const fn </span>writable(<span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.contains(<span class="self">Self</span>::WRITABLE)
     }
 
@@ -175,7 +179,8 @@
 
     <span class="doccomment">/// Gets the `enumerable` flag.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>enumerable(<span class="self">self</span>) -&gt; bool {
+    #[must_use]
+    </span><span class="kw">pub const fn </span>enumerable(<span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.contains(<span class="self">Self</span>::ENUMERABLE)
     }
 
@@ -191,7 +196,8 @@
 
     <span class="doccomment">/// Gets the `configurable` flag.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>configurable(<span class="self">self</span>) -&gt; bool {
+    #[must_use]
+    </span><span class="kw">pub const fn </span>configurable(<span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.contains(<span class="self">Self</span>::CONFIGURABLE)
     }
 }

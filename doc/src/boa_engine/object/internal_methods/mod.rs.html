@@ -1225,9 +1225,9 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>__construct__(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        new_target: <span class="kw-2">&amp;</span>JsObject,
+        new_target: <span class="kw-2">&amp;</span><span class="self">Self</span>,
         context: <span class="kw-2">&amp;mut </span>Context,
-    ) -&gt; JsResult&lt;JsObject&gt; {
+    ) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Object::__construct__&quot;</span>, <span class="string">&quot;object&quot;</span>);
         <span class="kw">let </span>func = <span class="self">self</span>.borrow().data.internal_methods.__construct__;
         func.expect(<span class="string">&quot;called `[[Construct]]` for object without a `[[Construct]]` internal method&quot;</span>)(
