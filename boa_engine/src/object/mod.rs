@@ -1311,6 +1311,7 @@ impl Object {
         }
     }
 
+    /// Gets the mutable date data if the object is a `Date`.
     #[inline]
     pub fn as_date_mut(&mut self) -> Option<&mut Date> {
         match self.data {

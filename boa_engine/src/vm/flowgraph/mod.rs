@@ -1,10 +1,8 @@
 //! This module is responsible for generating the vm instruction flowgraph.
 
-use std::mem::size_of;
-
-use boa_interner::{Interner, Sym};
-
 use crate::vm::{CodeBlock, Opcode};
+use boa_interner::{Interner, Sym};
+use std::mem::size_of;
 
 mod color;
 mod edge;
@@ -20,11 +18,12 @@ impl CodeBlock {
     /// Output the [`CodeBlock`] VM instructions into a [`Graph`].
     #[inline]
     pub fn to_graph(&self, interner: &Interner, graph: &mut SubGraph) {
-        let mut name = interner.resolve_expect(self.name).to_string();
         // Have to remove any invalid graph chars like `<` or `>`.
-        if self.name == Sym::MAIN {
-            name = "__main__".to_string();
-        }
+        let name = if self.name == Sym::MAIN {
+            "__main__".to_string()
+        } else {
+            interner.resolve_expect(self.name).to_string()
+        };
 
         graph.set_label(name);
 

@@ -68,13 +68,14 @@ pub(super) fn this_time_value(value: &JsValue) -> JsResult<Option<NaiveDateTime>
         .0)
 }
 
+/// The internal representation of a `Date` object.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Date(Option<NaiveDateTime>);
 
 impl Date {
     /// Creates a new `Date`.
     #[inline]
-    pub(crate) fn new(dt: Option<NaiveDateTime>) -> Self {
+    pub(crate) const fn new(dt: Option<NaiveDateTime>) -> Self {
         Self(dt)
     }
 

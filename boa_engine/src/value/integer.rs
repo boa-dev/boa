@@ -111,7 +111,7 @@ pub(crate) enum IntegerOrNan {
 
 impl IntegerOrNan {
     /// Gets the wrapped `i64` if the variant is an `Integer`.
-    pub(crate) fn as_integer(self) -> Option<i64> {
+    pub(crate) const fn as_integer(self) -> Option<i64> {
         match self {
             Self::Integer(i) => Some(i),
             Self::Nan => None,

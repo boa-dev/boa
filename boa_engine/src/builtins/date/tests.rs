@@ -194,7 +194,7 @@ fn date_ctor_parse_call() {
 
     let date_time = forward_val(&mut context, "Date.parse('2020-06-08T09:16:15.779-07:30')");
 
-    assert_eq!(JsValue::new(1591634775779i64), date_time.unwrap());
+    assert_eq!(JsValue::new(1_591_634_775_779_i64), date_time.unwrap());
 }
 
 #[test]
@@ -203,7 +203,7 @@ fn date_ctor_utc_call() {
 
     let date_time = forward_val(&mut context, "Date.UTC(2020, 6, 8, 9, 16, 15, 779)");
 
-    assert_eq!(JsValue::new(1594199775779i64), date_time.unwrap());
+    assert_eq!(JsValue::new(1_594_199_775_779_i64), date_time.unwrap());
 }
 
 #[test]
@@ -1379,7 +1379,7 @@ fn date_proto_value_of() {
         "new Date(Date.UTC(2020, 6, 8, 9, 16, 15, 779)).valueOf()",
     )
     .unwrap();
-    assert_eq!(JsValue::new(1594199775779i64), actual);
+    assert_eq!(JsValue::new(1_594_199_775_779_i64), actual);
 }
 
 #[test]
@@ -1391,7 +1391,7 @@ fn date_neg() {
         "-new Date(Date.UTC(2020, 6, 8, 9, 16, 15, 779))",
     )
     .unwrap();
-    assert_eq!(JsValue::new(-1594199775779i64), actual);
+    assert_eq!(JsValue::new(-1_594_199_775_779_i64), actual);
 }
 
 #[test]

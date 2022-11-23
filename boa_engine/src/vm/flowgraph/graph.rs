@@ -3,9 +3,16 @@ use crate::vm::flowgraph::{Color, Edge, EdgeStyle, EdgeType, Node, NodeShape};
 /// This represents the direction of flow in the flowgraph.
 #[derive(Debug, Clone, Copy)]
 pub enum Direction {
+    /// Represents a top to bottom direction.
     TopToBottom,
+
+    /// Represents a bottom to top direction.
     BottomToTop,
+
+    /// Represents a left to right direction.
     LeftToRight,
+
+    /// Represents a right to left direction.
     RightToLeft,
 }
 
@@ -241,6 +248,7 @@ pub struct Graph {
 impl Graph {
     /// Construct a [`Graph`]
     #[inline]
+    #[must_use]
     pub fn new(direction: Direction) -> Self {
         Graph {
             subgraphs: Vec::default(),
@@ -262,6 +270,7 @@ impl Graph {
 
     /// Output the graph into the graphviz format.
     #[inline]
+    #[must_use]
     pub fn to_graphviz_format(&self) -> String {
         let mut result = String::new();
         result += "digraph {\n";
@@ -284,6 +293,7 @@ impl Graph {
 
     /// Output the graph into the mermaid format.
     #[inline]
+    #[must_use]
     pub fn to_mermaid_format(&self) -> String {
         let mut result = String::new();
         let rankdir = match self.direction {
