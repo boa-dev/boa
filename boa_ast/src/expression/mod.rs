@@ -195,6 +195,27 @@ impl Expression {
             Self::FormalParameterList(_) => unreachable!(),
         }
     }
+
+    /// Returns if the expression is a function definition according to the spec.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-isfunctiondefinition
+    #[must_use]
+    #[inline]
+    pub const fn is_function_definition(&self) -> bool {
+        matches!(
+            self,
+            Self::ArrowFunction(_)
+                | Self::AsyncArrowFunction(_)
+                | Self::Function(_)
+                | Self::Generator(_)
+                | Self::AsyncGenerator(_)
+                | Self::AsyncFunction(_)
+                | Self::Class(_)
+        )
+    }
 }
 
 impl From<Expression> for Statement {

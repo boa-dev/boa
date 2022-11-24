@@ -45,7 +45,7 @@ impl CodeBlock {
 
             pc += size_of::<Opcode>();
             match opcode {
-                Opcode::RotateLeft | Opcode::RotateRight => {
+                Opcode::RotateLeft | Opcode::RotateRight | Opcode::SetFunctionName => {
                     pc += size_of::<u8>();
                     graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
                     graph.add_edge(previous_pc, pc, None, Color::None, EdgeStyle::Line);

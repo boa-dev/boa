@@ -177,7 +177,7 @@ impl CodeBlock {
         let opcode: Opcode = self.code[*pc].try_into().expect("invalid opcode");
         *pc += size_of::<Opcode>();
         match opcode {
-            Opcode::RotateLeft | Opcode::RotateRight => {
+            Opcode::RotateLeft | Opcode::RotateRight | Opcode::SetFunctionName => {
                 let result = self.read::<u8>(*pc).to_string();
                 *pc += size_of::<u8>();
                 result

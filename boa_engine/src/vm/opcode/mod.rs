@@ -744,6 +744,22 @@ generate_impl! {
         /// Stack: object, value **=>** value
         SetPropertyByName,
 
+        /// Sets the name of a function object.
+        ///
+        /// This operation is corresponds to the `SetFunctionName` abstract operation in the [spec].
+        ///
+        ///  The prefix operand is mapped as follows:
+        /// * 0 -> no prefix
+        /// * 1 -> "get "
+        /// * 2 -> "set "
+        ///
+        ///  Operands: prefix: `u8`
+        ///
+        /// Stack: name, function **=>** function
+        ///
+        /// [spec]: https://tc39.es/ecma262/#sec-setfunctionname
+        SetFunctionName,
+
         /// Defines a own property of an object by name.
         ///
         /// Operands: name_index: `u32`

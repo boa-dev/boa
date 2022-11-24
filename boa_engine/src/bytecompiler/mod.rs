@@ -1225,12 +1225,18 @@ impl<'b> ByteCompiler<'b> {
                             PropertyName::Computed(name_node) => {
                                 self.compile_expr(name_node, true)?;
                                 self.emit_opcode(Opcode::ToPropertyKey);
-                                self.compile_expr(expr, true)?;
+                                if expr.is_function_definition() {
+                                    self.emit_opcode(Opcode::Dup);
+                                    self.compile_expr(expr, true)?;
+                                    self.emit_opcode(Opcode::SetFunctionName);
+                                    self.emit_u8(0);
+                                } else {
+                                    self.compile_expr(expr, true)?;
+                                }
                                 self.emit_opcode(Opcode::DefineOwnPropertyByValue);
                             }
                         },
                         PropertyDefinition::MethodDefinition(name, kind) => match kind {
-                            // TODO: set function name for getter and setters
                             MethodDefinition::Get(expr) => match name {
                                 PropertyName::Literal(name) => {
                                     self.function(expr.into(), NodeKind::Expression, true)?;
@@ -1240,11 +1246,13 @@ impl<'b> ByteCompiler<'b> {
                                 PropertyName::Computed(name_node) => {
                                     self.compile_expr(name_node, true)?;
                                     self.emit_opcode(Opcode::ToPropertyKey);
+                                    self.emit_opcode(Opcode::Dup);
                                     self.function(expr.into(), NodeKind::Expression, true)?;
+                                    self.emit_opcode(Opcode::SetFunctionName);
+                                    self.emit_u8(1);
                                     self.emit_opcode(Opcode::SetPropertyGetterByValue);
                                 }
                             },
-                            // TODO: set function name for getter and setters
                             MethodDefinition::Set(expr) => match name {
                                 PropertyName::Literal(name) => {
                                     self.function(expr.into(), NodeKind::Expression, true)?;
@@ -1254,7 +1262,10 @@ impl<'b> ByteCompiler<'b> {
                                 PropertyName::Computed(name_node) => {
                                     self.compile_expr(name_node, true)?;
                                     self.emit_opcode(Opcode::ToPropertyKey);
+                                    self.emit_opcode(Opcode::Dup);
                                     self.function(expr.into(), NodeKind::Expression, true)?;
+                                    self.emit_opcode(Opcode::SetFunctionName);
+                                    self.emit_u8(2);
                                     self.emit_opcode(Opcode::SetPropertySetterByValue);
                                 }
                             },
@@ -1267,7 +1278,10 @@ impl<'b> ByteCompiler<'b> {
                                 PropertyName::Computed(name_node) => {
                                     self.compile_expr(name_node, true)?;
                                     self.emit_opcode(Opcode::ToPropertyKey);
+                                    self.emit_opcode(Opcode::Dup);
                                     self.function(expr.into(), NodeKind::Expression, true)?;
+                                    self.emit_opcode(Opcode::SetFunctionName);
+                                    self.emit_u8(0);
                                     self.emit_opcode(Opcode::DefineOwnPropertyByValue);
                                 }
                             },
@@ -1280,7 +1294,10 @@ impl<'b> ByteCompiler<'b> {
                                 PropertyName::Computed(name_node) => {
                                     self.compile_expr(name_node, true)?;
                                     self.emit_opcode(Opcode::ToPropertyKey);
+                                    self.emit_opcode(Opcode::Dup);
                                     self.function(expr.into(), NodeKind::Expression, true)?;
+                                    self.emit_opcode(Opcode::SetFunctionName);
+                                    self.emit_u8(0);
                                     self.emit_opcode(Opcode::DefineOwnPropertyByValue);
                                 }
                             },
@@ -1293,7 +1310,10 @@ impl<'b> ByteCompiler<'b> {
                                 PropertyName::Computed(name_node) => {
                                     self.compile_expr(name_node, true)?;
                                     self.emit_opcode(Opcode::ToPropertyKey);
+                                    self.emit_opcode(Opcode::Dup);
                                     self.function(expr.into(), NodeKind::Expression, true)?;
+                                    self.emit_opcode(Opcode::SetFunctionName);
+                                    self.emit_u8(0);
                                     self.emit_opcode(Opcode::DefineOwnPropertyByValue);
                                 }
                             },
@@ -1306,7 +1326,10 @@ impl<'b> ByteCompiler<'b> {
                                 PropertyName::Computed(name_node) => {
                                     self.compile_expr(name_node, true)?;
                                     self.emit_opcode(Opcode::ToPropertyKey);
+                                    self.emit_opcode(Opcode::Dup);
                                     self.function(expr.into(), NodeKind::Expression, true)?;
+                                    self.emit_opcode(Opcode::SetFunctionName);
+                                    self.emit_u8(0);
                                     self.emit_opcode(Opcode::DefineOwnPropertyByValue);
                                 }
                             },

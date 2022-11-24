@@ -356,3 +356,15 @@ pub enum ClassElementName {
     /// A private property.
     PrivateIdentifier(Sym),
 }
+
+impl ClassElementName {
+    /// Returns the property name if it exists.
+    #[must_use]
+    pub const fn literal(&self) -> Option<Sym> {
+        if let Self::PropertyName(name) = self {
+            name.literal()
+        } else {
+            None
+        }
+    }
+}
