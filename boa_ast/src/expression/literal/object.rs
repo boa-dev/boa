@@ -3,6 +3,7 @@
 use crate::{
     block_to_string,
     expression::{operator::assign::AssignTarget, Expression, RESERVED_IDENTIFIERS_STRICT},
+    function::Function,
     join_nodes,
     pattern::{ObjectPattern, ObjectPatternElement},
     property::{MethodDefinition, PropertyDefinition, PropertyName},
@@ -211,6 +212,12 @@ impl ToIndentedString for ObjectLiteral {
                     format!("{indentation}{},\n", interner.resolve_expect(ident.sym()))
                 }
                 PropertyDefinition::Property(key, value) => {
+                    let value = if let Expression::Function(f) = value {
+                        Function::new(None, f.parameters().clone(), f.body().clone()).into()
+                    } else {
+                        value.clone()
+                    };
+
                     format!(
                         "{indentation}{}: {},\n",
                         key.to_interned_string(interner),
