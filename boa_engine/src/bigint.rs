@@ -453,21 +453,15 @@ impl PartialEq<JsBigInt> for i32 {
 impl PartialEq<f64> for JsBigInt {
     #[inline]
     fn eq(&self, other: &f64) -> bool {
-        if other.fract().is_zero() {
-            RawBigInt::from_f64(*other).map_or(false, |bigint| self.inner.as_ref() == &bigint)
-        } else {
-            false
-        }
+        other.fract().is_zero()
+            && RawBigInt::from_f64(*other).map_or(false, |bigint| self.inner.as_ref() == &bigint)
     }
 }
 
 impl PartialEq<JsBigInt> for f64 {
     #[inline]
     fn eq(&self, other: &JsBigInt) -> bool {
-        if self.fract().is_zero() {
-            RawBigInt::from_f64(*self).map_or(false, |bigint| other.inner.as_ref() == &bigint)
-        } else {
-            false
-        }
+        self.fract().is_zero()
+            && RawBigInt::from_f64(*self).map_or(false, |bigint| other.inner.as_ref() == &bigint)
     }
 }
