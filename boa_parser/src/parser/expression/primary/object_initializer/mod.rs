@@ -294,7 +294,7 @@ where
         if cursor.next_if(Punctuator::Colon, interner)?.is_some() {
             let name = property_name
                 .literal()
-                .filter(|name| name != &Sym::__PROTO__)
+                .filter(|name| *name != Sym::__PROTO__)
                 .map(Into::into);
 
             let value = AssignmentExpression::new(name, true, self.allow_yield, self.allow_await)
