@@ -177,7 +177,18 @@ impl CodeBlock {
         let opcode: Opcode = self.code[*pc].try_into().expect("invalid opcode");
         *pc += size_of::<Opcode>();
         match opcode {
-            Opcode::RotateLeft | Opcode::RotateRight | Opcode::SetFunctionName => {
+            Opcode::SetFunctionName => {
+                let operand = self.read::<u8>(*pc);
+                *pc += size_of::<u8>();
+                match operand {
+                    0 => "prefix: none",
+                    1 => "prefix: get",
+                    2 => "prefix: set",
+                    _ => unreachable!(),
+                }
+                .to_owned()
+            }
+            Opcode::RotateLeft | Opcode::RotateRight => {
                 let result = self.read::<u8>(*pc).to_string();
                 *pc += size_of::<u8>();
                 result
