@@ -1580,6 +1580,17 @@
 <span id="1578">1578</span>
 <span id="1579">1579</span>
 <span id="1580">1580</span>
+<span id="1581">1581</span>
+<span id="1582">1582</span>
+<span id="1583">1583</span>
+<span id="1584">1584</span>
+<span id="1585">1585</span>
+<span id="1586">1586</span>
+<span id="1587">1587</span>
+<span id="1588">1588</span>
+<span id="1589">1589</span>
+<span id="1590">1590</span>
+<span id="1591">1591</span>
 </pre><pre class="rust"><code><span class="doccomment">//! `CodeBlock`
 //!
 //! This module is for the `CodeBlock` which implements a function representation in the VM
@@ -1759,6 +1770,17 @@
         <span class="kw">let </span>opcode: Opcode = <span class="self">self</span>.code[<span class="kw-2">*</span>pc].try_into().expect(<span class="string">&quot;invalid opcode&quot;</span>);
         <span class="kw-2">*</span>pc += size_of::&lt;Opcode&gt;();
         <span class="kw">match </span>opcode {
+            Opcode::SetFunctionName =&gt; {
+                <span class="kw">let </span>operand = <span class="self">self</span>.read::&lt;u8&gt;(<span class="kw-2">*</span>pc);
+                <span class="kw-2">*</span>pc += size_of::&lt;u8&gt;();
+                <span class="kw">match </span>operand {
+                    <span class="number">0 </span>=&gt; <span class="string">&quot;prefix: none&quot;</span>,
+                    <span class="number">1 </span>=&gt; <span class="string">&quot;prefix: get&quot;</span>,
+                    <span class="number">2 </span>=&gt; <span class="string">&quot;prefix: set&quot;</span>,
+                    <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(),
+                }
+                .to_owned()
+            }
             Opcode::RotateLeft | Opcode::RotateRight =&gt; {
                 <span class="kw">let </span>result = <span class="self">self</span>.read::&lt;u8&gt;(<span class="kw-2">*</span>pc).to_string();
                 <span class="kw-2">*</span>pc += size_of::&lt;u8&gt;();

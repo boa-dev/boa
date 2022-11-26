@@ -974,6 +974,56 @@
 <span id="974">974</span>
 <span id="975">975</span>
 <span id="976">976</span>
+<span id="977">977</span>
+<span id="978">978</span>
+<span id="979">979</span>
+<span id="980">980</span>
+<span id="981">981</span>
+<span id="982">982</span>
+<span id="983">983</span>
+<span id="984">984</span>
+<span id="985">985</span>
+<span id="986">986</span>
+<span id="987">987</span>
+<span id="988">988</span>
+<span id="989">989</span>
+<span id="990">990</span>
+<span id="991">991</span>
+<span id="992">992</span>
+<span id="993">993</span>
+<span id="994">994</span>
+<span id="995">995</span>
+<span id="996">996</span>
+<span id="997">997</span>
+<span id="998">998</span>
+<span id="999">999</span>
+<span id="1000">1000</span>
+<span id="1001">1001</span>
+<span id="1002">1002</span>
+<span id="1003">1003</span>
+<span id="1004">1004</span>
+<span id="1005">1005</span>
+<span id="1006">1006</span>
+<span id="1007">1007</span>
+<span id="1008">1008</span>
+<span id="1009">1009</span>
+<span id="1010">1010</span>
+<span id="1011">1011</span>
+<span id="1012">1012</span>
+<span id="1013">1013</span>
+<span id="1014">1014</span>
+<span id="1015">1015</span>
+<span id="1016">1016</span>
+<span id="1017">1017</span>
+<span id="1018">1018</span>
+<span id="1019">1019</span>
+<span id="1020">1020</span>
+<span id="1021">1021</span>
+<span id="1022">1022</span>
+<span id="1023">1023</span>
+<span id="1024">1024</span>
+<span id="1025">1025</span>
+<span id="1026">1026</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Object initializer parsing.
 //!
 //! More information:
@@ -1268,8 +1318,14 @@
 
         <span class="comment">//  PropertyName[?Yield, ?Await] : AssignmentExpression[+In, ?Yield, ?Await]
         </span><span class="kw">if </span>cursor.next_if(Punctuator::Colon, interner)<span class="question-mark">?</span>.is_some() {
-            <span class="kw">let </span>value = AssignmentExpression::new(<span class="prelude-val">None</span>, <span class="bool-val">true</span>, <span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await)
+            <span class="kw">let </span>name = property_name
+                .literal()
+                .filter(|name| <span class="kw-2">*</span>name != Sym::__PROTO__)
+                .map(Into::into);
+
+            <span class="kw">let </span>value = AssignmentExpression::new(name, <span class="bool-val">true</span>, <span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await)
                 .parse(cursor, interner)<span class="question-mark">?</span>;
+
             <span class="kw">return </span><span class="prelude-val">Ok</span>(property::PropertyDefinition::Property(property_name, value));
         }
 
@@ -1306,8 +1362,16 @@
                     <span class="string">&quot;get method definition&quot;</span>,
                     interner,
                 )<span class="question-mark">?</span>;
+
+                <span class="kw">let </span>name = property_name.literal().map(|name| {
+                    <span class="kw">let </span>s = interner.resolve_expect(name).utf16();
+                    interner
+                        .get_or_intern([<span class="macro">utf16!</span>(<span class="string">&quot;get &quot;</span>), s].concat().as_slice())
+                        .into()
+                });
+
                 <span class="kw">let </span>method = MethodDefinition::Get(Function::new(
-                    <span class="prelude-val">None</span>,
+                    name,
                     FormalParameterList::default(),
                     body,
                 ));
@@ -1356,8 +1420,9 @@
                     interner,
                 )<span class="question-mark">?</span>;
 
-                <span class="comment">// Early Error: It is a Syntax Error if FunctionBodyContainsUseStrict of FunctionBody is true
+                <span class="comment">// It is a Syntax Error if FunctionBodyContainsUseStrict of FunctionBody is true
                 // and IsSimpleParameterList of PropertySetParameterList is false.
+                // https://tc39.es/ecma262/#sec-method-definitions-static-semantics-early-errors
                 </span><span class="kw">if </span>body.strict() &amp;&amp; !parameters.is_simple() {
                     <span class="kw">return </span><span class="prelude-val">Err</span>(Error::lex(LexError::Syntax(
                         <span class="string">&quot;Illegal &#39;use strict&#39; directive in function with non-simple parameter list&quot;
@@ -1366,9 +1431,26 @@
                     )));
                 }
 
-                <span class="kw">let </span>method = MethodDefinition::Set(Function::new(<span class="prelude-val">None</span>, parameters, body));
+                <span class="comment">// It is a Syntax Error if any element of the BoundNames of PropertySetParameterList also
+                // occurs in the LexicallyDeclaredNames of FunctionBody.
+                // https://tc39.es/ecma262/#sec-method-definitions-static-semantics-early-errors
+                </span>name_in_lexically_declared_names(
+                    <span class="kw-2">&amp;</span>bound_names(<span class="kw-2">&amp;</span>parameters),
+                    <span class="kw-2">&amp;</span>top_level_lexically_declared_names(<span class="kw-2">&amp;</span>body),
+                    params_start_position,
+                )<span class="question-mark">?</span>;
+
+                <span class="kw">let </span>name = property_name.literal().map(|name| {
+                    <span class="kw">let </span>s = interner.resolve_expect(name).utf16();
+                    interner
+                        .get_or_intern([<span class="macro">utf16!</span>(<span class="string">&quot;set &quot;</span>), s].concat().as_slice())
+                        .into()
+                });
+
+                <span class="kw">let </span>method = MethodDefinition::Set(Function::new(name, parameters, body));
 
                 <span class="comment">// It is a Syntax Error if HasDirectSuper of MethodDefinition is true.
+                // https://tc39.es/ecma262/#sec-object-initializer-static-semantics-early-errors
                 </span><span class="kw">if </span>has_direct_super(<span class="kw-2">&amp;</span>method) {
                     <span class="kw">return </span><span class="prelude-val">Err</span>(Error::general(<span class="string">&quot;invalid super usage&quot;</span>, params_start_position));
                 }
@@ -1433,7 +1515,11 @@
                     params_start_position,
                 )<span class="question-mark">?</span>;
 
-                <span class="kw">let </span>method = MethodDefinition::Ordinary(Function::new(<span class="prelude-val">None</span>, params, body));
+                <span class="kw">let </span>method = MethodDefinition::Ordinary(Function::new(
+                    property_name.literal().map(Into::into),
+                    params,
+                    body,
+                ));
 
                 <span class="comment">// It is a Syntax Error if HasDirectSuper of MethodDefinition is true.
                 </span><span class="kw">if </span>has_direct_super(<span class="kw-2">&amp;</span>method) {
@@ -1691,7 +1777,12 @@
             params_start_position,
         )<span class="question-mark">?</span>;
 
-        <span class="kw">let </span>method = MethodDefinition::Generator(Generator::new(<span class="prelude-val">None</span>, params, body, <span class="bool-val">false</span>));
+        <span class="kw">let </span>method = MethodDefinition::Generator(Generator::new(
+            class_element_name.literal().map(Into::into),
+            params,
+            body,
+            <span class="bool-val">false</span>,
+        ));
 
         <span class="kw">if </span>contains(<span class="kw-2">&amp;</span>method, ContainsSymbol::Super) {
             <span class="kw">return </span><span class="prelude-val">Err</span>(Error::lex(LexError::Syntax(
@@ -1801,8 +1892,12 @@
             params_start_position,
         )<span class="question-mark">?</span>;
 
-        <span class="kw">let </span>method =
-            MethodDefinition::AsyncGenerator(AsyncGenerator::new(<span class="prelude-val">None</span>, params, body, <span class="bool-val">false</span>));
+        <span class="kw">let </span>method = MethodDefinition::AsyncGenerator(AsyncGenerator::new(
+            name.literal().map(Into::into),
+            params,
+            body,
+            <span class="bool-val">false</span>,
+        ));
 
         <span class="kw">if </span>contains(<span class="kw-2">&amp;</span>method, ContainsSymbol::Super) {
             <span class="kw">return </span><span class="prelude-val">Err</span>(Error::lex(LexError::Syntax(
@@ -1889,7 +1984,12 @@
             params_start_position,
         )<span class="question-mark">?</span>;
 
-        <span class="kw">let </span>method = MethodDefinition::Async(AsyncFunction::new(<span class="prelude-val">None</span>, params, body, <span class="bool-val">false</span>));
+        <span class="kw">let </span>method = MethodDefinition::Async(AsyncFunction::new(
+            class_element_name.literal().map(Into::into),
+            params,
+            body,
+            <span class="bool-val">false</span>,
+        ));
 
         <span class="kw">if </span>contains(<span class="kw-2">&amp;</span>method, ContainsSymbol::Super) {
             <span class="kw">return </span><span class="prelude-val">Err</span>(Error::lex(LexError::Syntax(

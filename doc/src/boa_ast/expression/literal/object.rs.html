@@ -318,11 +318,19 @@
 <span id="318">318</span>
 <span id="319">319</span>
 <span id="320">320</span>
+<span id="321">321</span>
+<span id="322">322</span>
+<span id="323">323</span>
+<span id="324">324</span>
+<span id="325">325</span>
+<span id="326">326</span>
+<span id="327">327</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Object Expression.
 
 </span><span class="kw">use crate</span>::{
     block_to_string,
     expression::{operator::assign::AssignTarget, Expression, RESERVED_IDENTIFIERS_STRICT},
+    function::Function,
     join_nodes,
     pattern::{ObjectPattern, ObjectPatternElement},
     property::{MethodDefinition, PropertyDefinition, PropertyName},
@@ -531,6 +539,12 @@
                     <span class="macro">format!</span>(<span class="string">&quot;{indentation}{},\n&quot;</span>, interner.resolve_expect(ident.sym()))
                 }
                 PropertyDefinition::Property(key, value) =&gt; {
+                    <span class="kw">let </span>value = <span class="kw">if let </span>Expression::Function(f) = value {
+                        Function::new(<span class="prelude-val">None</span>, f.parameters().clone(), f.body().clone()).into()
+                    } <span class="kw">else </span>{
+                        value.clone()
+                    };
+
                     <span class="macro">format!</span>(
                         <span class="string">&quot;{indentation}{}: {},\n&quot;</span>,
                         key.to_interned_string(interner),
