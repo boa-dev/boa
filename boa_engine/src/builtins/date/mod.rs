@@ -7,7 +7,6 @@
 //! [spec]: https://tc39.es/ecma262/#sec-date-objects
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date
 
-
 mod utils;
 use utils::{make_date, make_day, make_time, replace_params, time_clip, DateParameters};
 

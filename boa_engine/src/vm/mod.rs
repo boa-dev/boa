@@ -1,5 +1,5 @@
 //! Boa's JavaScript Virtual Machine
-//! 
+//!
 //! The Virtual Machine (VM) handles generating instructions, then executing them.
 //! This module will provide an instruction set for the AST to use, various traits,
 //! plus an interpreter to execute those instructions
