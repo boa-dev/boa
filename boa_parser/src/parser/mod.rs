@@ -23,7 +23,7 @@ use boa_ast::{
     operations::{
         contains, top_level_lexically_declared_names, top_level_var_declared_names, ContainsSymbol,
     },
-    Position, StatementList,
+    ModuleItemList, Position, StatementList,
 };
 use boa_interner::Interner;
 use rustc_hash::FxHashSet;
@@ -130,8 +130,23 @@ impl<'a, R: Read> Parser<'a, R> {
     /// Will return `Err` on any parsing error, including invalid reads of the bytes being parsed.
     ///
     /// [spec]: https://tc39.es/ecma262/#prod-Script
-    pub fn parse_all(&mut self, interner: &mut Interner) -> ParseResult<StatementList> {
+    pub fn parse_script(&mut self, interner: &mut Interner) -> ParseResult<StatementList> {
         Script::new(false).parse(&mut self.cursor, interner)
+    }
+
+    /// Parse the full input as an [ECMAScript Module][spec] into the boa AST representation.
+    /// The resulting `ModuleItemList` can be compiled into boa bytecode and executed in the boa vm.
+    ///
+    /// # Errors
+    ///
+    /// Will return `Err` on any parsing error, including invalid reads of the bytes being parsed.
+    ///
+    /// [spec]: https://tc39.es/ecma262/#prod-Module
+    pub fn parse_module(&mut self, interner: &mut Interner) -> ParseResult<ModuleItemList>
+    where
+        R: Read,
+    {
+        Module.parse(&mut self.cursor, interner)
     }
 
     /// [`19.2.1.1 PerformEval ( x, strictCaller, direct )`][spec]
@@ -346,5 +361,30 @@ trait OrAbrupt<T> {
 impl<T> OrAbrupt<T> for ParseResult<Option<T>> {
     fn or_abrupt(self) -> ParseResult<T> {
         self?.ok_or(Error::AbruptEnd)
+    }
+}
+
+/// Parses a full module.
+///
+/// More information:
+///  - [ECMAScript specification][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#prod-Module
+#[derive(Debug, Clone, Copy)]
+struct Module;
+
+impl<R> TokenParser<R> for Module
+where
+    R: Read,
+{
+    type Output = ModuleItemList;
+
+    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
+        cursor.set_module_mode();
+        if cursor.peek(0, interner)?.is_some() {
+            self::statement::ModuleItemList.parse(cursor, interner)
+        } else {
+            Ok(Vec::new().into())
+        }
     }
 }

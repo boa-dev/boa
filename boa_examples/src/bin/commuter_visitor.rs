@@ -69,7 +69,7 @@ fn main() {
         Parser::new(Source::from_filepath(Path::new("boa_examples/scripts/calc.js")).unwrap());
     let mut ctx = Context::default();
 
-    let mut statements = parser.parse_all(ctx.interner_mut()).unwrap();
+    let mut statements = parser.parse_script(ctx.interner_mut()).unwrap();
 
     let mut visitor = CommutorVisitor::default();
 

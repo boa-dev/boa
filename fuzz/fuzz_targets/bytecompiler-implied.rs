@@ -14,7 +14,7 @@ fn do_fuzz(original: FuzzSource) -> Corpus {
         .instructions_remaining(0)
         .build();
     let mut parser = Parser::new(Cursor::new(&original.source));
-    if let Ok(parsed) = parser.parse_all(ctx.interner_mut()) {
+    if let Ok(parsed) = parser.parse_script(ctx.interner_mut()) {
         let _ = ctx.compile(&parsed);
         Corpus::Keep
     } else {

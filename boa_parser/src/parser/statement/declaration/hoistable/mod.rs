@@ -17,7 +17,7 @@ pub(crate) mod class_decl;
 
 use self::{
     async_function_decl::AsyncFunctionDeclaration, async_generator_decl::AsyncGeneratorDeclaration,
-    class_decl::ClassDeclaration, generator_decl::GeneratorDeclaration,
+    generator_decl::GeneratorDeclaration,
 };
 use crate::{
     lexer::TokenKind,
@@ -40,7 +40,9 @@ use boa_interner::{Interner, Sym};
 use boa_profiler::Profiler;
 use std::io::Read;
 
-pub(in crate::parser) use function_decl::FunctionDeclaration;
+pub(in crate::parser) use self::{
+    class_decl::ClassDeclaration, function_decl::FunctionDeclaration,
+};
 
 /// Hoistable declaration parsing.
 ///
@@ -49,7 +51,7 @@ pub(in crate::parser) use function_decl::FunctionDeclaration;
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-FunctionDeclaration
 #[derive(Debug, Clone, Copy)]
-pub(super) struct HoistableDeclaration {
+pub(in crate::parser) struct HoistableDeclaration {
     allow_yield: AllowYield,
     allow_await: AllowAwait,
     is_default: AllowDefault,
@@ -57,7 +59,7 @@ pub(super) struct HoistableDeclaration {
 
 impl HoistableDeclaration {
     /// Creates a new `HoistableDeclaration` parser.
-    pub(super) fn new<Y, A, D>(allow_yield: Y, allow_await: A, is_default: D) -> Self
+    pub(in crate::parser) fn new<Y, A, D>(allow_yield: Y, allow_await: A, is_default: D) -> Self
     where
         Y: Into<AllowYield>,
         A: Into<AllowAwait>,

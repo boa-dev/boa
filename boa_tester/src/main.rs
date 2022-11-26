@@ -407,8 +407,16 @@ impl Test {
         }
     }
 
+    /// Sets the test as ignored.
+    #[inline]
     fn set_ignored(&mut self) {
         self.ignored = true;
+    }
+
+    /// Checks if this is a module test.
+    #[inline]
+    const fn is_module(&self) -> bool {
+        self.flags.contains(TestFlags::MODULE)
     }
 }
 

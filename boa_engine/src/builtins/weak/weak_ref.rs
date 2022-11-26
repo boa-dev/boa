@@ -150,7 +150,7 @@ mod tests {
         let context = &mut Context::default();
 
         assert!(context
-            .eval(Source::from_bytes(
+            .eval_script(Source::from_bytes(
                 r#"
             var ptr;
             {
@@ -167,7 +167,7 @@ mod tests {
 
         assert_eq!(
             context
-                .eval(Source::from_bytes(
+                .eval_script(Source::from_bytes(
                     r#"
             ptr.deref()
         "#

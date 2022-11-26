@@ -592,10 +592,17 @@ where
             }
             TokenKind::NullLiteral => (Sym::NULL).into(),
             TokenKind::BooleanLiteral(bool) => match bool {
-                true => (interner.get_or_intern_static("true", utf16!("true"))).into(),
-                false => (interner.get_or_intern_static("false", utf16!("false"))).into(),
+                true => Sym::TRUE.into(),
+                false => Sym::FALSE.into(),
             },
-            _ => return Err(Error::AbruptEnd),
+            _ => {
+                return Err(Error::expected(
+                    vec!["property name".to_owned()],
+                    token.to_string(interner),
+                    token.span(),
+                    "property name",
+                ))
+            }
         };
         cursor.advance(interner);
         Ok(name)

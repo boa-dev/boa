@@ -97,7 +97,7 @@ impl ByteCompiler<'_, '_> {
             } else {
                 None
             };
-            compiler.create_decls(expr.body(), false);
+            compiler.create_script_decls(expr.body(), false);
             compiler.compile_statement_list(expr.body(), false, false)?;
             if let Some(env_label) = env_label {
                 let (num_bindings, compile_environment) =
@@ -445,7 +445,7 @@ impl ByteCompiler<'_, '_> {
                         .context
                         .create_immutable_binding(class_name.into(), true);
                     compiler.context.push_compile_time_environment(true);
-                    compiler.create_decls(statement_list, false);
+                    compiler.create_script_decls(statement_list, false);
                     compiler.compile_statement_list(statement_list, false, false)?;
                     let (num_bindings, compile_environment) =
                         compiler.context.pop_compile_time_environment();

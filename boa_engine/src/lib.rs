@@ -189,7 +189,7 @@ where
     S: AsRef<[u8]> + ?Sized,
 {
     context
-        .eval(Source::from_bytes(src))
+        .eval_script(Source::from_bytes(src))
         .map_or_else(|e| format!("Uncaught {e}"), |v| v.display().to_string())
 }
 
@@ -207,7 +207,7 @@ pub(crate) fn forward_val<T: AsRef<[u8]> + ?Sized>(
 
     let main_timer = Profiler::global().start_event("Main", "Main");
 
-    let result = context.eval(Source::from_bytes(src));
+    let result = context.eval_script(Source::from_bytes(src));
 
     // The main_timer needs to be dropped before the Profiler is.
     drop(main_timer);
@@ -219,7 +219,7 @@ pub(crate) fn forward_val<T: AsRef<[u8]> + ?Sized>(
 /// Create a clean Context and execute the code
 #[cfg(test)]
 pub(crate) fn exec<T: AsRef<[u8]> + ?Sized>(src: &T) -> String {
-    match Context::default().eval(Source::from_bytes(src)) {
+    match Context::default().eval_script(Source::from_bytes(src)) {
         Ok(value) => value.display().to_string(),
         Err(error) => error.to_string(),
     }

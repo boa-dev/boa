@@ -136,6 +136,8 @@ static_syms! {
     "async",
     "of",
     "target",
+    "as",
+    "from",
     "__proto__",
     "name",
     "await",

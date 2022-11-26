@@ -21,7 +21,7 @@ use ast::operations::bound_names;
 use boa_ast::{self as ast, declaration::Variable, pattern::Pattern, Keyword, Punctuator};
 use boa_interner::{Interner, Sym};
 use boa_profiler::Profiler;
-use std::{convert::TryInto, io::Read};
+use std::io::Read;
 
 /// Parses a lexical declaration.
 ///

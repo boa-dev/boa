@@ -1,12 +1,10 @@
-use std::convert::TryInto;
-
-use crate::parser::tests::{check_invalid, check_script_parser};
+use crate::parser::tests::{check_invalid_script, check_script_parser};
 use boa_ast::{
     declaration::{LexicalDeclaration, VarDeclaration, Variable},
     expression::literal::Literal,
     Declaration, Statement,
 };
-use boa_interner::Interner;
+use boa_interner::{Interner, Sym};
 use boa_macros::utf16;
 
 /// Checks `var` declaration parsing.
@@ -36,9 +34,7 @@ fn var_declaration_keywords() {
         "var yield = 5;",
         vec![Statement::Var(VarDeclaration(
             vec![Variable::from_identifier(
-                interner
-                    .get_or_intern_static("yield", utf16!("yield"))
-                    .into(),
+                Sym::YIELD.into(),
                 Some(Literal::from(5).into()),
             )]
             .try_into()
@@ -53,9 +49,7 @@ fn var_declaration_keywords() {
         "var await = 5;",
         vec![Statement::Var(VarDeclaration(
             vec![Variable::from_identifier(
-                interner
-                    .get_or_intern_static("await", utf16!("await"))
-                    .into(),
+                Sym::AWAIT.into(),
                 Some(Literal::from(5).into()),
             )]
             .try_into()
@@ -160,9 +154,7 @@ fn let_declaration_keywords() {
         "let yield = 5;",
         vec![Declaration::Lexical(LexicalDeclaration::Let(
             vec![Variable::from_identifier(
-                interner
-                    .get_or_intern_static("yield", utf16!("yield"))
-                    .into(),
+                Sym::YIELD.into(),
                 Some(Literal::from(5).into()),
             )]
             .try_into()
@@ -177,9 +169,7 @@ fn let_declaration_keywords() {
         "let await = 5;",
         vec![Declaration::Lexical(LexicalDeclaration::Let(
             vec![Variable::from_identifier(
-                interner
-                    .get_or_intern_static("await", utf16!("await"))
-                    .into(),
+                Sym::AWAIT.into(),
                 Some(Literal::from(5).into()),
             )]
             .try_into()
@@ -284,9 +274,7 @@ fn const_declaration_keywords() {
         "const yield = 5;",
         vec![Declaration::Lexical(LexicalDeclaration::Const(
             vec![Variable::from_identifier(
-                interner
-                    .get_or_intern_static("yield", utf16!("yield"))
-                    .into(),
+                Sym::YIELD.into(),
                 Some(Literal::from(5).into()),
             )]
             .try_into()
@@ -301,9 +289,7 @@ fn const_declaration_keywords() {
         "const await = 5;",
         vec![Declaration::Lexical(LexicalDeclaration::Const(
             vec![Variable::from_identifier(
-                interner
-                    .get_or_intern_static("await", utf16!("await"))
-                    .into(),
+                Sym::AWAIT.into(),
                 Some(Literal::from(5).into()),
             )]
             .try_into()
@@ -336,7 +322,7 @@ fn const_declaration_no_spaces() {
 /// Checks empty `const` declaration parsing.
 #[test]
 fn empty_const_declaration() {
-    check_invalid("const a;");
+    check_invalid_script("const a;");
 }
 
 /// Checks multiple `const` declarations.

@@ -15,12 +15,16 @@
 //! [diff]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements#difference_between_statements_and_declarations
 
 use super::function::{AsyncFunction, AsyncGenerator, Class, Function, Generator};
-use boa_interner::{Interner, ToIndentedString, ToInternedString};
+use boa_interner::{Interner, Sym, ToIndentedString, ToInternedString};
 use core::ops::ControlFlow;
 
+mod export;
+mod import;
 mod variable;
 
 use crate::visitor::{VisitWith, Visitor, VisitorMut};
+pub use export::*;
+pub use import::*;
 pub use variable::*;
 
 /// The `Declaration` Parse Node.
@@ -93,5 +97,32 @@ impl VisitWith for Declaration {
             Self::Class(c) => visitor.visit_class_mut(c),
             Self::Lexical(ld) => visitor.visit_lexical_declaration_mut(ld),
         }
+    }
+}
+
+/// From clause AST node.
+///
+/// More information:
+///  - [ECMAScript specification][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#prod-FromClause
+#[derive(Debug, Clone, Copy)]
+pub struct FromClause {
+    module: Sym,
+}
+
+impl FromClause {
+    /// Gets the module specifier for the from clause.
+    #[inline]
+    #[must_use]
+    pub const fn module(self) -> Sym {
+        self.module
+    }
+}
+
+impl From<Sym> for FromClause {
+    #[inline]
+    fn from(s: Sym) -> Self {
+        Self { module: s }
     }
 }

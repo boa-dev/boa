@@ -1,7 +1,5 @@
-use boa_interner::Interner;
-use boa_macros::utf16;
+use crate::parser::tests::{check_invalid_script, check_script_parser};
 
-use crate::parser::tests::{check_invalid, check_script_parser};
 use boa_ast::{
     expression::{
         access::PropertyAccessField, literal::Literal, Identifier, Optional, OptionalOperation,
@@ -9,6 +7,8 @@ use boa_ast::{
     },
     Expression, Statement,
 };
+use boa_interner::Interner;
+use boa_macros::utf16;
 
 #[test]
 fn simple() {
@@ -81,9 +81,9 @@ fn complex_chain() {
 
 #[test]
 fn reject_templates() {
-    check_invalid("console.log?.`Hello`");
-    check_invalid("console?.log`Hello`");
-    check_invalid(
+    check_invalid_script("console.log?.`Hello`");
+    check_invalid_script("console?.log`Hello`");
+    check_invalid_script(
         r#"
 const a = console?.log
 `Hello`"#,

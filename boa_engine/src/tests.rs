@@ -456,7 +456,9 @@ fn test_invalid_break_target() {
         }
         "#;
 
-    assert!(Context::default().eval(Source::from_bytes(src)).is_err());
+    assert!(Context::default()
+        .eval_script(Source::from_bytes(src))
+        .is_err());
 }
 
 #[test]

@@ -1,5 +1,5 @@
 # Not implemented yet:
-flags = ["module"]
+flags = []
 
 features = [
     # Non-implemented features:

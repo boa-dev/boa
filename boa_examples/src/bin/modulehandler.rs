@@ -31,7 +31,8 @@ fn main() {
 
     // Instantiating the engine with the execution context
     // Loading, parsing and executing the JS code from the source file
-    ctx.eval(Source::from_bytes(&buffer.unwrap())).unwrap();
+    ctx.eval_script(Source::from_bytes(&buffer.unwrap()))
+        .unwrap();
 }
 
 // Custom implementation that mimics the 'require' module loader
@@ -52,7 +53,8 @@ fn require(_: &JsValue, args: &[JsValue], ctx: &mut Context<'_>) -> JsResult<JsV
         Ok(JsValue::Rational(-1.0))
     } else {
         // Load and parse the module source
-        ctx.eval(Source::from_bytes(&buffer.unwrap())).unwrap();
+        ctx.eval_script(Source::from_bytes(&buffer.unwrap()))
+            .unwrap();
 
         // Access module.exports and return as ResultValue
         let global_obj = ctx.global_object().to_owned();

@@ -48,6 +48,7 @@ impl Token {
     }
 
     /// Converts the token to a `String`.
+    #[inline]
     pub(crate) fn to_string(&self, interner: &Interner) -> String {
         self.kind.to_string(interner)
     }
@@ -198,6 +199,7 @@ impl TokenKind {
     }
 
     /// Creates a `NumericLiteral` token kind.
+    #[must_use]
     pub fn numeric_literal<L>(lit: L) -> Self
     where
         L: Into<Numeric>,

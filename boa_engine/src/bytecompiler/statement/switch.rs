@@ -12,7 +12,7 @@ impl ByteCompiler<'_, '_> {
         self.context.push_compile_time_environment(false);
         let push_env = self.emit_opcode_with_two_operands(Opcode::PushDeclarativeEnvironment);
         for case in switch.cases() {
-            self.create_decls(case.body(), configurable_globals);
+            self.create_script_decls(case.body(), configurable_globals);
         }
         self.emit_opcode(Opcode::LoopStart);
 
@@ -35,7 +35,7 @@ impl ByteCompiler<'_, '_> {
 
         self.patch_jump(exit);
         if let Some(body) = switch.default() {
-            self.create_decls(body, configurable_globals);
+            self.create_script_decls(body, configurable_globals);
             self.compile_statement_list(body, false, configurable_globals)?;
         }
 

@@ -4,7 +4,7 @@ use boa_ast::{
     statement::{Block, Break, WhileLoop},
     Statement, StatementListItem,
 };
-use boa_interner::Interner;
+use boa_interner::{Interner, Sym};
 use boa_macros::utf16;
 
 #[test]
@@ -114,9 +114,7 @@ fn reserved_label() {
         vec![Statement::WhileLoop(WhileLoop::new(
             Literal::from(true).into(),
             Block::from(vec![StatementListItem::Statement(Statement::Break(
-                Break::new(Some(
-                    interner.get_or_intern_static("await", utf16!("await")),
-                )),
+                Break::new(Some(Sym::AWAIT)),
             ))])
             .into(),
         ))
@@ -132,9 +130,7 @@ fn reserved_label() {
         vec![Statement::WhileLoop(WhileLoop::new(
             Literal::from(true).into(),
             Block::from(vec![StatementListItem::Statement(Statement::Break(
-                Break::new(Some(
-                    interner.get_or_intern_static("yield", utf16!("yield")),
-                )),
+                Break::new(Some(Sym::YIELD)),
             ))])
             .into(),
         ))

@@ -29,6 +29,7 @@ pub(in crate::parser) struct IdentifierReference {
 
 impl IdentifierReference {
     /// Creates a new `IdentifierReference` parser.
+    #[inline]
     pub(in crate::parser) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
     where
         Y: Into<AllowYield>,
@@ -82,6 +83,7 @@ pub(in crate::parser) struct BindingIdentifier {
 
 impl BindingIdentifier {
     /// Creates a new `BindingIdentifier` parser.
+    #[inline]
     pub(in crate::parser) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
     where
         Y: Into<AllowYield>,

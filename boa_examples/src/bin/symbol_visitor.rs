@@ -28,7 +28,7 @@ fn main() {
         Parser::new(Source::from_filepath(Path::new("boa_examples/scripts/calc.js")).unwrap());
     let mut ctx = Context::default();
 
-    let statements = parser.parse_all(ctx.interner_mut()).unwrap();
+    let statements = parser.parse_script(ctx.interner_mut()).unwrap();
 
     let mut visitor = SymbolVisitor::default();
 

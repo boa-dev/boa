@@ -5,6 +5,7 @@ mod declaration;
 mod expression;
 mod function;
 mod jump_control;
+mod module;
 mod statement;
 
 use crate::{
@@ -703,7 +704,7 @@ impl<'b, 'host> ByteCompiler<'b, 'host> {
         self.context.push_compile_time_environment(strict);
         let push_env = self.emit_opcode_with_two_operands(Opcode::PushDeclarativeEnvironment);
 
-        self.create_decls(list, true);
+        self.create_script_decls(list, true);
 
         if use_expr {
             let expr_index = list
@@ -1271,7 +1272,12 @@ impl<'b, 'host> ByteCompiler<'b, 'host> {
         self.compile_declaration_pattern_impl(pattern, def)
     }
 
-    pub(crate) fn create_decls(&mut self, stmt_list: &StatementList, configurable_globals: bool) {
+    /// Creates the declarations for a sript.
+    pub(crate) fn create_script_decls(
+        &mut self,
+        stmt_list: &StatementList,
+        configurable_globals: bool,
+    ) {
         for node in stmt_list.statements() {
             self.create_decls_from_stmt_list_item(node, configurable_globals);
         }

@@ -3,7 +3,7 @@ use boa_ast::{
     function::{AsyncFunction, FormalParameterList},
     Declaration, StatementList,
 };
-use boa_interner::Interner;
+use boa_interner::{Interner, Sym};
 use boa_macros::utf16;
 
 /// Async function declaration parsing.
@@ -34,11 +34,7 @@ fn async_function_declaration_keywords() {
     check_script_parser(
         "async function yield() {}",
         vec![Declaration::AsyncFunction(AsyncFunction::new(
-            Some(
-                interner
-                    .get_or_intern_static("yield", utf16!("yield"))
-                    .into(),
-            ),
+            Some(Sym::YIELD.into()),
             FormalParameterList::default(),
             StatementList::default(),
             false,
@@ -51,11 +47,7 @@ fn async_function_declaration_keywords() {
     check_script_parser(
         "async function await() {}",
         vec![Declaration::AsyncFunction(AsyncFunction::new(
-            Some(
-                interner
-                    .get_or_intern_static("await", utf16!("await"))
-                    .into(),
-            ),
+            Some(Sym::AWAIT.into()),
             FormalParameterList::default(),
             StatementList::default(),
             false,

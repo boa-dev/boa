@@ -1,4 +1,4 @@
-use crate::parser::tests::{check_invalid, check_script_parser};
+use crate::parser::tests::{check_invalid_script, check_script_parser};
 use boa_ast::{
     declaration::{LexicalDeclaration, Variable},
     expression::{
@@ -12,7 +12,7 @@ use boa_ast::{
     property::{MethodDefinition, PropertyDefinition, PropertyName},
     Declaration, StatementList,
 };
-use boa_interner::Interner;
+use boa_interner::{Interner, Sym};
 use boa_macros::utf16;
 
 /// Checks object literal parsing.
@@ -239,7 +239,7 @@ fn check_object_short_function_get() {
     let interner = &mut Interner::default();
 
     let object_properties = vec![PropertyDefinition::MethodDefinition(
-        interner.get_or_intern_static("get", utf16!("get")).into(),
+        Sym::GET.into(),
         MethodDefinition::Ordinary(Function::new(
             Some(interner.get_or_intern_static("get", utf16!("get")).into()),
             FormalParameterList::default(),
@@ -270,7 +270,7 @@ fn check_object_short_function_set() {
     let interner = &mut Interner::default();
 
     let object_properties = vec![PropertyDefinition::MethodDefinition(
-        interner.get_or_intern_static("set", utf16!("set")).into(),
+        Sym::SET.into(),
         MethodDefinition::Ordinary(Function::new(
             Some(interner.get_or_intern_static("set", utf16!("set")).into()),
             FormalParameterList::default(),
@@ -485,7 +485,7 @@ fn check_async_generator_method() {
 
 #[test]
 fn check_async_method_lineterminator() {
-    check_invalid(
+    check_invalid_script(
         "const x = {
             async
             dive(){}
@@ -496,7 +496,7 @@ fn check_async_method_lineterminator() {
 
 #[test]
 fn check_async_gen_method_lineterminator() {
-    check_invalid(
+    check_invalid_script(
         "const x = {
             async
             * vroom() {}

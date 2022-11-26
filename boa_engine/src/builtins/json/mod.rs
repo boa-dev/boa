@@ -205,7 +205,7 @@ impl Json {
         // 10. Assert: unfiltered is either a String, Number, Boolean, Null, or an Object that is defined by either an ArrayLiteral or an ObjectLiteral.
         let mut parser = Parser::new(Source::from_bytes(&script_string));
         parser.set_json_parse();
-        let statement_list = parser.parse_all(context.interner_mut())?;
+        let statement_list = parser.parse_script(context.interner_mut())?;
         let code_block = context.compile_json_parse(&statement_list)?;
         let unfiltered = context.execute(code_block)?;
 

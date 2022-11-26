@@ -7,22 +7,28 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements#Declarations
 //! [spec]:https://tc39.es/ecma262/#sec-declarations-and-the-variable-statement
 
+mod export;
 mod hoistable;
+mod import;
 mod lexical;
 #[cfg(test)]
 mod tests;
 
-pub(in crate::parser) use hoistable::class_decl::ClassTail;
-pub(in crate::parser) use hoistable::FunctionDeclaration;
-use hoistable::HoistableDeclaration;
-pub(in crate::parser) use lexical::LexicalDeclaration;
-
+pub(in crate::parser) use self::{
+    export::ExportDeclaration,
+    hoistable::{
+        class_decl::ClassTail, ClassDeclaration, FunctionDeclaration, HoistableDeclaration,
+    },
+    import::ImportDeclaration,
+    lexical::LexicalDeclaration,
+};
 use crate::{
     lexer::TokenKind,
     parser::{AllowAwait, AllowYield, Cursor, OrAbrupt, ParseResult, TokenParser},
+    Error,
 };
 use boa_ast::{self as ast, Keyword};
-use boa_interner::Interner;
+use boa_interner::{Interner, Sym};
 use boa_profiler::Profiler;
 use std::io::Read;
 
@@ -39,6 +45,8 @@ pub(super) struct Declaration {
 }
 
 impl Declaration {
+    /// Creates a new declaration parser.
+    #[inline]
     pub(super) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
     where
         Y: Into<AllowYield>,
@@ -73,5 +81,50 @@ where
             }
             _ => unreachable!("unknown token found: {:?}", tok),
         }
+    }
+}
+
+/// Parses a `from` clause.
+///
+/// More information:
+///  - [ECMAScript specification][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#prod-FromClause
+#[derive(Debug, Clone, Copy)]
+struct FromClause {
+    context: &'static str,
+}
+
+impl FromClause {
+    /// Creates a new `from` clause parser
+    #[inline]
+    const fn new(context: &'static str) -> Self {
+        Self { context }
+    }
+}
+
+impl<R> TokenParser<R> for FromClause
+where
+    R: Read,
+{
+    type Output = ast::declaration::FromClause;
+
+    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
+        let _timer = Profiler::global().start_event("FromClause", "Parsing");
+
+        cursor.expect(TokenKind::identifier(Sym::FROM), self.context, interner)?;
+
+        let tok = cursor.next(interner).or_abrupt()?;
+
+        let TokenKind::StringLiteral((from, _)) = tok.kind() else {
+            return Err(Error::expected(
+                ["string literal".to_owned()],
+                tok.to_string(interner),
+                tok.span(),
+                self.context,
+            ))
+        };
+
+        Ok((*from).into())
     }
 }

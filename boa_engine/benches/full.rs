@@ -25,7 +25,7 @@ macro_rules! full_benchmarks {
                     static CODE: &str = include_str!(concat!("bench_scripts/", stringify!($name), ".js"));
                     let mut context = Context::default();
                     c.bench_function(concat!($id, " (Parser)"), move |b| {
-                        b.iter(|| context.parse(black_box(Source::from_bytes(CODE))))
+                        b.iter(|| context.parse_script(black_box(Source::from_bytes(CODE))))
                     });
                 }
             )*
@@ -35,10 +35,10 @@ macro_rules! full_benchmarks {
                 {
                     static CODE: &str = include_str!(concat!("bench_scripts/", stringify!($name), ".js"));
                     let mut context = Context::default();
-                    let statement_list = context.parse(Source::from_bytes(CODE)).expect("parsing failed");
+                    let statement_list = context.parse_script(Source::from_bytes(CODE)).expect("parsing failed");
                     c.bench_function(concat!($id, " (Compiler)"), move |b| {
                         b.iter(|| {
-                            context.compile(black_box(&statement_list))
+                            context.compile_script(black_box(&statement_list))
                         })
                     });
                 }
@@ -49,8 +49,8 @@ macro_rules! full_benchmarks {
                 {
                     static CODE: &str = include_str!(concat!("bench_scripts/", stringify!($name), ".js"));
                     let mut context = Context::default();
-                    let statement_list = context.parse(Source::from_bytes(CODE)).expect("parsing failed");
-                    let code_block = context.compile(&statement_list).unwrap();
+                    let statement_list = context.parse_script(Source::from_bytes(CODE)).expect("parsing failed");
+                    let code_block = context.compile_script(&statement_list).unwrap();
                     c.bench_function(concat!($id, " (Execution)"), move |b| {
                         b.iter(|| {
                             context.execute(black_box(code_block.clone())).unwrap()

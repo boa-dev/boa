@@ -21,7 +21,7 @@ fn do_fuzz(mut data: FuzzData) -> Result<(), Box<dyn Error>> {
     let before = data.interner.len();
     // For a variety of reasons, we may not actually produce valid code here (e.g., nameless function).
     // Fail fast and only make the next checks if we were valid.
-    if let Ok(first) = parser.parse_all(&mut data.interner) {
+    if let Ok(first) = parser.parse_script(&mut data.interner) {
         let after_first = data.interner.len();
         let first_interned = first.to_interned_string(&data.interner);
 
@@ -38,7 +38,7 @@ fn do_fuzz(mut data: FuzzData) -> Result<(), Box<dyn Error>> {
 
         // Now, we most assuredly should produce valid code. It has already gone through a first pass.
         let second = parser
-            .parse_all(&mut data.interner)
+            .parse_script(&mut data.interner)
             .expect("Could not parse the first-pass interned copy.");
         let second_interned = second.to_interned_string(&data.interner);
         let after_second = data.interner.len();

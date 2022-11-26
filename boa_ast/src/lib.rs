@@ -102,6 +102,7 @@ pub mod declaration;
 pub mod expression;
 pub mod function;
 pub mod keyword;
+pub mod module_item_list;
 pub mod operations;
 pub mod pattern;
 pub mod property;
@@ -114,6 +115,7 @@ pub use self::{
     declaration::Declaration,
     expression::Expression,
     keyword::Keyword,
+    module_item_list::{ModuleItem, ModuleItemList},
     position::{Position, Span},
     punctuator::Punctuator,
     statement::Statement,
