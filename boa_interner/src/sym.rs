@@ -107,6 +107,9 @@ impl Sym {
     /// Symbol for the `"__proto__"` string.
     pub const __PROTO__: Self = unsafe { Self::new_unchecked(29) };
 
+    /// Symbol for the `"name"` string.
+    pub const NAME: Self = unsafe { Self::new_unchecked(30) };
+
     /// Creates a new [`Sym`] from the provided `value`, or returns `None` if `index` is zero.
     #[inline]
     pub(super) fn new(value: usize) -> Option<Self> {
@@ -199,4 +202,5 @@ create_static_strings! {
     "of",
     "target",
     "__proto__",
+    "name",
 }

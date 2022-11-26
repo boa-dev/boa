@@ -63,7 +63,7 @@ fn check_object_short_function() {
         PropertyDefinition::MethodDefinition(
             interner.get_or_intern_static("b", utf16!("b")).into(),
             MethodDefinition::Ordinary(Function::new(
-                None,
+                Some(interner.get_or_intern_static("b", utf16!("b")).into()),
                 FormalParameterList::default(),
                 StatementList::default(),
             )),
@@ -112,7 +112,11 @@ fn check_object_short_function_arguments() {
         ),
         PropertyDefinition::MethodDefinition(
             interner.get_or_intern_static("b", utf16!("b")).into(),
-            MethodDefinition::Ordinary(Function::new(None, parameters, StatementList::default())),
+            MethodDefinition::Ordinary(Function::new(
+                Some(interner.get_or_intern_static("b", utf16!("b")).into()),
+                parameters,
+                StatementList::default(),
+            )),
         ),
     ];
 
@@ -147,7 +151,11 @@ fn check_object_getter() {
         PropertyDefinition::MethodDefinition(
             interner.get_or_intern_static("b", utf16!("b")).into(),
             MethodDefinition::Get(Function::new(
-                None,
+                Some(
+                    interner
+                        .get_or_intern_static("get b", utf16!("get b"))
+                        .into(),
+                ),
                 FormalParameterList::default(),
                 StatementList::default(),
             )),
@@ -195,7 +203,15 @@ fn check_object_setter() {
         ),
         PropertyDefinition::MethodDefinition(
             interner.get_or_intern_static("b", utf16!("b")).into(),
-            MethodDefinition::Set(Function::new(None, params, StatementList::default())),
+            MethodDefinition::Set(Function::new(
+                Some(
+                    interner
+                        .get_or_intern_static("set b", utf16!("set b"))
+                        .into(),
+                ),
+                params,
+                StatementList::default(),
+            )),
         ),
     ];
 
@@ -225,7 +241,7 @@ fn check_object_short_function_get() {
     let object_properties = vec![PropertyDefinition::MethodDefinition(
         interner.get_or_intern_static("get", utf16!("get")).into(),
         MethodDefinition::Ordinary(Function::new(
-            None,
+            Some(interner.get_or_intern_static("get", utf16!("get")).into()),
             FormalParameterList::default(),
             StatementList::default(),
         )),
@@ -256,7 +272,7 @@ fn check_object_short_function_set() {
     let object_properties = vec![PropertyDefinition::MethodDefinition(
         interner.get_or_intern_static("set", utf16!("set")).into(),
         MethodDefinition::Ordinary(Function::new(
-            None,
+            Some(interner.get_or_intern_static("set", utf16!("set")).into()),
             FormalParameterList::default(),
             StatementList::default(),
         )),
@@ -404,7 +420,7 @@ fn check_async_method() {
     let object_properties = vec![PropertyDefinition::MethodDefinition(
         interner.get_or_intern_static("dive", utf16!("dive")).into(),
         MethodDefinition::Async(AsyncFunction::new(
-            None,
+            Some(interner.get_or_intern_static("dive", utf16!("dive")).into()),
             FormalParameterList::default(),
             StatementList::default(),
             false,
@@ -438,7 +454,11 @@ fn check_async_generator_method() {
             .get_or_intern_static("vroom", utf16!("vroom"))
             .into(),
         MethodDefinition::AsyncGenerator(AsyncGenerator::new(
-            None,
+            Some(
+                interner
+                    .get_or_intern_static("vroom", utf16!("vroom"))
+                    .into(),
+            ),
             FormalParameterList::default(),
             StatementList::default(),
             false,
@@ -492,7 +512,11 @@ fn check_async_ordinary_method() {
     let object_properties = vec![PropertyDefinition::MethodDefinition(
         PropertyName::Literal(interner.get_or_intern_static("async", utf16!("async"))),
         MethodDefinition::Ordinary(Function::new(
-            None,
+            Some(
+                interner
+                    .get_or_intern_static("async", utf16!("async"))
+                    .into(),
+            ),
             FormalParameterList::default(),
             StatementList::default(),
         )),

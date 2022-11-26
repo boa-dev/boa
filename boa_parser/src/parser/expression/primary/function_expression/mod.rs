@@ -66,25 +66,24 @@ where
             | TokenKind::Keyword((
                 Keyword::Yield | Keyword::Await | Keyword::Async | Keyword::Of,
                 _,
-            )) => (
-                Some(BindingIdentifier::new(false, false).parse(cursor, interner)?),
-                true,
-            ),
+            )) => {
+                let name = BindingIdentifier::new(false, false).parse(cursor, interner)?;
+
+                // Early Error: If BindingIdentifier is present and the source code matching BindingIdentifier is strict mode code,
+                // it is a Syntax Error if the StringValue of BindingIdentifier is "eval" or "arguments".
+                if cursor.strict_mode() && [Sym::EVAL, Sym::ARGUMENTS].contains(&name.sym()) {
+                    return Err(Error::lex(LexError::Syntax(
+                        "Unexpected eval or arguments in strict mode".into(),
+                        cursor
+                            .peek(0, interner)?
+                            .map_or_else(|| Position::new(1, 1), |token| token.span().end()),
+                    )));
+                }
+
+                (Some(name), true)
+            }
             _ => (self.name, false),
         };
-
-        // Early Error: If BindingIdentifier is present and the source code matching BindingIdentifier is strict mode code,
-        // it is a Syntax Error if the StringValue of BindingIdentifier is "eval" or "arguments".
-        if let Some(name) = name {
-            if cursor.strict_mode() && [Sym::EVAL, Sym::ARGUMENTS].contains(&name.sym()) {
-                return Err(Error::lex(LexError::Syntax(
-                    "Unexpected eval or arguments in strict mode".into(),
-                    cursor
-                        .peek(0, interner)?
-                        .map_or_else(|| Position::new(1, 1), |token| token.span().end()),
-                )));
-            }
-        }
 
         let params_start_position = cursor
             .expect(Punctuator::OpenParen, "function expression", interner)?
