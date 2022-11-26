@@ -1,4 +1,4 @@
-//! This module implements the JavaScript Value.
+//! Boa's JavaScript Value implementation.
 //!
 //! Javascript values, utility methods and conversion between Javascript values and Rust values.
 

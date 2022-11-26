@@ -1,4 +1,4 @@
-//! This module implements the global `Symbol` object.
+//! Boa's implementation of JavaScript's global `Symbol` object.
 //!
 //! The data type symbol is a primitive data type.
 //! The `Symbol()` function returns a value of type symbol, has static properties that expose
