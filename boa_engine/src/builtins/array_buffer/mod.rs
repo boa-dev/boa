@@ -1,4 +1,4 @@
-//! This module implements the global `ArrayBuffer` object.
+//! Boa's implementation of JavaScript's global `ArrayBuffer` object.
 //!
 //! More information:
 //!  - [ECMAScript reference][spec]
@@ -7,7 +7,6 @@
 //! [spec]: https://tc39.es/ecma262/#sec-arraybuffer-objects
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer
 
-//! Boa's implementation of JavaScript's global `ArrayBuffer` object.
 
 #[cfg(test)]
 mod tests;

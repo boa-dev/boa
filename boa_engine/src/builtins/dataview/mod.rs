@@ -1,4 +1,4 @@
-//! This module implements the global `DataView` object.
+//! Boa's implementation of JavaScript's global `DataView` object.
 //!
 //! More information:
 //!  - [ECMAScript reference][spec]
@@ -6,8 +6,6 @@
 //!
 //! [spec]: https://tc39.es/ecma262/#sec-dataview-objects
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView
-
-//! Boa's implementation of JavaScript's global `DataView` object.
 
 use crate::{
     builtins::{array_buffer::SharedMemoryOrder, typed_array::TypedArrayKind, BuiltIn, JsArgs},
