@@ -140,7 +140,7 @@ impl Context<'_> {
         ContextBuilder::default()
     }
 
-    /// Evaluates the given script `Source` by compiling down to bytecode, then interpreting the
+    /// Evaluates the given script `src` by compiling down to bytecode, then interpreting the
     /// bytecode into a value.
     ///
     /// # Examples
@@ -172,7 +172,7 @@ impl Context<'_> {
         result
     }
 
-    /// Evaluates the given ECMAScript module by compiling down to bytecode, then interpreting the
+    /// Evaluates the given module `src` by compiling down to bytecode, then interpreting the
     /// bytecode into a value.
     ///
     /// # Examples
@@ -223,7 +223,7 @@ impl Context<'_> {
         parser.parse_module(&mut self.interner)
     }
 
-    /// Compile the AST into a `CodeBlock` ready to be executed by the VM.
+    /// Compile the script AST into a `CodeBlock` ready to be executed by the VM.
     pub fn compile_script(&mut self, statement_list: &StatementList) -> JsResult<Gc<CodeBlock>> {
         let _timer = Profiler::global().start_event("Script compilation", "Main");
         let mut compiler = ByteCompiler::new(Sym::MAIN, statement_list.strict(), false, self);
@@ -235,6 +235,7 @@ impl Context<'_> {
     /// Compile the module AST into a `CodeBlock` ready to be executed by the VM.
     pub fn compile_module(&mut self, statement_list: &ModuleItemList) -> JsResult<Gc<CodeBlock>> {
         let _timer = Profiler::global().start_event("Module compilation", "Main");
+
         let mut compiler = ByteCompiler::new(Sym::MAIN, true, false, self);
         compiler.create_module_decls(statement_list, false);
         compiler.compile_module_item_list(statement_list, false)?;
