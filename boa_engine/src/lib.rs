@@ -1,5 +1,5 @@
-//! Boa's **boa_engine** crate implements core ECMAScript functionality, such as the ECMAScript context,
-//! and langugage execution via a bytecompiler and virtual machine.
+//! Boa's **boa_engine** crate implements ECMAScript's standard library of builtin objects
+//! and an ECMAScript context, bytecompiler, and virtual machine for code execution.
 //!
 //! # Crate Features
 //!  - **serde** - Enables serialization and deserialization of the AST (Abstract Syntax Tree).
