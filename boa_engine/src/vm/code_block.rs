@@ -738,6 +738,7 @@ impl JsObject {
                         .into());
                 }
 
+                let environments_len = environments.len();
                 std::mem::swap(&mut environments, &mut context.realm.environments);
 
                 let lexical_this_mode = code.this_mode == ThisMode::Lexical;
@@ -817,8 +818,6 @@ impl JsObject {
                 }
 
                 let param_count = code.params.as_ref().len();
-                let has_expressions = code.params.has_expressions();
-                let has_binding_identifier = code.has_binding_identifier;
 
                 context.vm.push_frame(CallFrame {
                     code,
@@ -840,20 +839,10 @@ impl JsObject {
                 });
 
                 let result = context.run();
-                let frame = context.vm.pop_frame().expect("must have frame");
-
-                context.realm.environments.pop();
-                if has_expressions
-                    && frame.pc > frame.code.function_environment_push_location as usize
-                {
-                    context.realm.environments.pop();
-                }
-
-                if has_binding_identifier {
-                    context.realm.environments.pop();
-                }
+                context.vm.pop_frame().expect("must have frame");
 
                 std::mem::swap(&mut environments, &mut context.realm.environments);
+                environments.truncate(environments_len);
 
                 let (result, _) = result?;
                 Ok(result)
@@ -869,6 +858,7 @@ impl JsObject {
                 let promise = promise_capability.promise().clone();
                 drop(object);
 
+                let environments_len = environments.len();
                 std::mem::swap(&mut environments, &mut context.realm.environments);
 
                 let lexical_this_mode = code.this_mode == ThisMode::Lexical;
@@ -948,8 +938,6 @@ impl JsObject {
                 }
 
                 let param_count = code.params.as_ref().len();
-                let has_expressions = code.params.has_expressions();
-                let has_binding_identifier = code.has_binding_identifier;
 
                 context.vm.push_frame(CallFrame {
                     code,
@@ -971,20 +959,11 @@ impl JsObject {
                 });
 
                 let _result = context.run();
-                let frame = context.vm.pop_frame().expect("must have frame");
-
-                context.realm.environments.pop();
-                if has_expressions
-                    && frame.pc > frame.code.function_environment_push_location as usize
-                {
-                    context.realm.environments.pop();
-                }
-
-                if has_binding_identifier {
-                    context.realm.environments.pop();
-                }
+                context.vm.pop_frame().expect("must have frame");
 
                 std::mem::swap(&mut environments, &mut context.realm.environments);
+                environments.truncate(environments_len);
+
                 Ok(promise.into())
             }
             Function::Generator {
@@ -1367,6 +1346,7 @@ impl JsObject {
                 let constructor_kind = *constructor_kind;
                 drop(object);
 
+                let environments_len = environments.len();
                 std::mem::swap(&mut environments, &mut context.realm.environments);
 
                 let this = if constructor_kind.is_base() {
@@ -1411,8 +1391,6 @@ impl JsObject {
                     Some(new_target.clone()),
                     false,
                 );
-
-                let has_expressions = code.params.has_expressions();
 
                 if let Some(binding) = code.arguments_binding {
                     let arguments_obj = if code.strict || !code.params.is_simple() {
@@ -1478,16 +1456,17 @@ impl JsObject {
 
                 context.vm.pop_frame();
 
-                let mut environment = context.realm.environments.pop();
-                if has_expressions {
-                    environment = context.realm.environments.pop();
-                }
-
-                if has_binding_identifier {
-                    context.realm.environments.pop();
-                }
-
                 std::mem::swap(&mut environments, &mut context.realm.environments);
+
+                let environment = if has_binding_identifier {
+                    environments.truncate(environments_len + 2);
+                    let environment = environments.pop();
+                    environments.pop();
+                    environment
+                } else {
+                    environments.truncate(environments_len + 1);
+                    environments.pop()
+                };
 
                 let (result, _) = result?;
 
