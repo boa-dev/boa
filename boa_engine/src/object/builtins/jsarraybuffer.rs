@@ -1,4 +1,4 @@
-//! A Rust API wrapper for Boa's `ArrayBuffer` Builtin JavaScript Object
+//! A Rust API wrapper for Boa's `ArrayBuffer` Builtin ECMAScript Object
 use crate::{
     builtins::array_buffer::ArrayBuffer,
     context::intrinsics::StandardConstructors,
@@ -11,7 +11,7 @@ use crate::{
 use boa_gc::{Finalize, Trace};
 use std::ops::Deref;
 
-/// `JsArrayBuffer` provides a wrapper for Boa's implementation of the JavaScript `ArrayBuffer` object
+/// `JsArrayBuffer` provides a wrapper for Boa's implementation of the ECMAScript `ArrayBuffer` object
 #[derive(Debug, Clone, Trace, Finalize)]
 pub struct JsArrayBuffer {
     inner: JsObject,

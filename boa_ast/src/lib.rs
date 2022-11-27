@@ -1,4 +1,4 @@
-//! The Javascript Abstract Syntax Tree.
+//! The ECMAScript Abstract Syntax Tree.
 //!
 //! This crate contains representations of [**Parse Nodes**][grammar] as defined by the ECMAScript spec.
 //! Some `Parse Node`s are not represented by Boa's AST, because a lot of grammar productions are

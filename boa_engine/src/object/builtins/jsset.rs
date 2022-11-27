@@ -1,4 +1,4 @@
-//! A Rust API wrapper for the `Set` Builtin JavaScript Object
+//! A Rust API wrapper for the `Set` Builtin ECMAScript Object
 use std::ops::Deref;
 
 use boa_gc::{Finalize, Trace};
@@ -10,7 +10,7 @@ use crate::{
     Context, JsResult, JsValue,
 };
 
-/// `JsSet` provides a wrapper for Boa's implementation of the JavaScript `Set` object.
+/// `JsSet` provides a wrapper for Boa's implementation of the ECMAScript `Set` object.
 #[derive(Debug, Clone, Trace, Finalize)]
 pub struct JsSet {
     inner: JsObject,

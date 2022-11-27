@@ -1,7 +1,7 @@
-//! Boa's implementation of JavaScript's global `GeneratorFunction` object.
+//! Boa's implementation of ECMAScript's global `GeneratorFunction` object.
 //!
 //! The `GeneratorFunction` constructor creates a new generator function object.
-//! In JavaScript, every generator function is actually a `GeneratorFunction` object.
+//! In ECMAScript, every generator function is actually a `GeneratorFunction` object.
 //!
 //! More information:
 //!  - [ECMAScript reference][spec]

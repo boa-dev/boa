@@ -1,4 +1,4 @@
-//! **boa_engine** is the module for Boa that implements core JavaScript functionality, such as the JavaScript Context,
+//! Boa's **boa_engine** crate implements core ECMAScript functionality, such as the ECMAScript context,
 //! and langugage execution via a bytecompiler and virtual machine.
 //!
 //! # Crate Features
@@ -8,13 +8,13 @@
 //!  - **intl** - Enables `boa`'s [ECMA-402 Internationalization API][ecma-402] (`Intl` object)
 //!
 //! # About Boa
-//! Boa is an open-source, experimental JavaScript Engine written in Rust for lexing, parsing and executing JavaScript. Currently, Boa
+//! Boa is an open-source, experimental ECMAScript Engine written in Rust for lexing, parsing and executing ECMAScript/JavaScript. Currently, Boa
 //! supports some of the [language][boa-conformance]. More information can be viewed at [Boa's website][boa-web].
 //!
 //! Try out the most recent release with Boa's live demo [playground][boa-playground].  
 //!
 //! # Boa Crates
-//!  - **boa_ast** - Boa's JavaScript Abstract Syntax Tree.
+//!  - **boa_ast** - Boa's ECMAScript Abstract Syntax Tree.
 //!  - **boa_engine** - Boa's implementation of core langugage functionality and execution.
 //!  - **boa_gc** - Boa's Garbage Collector
 //!  - **boa_interner** - Boa's string interner

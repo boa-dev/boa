@@ -1,4 +1,4 @@
-//! Boa's implementation of JavaScript's global `AsyncFunction` object.
+//! Boa's implementation of ECMAScript's global `AsyncFunction` object.
 //!
 //! More information:
 //!  - [ECMAScript reference][spec]

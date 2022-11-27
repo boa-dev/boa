@@ -1,4 +1,4 @@
-//! A Rust API wrapper for the `Proxy` Builtin JavaScript Object
+//! A Rust API wrapper for the `Proxy` Builtin ECMAScript Object
 use boa_gc::{Finalize, Trace};
 
 use crate::{
@@ -9,7 +9,7 @@ use crate::{
 
 use super::JsFunction;
 
-/// `JsProxy` provides a wrapper for Boa's implementation of the JavaScript `Proxy` object
+/// `JsProxy` provides a wrapper for Boa's implementation of the ECMAScript `Proxy` object
 ///
 /// This is a wrapper type for the [`Proxy`][proxy] API that allows customizing
 /// essential behaviour for an object, like [property accesses][get] or the

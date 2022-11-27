@@ -1,4 +1,4 @@
-//! A Rust API wrapper for Boa's `RegExp` Builtin JavaScript Object
+//! A Rust API wrapper for Boa's `RegExp` Builtin ECMAScript Object
 use crate::{
     builtins::RegExp,
     object::{JsArray, JsObject, JsObjectType},
@@ -8,7 +8,7 @@ use crate::{
 use boa_gc::{Finalize, Trace};
 use std::ops::Deref;
 
-/// `JsRegExp` provides a wrapper for Boa's implementation of the JavaScript `RegExp` builtin object
+/// `JsRegExp` provides a wrapper for Boa's implementation of the ECMAScript `RegExp` builtin object
 ///
 /// # Examples
 ///

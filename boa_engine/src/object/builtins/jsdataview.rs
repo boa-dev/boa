@@ -1,4 +1,4 @@
-//! A Rust API wrapper for Boa's `DataView` Builtin JavaScript Object
+//! A Rust API wrapper for Boa's `DataView` Builtin ECMAScript Object
 use crate::{
     builtins::DataView,
     context::intrinsics::StandardConstructors,
@@ -12,7 +12,7 @@ use crate::{
 use boa_gc::{Finalize, Trace};
 use std::ops::Deref;
 
-/// `JsDataView` provides a wrapper for Boa's implementation of the JavaScript `DataView` object
+/// `JsDataView` provides a wrapper for Boa's implementation of the ECMAScript `DataView` object
 ///
 /// # Examples
 /// ```

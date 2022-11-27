@@ -1,4 +1,4 @@
-//! This module implements the Property Descriptor.
+//! Boa's implementation of ECMAScript's Property Descriptor.
 //!
 //! The Property Descriptor type is used to explain the manipulation and reification of `Object`
 //! property attributes. Values of the Property Descriptor type are Records. Each field's name is
@@ -23,7 +23,7 @@ use std::fmt;
 
 pub use attribute::Attribute;
 
-/// This represents a JavaScript Property AKA The Property Descriptor.
+/// This represents an ECMAScript Property AKA The Property Descriptor.
 ///
 /// Property descriptors present in objects come in three main flavors:
 ///  - data descriptors

@@ -1,4 +1,4 @@
-//! Boa's implementation of JavaScript's global `ArrayBuffer` object.
+//! Boa's implementation of ECMAScript's global `ArrayBuffer` object.
 //!
 //! More information:
 //!  - [ECMAScript reference][spec]

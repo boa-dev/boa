@@ -1,4 +1,4 @@
-//! Boa's implementation of JavaScript's global `NaN` property.
+//! Boa's implementation of ECMAScript's global `NaN` property.
 //!
 //! The global `NaN` is a property of the global object. In other words,
 //! it is a variable in global scope.

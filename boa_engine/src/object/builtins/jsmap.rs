@@ -1,4 +1,4 @@
-//! A Rust API wrapper for Boa's `Map` Builtin JavaScript Object
+//! A Rust API wrapper for Boa's `Map` Builtin ECMAScript Object
 use crate::{
     builtins::map::{add_entries_from_iterable, ordered_map::OrderedMap},
     builtins::Map,
@@ -10,7 +10,7 @@ use crate::{
 use boa_gc::{Finalize, Trace};
 use std::ops::Deref;
 
-/// `JsMap` provides a wrapper for Boa's implementation of the JavaScript `Map` object.
+/// `JsMap` provides a wrapper for Boa's implementation of the ECMAScript `Map` object.
 ///
 /// # Examples
 ///

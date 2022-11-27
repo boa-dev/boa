@@ -1,4 +1,4 @@
-//! Boa's implementation of JavaScript's global `BigInt` object.
+//! Boa's implementation of ECMAScript's global `BigInt` object.
 //!
 //! `BigInt` is a built-in object that provides a way to represent whole numbers larger
 //! than the largest number JavaScript can reliably represent with the Number primitive

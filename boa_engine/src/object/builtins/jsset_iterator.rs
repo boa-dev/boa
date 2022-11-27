@@ -1,4 +1,4 @@
-//! A Rust API wrapper for Boa's `SetIterator` Builtin JavaScript Object
+//! A Rust API wrapper for Boa's `SetIterator` Builtin ECMAScript Object
 use std::ops::Deref;
 
 use boa_gc::{Finalize, Trace};
@@ -10,7 +10,7 @@ use crate::{
     Context, JsResult, JsValue,
 };
 
-/// `JsSetIterator` provides a wrapper for Boa's implementation of the JavaScript `SetIterator` object
+/// `JsSetIterator` provides a wrapper for Boa's implementation of the ECMAScript `SetIterator` object
 #[derive(Debug, Clone, Finalize, Trace)]
 pub struct JsSetIterator {
     inner: JsObject,

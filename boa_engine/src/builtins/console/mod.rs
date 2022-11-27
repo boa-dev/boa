@@ -1,4 +1,4 @@
-//! Boa's implementation of JavaScript's global `console` object.
+//! Boa's implementation of ECMAScript's global `console` object.
 //!
 //! The `console` object can be accessed from any global object.
 //!

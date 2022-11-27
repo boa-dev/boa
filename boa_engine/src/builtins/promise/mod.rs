@@ -1,4 +1,4 @@
-//! Boa's implementation of JavaScript's global `Promise` object.
+//! Boa's implementation of ECMAScript's global `Promise` object.
 
 #[cfg(test)]
 mod tests;

@@ -1,10 +1,10 @@
-//! Boa's implementation of JavaScript's global `Number` object.
+//! Boa's implementation of ECMAScript's global `Number` object.
 //!
-//! The `Number` JavaScript object is a wrapper object allowing you to work with numerical values.
+//! The `Number` ECMAScript object is a wrapper object allowing you to work with numerical values.
 //! A `Number` object is created using the `Number()` constructor. A primitive type object number is created using the `Number()` **function**.
 //!
-//! The JavaScript `Number` type is double-precision 64-bit binary format IEEE 754 value. In more recent implementations,
-//! JavaScript also supports integers with arbitrary precision using the `BigInt` type.
+//! The ECMAScript `Number` type is double-precision 64-bit binary format IEEE 754 value. In more recent implementations,
+//! ECMAScript also supports integers with arbitrary precision using the `BigInt` type.
 //!
 //! More information:
 //!  - [ECMAScript reference][spec]

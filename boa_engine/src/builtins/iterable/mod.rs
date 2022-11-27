@@ -1,4 +1,4 @@
-//! Boa's implementation of JavaScript's `IteratorRecord` and iterator objects
+//! Boa's implementation of ECMAScript's `IteratorRecord` and iterator prototype objects
 
 mod async_from_sync_iterator;
 

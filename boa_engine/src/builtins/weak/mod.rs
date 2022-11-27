@@ -1,4 +1,4 @@
-//! Boa's implementation of JavaScript's `WeakRef` object.
+//! Boa's implementation of ECMAScript's `WeakRef` object.
 
 mod weak_ref;
 

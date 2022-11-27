@@ -1,4 +1,4 @@
-//! Boa's implementation of JavaScript's global `DataView` object.
+//! Boa's implementation of ECMAScript's global `DataView` object.
 //!
 //! More information:
 //!  - [ECMAScript reference][spec]

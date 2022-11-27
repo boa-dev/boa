@@ -1,4 +1,4 @@
-//! Boa's JavaScript Value implementation.
+//! Boa's ECMAScript Value implementation.
 //!
 //! Javascript values, utility methods and conversion between Javascript values and Rust values.
 

@@ -1,4 +1,4 @@
-//! Boa's implementation of JavaScript's global `globalThis` property.
+//! Boa's implementation of ECMAScript's global `globalThis` property.
 //!
 //! The global globalThis property contains the global this value,
 //! which is akin to the global object.

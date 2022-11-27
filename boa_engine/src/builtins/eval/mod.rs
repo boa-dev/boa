@@ -1,6 +1,6 @@
-//! Boa's implementation of JavaScript's global `eval` function.
+//! Boa's implementation of ECMAScript's global `eval` function.
 //!
-//! The `eval()` function evaluates JavaScript code represented as a string.
+//! The `eval()` function evaluates ECMAScript code represented as a string.
 //!
 //! More information:
 //!  - [ECMAScript reference][spec]

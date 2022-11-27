@@ -1,6 +1,6 @@
-//! Boa's implementation of JavaScript's global `Object` object.
+//! Boa's implementation of ECMAScript's global `Object` object.
 //!
-//! The `Object` class represents one of JavaScript's data types.
+//! The `Object` class represents one of ECMAScript's data types.
 //!
 //! It is used to store various keyed collections and more complex entities.
 //! Objects can be created using the `Object()` constructor or the

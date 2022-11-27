@@ -1,4 +1,4 @@
-//! Boa's implementation of JavaScript's global `Function` object and Native Functions.
+//! Boa's implementation of ECMAScript's global `Function` object and Native Functions.
 //!
 //! Objects wrap `Function`s and expose them via call/construct slots.
 //!

@@ -1,4 +1,4 @@
-//! A Rust API wrapper for Boa's `Date` JavaScript Builtin Object.
+//! A Rust API wrapper for Boa's `Date` ECMAScript Builtin Object.
 use std::ops::Deref;
 
 use boa_gc::{Finalize, Trace};

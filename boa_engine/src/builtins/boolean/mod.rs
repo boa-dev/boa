@@ -1,4 +1,4 @@
-//! Boa's implementation of JavaScript's global `Boolean` object.
+//! Boa's implementation of ECMAScript's global `Boolean` object.
 //!
 //! The `Boolean` object is an object wrapper for a boolean value.
 //!

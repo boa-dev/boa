@@ -1,4 +1,4 @@
-//! Boa's implementation of JavaScript's `Date` object.
+//! Boa's implementation of ECMAScript's `Date` object.
 //!
 //! More information:
 //!  - [ECMAScript reference][spec]

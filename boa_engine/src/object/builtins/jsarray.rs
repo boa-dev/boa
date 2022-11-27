@@ -1,4 +1,4 @@
-//! A Rust API wrapper for Boa's `Array` Builtin JavaScript Object
+//! A Rust API wrapper for Boa's `Array` Builtin ECMAScript Object
 use crate::{
     builtins::Array,
     error::JsNativeError,

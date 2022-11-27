@@ -1,4 +1,4 @@
-//! Boa's implementation of JavaScript's `AsyncGeneratorFunction` object.
+//! Boa's implementation of ECMAScript's `AsyncGeneratorFunction` object.
 //!
 //! More information:
 //!  - [ECMAScript reference][spec]

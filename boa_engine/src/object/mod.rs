@@ -1,7 +1,6 @@
-//! This module implements the Rust representation of a JavaScript object,
-//! see [`object::builtins`][builtins] for implementors.
+//! Boa's representation of a JavaScript object and builtin object wrappers
 //!
-//! This module also provides helper objects for working with JavaScript objects.
+//! For the builtin object wrappers, please see [`object::builtins`][builtins] for implementors.
 
 pub use jsobject::{RecursionLimiter, Ref, RefMut};
 pub use operations::IntegrityLevel;
