@@ -1,4 +1,4 @@
-//! Boa's implementation the ECMAScript bigint primitive type.
+//! Boa's implementation of ECMAScript's bigint primitive type.
 
 use crate::{builtins::Number, error::JsNativeError, JsResult};
 use num_integer::Integer;
