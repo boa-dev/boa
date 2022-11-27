@@ -46,8 +46,9 @@ where
 
 /// Module item AST node.
 ///
-/// This is an extension over a [`StatementList`], which can also include multiple
-/// [`ImportDeclaration`] and [`ExportDeclaration`] nodes.
+/// This is an extension over a [`StatementList`](crate::StatementList), which can also include
+/// multiple [`ImportDeclaration`] and [`ExportDeclaration`] nodes, along with
+/// [`StatementListItem`] nodes.
 ///
 /// More information:
 ///  - [ECMAScript specification][spec]
