@@ -19,7 +19,7 @@ fuzz = ["arbitrary", "boa_interner/fuzz", "num-bigint/arbitrary"]
 boa_interner.workspace = true
 boa_macros.workspace = true
 rustc-hash = "1.1.0"
-serde = { version = "1.0.147", features = ["derive"], optional = true }
+serde = { version = "1.0.148", features = ["derive"], optional = true }
 bitflags = "1.3.2"
 num-bigint = "0.4.3"
 arbitrary = { version = "1", optional = true, features = ["derive"] }
