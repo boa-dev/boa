@@ -1,9 +1,9 @@
 //! Boa's **boa_ast** crate implements an ECMAScript abstract syntax tree.
-//! 
+//!
 //! # Crate Overview
-//! **boa_ast** contains representations of [**Parse Nodes**][grammar] as defined by the ECMAScript 
+//! **boa_ast** contains representations of [**Parse Nodes**][grammar] as defined by the ECMAScript
 //! spec. Some `Parse Node`s are not represented by Boa's AST, because a lot of grammar productions
-//! are only used to throw [**Early Errors**][early], and don't influence the evaluation of the AST 
+//! are only used to throw [**Early Errors**][early], and don't influence the evaluation of the AST
 //! itself.
 //!
 //! Boa's AST is mainly split in three main components: [`Declaration`]s, [`Expression`]s and

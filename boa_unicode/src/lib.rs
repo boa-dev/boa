@@ -1,9 +1,9 @@
 //! Boa's **boa_unicode** crate for query valid Unicode identifiers.
-//! 
+//!
 //! # Crate Overview
 //! This crate implements the extension to query if a char belongs to a particular unicode identifier property.
-//! 
-//! Current Version: 
+//!
+//! Current Version:
 //!  - Unicode 15.0.0
 //!
 //! More information:
@@ -23,7 +23,7 @@
 //!  - **boa_parser** - Boa's lexer and parser
 //!  - **boa_profiler** - Boa's code profiler
 //!  - **boa_unicode** - Boa's Unicode identifier
-//! 
+//!
 //! [uax31]: http://unicode.org/reports/tr31
 //! [boa-conformance]: https://boa-dev.github.io/boa/test262/
 //! [boa-web]: https://boa-dev.github.io/

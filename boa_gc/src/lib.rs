@@ -1,7 +1,7 @@
-//! Boa's **boa_gc** crate implements a garbage collector. 
-//! 
+//! Boa's **boa_gc** crate implements a garbage collector.
+//!
 //! # Crate Overview
-//! **boa_gc** is a mark-sweep garbage collector that implements a Trace and Finalize trait 
+//! **boa_gc** is a mark-sweep garbage collector that implements a Trace and Finalize trait
 //! for garbage collected values.
 //!
 //! # About Boa
@@ -18,7 +18,7 @@
 //!  - **boa_parser** - Boa's lexer and parser
 //!  - **boa_profiler** - Boa's code profiler
 //!  - **boa_unicode** - Boa's Unicode identifier
-//! 
+//!
 //! [boa-conformance]: https://boa-dev.github.io/boa/test262/
 //! [boa-web]: https://boa-dev.github.io/
 //! [boa-playground]: https://boa-dev.github.io/boa/playground/

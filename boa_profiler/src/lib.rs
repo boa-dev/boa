@@ -1,5 +1,5 @@
 //! The **boa_profiler** crate is a code profiler for Boa.
-//! 
+//!
 //! # Crate Overview
 //! This crate provides a code profiler for Boa. For more information, please
 //! see Boa's page on [profiling][profiler-md]
@@ -18,7 +18,7 @@
 //!  - **boa_parser** - Boa's lexer and parser
 //!  - **boa_profiler** - Boa's code profiler
 //!  - **boa_unicode** - Boa's Unicode identifier
-//! 
+//!
 //! [profiler-md]: https://github.com/boa-dev/boa/blob/main/docs/profiling.md
 //! [boa-conformance]: https://boa-dev.github.io/boa/test262/
 //! [boa-web]: https://boa-dev.github.io/

@@ -23,7 +23,7 @@
 //!  - **boa_parser** - Boa's lexer and parser
 //!  - **boa_profiler** - Boa's code profiler
 //!  - **boa_unicode** - Boa's Unicode identifier
-//! 
+//!
 //! [boa-conformance]: https://boa-dev.github.io/boa/test262/
 //! [boa-web]: https://boa-dev.github.io/
 //! [boa-playground]: https://boa-dev.github.io/boa/playground/
