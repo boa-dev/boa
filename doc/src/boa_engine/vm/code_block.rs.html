@@ -1570,27 +1570,6 @@
 <span id="1568">1568</span>
 <span id="1569">1569</span>
 <span id="1570">1570</span>
-<span id="1571">1571</span>
-<span id="1572">1572</span>
-<span id="1573">1573</span>
-<span id="1574">1574</span>
-<span id="1575">1575</span>
-<span id="1576">1576</span>
-<span id="1577">1577</span>
-<span id="1578">1578</span>
-<span id="1579">1579</span>
-<span id="1580">1580</span>
-<span id="1581">1581</span>
-<span id="1582">1582</span>
-<span id="1583">1583</span>
-<span id="1584">1584</span>
-<span id="1585">1585</span>
-<span id="1586">1586</span>
-<span id="1587">1587</span>
-<span id="1588">1588</span>
-<span id="1589">1589</span>
-<span id="1590">1590</span>
-<span id="1591">1591</span>
 </pre><pre class="rust"><code><span class="doccomment">//! `CodeBlock`
 //!
 //! This module is for the `CodeBlock` which implements a function representation in the VM
@@ -2331,6 +2310,7 @@
                         .into());
                 }
 
+                <span class="kw">let </span>environments_len = environments.len();
                 std::mem::swap(<span class="kw-2">&amp;mut </span>environments, <span class="kw-2">&amp;mut </span>context.realm.environments);
 
                 <span class="kw">let </span>lexical_this_mode = code.this_mode == ThisMode::Lexical;
@@ -2410,8 +2390,6 @@
                 }
 
                 <span class="kw">let </span>param_count = code.params.as_ref().len();
-                <span class="kw">let </span>has_expressions = code.params.has_expressions();
-                <span class="kw">let </span>has_binding_identifier = code.has_binding_identifier;
 
                 context.vm.push_frame(CallFrame {
                     code,
@@ -2433,20 +2411,10 @@
                 });
 
                 <span class="kw">let </span>result = context.run();
-                <span class="kw">let </span>frame = context.vm.pop_frame().expect(<span class="string">&quot;must have frame&quot;</span>);
-
-                context.realm.environments.pop();
-                <span class="kw">if </span>has_expressions
-                    &amp;&amp; frame.pc &gt; frame.code.function_environment_push_location <span class="kw">as </span>usize
-                {
-                    context.realm.environments.pop();
-                }
-
-                <span class="kw">if </span>has_binding_identifier {
-                    context.realm.environments.pop();
-                }
+                context.vm.pop_frame().expect(<span class="string">&quot;must have frame&quot;</span>);
 
                 std::mem::swap(<span class="kw-2">&amp;mut </span>environments, <span class="kw-2">&amp;mut </span>context.realm.environments);
+                environments.truncate(environments_len);
 
                 <span class="kw">let </span>(result, <span class="kw">_</span>) = result<span class="question-mark">?</span>;
                 <span class="prelude-val">Ok</span>(result)
@@ -2462,6 +2430,7 @@
                 <span class="kw">let </span>promise = promise_capability.promise().clone();
                 drop(object);
 
+                <span class="kw">let </span>environments_len = environments.len();
                 std::mem::swap(<span class="kw-2">&amp;mut </span>environments, <span class="kw-2">&amp;mut </span>context.realm.environments);
 
                 <span class="kw">let </span>lexical_this_mode = code.this_mode == ThisMode::Lexical;
@@ -2541,8 +2510,6 @@
                 }
 
                 <span class="kw">let </span>param_count = code.params.as_ref().len();
-                <span class="kw">let </span>has_expressions = code.params.has_expressions();
-                <span class="kw">let </span>has_binding_identifier = code.has_binding_identifier;
 
                 context.vm.push_frame(CallFrame {
                     code,
@@ -2564,20 +2531,11 @@
                 });
 
                 <span class="kw">let </span>_result = context.run();
-                <span class="kw">let </span>frame = context.vm.pop_frame().expect(<span class="string">&quot;must have frame&quot;</span>);
-
-                context.realm.environments.pop();
-                <span class="kw">if </span>has_expressions
-                    &amp;&amp; frame.pc &gt; frame.code.function_environment_push_location <span class="kw">as </span>usize
-                {
-                    context.realm.environments.pop();
-                }
-
-                <span class="kw">if </span>has_binding_identifier {
-                    context.realm.environments.pop();
-                }
+                context.vm.pop_frame().expect(<span class="string">&quot;must have frame&quot;</span>);
 
                 std::mem::swap(<span class="kw-2">&amp;mut </span>environments, <span class="kw-2">&amp;mut </span>context.realm.environments);
+                environments.truncate(environments_len);
+
                 <span class="prelude-val">Ok</span>(promise.into())
             }
             Function::Generator {
@@ -2960,6 +2918,7 @@
                 <span class="kw">let </span>constructor_kind = <span class="kw-2">*</span>constructor_kind;
                 drop(object);
 
+                <span class="kw">let </span>environments_len = environments.len();
                 std::mem::swap(<span class="kw-2">&amp;mut </span>environments, <span class="kw-2">&amp;mut </span>context.realm.environments);
 
                 <span class="kw">let </span>this = <span class="kw">if </span>constructor_kind.is_base() {
@@ -3004,8 +2963,6 @@
                     <span class="prelude-val">Some</span>(new_target.clone()),
                     <span class="bool-val">false</span>,
                 );
-
-                <span class="kw">let </span>has_expressions = code.params.has_expressions();
 
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(binding) = code.arguments_binding {
                     <span class="kw">let </span>arguments_obj = <span class="kw">if </span>code.strict || !code.params.is_simple() {
@@ -3071,16 +3028,17 @@
 
                 context.vm.pop_frame();
 
-                <span class="kw">let </span><span class="kw-2">mut </span>environment = context.realm.environments.pop();
-                <span class="kw">if </span>has_expressions {
-                    environment = context.realm.environments.pop();
-                }
-
-                <span class="kw">if </span>has_binding_identifier {
-                    context.realm.environments.pop();
-                }
-
                 std::mem::swap(<span class="kw-2">&amp;mut </span>environments, <span class="kw-2">&amp;mut </span>context.realm.environments);
+
+                <span class="kw">let </span>environment = <span class="kw">if </span>has_binding_identifier {
+                    environments.truncate(environments_len + <span class="number">2</span>);
+                    <span class="kw">let </span>environment = environments.pop();
+                    environments.pop();
+                    environment
+                } <span class="kw">else </span>{
+                    environments.truncate(environments_len + <span class="number">1</span>);
+                    environments.pop()
+                };
 
                 <span class="kw">let </span>(result, <span class="kw">_</span>) = result<span class="question-mark">?</span>;
 
