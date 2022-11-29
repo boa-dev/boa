@@ -20,9 +20,7 @@
 //!  - **boa_interner** - Boa's string interner
 //!  - **boa_macros** - Boa's derive macros
 //!  - **boa_profiler** - Boa's code profiler
-//!  - **boa_tester** - Boa's Test262 runner
 //!  - **boa_unicode** - Boa's unicode identifier
-//!  - **boa_wasm** - Boa's WASM binding
 //!
 //! [whatwg]: https://console.spec.whatwg.org
 //! [ecma-402]: https://tc39.es/ecma402
