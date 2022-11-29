@@ -1,4 +1,28 @@
-//! Profiler for the Boa JavaScript engine.
+//! The **boa_profiler** crate is a code profiler for Boa.
+//! 
+//! # Crate Overview
+//! This crate provides a code profiler for Boa. For more information, please
+//! see Boa's page on [profiling][profiler-md]
+//!
+//! # About Boa
+//! Boa is an open-source, experimental ECMAScript Engine written in Rust for lexing, parsing and executing ECMAScript/JavaScript. Currently, Boa
+//! supports some of the [language][boa-conformance]. More information can be viewed at [Boa's website][boa-web].
+//!
+//! Try out the most recent release with Boa's live demo [playground][boa-playground].  
+//!
+//! # Boa Crates
+//!  - **boa_ast** - Boa's ECMAScript Abstract Syntax Tree.
+//!  - **boa_engine** - Boa's implementation of ECMAScript builtin objects and execution.
+//!  - **boa_gc** - Boa's garbage collector
+//!  - **boa_interner** - Boa's string interner
+//!  - **boa_parser** - Boa's lexer and parser
+//!  - **boa_profiler** - Boa's code profiler
+//!  - **boa_unicode** - Boa's Unicode identifier
+//! 
+//! [profiler-md]: https://github.com/boa-dev/boa/blob/main/docs/profiling.md
+//! [boa-conformance]: https://boa-dev.github.io/boa/test262/
+//! [boa-web]: https://boa-dev.github.io/
+//! [boa-playground]: https://boa-dev.github.io/boa/playground/
 
 #![cfg_attr(not(test), forbid(clippy::unwrap_used))]
 #![warn(missing_docs, clippy::dbg_macro)]

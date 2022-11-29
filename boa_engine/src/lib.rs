@@ -15,12 +15,12 @@
 //!
 //! # Boa Crates
 //!  - **boa_ast** - Boa's ECMAScript Abstract Syntax Tree.
-//!  - **boa_engine** - Boa's implementation of core langugage functionality and execution.
-//!  - **boa_gc** - Boa's Garbage Collector
+//!  - **boa_engine** - Boa's implementation of ECMAScript builtin objects and execution.
+//!  - **boa_gc** - Boa's garbage collector
 //!  - **boa_interner** - Boa's string interner
-//!  - **boa_macros** - Boa's derive macros
+//!  - **boa_parser** - Boa's lexer and parser
 //!  - **boa_profiler** - Boa's code profiler
-//!  - **boa_unicode** - Boa's unicode identifier
+//!  - **boa_unicode** - Boa's Unicode identifier
 //!
 //! [whatwg]: https://console.spec.whatwg.org
 //! [ecma-402]: https://tc39.es/ecma402

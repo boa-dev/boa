@@ -1,15 +1,35 @@
-//! The ECMAScript Abstract Syntax Tree.
-//!
-//! This crate contains representations of [**Parse Nodes**][grammar] as defined by the ECMAScript spec.
-//! Some `Parse Node`s are not represented by Boa's AST, because a lot of grammar productions are
-//! only used to throw [**Early Errors**][early], and don't influence the evaluation of the AST itself.
+//! Boa's **boa_ast** crate implements an ECMAScript abstract syntax tree.
+//! 
+//! # Crate Overview
+//! **boa_ast** contains representations of [**Parse Nodes**][grammar] as defined by the ECMAScript 
+//! spec. Some `Parse Node`s are not represented by Boa's AST, because a lot of grammar productions
+//! are only used to throw [**Early Errors**][early], and don't influence the evaluation of the AST 
+//! itself.
 //!
 //! Boa's AST is mainly split in three main components: [`Declaration`]s, [`Expression`]s and
 //! [`Statement`]s, with [`StatementList`] being the primordial Parse Node that combines
 //! all of them to create a proper AST.
 //!
+//! # About Boa
+//! Boa is an open-source, experimental ECMAScript Engine written in Rust for lexing, parsing and executing ECMAScript/JavaScript. Currently, Boa
+//! supports some of the [language][boa-conformance]. More information can be viewed at [Boa's website][boa-web].
+//!
+//! Try out the most recent release with Boa's live demo [playground][boa-playground].  
+//!
+//! # Boa Crates
+//!  - **boa_ast** - Boa's ECMAScript Abstract Syntax Tree.
+//!  - **boa_engine** - Boa's implementation of ECMAScript builtin objects and execution.
+//!  - **boa_gc** - Boa's garbage collector
+//!  - **boa_interner** - Boa's string interner
+//!  - **boa_parser** - Boa's lexer and parser
+//!  - **boa_profiler** - Boa's code profiler
+//!  - **boa_unicode** - Boa's Unicode identifier
+//!
 //! [grammar]: https://tc39.es/ecma262/#sec-syntactic-grammar
 //! [early]: https://tc39.es/ecma262/#sec-static-semantic-rules
+//! [boa-conformance]: https://boa-dev.github.io/boa/test262/
+//! [boa-web]: https://boa-dev.github.io/
+//! [boa-playground]: https://boa-dev.github.io/boa/playground/
 
 #![doc(
     html_logo_url = "https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg",

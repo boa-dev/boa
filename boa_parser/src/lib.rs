@@ -1,12 +1,31 @@
-//! Parser targeting the latest [ECMAScript language specification][spec].
+//! Boa's **boa_parser** crate is a parser targeting the latest [ECMAScript language specification][spec].
 //!
+//! # Crate Overview
 //! This crate contains implementations of a [`Lexer`] and a [`Parser`] for the **ECMAScript**
 //! language. The [lexical grammar][lex] and the [syntactic grammar][grammar] being targeted are
 //! fully defined in the specification. See the links provided for more information.
 //!
+//! # About Boa
+//! Boa is an open-source, experimental ECMAScript Engine written in Rust for lexing, parsing and executing ECMAScript/JavaScript. Currently, Boa
+//! supports some of the [language][boa-conformance]. More information can be viewed at [Boa's website][boa-web].
+//!
+//! Try out the most recent release with Boa's live demo [playground][boa-playground].  
+//!
+//! # Boa Crates
+//!  - **boa_ast** - Boa's ECMAScript Abstract Syntax Tree.
+//!  - **boa_engine** - Boa's implementation of ECMAScript builtin objects and execution.
+//!  - **boa_gc** - Boa's garbage collector
+//!  - **boa_interner** - Boa's string interner
+//!  - **boa_parser** - Boa's lexer and parser
+//!  - **boa_profiler** - Boa's code profiler
+//!  - **boa_unicode** - Boa's Unicode identifier
+//!
 //! [spec]: https://tc39.es/ecma262
 //! [lex]: https://tc39.es/ecma262/#sec-ecmascript-language-lexical-grammar
 //! [grammar]: https://tc39.es/ecma262/#sec-ecmascript-language-expressions
+//! [boa-conformance]: https://boa-dev.github.io/boa/test262/
+//! [boa-web]: https://boa-dev.github.io/
+//! [boa-playground]: https://boa-dev.github.io/boa/playground/
 
 #![doc(
     html_logo_url = "https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg",
