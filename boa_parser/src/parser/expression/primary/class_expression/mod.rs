@@ -4,10 +4,9 @@ use crate::{
         expression::BindingIdentifier, statement::ClassTail, AllowAwait, AllowYield, Cursor,
         OrAbrupt, ParseResult, TokenParser,
     },
-    Error,
 };
 use boa_ast::{expression::Identifier, function::Class, Keyword};
-use boa_interner::Interner;
+use boa_interner::{Interner, Sym};
 use boa_profiler::Profiler;
 use std::io::Read;
 
@@ -57,17 +56,7 @@ where
                 BindingIdentifier::new(self.allow_yield, self.allow_await)
                     .parse(cursor, interner)?
             }
-            _ => {
-                if let Some(name) = self.name {
-                    name
-                } else {
-                    return Err(Error::unexpected(
-                        token.to_string(interner),
-                        token.span(),
-                        "expected class identifier",
-                    ));
-                }
-            }
+            _ => self.name.unwrap_or_else(|| Sym::EMPTY_STRING.into()),
         };
         cursor.set_strict_mode(strict);
 
