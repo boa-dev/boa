@@ -14,8 +14,8 @@ use crate::{
     JsResult,
 };
 
-pub(crate) fn compile_for_loop<'b>(
-    byte_compiler: &mut ByteCompiler<'b>,
+pub(crate) fn compile_for_loop(
+    byte_compiler: &mut ByteCompiler<'_>,
     for_loop: &ForLoop,
     label: Option<Sym>,
     configurable_globals: bool,
@@ -73,8 +73,8 @@ pub(crate) fn compile_for_loop<'b>(
     Ok(())
 }
 
-pub(crate) fn compile_for_in_loop<'b>(
-    byte_compiler: &mut ByteCompiler<'b>,
+pub(crate) fn compile_for_in_loop(
+    byte_compiler: &mut ByteCompiler<'_>,
     for_in_loop: &ForInLoop,
     label: Option<Sym>,
     configurable_globals: bool,
@@ -202,8 +202,8 @@ pub(crate) fn compile_for_in_loop<'b>(
     Ok(())
 }
 
-pub(crate) fn compile_for_of_loop<'b>(
-    byte_compiler: &mut ByteCompiler<'b>,
+pub(crate) fn compile_for_of_loop(
+    byte_compiler: &mut ByteCompiler<'_>,
     for_of_loop: &ForOfLoop,
     label: Option<Sym>,
     configurable_globals: bool,
@@ -341,8 +341,8 @@ pub(crate) fn compile_for_of_loop<'b>(
     Ok(())
 }
 
-pub(crate) fn compile_while_loop<'b>(
-    byte_compiler: &mut ByteCompiler<'b>,
+pub(crate) fn compile_while_loop(
+    byte_compiler: &mut ByteCompiler<'_>,
     while_loop: &WhileLoop,
     label: Option<Sym>,
     configurable_globals: bool,
@@ -363,8 +363,8 @@ pub(crate) fn compile_while_loop<'b>(
     Ok(())
 }
 
-pub(crate) fn compile_do_while_loop<'b>(
-    byte_compiler: &mut ByteCompiler<'b>,
+pub(crate) fn compile_do_while_loop(
+    byte_compiler: &mut ByteCompiler<'_>,
     do_while_loop: &DoWhileLoop,
     label: Option<Sym>,
     configurable_globals: bool,

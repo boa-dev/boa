@@ -21,8 +21,8 @@ use super::{ByteCompiler, Literal, NodeKind};
 /// The compilation of a class declaration and expression is mostly equal.
 /// A class declaration binds the resulting class object to it's identifier.
 /// A class expression leaves the resulting class object on the stack for following operations.
-pub(crate) fn compile_class<'b>(
-    byte_compiler: &mut ByteCompiler<'b>,
+pub(crate) fn compile_class(
+    byte_compiler: &mut ByteCompiler<'_>,
     class: &Class,
     expression: bool,
 ) -> JsResult<()> {

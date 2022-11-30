@@ -6,8 +6,8 @@ use crate::{
     JsResult,
 };
 
-pub(crate) fn compile_try<'b>(
-    byte_compiler: &mut ByteCompiler<'b>,
+pub(crate) fn compile_try(
+    byte_compiler: &mut ByteCompiler<'_>,
     t: &Try,
     use_expr: bool,
     configurable_globals: bool,

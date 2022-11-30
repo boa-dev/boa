@@ -6,8 +6,8 @@ use crate::{
     JsResult,
 };
 
-pub(crate) fn compile_assign<'b>(
-    byte_compiler: &mut ByteCompiler<'b>,
+pub(crate) fn compile_assign(
+    byte_compiler: &mut ByteCompiler<'_>,
     assign: &Assign,
     use_expr: bool,
 ) -> JsResult<()> {

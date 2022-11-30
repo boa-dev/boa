@@ -9,8 +9,8 @@ use crate::{
     JsResult,
 };
 
-pub(crate) fn compile_declaration_pattern_impl<'b>(
-    byte_compiler: &mut ByteCompiler<'b>,
+pub(crate) fn compile_declaration_pattern_impl(
+    byte_compiler: &mut ByteCompiler<'_>,
     pattern: &Pattern,
     def: BindingOpcode,
 ) -> JsResult<()> {

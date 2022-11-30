@@ -16,8 +16,8 @@ pub(crate) use r#continue::compile_continue;
 pub(crate) use r#loop::*;
 pub(crate) use r#try::compile_try;
 
-pub(crate) fn compile_if<'b>(
-    byte_compiler: &mut ByteCompiler<'b>,
+pub(crate) fn compile_if(
+    byte_compiler: &mut ByteCompiler<'_>,
     node: &If,
     configurable_globals: bool,
 ) -> JsResult<()> {
@@ -41,8 +41,8 @@ pub(crate) fn compile_if<'b>(
     Ok(())
 }
 
-pub(crate) fn compile_labeled<'b>(
-    byte_compiler: &mut ByteCompiler<'b>,
+pub(crate) fn compile_labeled(
+    byte_compiler: &mut ByteCompiler<'_>,
     labelled: &Labelled,
     use_expr: bool,
     configurable_globals: bool,
@@ -108,10 +108,7 @@ pub(crate) fn compile_labeled<'b>(
     Ok(())
 }
 
-pub(crate) fn compile_break<'b>(
-    byte_compiler: &mut ByteCompiler<'b>,
-    node: Break,
-) -> JsResult<()> {
+pub(crate) fn compile_break(byte_compiler: &mut ByteCompiler<'_>, node: Break) -> JsResult<()> {
     let next = byte_compiler.next_opcode_location();
     if let Some(info) = byte_compiler
         .jump_info
@@ -170,8 +167,8 @@ pub(crate) fn compile_break<'b>(
     Ok(())
 }
 
-pub(crate) fn compile_switch<'b>(
-    byte_compiler: &mut ByteCompiler<'b>,
+pub(crate) fn compile_switch(
+    byte_compiler: &mut ByteCompiler<'_>,
     switch: &Switch,
     configurable_globals: bool,
 ) -> JsResult<()> {
@@ -218,8 +215,8 @@ pub(crate) fn compile_switch<'b>(
     Ok(())
 }
 
-pub(crate) fn compile_block<'b>(
-    byte_compiler: &mut ByteCompiler<'b>,
+pub(crate) fn compile_block(
+    byte_compiler: &mut ByteCompiler<'_>,
     block: &Block,
     label: Option<Sym>,
     use_expr: bool,
