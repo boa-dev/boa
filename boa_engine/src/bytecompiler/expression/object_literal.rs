@@ -10,8 +10,8 @@ use crate::{
     JsNativeError, JsResult,
 };
 
-pub(crate) fn compile_object_literal<'b>(
-    byte_compiler: &mut ByteCompiler<'b>,
+pub(crate) fn compile_object_literal(
+    byte_compiler: &mut ByteCompiler<'_>,
     object: &ObjectLiteral,
     use_expr: bool,
 ) -> JsResult<()> {
@@ -37,12 +37,18 @@ pub(crate) fn compile_object_literal<'b>(
                 PropertyName::Computed(name_node) => {
                     byte_compiler.compile_expr(name_node, true)?;
                     byte_compiler.emit_opcode(Opcode::ToPropertyKey);
-                    byte_compiler.compile_expr(expr, true)?;
+                    if expr.is_function_definition() {
+                        byte_compiler.emit_opcode(Opcode::Dup);
+                        byte_compiler.compile_expr(expr, true)?;
+                        byte_compiler.emit_opcode(Opcode::SetFunctionName);
+                        byte_compiler.emit_u8(0);
+                    } else {
+                        byte_compiler.compile_expr(expr, true)?;
+                    }
                     byte_compiler.emit_opcode(Opcode::DefineOwnPropertyByValue);
                 }
             },
             PropertyDefinition::MethodDefinition(name, kind) => match kind {
-                // TODO: set function name for getter and setters
                 MethodDefinition::Get(expr) => match name {
                     PropertyName::Literal(name) => {
                         byte_compiler.function(expr.into(), NodeKind::Expression, true)?;
@@ -52,11 +58,13 @@ pub(crate) fn compile_object_literal<'b>(
                     PropertyName::Computed(name_node) => {
                         byte_compiler.compile_expr(name_node, true)?;
                         byte_compiler.emit_opcode(Opcode::ToPropertyKey);
+                        byte_compiler.emit_opcode(Opcode::Dup);
                         byte_compiler.function(expr.into(), NodeKind::Expression, true)?;
+                        byte_compiler.emit_opcode(Opcode::SetFunctionName);
+                        byte_compiler.emit_u8(1);
                         byte_compiler.emit_opcode(Opcode::SetPropertyGetterByValue);
                     }
                 },
-                // TODO: set function name for getter and setters
                 MethodDefinition::Set(expr) => match name {
                     PropertyName::Literal(name) => {
                         byte_compiler.function(expr.into(), NodeKind::Expression, true)?;
@@ -66,7 +74,10 @@ pub(crate) fn compile_object_literal<'b>(
                     PropertyName::Computed(name_node) => {
                         byte_compiler.compile_expr(name_node, true)?;
                         byte_compiler.emit_opcode(Opcode::ToPropertyKey);
+                        byte_compiler.emit_opcode(Opcode::Dup);
                         byte_compiler.function(expr.into(), NodeKind::Expression, true)?;
+                        byte_compiler.emit_opcode(Opcode::SetFunctionName);
+                        byte_compiler.emit_u8(2);
                         byte_compiler.emit_opcode(Opcode::SetPropertySetterByValue);
                     }
                 },
@@ -79,7 +90,10 @@ pub(crate) fn compile_object_literal<'b>(
                     PropertyName::Computed(name_node) => {
                         byte_compiler.compile_expr(name_node, true)?;
                         byte_compiler.emit_opcode(Opcode::ToPropertyKey);
+                        byte_compiler.emit_opcode(Opcode::Dup);
                         byte_compiler.function(expr.into(), NodeKind::Expression, true)?;
+                        byte_compiler.emit_opcode(Opcode::SetFunctionName);
+                        byte_compiler.emit_u8(0);
                         byte_compiler.emit_opcode(Opcode::DefineOwnPropertyByValue);
                     }
                 },
@@ -92,7 +106,10 @@ pub(crate) fn compile_object_literal<'b>(
                     PropertyName::Computed(name_node) => {
                         byte_compiler.compile_expr(name_node, true)?;
                         byte_compiler.emit_opcode(Opcode::ToPropertyKey);
+                        byte_compiler.emit_opcode(Opcode::Dup);
                         byte_compiler.function(expr.into(), NodeKind::Expression, true)?;
+                        byte_compiler.emit_opcode(Opcode::SetFunctionName);
+                        byte_compiler.emit_u8(0);
                         byte_compiler.emit_opcode(Opcode::DefineOwnPropertyByValue);
                     }
                 },
@@ -105,7 +122,10 @@ pub(crate) fn compile_object_literal<'b>(
                     PropertyName::Computed(name_node) => {
                         byte_compiler.compile_expr(name_node, true)?;
                         byte_compiler.emit_opcode(Opcode::ToPropertyKey);
+                        byte_compiler.emit_opcode(Opcode::Dup);
                         byte_compiler.function(expr.into(), NodeKind::Expression, true)?;
+                        byte_compiler.emit_opcode(Opcode::SetFunctionName);
+                        byte_compiler.emit_u8(0);
                         byte_compiler.emit_opcode(Opcode::DefineOwnPropertyByValue);
                     }
                 },
@@ -118,7 +138,10 @@ pub(crate) fn compile_object_literal<'b>(
                     PropertyName::Computed(name_node) => {
                         byte_compiler.compile_expr(name_node, true)?;
                         byte_compiler.emit_opcode(Opcode::ToPropertyKey);
+                        byte_compiler.emit_opcode(Opcode::Dup);
                         byte_compiler.function(expr.into(), NodeKind::Expression, true)?;
+                        byte_compiler.emit_opcode(Opcode::SetFunctionName);
+                        byte_compiler.emit_u8(0);
                         byte_compiler.emit_opcode(Opcode::DefineOwnPropertyByValue);
                     }
                 },

@@ -9,8 +9,8 @@ use crate::{
     JsNativeError, JsResult,
 };
 
-pub(crate) fn compile_unary<'b>(
-    byte_compiler: &mut ByteCompiler<'b>,
+pub(crate) fn compile_unary(
+    byte_compiler: &mut ByteCompiler<'_>,
     unary: &Unary,
     use_expr: bool,
 ) -> JsResult<()> {

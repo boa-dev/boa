@@ -5,8 +5,8 @@ use boa_ast::expression::operator::{
 
 use crate::{bytecompiler::ByteCompiler, vm::Opcode, JsResult};
 
-pub(crate) fn compile_binary<'b>(
-    byte_compiler: &mut ByteCompiler<'b>,
+pub(crate) fn compile_binary(
+    byte_compiler: &mut ByteCompiler<'_>,
     binary: &Binary,
     use_expr: bool,
 ) -> JsResult<()> {

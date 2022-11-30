@@ -19,8 +19,8 @@ pub(crate) use binary::compile_binary;
 pub(crate) use object_literal::compile_object_literal;
 pub(crate) use unary::compile_unary;
 
-pub(crate) fn compile_literal<'b>(
-    byte_compiler: &mut ByteCompiler<'b>,
+pub(crate) fn compile_literal(
+    byte_compiler: &mut ByteCompiler<'_>,
     lit: &AstLiteral,
     use_expr: bool,
 ) {
@@ -47,8 +47,8 @@ pub(crate) fn compile_literal<'b>(
     }
 }
 
-pub(crate) fn compile_conditional<'b>(
-    byte_compiler: &mut ByteCompiler<'b>,
+pub(crate) fn compile_conditional(
+    byte_compiler: &mut ByteCompiler<'_>,
     op: &Conditional,
     use_expr: bool,
 ) -> JsResult<()> {
@@ -67,8 +67,8 @@ pub(crate) fn compile_conditional<'b>(
     Ok(())
 }
 
-pub(crate) fn compile_template_literal<'b>(
-    byte_compiler: &mut ByteCompiler<'b>,
+pub(crate) fn compile_template_literal(
+    byte_compiler: &mut ByteCompiler<'_>,
     template_literal: &TemplateLiteral,
     use_expr: bool,
 ) -> JsResult<()> {
