@@ -104,6 +104,8 @@ pub struct Context {
     pub(crate) vm: Vm,
 
     pub(crate) promise_job_queue: VecDeque<JobCallback>,
+
+    pub(crate) kept_alive: Vec<JsObject>,
 }
 
 impl Default for Context {
@@ -115,12 +117,14 @@ impl Default for Context {
 impl Context {
     /// Create a new [`ContextBuilder`] to specify the [`Interner`] and/or
     /// the icu data provider.
+    #[must_use]
     pub fn builder() -> ContextBuilder {
         ContextBuilder::default()
     }
+
     /// Gets the string interner.
     #[inline]
-    pub fn interner(&self) -> &Interner {
+    pub const fn interner(&self) -> &Interner {
         &self.interner
     }
 
@@ -132,7 +136,7 @@ impl Context {
 
     /// A helper function for getting an immutable reference to the `console` object.
     #[cfg(feature = "console")]
-    pub(crate) fn console(&self) -> &Console {
+    pub(crate) const fn console(&self) -> &Console {
         &self.console
     }
 
@@ -205,7 +209,7 @@ impl Context {
 
     /// Return the global object.
     #[inline]
-    pub fn global_object(&self) -> &JsObject {
+    pub const fn global_object(&self) -> &JsObject {
         self.realm.global_object()
     }
 
@@ -362,11 +366,8 @@ impl Context {
     /// <https://tc39.es/ecma262/#sec-hasproperty>
     #[inline]
     pub(crate) fn has_property(&mut self, obj: &JsValue, key: &PropertyKey) -> JsResult<bool> {
-        if let Some(obj) = obj.as_object() {
-            obj.__has_property__(key, self)
-        } else {
-            Ok(false)
-        }
+        obj.as_object()
+            .map_or(Ok(false), |obj| obj.__has_property__(key, self))
     }
 
     /// Register a global class of type `T`, where `T` implements `Class`.
@@ -538,6 +539,7 @@ impl Context {
         self.realm.set_global_binding_number();
         let result = self.run();
         self.vm.pop_frame();
+        self.clear_kept_objects();
         self.run_queued_jobs()?;
         let (result, _) = result?;
         Ok(result)
@@ -547,13 +549,14 @@ impl Context {
     fn run_queued_jobs(&mut self) -> JsResult<()> {
         while let Some(job) = self.promise_job_queue.pop_front() {
             job.call_job_callback(&JsValue::Undefined, &[], self)?;
+            self.clear_kept_objects();
         }
         Ok(())
     }
 
     /// Return the intrinsic constructors and objects.
     #[inline]
-    pub fn intrinsics(&self) -> &Intrinsics {
+    pub const fn intrinsics(&self) -> &Intrinsics {
         &self.intrinsics
     }
 
@@ -565,7 +568,7 @@ impl Context {
     #[cfg(feature = "intl")]
     #[inline]
     /// Get the ICU related utilities
-    pub(crate) fn icu(&self) -> &icu::Icu {
+    pub(crate) const fn icu(&self) -> &icu::Icu {
         &self.icu
     }
 
@@ -579,6 +582,18 @@ impl Context {
         // Let scriptOrModule be ...
         // TODO
         self.promise_job_queue.push_back(job);
+    }
+
+    /// Abstract operation [`ClearKeptObjects`][clear].
+    ///
+    /// Clears all objects maintained alive by calls to the [`AddToKeptObjects`][add] abstract
+    /// operation, used within the [`WeakRef`][weak] constructor.
+    ///
+    /// [clear]: https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-clear-kept-objects
+    /// [add]: https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-addtokeptobjects
+    /// [weak]: https://tc39.es/ecma262/multipage/managing-memory.html#sec-weak-ref-objects
+    pub fn clear_kept_objects(&mut self) {
+        self.kept_alive.clear();
     }
 }
 /// Builder for the [`Context`] type.
@@ -607,6 +622,7 @@ impl ContextBuilder {
     /// This is useful when you want to initialize an [`Interner`] with
     /// a collection of words before parsing.
     #[must_use]
+    #[allow(clippy::missing_const_for_fn)]
     pub fn interner(mut self, interner: Interner) -> Self {
         self.interner = Some(interner);
         self
@@ -625,19 +641,22 @@ impl ContextBuilder {
     ///
     /// This function is only available if the `fuzz` feature is enabled.
     #[cfg(feature = "fuzz")]
-    pub fn instructions_remaining(mut self, instructions_remaining: usize) -> Self {
+    #[must_use]
+    pub const fn instructions_remaining(mut self, instructions_remaining: usize) -> Self {
         self.instructions_remaining = instructions_remaining;
         self
     }
 
     /// Creates a new [`ContextBuilder`] with a default empty [`Interner`]
     /// and a default [`BoaProvider`] if the `intl` feature is enabled.
+    #[must_use]
     pub fn new() -> Self {
         Self::default()
     }
 
     /// Builds a new [`Context`] with the provided parameters, and defaults
     /// all missing parameters to their default values.
+    #[must_use]
     pub fn build(self) -> Context {
         let intrinsics = Intrinsics::default();
         let mut context = Context {
@@ -661,6 +680,7 @@ impl ContextBuilder {
             #[cfg(feature = "fuzz")]
             instructions_remaining: self.instructions_remaining,
             promise_job_queue: VecDeque::new(),
+            kept_alive: Vec::new(),
         };
 
         // Add new builtIns to Context Realm

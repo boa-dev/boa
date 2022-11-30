@@ -3,6 +3,7 @@
 use crate::{
     block_to_string,
     expression::{operator::assign::AssignTarget, Expression, RESERVED_IDENTIFIERS_STRICT},
+    function::Function,
     join_nodes,
     pattern::{ObjectPattern, ObjectPatternElement},
     property::{MethodDefinition, PropertyDefinition, PropertyName},
@@ -43,7 +44,7 @@ impl ObjectLiteral {
     /// Gets the object literal properties
     #[inline]
     #[must_use]
-    pub fn properties(&self) -> &[PropertyDefinition] {
+    pub const fn properties(&self) -> &[PropertyDefinition] {
         &self.properties
     }
 
@@ -121,18 +122,12 @@ impl ObjectLiteral {
                                         return None;
                                     }
                                     excluded_keys.push(*ident);
-                                    bindings.push(ObjectPatternElement::SingleName {
-                                        ident: *ident,
-                                        name: PropertyName::Literal(name),
-                                        default_init: Some(assign.rhs().clone()),
-                                    });
-                                } else {
-                                    bindings.push(ObjectPatternElement::SingleName {
-                                        ident: *ident,
-                                        name: PropertyName::Literal(name),
-                                        default_init: Some(assign.rhs().clone()),
-                                    });
                                 }
+                                bindings.push(ObjectPatternElement::SingleName {
+                                    ident: *ident,
+                                    name: PropertyName::Literal(name),
+                                    default_init: Some(assign.rhs().clone()),
+                                });
                             } else {
                                 return None;
                             }
@@ -217,6 +212,12 @@ impl ToIndentedString for ObjectLiteral {
                     format!("{indentation}{},\n", interner.resolve_expect(ident.sym()))
                 }
                 PropertyDefinition::Property(key, value) => {
+                    let value = if let Expression::Function(f) = value {
+                        Function::new(None, f.parameters().clone(), f.body().clone()).into()
+                    } else {
+                        value.clone()
+                    };
+
                     format!(
                         "{indentation}{}: {},\n",
                         key.to_interned_string(interner),

@@ -3,6 +3,7 @@ use crate::{
     vm::{opcode::Operation, ShouldExit},
     Context, JsResult, JsString,
 };
+use boa_macros::utf16;
 
 /// `SetPropertyByName` implements the Opcode Operation for `Opcode::SetPropertyByName`
 ///
@@ -217,6 +218,58 @@ impl Operation for SetPropertySetterByValue {
                 .build(),
             context,
         )?;
+        Ok(ShouldExit::False)
+    }
+}
+
+/// `SetFunctionName` implements the Opcode Operation for `Opcode::SetFunctionName`
+///
+/// Operation:
+///  - Sets the name of a function object.
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct SetFunctionName;
+
+impl Operation for SetFunctionName {
+    const NAME: &'static str = "SetFunctionName";
+    const INSTRUCTION: &'static str = "INST - SetFunctionName";
+
+    fn execute(context: &mut Context) -> JsResult<ShouldExit> {
+        let prefix = context.vm.read::<u8>();
+
+        let function = context.vm.pop();
+        let name = context.vm.pop();
+
+        let function_object = function.as_object().expect("function is not an object");
+
+        let name = if let Some(symbol) = name.as_symbol() {
+            if let Some(name) = symbol.description() {
+                JsString::concat_array(&[utf16!("["), &name, utf16!("]")])
+            } else {
+                JsString::from("")
+            }
+        } else {
+            name.as_string().expect("name is not a string").clone()
+        };
+
+        let name = match prefix {
+            0 => name,
+            1 => JsString::concat(utf16!("get "), &name),
+            2 => JsString::concat(utf16!("set "), &name),
+            _ => unreachable!(),
+        };
+
+        let desc = PropertyDescriptor::builder()
+            .value(name)
+            .writable(false)
+            .enumerable(false)
+            .configurable(true)
+            .build();
+
+        function_object
+            .__define_own_property__("name".into(), desc, context)
+            .expect("msg");
+
+        context.vm.stack.push(function);
         Ok(ShouldExit::False)
     }
 }

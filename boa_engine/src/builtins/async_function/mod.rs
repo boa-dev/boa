@@ -19,6 +19,7 @@ use crate::{
 };
 use boa_profiler::Profiler;
 
+/// The internal representation of an `AsyncFunction` object.
 #[derive(Debug, Clone, Copy)]
 pub struct AsyncFunction;
 

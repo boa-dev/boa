@@ -1,3 +1,4 @@
+//! This module contains the bytecode compiler.
 mod class;
 mod declaration;
 mod expression;
@@ -51,6 +52,7 @@ enum FunctionKind {
 
 /// Describes the complete specification of a function node.
 #[derive(Debug, Clone, Copy, PartialEq)]
+#[allow(single_use_lifetimes)]
 struct FunctionSpec<'a> {
     kind: FunctionKind,
     name: Option<Identifier>,
@@ -59,14 +61,14 @@ struct FunctionSpec<'a> {
     has_binding_identifier: bool,
 }
 
-impl<'a> FunctionSpec<'a> {
+impl FunctionSpec<'_> {
     #[inline]
-    fn is_arrow(&self) -> bool {
+    const fn is_arrow(&self) -> bool {
         matches!(self.kind, FunctionKind::Arrow | FunctionKind::AsyncArrow)
     }
 
     #[inline]
-    fn is_async(&self) -> bool {
+    const fn is_async(&self) -> bool {
         matches!(
             self.kind,
             FunctionKind::Async | FunctionKind::AsyncGenerator | FunctionKind::AsyncArrow
@@ -74,7 +76,7 @@ impl<'a> FunctionSpec<'a> {
     }
 
     #[inline]
-    fn is_generator(&self) -> bool {
+    const fn is_generator(&self) -> bool {
         matches!(
             self.kind,
             FunctionKind::Generator | FunctionKind::AsyncGenerator
@@ -202,7 +204,7 @@ enum Access<'a> {
 }
 
 impl Access<'_> {
-    fn from_assign_target(target: &AssignTarget) -> Result<Access<'_>, &Pattern> {
+    const fn from_assign_target(target: &AssignTarget) -> Result<Access<'_>, &Pattern> {
         match target {
             AssignTarget::Identifier(ident) => Ok(Access::Variable { name: *ident }),
             AssignTarget::Access(access) => Ok(Access::Property { access }),
@@ -210,7 +212,7 @@ impl Access<'_> {
         }
     }
 
-    fn from_expression(expr: &Expression) -> Option<Access<'_>> {
+    const fn from_expression(expr: &Expression) -> Option<Access<'_>> {
         match expr {
             Expression::Identifier(name) => Some(Access::Variable { name: *name }),
             Expression::PropertyAccess(access) => Some(Access::Property { access }),
@@ -220,6 +222,7 @@ impl Access<'_> {
     }
 }
 
+/// The [`ByteCompiler`] is used to compile ECMAScript AST from [`boa_ast`] to bytecode.
 #[derive(Debug)]
 pub struct ByteCompiler<'b> {
     code_block: CodeBlock,
@@ -236,6 +239,7 @@ impl<'b> ByteCompiler<'b> {
     /// Represents a placeholder address that will be patched later.
     const DUMMY_ADDRESS: u32 = u32::MAX;
 
+    /// Creates a new [`ByteCompiler`].
     #[inline]
     pub fn new(name: Sym, strict: bool, json_parse: bool, context: &'b mut Context) -> Self {
         Self {
@@ -859,6 +863,7 @@ impl<'b> ByteCompiler<'b> {
         Ok(())
     }
 
+    /// Compile a [`StatementList`].
     #[inline]
     pub fn compile_statement_list(
         &mut self,
@@ -904,6 +909,7 @@ impl<'b> ByteCompiler<'b> {
         Ok(())
     }
 
+    /// Compile an [`Expression`].
     #[inline]
     pub fn compile_expr(&mut self, expr: &Expression, use_expr: bool) -> JsResult<()> {
         match expr {
@@ -1308,7 +1314,8 @@ impl<'b> ByteCompiler<'b> {
         Ok(())
     }
 
-    pub fn compile_var_decl(&mut self, decl: &VarDeclaration) -> JsResult<()> {
+    /// Compile a [`VarDeclaration`].
+    fn compile_var_decl(&mut self, decl: &VarDeclaration) -> JsResult<()> {
         for variable in decl.0.as_ref() {
             match variable.binding() {
                 Binding::Identifier(ident) => {
@@ -1334,7 +1341,8 @@ impl<'b> ByteCompiler<'b> {
         Ok(())
     }
 
-    pub fn compile_lexical_decl(&mut self, decl: &LexicalDeclaration) -> JsResult<()> {
+    /// Compile a [`LexicalDeclaration`].
+    fn compile_lexical_decl(&mut self, decl: &LexicalDeclaration) -> JsResult<()> {
         match decl {
             LexicalDeclaration::Let(decls) => {
                 for variable in decls.as_ref() {
@@ -1387,8 +1395,9 @@ impl<'b> ByteCompiler<'b> {
         Ok(())
     }
 
+    /// Compile a [`StatementListItem`].
     #[inline]
-    pub fn compile_stmt_list_item(
+    fn compile_stmt_list_item(
         &mut self,
         item: &StatementListItem,
         use_expr: bool,
@@ -1402,6 +1411,7 @@ impl<'b> ByteCompiler<'b> {
         }
     }
 
+    /// Compile a [`Declaration`].
     #[inline]
     pub fn compile_decl(&mut self, decl: &Declaration) -> JsResult<()> {
         match decl {
@@ -1422,6 +1432,7 @@ impl<'b> ByteCompiler<'b> {
         }
     }
 
+    /// Compiles a [`Statement`]
     #[inline]
     pub fn compile_stmt(
         &mut self,
@@ -1610,7 +1621,10 @@ impl<'b> ByteCompiler<'b> {
         Ok(())
     }
 
+    /// Finish compiling code with the [`ByteCompiler`] and return the generated [`CodeBlock`].
     #[inline]
+    #[must_use]
+    #[allow(clippy::missing_const_for_fn)]
     pub fn finish(self) -> CodeBlock {
         self.code_block
     }
@@ -1803,11 +1817,7 @@ impl<'b> ByteCompiler<'b> {
         }
     }
 
-    fn class(
-        &mut self,
-        class: &Class,
-        expression: bool,
-    ) -> JsResult<()> {
+    fn class(&mut self, class: &Class, expression: bool) -> JsResult<()> {
         class::compile_class(self, class, expression)
     }
 }

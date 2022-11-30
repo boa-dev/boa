@@ -3,7 +3,7 @@ use crate::{
     parser::{
         cursor::Cursor,
         expression::LabelIdentifier,
-        statement::{AllowAwait, AllowReturn, Statement},
+        statement::{declaration::FunctionDeclaration, AllowAwait, AllowReturn, Statement},
         AllowYield, OrAbrupt, ParseResult, TokenParser,
     },
     Error,
@@ -12,8 +12,6 @@ use boa_ast::{self as ast, Keyword, Punctuator};
 use boa_interner::Interner;
 use boa_profiler::Profiler;
 use std::io::Read;
-
-use super::declaration::FunctionDeclaration;
 
 /// Labelled Statement Parsing
 ///

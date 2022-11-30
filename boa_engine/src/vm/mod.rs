@@ -17,6 +17,9 @@ mod call_frame;
 mod code_block;
 mod opcode;
 
+#[cfg(feature = "flowgraph")]
+pub mod flowgraph;
+
 pub use {call_frame::CallFrame, code_block::CodeBlock, opcode::Opcode};
 
 pub(crate) use {
@@ -182,9 +185,10 @@ impl Context {
 
         while self.vm.frame().pc < self.vm.frame().code.code.len() {
             #[cfg(feature = "fuzz")]
-            if self.instructions_remaining == 0 {
-                return Err(JsError::from_native(JsNativeError::no_instructions_remain()));
-            } else {
+            {
+                if self.instructions_remaining == 0 {
+                    return Err(JsError::from_native(JsNativeError::no_instructions_remain()));
+                }
                 self.instructions_remaining -= 1;
             }
 
@@ -212,17 +216,11 @@ impl Context {
                     format!("{}μs", duration.as_micros()),
                     opcode.as_str(),
                     match self.vm.stack.last() {
+                        Some(value) if value.is_callable() => "[function]".to_string(),
+                        Some(value) if value.is_object() => "[object]".to_string(),
+                        Some(value) => value.display().to_string(),
                         None => "<empty>".to_string(),
-                        Some(value) => {
-                            if value.is_callable() {
-                                "[function]".to_string()
-                            } else if value.is_object() {
-                                "[object]".to_string()
-                            } else {
-                                value.display().to_string()
-                            }
-                        }
-                    },
+                    }
                 );
 
                 result

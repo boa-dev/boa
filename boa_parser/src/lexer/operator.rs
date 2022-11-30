@@ -37,16 +37,6 @@ macro_rules! vop {
             _ => $op,
         }
     });
-    ($cursor:ident, $op:expr, {$($case:pat => $block:expr),+}) => {
-        match $cursor.peek().ok_or_else(|| Error::syntax("could not preview next value", $cursor.pos()))? {
-            $($case => {
-                $cursor.next_byte()?;
-                $cursor.next_column();
-                $block
-            })+,
-            _ => $op
-        }
-    }
 }
 
 /// The `op` macro handles binary operations or assignment operations and converts them into tokens.
@@ -83,7 +73,7 @@ pub(super) struct Operator {
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators
 impl Operator {
     /// Creates a new operator lexer.
-    pub(super) fn new(init: u8) -> Self {
+    pub(super) const fn new(init: u8) -> Self {
         Self { init }
     }
 }

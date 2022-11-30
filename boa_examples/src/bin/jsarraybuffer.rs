@@ -56,5 +56,15 @@ fn main() -> JsResult<()> {
         Attribute::WRITABLE | Attribute::ENUMERABLE | Attribute::CONFIGURABLE,
     );
 
+    // We can also take the inner data from a JsArrayBuffer
+    let data_block: Vec<u8> = (0..5).collect();
+    let array_buffer = JsArrayBuffer::from_byte_block(data_block, context)?;
+
+    let internal_buffer = array_buffer.take()?;
+
+    assert_eq!(internal_buffer, (0..5).collect::<Vec<u8>>());
+    let detached_err = array_buffer.take();
+    assert!(detached_err.is_err());
+
     Ok(())
 }

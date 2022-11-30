@@ -23,7 +23,7 @@ use crate::{
 };
 use boa_profiler::Profiler;
 
-/// The internal representation on a `Generator` object.
+/// The internal representation of a `Generator` object.
 #[derive(Debug, Clone, Copy)]
 pub struct GeneratorFunction;
 

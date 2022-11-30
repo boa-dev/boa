@@ -2757,9 +2757,6 @@ impl TypedArray {
                 {
                     return Ok(Ordering::Greater);
                 }
-
-                // 10. Return +0𝔽.
-                Ok(Ordering::Equal)
             } else {
                 let x = x
                     .as_number()
@@ -2802,10 +2799,10 @@ impl TypedArray {
                 if x.is_zero() && y.is_zero() && x.is_sign_positive() && y.is_sign_negative() {
                     return Ok(Ordering::Greater);
                 }
-
-                // 10. Return +0𝔽.
-                Ok(Ordering::Equal)
             }
+
+            // 10. Return +0𝔽.
+            Ok(Ordering::Equal)
         };
 
         // 8. Sort items using an implementation-defined sequence of calls to SortCompare.
@@ -3542,7 +3539,7 @@ impl TypedArrayKind {
         }
     }
 
-    pub(crate) fn is_big_int_element_type(self) -> bool {
+    pub(crate) const fn is_big_int_element_type(self) -> bool {
         matches!(self, Self::BigUint64 | Self::BigInt64)
     }
 }

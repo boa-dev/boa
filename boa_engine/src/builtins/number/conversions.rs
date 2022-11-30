@@ -4,10 +4,10 @@
 #[inline]
 #[allow(clippy::float_cmp)]
 pub(crate) fn f64_to_int32(number: f64) -> i32 {
-    const SIGN_MASK: u64 = 0x8000000000000000;
-    const EXPONENT_MASK: u64 = 0x7FF0000000000000;
-    const SIGNIFICAND_MASK: u64 = 0x000FFFFFFFFFFFFF;
-    const HIDDEN_BIT: u64 = 0x0010000000000000;
+    const SIGN_MASK: u64 = 0x8000_0000_0000_0000;
+    const EXPONENT_MASK: u64 = 0x7FF0_0000_0000_0000;
+    const SIGNIFICAND_MASK: u64 = 0x000F_FFFF_FFFF_FFFF;
+    const HIDDEN_BIT: u64 = 0x0010_0000_0000_0000;
     const PHYSICAL_SIGNIFICAND_SIZE: i32 = 52; // Excludes the hidden bit.
     const SIGNIFICAND_SIZE: i32 = 53;
 
@@ -71,7 +71,7 @@ pub(crate) fn f64_to_int32(number: f64) -> i32 {
             return 0;
         }
 
-        (significand(number) << exponent) & 0xFFFFFFFF
+        (significand(number) << exponent) & 0xFFFF_FFFF
     };
 
     (sign(number) * (bits as i64)) as i32

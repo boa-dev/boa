@@ -30,14 +30,14 @@ impl Position {
     /// Gets the line number of the position.
     #[inline]
     #[must_use]
-    pub fn line_number(self) -> u32 {
+    pub const fn line_number(self) -> u32 {
         self.line_number.get()
     }
 
     /// Gets the column number of the position.
     #[inline]
     #[must_use]
-    pub fn column_number(self) -> u32 {
+    pub const fn column_number(self) -> u32 {
         self.column_number.get()
     }
 }
@@ -79,14 +79,14 @@ impl Span {
     /// Gets the starting position of the span.
     #[inline]
     #[must_use]
-    pub fn start(self) -> Position {
+    pub const fn start(self) -> Position {
         self.start
     }
 
     /// Gets the final position of the span.
     #[inline]
     #[must_use]
-    pub fn end(self) -> Position {
+    pub const fn end(self) -> Position {
         self.end
     }
 

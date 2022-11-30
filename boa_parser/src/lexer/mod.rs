@@ -14,18 +14,19 @@
 //!
 //! [spec]: https://tc39.es/ecma262/#sec-ecmascript-language-lexical-grammar
 
+pub mod error;
+pub mod regex;
+pub mod token;
+
 mod comment;
 mod cursor;
-pub mod error;
 mod identifier;
 mod number;
 mod operator;
 mod private_identifier;
-pub mod regex;
 mod spread;
 mod string;
 mod template;
-pub mod token;
 
 #[cfg(test)]
 mod tests;
@@ -80,7 +81,7 @@ impl<R> Lexer<R> {
     ///  * ECMAScript standard uses `\{Space_Separator}` + `\u{0009}`, `\u{000B}`, `\u{000C}`, `\u{FEFF}`
     ///
     /// [More information](https://tc39.es/ecma262/#table-32)
-    fn is_whitespace(ch: u32) -> bool {
+    const fn is_whitespace(ch: u32) -> bool {
         matches!(
             ch,
             0x0020 | 0x0009 | 0x000B | 0x000C | 0x00A0 | 0xFEFF |
@@ -97,13 +98,13 @@ impl<R> Lexer<R> {
 
     /// Gets the goal symbol the lexer is currently using.
     #[inline]
-    pub(crate) fn get_goal(&self) -> InputElement {
+    pub(crate) const fn get_goal(&self) -> InputElement {
         self.goal_symbol
     }
 
     #[inline]
     /// Returns if strict mode is currently active.
-    pub(super) fn strict_mode(&self) -> bool {
+    pub(super) const fn strict_mode(&self) -> bool {
         self.cursor.strict_mode()
     }
 

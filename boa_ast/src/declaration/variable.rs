@@ -51,7 +51,7 @@ pub struct VarDeclaration(pub VariableList);
 
 impl From<VarDeclaration> for Statement {
     fn from(var: VarDeclaration) -> Self {
-        Statement::Var(var)
+        Self::Var(var)
     }
 }
 
@@ -110,16 +110,16 @@ pub enum LexicalDeclaration {
 impl LexicalDeclaration {
     /// Gets the inner variable list of the `LexicalDeclaration`
     #[must_use]
-    pub fn variable_list(&self) -> &VariableList {
+    pub const fn variable_list(&self) -> &VariableList {
         match self {
-            LexicalDeclaration::Const(list) | LexicalDeclaration::Let(list) => list,
+            Self::Const(list) | Self::Let(list) => list,
         }
     }
 }
 
 impl From<LexicalDeclaration> for Declaration {
     fn from(lex: LexicalDeclaration) -> Self {
-        Declaration::Lexical(lex)
+        Self::Lexical(lex)
     }
 }
 
@@ -128,8 +128,8 @@ impl ToInternedString for LexicalDeclaration {
         format!(
             "{} {}",
             match &self {
-                LexicalDeclaration::Let(_) => "let",
-                LexicalDeclaration::Const(_) => "const",
+                Self::Let(_) => "let",
+                Self::Const(_) => "const",
             },
             self.variable_list().to_interned_string(interner)
         )
@@ -142,9 +142,7 @@ impl VisitWith for LexicalDeclaration {
         V: Visitor<'a>,
     {
         match self {
-            LexicalDeclaration::Const(vars) | LexicalDeclaration::Let(vars) => {
-                visitor.visit_variable_list(vars)
-            }
+            Self::Const(vars) | Self::Let(vars) => visitor.visit_variable_list(vars),
         }
     }
 
@@ -153,9 +151,7 @@ impl VisitWith for LexicalDeclaration {
         V: VisitorMut<'a>,
     {
         match self {
-            LexicalDeclaration::Const(vars) | LexicalDeclaration::Let(vars) => {
-                visitor.visit_variable_list_mut(vars)
-            }
+            Self::Const(vars) | Self::Let(vars) => visitor.visit_variable_list_mut(vars),
         }
     }
 }
@@ -176,7 +172,7 @@ impl VariableList {
             return None;
         }
 
-        Some(VariableList { list })
+        Some(Self { list })
     }
 }
 
@@ -228,7 +224,7 @@ impl TryFrom<Box<[Variable]>> for VariableList {
     type Error = TryFromVariableListError;
 
     fn try_from(value: Box<[Variable]>) -> Result<Self, Self::Error> {
-        VariableList::new(value).ok_or(TryFromVariableListError(()))
+        Self::new(value).ok_or(TryFromVariableListError(()))
     }
 }
 
@@ -236,7 +232,7 @@ impl TryFrom<Vec<Variable>> for VariableList {
     type Error = TryFromVariableListError;
 
     fn try_from(value: Vec<Variable>) -> Result<Self, Self::Error> {
-        VariableList::try_from(value.into_boxed_slice())
+        Self::try_from(value.into_boxed_slice())
     }
 }
 
@@ -275,7 +271,7 @@ impl Variable {
     /// Creates a new variable declaration from a `BindingIdentifier`.
     #[inline]
     #[must_use]
-    pub fn from_identifier(ident: Identifier, init: Option<Expression>) -> Self {
+    pub const fn from_identifier(ident: Identifier, init: Option<Expression>) -> Self {
         Self {
             binding: Binding::Identifier(ident),
             init,
@@ -285,7 +281,7 @@ impl Variable {
     /// Creates a new variable declaration from a `Pattern`.
     #[inline]
     #[must_use]
-    pub fn from_pattern(pattern: Pattern, init: Option<Expression>) -> Self {
+    pub const fn from_pattern(pattern: Pattern, init: Option<Expression>) -> Self {
         Self {
             binding: Binding::Pattern(pattern),
             init,
@@ -293,14 +289,14 @@ impl Variable {
     }
     /// Gets the variable declaration binding.
     #[must_use]
-    pub fn binding(&self) -> &Binding {
+    pub const fn binding(&self) -> &Binding {
         &self.binding
     }
 
     /// Gets the initialization expression for the variable declaration, if any.
     #[inline]
     #[must_use]
-    pub fn init(&self) -> Option<&Expression> {
+    pub const fn init(&self) -> Option<&Expression> {
         self.init.as_ref()
     }
 }
@@ -360,8 +356,8 @@ impl From<Pattern> for Binding {
 impl ToInternedString for Binding {
     fn to_interned_string(&self, interner: &Interner) -> String {
         match self {
-            Binding::Identifier(id) => id.to_interned_string(interner),
-            Binding::Pattern(ref pattern) => pattern.to_interned_string(interner),
+            Self::Identifier(id) => id.to_interned_string(interner),
+            Self::Pattern(ref pattern) => pattern.to_interned_string(interner),
         }
     }
 }
@@ -372,8 +368,8 @@ impl VisitWith for Binding {
         V: Visitor<'a>,
     {
         match self {
-            Binding::Identifier(id) => visitor.visit_identifier(id),
-            Binding::Pattern(pattern) => visitor.visit_pattern(pattern),
+            Self::Identifier(id) => visitor.visit_identifier(id),
+            Self::Pattern(pattern) => visitor.visit_pattern(pattern),
         }
     }
 
@@ -382,8 +378,8 @@ impl VisitWith for Binding {
         V: VisitorMut<'a>,
     {
         match self {
-            Binding::Identifier(id) => visitor.visit_identifier_mut(id),
-            Binding::Pattern(pattern) => visitor.visit_pattern_mut(pattern),
+            Self::Identifier(id) => visitor.visit_identifier_mut(id),
+            Self::Pattern(pattern) => visitor.visit_pattern_mut(pattern),
         }
     }
 }

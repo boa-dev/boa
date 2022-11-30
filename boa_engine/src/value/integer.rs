@@ -1,16 +1,26 @@
 use std::cmp::Ordering;
 
-/// Represents the result of `ToIntegerOrInfinity` operation
+/// Represents the result of the `ToIntegerOrInfinity` operation
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub enum IntegerOrInfinity {
+    /// Positive infinity.
     PositiveInfinity,
+
+    /// An integer.
     Integer(i64),
+
+    /// Negative infinity.
     NegativeInfinity,
 }
 
 impl IntegerOrInfinity {
     /// Clamps an `IntegerOrInfinity` between two `i64`, effectively converting
     /// it to an i64.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `min > max`.
+    #[must_use]
     pub fn clamp_finite(self, min: i64, max: i64) -> i64 {
         assert!(min <= max);
 
@@ -22,7 +32,8 @@ impl IntegerOrInfinity {
     }
 
     /// Gets the wrapped `i64` if the variant is an `Integer`.
-    pub fn as_integer(self) -> Option<i64> {
+    #[must_use]
+    pub const fn as_integer(self) -> Option<i64> {
         match self {
             Self::Integer(i) => Some(i),
             _ => None,
@@ -88,5 +99,29 @@ impl PartialOrd<IntegerOrInfinity> for i64 {
             IntegerOrInfinity::Integer(i) => self.partial_cmp(i),
             IntegerOrInfinity::NegativeInfinity => Some(Ordering::Greater),
         }
+    }
+}
+
+/// Represents the result of the `to_integer_or_nan` method.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+pub(crate) enum IntegerOrNan {
+    Integer(i64),
+    Nan,
+}
+
+impl IntegerOrNan {
+    /// Gets the wrapped `i64` if the variant is an `Integer`.
+    pub(crate) const fn as_integer(self) -> Option<i64> {
+        match self {
+            Self::Integer(i) => Some(i),
+            Self::Nan => None,
+        }
+    }
+}
+
+impl From<IntegerOrInfinity> for IntegerOrNan {
+    fn from(ior: IntegerOrInfinity) -> Self {
+        ior.as_integer()
+            .map_or(IntegerOrNan::Nan, IntegerOrNan::Integer)
     }
 }

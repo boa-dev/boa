@@ -1,6 +1,5 @@
-use boa_gc::{force_collect, Ephemeron, Gc, WeakGc};
-
 use super::run_test;
+use crate::{force_collect, Ephemeron, Gc, WeakGc};
 
 #[test]
 fn eph_weak_gc_test() {

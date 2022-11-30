@@ -31,20 +31,20 @@ impl New {
     /// Gets the constructor of the new expression.
     #[inline]
     #[must_use]
-    pub fn constructor(&self) -> &Expression {
+    pub const fn constructor(&self) -> &Expression {
         self.call.function()
     }
 
     /// Retrieves the arguments passed to the constructor.
     #[inline]
     #[must_use]
-    pub fn arguments(&self) -> &[Expression] {
+    pub const fn arguments(&self) -> &[Expression] {
         self.call.args()
     }
 
     /// Returns the inner call expression.
     #[must_use]
-    pub fn call(&self) -> &Call {
+    pub const fn call(&self) -> &Call {
         &self.call
     }
 }

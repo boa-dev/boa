@@ -34,7 +34,7 @@ impl Generator {
     /// Creates a new generator expression
     #[inline]
     #[must_use]
-    pub fn new(
+    pub const fn new(
         name: Option<Identifier>,
         parameters: FormalParameterList,
         body: StatementList,
@@ -51,28 +51,28 @@ impl Generator {
     /// Gets the name of the generator declaration.
     #[inline]
     #[must_use]
-    pub fn name(&self) -> Option<Identifier> {
+    pub const fn name(&self) -> Option<Identifier> {
         self.name
     }
 
     /// Gets the list of parameters of the generator declaration.
     #[inline]
     #[must_use]
-    pub fn parameters(&self) -> &FormalParameterList {
+    pub const fn parameters(&self) -> &FormalParameterList {
         &self.parameters
     }
 
     /// Gets the body of the generator declaration.
     #[inline]
     #[must_use]
-    pub fn body(&self) -> &StatementList {
+    pub const fn body(&self) -> &StatementList {
         &self.body
     }
 
     /// Returns whether the function expression has a binding identifier.
     #[inline]
     #[must_use]
-    pub fn has_binding_identifier(&self) -> bool {
+    pub const fn has_binding_identifier(&self) -> bool {
         self.has_binding_identifier
     }
 }

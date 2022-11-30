@@ -167,7 +167,7 @@ impl From<bool> for Literal {
 impl From<Literal> for Expression {
     #[inline]
     fn from(lit: Literal) -> Self {
-        Expression::Literal(lit)
+        Self::Literal(lit)
     }
 }
 
@@ -193,7 +193,7 @@ impl VisitWith for Literal {
     where
         V: Visitor<'a>,
     {
-        if let Literal::String(sym) = self {
+        if let Self::String(sym) = self {
             visitor.visit_sym(sym)
         } else {
             ControlFlow::Continue(())
@@ -204,7 +204,7 @@ impl VisitWith for Literal {
     where
         V: VisitorMut<'a>,
     {
-        if let Literal::String(sym) = self {
+        if let Self::String(sym) = self {
             visitor.visit_sym_mut(sym)
         } else {
             ControlFlow::Continue(())

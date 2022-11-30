@@ -78,8 +78,9 @@ fn detach_array_buffer(_this: &JsValue, args: &[JsValue], _: &mut Context) -> Js
 ///
 /// Accepts a string value as its first argument and executes it as an ECMAScript script.
 fn eval_script(_this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-    if let Some(source_text) = args.get(0).and_then(JsValue::as_string) {
-        match context.parse(source_text.to_std_string_escaped()) {
+    args.get(0).and_then(JsValue::as_string).map_or_else(
+        || Ok(JsValue::undefined()),
+        |source_text| match context.parse(source_text.to_std_string_escaped()) {
             // TODO: check strict
             Err(e) => Err(JsNativeError::typ()
                 .with_message(format!("Uncaught Syntax Error: {e}"))
@@ -87,10 +88,8 @@ fn eval_script(_this: &JsValue, args: &[JsValue], context: &mut Context) -> JsRe
             // Calling eval here parses the code a second time.
             // TODO: We can fix this after we have have defined the public api for the vm executer.
             Ok(_) => context.eval(source_text.to_std_string_escaped()),
-        }
-    } else {
-        Ok(JsValue::undefined())
-    }
+        },
+    )
 }
 
 /// The `$262.gc()` function.

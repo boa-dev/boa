@@ -214,7 +214,7 @@ pub enum AssignOp {
 
 impl AssignOp {
     /// Retrieves the operation as a static string.
-    fn as_str(self) -> &'static str {
+    const fn as_str(self) -> &'static str {
         match self {
             Self::Assign => "=",
             Self::Add => "+=",

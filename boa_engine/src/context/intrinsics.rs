@@ -1,3 +1,5 @@
+//! This module implements the data structures that contain intrinsic objects and constructors.
+
 use crate::{
     builtins::{
         array::Array, error::r#type::create_throw_type_error, iterable::IteratorPrototypes,
@@ -7,6 +9,7 @@ use crate::{
     Context,
 };
 
+/// The intrinsic objects and constructors.
 #[derive(Debug, Default)]
 pub struct Intrinsics {
     /// Cached standard constructors
@@ -18,13 +21,13 @@ pub struct Intrinsics {
 impl Intrinsics {
     /// Return the cached intrinsic objects.
     #[inline]
-    pub fn objects(&self) -> &IntrinsicObjects {
+    pub const fn objects(&self) -> &IntrinsicObjects {
         &self.objects
     }
 
     /// Return the cached standard constructors.
     #[inline]
-    pub fn constructors(&self) -> &StandardConstructors {
+    pub const fn constructors(&self) -> &StandardConstructors {
         &self.constructors
     }
 }
@@ -116,6 +119,7 @@ pub struct StandardConstructors {
     data_view: StandardConstructor,
     date_time_format: StandardConstructor,
     promise: StandardConstructor,
+    weak_ref: StandardConstructor,
 }
 
 impl Default for StandardConstructors {
@@ -175,6 +179,7 @@ impl Default for StandardConstructors {
             data_view: StandardConstructor::default(),
             date_time_format: StandardConstructor::default(),
             promise: StandardConstructor::default(),
+            weak_ref: StandardConstructor::default(),
         };
 
         // The value of `Array.prototype` is the Array prototype object.
@@ -193,214 +198,477 @@ impl Default for StandardConstructors {
 }
 
 impl StandardConstructors {
+    /// Returns the `AsyncGeneratorFunction` constructor.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-asyncgeneratorfunction-constructor
     #[inline]
-    pub fn async_generator_function(&self) -> &StandardConstructor {
+    pub const fn async_generator_function(&self) -> &StandardConstructor {
         &self.async_generator_function
     }
 
+    /// Returns the `AsyncGenerator` constructor.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-asyncgenerator-objects
     #[inline]
-    pub fn async_generator(&self) -> &StandardConstructor {
+    pub const fn async_generator(&self) -> &StandardConstructor {
         &self.async_generator
     }
 
+    /// Returns the `Object` constructor.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-object-constructor
     #[inline]
-    pub fn object(&self) -> &StandardConstructor {
+    pub const fn object(&self) -> &StandardConstructor {
         &self.object
     }
 
+    /// Returns the `Proxy` constructor.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-proxy-constructor
     #[inline]
-    pub fn proxy(&self) -> &StandardConstructor {
+    pub const fn proxy(&self) -> &StandardConstructor {
         &self.proxy
     }
 
+    /// Returns the `Date` constructor.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-date-constructor
     #[inline]
-    pub fn date(&self) -> &StandardConstructor {
+    pub const fn date(&self) -> &StandardConstructor {
         &self.date
     }
 
+    /// Returns the `Function` constructor.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-function-constructor
     #[inline]
-    pub fn function(&self) -> &StandardConstructor {
+    pub const fn function(&self) -> &StandardConstructor {
         &self.function
     }
 
+    /// Returns the `AsyncFunction` constructor.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-async-function-constructor
     #[inline]
-    pub fn async_function(&self) -> &StandardConstructor {
+    pub const fn async_function(&self) -> &StandardConstructor {
         &self.async_function
     }
 
+    /// Returns the `Generator` constructor.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-generator-objects
     #[inline]
-    pub fn generator(&self) -> &StandardConstructor {
+    pub const fn generator(&self) -> &StandardConstructor {
         &self.generator
     }
 
+    /// Returns the `GeneratorFunction` constructor.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-generatorfunction-constructor
     #[inline]
-    pub fn generator_function(&self) -> &StandardConstructor {
+    pub const fn generator_function(&self) -> &StandardConstructor {
         &self.generator_function
     }
 
+    /// Returns the `Array` constructor.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-array-constructor
     #[inline]
-    pub fn array(&self) -> &StandardConstructor {
+    pub const fn array(&self) -> &StandardConstructor {
         &self.array
     }
 
+    /// Returns the `BigInt` constructor.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-bigint-constructor
     #[inline]
-    pub fn bigint_object(&self) -> &StandardConstructor {
+    pub const fn bigint_object(&self) -> &StandardConstructor {
         &self.bigint
     }
 
+    /// Returns the `Number` constructor.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-number-constructor
     #[inline]
-    pub fn number(&self) -> &StandardConstructor {
+    pub const fn number(&self) -> &StandardConstructor {
         &self.number
     }
 
+    /// Returns the `Boolean` constructor.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-boolean-constructor
     #[inline]
-    pub fn boolean(&self) -> &StandardConstructor {
+    pub const fn boolean(&self) -> &StandardConstructor {
         &self.boolean
     }
 
+    /// Returns the `String` constructor.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-string-constructor
     #[inline]
-    pub fn string(&self) -> &StandardConstructor {
+    pub const fn string(&self) -> &StandardConstructor {
         &self.string
     }
 
+    /// Returns the `RegExp` constructor.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-regexp-constructor
     #[inline]
-    pub fn regexp(&self) -> &StandardConstructor {
+    pub const fn regexp(&self) -> &StandardConstructor {
         &self.regexp
     }
 
+    /// Returns the `Symbol` constructor.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-symbol-constructor
     #[inline]
-    pub fn symbol(&self) -> &StandardConstructor {
+    pub const fn symbol(&self) -> &StandardConstructor {
         &self.symbol
     }
 
+    /// Returns the `Error` constructor.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-error-constructor
     #[inline]
-    pub fn error(&self) -> &StandardConstructor {
+    pub const fn error(&self) -> &StandardConstructor {
         &self.error
     }
 
+    /// Returns the `ReferenceError` constructor.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-native-error-types-used-in-this-standard-referenceerror
     #[inline]
-    pub fn reference_error(&self) -> &StandardConstructor {
+    pub const fn reference_error(&self) -> &StandardConstructor {
         &self.reference_error
     }
 
+    /// Returns the `TypeError` constructor.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-native-error-types-used-in-this-standard-typeerror
     #[inline]
-    pub fn type_error(&self) -> &StandardConstructor {
+    pub const fn type_error(&self) -> &StandardConstructor {
         &self.type_error
     }
 
+    /// Returns the `RangeError` constructor.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-native-error-types-used-in-this-standard-rangeerror
     #[inline]
-    pub fn range_error(&self) -> &StandardConstructor {
+    pub const fn range_error(&self) -> &StandardConstructor {
         &self.range_error
     }
 
+    /// Returns the `SyntaxError` constructor.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-native-error-types-used-in-this-standard-syntaxerror
     #[inline]
-    pub fn syntax_error(&self) -> &StandardConstructor {
+    pub const fn syntax_error(&self) -> &StandardConstructor {
         &self.syntax_error
     }
 
+    /// Returns the `EvalError` constructor.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-native-error-types-used-in-this-standard-evalerror
     #[inline]
-    pub fn eval_error(&self) -> &StandardConstructor {
+    pub const fn eval_error(&self) -> &StandardConstructor {
         &self.eval_error
     }
 
+    /// Returns the `URIError` constructor.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-native-error-types-used-in-this-standard-urierror
     #[inline]
-    pub fn uri_error(&self) -> &StandardConstructor {
+    pub const fn uri_error(&self) -> &StandardConstructor {
         &self.uri_error
     }
 
+    /// Returns the `AggregateError` constructor.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-aggregate-error-constructor
     #[inline]
-    pub fn aggregate_error(&self) -> &StandardConstructor {
+    pub const fn aggregate_error(&self) -> &StandardConstructor {
         &self.aggregate_error
     }
 
+    /// Returns the `Map` constructor.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-map-constructor
     #[inline]
-    pub fn map(&self) -> &StandardConstructor {
+    pub const fn map(&self) -> &StandardConstructor {
         &self.map
     }
 
+    /// Returns the `Set` constructor.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-set-constructor
     #[inline]
-    pub fn set(&self) -> &StandardConstructor {
+    pub const fn set(&self) -> &StandardConstructor {
         &self.set
     }
 
+    /// Returns the `TypedArray` constructor.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-typedarray-constructors
     #[inline]
-    pub fn typed_array(&self) -> &StandardConstructor {
+    pub const fn typed_array(&self) -> &StandardConstructor {
         &self.typed_array
     }
 
+    /// Returns the `Int8Array` constructor.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-typedarray-constructors
     #[inline]
-    pub fn typed_int8_array(&self) -> &StandardConstructor {
+    pub const fn typed_int8_array(&self) -> &StandardConstructor {
         &self.typed_int8_array
     }
 
+    /// Returns the `Uint8Array` constructor.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-typedarray-constructors
     #[inline]
-    pub fn typed_uint8_array(&self) -> &StandardConstructor {
+    pub const fn typed_uint8_array(&self) -> &StandardConstructor {
         &self.typed_uint8_array
     }
 
+    /// Returns the `Uint8ClampedArray` constructor.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-typedarray-constructors
     #[inline]
-    pub fn typed_uint8clamped_array(&self) -> &StandardConstructor {
+    pub const fn typed_uint8clamped_array(&self) -> &StandardConstructor {
         &self.typed_uint8clamped_array
     }
 
+    /// Returns the `Int16Array` constructor.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-typedarray-constructors
     #[inline]
-    pub fn typed_int16_array(&self) -> &StandardConstructor {
+    pub const fn typed_int16_array(&self) -> &StandardConstructor {
         &self.typed_int16_array
     }
 
+    /// Returns the `Uint16Array` constructor.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-typedarray-constructors
     #[inline]
-    pub fn typed_uint16_array(&self) -> &StandardConstructor {
+    pub const fn typed_uint16_array(&self) -> &StandardConstructor {
         &self.typed_uint16_array
     }
 
+    /// Returns the `Uint32Array` constructor.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-typedarray-constructors
     #[inline]
-    pub fn typed_uint32_array(&self) -> &StandardConstructor {
+    pub const fn typed_uint32_array(&self) -> &StandardConstructor {
         &self.typed_uint32_array
     }
 
+    /// Returns the `Int32Array` constructor.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-typedarray-constructors
     #[inline]
-    pub fn typed_int32_array(&self) -> &StandardConstructor {
+    pub const fn typed_int32_array(&self) -> &StandardConstructor {
         &self.typed_int32_array
     }
 
+    /// Returns the `BigInt64Array` constructor.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-typedarray-constructors
     #[inline]
-    pub fn typed_bigint64_array(&self) -> &StandardConstructor {
+    pub const fn typed_bigint64_array(&self) -> &StandardConstructor {
         &self.typed_bigint64_array
     }
 
+    /// Returns the `BigUint64Array` constructor.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-typedarray-constructors
     #[inline]
-    pub fn typed_biguint64_array(&self) -> &StandardConstructor {
+    pub const fn typed_biguint64_array(&self) -> &StandardConstructor {
         &self.typed_biguint64_array
     }
 
+    /// Returns the `Float32Array` constructor.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-typedarray-constructors
     #[inline]
-    pub fn typed_float32_array(&self) -> &StandardConstructor {
+    pub const fn typed_float32_array(&self) -> &StandardConstructor {
         &self.typed_float32_array
     }
 
+    /// Returns the `Float64Array` constructor.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-typedarray-constructors
     #[inline]
-    pub fn typed_float64_array(&self) -> &StandardConstructor {
+    pub const fn typed_float64_array(&self) -> &StandardConstructor {
         &self.typed_float64_array
     }
 
+    /// Returns the `ArrayBuffer` constructor.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-arraybuffer-constructor
     #[inline]
-    pub fn array_buffer(&self) -> &StandardConstructor {
+    pub const fn array_buffer(&self) -> &StandardConstructor {
         &self.array_buffer
     }
 
+    /// Returns the `DataView` constructor.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-dataview-constructor
     #[inline]
-    pub fn data_view(&self) -> &StandardConstructor {
+    pub const fn data_view(&self) -> &StandardConstructor {
         &self.data_view
     }
 
+    /// Returns the `Intl.DateTimeFormat` constructor.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma402/#sec-intl-datetimeformat-constructor
     #[inline]
-    pub fn date_time_format(&self) -> &StandardConstructor {
+    pub const fn date_time_format(&self) -> &StandardConstructor {
         &self.date_time_format
     }
 
+    /// Returns the `Promise` constructor.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-promise-constructor
     #[inline]
-    pub fn promise(&self) -> &StandardConstructor {
+    pub const fn promise(&self) -> &StandardConstructor {
         &self.promise
+    }
+
+    /// Returns the `WeakRef` constructor.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-weak-ref-constructor
+    #[inline]
+    pub const fn weak_ref(&self) -> &StandardConstructor {
+        &self.weak_ref
     }
 }
 
@@ -441,7 +709,7 @@ impl IntrinsicObjects {
 
     /// Get the cached iterator prototypes.
     #[inline]
-    pub fn iterator_prototypes(&self) -> &IteratorPrototypes {
+    pub const fn iterator_prototypes(&self) -> &IteratorPrototypes {
         &self.iterator_prototypes
     }
 }

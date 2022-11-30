@@ -57,7 +57,7 @@ impl CompileTimeEnvironment {
 
     /// Check if the environment is a function environment.
     #[inline]
-    pub(crate) fn is_function(&self) -> bool {
+    pub(crate) const fn is_function(&self) -> bool {
         self.function_scope
     }
 
@@ -169,13 +169,14 @@ impl CompileTimeEnvironment {
                     .borrow()
                     .initialize_mutable_binding(name, function_scope);
             }
-            if let Some(binding) = self.bindings.get(&name) {
-                BindingLocator::declarative(name, self.environment_index, binding.index)
-            } else {
-                outer
-                    .borrow()
-                    .initialize_mutable_binding(name, function_scope)
-            }
+            self.bindings.get(&name).map_or_else(
+                || {
+                    outer
+                        .borrow()
+                        .initialize_mutable_binding(name, function_scope)
+                },
+                |binding| BindingLocator::declarative(name, self.environment_index, binding.index),
+            )
         } else if let Some(binding) = self.bindings.get(&name) {
             BindingLocator::declarative(name, self.environment_index, binding.index)
         } else {
@@ -203,13 +204,10 @@ impl CompileTimeEnvironment {
             }
             Some(binding) if binding.strict => BindingLocator::mutate_immutable(name),
             Some(_) => BindingLocator::silent(name),
-            None => {
-                if let Some(outer) = &self.outer {
-                    outer.borrow().set_mutable_binding_recursive(name)
-                } else {
-                    BindingLocator::global(name)
-                }
-            }
+            None => self.outer.as_ref().map_or_else(
+                || BindingLocator::global(name),
+                |outer| outer.borrow().set_mutable_binding_recursive(name),
+            ),
         }
     }
 }

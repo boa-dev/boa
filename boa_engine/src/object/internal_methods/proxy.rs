@@ -360,7 +360,7 @@ pub(crate) fn proxy_exotic_get_own_property(
         match &target_desc {
             Some(desc) if !desc.expect_configurable() => {
                 // b. If resultDesc has a [[Writable]] field and resultDesc.[[Writable]] is false, then
-                if let Some(false) = result_desc.writable() {
+                if result_desc.writable() == Some(false) {
                     // i. If targetDesc.[[Writable]] is true, throw a TypeError exception.
                     if desc.expect_writable() {
                         return

@@ -117,6 +117,7 @@ pub struct CodeBlock {
 
 impl CodeBlock {
     /// Constructs a new `CodeBlock`.
+    #[must_use]
     pub fn new(name: Sym, length: u32, strict: bool) -> Self {
         Self {
             code: Vec::new(),
@@ -147,9 +148,12 @@ impl CodeBlock {
     where
         T: Readable,
     {
+        // Safety:
+        // The function caller must ensure that the read is in bounds.
+        //
         // This has to be an unaligned read because we can't guarantee that
         // the types are aligned.
-        self.code.as_ptr().add(offset).cast::<T>().read_unaligned()
+        unsafe { self.code.as_ptr().add(offset).cast::<T>().read_unaligned() }
     }
 
     /// Read type T from code.
@@ -173,6 +177,17 @@ impl CodeBlock {
         let opcode: Opcode = self.code[*pc].try_into().expect("invalid opcode");
         *pc += size_of::<Opcode>();
         match opcode {
+            Opcode::SetFunctionName => {
+                let operand = self.read::<u8>(*pc);
+                *pc += size_of::<u8>();
+                match operand {
+                    0 => "prefix: none",
+                    1 => "prefix: get",
+                    2 => "prefix: set",
+                    _ => unreachable!(),
+                }
+                .to_owned()
+            }
             Opcode::RotateLeft | Opcode::RotateRight => {
                 let result = self.read::<u8>(*pc).to_string();
                 *pc += size_of::<u8>();
@@ -434,7 +449,7 @@ impl ToInternedString for CodeBlock {
             for (i, value) in self.literals.iter().enumerate() {
                 f.push_str(&format!(
                     "    {i:04}: <{}> {}\n",
-                    value.type_of().to_std_string_escaped(),
+                    value.type_of(),
                     value.display()
                 ));
             }
@@ -723,6 +738,7 @@ impl JsObject {
                         .into());
                 }
 
+                let environments_len = environments.len();
                 std::mem::swap(&mut environments, &mut context.realm.environments);
 
                 let lexical_this_mode = code.this_mode == ThisMode::Lexical;
@@ -802,8 +818,6 @@ impl JsObject {
                 }
 
                 let param_count = code.params.as_ref().len();
-                let has_expressions = code.params.has_expressions();
-                let has_binding_identifier = code.has_binding_identifier;
 
                 context.vm.push_frame(CallFrame {
                     code,
@@ -825,20 +839,10 @@ impl JsObject {
                 });
 
                 let result = context.run();
-                let frame = context.vm.pop_frame().expect("must have frame");
-
-                context.realm.environments.pop();
-                if has_expressions
-                    && frame.pc > frame.code.function_environment_push_location as usize
-                {
-                    context.realm.environments.pop();
-                }
-
-                if has_binding_identifier {
-                    context.realm.environments.pop();
-                }
+                context.vm.pop_frame().expect("must have frame");
 
                 std::mem::swap(&mut environments, &mut context.realm.environments);
+                environments.truncate(environments_len);
 
                 let (result, _) = result?;
                 Ok(result)
@@ -854,6 +858,7 @@ impl JsObject {
                 let promise = promise_capability.promise().clone();
                 drop(object);
 
+                let environments_len = environments.len();
                 std::mem::swap(&mut environments, &mut context.realm.environments);
 
                 let lexical_this_mode = code.this_mode == ThisMode::Lexical;
@@ -933,8 +938,6 @@ impl JsObject {
                 }
 
                 let param_count = code.params.as_ref().len();
-                let has_expressions = code.params.has_expressions();
-                let has_binding_identifier = code.has_binding_identifier;
 
                 context.vm.push_frame(CallFrame {
                     code,
@@ -956,20 +959,11 @@ impl JsObject {
                 });
 
                 let _result = context.run();
-                let frame = context.vm.pop_frame().expect("must have frame");
-
-                context.realm.environments.pop();
-                if has_expressions
-                    && frame.pc > frame.code.function_environment_push_location as usize
-                {
-                    context.realm.environments.pop();
-                }
-
-                if has_binding_identifier {
-                    context.realm.environments.pop();
-                }
+                context.vm.pop_frame().expect("must have frame");
 
                 std::mem::swap(&mut environments, &mut context.realm.environments);
+                environments.truncate(environments_len);
+
                 Ok(promise.into())
             }
             Function::Generator {
@@ -1085,15 +1079,14 @@ impl JsObject {
                 std::mem::swap(&mut environments, &mut context.realm.environments);
                 std::mem::swap(&mut context.vm.stack, &mut stack);
 
-                let prototype = if let Some(prototype) = this_function_object
+                let prototype = this_function_object
                     .get("prototype", context)
                     .expect("GeneratorFunction must have a prototype property")
                     .as_object()
-                {
-                    prototype.clone()
-                } else {
-                    context.intrinsics().constructors().generator().prototype()
-                };
+                    .map_or_else(
+                        || context.intrinsics().constructors().generator().prototype(),
+                        Clone::clone,
+                    );
 
                 let generator = Self::from_proto_and_data(
                     prototype,
@@ -1224,19 +1217,20 @@ impl JsObject {
                 std::mem::swap(&mut environments, &mut context.realm.environments);
                 std::mem::swap(&mut context.vm.stack, &mut stack);
 
-                let prototype = if let Some(prototype) = this_function_object
+                let prototype = this_function_object
                     .get("prototype", context)
                     .expect("AsyncGeneratorFunction must have a prototype property")
                     .as_object()
-                {
-                    prototype.clone()
-                } else {
-                    context
-                        .intrinsics()
-                        .constructors()
-                        .async_generator()
-                        .prototype()
-                };
+                    .map_or_else(
+                        || {
+                            context
+                                .intrinsics()
+                                .constructors()
+                                .async_generator()
+                                .prototype()
+                        },
+                        Clone::clone,
+                    );
 
                 let generator = Self::from_proto_and_data(
                     prototype,
@@ -1272,7 +1266,7 @@ impl JsObject {
         args: &[JsValue],
         this_target: &JsValue,
         context: &mut Context,
-    ) -> JsResult<JsObject> {
+    ) -> JsResult<Self> {
         let this_function_object = self.clone();
 
         let create_this = |context| {
@@ -1352,6 +1346,7 @@ impl JsObject {
                 let constructor_kind = *constructor_kind;
                 drop(object);
 
+                let environments_len = environments.len();
                 std::mem::swap(&mut environments, &mut context.realm.environments);
 
                 let this = if constructor_kind.is_base() {
@@ -1396,8 +1391,6 @@ impl JsObject {
                     Some(new_target.clone()),
                     false,
                 );
-
-                let has_expressions = code.params.has_expressions();
 
                 if let Some(binding) = code.arguments_binding {
                     let arguments_obj = if code.strict || !code.params.is_simple() {
@@ -1463,16 +1456,17 @@ impl JsObject {
 
                 context.vm.pop_frame();
 
-                let mut environment = context.realm.environments.pop();
-                if has_expressions {
-                    environment = context.realm.environments.pop();
-                }
-
-                if has_binding_identifier {
-                    context.realm.environments.pop();
-                }
-
                 std::mem::swap(&mut environments, &mut context.realm.environments);
+
+                let environment = if has_binding_identifier {
+                    environments.truncate(environments_len + 2);
+                    let environment = environments.pop();
+                    environments.pop();
+                    environment
+                } else {
+                    environments.truncate(environments_len + 1);
+                    environments.pop()
+                };
 
                 let (result, _) = result?;
 

@@ -55,7 +55,8 @@ impl Attribute {
 
     /// Gets the `writable` flag.
     #[inline]
-    pub fn writable(self) -> bool {
+    #[must_use]
+    pub const fn writable(self) -> bool {
         self.contains(Self::WRITABLE)
     }
 
@@ -71,7 +72,8 @@ impl Attribute {
 
     /// Gets the `enumerable` flag.
     #[inline]
-    pub fn enumerable(self) -> bool {
+    #[must_use]
+    pub const fn enumerable(self) -> bool {
         self.contains(Self::ENUMERABLE)
     }
 
@@ -87,7 +89,8 @@ impl Attribute {
 
     /// Gets the `configurable` flag.
     #[inline]
-    pub fn configurable(self) -> bool {
+    #[must_use]
+    pub const fn configurable(self) -> bool {
         self.contains(Self::CONFIGURABLE)
     }
 }

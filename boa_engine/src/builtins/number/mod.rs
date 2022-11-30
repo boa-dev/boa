@@ -992,15 +992,14 @@ impl Number {
         args: &[JsValue],
         _ctx: &mut Context,
     ) -> JsResult<JsValue> {
-        Ok(JsValue::new(if let Some(val) = args.get(0) {
-            match val {
-                JsValue::Integer(_) => true,
-                JsValue::Rational(number) => number.is_finite(),
-                _ => false,
-            }
-        } else {
-            false
-        }))
+        // 1. If number is not a Number, return false.
+        // 2. If number is not finite, return false.
+        // 3. Otherwise, return true.
+        Ok(JsValue::new(args.get(0).map_or(false, |val| match val {
+            JsValue::Integer(_) => true,
+            JsValue::Rational(number) => number.is_finite(),
+            _ => false,
+        })))
     }
 
     /// `Number.isInteger( number )`

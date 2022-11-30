@@ -1,3 +1,10 @@
+//! This module implements the `SetIterator` object.
+//!
+//! More information:
+//!  - [ECMAScript reference][spec]
+//!
+//! [spec]: https://tc39.es/ecma262/#sec-set-iterator-objects
+
 use crate::{
     builtins::{function::make_builtin_fn, iterable::create_iter_result_object, Array, JsValue},
     error::JsNativeError,
@@ -27,7 +34,7 @@ impl SetIterator {
     pub(crate) const NAME: &'static str = "SetIterator";
 
     /// Constructs a new `SetIterator`, that will iterate over `set`, starting at index 0
-    fn new(set: JsValue, kind: PropertyNameKind) -> Self {
+    const fn new(set: JsValue, kind: PropertyNameKind) -> Self {
         Self {
             iterated_set: set,
             next_index: 0,
@@ -90,7 +97,7 @@ impl SetIterator {
             let entries = m.as_object().map(JsObject::borrow);
             let entries = entries
                 .as_ref()
-                .and_then(|obj| obj.as_set_ref())
+                .and_then(|obj| obj.as_set())
                 .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Set"))?;
 
             let num_entries = entries.size();

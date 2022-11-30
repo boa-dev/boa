@@ -8,7 +8,7 @@
 //! [spec]: https://tc39.es/ecma262/#sec-do-while-statement
 
 use crate::{
-    lexer::TokenKind,
+    lexer::{Token, TokenKind},
     parser::{
         expression::Expression, statement::Statement, AllowAwait, AllowReturn, AllowYield, Cursor,
         OrAbrupt, ParseResult, TokenParser,
@@ -107,10 +107,10 @@ where
         // Here, we only care to read the next token if it's a semicolon. If it's not, we
         // automatically "enter" or assume a semicolon, since we have just read the `)` token:
         // https://tc39.es/ecma262/#sec-automatic-semicolon-insertion
-        if let Some(tok) = cursor.peek(0, interner)? {
-            if let TokenKind::Punctuator(Punctuator::Semicolon) = *tok.kind() {
-                cursor.advance(interner);
-            }
+        if cursor.peek(0, interner)?.map(Token::kind)
+            == Some(&TokenKind::Punctuator(Punctuator::Semicolon))
+        {
+            cursor.advance(interner);
         }
 
         Ok(DoWhileLoop::new(body, cond))

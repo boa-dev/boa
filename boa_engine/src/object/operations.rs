@@ -32,12 +32,14 @@ pub enum IntegrityLevel {
 
 impl IntegrityLevel {
     /// Returns `true` if the integrity level is sealed.
-    pub fn is_sealed(&self) -> bool {
+    #[must_use]
+    pub const fn is_sealed(&self) -> bool {
         matches!(self, Self::Sealed)
     }
 
     /// Returns `true` if the integrity level is frozen.
-    pub fn is_frozen(&self) -> bool {
+    #[must_use]
+    pub const fn is_frozen(&self) -> bool {
         matches!(self, Self::Frozen)
     }
 }
@@ -335,9 +337,9 @@ impl JsObject {
     pub fn construct(
         &self,
         args: &[JsValue],
-        new_target: Option<&JsObject>,
+        new_target: Option<&Self>,
         context: &mut Context,
-    ) -> JsResult<JsObject> {
+    ) -> JsResult<Self> {
         // 1. If newTarget is not present, set newTarget to F.
         let new_target = new_target.unwrap_or(self);
         // 2. If argumentsList is not present, set argumentsList to a new empty List.
@@ -515,13 +517,14 @@ impl JsObject {
         }
 
         // 7. If IsConstructor(S) is true, return S.
-        // 8. Throw a TypeError exception.
-        match s.as_object() {
-            Some(obj) if obj.is_constructor() => Ok(obj.clone()),
-            _ => Err(JsNativeError::typ()
-                .with_message("property 'constructor' is not a constructor")
-                .into()),
+        if let Some(s) = s.as_constructor() {
+            return Ok(s.clone());
         }
+
+        // 8. Throw a TypeError exception.
+        Err(JsNativeError::typ()
+            .with_message("property 'constructor' is not a constructor")
+            .into())
     }
 
     /// It is used to iterate over names of object's keys.

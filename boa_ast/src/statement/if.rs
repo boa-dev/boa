@@ -38,14 +38,14 @@ impl If {
     /// Gets the condition of the if statement.
     #[inline]
     #[must_use]
-    pub fn cond(&self) -> &Expression {
+    pub const fn cond(&self) -> &Expression {
         &self.condition
     }
 
     /// Gets the body to execute if the condition is true.
     #[inline]
     #[must_use]
-    pub fn body(&self) -> &Statement {
+    pub const fn body(&self) -> &Statement {
         &self.body
     }
 

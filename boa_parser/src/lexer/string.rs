@@ -1,7 +1,6 @@
 //! This module implements lexing for string literals used in the JavaScript programing language.
 
-use super::{Cursor, Error, Tokenizer};
-use crate::lexer::{Token, TokenKind};
+use crate::lexer::{Cursor, Error, Token, TokenKind, Tokenizer};
 use boa_ast::{Position, Span};
 use boa_interner::Interner;
 use boa_profiler::Profiler;
@@ -109,7 +108,7 @@ impl StringLiteral {
     ///
     /// [spec]: https://tc39.es/ecma262/#prod-LineTerminator
     #[inline]
-    pub(super) fn is_line_terminator(ch: u32) -> bool {
+    pub(super) const fn is_line_terminator(ch: u32) -> bool {
         matches!(
             ch,
             0x000A /* <LF> */ | 0x000D /* <CR> */ | 0x2028 /* <LS> */ | 0x2029 /* <PS> */

@@ -10,10 +10,12 @@
 #[cfg(test)]
 mod tests;
 
-use super::StatementList;
 use crate::{
     lexer::TokenKind,
-    parser::{AllowAwait, AllowReturn, AllowYield, Cursor, OrAbrupt, ParseResult, TokenParser},
+    parser::{
+        statement::StatementList, AllowAwait, AllowReturn, AllowYield, Cursor, OrAbrupt,
+        ParseResult, TokenParser,
+    },
     Error,
 };
 use boa_ast::{

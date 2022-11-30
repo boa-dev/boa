@@ -1,65 +1,70 @@
 //! Test262 test runner
 //!
 //! This crate will run the full ECMAScript test suite (Test262) and report compliance of the
-//! `boa` context.
+//! `boa` engine.
+
 #![doc(
     html_logo_url = "https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg",
     html_favicon_url = "https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"
 )]
 #![cfg_attr(not(test), deny(clippy::unwrap_used))]
-#![warn(
-    clippy::perf,
-    clippy::single_match_else,
-    clippy::dbg_macro,
-    clippy::doc_markdown,
-    clippy::wildcard_imports,
-    clippy::struct_excessive_bools,
-    clippy::doc_markdown,
-    clippy::semicolon_if_nothing_returned,
-    clippy::pedantic
-)]
+#![warn(missing_docs, clippy::dbg_macro)]
 #![deny(
-    clippy::all,
-    clippy::cast_lossless,
-    clippy::redundant_closure_for_method_calls,
-    clippy::unnested_or_patterns,
-    clippy::trivially_copy_pass_by_ref,
-    clippy::needless_pass_by_value,
-    clippy::match_wildcard_for_single_variants,
-    clippy::map_unwrap_or,
-    unused_qualifications,
-    unused_import_braces,
-    unused_lifetimes,
-    unreachable_pub,
-    trivial_numeric_casts,
-    // rustdoc,
-    missing_debug_implementations,
-    missing_copy_implementations,
-    deprecated_in_future,
-    meta_variable_misuse,
-    non_ascii_idents,
+    // rustc lint groups https://doc.rust-lang.org/rustc/lints/groups.html
+    warnings,
+    future_incompatible,
+    let_underscore,
+    nonstandard_style,
     rust_2018_compatibility,
     rust_2018_idioms,
-    future_incompatible,
-    nonstandard_style,
+    rust_2021_compatibility,
+    unused,
+
+    // rustc allowed-by-default lints https://doc.rust-lang.org/rustc/lints/listing/allowed-by-default.html
+    macro_use_extern_crate,
+    meta_variable_misuse,
+    missing_abi,
+    missing_copy_implementations,
+    missing_debug_implementations,
+    non_ascii_idents,
+    noop_method_call,
+    single_use_lifetimes,
+    trivial_casts,
+    trivial_numeric_casts,
+    unreachable_pub,
+    unsafe_op_in_unsafe_fn,
+    unused_crate_dependencies,
+    unused_import_braces,
+    unused_lifetimes,
+    unused_qualifications,
+    unused_tuple_struct_fields,
+    variant_size_differences,
+
+    // rustdoc lints https://doc.rust-lang.org/rustdoc/lints.html
+    rustdoc::broken_intra_doc_links,
+    rustdoc::private_intra_doc_links,
+    rustdoc::missing_crate_level_docs,
+    rustdoc::private_doc_tests,
+    rustdoc::invalid_codeblock_attributes,
+    rustdoc::invalid_rust_codeblocks,
+    rustdoc::bare_urls,
+
+    // clippy categories https://doc.rust-lang.org/clippy/
+    clippy::all,
+    clippy::correctness,
+    clippy::suspicious,
+    clippy::style,
+    clippy::complexity,
+    clippy::perf,
+    clippy::pedantic,
+    clippy::nursery,
 )]
 #![allow(
-    clippy::use_self, // TODO: deny once false positives are fixed
-    clippy::module_name_repetitions,
-    clippy::cast_possible_truncation,
-    clippy::cast_sign_loss,
-    clippy::cast_precision_loss,
-    clippy::cast_possible_wrap,
-    clippy::cast_ptr_alignment,
-    clippy::missing_panics_doc,
+    clippy::use_self,
     clippy::too_many_lines,
-    clippy::unreadable_literal,
-    clippy::missing_inline_in_public_items,
-    clippy::cognitive_complexity,
-    clippy::must_use_candidate,
-    clippy::missing_errors_doc,
-    clippy::as_conversions,
-    clippy::let_unit_value,
+    clippy::redundant_pub_crate,
+    clippy::cast_precision_loss,
+    clippy::cast_possible_wrap
 )]
 
 mod exec;
@@ -70,26 +75,34 @@ use self::{
     read::{read_harness, read_suite, read_test, MetaData, Negative, TestFlag},
     results::{compare_results, write_json},
 };
-use anyhow::{bail, Context};
 use bitflags::bitflags;
 use clap::{ArgAction, Parser, ValueHint};
+use color_eyre::{
+    eyre::{bail, WrapErr},
+    Result,
+};
 use colored::Colorize;
 use fxhash::{FxHashMap, FxHashSet};
-use once_cell::sync::Lazy;
 use read::ErrorType;
-use serde::{Deserialize, Serialize};
+use serde::{
+    de::{Unexpected, Visitor},
+    Deserialize, Deserializer, Serialize,
+};
 use std::{
-    fs,
+    fs::{self, File},
+    io::Read,
     path::{Path, PathBuf},
 };
 
 /// Structure to allow defining ignored tests, features and files that should
 /// be ignored even when reading.
-#[derive(Debug)]
+#[derive(Debug, Deserialize)]
 struct Ignored {
+    #[serde(default)]
     tests: FxHashSet<Box<str>>,
+    #[serde(default)]
     features: FxHashSet<Box<str>>,
-    files: FxHashSet<Box<str>>,
+    #[serde(default = "TestFlags::empty")]
     flags: TestFlags,
 }
 
@@ -102,19 +115,20 @@ impl Ignored {
 
     /// Checks if the ignore list contains the given feature name in the list
     /// of features to ignore.
-    pub(crate) fn contains_any_feature(&self, features: &[Box<str>]) -> bool {
-        features
-            .iter()
-            .any(|feature| self.features.contains(feature))
+    pub(crate) fn contains_feature(&self, feature: &str) -> bool {
+        if self.features.contains(feature) {
+            return true;
+        }
+        // Some features are an accessor instead of a simple feature name e.g. `Intl.DurationFormat`.
+        // This ensures those are also ignored.
+        feature
+            .split('.')
+            .next()
+            .map(|feat| self.features.contains(feat))
+            .unwrap_or_default()
     }
 
-    /// Checks if the ignore list contains the given file name in the list to
-    /// ignore from reading.
-    pub(crate) fn contains_file(&self, file: &str) -> bool {
-        self.files.contains(file)
-    }
-
-    pub(crate) fn contains_any_flag(&self, flags: TestFlags) -> bool {
+    pub(crate) const fn contains_any_flag(&self, flags: TestFlags) -> bool {
         flags.intersects(self.flags)
     }
 }
@@ -124,73 +138,10 @@ impl Default for Ignored {
         Self {
             tests: FxHashSet::default(),
             features: FxHashSet::default(),
-            files: FxHashSet::default(),
             flags: TestFlags::empty(),
         }
     }
 }
-
-/// List of ignored tests.
-static IGNORED: Lazy<Ignored> = Lazy::new(|| {
-    let path = Path::new("test_ignore.txt");
-    if path.exists() {
-        let filtered = fs::read_to_string(path).expect("could not read test filters");
-        filtered
-            .lines()
-            .filter(|line| !line.is_empty() && !line.starts_with("//"))
-            .fold(Ignored::default(), |mut ign, line| {
-                // let mut line = line.to_owned();
-                if line.starts_with("file:") {
-                    let file = line
-                        .strip_prefix("file:")
-                        .expect("prefix disappeared")
-                        .trim()
-                        .to_owned()
-                        .into_boxed_str();
-                    let test = if file.ends_with(".js") {
-                        file.strip_suffix(".js")
-                            .expect("suffix disappeared")
-                            .to_owned()
-                            .into_boxed_str()
-                    } else {
-                        file.clone()
-                    };
-                    ign.files.insert(file);
-                    ign.tests.insert(test);
-                } else if line.starts_with("feature:") {
-                    ign.features.insert(
-                        line.strip_prefix("feature:")
-                            .expect("prefix disappeared")
-                            .trim()
-                            .to_owned()
-                            .into_boxed_str(),
-                    );
-                } else if line.starts_with("flag:") {
-                    let flag = line
-                        .strip_prefix("flag:")
-                        .expect("prefix disappeared")
-                        .trim()
-                        .parse::<TestFlag>()
-                        .expect("invalid flag found");
-                    ign.flags.insert(flag.into());
-                } else {
-                    let mut test = line.trim();
-                    if test
-                        .rsplit('.')
-                        .next()
-                        .map(|ext| ext.eq_ignore_ascii_case("js"))
-                        == Some(true)
-                    {
-                        test = test.strip_suffix(".js").expect("suffix disappeared");
-                    }
-                    ign.tests.insert(test.to_owned().into_boxed_str());
-                }
-                ign
-            })
-    } else {
-        Ignored::default()
-    }
-});
 
 /// Boa test262 tester
 #[derive(Debug, Parser)]
@@ -217,6 +168,10 @@ enum Cli {
         /// Execute tests serially
         #[arg(short, long)]
         disable_parallelism: bool,
+
+        /// Path to a TOML file with the ignored tests, features, flags and/or files.
+        #[arg(short, long, default_value = "test_ignore.toml", value_hint = ValueHint::FilePath)]
+        ignored: PathBuf,
     },
     /// Compare two test suite results.
     Compare {
@@ -235,7 +190,8 @@ enum Cli {
 }
 
 /// Program entry point.
-fn main() {
+fn main() -> Result<()> {
+    color_eyre::install()?;
     match Cli::parse() {
         Cli::Run {
             verbose,
@@ -243,23 +199,15 @@ fn main() {
             suite,
             output,
             disable_parallelism,
-        } => {
-            if let Err(e) = run_test_suite(
-                verbose,
-                !disable_parallelism,
-                test262_path.as_path(),
-                suite.as_path(),
-                output.as_deref(),
-            ) {
-                eprintln!("Error: {e}");
-                let mut src = e.source();
-                while let Some(e) = src {
-                    eprintln!("    caused by: {e}");
-                    src = e.source();
-                }
-                std::process::exit(1);
-            }
-        }
+            ignored: ignore,
+        } => run_test_suite(
+            verbose,
+            !disable_parallelism,
+            test262_path.as_path(),
+            suite.as_path(),
+            output.as_deref(),
+            ignore.as_path(),
+        ),
         Cli::Compare {
             base,
             new,
@@ -275,24 +223,33 @@ fn run_test_suite(
     test262_path: &Path,
     suite: &Path,
     output: Option<&Path>,
-) -> anyhow::Result<()> {
+    ignored: &Path,
+) -> Result<()> {
     if let Some(path) = output {
         if path.exists() {
             if !path.is_dir() {
                 bail!("the output path must be a directory.");
             }
         } else {
-            fs::create_dir_all(path).context("could not create the output directory")?;
+            fs::create_dir_all(path).wrap_err("could not create the output directory")?;
         }
     }
+
+    let ignored = {
+        let mut input = String::new();
+        let mut f = File::open(ignored).wrap_err("could not open ignored tests file")?;
+        f.read_to_string(&mut input)
+            .wrap_err("could not read ignored tests file")?;
+        toml::from_str(&input).wrap_err("could not decode ignored tests file")?
+    };
 
     if verbose != 0 {
         println!("Loading the test suite...");
     }
-    let harness = read_harness(test262_path).context("could not read harness")?;
+    let harness = read_harness(test262_path).wrap_err("could not read harness")?;
 
     if suite.to_string_lossy().ends_with(".js") {
-        let test = read_test(&test262_path.join(suite)).with_context(|| {
+        let test = read_test(&test262_path.join(suite)).wrap_err_with(|| {
             let suite = suite.display();
             format!("could not read the test {suite}")
         })?;
@@ -304,7 +261,7 @@ fn run_test_suite(
 
         println!();
     } else {
-        let suite = read_suite(&test262_path.join(suite)).with_context(|| {
+        let suite = read_suite(&test262_path.join(suite), &ignored, false).wrap_err_with(|| {
             let suite = suite.display();
             format!("could not read the suite {suite}")
         })?;
@@ -332,7 +289,7 @@ fn run_test_suite(
         );
 
         write_json(results, output, verbose)
-            .context("could not write the results to the output JSON file")?;
+            .wrap_err("could not write the results to the output JSON file")?;
     }
 
     Ok(())
@@ -419,6 +376,7 @@ struct Test {
     includes: Box<[Box<str>]>,
     locale: Locale,
     content: Box<str>,
+    ignored: bool,
 }
 
 impl Test {
@@ -440,15 +398,12 @@ impl Test {
             includes: metadata.includes,
             locale: metadata.locale,
             content: content.into(),
+            ignored: false,
         }
     }
 
-    /// Sets the name of the test.
-    fn set_name<N>(&mut self, name: N)
-    where
-        N: Into<Box<str>>,
-    {
-        self.name = name.into();
+    fn set_ignored(&mut self) {
+        self.ignored = true;
     }
 }
 
@@ -477,15 +432,15 @@ impl From<Option<Negative>> for Outcome {
 
 bitflags! {
     struct TestFlags: u16 {
-        const STRICT = 0b000000001;
-        const NO_STRICT = 0b000000010;
-        const MODULE = 0b000000100;
-        const RAW = 0b000001000;
-        const ASYNC = 0b000010000;
-        const GENERATED = 0b000100000;
-        const CAN_BLOCK_IS_FALSE = 0b001000000;
-        const CAN_BLOCK_IS_TRUE = 0b010000000;
-        const NON_DETERMINISTIC = 0b100000000;
+        const STRICT = 0b0_0000_0001;
+        const NO_STRICT = 0b0_0000_0010;
+        const MODULE = 0b0_0000_0100;
+        const RAW = 0b0_0000_1000;
+        const ASYNC = 0b0_0001_0000;
+        const GENERATED = 0b0_0010_0000;
+        const CAN_BLOCK_IS_FALSE = 0b0_0100_0000;
+        const CAN_BLOCK_IS_TRUE = 0b0_1000_0000;
+        const NON_DETERMINISTIC = 0b1_0000_0000;
     }
 }
 
@@ -530,6 +485,59 @@ where
             }
 
             result
+        }
+    }
+}
+
+impl<'de> Deserialize<'de> for TestFlags {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        struct FlagsVisitor;
+
+        impl<'de> Visitor<'de> for FlagsVisitor {
+            type Value = TestFlags;
+
+            fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                write!(formatter, "a sequence of flags")
+            }
+
+            fn visit_seq<A>(self, mut seq: A) -> Result<Self::Value, A::Error>
+            where
+                A: serde::de::SeqAccess<'de>,
+            {
+                let mut flags = TestFlags::empty();
+                while let Some(elem) = seq.next_element::<TestFlag>()? {
+                    flags |= elem.into();
+                }
+                Ok(flags)
+            }
+        }
+
+        struct RawFlagsVisitor;
+
+        impl Visitor<'_> for RawFlagsVisitor {
+            type Value = TestFlags;
+
+            fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                write!(formatter, "a flags number")
+            }
+
+            fn visit_u16<E>(self, v: u16) -> Result<Self::Value, E>
+            where
+                E: serde::de::Error,
+            {
+                TestFlags::from_bits(v).ok_or_else(|| {
+                    E::invalid_value(Unexpected::Unsigned(v.into()), &"a valid flag number")
+                })
+            }
+        }
+
+        if deserializer.is_human_readable() {
+            deserializer.deserialize_seq(FlagsVisitor)
+        } else {
+            deserializer.deserialize_u16(RawFlagsVisitor)
         }
     }
 }

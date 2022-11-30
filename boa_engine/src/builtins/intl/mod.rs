@@ -104,6 +104,7 @@ struct MatcherRecord {
 ///
 /// [spec]: https://tc39.es/ecma402/#sec-defaultlocale
 fn default_locale(canonicalizer: &LocaleCanonicalizer) -> Locale {
+    #[allow(clippy::string_lit_as_bytes)]
     sys_locale::get_locale()
         .and_then(|loc| loc.parse::<Locale>().ok())
         .tap_some_mut(|loc| canonicalize_unicode_locale_id(loc, canonicalizer))
@@ -281,10 +282,7 @@ fn unicode_extension_components(extension: &str) -> UniExtRecord {
         let e = extension[k..].find('-');
 
         // b. If e = -1, let len be size - k; else let len be e - k.
-        let len = match e {
-            Some(pos) => pos,
-            None => size - k,
-        };
+        let len = e.unwrap_or(size - k);
 
         // c. Let subtag be the String value equal to the substring of extension consisting of the
         // code units at indices k (inclusive) through k + len (exclusive).
@@ -587,24 +585,21 @@ fn resolve_locale(
     for &key in relevant_extension_keys {
         // a. Let foundLocaleData be localeData.[[<foundLocale>]].
         // TODO b. Assert: Type(foundLocaleData) is Record.
-        let found_locale_data = match locale_data.get(&found_locale) {
-            Some(locale_value) => locale_value.clone(),
-            None => FxHashMap::default(),
-        };
+        let found_locale_data = locale_data
+            .get(&found_locale)
+            .map_or_else(FxHashMap::default, Clone::clone);
 
         // c. Let keyLocaleData be foundLocaleData.[[<key>]].
         // TODO d. Assert: Type(keyLocaleData) is List.
-        let key_locale_data = match found_locale_data.get(key) {
-            Some(locale_vec) => locale_vec.clone(),
-            None => Vec::new(),
-        };
+        let key_locale_data = found_locale_data
+            .get(key)
+            .map_or_else(Vec::new, Clone::clone);
 
         // e. Let value be keyLocaleData[0].
         // TODO f. Assert: Type(value) is either String or Null.
-        let mut value = match key_locale_data.get(0) {
-            Some(first_elt) => first_elt.clone().into(),
-            None => JsValue::null(),
-        };
+        let mut value = key_locale_data
+            .get(0)
+            .map_or_else(JsValue::null, |first_elt| first_elt.clone().into());
 
         // g. Let supportedExtensionAddition be "".
         let mut supported_extension_addition = String::new();

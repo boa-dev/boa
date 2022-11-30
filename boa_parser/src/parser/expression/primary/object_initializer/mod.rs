@@ -121,10 +121,9 @@ where
 
         if let Some(position) = duplicate_proto_position {
             if !cursor.json_parse()
-                && match cursor.peek(0, interner)? {
-                    Some(token) => token.kind() != &TokenKind::Punctuator(Punctuator::Assign),
-                    None => true,
-                }
+                && cursor.peek(0, interner)?.map_or(true, |token| {
+                    token.kind() != &TokenKind::Punctuator(Punctuator::Assign)
+                })
             {
                 return Err(Error::general(
                     "Duplicate __proto__ fields are not allowed in object literals.",
@@ -293,8 +292,14 @@ where
 
         //  PropertyName[?Yield, ?Await] : AssignmentExpression[+In, ?Yield, ?Await]
         if cursor.next_if(Punctuator::Colon, interner)?.is_some() {
-            let value = AssignmentExpression::new(None, true, self.allow_yield, self.allow_await)
+            let name = property_name
+                .literal()
+                .filter(|name| *name != Sym::__PROTO__)
+                .map(Into::into);
+
+            let value = AssignmentExpression::new(name, true, self.allow_yield, self.allow_await)
                 .parse(cursor, interner)?;
+
             return Ok(property::PropertyDefinition::Property(property_name, value));
         }
 
@@ -331,8 +336,16 @@ where
                     "get method definition",
                     interner,
                 )?;
+
+                let name = property_name.literal().map(|name| {
+                    let s = interner.resolve_expect(name).utf16();
+                    interner
+                        .get_or_intern([utf16!("get "), s].concat().as_slice())
+                        .into()
+                });
+
                 let method = MethodDefinition::Get(Function::new(
-                    None,
+                    name,
                     FormalParameterList::default(),
                     body,
                 ));
@@ -381,8 +394,9 @@ where
                     interner,
                 )?;
 
-                // Early Error: It is a Syntax Error if FunctionBodyContainsUseStrict of FunctionBody is true
+                // It is a Syntax Error if FunctionBodyContainsUseStrict of FunctionBody is true
                 // and IsSimpleParameterList of PropertySetParameterList is false.
+                // https://tc39.es/ecma262/#sec-method-definitions-static-semantics-early-errors
                 if body.strict() && !parameters.is_simple() {
                     return Err(Error::lex(LexError::Syntax(
                         "Illegal 'use strict' directive in function with non-simple parameter list"
@@ -391,9 +405,26 @@ where
                     )));
                 }
 
-                let method = MethodDefinition::Set(Function::new(None, parameters, body));
+                // It is a Syntax Error if any element of the BoundNames of PropertySetParameterList also
+                // occurs in the LexicallyDeclaredNames of FunctionBody.
+                // https://tc39.es/ecma262/#sec-method-definitions-static-semantics-early-errors
+                name_in_lexically_declared_names(
+                    &bound_names(&parameters),
+                    &top_level_lexically_declared_names(&body),
+                    params_start_position,
+                )?;
+
+                let name = property_name.literal().map(|name| {
+                    let s = interner.resolve_expect(name).utf16();
+                    interner
+                        .get_or_intern([utf16!("set "), s].concat().as_slice())
+                        .into()
+                });
+
+                let method = MethodDefinition::Set(Function::new(name, parameters, body));
 
                 // It is a Syntax Error if HasDirectSuper of MethodDefinition is true.
+                // https://tc39.es/ecma262/#sec-object-initializer-static-semantics-early-errors
                 if has_direct_super(&method) {
                     return Err(Error::general("invalid super usage", params_start_position));
                 }
@@ -458,7 +489,11 @@ where
                     params_start_position,
                 )?;
 
-                let method = MethodDefinition::Ordinary(Function::new(None, params, body));
+                let method = MethodDefinition::Ordinary(Function::new(
+                    property_name.literal().map(Into::into),
+                    params,
+                    body,
+                ));
 
                 // It is a Syntax Error if HasDirectSuper of MethodDefinition is true.
                 if has_direct_super(&method) {
@@ -716,7 +751,12 @@ where
             params_start_position,
         )?;
 
-        let method = MethodDefinition::Generator(Generator::new(None, params, body, false));
+        let method = MethodDefinition::Generator(Generator::new(
+            class_element_name.literal().map(Into::into),
+            params,
+            body,
+            false,
+        ));
 
         if contains(&method, ContainsSymbol::Super) {
             return Err(Error::lex(LexError::Syntax(
@@ -826,8 +866,12 @@ where
             params_start_position,
         )?;
 
-        let method =
-            MethodDefinition::AsyncGenerator(AsyncGenerator::new(None, params, body, false));
+        let method = MethodDefinition::AsyncGenerator(AsyncGenerator::new(
+            name.literal().map(Into::into),
+            params,
+            body,
+            false,
+        ));
 
         if contains(&method, ContainsSymbol::Super) {
             return Err(Error::lex(LexError::Syntax(
@@ -914,7 +958,12 @@ where
             params_start_position,
         )?;
 
-        let method = MethodDefinition::Async(AsyncFunction::new(None, params, body, false));
+        let method = MethodDefinition::Async(AsyncFunction::new(
+            class_element_name.literal().map(Into::into),
+            params,
+            body,
+            false,
+        ));
 
         if contains(&method, ContainsSymbol::Super) {
             return Err(Error::lex(LexError::Syntax(

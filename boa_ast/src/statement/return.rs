@@ -33,13 +33,13 @@ pub struct Return {
 impl Return {
     /// Gets the target expression value of this `Return` statement.
     #[must_use]
-    pub fn target(&self) -> Option<&Expression> {
+    pub const fn target(&self) -> Option<&Expression> {
         self.target.as_ref()
     }
 
     /// Creates a `Return` AST node.
     #[must_use]
-    pub fn new(expression: Option<Expression>) -> Self {
+    pub const fn new(expression: Option<Expression>) -> Self {
         Self { target: expression }
     }
 }
@@ -52,10 +52,10 @@ impl From<Return> for Statement {
 
 impl ToInternedString for Return {
     fn to_interned_string(&self, interner: &Interner) -> String {
-        match self.target() {
-            Some(ex) => format!("return {}", ex.to_interned_string(interner)),
-            None => "return".to_owned(),
-        }
+        self.target().map_or_else(
+            || "return".to_owned(),
+            |ex| format!("return {}", ex.to_interned_string(interner)),
+        )
     }
 }
 

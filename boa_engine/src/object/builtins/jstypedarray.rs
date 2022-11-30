@@ -49,6 +49,7 @@ impl JsTypedArray {
         Ok(self.length(context)? == 0)
     }
 
+    /// Calls `TypedArray.prototype.at()`.
     #[inline]
     pub fn at<T>(&self, index: T, context: &mut Context) -> JsResult<JsValue>
     where
@@ -57,6 +58,7 @@ impl JsTypedArray {
         TypedArray::at(&self.inner, &[index.into().into()], context)
     }
 
+    /// Returns `TypedArray.prototype.byteLength`.
     #[inline]
     pub fn byte_length(&self, context: &mut Context) -> JsResult<usize> {
         Ok(TypedArray::byte_length(&self.inner, &[], context)?
@@ -65,6 +67,7 @@ impl JsTypedArray {
             .expect("byteLength should return a number"))
     }
 
+    /// Returns `TypedArray.prototype.byteOffset`.
     #[inline]
     pub fn byte_offset(&self, context: &mut Context) -> JsResult<usize> {
         Ok(TypedArray::byte_offset(&self.inner, &[], context)?
@@ -73,6 +76,7 @@ impl JsTypedArray {
             .expect("byteLength should return a number"))
     }
 
+    /// Calls `TypedArray.prototype.fill()`.
     #[inline]
     pub fn fill<T>(
         &self,
@@ -96,6 +100,7 @@ impl JsTypedArray {
         Ok(self.clone())
     }
 
+    /// Calls `TypedArray.prototype.every()`.
     pub fn every(
         &self,
         predicate: JsFunction,
@@ -113,6 +118,7 @@ impl JsTypedArray {
         Ok(result)
     }
 
+    /// Calls `TypedArray.prototype.some()`.
     #[inline]
     pub fn some(
         &self,
@@ -131,6 +137,7 @@ impl JsTypedArray {
         Ok(result)
     }
 
+    /// Calls `TypedArray.prototype.sort()`.
     #[inline]
     pub fn sort(&self, compare_fn: Option<JsFunction>, context: &mut Context) -> JsResult<Self> {
         TypedArray::sort(&self.inner, &[compare_fn.into_or_undefined()], context)?;
@@ -138,6 +145,7 @@ impl JsTypedArray {
         Ok(self.clone())
     }
 
+    /// Calls `TypedArray.prototype.filter()`.
     #[inline]
     pub fn filter(
         &self,
@@ -154,6 +162,7 @@ impl JsTypedArray {
         Ok(Self { inner: object })
     }
 
+    /// Calls `TypedArray.prototype.map()`.
     #[inline]
     pub fn map(
         &self,
@@ -170,6 +179,7 @@ impl JsTypedArray {
         Ok(Self { inner: object })
     }
 
+    /// Calls `TypedArray.prototype.reduce()`.
     #[inline]
     pub fn reduce(
         &self,
@@ -184,6 +194,7 @@ impl JsTypedArray {
         )
     }
 
+    /// Calls `TypedArray.prototype.reduceRight()`.
     #[inline]
     pub fn reduce_right(
         &self,
@@ -198,12 +209,14 @@ impl JsTypedArray {
         )
     }
 
+    /// Calls `TypedArray.prototype.reverse()`.
     #[inline]
     pub fn reverse(&self, context: &mut Context) -> JsResult<Self> {
         TypedArray::reverse(&self.inner, &[], context)?;
         Ok(self.clone())
     }
 
+    /// Calls `TypedArray.prototype.slice()`.
     #[inline]
     pub fn slice(
         &self,
@@ -220,6 +233,7 @@ impl JsTypedArray {
         Ok(Self { inner: object })
     }
 
+    /// Calls `TypedArray.prototype.find()`.
     #[inline]
     pub fn find(
         &self,
@@ -234,6 +248,7 @@ impl JsTypedArray {
         )
     }
 
+    /// Calls `TypedArray.prototype.indexOf()`.
     #[inline]
     pub fn index_of<T>(
         &self,
@@ -260,6 +275,7 @@ impl JsTypedArray {
         }
     }
 
+    /// Calls `TypedArray.prototype.lastIndexOf()`.
     #[inline]
     pub fn last_index_of<T>(
         &self,
@@ -286,6 +302,7 @@ impl JsTypedArray {
         }
     }
 
+    /// Calls `TypedArray.prototype.join()`.
     #[inline]
     pub fn join(&self, separator: Option<JsString>, context: &mut Context) -> JsResult<JsString> {
         TypedArray::join(&self.inner, &[separator.into_or_undefined()], context).map(|x| {
@@ -333,6 +350,7 @@ macro_rules! JsTypedArrayType {
         }
 
         impl $name {
+            /// Create the typed array from a [`JsArrayBuffer`].
             #[inline]
             pub fn from_array_buffer(
                 array_buffer: JsArrayBuffer,
@@ -360,6 +378,7 @@ macro_rules! JsTypedArrayType {
                 })
             }
 
+            /// Create the typed array from an iterator.
             #[inline]
             pub fn from_iter<I>(elements: I, context: &mut Context) -> JsResult<Self>
             where

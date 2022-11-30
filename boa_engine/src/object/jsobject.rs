@@ -43,6 +43,7 @@ impl JsObject {
 
     /// Create a new empty `JsObject`, with `prototype` set to `JsValue::Null`
     /// and `data` set to `ObjectData::ordinary`
+    #[must_use]
     pub fn empty() -> Self {
         Self::from_object(Object::default())
     }
@@ -503,6 +504,12 @@ impl JsObject {
         self.borrow().is_native_object()
     }
 
+    /// The abstract operation `ToPropertyDescriptor`.
+    ///
+    /// More information:
+    /// - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-topropertydescriptor
     pub fn to_property_descriptor(&self, context: &mut Context) -> JsResult<PropertyDescriptor> {
         // 1 is implemented on the method `to_property_descriptor` of value
 
@@ -736,12 +743,23 @@ Cannot both specify accessors and a value or writable attribute",
             }
         )
     }
+
+    pub(crate) const fn inner(&self) -> &Gc<GcCell<Object>> {
+        &self.inner
+    }
 }
 
 impl AsRef<GcCell<Object>> for JsObject {
     #[inline]
     fn as_ref(&self) -> &GcCell<Object> {
         &self.inner
+    }
+}
+
+impl From<Gc<GcCell<Object>>> for JsObject {
+    #[inline]
+    fn from(inner: Gc<GcCell<Object>>) -> Self {
+        Self { inner }
     }
 }
 
@@ -837,6 +855,7 @@ impl RecursionLimiter {
     /// by the hashset.
     pub fn new(o: &JsObject) -> Self {
         // We shouldn't have to worry too much about this being moved during Debug::fmt.
+        #[allow(trivial_casts)]
         let ptr = (o.as_ref() as *const _) as usize;
         let (top_level, visited, live) = Self::SEEN.with(|hm| {
             let mut hm = hm.borrow_mut();

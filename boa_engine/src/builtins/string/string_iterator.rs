@@ -1,3 +1,10 @@
+//! This module implements the `StringIterator` object.
+//!
+//! More information:
+//!  - [ECMAScript reference][spec]
+//!
+//! [spec]: https://tc39.es/ecma262/#sec-string-iterator-objects
+
 use crate::{
     builtins::{function::make_builtin_fn, iterable::create_iter_result_object},
     error::JsNativeError,
@@ -9,6 +16,12 @@ use crate::{
 use boa_gc::{Finalize, Trace};
 use boa_profiler::Profiler;
 
+/// The `StringIterator` object represents an iteration over a string. It implements the iterator protocol.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-string-iterator-objects
 #[derive(Debug, Clone, Finalize, Trace)]
 pub struct StringIterator {
     string: JsValue,
@@ -16,13 +29,7 @@ pub struct StringIterator {
 }
 
 impl StringIterator {
-    fn new(string: JsValue) -> Self {
-        Self {
-            string,
-            next_index: 0,
-        }
-    }
-
+    /// Create a new `StringIterator`.
     pub fn create_string_iterator(string: JsValue, context: &mut Context) -> JsResult<JsValue> {
         let string_iterator = JsObject::from_proto_and_data(
             context
@@ -30,11 +37,15 @@ impl StringIterator {
                 .objects()
                 .iterator_prototypes()
                 .string_iterator(),
-            ObjectData::string_iterator(Self::new(string)),
+            ObjectData::string_iterator(Self {
+                string,
+                next_index: 0,
+            }),
         );
         Ok(string_iterator.into())
     }
 
+    /// `StringIterator.prototype.next( )`
     pub fn next(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let mut string_iterator = this.as_object().map(JsObject::borrow_mut);
         let string_iterator = string_iterator

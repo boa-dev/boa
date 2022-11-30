@@ -48,7 +48,7 @@ pub(crate) struct AsyncGeneratorRequest {
     capability: PromiseCapability,
 }
 
-/// The internal representation on an `AsyncGenerator` object.
+/// The internal representation of an `AsyncGenerator` object.
 #[derive(Debug, Clone, Finalize, Trace)]
 pub struct AsyncGenerator {
     /// The `[[AsyncGeneratorState]]` internal slot.

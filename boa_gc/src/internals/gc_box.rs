@@ -1,7 +1,9 @@
 use crate::Trace;
-use std::cell::Cell;
-use std::fmt;
-use std::ptr::{self, NonNull};
+use std::{
+    cell::Cell,
+    fmt,
+    ptr::{self, NonNull},
+};
 
 // Age and Weak Flags
 const MARK_MASK: usize = 1 << (usize::BITS - 2);
@@ -183,7 +185,7 @@ impl<T: Trace + ?Sized> GcBox<T> {
 
     /// Returns a reference to the `GcBox`'s value.
     #[inline]
-    pub(crate) fn value(&self) -> &T {
+    pub(crate) const fn value(&self) -> &T {
         &self.value
     }
 

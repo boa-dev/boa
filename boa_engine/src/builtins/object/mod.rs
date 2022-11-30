@@ -503,60 +503,61 @@ impl Object {
         desc: Option<PropertyDescriptor>,
         context: &mut Context,
     ) -> JsValue {
-        match desc {
-            // 1. If Desc is undefined, return undefined.
-            None => JsValue::undefined(),
-            Some(desc) => {
-                // 2. Let obj be ! OrdinaryObjectCreate(%Object.prototype%).
-                // 3. Assert: obj is an extensible ordinary object with no own properties.
-                let obj = context.construct_object();
+        // 1. If Desc is undefined, return undefined.
+        let desc = if let Some(desc) = desc {
+            desc
+        } else {
+            return JsValue::undefined();
+        };
 
-                // 4. If Desc has a [[Value]] field, then
-                if let Some(value) = desc.value() {
-                    // a. Perform ! CreateDataPropertyOrThrow(obj, "value", Desc.[[Value]]).
-                    obj.create_data_property_or_throw("value", value, context)
-                        .expect("CreateDataPropertyOrThrow cannot fail here");
-                }
+        // 2. Let obj be ! OrdinaryObjectCreate(%Object.prototype%).
+        // 3. Assert: obj is an extensible ordinary object with no own properties.
+        let obj = context.construct_object();
 
-                // 5. If Desc has a [[Writable]] field, then
-                if let Some(writable) = desc.writable() {
-                    // a. Perform ! CreateDataPropertyOrThrow(obj, "writable", Desc.[[Writable]]).
-                    obj.create_data_property_or_throw("writable", writable, context)
-                        .expect("CreateDataPropertyOrThrow cannot fail here");
-                }
-
-                // 6. If Desc has a [[Get]] field, then
-                if let Some(get) = desc.get() {
-                    // a. Perform ! CreateDataPropertyOrThrow(obj, "get", Desc.[[Get]]).
-                    obj.create_data_property_or_throw("get", get, context)
-                        .expect("CreateDataPropertyOrThrow cannot fail here");
-                }
-
-                // 7. If Desc has a [[Set]] field, then
-                if let Some(set) = desc.set() {
-                    // a. Perform ! CreateDataPropertyOrThrow(obj, "set", Desc.[[Set]]).
-                    obj.create_data_property_or_throw("set", set, context)
-                        .expect("CreateDataPropertyOrThrow cannot fail here");
-                }
-
-                // 8. If Desc has an [[Enumerable]] field, then
-                if let Some(enumerable) = desc.enumerable() {
-                    // a. Perform ! CreateDataPropertyOrThrow(obj, "enumerable", Desc.[[Enumerable]]).
-                    obj.create_data_property_or_throw("enumerable", enumerable, context)
-                        .expect("CreateDataPropertyOrThrow cannot fail here");
-                }
-
-                // 9. If Desc has a [[Configurable]] field, then
-                if let Some(configurable) = desc.configurable() {
-                    // a. Perform ! CreateDataPropertyOrThrow(obj, "configurable", Desc.[[Configurable]]).
-                    obj.create_data_property_or_throw("configurable", configurable, context)
-                        .expect("CreateDataPropertyOrThrow cannot fail here");
-                }
-
-                // 10. Return obj.
-                obj.into()
-            }
+        // 4. If Desc has a [[Value]] field, then
+        if let Some(value) = desc.value() {
+            // a. Perform ! CreateDataPropertyOrThrow(obj, "value", Desc.[[Value]]).
+            obj.create_data_property_or_throw("value", value, context)
+                .expect("CreateDataPropertyOrThrow cannot fail here");
         }
+
+        // 5. If Desc has a [[Writable]] field, then
+        if let Some(writable) = desc.writable() {
+            // a. Perform ! CreateDataPropertyOrThrow(obj, "writable", Desc.[[Writable]]).
+            obj.create_data_property_or_throw("writable", writable, context)
+                .expect("CreateDataPropertyOrThrow cannot fail here");
+        }
+
+        // 6. If Desc has a [[Get]] field, then
+        if let Some(get) = desc.get() {
+            // a. Perform ! CreateDataPropertyOrThrow(obj, "get", Desc.[[Get]]).
+            obj.create_data_property_or_throw("get", get, context)
+                .expect("CreateDataPropertyOrThrow cannot fail here");
+        }
+
+        // 7. If Desc has a [[Set]] field, then
+        if let Some(set) = desc.set() {
+            // a. Perform ! CreateDataPropertyOrThrow(obj, "set", Desc.[[Set]]).
+            obj.create_data_property_or_throw("set", set, context)
+                .expect("CreateDataPropertyOrThrow cannot fail here");
+        }
+
+        // 8. If Desc has an [[Enumerable]] field, then
+        if let Some(enumerable) = desc.enumerable() {
+            // a. Perform ! CreateDataPropertyOrThrow(obj, "enumerable", Desc.[[Enumerable]]).
+            obj.create_data_property_or_throw("enumerable", enumerable, context)
+                .expect("CreateDataPropertyOrThrow cannot fail here");
+        }
+
+        // 9. If Desc has a [[Configurable]] field, then
+        if let Some(configurable) = desc.configurable() {
+            // a. Perform ! CreateDataPropertyOrThrow(obj, "configurable", Desc.[[Configurable]]).
+            obj.create_data_property_or_throw("configurable", configurable, context)
+                .expect("CreateDataPropertyOrThrow cannot fail here");
+        }
+
+        // 10. Return obj.
+        obj.into()
     }
 
     /// Uses the `SameValue` algorithm to check equality of objects
@@ -628,8 +629,8 @@ impl Object {
             val => {
                 return Err(JsNativeError::typ()
                     .with_message(format!(
-                        "expected an object or null, got {}",
-                        val.type_of().to_std_string_escaped()
+                        "expected an object or null, got `{}`",
+                        val.type_of()
                     ))
                     .into())
             }
@@ -790,10 +791,9 @@ impl Object {
             // 12. Else if O has a [[DateValue]] internal slot, let builtinTag be "Date".
             // 13. Else if O has a [[RegExpMatcher]] internal slot, let builtinTag be "RegExp".
             // 14. Else, let builtinTag be "Object".
-            let o = o.borrow();
-            match o.kind() {
+            match o.borrow().kind() {
                 ObjectKind::Arguments(_) => utf16!("Arguments"),
-                ObjectKind::Function(_) => utf16!("Function"),
+                _ if o.is_callable() => utf16!("Function"),
                 ObjectKind::Error(_) => utf16!("Error"),
                 ObjectKind::Boolean(_) => utf16!("Boolean"),
                 ObjectKind::Number(_) => utf16!("Number"),

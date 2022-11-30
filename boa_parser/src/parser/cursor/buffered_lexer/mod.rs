@@ -105,7 +105,7 @@ where
     }
 
     #[inline]
-    pub(super) fn strict_mode(&self) -> bool {
+    pub(super) const fn strict_mode(&self) -> bool {
         self.lexer.strict_mode()
     }
 

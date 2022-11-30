@@ -11,7 +11,7 @@
 mod tests;
 
 use crate::{
-    lexer::TokenKind,
+    lexer::{Token, TokenKind},
     parser::{
         cursor::{Cursor, SemicolonResult},
         expression::LabelIdentifier,
@@ -62,11 +62,8 @@ where
         cursor.expect((Keyword::Break, false), "break statement", interner)?;
 
         let label = if let SemicolonResult::Found(tok) = cursor.peek_semicolon(interner)? {
-            match tok {
-                Some(tok) if tok.kind() == &TokenKind::Punctuator(Punctuator::Semicolon) => {
-                    cursor.advance(interner);
-                }
-                _ => {}
+            if tok.map(Token::kind) == Some(&TokenKind::Punctuator(Punctuator::Semicolon)) {
+                cursor.advance(interner);
             }
 
             None

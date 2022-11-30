@@ -1,4 +1,4 @@
-use super::{Display, JsBigInt, JsObject, JsString, JsSymbol, JsValue, Profiler};
+use super::{JsBigInt, JsObject, JsString, JsSymbol, JsValue, Profiler};
 
 impl From<&Self> for JsValue {
     #[inline]
@@ -30,15 +30,6 @@ impl From<JsSymbol> for JsValue {
     #[inline]
     fn from(value: JsSymbol) -> Self {
         Self::Symbol(value)
-    }
-}
-
-#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
-pub struct TryFromCharError;
-
-impl Display for TryFromCharError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "Could not convert value to a char type")
     }
 }
 
@@ -97,11 +88,7 @@ impl From<i16> for JsValue {
 impl From<u32> for JsValue {
     #[inline]
     fn from(value: u32) -> Self {
-        if let Ok(integer) = i32::try_from(value) {
-            Self::Integer(integer)
-        } else {
-            Self::Rational(value.into())
-        }
+        i32::try_from(value).map_or_else(|_| Self::Rational(value.into()), Self::Integer)
     }
 }
 
@@ -122,33 +109,21 @@ impl From<JsBigInt> for JsValue {
 impl From<usize> for JsValue {
     #[inline]
     fn from(value: usize) -> Self {
-        if let Ok(value) = i32::try_from(value) {
-            Self::Integer(value)
-        } else {
-            Self::Rational(value as f64)
-        }
+        i32::try_from(value).map_or(Self::Rational(value as f64), Self::Integer)
     }
 }
 
 impl From<u64> for JsValue {
     #[inline]
     fn from(value: u64) -> Self {
-        if let Ok(value) = i32::try_from(value) {
-            Self::Integer(value)
-        } else {
-            Self::Rational(value as f64)
-        }
+        i32::try_from(value).map_or(Self::Rational(value as f64), Self::Integer)
     }
 }
 
 impl From<i64> for JsValue {
     #[inline]
     fn from(value: i64) -> Self {
-        if let Ok(value) = i32::try_from(value) {
-            Self::Integer(value)
-        } else {
-            Self::Rational(value as f64)
-        }
+        i32::try_from(value).map_or(Self::Rational(value as f64), Self::Integer)
     }
 }
 

@@ -45,28 +45,28 @@ impl TaggedTemplate {
     /// Gets the tag function of the template.
     #[inline]
     #[must_use]
-    pub fn tag(&self) -> &Expression {
+    pub const fn tag(&self) -> &Expression {
         &self.tag
     }
 
     /// Gets the inner raw strings of the template.
     #[inline]
     #[must_use]
-    pub fn raws(&self) -> &[Sym] {
+    pub const fn raws(&self) -> &[Sym] {
         &self.raws
     }
 
     /// Gets the cooked strings of the template.
     #[inline]
     #[must_use]
-    pub fn cookeds(&self) -> &[Option<Sym>] {
+    pub const fn cookeds(&self) -> &[Option<Sym>] {
         &self.cookeds
     }
 
     /// Gets the interpolated expressions of the template.
     #[inline]
     #[must_use]
-    pub fn exprs(&self) -> &[Expression] {
+    pub const fn exprs(&self) -> &[Expression] {
         &self.exprs
     }
 }
