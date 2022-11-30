@@ -8,7 +8,7 @@ use crate::{
 
 pub(crate) fn compile_continue(
     byte_compiler: &mut ByteCompiler<'_>,
-    node: &Continue,
+    node: Continue,
 ) -> JsResult<()> {
     let next = byte_compiler.next_opcode_location();
     if let Some(info) = byte_compiler
@@ -29,11 +29,12 @@ pub(crate) fn compile_continue(
         }
         if in_finally || in_catch_no_finally {
             byte_compiler.emit_opcode(Opcode::CatchEnd2);
-            byte_compiler.emit(Opcode::FinallySetJump, &[start_address]);
         } else {
             byte_compiler.emit_opcode(Opcode::TryEnd);
-            byte_compiler.emit(Opcode::FinallySetJump, &[start_address]);
         }
+
+        byte_compiler.emit(Opcode::FinallySetJump, &[start_address]);
+
         let label = byte_compiler.jump();
         byte_compiler
             .jump_info

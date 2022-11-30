@@ -1242,7 +1242,7 @@ impl<'b> ByteCompiler<'b> {
             Statement::Labelled(labelled) => {
                 statement::compile_labeled(self, labelled, use_expr, configurable_globals)?;
             }
-            Statement::Continue(node) => statement::compile_continue(self, node)?,
+            Statement::Continue(node) => statement::compile_continue(self, *node)?,
             Statement::Break(node) => statement::compile_break(self, *node)?,
             Statement::Throw(throw) => {
                 self.compile_expr(throw.target(), true)?;
