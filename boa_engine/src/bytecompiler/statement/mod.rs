@@ -110,7 +110,7 @@ pub(crate) fn compile_labeled<'b>(
 
 pub(crate) fn compile_break<'b>(
     byte_compiler: &mut ByteCompiler<'b>,
-    node: &Break,
+    node: Break,
 ) -> JsResult<()> {
     let next = byte_compiler.next_opcode_location();
     if let Some(info) = byte_compiler
