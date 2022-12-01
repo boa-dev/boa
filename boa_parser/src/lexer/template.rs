@@ -1,4 +1,4 @@
-//! This module implements lexing for template literals used in the JavaScript programing language.
+//! Boa's lexing for ECMAScript template literals.
 
 use crate::lexer::{
     string::{StringLiteral, UTF16CodeUnitsBuffer},

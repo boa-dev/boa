@@ -1,4 +1,4 @@
-//! This module implements lexing for spread (...) literals used in the JavaScript programing language.
+//! Boa's lexing for ECMAScript spread (...) literals.
 
 use crate::lexer::{Cursor, Error, Token, Tokenizer};
 use boa_ast::{Position, Punctuator, Span};

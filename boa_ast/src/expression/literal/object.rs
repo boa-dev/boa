@@ -13,7 +13,7 @@ use crate::{
 use boa_interner::{Interner, Sym, ToIndentedString, ToInternedString};
 use core::ops::ControlFlow;
 
-/// Objects in JavaScript may be defined as an unordered collection of related data, of
+/// Objects in ECMAScript may be defined as an unordered collection of related data, of
 /// primitive or reference types, in the form of “key: value” pairs.
 ///
 /// Objects can be initialized using `new Object()`, `Object.create()`, or using the literal

@@ -1,6 +1,6 @@
 //! The [`Expression`] Parse Node, as defined by the [spec].
 //!
-//! Javascript expressions include:
+//! ECMAScript expressions include:
 //! - [Primary][primary] expressions (`this`, function expressions, literals).
 //! - [Left hand side][lhs] expressions (accessors, `new` operator, `super`).
 //! - [operator] expressions.
@@ -54,7 +54,7 @@ pub mod operator;
 #[cfg_attr(feature = "fuzz", derive(arbitrary::Arbitrary))]
 #[derive(Debug, Clone, PartialEq)]
 pub enum Expression {
-    /// The JavaScript `this` keyword refers to the object it belongs to.
+    /// The ECMAScript `this` keyword refers to the object it belongs to.
     ///
     /// A property of an execution context (global, function or eval) that,
     /// in non–strict mode, is always a reference to an object and in strict

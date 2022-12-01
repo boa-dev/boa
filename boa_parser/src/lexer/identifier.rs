@@ -1,4 +1,4 @@
-//! This module implements lexing for identifiers (foo, myvar, etc.) used in the JavaScript programing language.
+//! This module implements lexing for identifiers (foo, myvar, etc.) used in ECMAScript.
 
 use crate::lexer::{Cursor, Error, StringLiteral, Token, TokenKind, Tokenizer};
 use boa_ast::{Keyword, Position, Span};

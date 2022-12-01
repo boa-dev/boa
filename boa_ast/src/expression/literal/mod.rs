@@ -1,4 +1,4 @@
-//! This module contains all literal expressions, which represents the primitive values in JavaScript.
+//! This module contains all literal expressions, which represents the primitive values in ECMAScript.
 //!
 //! More information:
 //!  - [ECMAScript reference][spec]
@@ -22,7 +22,7 @@ use num_bigint::BigInt;
 
 use super::Expression;
 
-/// Literals represent values in JavaScript.
+/// Literals represent values in ECMAScript.
 ///
 /// These are fixed values **not variables** that you literally provide in your script.
 ///
@@ -40,7 +40,7 @@ pub enum Literal {
     ///
     /// A string must be delimited by quotation marks of the same type (that is, either both single quotation marks, or both double quotation marks).
     /// You can call any of the String object's methods on a string literal value.
-    /// JavaScript automatically converts the string literal to a temporary String object,
+    /// ECMAScript automatically converts the string literal to a temporary String object,
     /// calls the method, then discards the temporary String object.
     ///
     /// More information:
@@ -74,7 +74,7 @@ pub enum Literal {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Grammar_and_types#Numeric_literals
     Int(i32),
 
-    /// BigInt provides a way to represent whole numbers larger than the largest number JavaScript
+    /// BigInt provides a way to represent whole numbers larger than the largest number ECMAScript
     /// can reliably represent with the `Number` primitive.
     ///
     /// More information:

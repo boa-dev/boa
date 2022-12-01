@@ -1,4 +1,4 @@
-//! The `Punctuator` enum, which contains all punctuators used in JavaScript.
+//! The `Punctuator` enum, which contains all punctuators used in ECMAScript.
 //!
 //! More information:
 //!  - [ECMAScript Reference][spec]
@@ -14,7 +14,7 @@ use std::{
     fmt::{Display, Error, Formatter},
 };
 
-/// All of the punctuators used in JavaScript.
+/// All of the punctuators used in ECMAScript.
 ///
 /// More information:
 ///  - [ECMAScript Reference][spec]

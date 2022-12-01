@@ -1,6 +1,6 @@
 //! The [`Statement`] Parse Node, as defined by the [spec].
 //!
-//! Javascript [statements] are mainly composed of control flow operations, such as [`If`],
+//! ECMAScript [statements] are mainly composed of control flow operations, such as [`If`],
 //! [`WhileLoop`], and [`Break`]. However, it also contains statements such as [`VarDeclaration`],
 //! [`Block`] or [`Expression`] which are not strictly used for control flow.
 //!

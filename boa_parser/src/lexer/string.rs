@@ -1,4 +1,4 @@
-//! This module implements lexing for string literals used in the JavaScript programing language.
+//! Boa's lexing for ECMAScript string literals.
 
 use crate::lexer::{Cursor, Error, Token, TokenKind, Tokenizer};
 use boa_ast::{Position, Span};
