@@ -1,4 +1,4 @@
-//! This module contains the data structures for the microtask job queue.
+//! Data structures for the microtask job queue.
 
 use crate::{prelude::JsObject, Context, JsResult, JsValue};
 use boa_gc::{Finalize, Trace};

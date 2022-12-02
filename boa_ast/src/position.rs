@@ -1,6 +1,6 @@
 use std::{cmp::Ordering, fmt, num::NonZeroU32};
 
-/// A position in the JavaScript source code.
+/// A position in the ECMAScript source code.
 ///
 /// Stores both the column number and the line number.
 ///
@@ -48,7 +48,7 @@ impl fmt::Display for Position {
     }
 }
 
-/// A span in the JavaScript source code.
+/// A span in the ECMAScript source code.
 ///
 /// Stores a start position and an end position.
 ///

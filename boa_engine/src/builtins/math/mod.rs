@@ -1,4 +1,4 @@
-//! This module implements the global `Math` object.
+//! Boa's implementation of ECMAScript's global `Math` object.
 //!
 //! `Math` is a built-in object that has properties and methods for mathematical constants and functions. It’s not a function object.
 //!

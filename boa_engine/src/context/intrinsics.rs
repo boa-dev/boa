@@ -1,4 +1,4 @@
-//! This module implements the data structures that contain intrinsic objects and constructors.
+//! Data structures that contain intrinsic objects and constructors.
 
 use crate::{
     builtins::{

@@ -1,4 +1,4 @@
-//! This module implements a wrapper for the `MapIterator` Builtin JavaScript Object
+//! A Rust API wrapper for Boa's `MapIterator` Builtin ECMAScript Object
 use crate::{
     builtins::map::map_iterator::MapIterator,
     error::JsNativeError,
@@ -9,7 +9,7 @@ use crate::{
 use boa_gc::{Finalize, Trace};
 use std::ops::Deref;
 
-/// JavaScript `MapIterator` rust object
+/// `JsMapIterator` provides a wrapper for Boa's implementation of the ECMAScript `MapIterator` object.
 #[derive(Debug, Clone, Finalize, Trace)]
 pub struct JsMapIterator {
     inner: JsObject,

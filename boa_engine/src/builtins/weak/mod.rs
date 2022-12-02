@@ -1,4 +1,4 @@
-//! This module implements the global `Weak*` objects.
+//! Boa's implementation of ECMAScript's `WeakRef` object.
 
 mod weak_ref;
 

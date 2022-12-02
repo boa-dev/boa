@@ -1,4 +1,4 @@
-//! This module implements the global `undefined` property.
+//! Boa's implementation of ECMAScript's global `undefined` property.
 //!
 //! The global undefined property represents the primitive value undefined.
 //!

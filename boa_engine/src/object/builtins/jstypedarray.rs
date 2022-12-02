@@ -1,4 +1,4 @@
-//! This module implements a wrapper for the `TypedArray` Builtin JavaScript Object
+//! Rust API wrappers for the `TypedArray` Builtin ECMAScript Objects
 use crate::{
     builtins::typed_array::TypedArray,
     error::JsNativeError,
@@ -9,7 +9,7 @@ use crate::{
 use boa_gc::{Finalize, Trace};
 use std::ops::Deref;
 
-/// JavaScript `TypedArray` rust object.
+/// `JsTypedArray` provides a wrapper for Boa's implementation of the ECMAScript `TypedArray` builtin object.
 #[derive(Debug, Clone, Trace, Finalize)]
 pub struct JsTypedArray {
     inner: JsValue,
@@ -343,7 +343,7 @@ impl JsObjectType for JsTypedArray {}
 
 macro_rules! JsTypedArrayType {
     ($name:ident, $constructor_function:ident, $constructor_object:ident, $element:ty) => {
-        #[doc = concat!("JavaScript `", stringify!($constructor_function), "` rust object.")]
+        #[doc = concat!("`", stringify!($name), "` provides a wrapper for Boa's implementation of the ECMAScript `", stringify!($constructor_function) ,"` builtin object.")]
         #[derive(Debug, Clone, Trace, Finalize)]
         pub struct $name {
             inner: JsTypedArray,

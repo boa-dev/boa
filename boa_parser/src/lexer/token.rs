@@ -1,4 +1,4 @@
-//! This module implements all of the [Token]s used in the JavaScript programing language.
+//! Boa's implementation of all ECMAScript [Token]s.
 //!
 //! More information:
 //!  - [ECMAScript reference][spec]

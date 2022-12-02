@@ -1,4 +1,4 @@
-//! This module implements the global `RegExp` object.
+//! Boa's implementation of ECMAScript's global `RegExp` object.
 //!
 //! The `RegExp` object is used for matching text with a pattern.
 //!

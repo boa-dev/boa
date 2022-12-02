@@ -11,8 +11,8 @@ use core::ops::ControlFlow;
 /// more statements.
 ///
 /// The block statement is often called compound statement in other languages.
-/// It allows you to use multiple statements where JavaScript expects only one statement.
-/// Combining statements into blocks is a common practice in JavaScript. The opposite behavior
+/// It allows you to use multiple statements where ECMAScript expects only one statement.
+/// Combining statements into blocks is a common practice in ECMAScript. The opposite behavior
 /// is possible using an empty statement, where you provide no statement, although one is
 /// required.
 ///

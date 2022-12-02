@@ -1,4 +1,4 @@
-//! Javascript context.
+//! The ECMAScript context.
 
 pub mod intrinsics;
 
@@ -37,7 +37,7 @@ use icu_provider::DataError;
 #[cfg(all(feature = "intl", doc))]
 pub use icu::BoaProvider;
 
-/// Javascript context. It is the primary way to interact with the runtime.
+/// ECMAScript context. It is the primary way to interact with the runtime.
 ///
 /// `Context`s constructed in a thread share the same runtime, therefore it
 /// is possible to share objects from one context to another context, but they

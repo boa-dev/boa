@@ -1,4 +1,4 @@
-//! This module implements the global `Date` object.
+//! Boa's implementation of ECMAScript's `Date` object.
 //!
 //! More information:
 //!  - [ECMAScript reference][spec]
