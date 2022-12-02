@@ -195,6 +195,9 @@
 <span id="195">195</span>
 <span id="196">196</span>
 <span id="197">197</span>
+<span id="198">198</span>
+<span id="199">199</span>
+<span id="200">200</span>
 </pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::Trace;
 <span class="kw">use </span>std::{
     cell::Cell,
@@ -354,13 +357,16 @@
         }
     }
 
-    <span class="doccomment">/// Trace inner data
+    <span class="doccomment">/// Trace inner data and search for ephemerons to add to the ephemeron queue.
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>weak_trace_inner(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="comment">// SAFETY: if a `GcBox` has `weak_trace_inner` called, then the inner.
-        // value must have been deemed as reachable.
-        </span><span class="kw">unsafe </span>{
-            <span class="self">self</span>.value.weak_trace();
+        <span class="kw">if </span>!<span class="self">self</span>.header.is_marked() &amp;&amp; !<span class="self">self</span>.header.is_ephemeron() {
+            <span class="self">self</span>.header.mark();
+            <span class="comment">// SAFETY: if a `GcBox` has `weak_trace_inner` called, then the inner.
+            // value must have been deemed as reachable.
+            </span><span class="kw">unsafe </span>{
+                <span class="self">self</span>.value.weak_trace();
+            }
         }
     }
 
