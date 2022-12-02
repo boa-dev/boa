@@ -693,7 +693,7 @@
 <span id="691">691</span>
 <span id="692">692</span>
 <span id="693">693</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Javascript context.
+</pre><pre class="rust"><code><span class="doccomment">//! The ECMAScript context.
 
 </span><span class="kw">pub mod </span>intrinsics;
 
@@ -732,7 +732,7 @@
 #[cfg(all(feature = <span class="string">&quot;intl&quot;</span>, doc))]
 </span><span class="kw">pub use </span>icu::BoaProvider;
 
-<span class="doccomment">/// Javascript context. It is the primary way to interact with the runtime.
+<span class="doccomment">/// ECMAScript context. It is the primary way to interact with the runtime.
 ///
 /// `Context`s constructed in a thread share the same runtime, therefore it
 /// is possible to share objects from one context to another context, but they

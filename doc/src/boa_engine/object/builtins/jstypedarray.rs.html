@@ -451,7 +451,7 @@
 <span id="449">449</span>
 <span id="450">450</span>
 <span id="451">451</span>
-</pre><pre class="rust"><code><span class="doccomment">//! This module implements a wrapper for the `TypedArray` Builtin JavaScript Object
+</pre><pre class="rust"><code><span class="doccomment">//! Rust API wrappers for the `TypedArray` Builtin ECMAScript Objects
 </span><span class="kw">use crate</span>::{
     builtins::typed_array::TypedArray,
     error::JsNativeError,
@@ -462,7 +462,7 @@
 <span class="kw">use </span>boa_gc::{Finalize, Trace};
 <span class="kw">use </span>std::ops::Deref;
 
-<span class="doccomment">/// JavaScript `TypedArray` rust object.
+<span class="doccomment">/// `JsTypedArray` provides a wrapper for Boa&#39;s implementation of the ECMAScript `TypedArray` builtin object.
 </span><span class="attribute">#[derive(Debug, Clone, Trace, Finalize)]
 </span><span class="kw">pub struct </span>JsTypedArray {
     inner: JsValue,
@@ -796,7 +796,7 @@
 
 <span class="macro">macro_rules! </span>JsTypedArrayType {
     (<span class="macro-nonterminal">$name</span>:ident, <span class="macro-nonterminal">$constructor_function</span>:ident, <span class="macro-nonterminal">$constructor_object</span>:ident, <span class="macro-nonterminal">$element</span>:ty) =&gt; {
-        <span class="attribute">#[doc = <span class="macro">concat!</span>(<span class="string">&quot;JavaScript `&quot;</span>, <span class="macro">stringify!</span>(<span class="macro-nonterminal">$constructor_function</span>), <span class="string">&quot;` rust object.&quot;</span>)]
+        <span class="attribute">#[doc = <span class="macro">concat!</span>(<span class="string">&quot;`&quot;</span>, <span class="macro">stringify!</span>(<span class="macro-nonterminal">$name</span>), <span class="string">&quot;` provides a wrapper for Boa&#39;s implementation of the ECMAScript `&quot;</span>, <span class="macro">stringify!</span>(<span class="macro-nonterminal">$constructor_function</span>) ,<span class="string">&quot;` builtin object.&quot;</span>)]
         #[derive(Debug, Clone, Trace, Finalize)]
         </span><span class="kw">pub struct </span><span class="macro-nonterminal">$name </span>{
             inner: JsTypedArray,

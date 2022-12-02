@@ -481,7 +481,7 @@
 <span id="479">479</span>
 <span id="480">480</span>
 <span id="481">481</span>
-</pre><pre class="rust"><code><span class="doccomment">//! This module implements a wrapper for the `Proxy` Builtin JavaScript Object
+</pre><pre class="rust"><code><span class="doccomment">//! A Rust API wrapper for the `Proxy` Builtin ECMAScript Object
 </span><span class="kw">use </span>boa_gc::{Finalize, Trace};
 
 <span class="kw">use crate</span>::{
@@ -492,7 +492,7 @@
 
 <span class="kw">use </span><span class="kw">super</span>::JsFunction;
 
-<span class="doccomment">/// JavaScript [`Proxy`][proxy] rust object.
+<span class="doccomment">/// `JsProxy` provides a wrapper for Boa&#39;s implementation of the ECMAScript `Proxy` object
 ///
 /// This is a wrapper type for the [`Proxy`][proxy] API that allows customizing
 /// essential behaviour for an object, like [property accesses][get] or the
@@ -541,7 +541,7 @@
 
 <span class="kw">impl </span>JsObjectType <span class="kw">for </span>JsProxy {}
 
-<span class="doccomment">/// JavaScript [`Proxy`][proxy] rust object that can be disabled.
+<span class="doccomment">/// `JsRevocableProxy` provides a wrapper for `JsProxy` that can be disabled.
 ///
 /// Safe interface for the [`Proxy.revocable`][revocable] method that creates a
 /// proxy that can be disabled using the [`JsRevocableProxy::revoke`] method.

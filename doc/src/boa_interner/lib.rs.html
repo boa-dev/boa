@@ -442,8 +442,29 @@
 <span id="440">440</span>
 <span id="441">441</span>
 <span id="442">442</span>
-</pre><pre class="rust"><code><span class="doccomment">//! String interner for Boa.
+<span id="443">443</span>
+<span id="444">444</span>
+<span id="445">445</span>
+<span id="446">446</span>
+<span id="447">447</span>
+<span id="448">448</span>
+<span id="449">449</span>
+<span id="450">450</span>
+<span id="451">451</span>
+<span id="452">452</span>
+<span id="453">453</span>
+<span id="454">454</span>
+<span id="455">455</span>
+<span id="456">456</span>
+<span id="457">457</span>
+<span id="458">458</span>
+<span id="459">459</span>
+<span id="460">460</span>
+<span id="461">461</span>
+<span id="462">462</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s **boa_interner** is a string interner for compiler performance.
 //!
+//! # Crate Overview
 //! The idea behind using a string interner is that in most of the code, strings such as
 //! identifiers and literals are often repeated. This causes extra burden when comparing them and
 //! storing them. A string interner stores a unique `usize` symbol for each string, making sure
@@ -451,6 +472,25 @@
 //! to `usize`, and also it&#39;s easier to store, since instead of a heap-allocated string, you only
 //! need to store a `usize`. This reduces memory consumption and improves performance in the
 //! compiler.
+//!
+//! # About Boa
+//! Boa is an open-source, experimental ECMAScript Engine written in Rust for lexing, parsing and executing ECMAScript/JavaScript. Currently, Boa
+//! supports some of the [language][boa-conformance]. More information can be viewed at [Boa&#39;s website][boa-web].
+//!
+//! Try out the most recent release with Boa&#39;s live demo [playground][boa-playground].  
+//!
+//! # Boa Crates
+//!  - **boa_ast** - Boa&#39;s ECMAScript Abstract Syntax Tree.
+//!  - **boa_engine** - Boa&#39;s implementation of ECMAScript builtin objects and execution.
+//!  - **boa_gc** - Boa&#39;s garbage collector
+//!  - **boa_interner** - Boa&#39;s string interner
+//!  - **boa_parser** - Boa&#39;s lexer and parser
+//!  - **boa_profiler** - Boa&#39;s code profiler
+//!  - **boa_unicode** - Boa&#39;s Unicode identifier
+//!
+//! [boa-conformance]: https://boa-dev.github.io/boa/test262/
+//! [boa-web]: https://boa-dev.github.io/
+//! [boa-playground]: https://boa-dev.github.io/boa/playground/
 
 </span><span class="attribute">#![doc(
     html_logo_url = <span class="string">&quot;https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg&quot;</span>,

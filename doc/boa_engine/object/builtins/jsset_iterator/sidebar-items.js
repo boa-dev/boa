@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["JsSetIterator","`JsSetIterator` provides a wrapper for Boa’s implementation of the JavaScript `SetIterator` object"]]};
+window.SIDEBAR_ITEMS = {"struct":[["JsSetIterator","`JsSetIterator` provides a wrapper for Boa’s implementation of the ECMAScript `SetIterator` object"]]};

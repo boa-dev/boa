@@ -104,7 +104,7 @@
 <span id="102">102</span>
 <span id="103">103</span>
 <span id="104">104</span>
-</pre><pre class="rust"><code><span class="doccomment">//! This module implements a wrapper for the `Generator` Builtin JavaScript Object
+</pre><pre class="rust"><code><span class="doccomment">//! A Rust API wrapper for Boa&#39;s `Generator` Builtin ECMAScript Object
 </span><span class="kw">use crate</span>::{
     builtins::generator::{Generator, GeneratorState},
     object::{JsObject, JsObjectType, ObjectData},
@@ -114,7 +114,7 @@
 <span class="kw">use </span>boa_gc::{Finalize, Trace};
 <span class="kw">use </span>std::ops::Deref;
 
-<span class="doccomment">/// `JsGenerator` provides a wrapper for Boa&#39;s implementation of the JavaScript `Generator` builtin object
+<span class="doccomment">/// `JsGenerator` provides a wrapper for Boa&#39;s implementation of the ECMAScript `Generator` builtin object
 </span><span class="attribute">#[derive(Debug, Clone, Trace, Finalize)]
 </span><span class="kw">pub struct </span>JsGenerator {
     inner: JsObject,

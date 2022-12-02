@@ -224,7 +224,7 @@
 <span id="222">222</span>
 <span id="223">223</span>
 <span id="224">224</span>
-</pre><pre class="rust"><code><span class="doccomment">//! This module implements a wrapper for the `ArrayBuffer` Builtin JavaScript Object
+</pre><pre class="rust"><code><span class="doccomment">//! A Rust API wrapper for Boa&#39;s `ArrayBuffer` Builtin ECMAScript Object
 </span><span class="kw">use crate</span>::{
     builtins::array_buffer::ArrayBuffer,
     context::intrinsics::StandardConstructors,
@@ -237,7 +237,7 @@
 <span class="kw">use </span>boa_gc::{Finalize, Trace};
 <span class="kw">use </span>std::ops::Deref;
 
-<span class="doccomment">/// `JsArrayBuffer` provides a wrapper for Boa&#39;s implementation of the JavaScript `ArrayBuffer` object
+<span class="doccomment">/// `JsArrayBuffer` provides a wrapper for Boa&#39;s implementation of the ECMAScript `ArrayBuffer` object
 </span><span class="attribute">#[derive(Debug, Clone, Trace, Finalize)]
 </span><span class="kw">pub struct </span>JsArrayBuffer {
     inner: JsObject,

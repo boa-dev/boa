@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["Position","A position in the JavaScript source code."],["Span","A span in the JavaScript source code."]]};
+window.SIDEBAR_ITEMS = {"struct":[["Position","A position in the ECMAScript source code."],["Span","A span in the ECMAScript source code."]]};

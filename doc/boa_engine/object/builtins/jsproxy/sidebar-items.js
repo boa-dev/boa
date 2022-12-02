@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["JsProxy","JavaScript `Proxy` rust object."],["JsProxyBuilder","Utility builder to create [`JsProxy`] objects from native functions."],["JsRevocableProxy","JavaScript `Proxy` rust object that can be disabled."]]};
+window.SIDEBAR_ITEMS = {"struct":[["JsProxy","`JsProxy` provides a wrapper for Boa’s implementation of the ECMAScript `Proxy` object"],["JsProxyBuilder","Utility builder to create [`JsProxy`] objects from native functions."],["JsRevocableProxy","`JsRevocableProxy` provides a wrapper for `JsProxy` that can be disabled."]]};

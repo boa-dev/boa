@@ -166,6 +166,13 @@
 <span id="164">164</span>
 <span id="165">165</span>
 <span id="166">166</span>
+<span id="167">167</span>
+<span id="168">168</span>
+<span id="169">169</span>
+<span id="170">170</span>
+<span id="171">171</span>
+<span id="172">172</span>
+<span id="173">173</span>
 </pre><pre class="rust"><code><span class="kw">use </span>boa_gc::{Finalize, Trace, WeakGc};
 <span class="kw">use </span>boa_profiler::Profiler;
 <span class="kw">use </span>tap::{Conv, Pipe};
@@ -181,9 +188,16 @@
     Context, JsNativeError, JsResult, JsValue,
 };
 
-<span class="doccomment">/// The [`WeakRef`][wr] builtin object.
+<span class="doccomment">/// Boa&#39;s implementation of ECMAScript&#39;s `WeakRef` builtin object.
 ///
-/// [wr]: https://tc39.es/ecma262/#sec-weak-ref-objects
+/// The `WeakRef` is a way to refer to a target object without rooting the target and thus preserving it in garbage
+/// collection. A `WeakRef` will allow the user to dereference the target as long as the target object has not been
+/// collected by the garbage collector.
+///
+/// More Information:
+///  - [ECMAScript Reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-weak-ref-objects
 </span><span class="attribute">#[derive(Debug, Clone, Trace, Finalize)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>WeakRef;
 

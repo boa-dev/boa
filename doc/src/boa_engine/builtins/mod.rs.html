@@ -227,7 +227,11 @@
 <span id="225">225</span>
 <span id="226">226</span>
 <span id="227">227</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Builtins live here, such as Object, String, Math, etc.
+<span id="228">228</span>
+<span id="229">229</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s ECMAScript built-in object implementations, e.g. Object, String, Math, Array, etc.
+//!
+//! This module also contains a JavaScript Console implementation.
 
 </span><span class="kw">pub mod </span>array;
 <span class="kw">pub mod </span>array_buffer;
@@ -320,12 +324,12 @@
 
 <span class="doccomment">/// Trait representing a global built-in object such as `Math`, `Object` or `String`.
 ///
-/// This trait must be implemented for any global built-in accessible from JavaScript.
+/// This trait must be implemented for any global built-in accessible from ECMAScript/JavaScript.
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">trait </span>BuiltIn {
     <span class="doccomment">/// Binding name of the built-in inside the global object.
     ///
     /// E.g. If you want access the properties of a `Complex` built-in with the name `Cplx` you must
-    /// assign `&quot;Cplx&quot;` to this constant, making any property inside it accessible from Javascript
+    /// assign `&quot;Cplx&quot;` to this constant, making any property inside it accessible from ECMAScript/JavaScript
     /// as `Cplx.prop`
     </span><span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str;
 
@@ -337,7 +341,7 @@
     <span class="doccomment">/// Initialization code for the built-in.
     ///
     /// This is where the methods, properties, static methods and the constructor of a built-in must
-    /// be initialized to be accessible from Javascript.
+    /// be initialized to be accessible from ECMAScript/JavaScript.
     ///
     /// # Note
     ///

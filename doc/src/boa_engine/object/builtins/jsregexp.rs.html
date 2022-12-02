@@ -268,7 +268,23 @@
 <span id="266">266</span>
 <span id="267">267</span>
 <span id="268">268</span>
-</pre><pre class="rust"><code><span class="doccomment">//! This module implements a wrapper for the `RegExp` Builtin JavaScript Object
+<span id="269">269</span>
+<span id="270">270</span>
+<span id="271">271</span>
+<span id="272">272</span>
+<span id="273">273</span>
+<span id="274">274</span>
+<span id="275">275</span>
+<span id="276">276</span>
+<span id="277">277</span>
+<span id="278">278</span>
+<span id="279">279</span>
+<span id="280">280</span>
+<span id="281">281</span>
+<span id="282">282</span>
+<span id="283">283</span>
+<span id="284">284</span>
+</pre><pre class="rust"><code><span class="doccomment">//! A Rust API wrapper for Boa&#39;s `RegExp` Builtin ECMAScript Object
 </span><span class="kw">use crate</span>::{
     builtins::RegExp,
     object::{JsArray, JsObject, JsObjectType},
@@ -278,7 +294,7 @@
 <span class="kw">use </span>boa_gc::{Finalize, Trace};
 <span class="kw">use </span>std::ops::Deref;
 
-<span class="doccomment">/// `JsRegExp` provides a wrapper for Boa&#39;s implementation of the JavaScript `RegExp` builtin object
+<span class="doccomment">/// `JsRegExp` provides a wrapper for Boa&#39;s implementation of the ECMAScript `RegExp` builtin object
 ///
 /// # Examples
 ///
@@ -287,21 +303,22 @@
 /// ```
 /// # use boa_engine::{
 /// #  object::builtins::JsRegExp,
-/// #  Context, JsValue,
+/// #  Context, JsValue, JsResult,
 /// # };
-///
+/// # fn main() -&gt; JsResult&lt;()&gt; {
 /// // Initialize the `Context`
 /// let context = &amp;mut Context::default();
 ///
 /// // Create a new RegExp with pattern and flags
-/// let regexp = JsRegExp::new(&quot;foo&quot;, &quot;gi&quot;, context).unwrap();
+/// let regexp = JsRegExp::new(&quot;foo&quot;, &quot;gi&quot;, context)?;
 ///
-/// let test_result = regexp.test(&quot;football&quot;, context).unwrap();
+/// let test_result = regexp.test(&quot;football&quot;, context)?;
 /// assert!(test_result);
 ///
-/// let to_string = regexp.to_string(context).unwrap();
+/// let to_string = regexp.to_string(context)?;
 /// assert_eq!(to_string, String::from(&quot;/foo/gi&quot;));
-///
+/// # Ok(())
+/// # }
 /// ```
 ///
 </span><span class="attribute">#[derive(Debug, Clone, Trace, Finalize)]
@@ -314,13 +331,16 @@
     /// ```
     /// # use boa_engine::{
     /// #  object::builtins::JsRegExp,
-    /// #  Context, JsValue,
+    /// #  Context, JsValue, JsResult,
     /// # };
+    /// # fn main() -&gt; JsResult&lt;()&gt; {
     /// // Initialize the `Context`
     /// let context = &amp;mut Context::default();
     ///
     /// // Create a new RegExp with pattern and flags
-    /// let regexp = JsRegExp::new(&quot;foo&quot;, &quot;gi&quot;, context).unwrap();
+    /// let regexp = JsRegExp::new(&quot;foo&quot;, &quot;gi&quot;, context)?;
+    /// # Ok(())
+    /// # }
     /// ```
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>new&lt;S&gt;(pattern: S, flags: S, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="self">Self</span>&gt;
@@ -408,13 +428,16 @@
     /// ```
     /// # use boa_engine::{
     /// #  object::builtins::JsRegExp,
-    /// #  Context, JsValue,
+    /// #  Context, JsValue, JsResult,
     /// # };
+    /// # fn main() -&gt; JsResult&lt;()&gt; {
     /// # let context = &amp;mut Context::default();
-    /// let regexp = JsRegExp::new(&quot;foo&quot;, &quot;gi&quot;, context).unwrap();
+    /// let regexp = JsRegExp::new(&quot;foo&quot;, &quot;gi&quot;, context)?;
     ///
-    /// let flags = regexp.flags(context).unwrap();
+    /// let flags = regexp.flags(context)?;
     /// assert_eq!(flags, String::from(&quot;gi&quot;));
+    /// # Ok(())
+    /// # }
     /// ```
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>flags(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;String&gt; {
@@ -430,13 +453,16 @@
     /// ```
     /// # use boa_engine::{
     /// #  object::builtins::JsRegExp,
-    /// #  Context, JsValue,
+    /// #  Context, JsValue, JsResult,
     /// # };
+    /// # fn main() -&gt; JsResult&lt;()&gt; {
     /// # let context = &amp;mut Context::default();
-    /// let regexp = JsRegExp::new(&quot;foo&quot;, &quot;gi&quot;, context).unwrap();
+    /// let regexp = JsRegExp::new(&quot;foo&quot;, &quot;gi&quot;, context)?;
     ///
-    /// let src = regexp.source(context).unwrap();
+    /// let src = regexp.source(context)?;
     /// assert_eq!(src, String::from(&quot;foo&quot;));
+    /// # Ok(())
+    /// # }
     /// ```
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>source(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;String&gt; {
@@ -452,13 +478,16 @@
     /// ```
     /// # use boa_engine::{
     /// #  object::builtins::JsRegExp,
-    /// #  Context, JsValue,
+    /// #  Context, JsValue, JsResult,
     /// # };
+    /// # fn main() -&gt; JsResult&lt;()&gt; {
     /// # let context = &amp;mut Context::default();
-    /// let regexp = JsRegExp::new(&quot;foo&quot;, &quot;gi&quot;, context).unwrap();
+    /// let regexp = JsRegExp::new(&quot;foo&quot;, &quot;gi&quot;, context)?;
     ///
-    /// let test_result = regexp.test(&quot;football&quot;, context).unwrap();
+    /// let test_result = regexp.test(&quot;football&quot;, context)?;
     /// assert!(test_result);
+    /// # Ok(())
+    /// # }
     /// ```
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>test&lt;S&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, search_string: S, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;bool&gt;
@@ -493,13 +522,16 @@
     /// ```
     /// # use boa_engine::{
     /// #  object::builtins::JsRegExp,
-    /// #  Context, JsValue,
+    /// #  Context, JsValue, JsResult,
     /// # };
+    /// # fn main() -&gt; JsResult&lt;()&gt; {
     /// # let context = &amp;mut Context::default();
-    /// let regexp = JsRegExp::new(&quot;foo&quot;, &quot;gi&quot;, context).unwrap();
+    /// let regexp = JsRegExp::new(&quot;foo&quot;, &quot;gi&quot;, context)?;
     ///
-    /// let to_string = regexp.to_string(context).unwrap();
+    /// let to_string = regexp.to_string(context)?;
     /// assert_eq!(to_string, String::from(&quot;/foo/gi&quot;));
+    /// # Ok(())
+    /// # }
     /// ```
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>to_string(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;String&gt; {
