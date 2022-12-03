@@ -1210,7 +1210,7 @@ impl<'b> ByteCompiler<'b> {
         }
     }
 
-    /// Compile a [`ForLoop`].
+    /// Compiles a [`Statement`]
     #[inline]
     pub fn compile_stmt(
         &mut self,
@@ -1413,9 +1413,7 @@ impl<'b> ByteCompiler<'b> {
         pattern: &Pattern,
         def: BindingOpcode,
     ) -> JsResult<()> {
-        declaration::compile_declaration_pattern_impl(self, pattern, def)?;
-
-        Ok(())
+        declaration::compile_declaration_pattern_impl(self, pattern, def)
     }
 
     pub(crate) fn create_decls(&mut self, stmt_list: &StatementList, configurable_globals: bool) {
@@ -1595,11 +1593,7 @@ impl<'b> ByteCompiler<'b> {
         }
     }
 
-    fn class(
-        &mut self,
-        class: &Class,
-        expression: bool,
-    ) -> JsResult<()> {
+    fn class(&mut self, class: &Class, expression: bool) -> JsResult<()> {
         class::compile_class(self, class, expression)
     }
 }
