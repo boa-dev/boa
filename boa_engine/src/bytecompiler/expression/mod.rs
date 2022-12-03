@@ -6,8 +6,9 @@ use crate::{
 
 use boa_ast::{
     expression::{
+        access::{PropertyAccess, PropertyAccessField},
         literal::{Literal as AstLiteral, TemplateElement, TemplateLiteral},
-        operator::Conditional, access::{PropertyAccessField, PropertyAccess},
+        operator::Conditional,
     },
     Expression,
 };
@@ -23,13 +24,9 @@ use boa_interner::Sym;
 use object_literal::compile_object_literal;
 use unary::compile_unary;
 
-use super::{Callable, NodeKind, Access};
+use super::{Access, Callable, NodeKind};
 
-fn compile_literal(
-    byte_compiler: &mut ByteCompiler<'_>,
-    lit: &AstLiteral,
-    use_expr: bool,
-) {
+fn compile_literal(byte_compiler: &mut ByteCompiler<'_>, lit: &AstLiteral, use_expr: bool) {
     match lit {
         AstLiteral::String(v) => byte_compiler.emit_push_literal(Literal::String(
             byte_compiler
@@ -123,9 +120,7 @@ pub(crate) fn compile_expr_impl(
         Expression::PropertyAccess(access) => {
             byte_compiler.access_get(Access::Property { access }, use_expr)?;
         }
-        Expression::Conditional(op) => {
-            compile_conditional(byte_compiler, op, use_expr)?
-        }
+        Expression::Conditional(op) => compile_conditional(byte_compiler, op, use_expr)?,
         Expression::ArrayLiteral(array) => {
             byte_compiler.emit_opcode(Opcode::PushNewArray);
             byte_compiler.emit_opcode(Opcode::PopOnReturnAdd);
