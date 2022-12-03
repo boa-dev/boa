@@ -1,10 +1,33 @@
-//! This library implements the extension to query if a char belongs to a particular unicode identifier property.
-//! Version: Unicode 15.0.0
+//! Boa's **boa_unicode** crate for query valid Unicode identifiers.
+//!
+//! # Crate Overview
+//! This crate implements the extension to query if a char belongs to a particular unicode identifier property.
+//!
+//! Current Version:
+//!  - Unicode 15.0.0
 //!
 //! More information:
 //!  - [Unicode® Standard Annex #31][uax31]
 //!
+//! # About Boa
+//! Boa is an open-source, experimental ECMAScript Engine written in Rust for lexing, parsing and executing ECMAScript/JavaScript. Currently, Boa
+//! supports some of the [language][boa-conformance]. More information can be viewed at [Boa's website][boa-web].
+//!
+//! Try out the most recent release with Boa's live demo [playground][boa-playground].  
+//!
+//! # Boa Crates
+//!  - **boa_ast** - Boa's ECMAScript Abstract Syntax Tree.
+//!  - **boa_engine** - Boa's implementation of ECMAScript builtin objects and execution.
+//!  - **boa_gc** - Boa's garbage collector
+//!  - **boa_interner** - Boa's string interner
+//!  - **boa_parser** - Boa's lexer and parser
+//!  - **boa_profiler** - Boa's code profiler
+//!  - **boa_unicode** - Boa's Unicode identifier
+//!
 //! [uax31]: http://unicode.org/reports/tr31
+//! [boa-conformance]: https://boa-dev.github.io/boa/test262/
+//! [boa-web]: https://boa-dev.github.io/
+//! [boa-playground]: https://boa-dev.github.io/boa/playground/
 
 #![doc(
     html_logo_url = "https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg",

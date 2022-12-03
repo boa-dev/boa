@@ -1,6 +1,6 @@
-//! This module implements the global `Map` object.
+//! Boa's implementation of ECMAScript's global `Map` object.
 //!
-//! The JavaScript `Map` class is a global object that is used in the construction of maps; which
+//! The ECMAScript `Map` class is a global object that is used in the construction of maps; which
 //! are high-level, key-value stores.
 //!
 //! More information:

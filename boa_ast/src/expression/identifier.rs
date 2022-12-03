@@ -25,7 +25,7 @@ pub const RESERVED_IDENTIFIERS_STRICT: [Sym; 9] = [
 /// An `identifier` is a sequence of characters in the code that identifies a variable,
 /// function, or property.
 ///
-/// In JavaScript, identifiers are case-sensitive and can contain Unicode letters, $, _, and
+/// In ECMAScript, identifiers are case-sensitive and can contain Unicode letters, $, _, and
 /// digits (0-9), but may not start with a digit.
 ///
 /// An identifier differs from a string in that a string is data, while an identifier is part

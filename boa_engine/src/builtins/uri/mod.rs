@@ -1,4 +1,4 @@
-//! URI Handling Functions
+//! Boa's implementation of ECMAScript's URI Handling Functions.
 //!
 //! Uniform Resource Identifiers, or URIs, are Strings that identify resources (e.g. web pages or
 //! files) and transport protocols by which to access them (e.g. HTTP or FTP) on the Internet. The

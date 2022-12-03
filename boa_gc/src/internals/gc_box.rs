@@ -157,13 +157,16 @@ impl<T: Trace + ?Sized> GcBox<T> {
         }
     }
 
-    /// Trace inner data
+    /// Trace inner data and search for ephemerons to add to the ephemeron queue.
     #[inline]
     pub(crate) fn weak_trace_inner(&self) {
-        // SAFETY: if a `GcBox` has `weak_trace_inner` called, then the inner.
-        // value must have been deemed as reachable.
-        unsafe {
-            self.value.weak_trace();
+        if !self.header.is_marked() && !self.header.is_ephemeron() {
+            self.header.mark();
+            // SAFETY: if a `GcBox` has `weak_trace_inner` called, then the inner.
+            // value must have been deemed as reachable.
+            unsafe {
+                self.value.weak_trace();
+            }
         }
     }
 

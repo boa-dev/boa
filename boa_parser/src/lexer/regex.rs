@@ -1,4 +1,4 @@
-//! This module implements lexing for regex literals used in the JavaScript programing language.
+//! Boa's lexing for ECMAScript regex literals.
 
 use crate::lexer::{Cursor, Error, Span, Token, TokenKind, Tokenizer};
 use bitflags::bitflags;

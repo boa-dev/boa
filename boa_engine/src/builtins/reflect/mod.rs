@@ -1,7 +1,7 @@
-//! This module implements the global `Reflect` object.
+//! Boa's implementation of ECMAScript's global `Reflect` object.
 //!
 //! The `Reflect` global object is a built-in object that provides methods for interceptable
-//! JavaScript operations.
+//! ECMAScript operations.
 //!
 //! More information:
 //!  - [ECMAScript reference][spec]

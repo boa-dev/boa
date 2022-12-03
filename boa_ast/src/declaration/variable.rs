@@ -19,7 +19,7 @@ use super::Declaration;
 ///
 /// The scope of a variable declared with `var` is its current execution context, which is either
 /// the enclosing function or, for variables declared outside any function, global. If you
-/// re-declare a JavaScript variable, it will not lose its value.
+/// re-declare a ECMAScript variable, it will not lose its value.
 ///
 /// Although a bit confusing, `VarDeclaration`s are not considered [`Declaration`]s by the spec.
 /// This is partly because it has very different semantics from `let` and `const` declarations, but

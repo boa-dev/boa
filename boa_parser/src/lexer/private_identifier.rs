@@ -1,4 +1,4 @@
-//! This module implements lexing for private identifiers (#foo, #myvar, etc.) used in the JavaScript programing language.
+//! Boa's lexing for ECMAScript private identifiers (#foo, #myvar, etc.).
 
 use crate::lexer::{identifier::Identifier, Cursor, Error, Token, TokenKind, Tokenizer};
 use boa_ast::{Position, Span};

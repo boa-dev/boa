@@ -1,4 +1,4 @@
-//! This module implements a wrapper for the `Generator` Builtin JavaScript Object
+//! A Rust API wrapper for Boa's `Generator` Builtin ECMAScript Object
 use crate::{
     builtins::generator::{Generator, GeneratorState},
     object::{JsObject, JsObjectType, ObjectData},
@@ -8,7 +8,7 @@ use crate::{
 use boa_gc::{Finalize, Trace};
 use std::ops::Deref;
 
-/// `JsGenerator` provides a wrapper for Boa's implementation of the JavaScript `Generator` builtin object
+/// `JsGenerator` provides a wrapper for Boa's implementation of the ECMAScript `Generator` builtin object
 #[derive(Debug, Clone, Trace, Finalize)]
 pub struct JsGenerator {
     inner: JsObject,

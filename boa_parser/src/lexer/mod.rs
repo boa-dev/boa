@@ -1,6 +1,4 @@
-//! A lexical analyzer for JavaScript source code.
-//!
-//! This module contains the Boa lexer or tokenizer implementation.
+//! Boa's lexical analyzer(Lexer) for ECMAScript source code.
 //!
 //! The Lexer splits its input source code into a sequence of input elements called tokens,
 //! represented by the [Token] structure. It also removes

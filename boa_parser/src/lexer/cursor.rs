@@ -1,4 +1,4 @@
-//! Module implementing the lexer cursor. This is used for managing the input byte stream.
+//! Boa's lexer cursor that manages the input byte stream.
 use boa_ast::Position;
 use boa_profiler::Profiler;
 use std::io::{self, Bytes, Error, ErrorKind, Read};

@@ -1,4 +1,4 @@
-//! This module implements lexing for operators (+, - etc.) used in the JavaScript programing language.
+//! Boa's lexing for ECMAScript operators (+, - etc.).
 
 use crate::lexer::{Cursor, Error, Token, TokenKind, Tokenizer};
 use boa_ast::{Position, Punctuator, Span};

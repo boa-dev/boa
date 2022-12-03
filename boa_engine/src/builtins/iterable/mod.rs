@@ -1,4 +1,4 @@
-//! This module implements the global iterator prototype objects.
+//! Boa's implementation of ECMAScript's `IteratorRecord` and iterator prototype objects.
 
 mod async_from_sync_iterator;
 

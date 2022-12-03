@@ -1,7 +1,7 @@
-//! The `Keyword` AST node, which represents reserved words of the JavaScript language.
+//! The `Keyword` AST node, which represents reserved words of the ECMAScript language.
 //!
 //! The [specification][spec] defines keywords as tokens that match an `IdentifierName`, but also
-//! have special meaning in JavaScript. In JavaScript you cannot use these reserved words as variables,
+//! have special meaning in ECMAScript. In ECMAScript, you cannot use these reserved words as variables,
 //! labels, or function names.
 //!
 //! The [MDN documentation][mdn] contains a more extensive explanation about keywords.

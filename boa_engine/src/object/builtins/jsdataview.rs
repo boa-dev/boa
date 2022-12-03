@@ -1,4 +1,4 @@
-//! This module implements a wrapper for the `DataView` Builtin JavaScript Object
+//! A Rust API wrapper for Boa's `DataView` Builtin ECMAScript Object
 use crate::{
     builtins::DataView,
     context::intrinsics::StandardConstructors,
@@ -12,21 +12,24 @@ use crate::{
 use boa_gc::{Finalize, Trace};
 use std::ops::Deref;
 
-/// `JsDataView` Provides a wrapper for Boa's implementation of the JavaScript `DataView` object
+/// `JsDataView` provides a wrapper for Boa's implementation of the ECMAScript `DataView` object
 ///
 /// # Examples
 /// ```
 /// # use boa_engine::{
 /// #     object::builtins::{JsArrayBuffer, JsDataView},
-/// #     Context, JsValue
+/// #     Context, JsValue, JsResult,
 /// # };
-///
+/// # fn main() -> JsResult<()> {
 /// // Create a new context and ArrayBuffer
 /// let context = &mut Context::default();
-/// let array_buffer = JsArrayBuffer::new(4, context).unwrap();
+/// let array_buffer = JsArrayBuffer::new(4, context)?;
 ///
 /// // Create a new Dataview from pre-existing ArrayBuffer
-/// let data_view = JsDataView::from_js_array_buffer(&array_buffer, None, None, context).unwrap();
+/// let data_view = JsDataView::from_js_array_buffer(&array_buffer, None, None, context)?;
+///
+/// # Ok(())
+/// # }
 /// ```
 #[derive(Debug, Clone, Trace, Finalize)]
 pub struct JsDataView {

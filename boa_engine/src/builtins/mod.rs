@@ -1,4 +1,6 @@
-//! Builtins live here, such as Object, String, Math, etc.
+//! Boa's ECMAScript built-in object implementations, e.g. Object, String, Math, Array, etc.
+//!
+//! This module also contains a JavaScript Console implementation.
 
 pub mod array;
 pub mod array_buffer;
@@ -91,12 +93,12 @@ use crate::{
 
 /// Trait representing a global built-in object such as `Math`, `Object` or `String`.
 ///
-/// This trait must be implemented for any global built-in accessible from JavaScript.
+/// This trait must be implemented for any global built-in accessible from ECMAScript/JavaScript.
 pub(crate) trait BuiltIn {
     /// Binding name of the built-in inside the global object.
     ///
     /// E.g. If you want access the properties of a `Complex` built-in with the name `Cplx` you must
-    /// assign `"Cplx"` to this constant, making any property inside it accessible from Javascript
+    /// assign `"Cplx"` to this constant, making any property inside it accessible from ECMAScript/JavaScript
     /// as `Cplx.prop`
     const NAME: &'static str;
 
@@ -108,7 +110,7 @@ pub(crate) trait BuiltIn {
     /// Initialization code for the built-in.
     ///
     /// This is where the methods, properties, static methods and the constructor of a built-in must
-    /// be initialized to be accessible from Javascript.
+    /// be initialized to be accessible from ECMAScript/JavaScript.
     ///
     /// # Note
     ///

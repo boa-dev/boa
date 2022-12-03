@@ -6,7 +6,7 @@ use crate::{
 use boa_interner::{Interner, ToInternedString};
 use core::ops::ControlFlow;
 
-/// The `conditional` (ternary) operation is the only JavaScript operation that takes three
+/// The `conditional` (ternary) operation is the only ECMAScript operation that takes three
 /// operands.
 ///
 /// This operation takes three operands: a condition followed by a question mark (`?`),

@@ -1,4 +1,4 @@
-//! This module implements a wrapper for the `Function` Builtin JavaScript Object
+//! A Rust API wrapper for Boa's `Function` Builtin ECMAScript Object
 use crate::{
     object::{JsObject, JsObjectType},
     JsValue,

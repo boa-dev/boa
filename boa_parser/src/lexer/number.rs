@@ -1,4 +1,4 @@
-//! This module implements lexing for number literals (123, 787) used in the JavaScript programing language.
+//! This module implements lexing for number literals (123, 787) used in ECMAScript.
 
 use crate::lexer::{token::Numeric, Cursor, Error, Token, TokenKind, Tokenizer};
 use boa_ast::{Position, Span};

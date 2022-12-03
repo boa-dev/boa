@@ -1,4 +1,4 @@
-//! This module implements the global `Function` object as well as creates Native Functions.
+//! Boa's implementation of ECMAScript's global `Function` object and Native Functions.
 //!
 //! Objects wrap `Function`s and expose them via call/construct slots.
 //!

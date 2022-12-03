@@ -1,4 +1,4 @@
-//! This module implements the global `ArrayBuffer` object.
+//! Boa's implementation of ECMAScript's global `ArrayBuffer` object.
 //!
 //! More information:
 //!  - [ECMAScript reference][spec]

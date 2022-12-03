@@ -1,6 +1,6 @@
 //! The [`Declaration`] Parse Node, as defined by the [spec].
 //!
-//! Javascript declarations include:
+//! ECMAScript declarations include:
 //! - [Lexical][lex] declarations (`let`, `const`).
 //! - [Function][fun] declarations (`function`, `async function`).
 //! - [Class][class] declarations.

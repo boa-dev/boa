@@ -1,4 +1,4 @@
-//! This module implements the JavaScript bigint primitive rust type.
+//! Boa's implementation of ECMAScript's bigint primitive type.
 
 use crate::{builtins::Number, error::JsNativeError, JsResult};
 use num_integer::Integer;
