@@ -30,6 +30,8 @@ features = [
 
     # https://github.com/tc39/proposal-symbols-as-weakmap-keys
     "symbols-as-weakmap-keys",
+    # https://github.com/tc39/proposal-intl-locale-info
+    "Intl.Locale-info",
 
     # Non-standard
     "caller",

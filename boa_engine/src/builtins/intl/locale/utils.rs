@@ -47,8 +47,11 @@ pub(in crate::builtins::intl) fn canonicalize_locale_list(
     let mut seen = IndexSet::new();
 
     // 3. If Type(locales) is String or Type(locales) is Object and locales has an [[InitializedLocale]] internal slot, then
-    // TODO: check if Type(locales) is object and handle the internal slots
-    let o = if locales.is_string() {
+    let o = if locales.is_string()
+        || locales
+            .as_object()
+            .map_or(false, |o| o.borrow().is_locale())
+    {
         // a. Let O be CreateArrayFromList(« locales »).
         Array::create_array_from_list([locales.clone()], context)
     } else {

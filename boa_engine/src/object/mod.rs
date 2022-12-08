@@ -1601,6 +1601,19 @@ impl Object {
         }
     }
 
+    /// Checks if it is a `Locale` object.
+    #[inline]
+    #[cfg(feature = "intl")]
+    pub const fn is_locale(&self) -> bool {
+        matches!(
+            self.data,
+            ObjectData {
+                kind: ObjectKind::Locale(_),
+                ..
+            }
+        )
+    }
+
     /// Gets the `Locale` data if the object is a `Locale`.
     #[inline]
     #[cfg(feature = "intl")]

@@ -21,9 +21,10 @@ pub(crate) mod locale;
 mod options;
 
 use boa_profiler::Profiler;
-use icu_locid::Locale;
 use icu_provider::KeyedDataMarker;
 use tap::{Conv, Pipe};
+
+use self::locale::Locale;
 
 /// JavaScript `Intl` object.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -34,6 +35,9 @@ impl BuiltIn for Intl {
 
     fn init(context: &mut Context) -> Option<JsValue> {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
+
+        let locale =
+            Locale::init(context).expect("initialization should return the constructor object");
 
         let string_tag = WellKnownSymbols::to_string_tag();
         let date_time_format = DateTimeFormat::init(context);
@@ -47,6 +51,11 @@ impl BuiltIn for Intl {
             .property(
                 "DateTimeFormat",
                 date_time_format,
+                Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+            )
+            .property(
+                "Locale",
+                locale,
                 Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
             .build()
@@ -85,5 +94,5 @@ impl Intl {
 trait Service<P> {
     type LangMarker: KeyedDataMarker;
     type Options;
-    fn resolve(locale: &mut Locale, options: &mut Self::Options, provider: &P);
+    fn resolve(locale: &mut icu_locid::Locale, options: &mut Self::Options, provider: &P);
 }
