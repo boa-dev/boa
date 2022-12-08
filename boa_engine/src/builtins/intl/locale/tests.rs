@@ -1,16 +1,26 @@
+use std::rc::Rc;
+
 use icu_datetime::{
     options::preferences::HourCycle, pattern::CoarseHourCycle,
     provider::calendar::TimeLengthsV1Marker,
 };
 use icu_locid::{
     extensions::unicode::Value, extensions_unicode_key as key, extensions_unicode_value as value,
-    Locale,
+    locale, Locale,
 };
 use icu_plurals::provider::CardinalV1Marker;
 use icu_provider::{DataLocale, DataProvider, DataRequest, DataRequestMetadata};
 
-use crate::builtins::intl::Service;
+use crate::{
+    builtins::intl::{
+        locale::{default_locale, resolve_locale},
+        options::{IntlOptions, LocaleMatcher},
+        Service,
+    },
+    context::icu::{BoaProvider, Icu},
+};
 
+#[derive(Debug)]
 struct TestOptions {
     hc: Option<HourCycle>,
 }
@@ -66,125 +76,43 @@ where
     }
 }
 
-// // #[test]
-// // fn locale_resolution() {
-// //     let mut context = Context::default();
+#[test]
+fn locale_resolution() {
+    let icu = Icu::new(BoaProvider::Buffer(Rc::new(icu_testdata::buffer()))).unwrap();
+    let mut default = default_locale(icu.locale_canonicalizer());
+    default
+        .extensions
+        .unicode
+        .keywords
+        .set(key!("hc"), value!("h11"));
 
-// //     // test lookup
-// //     let available_locales = Vec::<JsString>::new();
-// //     let requested_locales = Vec::<JsString>::new();
-// //     let relevant_extension_keys = Vec::<JsString>::new();
-// //     let locale_data = FxHashMap::default();
-// //     let options = DateTimeFormatRecord {
-// //         locale_matcher: JsString::new("lookup"),
-// //         properties: FxHashMap::default(),
-// //     };
+    // test lookup
+    let mut options = IntlOptions {
+        matcher: LocaleMatcher::Lookup,
+        service_options: TestOptions {
+            hc: Some(HourCycle::H11),
+        },
+    };
+    let locale = resolve_locale::<TestService, _>(&[], &mut options, &icu);
+    assert_eq!(locale, default);
 
-// //     let locale_record = resolve_locale(
-// //         &available_locales,
-// //         &requested_locales,
-// //         &options,
-// //         &relevant_extension_keys,
-// //         &locale_data,
-// //         &mut context,
-// //     );
-// //     assert_eq!(
-// //         locale_record.locale,
-// //         default_locale(context.icu().locale_canonicalizer())
-// //             .to_string()
-// //             .as_str()
-// //     );
-// //     assert_eq!(
-// //         locale_record.data_locale,
-// //         default_locale(context.icu().locale_canonicalizer())
-// //             .to_string()
-// //             .as_str()
-// //     );
-// //     assert!(locale_record.properties.is_empty());
+    // test best fit
+    let mut options = IntlOptions {
+        matcher: LocaleMatcher::BestFit,
+        service_options: TestOptions {
+            hc: Some(HourCycle::H11),
+        },
+    };
 
-// //     // test best fit
-// //     let available_locales = Vec::<JsString>::new();
-// //     let requested_locales = Vec::<JsString>::new();
-// //     let relevant_extension_keys = Vec::<JsString>::new();
-// //     let locale_data = FxHashMap::default();
-// //     let options = DateTimeFormatRecord {
-// //         locale_matcher: JsString::new("best-fit"),
-// //         properties: FxHashMap::default(),
-// //     };
+    let locale = resolve_locale::<TestService, _>(&[], &mut options, &icu);
+    assert_eq!(locale, default);
 
-// //     let locale_record = resolve_locale(
-// //         &available_locales,
-// //         &requested_locales,
-// //         &options,
-// //         &relevant_extension_keys,
-// //         &locale_data,
-// //         &mut context,
-// //     );
-// //     assert_eq!(
-// //         locale_record.locale,
-// //         default_locale(context.icu().locale_canonicalizer())
-// //             .to_string()
-// //             .as_str()
-// //     );
-// //     assert_eq!(
-// //         locale_record.data_locale,
-// //         default_locale(context.icu().locale_canonicalizer())
-// //             .to_string()
-// //             .as_str()
-// //     );
-// //     assert!(locale_record.properties.is_empty());
+    // requested: [es-ES]
+    let mut options = IntlOptions {
+        matcher: LocaleMatcher::Lookup,
+        service_options: TestOptions { hc: None },
+    };
 
-// //     // available: [es-ES], requested: [es-ES]
-// //     let available_locales = vec![JsString::new("es-ES")];
-// //     let requested_locales = vec![JsString::new("es-ES")];
-// //     let relevant_extension_keys = Vec::<JsString>::new();
-// //     let locale_data = FxHashMap::default();
-// //     let options = DateTimeFormatRecord {
-// //         locale_matcher: JsString::new("lookup"),
-// //         properties: FxHashMap::default(),
-// //     };
-
-// //     let locale_record = resolve_locale(
-// //         &available_locales,
-// //         &requested_locales,
-// //         &options,
-// //         &relevant_extension_keys,
-// //         &locale_data,
-// //         &mut context,
-// //     );
-// //     assert_eq!(locale_record.locale, "es-ES");
-// //     assert_eq!(locale_record.data_locale, "es-ES");
-// //     assert!(locale_record.properties.is_empty());
-
-// //     // available: [zh-CN], requested: []
-// //     let available_locales = vec![JsString::new("zh-CN")];
-// //     let requested_locales = Vec::<JsString>::new();
-// //     let relevant_extension_keys = Vec::<JsString>::new();
-// //     let locale_data = FxHashMap::default();
-// //     let options = DateTimeFormatRecord {
-// //         locale_matcher: JsString::new("lookup"),
-// //         properties: FxHashMap::default(),
-// //     };
-
-// //     let locale_record = resolve_locale(
-// //         &available_locales,
-// //         &requested_locales,
-// //         &options,
-// //         &relevant_extension_keys,
-// //         &locale_data,
-// //         &mut context,
-// //     );
-// //     assert_eq!(
-// //         locale_record.locale,
-// //         default_locale(context.icu().locale_canonicalizer())
-// //             .to_string()
-// //             .as_str()
-// //     );
-// //     assert_eq!(
-// //         locale_record.data_locale,
-// //         default_locale(context.icu().locale_canonicalizer())
-// //             .to_string()
-// //             .as_str()
-// //     );
-// //     assert!(locale_record.properties.is_empty());
-// // }
+    let locale = resolve_locale::<TestService, _>(&[locale!("es-ES")], &mut options, &icu);
+    assert_eq!(locale, "es-u-hc-h23".parse().unwrap());
+}

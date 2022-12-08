@@ -113,9 +113,12 @@ impl std::fmt::Debug for Context {
         debug
             .field("intrinsics", &self.intrinsics)
             .field("vm", &self.vm)
-            .field("promise_job_queue", &self.promise_job_queue)
-            .field("icu", &self.icu)
-            .finish()
+            .field("promise_job_queue", &self.promise_job_queue);
+
+        #[cfg(feature = "intl")]
+        debug.field("icu", &self.icu);
+
+        debug.finish()
     }
 }
 
@@ -672,7 +675,7 @@ impl ContextBuilder {
             #[cfg(feature = "intl")]
             icu: self.icu.unwrap_or_else(|| {
                 // TODO: Replace with a more fitting default
-                let provider = icu::BoaProvider::Any(Box::new(icu_testdata::any()));
+                let provider = icu::BoaProvider::Buffer(std::rc::Rc::new(icu_testdata::buffer()));
                 icu::Icu::new(provider).expect("Failed to initialize default icu data.")
             }),
             #[cfg(feature = "fuzz")]

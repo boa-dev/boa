@@ -305,6 +305,8 @@ unsafe impl Trace for ObjectKind {
             Self::Promise(p) => mark(p),
             Self::AsyncGenerator(g) => mark(g),
             Self::WeakRef(wr) => mark(wr),
+            #[cfg(feature = "intl")]
+            Self::Locale(_) => {}
             Self::RegExp(_)
             | Self::BigInt(_)
             | Self::Boolean(_)
@@ -315,8 +317,7 @@ unsafe impl Trace for ObjectKind {
             | Self::Ordinary
             | Self::Global
             | Self::Number(_)
-            | Self::Symbol(_)
-            | Self::Locale(_) => {}
+            | Self::Symbol(_) => {}
         }
     }}
 }

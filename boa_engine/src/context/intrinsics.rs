@@ -682,6 +682,7 @@ impl StandardConstructors {
     ///
     /// [spec]: https://tc39.es/ecma402/#sec-Intl.Locale
     #[inline]
+    #[cfg(feature = "intl")]
     pub const fn locale(&self) -> &StandardConstructor {
         &self.locale
     }

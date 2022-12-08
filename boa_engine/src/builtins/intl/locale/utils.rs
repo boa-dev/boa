@@ -217,7 +217,7 @@ where
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma402/#sec-defaultlocale
-fn default_locale(canonicalizer: &LocaleCanonicalizer) -> Locale {
+pub(super) fn default_locale(canonicalizer: &LocaleCanonicalizer) -> Locale {
     sys_locale::get_locale()
         .and_then(|loc| loc.parse::<Locale>().ok())
         .tap_some_mut(|loc| {
@@ -373,6 +373,8 @@ fn best_fit_matcher<M: KeyedDataMarker>(
 
 #[cfg(test)]
 mod tests {
+    use std::rc::Rc;
+
     use icu_locid::{langid, locale, Locale};
     use icu_plurals::provider::CardinalV1Marker;
     use icu_provider::AsDowncastingAnyProvider;
@@ -407,7 +409,7 @@ mod tests {
 
     #[test]
     fn lookup_match() {
-        let icu = Icu::new(BoaProvider::Any(Box::new(icu_testdata::any()))).unwrap();
+        let icu = Icu::new(BoaProvider::Buffer(Rc::new(icu_testdata::buffer()))).unwrap();
 
         // requested: []
 

@@ -1,4 +1,4 @@
-use std::fmt::Debug;
+use std::{fmt::Debug, rc::Rc};
 
 use icu_locid_transform::{LocaleCanonicalizer, LocaleExpander, LocaleTransformError};
 use icu_provider::{
@@ -10,8 +10,8 @@ use icu_provider::{
 use serde::Deserialize;
 
 pub enum BoaProvider {
-    Buffer(Box<dyn BufferProvider>),
-    Any(Box<dyn AnyProvider>),
+    Buffer(Rc<dyn BufferProvider>),
+    Any(Rc<dyn AnyProvider>),
 }
 
 impl Debug for BoaProvider {
@@ -45,17 +45,17 @@ impl BoaProvider {
     ) -> Result<LocaleCanonicalizer, LocaleTransformError> {
         match self {
             BoaProvider::Buffer(buffer) => {
-                LocaleCanonicalizer::try_new_with_buffer_provider(buffer)
+                LocaleCanonicalizer::try_new_with_buffer_provider(&**buffer)
             }
-            BoaProvider::Any(any) => LocaleCanonicalizer::try_new_with_any_provider(any),
+            BoaProvider::Any(any) => LocaleCanonicalizer::try_new_with_any_provider(&**any),
         }
     }
 
     /// Creates a new [`LocaleExpander`] from the provided [`DataProvider`].
     pub(crate) fn try_new_locale_expander(&self) -> Result<LocaleExpander, LocaleTransformError> {
         match self {
-            BoaProvider::Buffer(buffer) => LocaleExpander::try_new_with_buffer_provider(buffer),
-            BoaProvider::Any(any) => LocaleExpander::try_new_with_any_provider(any),
+            BoaProvider::Buffer(buffer) => LocaleExpander::try_new_with_buffer_provider(&**buffer),
+            BoaProvider::Any(any) => LocaleExpander::try_new_with_any_provider(&**any),
         }
     }
 }
