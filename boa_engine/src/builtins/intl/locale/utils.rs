@@ -70,6 +70,7 @@ pub(in crate::builtins::intl) fn canonicalize_locale_list(
         if k_present {
             // i. Let kValue be ? Get(O, Pk).
             let k_value = o.get(k, context)?;
+
             // ii. If Type(kValue) is not String or Object, throw a TypeError exception.
             if !(k_value.is_object() || k_value.is_string()) {
                 return Err(JsNativeError::typ()
@@ -77,19 +78,26 @@ pub(in crate::builtins::intl) fn canonicalize_locale_list(
                     .into());
             }
             // iii. If Type(kValue) is Object and kValue has an [[InitializedLocale]] internal slot, then
-            // TODO: handle checks for InitializedLocale internal slot (there should be an if statement here)
-            // 1. Let tag be kValue.[[Locale]].
+            let mut tag = if let Some(tag) = k_value
+                .as_object()
+                .and_then(|obj| obj.borrow().as_locale().cloned())
+            {
+                // 1. Let tag be kValue.[[Locale]].
+                tag
+            }
             // iv. Else,
-            // 1. Let tag be ? ToString(kValue).
-            // v. If IsStructurallyValidLanguageTag(tag) is false, throw a RangeError exception.
-            let mut tag = k_value
-                .to_string(context)?
-                .to_std_string_escaped()
-                .parse()
-                .map_err(|_| {
-                    JsNativeError::range()
-                        .with_message("locale is not a structurally valid language tag")
-                })?;
+            else {
+                // 1. Let tag be ? ToString(kValue).
+                k_value
+                    .to_string(context)?
+                    .to_std_string_escaped()
+                    .parse()
+                    // v. If IsStructurallyValidLanguageTag(tag) is false, throw a RangeError exception.
+                    .map_err(|_| {
+                        JsNativeError::range()
+                            .with_message("locale is not a structurally valid language tag")
+                    })?
+            };
 
             // vi. Let canonicalizedTag be CanonicalizeUnicodeLocaleId(tag).
             context.icu().locale_canonicalizer().canonicalize(&mut tag);
@@ -358,4 +366,68 @@ fn best_fit_matcher<M: KeyedDataMarker>(
     icu: &Icu<impl DataProvider<M>>,
 ) -> Locale {
     lookup_matcher::<M>(requested_locales, icu)
+}
+
+#[cfg(test)]
+mod tests {
+    use icu_locid::{langid, locale, Locale};
+    use icu_plurals::provider::CardinalV1Marker;
+    use icu_provider::AsDowncastingAnyProvider;
+
+    use crate::{
+        builtins::intl::locale::utils::{
+            best_available_locale, best_fit_matcher, default_locale, lookup_matcher,
+        },
+        context::icu::{BoaProvider, Icu},
+    };
+
+    #[test]
+    fn best_avail_loc() {
+        let provider = icu_testdata::any();
+        let provider = provider.as_downcasting();
+
+        assert_eq!(
+            best_available_locale::<CardinalV1Marker>(langid!("en"), &provider),
+            Some(langid!("en"))
+        );
+
+        assert_eq!(
+            best_available_locale::<CardinalV1Marker>(langid!("es-ES"), &provider),
+            Some(langid!("es"))
+        );
+
+        assert_eq!(
+            best_available_locale::<CardinalV1Marker>(langid!("kr"), &provider),
+            None
+        );
+    }
+
+    #[test]
+    fn lookup_match() {
+        let icu = Icu::new(BoaProvider::Any(Box::new(icu_testdata::any()))).unwrap();
+
+        // requested: []
+
+        let res = lookup_matcher::<CardinalV1Marker>(&[], &icu);
+        assert_eq!(res, default_locale(icu.locale_canonicalizer()));
+        assert!(res.extensions.is_empty());
+
+        // requested: [fr-FR-u-hc-h12]
+        let requested: Locale = "fr-FR-u-hc-h12".parse().unwrap();
+
+        let result = lookup_matcher::<CardinalV1Marker>(&[requested.clone()], &icu);
+        assert_eq!(result.id, langid!("fr"));
+        assert_eq!(result.extensions, requested.extensions);
+
+        // requested: [kr-KR-u-hc-h12, gr-GR-u-hc-h24-x-4a, es-ES-valencia-u-ca-gregory, uz-Cyrl]
+        let kr = "kr-KR-u-hc-h12".parse().unwrap();
+        let gr = "gr-GR-u-hc-h24-x-4a".parse().unwrap();
+        let es: Locale = "es-ES-valencia-u-ca-gregory".parse().unwrap();
+        let uz = locale!("uz-Cyrl");
+        let requested = vec![kr, gr, es.clone(), uz];
+
+        let res = best_fit_matcher::<CardinalV1Marker>(&requested, &icu);
+        assert_eq!(res.id, langid!("es"));
+        assert_eq!(res.extensions, es.extensions);
+    }
 }

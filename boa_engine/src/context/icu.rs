@@ -1,6 +1,6 @@
 use std::fmt::Debug;
 
-use icu_locid_transform::{LocaleCanonicalizer, LocaleTransformError};
+use icu_locid_transform::{LocaleCanonicalizer, LocaleExpander, LocaleTransformError};
 use icu_provider::{
     yoke::{trait_hack::YokeTraitHack, Yokeable},
     zerofrom::ZeroFrom,
@@ -28,8 +28,7 @@ where
     M: KeyedDataMarker + 'static,
     for<'de> YokeTraitHack<<M::Yokeable as Yokeable<'de>>::Output>: Deserialize<'de>,
     for<'a> YokeTraitHack<<M::Yokeable as Yokeable<'a>>::Output>: Clone,
-    M::Yokeable: ZeroFrom<'static, M::Yokeable>,
-    M::Yokeable: MaybeSendSync,
+    M::Yokeable: ZeroFrom<'static, M::Yokeable> + MaybeSendSync,
 {
     fn load(&self, req: DataRequest<'_>) -> Result<DataResponse<M>, DataError> {
         match self {
@@ -51,6 +50,14 @@ impl BoaProvider {
             BoaProvider::Any(any) => LocaleCanonicalizer::try_new_with_any_provider(any),
         }
     }
+
+    /// Creates a new [`LocaleExpander`] from the provided [`DataProvider`].
+    pub(crate) fn try_new_locale_expander(&self) -> Result<LocaleExpander, LocaleTransformError> {
+        match self {
+            BoaProvider::Buffer(buffer) => LocaleExpander::try_new_with_buffer_provider(buffer),
+            BoaProvider::Any(any) => LocaleExpander::try_new_with_any_provider(any),
+        }
+    }
 }
 
 /// Collection of tools initialized from a [`DataProvider`] that are used
@@ -58,6 +65,7 @@ impl BoaProvider {
 pub(crate) struct Icu<P> {
     provider: P,
     locale_canonicalizer: LocaleCanonicalizer,
+    locale_expander: LocaleExpander,
 }
 
 impl<P: Debug> Debug for Icu<P> {
@@ -71,14 +79,19 @@ impl<P: Debug> Debug for Icu<P> {
 
 impl<P> Icu<P> {
     /// Gets the [`LocaleCanonicalizer`] tool.
-    pub(crate) fn locale_canonicalizer(&self) -> &LocaleCanonicalizer {
+    pub(crate) const fn locale_canonicalizer(&self) -> &LocaleCanonicalizer {
         &self.locale_canonicalizer
     }
 
     /// Gets the inner icu data provider
     #[allow(unused)]
-    pub(crate) fn provider(&self) -> &P {
+    pub(crate) const fn provider(&self) -> &P {
         &self.provider
+    }
+
+    /// Gets the [`LocaleExpander`] tool.
+    pub(crate) const fn locale_expander(&self) -> &LocaleExpander {
+        &self.locale_expander
     }
 }
 
@@ -90,10 +103,10 @@ impl Icu<BoaProvider> {
     /// This method will return an error if any of the tools
     /// required cannot be constructed.
     pub(crate) fn new(provider: BoaProvider) -> Result<Self, LocaleTransformError> {
-        let locale_canonicalizer = provider.try_new_locale_canonicalizer()?;
         Ok(Self {
+            locale_canonicalizer: provider.try_new_locale_canonicalizer()?,
+            locale_expander: provider.try_new_locale_expander()?,
             provider,
-            locale_canonicalizer,
         })
     }
 }

@@ -1,71 +1,70 @@
-// use icu_datetime::{pattern::CoarseHourCycle, provider::calendar::TimeLengthsV1Marker, options::preferences::HourCycle};
-// use icu_locid::{
-//     extensions::{
-//         unicode::{Key, Value},
-//         Extensions,
-//     },
-//     extensions_unicode_key as key, extensions_unicode_value as value, langid, locale, LanguageIdentifier, Locale,
-// };
-// use icu_provider::{hello_world::HelloWorldV1Marker, DataProvider, DataRequest, AsDowncastingAnyProvider, DataLocale};
-// use serde::{de::value::StrDeserializer, Deserialize, Serialize};
+use icu_datetime::{
+    options::preferences::HourCycle, pattern::CoarseHourCycle,
+    provider::calendar::TimeLengthsV1Marker,
+};
+use icu_locid::{
+    extensions::unicode::Value, extensions_unicode_key as key, extensions_unicode_value as value,
+    Locale,
+};
+use icu_plurals::provider::CardinalV1Marker;
+use icu_provider::{DataLocale, DataProvider, DataRequest, DataRequestMetadata};
 
-// use crate::{
-//     builtins::intl::{
-//         locale::{best_available_locale, best_fit_matcher, default_locale, lookup_matcher},
-//         ExtensionKey, Service,
-//     },
-//     context::icu::{BoaProvider, Icu},
-// };
+use crate::builtins::intl::Service;
 
-// #[test]
-// fn best_avail_loc() {
-//     let provider = icu_testdata::any();
-//     let provider = provider.as_downcasting();
+struct TestOptions {
+    hc: Option<HourCycle>,
+}
 
-//     assert_eq!(
-//         best_available_locale::<CardinalV1Marker>(langid!("en"), &provider),
-//         Some(langid!("en"))
-//     );
+struct TestService;
 
-//     assert_eq!(
-//         best_available_locale::<CardinalV1Marker>(langid!("es-ES"), &provider),
-//         Some(langid!("es"))
-//     );
+impl<P> Service<P> for TestService
+where
+    P: DataProvider<TimeLengthsV1Marker>,
+{
+    type LangMarker = CardinalV1Marker;
 
-//     assert_eq!(
-//         best_available_locale::<CardinalV1Marker>(langid!("kr"), &provider),
-//         None
-//     );
-// }
+    type Options = TestOptions;
 
-// #[test]
-// fn lookup_match() {
-//     let icu = Icu::new(BoaProvider::Any(Box::new(icu_testdata::any()))).unwrap();
-
-//     // requested: []
-
-//     let res = lookup_matcher::<CardinalV1Marker>(&[], &icu);
-//     assert_eq!(res, default_locale(icu.locale_canonicalizer()));
-//     assert!(res.extensions.is_empty());
-
-//     // requested: [fr-FR-u-hc-h12]
-//     let req: Locale = "fr-FR-u-hc-h12".parse().unwrap();
-
-//     let res = lookup_matcher::<CardinalV1Marker>(&[req.clone()], &icu);
-//     assert_eq!(res.id, langid!("fr"));
-//     assert_eq!(res.extensions, req.extensions);
-
-//     // requested: [kr-KR-u-hc-h12, gr-GR-u-hc-h24-x-4a, es-ES-valencia-u-ca-gregory, uz-Cyrl]
-//     let kr: Locale = "kr-KR-u-hc-h12".parse().unwrap();
-//     let gr: Locale = "gr-GR-u-hc-h24-x-4a".parse().unwrap();
-//     let en: Locale = "es-ES-valencia-u-ca-gregory".parse().unwrap();
-//     let uz = locale!("uz-Cyrl");
-//     let req = vec![kr, gr, en.clone(), uz];
-
-//     let res = best_fit_matcher::<CardinalV1Marker>(&req, &icu);
-//     assert_eq!(res.id, langid!("es"));
-//     assert_eq!(res.extensions, en.extensions);
-// }
+    fn resolve(locale: &mut Locale, options: &mut Self::Options, provider: &P) {
+        let loc_hc = locale
+            .extensions
+            .unicode
+            .keywords
+            .get(&key!("hc"))
+            .and_then(Value::as_single_subtag)
+            .and_then(|s| match &**s {
+                "h11" => Some(HourCycle::H11),
+                "h12" => Some(HourCycle::H12),
+                "h23" => Some(HourCycle::H23),
+                "h24" => Some(HourCycle::H24),
+                _ => None,
+            });
+        let hc = options.hc.or(loc_hc).unwrap_or_else(|| {
+            let req = DataRequest {
+                locale: &DataLocale::from(&*locale),
+                metadata: DataRequestMetadata::default(),
+            };
+            let preferred = DataProvider::<TimeLengthsV1Marker>::load(provider, req)
+                .unwrap()
+                .take_payload()
+                .unwrap()
+                .get()
+                .preferred_hour_cycle;
+            match preferred {
+                CoarseHourCycle::H11H12 => HourCycle::H11,
+                CoarseHourCycle::H23H24 => HourCycle::H23,
+            }
+        });
+        let hc_value = match hc {
+            HourCycle::H11 => value!("h11"),
+            HourCycle::H12 => value!("h12"),
+            HourCycle::H23 => value!("h23"),
+            HourCycle::H24 => value!("h24"),
+        };
+        locale.extensions.unicode.keywords.set(key!("hc"), hc_value);
+        options.hc = Some(hc);
+    }
+}
 
 // // #[test]
 // // fn locale_resolution() {

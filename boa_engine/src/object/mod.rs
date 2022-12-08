@@ -273,6 +273,10 @@ pub enum ObjectKind {
     /// The `Intl.DateTimeFormat` object kind.
     #[cfg(feature = "intl")]
     DateTimeFormat(Box<DateTimeFormat>),
+
+    /// The `Intl.Locale` object kind.
+    #[cfg(feature = "intl")]
+    Locale(Box<icu_locid::Locale>),
 }
 
 unsafe impl Trace for ObjectKind {
@@ -311,7 +315,8 @@ unsafe impl Trace for ObjectKind {
             | Self::Ordinary
             | Self::Global
             | Self::Number(_)
-            | Self::Symbol(_) => {}
+            | Self::Symbol(_)
+            | Self::Locale(_) => {}
         }
     }}
 }
@@ -637,6 +642,16 @@ impl ObjectData {
             internal_methods: &ORDINARY_INTERNAL_METHODS,
         }
     }
+
+    /// Create the `Locale` object data
+    #[cfg(feature = "intl")]
+    #[must_use]
+    pub fn locale(locale: icu_locid::Locale) -> Self {
+        Self {
+            kind: ObjectKind::Locale(Box::new(locale)),
+            internal_methods: &ORDINARY_INTERNAL_METHODS,
+        }
+    }
 }
 
 impl Display for ObjectKind {
@@ -678,6 +693,8 @@ impl Display for ObjectKind {
             Self::DateTimeFormat(_) => "DateTimeFormat",
             Self::Promise(_) => "Promise",
             Self::WeakRef(_) => "WeakRef",
+            #[cfg(feature = "intl")]
+            Self::Locale(_) => "Locale",
         })
     }
 }
@@ -1572,7 +1589,7 @@ impl Object {
         }
     }
 
-    /// Gets the `WeakRef`data if the object is a `WeakRef`.
+    /// Gets the `WeakRef` data if the object is a `WeakRef`.
     #[inline]
     pub const fn as_weak_ref(&self) -> Option<&WeakGc<GcCell<Self>>> {
         match self.data {
@@ -1580,6 +1597,19 @@ impl Object {
                 kind: ObjectKind::WeakRef(ref weak_ref),
                 ..
             } => Some(weak_ref),
+            _ => None,
+        }
+    }
+
+    /// Gets the `Locale` data if the object is a `Locale`.
+    #[inline]
+    #[cfg(feature = "intl")]
+    pub const fn as_locale(&self) -> Option<&icu_locid::Locale> {
+        match self.data {
+            ObjectData {
+                kind: ObjectKind::Locale(ref locale),
+                ..
+            } => Some(locale),
             _ => None,
         }
     }

@@ -120,6 +120,8 @@ pub struct StandardConstructors {
     date_time_format: StandardConstructor,
     promise: StandardConstructor,
     weak_ref: StandardConstructor,
+    #[cfg(feature = "intl")]
+    locale: StandardConstructor,
 }
 
 impl Default for StandardConstructors {
@@ -180,6 +182,8 @@ impl Default for StandardConstructors {
             date_time_format: StandardConstructor::default(),
             promise: StandardConstructor::default(),
             weak_ref: StandardConstructor::default(),
+            #[cfg(feature = "intl")]
+            locale: StandardConstructor::default(),
         };
 
         // The value of `Array.prototype` is the Array prototype object.
@@ -669,6 +673,17 @@ impl StandardConstructors {
     #[inline]
     pub const fn weak_ref(&self) -> &StandardConstructor {
         &self.weak_ref
+    }
+
+    /// Returns the `Intl.Locale` constructor.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma402/#sec-Intl.Locale
+    #[inline]
+    pub const fn locale(&self) -> &StandardConstructor {
+        &self.locale
     }
 }
 

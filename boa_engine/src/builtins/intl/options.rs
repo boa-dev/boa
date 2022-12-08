@@ -1,6 +1,11 @@
 use std::{fmt::Display, str::FromStr};
 
-use crate::{object::JsObject, Context, JsNativeError, JsResult, JsValue};
+use icu_collator::CaseFirst;
+
+use crate::{
+    object::{JsObject, ObjectData},
+    Context, JsNativeError, JsResult, JsString, JsValue,
+};
 
 /// `IntlOptions` aggregates the `locale_matcher` selector and any other object
 /// property needed for `Intl` object constructors.
@@ -40,8 +45,67 @@ where
     }
 }
 
+impl OptionType for bool {
+    fn from_value(value: JsValue, _: &mut Context) -> JsResult<Self> {
+        // 5. If type is "boolean", then
+        //      a. Set value to ! ToBoolean(value).
+        Ok(value.to_boolean())
+    }
+}
+
+impl OptionType for JsString {
+    fn from_value(value: JsValue, context: &mut Context) -> JsResult<Self> {
+        // 6. If type is "string", then
+        //      a. Set value to ? ToString(value).
+        value.to_string(context)
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(super) enum LocaleMatcher {
+    Lookup,
+    BestFit,
+}
+
+#[derive(Debug)]
+pub(super) struct ParseLocaleMatcherError;
+
+impl Display for ParseLocaleMatcherError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        "provided string was not `lookup` or `best fit`".fmt(f)
+    }
+}
+
+impl FromStr for LocaleMatcher {
+    type Err = ParseLocaleMatcherError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "lookup" => Ok(Self::Lookup),
+            "best fit" => Ok(Self::BestFit),
+            _ => Err(ParseLocaleMatcherError),
+        }
+    }
+}
+
+impl OptionTypeParsable for LocaleMatcher {}
+
+impl OptionType for CaseFirst {
+    fn from_value(value: JsValue, context: &mut Context) -> JsResult<Self> {
+        match value.to_string(context)?.to_std_string_escaped().as_str() {
+            "upper" => Ok(CaseFirst::UpperFirst),
+            "lower" => Ok(CaseFirst::LowerFirst),
+            "false" => Ok(CaseFirst::Off),
+            _ => Err(JsNativeError::range()
+                .with_message("provided string was not `upper`, `lower` or `false`")
+                .into()),
+        }
+    }
+}
+
 /// The default value passed to the [`get_option`] function.
 #[derive(Debug, Copy, Clone)]
+#[allow(unused)]
 pub(super) enum GetOptionDefault<T> {
     /// Throw an error if the value is `undefined`.
     Required,
@@ -92,51 +156,6 @@ pub(super) fn get_option<T: OptionType>(
     // The steps 3 to 7 must be made for each `OptionType`.
     T::from_value(value, context).map(Some)
 }
-
-impl OptionType for bool {
-    fn from_value(value: JsValue, _: &mut Context) -> JsResult<Self> {
-        // 5. If type is "boolean", then
-        //      a. Set value to ! ToBoolean(value).
-        Ok(value.to_boolean())
-    }
-}
-
-impl OptionType for String {
-    fn from_value(value: JsValue, context: &mut Context) -> JsResult<Self> {
-        // 6. If type is "string", then
-        //      a. Set value to ? ToString(value).
-        value.to_string(context).map(|s| s.to_std_string_escaped())
-    }
-}
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub(super) enum LocaleMatcher {
-    Lookup,
-    BestFit,
-}
-
-#[derive(Debug)]
-pub(super) struct ParseLocaleMatcherError;
-
-impl Display for ParseLocaleMatcherError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        "provided string was not `lookup` or `best fit`".fmt(f)
-    }
-}
-
-impl FromStr for LocaleMatcher {
-    type Err = ParseLocaleMatcherError;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s {
-            "lookup" => Ok(Self::Lookup),
-            "best fit" => Ok(Self::BestFit),
-            _ => Err(ParseLocaleMatcherError),
-        }
-    }
-}
-
-impl OptionTypeParsable for LocaleMatcher {}
 
 /// Abstract operation `GetNumberOption ( options, property, minimum, maximum, fallback )`
 ///
@@ -199,4 +218,52 @@ pub(super) fn default_number_option(
 
     // 4. Return floor(value).
     Ok(Some(value.floor()))
+}
+
+/// Abstract operation [`GetOptionsObject ( options )`][spec]
+///
+/// Returns a [`JsObject`] suitable for use with [`get_option`], either `options` itself or a default empty
+/// `JsObject`. It throws a `TypeError` if `options` is not undefined and not a `JsObject`.
+///
+/// [spec]: https://tc39.es/ecma402/#sec-getoptionsobject
+#[allow(unused)]
+pub(super) fn get_options_object(options: &JsValue) -> JsResult<JsObject> {
+    match options {
+        // If options is undefined, then
+        JsValue::Undefined => {
+            // a. Return OrdinaryObjectCreate(null).
+            Ok(JsObject::from_proto_and_data(None, ObjectData::ordinary()))
+        }
+        // 2. If Type(options) is Object, then
+        JsValue::Object(obj) => {
+            // a. Return options.
+            Ok(obj.clone())
+        }
+        // 3. Throw a TypeError exception.
+        _ => Err(JsNativeError::typ()
+            .with_message("GetOptionsObject: provided options is not an object")
+            .into()),
+    }
+}
+
+/// Abstract operation [`CoerceOptionsToObject ( options )`][spec]
+///
+/// Coerces `options` into a [`JsObject`] suitable for use with [`get_option`], defaulting to an empty
+/// `JsObject`.
+/// Because it coerces non-null primitive values into objects, its use is discouraged for new
+/// functionality in favour of [`get_options_object`].
+///
+/// [spec]: https://tc39.es/ecma402/#sec-coerceoptionstoobject
+pub(super) fn coerce_options_to_object(
+    options: &JsValue,
+    context: &mut Context,
+) -> JsResult<JsObject> {
+    // If options is undefined, then
+    if options.is_undefined() {
+        // a. Return OrdinaryObjectCreate(null).
+        return Ok(JsObject::from_proto_and_data(None, ObjectData::ordinary()));
+    }
+
+    // 2. Return ? ToObject(options).
+    options.to_object(context)
 }

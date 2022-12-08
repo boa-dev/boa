@@ -25,7 +25,6 @@ features = [
     "Intl.DisplayNames",
     "Intl.RelativeTimeFormat",
     "Intl.Segmenter",
-    "Intl.Locale",
 
     # Stage 3 proposals
 

@@ -16,11 +16,8 @@ use crate::{
     Context, JsResult, JsValue,
 };
 
-#[cfg(test)]
-mod tests;
-
 pub(crate) mod date_time_format;
-mod locale;
+pub(crate) mod locale;
 mod options;
 
 use boa_profiler::Profiler;

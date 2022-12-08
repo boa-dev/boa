@@ -563,7 +563,7 @@ impl Context {
 
     #[cfg(feature = "intl")]
     /// Get the ICU related utilities
-    pub(crate) fn icu(&self) -> &icu::Icu<icu::BoaProvider> {
+    pub(crate) const fn icu(&self) -> &icu::Icu<icu::BoaProvider> {
         &self.icu
     }
 
