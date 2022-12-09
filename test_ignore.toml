@@ -19,9 +19,6 @@ features = [
     # Non-implemented Intl features
     "intl-normative-optional",
     "Intl.DurationFormat",
-    "Intl.NumberFormat-v3",
-    "Intl.NumberFormat-unified",
-    "Intl.ListFormat",
     "Intl.DisplayNames",
     "Intl.RelativeTimeFormat",
     "Intl.Segmenter",
@@ -32,6 +29,8 @@ features = [
     "symbols-as-weakmap-keys",
     # https://github.com/tc39/proposal-intl-locale-info
     "Intl.Locale-info",
+    # https://github.com/tc39/proposal-intl-enumeration
+    "Intl-enumeration",
 
     # Non-standard
     "caller",
@@ -43,4 +42,4 @@ features = [
 
 # RegExp tests that check individual codepoints.
 # They are not useful considering the cpu time they waste.
-tests = ["CharacterClassEscapes"]
+tests = ["CharacterClassEscapes", "Collator", "NumberFormat"]

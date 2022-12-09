@@ -137,6 +137,7 @@ dependencies = [
  "icu_calendar",
  "icu_collator",
  "icu_datetime",
+ "icu_list",
  "icu_locid",
  "icu_locid_transform",
  "icu_plurals",
@@ -161,6 +162,7 @@ dependencies = [
  "tap",
  "thiserror",
  "unicode-normalization",
+ "writeable",
 ]
 
 [[package]]
@@ -592,6 +594,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "deduplicating_array"
+version = "0.1.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "135a278b07263e55438c15a3021b4947288f981ae387666f5015add8fbc76f5b"
+dependencies = [
+ "serde",
+]
+
+[[package]]
 name = "derive_arbitrary"
 version = "1.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -914,10 +925,12 @@ version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c40218275f081c4493f190357c5395647b06734c2dc3dcb41cc099a0f60168b1"
 dependencies = [
+ "deduplicating_array",
  "displaydoc",
  "icu_locid",
  "icu_provider",
  "regex-automata",
+ "serde",
  "writeable",
  "zerovec",
 ]

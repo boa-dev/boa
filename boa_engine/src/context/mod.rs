@@ -5,6 +5,9 @@ pub mod intrinsics;
 #[cfg(feature = "intl")]
 pub(crate) mod icu;
 
+#[cfg(feature = "intl")]
+pub use icu::BoaProvider;
+
 use intrinsics::{IntrinsicObjects, Intrinsics};
 use std::collections::VecDeque;
 
@@ -86,7 +89,7 @@ pub struct Context {
 
     /// ICU related utilities
     #[cfg(feature = "intl")]
-    icu: icu::Icu<icu::BoaProvider>,
+    icu: icu::Icu<BoaProvider>,
 
     /// Number of instructions remaining before a forced exit
     #[cfg(feature = "fuzz")]
@@ -566,7 +569,7 @@ impl Context {
 
     #[cfg(feature = "intl")]
     /// Get the ICU related utilities
-    pub(crate) const fn icu(&self) -> &icu::Icu<icu::BoaProvider> {
+    pub(crate) const fn icu(&self) -> &icu::Icu<BoaProvider> {
         &self.icu
     }
 
@@ -609,7 +612,7 @@ impl Context {
 pub struct ContextBuilder {
     interner: Option<Interner>,
     #[cfg(feature = "intl")]
-    icu: Option<icu::Icu<icu::BoaProvider>>,
+    icu: Option<icu::Icu<BoaProvider>>,
     #[cfg(feature = "fuzz")]
     instructions_remaining: usize,
 }
@@ -632,7 +635,7 @@ impl ContextBuilder {
     #[cfg(feature = "intl")]
     pub fn icu_provider(
         mut self,
-        provider: icu::BoaProvider,
+        provider: BoaProvider,
     ) -> Result<Self, icu_locid_transform::LocaleTransformError> {
         self.icu = Some(icu::Icu::new(provider)?);
         Ok(self)
@@ -675,7 +678,7 @@ impl ContextBuilder {
             #[cfg(feature = "intl")]
             icu: self.icu.unwrap_or_else(|| {
                 // TODO: Replace with a more fitting default
-                let provider = icu::BoaProvider::Buffer(std::rc::Rc::new(icu_testdata::buffer()));
+                let provider = BoaProvider::Buffer(std::rc::Rc::new(icu_testdata::buffer()));
                 icu::Icu::new(provider).expect("Failed to initialize default icu data.")
             }),
             #[cfg(feature = "fuzz")]

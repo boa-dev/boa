@@ -1,16 +1,28 @@
 use std::{fmt::Debug, rc::Rc};
 
+use icu_list::{ListError, ListFormatter, ListLength};
 use icu_locid_transform::{LocaleCanonicalizer, LocaleExpander, LocaleTransformError};
 use icu_provider::{
     yoke::{trait_hack::YokeTraitHack, Yokeable},
     zerofrom::ZeroFrom,
     AnyProvider, AsDeserializingBufferProvider, AsDowncastingAnyProvider, BufferProvider,
-    DataError, DataProvider, DataRequest, DataResponse, KeyedDataMarker, MaybeSendSync,
+    DataError, DataLocale, DataProvider, DataRequest, DataResponse, KeyedDataMarker, MaybeSendSync,
 };
 use serde::Deserialize;
 
+use crate::builtins::intl::list_format::ListFormatType;
+
+/// ICU4X data provider used in boa.
+///
+/// Providers can be either [`BufferProvider`]s or [`AnyProvider`]s, and both are stored in an [`Rc`]
+/// to make it possible to cheapily share ICU data between contexts.
+///
+/// The [`icu_provider`] documentation has more information about data providers.
+#[derive(Clone)]
 pub enum BoaProvider {
+    /// A [`BufferProvider`] data provider.
     Buffer(Rc<dyn BufferProvider>),
+    /// An [`AnyProvider] data provider.
     Any(Rc<dyn AnyProvider>),
 }
 
@@ -58,6 +70,45 @@ impl BoaProvider {
             BoaProvider::Any(any) => LocaleExpander::try_new_with_any_provider(&**any),
         }
     }
+
+    /// Creates a new [`ListFormatter`] from the provided [`DataProvider`] and options.
+    pub(crate) fn try_new_list_formatter(
+        &self,
+        locale: &DataLocale,
+        typ: ListFormatType,
+        style: ListLength,
+    ) -> Result<ListFormatter, ListError> {
+        match self {
+            BoaProvider::Buffer(buf) => match typ {
+                ListFormatType::Conjunction => {
+                    ListFormatter::try_new_and_with_length_with_buffer_provider(
+                        &**buf, locale, style,
+                    )
+                }
+                ListFormatType::Disjunction => {
+                    ListFormatter::try_new_or_with_length_with_buffer_provider(
+                        &**buf, locale, style,
+                    )
+                }
+                ListFormatType::Unit => {
+                    ListFormatter::try_new_unit_with_length_with_buffer_provider(
+                        &**buf, locale, style,
+                    )
+                }
+            },
+            BoaProvider::Any(any) => match typ {
+                ListFormatType::Conjunction => {
+                    ListFormatter::try_new_and_with_length_with_any_provider(&**any, locale, style)
+                }
+                ListFormatType::Disjunction => {
+                    ListFormatter::try_new_or_with_length_with_any_provider(&**any, locale, style)
+                }
+                ListFormatType::Unit => {
+                    ListFormatter::try_new_unit_with_length_with_any_provider(&**any, locale, style)
+                }
+            },
+        }
+    }
 }
 
 /// Collection of tools initialized from a [`DataProvider`] that are used
@@ -84,7 +135,6 @@ impl<P> Icu<P> {
     }
 
     /// Gets the inner icu data provider
-    #[allow(unused)]
     pub(crate) const fn provider(&self) -> &P {
         &self.provider
     }

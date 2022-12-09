@@ -7,6 +7,7 @@
 //!
 //! [spec]: https://tc39.es/ecma402/#intl-object
 
+use super::JsArgs;
 use crate::{
     builtins::intl::date_time_format::DateTimeFormat,
     builtins::{Array, BuiltIn},
@@ -16,15 +17,17 @@ use crate::{
     Context, JsResult, JsValue,
 };
 
-pub(crate) mod date_time_format;
-pub(crate) mod locale;
-mod options;
-
 use boa_profiler::Profiler;
 use icu_provider::KeyedDataMarker;
 use tap::{Conv, Pipe};
 
-use self::locale::Locale;
+pub(crate) mod date_time_format;
+pub(crate) mod list_format;
+pub(crate) mod locale;
+mod options;
+pub(crate) mod segmenter;
+
+use self::{list_format::ListFormat, locale::Locale, segmenter::Segmenter};
 
 /// JavaScript `Intl` object.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -36,8 +39,13 @@ impl BuiltIn for Intl {
     fn init(context: &mut Context) -> Option<JsValue> {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
-        let locale =
-            Locale::init(context).expect("initialization should return the constructor object");
+        let locale = Locale::init(context).expect("initialization should return a constructor");
+
+        let segmenter =
+            Segmenter::init(context).expect("initialization should return a constructor");
+
+        let list_format =
+            ListFormat::init(context).expect("initialization should return a constructor");
 
         let string_tag = WellKnownSymbols::to_string_tag();
         let date_time_format = DateTimeFormat::init(context);
@@ -56,6 +64,16 @@ impl BuiltIn for Intl {
             .property(
                 "Locale",
                 locale,
+                Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+            )
+            .property(
+                "Segmenter",
+                segmenter,
+                Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+            )
+            .property(
+                "ListFormat",
+                list_format,
                 Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
             .build()
@@ -80,8 +98,10 @@ impl Intl {
         args: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
+        let locales = args.get_or_undefined(0);
+
         // 1. Let ll be ? CanonicalizeLocaleList(locales).
-        let ll = locale::canonicalize_locale_list(args, context)?;
+        let ll = locale::canonicalize_locale_list(locales, context)?;
 
         // 2. Return CreateArrayFromList(ll).
         Ok(JsValue::Object(Array::create_array_from_list(
@@ -91,8 +111,29 @@ impl Intl {
     }
 }
 
+// Making `provider: &BoaProvider` instead of a type parameter `P` makes it so that we need
+// to copy-paste the bounds of `impl<M> DataProvider<M> for BoaProvider` every time we need
+// to use `provider`. The type parameter solves this by delegating simpler bounds to every
+// implementor of `Service`.
 trait Service<P> {
+    /// The data marker used by [`resolve_locale`][locale::resolve_locale] to decide
+    /// which locales are supported by this service.
     type LangMarker: KeyedDataMarker;
+
+    /// The set of options used in the [`Service::resolve`] method to resolve the provided
+    /// locale.
     type Options;
-    fn resolve(locale: &mut icu_locid::Locale, options: &mut Self::Options, provider: &P);
+
+    /// Resolves the final value of `locale` from a set of `options`.
+    ///
+    /// The provided `options` will also be modified with the final values, in case there were
+    /// changes in the resolution algorithm.
+    ///
+    /// # Note
+    ///
+    /// - A correct implementation must ensure `locale` and `options` are both written with the
+    /// new final values.
+    /// - If the implementor service doesn't contain any `[[RelevantExtensionKeys]]`, this can be
+    /// skipped.
+    fn resolve(_locale: &mut icu_locid::Locale, _options: &mut Self::Options, _provider: &P) {}
 }

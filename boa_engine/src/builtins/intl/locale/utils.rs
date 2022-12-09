@@ -1,12 +1,13 @@
 use crate::{
     builtins::{
         intl::{
-            options::{IntlOptions, LocaleMatcher},
+            options::{coerce_options_to_object, get_option, IntlOptions, LocaleMatcher},
             Service,
         },
-        Array, JsArgs,
+        Array,
     },
-    context::icu::Icu,
+    context::{icu::Icu, BoaProvider},
+    object::JsObject,
     Context, JsNativeError, JsResult, JsValue,
 };
 
@@ -16,6 +17,24 @@ use icu_provider::{DataProvider, DataRequest, DataRequestMetadata, KeyedDataMark
 use indexmap::IndexSet;
 
 use tap::TapOptional;
+
+/// Abstract operation `DefaultLocale ( )`
+///
+/// Returns a String value representing the structurally valid and canonicalized
+/// Unicode BCP 47 locale identifier for the host environment's current locale.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma402/#sec-defaultlocale
+pub(super) fn default_locale(canonicalizer: &LocaleCanonicalizer) -> Locale {
+    sys_locale::get_locale()
+        .and_then(|loc| loc.parse::<Locale>().ok())
+        .tap_some_mut(|loc| {
+            canonicalizer.canonicalize(loc);
+        })
+        .unwrap_or_default()
+}
 
 /// Abstract operation `CanonicalizeLocaleList ( locales )`
 ///
@@ -33,14 +52,13 @@ use tap::TapOptional;
 /// [bcp-47]: https://unicode.org/reports/tr35/#Unicode_locale_identifier
 /// [canon]: https://unicode.org/reports/tr35/#LocaleId_Canonicalization
 pub(in crate::builtins::intl) fn canonicalize_locale_list(
-    args: &[JsValue],
+    locales: &JsValue,
     context: &mut Context,
-) -> JsResult<IndexSet<Locale>> {
+) -> JsResult<Vec<Locale>> {
     // 1. If locales is undefined, then
-    let locales = args.get_or_undefined(0);
     if locales.is_undefined() {
         // a. Return a new empty List.
-        return Ok(IndexSet::default());
+        return Ok(Vec::default());
     }
 
     // 2. Let seen be a new empty List.
@@ -112,7 +130,146 @@ pub(in crate::builtins::intl) fn canonicalize_locale_list(
     }
 
     // 8. Return seen.
-    Ok(seen)
+    Ok(seen.into_iter().collect())
+}
+
+/// Abstract operation `BestAvailableLocale ( availableLocales, locale )`
+///
+/// Compares the provided argument `locale`, which must be a String value with a
+/// structurally valid and canonicalized Unicode BCP 47 locale identifier, against
+/// the locales in `availableLocales` and returns either the longest non-empty prefix
+/// of `locale` that is an element of `availableLocales`, or undefined if there is no
+/// such element.
+///
+/// We only work with language identifiers, which have the same semantics
+/// but are a bit easier to manipulate.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma402/#sec-bestavailablelocale
+fn best_available_locale<M: KeyedDataMarker>(
+    candidate: LanguageIdentifier,
+    provider: &(impl DataProvider<M> + ?Sized),
+) -> Option<LanguageIdentifier> {
+    // 1. Let candidate be locale.
+    let mut candidate = candidate.into();
+    // 2. Repeat
+    loop {
+        // a. If availableLocales contains an element equal to candidate, return candidate.
+        // ICU4X requires doing data requests in order to check if a locale
+        // is part of the set of supported locales.
+        let response = DataProvider::<M>::load(
+            provider,
+            DataRequest {
+                locale: &candidate,
+                metadata: DataRequestMetadata::default(),
+            },
+        );
+
+        if let Ok(req) = response {
+            let metadata = req.metadata;
+
+            // `metadata.locale` returns None when the provider doesn't have a
+            // fallback mechanism, but supports the required locale.
+            // However, if the provider has a fallback mechanism, this will return
+            // `Some(locale)`, where the locale is the used locale after applying
+            // the fallback algorithm, even if the used locale is exactly the same
+            // as the required locale.
+            if metadata.locale.is_none() || metadata.locale.as_ref() == Some(&candidate) {
+                return Some(candidate.get_langid());
+            }
+        }
+
+        // b. Let pos be the character index of the last occurrence of "-" (U+002D) within candidate. If that character does not occur, return undefined.
+        // c. If pos ≥ 2 and the character "-" occurs at index pos-2 of candidate, decrease pos by 2.
+        // d. Let candidate be the substring of candidate from position 0, inclusive, to position pos, exclusive.
+        //
+        // Since the definition of `LanguageIdentifier` allows us to manipulate it
+        // without using strings, we can replace these steps by a simpler
+        // algorithm.
+
+        if candidate.has_variants() {
+            let mut variants = candidate
+                .clear_variants()
+                .iter()
+                .copied()
+                .collect::<Vec<_>>();
+            variants.pop();
+            candidate.set_variants(Variants::from_vec_unchecked(variants));
+        } else if candidate.region().is_some() {
+            candidate.set_region(None);
+        } else if candidate.script().is_some() {
+            candidate.set_script(None);
+        } else {
+            return None;
+        }
+    }
+}
+
+/// Abstract operation [`LookupMatcher ( availableLocales, requestedLocales )`][spec]
+///
+/// Compares `requestedLocales`, which must be a `List` as returned by `CanonicalizeLocaleList`,
+/// against the locales in `availableLocales` and determines the best available language to
+/// meet the request.
+///
+/// # Note
+///
+/// This differs a bit from the spec, since we don't have an `[[AvailableLocales]]`
+/// list to compare with. However, we can do data requests to a [`DataProvider`]
+/// in order to see if a certain [`Locale`] is supported.
+///
+/// [spec]: https://tc39.es/ecma402/#sec-lookupmatcher
+fn lookup_matcher<M: KeyedDataMarker>(
+    requested_locales: &[Locale],
+    icu: &Icu<impl DataProvider<M>>,
+) -> Locale {
+    // 1. Let result be a new Record.
+    // 2. For each element locale of requestedLocales, do
+    for locale in requested_locales {
+        // a. Let noExtensionsLocale be the String value that is locale with any Unicode locale
+        //    extension sequences removed.
+        let mut locale = locale.clone();
+        let id = std::mem::take(&mut locale.id);
+
+        // b. Let availableLocale be ! BestAvailableLocale(availableLocales, noExtensionsLocale).
+        let available_locale = best_available_locale::<M>(id, icu.provider());
+
+        // c. If availableLocale is not undefined, then
+        if let Some(available_locale) = available_locale {
+            // i. Set result.[[locale]] to availableLocale.
+            // Assignment deferred. See return statement below.
+            // ii. If locale and noExtensionsLocale are not the same String value, then
+            // 1. Let extension be the String value consisting of the substring of the Unicode
+            //    locale extension sequence within locale.
+            // 2. Set result.[[extension]] to extension.
+            locale.id = available_locale;
+
+            // iii. Return result.
+            return locale;
+        }
+    }
+
+    // 3. Let defLocale be ! DefaultLocale().
+    // 4. Set result.[[locale]] to defLocale.
+    // 5. Return result.
+    default_locale(icu.locale_canonicalizer())
+}
+
+/// Abstract operation [`BestFitMatcher ( availableLocales, requestedLocales )`][spec]
+///
+/// Compares `requestedLocales`, which must be a `List` as returned by `CanonicalizeLocaleList`,
+/// against the locales in `availableLocales` and determines the best available language to
+/// meet the request. The algorithm is implementation dependent, but should produce results
+/// that a typical user of the requested locales would perceive as at least as good as those
+/// produced by the `LookupMatcher` abstract operation.
+///
+/// [spec]: https://tc39.es/ecma402/#sec-bestfitmatcher
+fn best_fit_matcher<M: KeyedDataMarker>(
+    requested_locales: &[Locale],
+    icu: &Icu<impl DataProvider<M>>,
+) -> Locale {
+    lookup_matcher::<M>(requested_locales, icu)
 }
 
 /// Abstract operation `ResolveLocale ( availableLocales, requestedLocales, options, relevantExtensionKeys, localeData )`
@@ -126,7 +283,6 @@ pub(in crate::builtins::intl) fn canonicalize_locale_list(
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma402/#sec-resolvelocale
-#[allow(dead_code)]
 pub(in crate::builtins::intl) fn resolve_locale<S, P>(
     requested_locales: &[Locale],
     options: &mut IntlOptions<S::Options>,
@@ -208,103 +364,11 @@ where
     found_locale
 }
 
-/// Abstract operation `DefaultLocale ( )`
+/// Abstract operation [`LookupSupportedLocales ( availableLocales, requestedLocales )`][spec]
 ///
-/// Returns a String value representing the structurally valid and canonicalized
-/// Unicode BCP 47 locale identifier for the host environment's current locale.
-///
-/// More information:
-///  - [ECMAScript reference][spec]
-///
-/// [spec]: https://tc39.es/ecma402/#sec-defaultlocale
-pub(super) fn default_locale(canonicalizer: &LocaleCanonicalizer) -> Locale {
-    sys_locale::get_locale()
-        .and_then(|loc| loc.parse::<Locale>().ok())
-        .tap_some_mut(|loc| {
-            canonicalizer.canonicalize(loc);
-        })
-        .unwrap_or_default()
-}
-
-/// Abstract operation `BestAvailableLocale ( availableLocales, locale )`
-///
-/// Compares the provided argument `locale`, which must be a String value with a
-/// structurally valid and canonicalized Unicode BCP 47 locale identifier, against
-/// the locales in `availableLocales` and returns either the longest non-empty prefix
-/// of `locale` that is an element of `availableLocales`, or undefined if there is no
-/// such element.
-///
-/// We only work with language identifiers, which have the same semantics
-/// but are a bit easier to manipulate.
-///
-/// More information:
-///  - [ECMAScript reference][spec]
-///
-/// [spec]: https://tc39.es/ecma402/#sec-bestavailablelocale
-fn best_available_locale<M: KeyedDataMarker>(
-    candidate: LanguageIdentifier,
-    provider: &(impl DataProvider<M> + ?Sized),
-) -> Option<LanguageIdentifier> {
-    // 1. Let candidate be locale.
-    let mut candidate = candidate.into();
-    // 2. Repeat
-    loop {
-        // a. If availableLocales contains an element equal to candidate, return candidate.
-        // ICU4X requires doing data requests in order to check if a locale
-        // is part of the set of supported locales.
-        let response = DataProvider::<M>::load(
-            provider,
-            DataRequest {
-                locale: &candidate,
-                metadata: DataRequestMetadata::default(),
-            },
-        );
-
-        if let Ok(req) = response {
-            let metadata = req.metadata;
-
-            // `metadata.locale` returns None when the provider doesn't have a
-            // fallback mechanism, but supports the required locale.
-            // However, if the provider has a fallback mechanism, this will return
-            // `Some(locale)`, where the locale is the used locale after applying
-            // the fallback algorithm, even if the used locale is exactly the same
-            // as the required locale.
-            if metadata.locale.is_none() || metadata.locale.as_ref() == Some(&candidate) {
-                return Some(candidate.get_langid());
-            }
-        }
-
-        // b. Let pos be the character index of the last occurrence of "-" (U+002D) within candidate. If that character does not occur, return undefined.
-        // c. If pos ≥ 2 and the character "-" occurs at index pos-2 of candidate, decrease pos by 2.
-        // d. Let candidate be the substring of candidate from position 0, inclusive, to position pos, exclusive.
-        //
-        // Since the definition of `LanguageIdentifier` allows us to manipulate it
-        // without using strings, we can replace these steps by a simpler
-        // algorithm.
-
-        if candidate.has_variants() {
-            let mut variants = candidate
-                .clear_variants()
-                .iter()
-                .copied()
-                .collect::<Vec<_>>();
-            variants.pop();
-            candidate.set_variants(Variants::from_vec_unchecked(variants));
-        } else if candidate.region().is_some() {
-            candidate.set_region(None);
-        } else if candidate.script().is_some() {
-            candidate.set_script(None);
-        } else {
-            return None;
-        }
-    }
-}
-
-/// Abstract operation `LookupMatcher ( availableLocales, requestedLocales )`
-///
-/// Compares `requestedLocales`, which must be a `List` as returned by `CanonicalizeLocaleList`,
-/// against the locales in `availableLocales` and determines the best available language to
-/// meet the request.
+/// Returns the subset of the provided BCP 47 language priority list requestedLocales for which
+/// `availableLocales` has a matching locale when using the BCP 47 Lookup algorithm. Locales appear
+/// in the same order in the returned list as in `requestedLocales`.
 ///
 /// # Note
 ///
@@ -312,63 +376,77 @@ fn best_available_locale<M: KeyedDataMarker>(
 /// list to compare with. However, we can do data requests to a [`DataProvider`]
 /// in order to see if a certain [`Locale`] is supported.
 ///
-/// More information:
-///  - [ECMAScript reference][spec]
-///
-/// [spec]: https://tc39.es/ecma402/#sec-lookupmatcher
-fn lookup_matcher<M: KeyedDataMarker>(
+/// [spec]: https://tc39.es/ecma402/#sec-lookupsupportedlocales
+fn lookup_supported_locales<M: KeyedDataMarker>(
     requested_locales: &[Locale],
-    icu: &Icu<impl DataProvider<M>>,
-) -> Locale {
-    // 1. Let result be a new Record.
+    provider: &impl DataProvider<M>,
+) -> Vec<Locale> {
+    // 1. Let subset be a new empty List.
     // 2. For each element locale of requestedLocales, do
-    for locale in requested_locales {
-        // a. Let noExtensionsLocale be the String value that is locale with any Unicode locale
-        //    extension sequences removed.
-        let mut locale = locale.clone();
-        let id = std::mem::take(&mut locale.id);
-
-        // b. Let availableLocale be ! BestAvailableLocale(availableLocales, noExtensionsLocale).
-        let available_locale = best_available_locale::<M>(id, icu.provider());
-
-        // c. If availableLocale is not undefined, then
-        if let Some(available_locale) = available_locale {
-            // i. Set result.[[locale]] to availableLocale.
-            // Assignment deferred. See return statement below.
-            // ii. If locale and noExtensionsLocale are not the same String value, then
-            // 1. Let extension be the String value consisting of the substring of the Unicode
-            //    locale extension sequence within locale.
-            // 2. Set result.[[extension]] to extension.
-            locale.id = available_locale;
-
-            // iii. Return result.
-            return locale;
-        }
-    }
-
-    // 3. Let defLocale be ! DefaultLocale().
-    // 4. Set result.[[locale]] to defLocale.
-    // 5. Return result.
-    default_locale(icu.locale_canonicalizer())
+    //     a. Let noExtensionsLocale be the String value that is locale with any Unicode locale extension sequences removed.
+    //     b. Let availableLocale be ! BestAvailableLocale(availableLocales, noExtensionsLocale).
+    //     c. If availableLocale is not undefined, append locale to the end of subset.
+    // 3. Return subset.
+    requested_locales
+        .iter()
+        .cloned()
+        .filter(|loc| best_available_locale(loc.id.clone(), provider).is_some())
+        .collect()
 }
 
-/// Abstract operation `BestFitMatcher ( availableLocales, requestedLocales )`
+/// Abstract operation [`BestFitSupportedLocales ( availableLocales, requestedLocales )`][spec]
 ///
-/// Compares `requestedLocales`, which must be a `List` as returned by `CanonicalizeLocaleList`,
-/// against the locales in `availableLocales` and determines the best available language to
-/// meet the request. The algorithm is implementation dependent, but should produce results
-/// that a typical user of the requested locales would perceive as at least as good as those
-/// produced by the `LookupMatcher` abstract operation.
+/// Returns the subset of the provided BCP 47 language priority list `requestedLocales` for which
+/// `availableLocales` has a matching locale when using the Best Fit Matcher algorithm. Locales appear
+/// in the same order in the returned list as in requestedLocales.
 ///
-/// More information:
-///  - [ECMAScript reference][spec]
-///
-/// [spec]: https://tc39.es/ecma402/#sec-bestfitmatcher
-fn best_fit_matcher<M: KeyedDataMarker>(
+/// [spec]: https://tc39.es/ecma402/#sec-bestfitsupportedlocales
+fn best_fit_supported_locales<M: KeyedDataMarker>(
     requested_locales: &[Locale],
-    icu: &Icu<impl DataProvider<M>>,
-) -> Locale {
-    lookup_matcher::<M>(requested_locales, icu)
+    provider: &impl DataProvider<M>,
+) -> Vec<Locale> {
+    lookup_supported_locales(requested_locales, provider)
+}
+
+/// Abstract operation [`SupportedLocales ( availableLocales, requestedLocales, options )`][spec]
+///
+/// Returns the subset of the provided BCP 47 language priority list requestedLocales for which
+/// availableLocales has a matching locale
+///
+/// [spec]: https://tc39.es/ecma402/#sec-supportedlocales
+pub(in crate::builtins::intl) fn supported_locales<M: KeyedDataMarker>(
+    requested_locales: &[Locale],
+    options: &JsValue,
+    context: &mut Context,
+) -> JsResult<JsObject>
+where
+    BoaProvider: DataProvider<M>,
+{
+    // 1. Set options to ? CoerceOptionsToObject(options).
+    let options = coerce_options_to_object(options, context)?;
+
+    // 2. Let matcher be ? GetOption(options, "localeMatcher", string, « "lookup", "best fit" », "best fit").
+    let matcher =
+        get_option::<LocaleMatcher>(&options, "localeMatcher", false, context)?.unwrap_or_default();
+
+    let elements = match matcher {
+        // 4. Else,
+        //     a. Let supportedLocales be LookupSupportedLocales(availableLocales, requestedLocales).
+        LocaleMatcher::Lookup => {
+            lookup_supported_locales(requested_locales, context.icu().provider())
+        }
+        // 3. If matcher is "best fit", then
+        //     a. Let supportedLocales be BestFitSupportedLocales(availableLocales, requestedLocales).
+        LocaleMatcher::BestFit => {
+            best_fit_supported_locales(requested_locales, context.icu().provider())
+        }
+    };
+
+    // 5. Return CreateArrayFromList(supportedLocales).
+    Ok(Array::create_array_from_list(
+        elements.into_iter().map(|loc| loc.to_string().into()),
+        context,
+    ))
 }
 
 #[cfg(test)]

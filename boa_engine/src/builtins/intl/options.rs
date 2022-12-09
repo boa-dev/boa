@@ -11,7 +11,7 @@ use crate::{
 /// property needed for `Intl` object constructors.
 ///
 /// It is used as the type of the `options` parameter in the operation `resolve_locale`.
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub(super) struct IntlOptions<O> {
     pub(super) matcher: LocaleMatcher,
     pub(super) service_options: O,
@@ -30,7 +30,7 @@ pub(super) trait OptionType: Sized {
     fn from_value(value: JsValue, context: &mut Context) -> JsResult<Self>;
 }
 
-trait OptionTypeParsable: FromStr {}
+pub(super) trait OptionTypeParsable: FromStr {}
 
 impl<T: OptionTypeParsable> OptionType for T
 where
@@ -61,9 +61,10 @@ impl OptionType for JsString {
     }
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
 pub(super) enum LocaleMatcher {
     Lookup,
+    #[default]
     BestFit,
 }
 
@@ -103,38 +104,24 @@ impl OptionType for CaseFirst {
     }
 }
 
-/// The default value passed to the [`get_option`] function.
-#[derive(Debug, Copy, Clone)]
-#[allow(unused)]
-pub(super) enum GetOptionDefault<T> {
-    /// Throw an error if the value is `undefined`.
-    Required,
-    /// Return `None` if the value is `undefined`.
-    None,
-    /// Return T if the value is `undefined`.
-    Some(T),
-}
-
-/// Abstract operation `GetOption ( options, property, type, values, fallback )`
+/// Abstract operation [`GetOption ( options, property, type, values, fallback )`][spec]
 ///
 /// Extracts the value of the property named `property` from the provided `options` object,
-/// converts it to the required `type`, checks whether it is one of a `List` of allowed
-/// `values`, and fills in a `fallback` value if necessary. If `values` is
-/// undefined, there is no fixed set of values and any is permitted.
+/// converts it to the required `type` and checks whether it is one of a `List` of allowed
+/// `values`. If `values` is undefined, there is no fixed set of values and any is permitted.
+/// If the value is `undefined`, `required` determines if the function should return `None` or
+/// an `Err`. Use [`Option::unwrap_or`] and friends to manage the default value.
 ///
 /// This is a safer alternative to `GetOption`, which tries to parse from the
 /// provided property a valid variant of the provided type `T`. It doesn't accept
 /// a `type` parameter since the type can specify in its implementation of [`TryFrom`] whether
 /// it wants to parse from a [`str`] or convert directly from a boolean or number.
 ///
-/// More information:
-///  - [ECMAScript reference][spec]
-///
 /// [spec]: https://tc39.es/ecma402/#sec-getoption
 pub(super) fn get_option<T: OptionType>(
     options: &JsObject,
     property: &str,
-    default: GetOptionDefault<T>,
+    required: bool,
     context: &mut Context,
 ) -> JsResult<Option<T>> {
     // 1. Let value be ? Get(options, property).
@@ -142,14 +129,14 @@ pub(super) fn get_option<T: OptionType>(
 
     // 2. If value is undefined, then
     if value.is_undefined() {
-        return match default {
+        return if required {
             //     a. If default is required, throw a RangeError exception.
-            GetOptionDefault::Required => Err(JsNativeError::range()
+            Err(JsNativeError::range()
                 .with_message("GetOption: option value cannot be undefined")
-                .into()),
+                .into())
+        } else {
             //     b. Return default.
-            GetOptionDefault::None => Ok(None),
-            GetOptionDefault::Some(val) => Ok(Some(val)),
+            Ok(None)
         };
     }
 
@@ -184,13 +171,10 @@ pub(super) fn get_number_option(
     default_number_option(&value, minimum, maximum, fallback, context)
 }
 
-/// Abstract operation `DefaultNumberOption ( value, minimum, maximum, fallback )`
+/// Abstract operation [`DefaultNumberOption ( value, minimum, maximum, fallback )`][spec]
 ///
 /// Converts `value` to a `Number value`, checks whether it is in the allowed range,
 /// and fills in a `fallback` value if necessary.
-///
-/// More information:
-///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma402/#sec-defaultnumberoption
 #[allow(unused)]
@@ -226,7 +210,6 @@ pub(super) fn default_number_option(
 /// `JsObject`. It throws a `TypeError` if `options` is not undefined and not a `JsObject`.
 ///
 /// [spec]: https://tc39.es/ecma402/#sec-getoptionsobject
-#[allow(unused)]
 pub(super) fn get_options_object(options: &JsValue) -> JsResult<JsObject> {
     match options {
         // If options is undefined, then

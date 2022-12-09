@@ -36,6 +36,7 @@ use crate::{
             NativeFunctionSignature,
         },
         generator::Generator,
+        intl::list_format::ListFormat,
         iterable::AsyncFromSyncIterator,
         map::map_iterator::MapIterator,
         map::ordered_map::OrderedMap,
@@ -274,6 +275,10 @@ pub enum ObjectKind {
     #[cfg(feature = "intl")]
     DateTimeFormat(Box<DateTimeFormat>),
 
+    /// The `Intl.ListFormat` object kind.
+    #[cfg(feature = "intl")]
+    ListFormat(Box<ListFormat>),
+
     /// The `Intl.Locale` object kind.
     #[cfg(feature = "intl")]
     Locale(Box<icu_locid::Locale>),
@@ -300,11 +305,13 @@ unsafe impl Trace for ObjectKind {
             Self::Arguments(a) => mark(a),
             Self::NativeObject(o) => mark(o),
             Self::IntegerIndexed(i) => mark(i),
-            #[cfg(feature = "intl")]
-            Self::DateTimeFormat(f) => mark(f),
             Self::Promise(p) => mark(p),
             Self::AsyncGenerator(g) => mark(g),
             Self::WeakRef(wr) => mark(wr),
+            #[cfg(feature = "intl")]
+            Self::DateTimeFormat(f) => mark(f),
+            #[cfg(feature = "intl")]
+            Self::ListFormat(_) => {}
             #[cfg(feature = "intl")]
             Self::Locale(_) => {}
             Self::RegExp(_)
@@ -644,6 +651,16 @@ impl ObjectData {
         }
     }
 
+    /// Create the `ListFormat` object data
+    #[cfg(feature = "intl")]
+    #[must_use]
+    pub fn list_format(list_format: ListFormat) -> Self {
+        Self {
+            kind: ObjectKind::ListFormat(Box::new(list_format)),
+            internal_methods: &ORDINARY_INTERNAL_METHODS,
+        }
+    }
+
     /// Create the `Locale` object data
     #[cfg(feature = "intl")]
     #[must_use]
@@ -690,10 +707,12 @@ impl Display for ObjectKind {
             Self::NativeObject(_) => "NativeObject",
             Self::IntegerIndexed(_) => "TypedArray",
             Self::DataView(_) => "DataView",
-            #[cfg(feature = "intl")]
-            Self::DateTimeFormat(_) => "DateTimeFormat",
             Self::Promise(_) => "Promise",
             Self::WeakRef(_) => "WeakRef",
+            #[cfg(feature = "intl")]
+            Self::DateTimeFormat(_) => "DateTimeFormat",
+            #[cfg(feature = "intl")]
+            Self::ListFormat(_) => "ListFormat",
             #[cfg(feature = "intl")]
             Self::Locale(_) => "Locale",
         })
@@ -1624,6 +1643,19 @@ impl Object {
                 kind: ObjectKind::Locale(ref locale),
                 ..
             } => Some(locale),
+            _ => None,
+        }
+    }
+
+    /// Gets the `ListFormat` data if the object is a `ListFormat`.
+    #[inline]
+    #[cfg(feature = "intl")]
+    pub const fn as_list_format(&self) -> Option<&ListFormat> {
+        match self.data {
+            ObjectData {
+                kind: ObjectKind::ListFormat(ref lf),
+                ..
+            } => Some(lf),
             _ => None,
         }
     }
