@@ -172,18 +172,14 @@ pub(crate) fn best_available_locale<M: KeyedDataMarker>(
         );
 
         if let Ok(req) = response {
-            let metadata = req.metadata;
-
             // `metadata.locale` returns None when the provider doesn't have a fallback mechanism,
             // but supports the required locale. However, if the provider has a fallback mechanism,
             // this will return `Some(locale)`, where the locale is the used locale after applying
             // the fallback algorithm, even if the used locale is exactly the same as the required
             // locale.
-            match metadata.locale {
-                Some(ref loc) if loc.is_empty() || loc == &candidate => {
-                    return Some(candidate.get_langid())
-                }
-                None => return Some(candidate.get_langid()),
+            match req.metadata.locale {
+                Some(loc) if loc == candidate => return Some(candidate.into_locale().id),
+                None => return Some(candidate.into_locale().id),
                 _ => {}
             }
         }

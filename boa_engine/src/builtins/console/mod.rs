@@ -54,7 +54,7 @@ fn logger(msg: LogMessage, console_state: &Console) {
 pub fn formatter(data: &[JsValue], context: &mut Context) -> JsResult<String> {
     match data {
         [] => Ok(String::new()),
-        [val] => Ok(val.display().to_string()),
+        [val] => Ok(val.to_string(context)?.to_std_string_escaped()),
         data => {
             let mut formatted = String::new();
             let mut arg_index = 1;
