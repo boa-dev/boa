@@ -51,6 +51,13 @@ unsafe impl Trace for Collator {
     custom_trace!(this, mark(&this.bound_compare));
 }
 
+impl Collator {
+    /// Gets the inner [`icu_collator::Collator`] comparator.
+    pub(crate) const fn collator(&self) -> &icu_collator::Collator {
+        &self.collator
+    }
+}
+
 impl std::fmt::Debug for Collator {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("Collator")

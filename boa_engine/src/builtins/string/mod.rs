@@ -95,6 +95,7 @@ impl BuiltIn for String {
         .method(Self::includes, "includes", 1)
         .method(Self::index_of, "indexOf", 1)
         .method(Self::last_index_of, "lastIndexOf", 1)
+        .method(Self::locale_compare, "localeCompare", 1)
         .method(Self::r#match, "match", 1)
         .method(Self::normalize, "normalize", 1)
         .method(Self::pad_end, "padEnd", 1)
@@ -1266,6 +1267,68 @@ impl String {
 
         // 12. Return -1𝔽.
         Ok(JsValue::new(-1))
+    }
+
+    /// [`String.prototype.localeCompare ( that [ , locales [ , options ] ] )`][spec]
+    ///
+    /// Returns a number indicating whether a reference string comes before, or after, or is the
+    /// same as the given string in sort order.
+    ///
+    /// More information:
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma402/#sup-String.prototype.localeCompare
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/localeCompare
+    pub(crate) fn locale_compare(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        // 1. Let O be ? RequireObjectCoercible(this value).
+        let o = this.require_object_coercible()?;
+
+        // 2. Let S be ? ToString(O).
+        let s = o.to_string(context)?;
+
+        // 3. Let thatValue be ? ToString(that).
+        let that_value = args.get_or_undefined(0).to_string(context)?;
+
+        let cmp = {
+            #[cfg(feature = "intl")]
+            {
+                // 4. Let collator be ? Construct(%Collator%, « locales, options »).
+                let collator = crate::builtins::intl::collator::Collator::constructor(
+                    &context
+                        .intrinsics()
+                        .constructors()
+                        .collator()
+                        .constructor()
+                        .into(),
+                    args.get(1..).unwrap_or_default(),
+                    context,
+                )?;
+
+                let collator = collator
+                    .as_object()
+                    .map(JsObject::borrow)
+                    .expect("constructor must return a JsObject");
+                let collator = collator
+                    .as_collator()
+                    .expect("constructor must return a `Collator` object")
+                    .collator();
+
+                collator.compare_utf16(&s, &that_value) as i8
+            }
+
+            // Default to common comparison if the used doesn't have `Intl` enabled.
+            #[cfg(not(feature = "intl"))]
+            {
+                s.cmp(&that_value) as i8;
+            }
+        };
+
+        // 5. Return CompareStrings(collator, S, thatValue).
+        Ok(cmp.into())
     }
 
     /// `String.prototype.match( regexp )`
