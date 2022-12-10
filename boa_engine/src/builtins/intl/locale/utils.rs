@@ -481,7 +481,7 @@ mod tests {
 
     use icu_locid::{langid, locale, Locale};
     use icu_plurals::provider::CardinalV1Marker;
-    use icu_provider::AsDowncastingAnyProvider;
+    use icu_provider::AsDeserializingBufferProvider;
 
     use crate::{
         builtins::intl::locale::utils::{
@@ -492,8 +492,8 @@ mod tests {
 
     #[test]
     fn best_avail_loc() {
-        let provider = icu_testdata::any();
-        let provider = provider.as_downcasting();
+        let provider = icu_testdata::buffer();
+        let provider = provider.as_deserializing();
 
         assert_eq!(
             best_available_locale::<CardinalV1Marker>(langid!("en"), &provider),
