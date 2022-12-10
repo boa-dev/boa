@@ -1,5 +1,6 @@
 use std::{fmt::Debug, rc::Rc};
 
+use icu_collator::{Collator, CollatorError, CollatorOptions};
 use icu_list::{ListError, ListFormatter, ListLength};
 use icu_locid_transform::{LocaleCanonicalizer, LocaleExpander, LocaleTransformError};
 use icu_provider::{
@@ -107,6 +108,20 @@ impl BoaProvider {
                     ListFormatter::try_new_unit_with_length_with_any_provider(&**any, locale, style)
                 }
             },
+        }
+    }
+
+    /// Creates a new [`Collator`] from the provided [`DataProvider`] and options.
+    pub(crate) fn try_new_collator(
+        &self,
+        locale: &DataLocale,
+        options: CollatorOptions,
+    ) -> Result<Collator, CollatorError> {
+        match self {
+            BoaProvider::Buffer(buf) => {
+                Collator::try_new_with_buffer_provider(&**buf, locale, options)
+            }
+            BoaProvider::Any(any) => Collator::try_new_with_any_provider(&**any, locale, options),
         }
     }
 }

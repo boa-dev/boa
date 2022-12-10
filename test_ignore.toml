@@ -42,4 +42,4 @@ features = [
 
 # RegExp tests that check individual codepoints.
 # They are not useful considering the cpu time they waste.
-tests = ["CharacterClassEscapes", "Collator", "NumberFormat"]
+tests = ["CharacterClassEscapes", "NumberFormat"]

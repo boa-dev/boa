@@ -36,7 +36,7 @@ use crate::{
             NativeFunctionSignature,
         },
         generator::Generator,
-        intl::list_format::ListFormat,
+        intl::{collator::Collator, list_format::ListFormat},
         iterable::AsyncFromSyncIterator,
         map::map_iterator::MapIterator,
         map::ordered_map::OrderedMap,
@@ -271,6 +271,10 @@ pub enum ObjectKind {
     /// The `WeakRef` object kind.
     WeakRef(WeakGc<GcCell<Object>>),
 
+    /// The `Intl.Collator` object kind.
+    #[cfg(feature = "intl")]
+    Collator(Box<Collator>),
+
     /// The `Intl.DateTimeFormat` object kind.
     #[cfg(feature = "intl")]
     DateTimeFormat(Box<DateTimeFormat>),
@@ -311,9 +315,9 @@ unsafe impl Trace for ObjectKind {
             #[cfg(feature = "intl")]
             Self::DateTimeFormat(f) => mark(f),
             #[cfg(feature = "intl")]
-            Self::ListFormat(_) => {}
+            Self::Collator(co) => mark(co),
             #[cfg(feature = "intl")]
-            Self::Locale(_) => {}
+            Self::ListFormat(_) | Self::Locale(_) => {}
             Self::RegExp(_)
             | Self::BigInt(_)
             | Self::Boolean(_)
@@ -641,6 +645,16 @@ impl ObjectData {
         }
     }
 
+    /// Create the `Collator` object data
+    #[cfg(feature = "intl")]
+    #[must_use]
+    pub fn collator(date_time_fmt: Collator) -> Self {
+        Self {
+            kind: ObjectKind::Collator(Box::new(date_time_fmt)),
+            internal_methods: &ORDINARY_INTERNAL_METHODS,
+        }
+    }
+
     /// Create the `DateTimeFormat` object data
     #[cfg(feature = "intl")]
     #[must_use]
@@ -709,6 +723,8 @@ impl Display for ObjectKind {
             Self::DataView(_) => "DataView",
             Self::Promise(_) => "Promise",
             Self::WeakRef(_) => "WeakRef",
+            #[cfg(feature = "intl")]
+            Self::Collator(_) => "Collator",
             #[cfg(feature = "intl")]
             Self::DateTimeFormat(_) => "DateTimeFormat",
             #[cfg(feature = "intl")]
@@ -1617,6 +1633,32 @@ impl Object {
                 kind: ObjectKind::WeakRef(ref weak_ref),
                 ..
             } => Some(weak_ref),
+            _ => None,
+        }
+    }
+
+    /// Gets the `Collator` data if the object is a `Collator`.
+    #[inline]
+    #[cfg(feature = "intl")]
+    pub const fn as_collator(&self) -> Option<&Collator> {
+        match self.data {
+            ObjectData {
+                kind: ObjectKind::Collator(ref collator),
+                ..
+            } => Some(collator),
+            _ => None,
+        }
+    }
+
+    /// Gets a mutable reference to the `Collator` data if the object is a `Collator`.
+    #[inline]
+    #[cfg(feature = "intl")]
+    pub fn as_collator_mut(&mut self) -> Option<&mut Collator> {
+        match self.data {
+            ObjectData {
+                kind: ObjectKind::Collator(ref mut collator),
+                ..
+            } => Some(collator),
             _ => None,
         }
     }

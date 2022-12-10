@@ -1,4 +1,4 @@
-use std::{fmt::Write, str::FromStr};
+use std::fmt::Write;
 
 use boa_profiler::Profiler;
 use icu_list::{provider::AndListV1Marker, ListFormatter, ListLength};
@@ -19,12 +19,12 @@ use crate::{
 
 use super::{
     locale::{canonicalize_locale_list, resolve_locale, supported_locales},
-    options::{
-        get_option, get_options_object, IntlOptions, LocaleMatcher, OptionType, OptionTypeParsable,
-    },
+    options::{get_option, get_options_object, IntlOptions, LocaleMatcher},
     Service,
 };
 
+mod options;
+pub(crate) use options::*;
 pub struct ListFormat {
     locale: Locale,
     typ: ListFormatType,
@@ -40,52 +40,6 @@ impl std::fmt::Debug for ListFormat {
             .field("style", &self.style)
             .field("formatter", &"ListFormatter")
             .finish()
-    }
-}
-
-#[derive(Debug, Clone, Copy, Default)]
-#[repr(u8)]
-pub(crate) enum ListFormatType {
-    #[default]
-    Conjunction,
-    Disjunction,
-    Unit,
-}
-
-#[derive(Debug)]
-pub(crate) struct ParseListFormatTypeError;
-
-impl std::fmt::Display for ParseListFormatTypeError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        "provided string was not `conjunction`, `disjunction` or `unit`".fmt(f)
-    }
-}
-
-impl FromStr for ListFormatType {
-    type Err = ParseListFormatTypeError;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s {
-            "conjunction" => Ok(Self::Conjunction),
-            "disjunction" => Ok(Self::Disjunction),
-            "unit" => Ok(Self::Unit),
-            _ => Err(ParseListFormatTypeError),
-        }
-    }
-}
-
-impl OptionTypeParsable for ListFormatType {}
-
-impl OptionType for ListLength {
-    fn from_value(value: JsValue, context: &mut Context) -> JsResult<Self> {
-        match value.to_string(context)?.to_std_string_escaped().as_str() {
-            "long" => Ok(Self::Wide),
-            "short" => Ok(Self::Short),
-            "narrow" => Ok(Self::Narrow),
-            _ => Err(JsNativeError::range()
-                .with_message("provided string was not `long`, `short` or `narrow`")
-                .into()),
-        }
     }
 }
 
@@ -445,11 +399,11 @@ impl ListFormat {
         // 2. Perform ? RequireInternalSlot(lf, [[InitializedListFormat]]).
         let lf = this.as_object().map(JsObject::borrow).ok_or_else(|| {
             JsNativeError::typ()
-                .with_message("`formatToParts` can only be called on a `ListFormat` object")
+                .with_message("`resolvedOptions` can only be called on a `ListFormat` object")
         })?;
         let lf = lf.as_list_format().ok_or_else(|| {
             JsNativeError::typ()
-                .with_message("`formatToParts` can only be called on a `ListFormat` object")
+                .with_message("`resolvedOptions` can only be called on a `ListFormat` object")
         })?;
 
         // 3. Let options be OrdinaryObjectCreate(%Object.prototype%).

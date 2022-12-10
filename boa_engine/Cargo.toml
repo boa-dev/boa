@@ -70,7 +70,7 @@ icu_locid_transform = { version = "1.0.0", features = ["serde"], optional = true
 icu_locid = { version = "1.0.0", features = ["serde"], optional = true }
 icu_datetime = { version = "1.0.0", features = ["serde", "experimental"], optional = true }
 icu_calendar = { version = "1.0.0", optional = true }
-icu_collator = { version = "1.0.0", optional = true }
+icu_collator = { version = "1.0.0", features = ["serde"], optional = true }
 icu_plurals = { version = "1.0.0", features = ["serde"], optional = true }
 icu_provider = { version = "1.0.1", optional = true }
 icu_provider_adapters = { version = "1.0.0", features = ["serde"], optional = true }

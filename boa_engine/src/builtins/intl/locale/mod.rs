@@ -1,5 +1,3 @@
-#![allow(clippy::string_lit_as_bytes)]
-
 use boa_profiler::Profiler;
 use icu_collator::CaseFirst;
 use icu_datetime::options::preferences::HourCycle;
@@ -14,7 +12,9 @@ use tap::{Conv, Pipe};
 mod tests;
 
 mod utils;
-pub(super) use utils::*;
+pub(crate) use utils::*;
+
+mod options;
 
 use crate::{
     builtins::{BuiltIn, JsArgs},
@@ -252,6 +252,7 @@ impl Locale {
             if let Some(region) = region {
                 tag.id.region = Some(region);
             }
+
             // 17. Return ! CanonicalizeUnicodeLocaleId(tag).
             context.icu().locale_canonicalizer().canonicalize(&mut tag);
         }
@@ -260,40 +261,14 @@ impl Locale {
         // 13. Let calendar be ? GetOption(options, "calendar", string, empty, undefined).
         // 14. If calendar is not undefined, then
         // 15. Set opt.[[ca]] to calendar.
-        let ca = if let Some(s) = get_option::<JsString>(options, "calendar", false, context)? {
-            // a. If calendar does not match the Unicode Locale Identifier type nonterminal, throw a RangeError exception.
-            if s.is_empty() {
-                return Err(JsNativeError::range()
-                    .with_message("Intl.Locale: `calendar` cannot be empty")
-                    .into());
-            }
-            Some(
-                s.to_std_string_escaped()
-                    .parse::<Value>()
-                    .map_err(|e| JsNativeError::range().with_message(e.to_string()))?,
-            )
-        } else {
-            None
-        };
+        //     a. If calendar does not match the Unicode Locale Identifier type nonterminal, throw a RangeError exception.
+        let ca = get_option::<Value>(options, "calendar", false, context)?;
 
         // 16. Let collation be ? GetOption(options, "collation", string, empty, undefined).
         // 17. If collation is not undefined, then
         // 18. Set opt.[[co]] to collation.
-        let co = if let Some(s) = get_option::<JsString>(options, "collation", false, context)? {
-            // a. If collation does not match the Unicode Locale Identifier type nonterminal, throw a RangeError exception.
-            if s.is_empty() {
-                return Err(JsNativeError::range()
-                    .with_message("Intl.Locale: `collation` cannot be empty")
-                    .into());
-            }
-            Some(
-                s.to_std_string_escaped()
-                    .parse::<Value>()
-                    .map_err(|e| JsNativeError::range().with_message(e.to_string()))?,
-            )
-        } else {
-            None
-        };
+        //     a. If collation does not match the Unicode Locale Identifier type nonterminal, throw a RangeError exception.
+        let co = get_option::<Value>(options, "collation", false, context)?;
 
         // 19. Let hc be ? GetOption(options, "hourCycle", string, « "h11", "h12", "h23", "h24" », undefined).
         // 20. Set opt.[[hc]] to hc.
@@ -329,22 +304,8 @@ impl Locale {
         // 26. Let numberingSystem be ? GetOption(options, "numberingSystem", string, empty, undefined).
         // 27. If numberingSystem is not undefined, then
         // 28. Set opt.[[nu]] to numberingSystem.
-        let nu =
-            if let Some(s) = get_option::<JsString>(options, "numberingSystem", false, context)? {
-                // a. If numberingSystem does not match the Unicode Locale Identifier type nonterminal, throw a RangeError exception.
-                if s.is_empty() {
-                    return Err(JsNativeError::range()
-                        .with_message("Intl.Locale: `numberingSystem` cannot be empty")
-                        .into());
-                }
-                Some(
-                    s.to_std_string_escaped()
-                        .parse::<Value>()
-                        .map_err(|e| JsNativeError::range().with_message(e.to_string()))?,
-                )
-            } else {
-                None
-            };
+        //     a. If numberingSystem does not match the Unicode Locale Identifier type nonterminal, throw a RangeError exception.
+        let nu = get_option::<Value>(options, "numberingSystem", false, context)?;
 
         // 29. Let r be ! ApplyUnicodeExtensionToTag(tag, opt, relevantExtensionKeys).
         // 30. Set locale.[[Locale]] to r.[[locale]].

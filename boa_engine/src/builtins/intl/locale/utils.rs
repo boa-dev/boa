@@ -11,9 +11,13 @@ use crate::{
     Context, JsNativeError, JsResult, JsValue,
 };
 
-use icu_locid::{subtags::Variants, LanguageIdentifier, Locale};
+use icu_locid::{
+    extensions::unicode::{Key, Value},
+    subtags::Variants,
+    LanguageIdentifier, Locale,
+};
 use icu_locid_transform::LocaleCanonicalizer;
-use icu_provider::{DataProvider, DataRequest, DataRequestMetadata, KeyedDataMarker};
+use icu_provider::{DataLocale, DataProvider, DataRequest, DataRequestMetadata, KeyedDataMarker};
 use indexmap::IndexSet;
 
 use tap::TapOptional;
@@ -27,7 +31,7 @@ use tap::TapOptional;
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma402/#sec-defaultlocale
-pub(super) fn default_locale(canonicalizer: &LocaleCanonicalizer) -> Locale {
+pub(crate) fn default_locale(canonicalizer: &LocaleCanonicalizer) -> Locale {
     sys_locale::get_locale()
         .and_then(|loc| loc.parse::<Locale>().ok())
         .tap_some_mut(|loc| {
@@ -51,7 +55,7 @@ pub(super) fn default_locale(canonicalizer: &LocaleCanonicalizer) -> Locale {
 /// [spec]: https://tc39.es/ecma402/#sec-canonicalizelocalelist
 /// [bcp-47]: https://unicode.org/reports/tr35/#Unicode_locale_identifier
 /// [canon]: https://unicode.org/reports/tr35/#LocaleId_Canonicalization
-pub(in crate::builtins::intl) fn canonicalize_locale_list(
+pub(crate) fn canonicalize_locale_list(
     locales: &JsValue,
     context: &mut Context,
 ) -> JsResult<Vec<Locale>> {
@@ -148,7 +152,7 @@ pub(in crate::builtins::intl) fn canonicalize_locale_list(
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma402/#sec-bestavailablelocale
-fn best_available_locale<M: KeyedDataMarker>(
+pub(crate) fn best_available_locale<M: KeyedDataMarker>(
     candidate: LanguageIdentifier,
     provider: &(impl DataProvider<M> + ?Sized),
 ) -> Option<LanguageIdentifier> {
@@ -170,14 +174,17 @@ fn best_available_locale<M: KeyedDataMarker>(
         if let Ok(req) = response {
             let metadata = req.metadata;
 
-            // `metadata.locale` returns None when the provider doesn't have a
-            // fallback mechanism, but supports the required locale.
-            // However, if the provider has a fallback mechanism, this will return
-            // `Some(locale)`, where the locale is the used locale after applying
-            // the fallback algorithm, even if the used locale is exactly the same
-            // as the required locale.
-            if metadata.locale.is_none() || metadata.locale.as_ref() == Some(&candidate) {
-                return Some(candidate.get_langid());
+            // `metadata.locale` returns None when the provider doesn't have a fallback mechanism,
+            // but supports the required locale. However, if the provider has a fallback mechanism,
+            // this will return `Some(locale)`, where the locale is the used locale after applying
+            // the fallback algorithm, even if the used locale is exactly the same as the required
+            // locale.
+            match metadata.locale {
+                Some(ref loc) if loc.is_empty() || loc == &candidate => {
+                    return Some(candidate.get_langid())
+                }
+                None => return Some(candidate.get_langid()),
+                _ => {}
             }
         }
 
@@ -361,6 +368,7 @@ where
         &mut options.service_options,
         icu.provider(),
     );
+    icu.locale_canonicalizer().canonicalize(&mut found_locale);
     found_locale
 }
 
@@ -447,6 +455,28 @@ where
         elements.into_iter().map(|loc| loc.to_string().into()),
         context,
     ))
+}
+
+/// Validates that the unicode extension `key` with `value` is a valid extension value for the
+/// `language`.
+pub(in crate::builtins::intl) fn validate_extension<M: KeyedDataMarker>(
+    language: LanguageIdentifier,
+    key: Key,
+    value: &Value,
+    provider: &impl DataProvider<M>,
+) -> bool {
+    let mut locale = DataLocale::from(language);
+    locale.set_unicode_ext(key, value.clone());
+    let request = DataRequest {
+        locale: &locale,
+        metadata: DataRequestMetadata::default(),
+    };
+
+    DataProvider::load(provider, request)
+        .ok()
+        .map(|res| res.metadata.locale.unwrap_or_else(|| locale.clone()))
+        .filter(|loc| loc == &locale)
+        .is_some()
 }
 
 #[cfg(test)]

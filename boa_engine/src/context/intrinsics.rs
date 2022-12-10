@@ -121,6 +121,8 @@ pub struct StandardConstructors {
     promise: StandardConstructor,
     weak_ref: StandardConstructor,
     #[cfg(feature = "intl")]
+    collator: StandardConstructor,
+    #[cfg(feature = "intl")]
     list_format: StandardConstructor,
     #[cfg(feature = "intl")]
     locale: StandardConstructor,
@@ -186,6 +188,8 @@ impl Default for StandardConstructors {
             date_time_format: StandardConstructor::default(),
             promise: StandardConstructor::default(),
             weak_ref: StandardConstructor::default(),
+            #[cfg(feature = "intl")]
+            collator: StandardConstructor::default(),
             #[cfg(feature = "intl")]
             list_format: StandardConstructor::default(),
             #[cfg(feature = "intl")]
@@ -681,6 +685,18 @@ impl StandardConstructors {
     #[inline]
     pub const fn weak_ref(&self) -> &StandardConstructor {
         &self.weak_ref
+    }
+
+    /// Returns the `Intl.Collator` constructor.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma402/#sec-intl.collator
+    #[inline]
+    #[cfg(feature = "intl")]
+    pub const fn collator(&self) -> &StandardConstructor {
+        &self.collator
     }
 
     /// Returns the `Intl.ListFormat` constructor.

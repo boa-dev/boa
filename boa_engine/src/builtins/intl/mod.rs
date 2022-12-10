@@ -7,6 +7,8 @@
 //!
 //! [spec]: https://tc39.es/ecma402/#intl-object
 
+#![allow(clippy::string_lit_as_bytes)]
+
 use super::JsArgs;
 use crate::{
     builtins::intl::date_time_format::DateTimeFormat,
@@ -21,13 +23,14 @@ use boa_profiler::Profiler;
 use icu_provider::KeyedDataMarker;
 use tap::{Conv, Pipe};
 
+pub(crate) mod collator;
 pub(crate) mod date_time_format;
 pub(crate) mod list_format;
 pub(crate) mod locale;
 mod options;
 pub(crate) mod segmenter;
 
-use self::{list_format::ListFormat, locale::Locale, segmenter::Segmenter};
+use self::{collator::Collator, list_format::ListFormat, locale::Locale, segmenter::Segmenter};
 
 /// JavaScript `Intl` object.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -39,22 +42,33 @@ impl BuiltIn for Intl {
     fn init(context: &mut Context) -> Option<JsValue> {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
+        let collator = Collator::init(context).expect("initialization should return a constructor");
+
+        let list_format =
+            ListFormat::init(context).expect("initialization should return a constructor");
+
         let locale = Locale::init(context).expect("initialization should return a constructor");
 
         let segmenter =
             Segmenter::init(context).expect("initialization should return a constructor");
 
-        let list_format =
-            ListFormat::init(context).expect("initialization should return a constructor");
-
-        let string_tag = WellKnownSymbols::to_string_tag();
         let date_time_format = DateTimeFormat::init(context);
+
         ObjectInitializer::new(context)
-            .function(Self::get_canonical_locales, "getCanonicalLocales", 1)
             .property(
-                string_tag,
+                WellKnownSymbols::to_string_tag(),
                 Self::NAME,
                 Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+            )
+            .property(
+                "Collator",
+                collator,
+                Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+            )
+            .property(
+                "ListFormat",
+                list_format,
+                Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
             .property(
                 "DateTimeFormat",
@@ -71,11 +85,7 @@ impl BuiltIn for Intl {
                 segmenter,
                 Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
-            .property(
-                "ListFormat",
-                list_format,
-                Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
-            )
+            .function(Self::get_canonical_locales, "getCanonicalLocales", 1)
             .build()
             .conv::<JsValue>()
             .pipe(Some)
