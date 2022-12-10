@@ -31,7 +31,7 @@ pub(crate) struct ParseSensitivityError;
 
 impl std::fmt::Display for ParseSensitivityError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        "provided string was not `base`, `accent`, `case` or `variant`".fmt(f)
+        f.write_str("provided string was not `base`, `accent`, `case` or `variant`")
     }
 }
 
@@ -64,7 +64,7 @@ pub(crate) struct ParseUsageError;
 
 impl std::fmt::Display for ParseUsageError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        "provided string was not `sort` or `search`".fmt(f)
+        f.write_str("provided string was not `sort` or `search`")
     }
 }
 

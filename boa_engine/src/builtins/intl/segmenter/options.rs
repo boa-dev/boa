@@ -11,7 +11,7 @@ pub(crate) struct ParseGranularityError;
 
 impl std::fmt::Display for ParseGranularityError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        "provided string was not `grapheme`, `word` or `sentence`".fmt(f)
+        f.write_str("provided string was not `grapheme`, `word` or `sentence`")
     }
 }
 

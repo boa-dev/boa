@@ -21,7 +21,7 @@ pub(crate) struct ParseListFormatTypeError;
 
 impl std::fmt::Display for ParseListFormatTypeError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        "provided string was not `conjunction`, `disjunction` or `unit`".fmt(f)
+        f.write_str("provided string was not `conjunction`, `disjunction` or `unit`")
     }
 }
 

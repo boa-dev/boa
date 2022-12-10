@@ -23,7 +23,9 @@ use self::internal_methods::{
     InternalObjectMethods, ORDINARY_INTERNAL_METHODS,
 };
 #[cfg(feature = "intl")]
-use crate::builtins::intl::date_time_format::DateTimeFormat;
+use crate::builtins::intl::{
+    collator::Collator, date_time_format::DateTimeFormat, list_format::ListFormat,
+};
 use crate::{
     builtins::{
         array::array_iterator::ArrayIterator,
@@ -36,7 +38,6 @@ use crate::{
             NativeFunctionSignature,
         },
         generator::Generator,
-        intl::{collator::Collator, list_format::ListFormat},
         iterable::AsyncFromSyncIterator,
         map::map_iterator::MapIterator,
         map::ordered_map::OrderedMap,
