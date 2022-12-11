@@ -1320,7 +1320,7 @@ impl String {
                 collator.compare_utf16(&s, &that_value) as i8
             }
 
-            // Default to common comparison if the used doesn't have `Intl` enabled.
+            // Default to common comparison if the user doesn't have `Intl` enabled.
             #[cfg(not(feature = "intl"))]
             {
                 s.cmp(&that_value) as i8;

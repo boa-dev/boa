@@ -459,6 +459,11 @@ impl JsObject {
         Ok(true)
     }
 
+    /// Abstract operation [`LengthOfArrayLike ( obj )`][spec].
+    ///
+    /// Returns the value of the "length" property of an array-like object.
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-lengthofarraylike
     pub(crate) fn length_of_array_like(&self, context: &mut Context) -> JsResult<u64> {
         // 1. Assert: Type(obj) is Object.
         // 2. Return ℝ(? ToLength(? Get(obj, "length"))).

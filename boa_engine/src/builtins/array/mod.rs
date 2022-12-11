@@ -13,6 +13,7 @@ pub mod array_iterator;
 #[cfg(test)]
 mod tests;
 
+use boa_macros::utf16;
 use boa_profiler::Profiler;
 use tap::{Conv, Pipe};
 
@@ -117,6 +118,7 @@ impl BuiltIn for Array {
         .method(Self::some, "some", 1)
         .method(Self::sort, "sort", 1)
         .method(Self::splice, "splice", 2)
+        .method(Self::to_locale_string, "toLocaleString", 0)
         .method(Self::reduce, "reduce", 1)
         .method(Self::reduce_right, "reduceRight", 1)
         .method(Self::keys, "keys", 0)
@@ -2025,6 +2027,72 @@ impl Array {
 
         // 16. Return A.
         Ok(a.into())
+    }
+
+    /// [`Array.prototype.toLocaleString ( [ locales [ , options ] ] )`][spec].
+    ///
+    /// Returns a string representing the elements of the array. The elements are converted to
+    /// strings using their `toLocaleString` methods and these strings are separated by a
+    /// locale-specific string (such as a comma ",").
+    ///
+    /// More information:
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma402/#sup-array.prototype.tolocalestring
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/toLocaleString
+    pub(crate) fn to_locale_string(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        // 1. Let array be ? ToObject(this value).
+        let array = this.to_object(context)?;
+        // 2. Let len be ? ToLength(? Get(array, "length")).
+        let len = array.length_of_array_like(context)?;
+
+        // 3. Let separator be the implementation-defined list-separator String value appropriate for the host environment's current locale (such as ", ").
+        let separator = {
+            #[cfg(feature = "intl")]
+            {
+                // TODO: this should eventually return a locale-sensitive separator.
+                utf16!(", ")
+            }
+
+            #[cfg(not(feature = "intl"))]
+            {
+                utf16!(", ")
+            }
+        };
+
+        // 4. Let R be the empty String.
+        let mut r = Vec::new();
+
+        // 5. Let k be 0.
+        // 6. Repeat, while k < len,
+        for k in 0..len {
+            // a. If k > 0, then
+            if k > 0 {
+                // i. Set R to the string-concatenation of R and separator.
+                r.extend_from_slice(separator);
+            }
+
+            // b. Let nextElement be ? Get(array, ! ToString(k)).
+            let next = array.get(k, context)?;
+
+            // c. If nextElement is not undefined or null, then
+            if !next.is_null_or_undefined() {
+                // i. Let S be ? ToString(? Invoke(nextElement, "toLocaleString", « locales, options »)).
+                let s = next
+                    .invoke("toLocaleString", args, context)?
+                    .to_string(context)?;
+
+                // ii. Set R to the string-concatenation of R and S.
+                r.extend_from_slice(&s);
+            }
+            //     d. Increase k by 1.
+        }
+        // 7. Return R.
+        Ok(js_string!(r).into())
     }
 
     /// `Array.prototype.splice ( start, [deleteCount[, ...items]] )`
