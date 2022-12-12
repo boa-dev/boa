@@ -5,7 +5,6 @@ use icu_collator::{CaseLevel, Strength};
 use crate::builtins::intl::options::OptionTypeParsable;
 
 #[derive(Debug, Clone, Copy)]
-#[repr(u8)]
 pub(crate) enum Sensitivity {
     Base,
     Accent,
@@ -52,7 +51,6 @@ impl FromStr for Sensitivity {
 impl OptionTypeParsable for Sensitivity {}
 
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
-#[repr(u8)]
 pub(crate) enum Usage {
     #[default]
     Sort,

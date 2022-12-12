@@ -75,7 +75,7 @@ impl std::fmt::Debug for Collator {
 }
 
 #[derive(Debug, Clone)]
-pub(in crate::builtins::intl) struct CollatorOptions {
+pub(in crate::builtins::intl) struct CollatorLocaleOptions {
     collation: Option<Value>,
     numeric: Option<bool>,
     case_first: Option<CaseFirst>,
@@ -87,9 +87,9 @@ where
 {
     type LangMarker = CollationMetadataV1Marker;
 
-    type Options = CollatorOptions;
+    type LocaleOptions = CollatorLocaleOptions;
 
-    fn resolve(locale: &mut Locale, options: &mut Self::Options, provider: &P) {
+    fn resolve(locale: &mut Locale, options: &mut Self::LocaleOptions, provider: &P) {
         let collation = options
             .collation
             .take()
@@ -242,7 +242,7 @@ impl Collator {
 
         let mut intl_options = IntlOptions {
             matcher,
-            service_options: CollatorOptions {
+            service_options: CollatorLocaleOptions {
                 collation,
                 numeric,
                 case_first,

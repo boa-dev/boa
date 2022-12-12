@@ -288,7 +288,7 @@ fn best_fit_matcher<M: KeyedDataMarker>(
 /// [spec]: https://tc39.es/ecma402/#sec-resolvelocale
 pub(in crate::builtins::intl) fn resolve_locale<S, P>(
     requested_locales: &[Locale],
-    options: &mut IntlOptions<S::Options>,
+    options: &mut IntlOptions<S::LocaleOptions>,
     icu: &Icu<P>,
 ) -> Locale
 where

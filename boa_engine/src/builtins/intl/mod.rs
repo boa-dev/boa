@@ -132,7 +132,7 @@ trait Service<P> {
 
     /// The set of options used in the [`Service::resolve`] method to resolve the provided
     /// locale.
-    type Options;
+    type LocaleOptions;
 
     /// Resolves the final value of `locale` from a set of `options`.
     ///
@@ -145,5 +145,6 @@ trait Service<P> {
     /// new final values.
     /// - If the implementor service doesn't contain any `[[RelevantExtensionKeys]]`, this can be
     /// skipped.
-    fn resolve(_locale: &mut icu_locid::Locale, _options: &mut Self::Options, _provider: &P) {}
+    fn resolve(_locale: &mut icu_locid::Locale, _options: &mut Self::LocaleOptions, _provider: &P) {
+    }
 }

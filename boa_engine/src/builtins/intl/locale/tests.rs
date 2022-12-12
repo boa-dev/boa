@@ -33,9 +33,9 @@ where
 {
     type LangMarker = CardinalV1Marker;
 
-    type Options = TestOptions;
+    type LocaleOptions = TestOptions;
 
-    fn resolve(locale: &mut Locale, options: &mut Self::Options, provider: &P) {
+    fn resolve(locale: &mut Locale, options: &mut Self::LocaleOptions, provider: &P) {
         let loc_hc = locale
             .extensions
             .unicode

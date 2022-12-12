@@ -8,7 +8,6 @@ use crate::{
 };
 
 #[derive(Debug, Clone, Copy, Default)]
-#[repr(u8)]
 pub(crate) enum ListFormatType {
     #[default]
     Conjunction,

@@ -46,7 +46,7 @@ impl std::fmt::Debug for ListFormat {
 impl<P> Service<P> for ListFormat {
     type LangMarker = AndListV1Marker;
 
-    type Options = ();
+    type LocaleOptions = ();
 }
 
 impl BuiltIn for ListFormat {
