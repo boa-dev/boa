@@ -1,5 +1,3 @@
-use std::rc::Rc;
-
 use icu_datetime::{
     options::preferences::HourCycle, pattern::CoarseHourCycle,
     provider::calendar::TimeLengthsV1Marker,
@@ -10,6 +8,7 @@ use icu_locid::{
 };
 use icu_plurals::provider::CardinalV1Marker;
 use icu_provider::{DataLocale, DataProvider, DataRequest, DataRequestMetadata};
+use icu_provider_adapters::fallback::LocaleFallbackProvider;
 
 use crate::{
     builtins::intl::{
@@ -78,7 +77,9 @@ where
 
 #[test]
 fn locale_resolution() {
-    let icu = Icu::new(BoaProvider::Buffer(Rc::new(icu_testdata::buffer()))).unwrap();
+    let provider =
+        LocaleFallbackProvider::try_new_with_buffer_provider(boa_icu_provider::blob()).unwrap();
+    let icu = Icu::new(BoaProvider::Buffer(Box::new(provider))).unwrap();
     let mut default = default_locale(icu.locale_canonicalizer());
     default
         .extensions
@@ -113,6 +114,6 @@ fn locale_resolution() {
         service_options: TestOptions { hc: None },
     };
 
-    let locale = resolve_locale::<TestService, _>(&[locale!("es-ES")], &mut options, &icu);
+    let locale = resolve_locale::<TestService, _>(&[locale!("es-AR")], &mut options, &icu);
     assert_eq!(locale, "es-u-hc-h23".parse().unwrap());
 }

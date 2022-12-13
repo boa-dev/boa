@@ -677,8 +677,11 @@ impl ContextBuilder {
             },
             #[cfg(feature = "intl")]
             icu: self.icu.unwrap_or_else(|| {
-                // TODO: Replace with a more fitting default
-                let provider = BoaProvider::Buffer(std::rc::Rc::new(icu_testdata::buffer()));
+                use icu_provider_adapters::fallback::LocaleFallbackProvider;
+                let provider = BoaProvider::Buffer(Box::new(
+                    LocaleFallbackProvider::try_new_with_buffer_provider(boa_icu_provider::blob())
+                        .expect("boa_icu_provider should return a valid provider"),
+                ));
                 icu::Icu::new(provider).expect("Failed to initialize default icu data.")
             }),
             #[cfg(feature = "fuzz")]

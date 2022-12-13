@@ -210,6 +210,34 @@ pub(crate) fn best_available_locale<M: KeyedDataMarker>(
     }
 }
 
+/// Returns the locale resolved by the `provider` after using the ICU4X fallback
+/// algorithm with `candidate` (if the provider supports this), or None if the locale is not
+/// supported.
+pub(crate) fn best_locale_for_provider<M: KeyedDataMarker>(
+    candidate: LanguageIdentifier,
+    provider: &(impl DataProvider<M> + ?Sized),
+) -> Option<LanguageIdentifier> {
+    let response = DataProvider::<M>::load(
+        provider,
+        DataRequest {
+            locale: &DataLocale::from(&candidate),
+            metadata: DataRequestMetadata::default(),
+        },
+    )
+    .ok()?;
+
+    if candidate == LanguageIdentifier::UND {
+        return Some(LanguageIdentifier::UND);
+    }
+
+    response
+        .metadata
+        .locale
+        .map(|dl| dl.into_locale().id)
+        .or(Some(candidate))
+        .filter(|loc| loc != &LanguageIdentifier::UND)
+}
+
 /// Abstract operation [`LookupMatcher ( availableLocales, requestedLocales )`][spec]
 ///
 /// Compares `requestedLocales`, which must be a `List` as returned by `CanonicalizeLocaleList`,
@@ -272,7 +300,22 @@ fn best_fit_matcher<M: KeyedDataMarker>(
     requested_locales: &[Locale],
     icu: &Icu<impl DataProvider<M>>,
 ) -> Locale {
-    lookup_matcher::<M>(requested_locales, icu)
+    for mut locale in requested_locales
+        .iter()
+        .cloned()
+        .chain(std::iter::once_with(|| {
+            default_locale(icu.locale_canonicalizer())
+        }))
+    {
+        let id = std::mem::take(&mut locale.id);
+
+        if let Some(available) = best_locale_for_provider(id, icu.provider()) {
+            locale.id = available;
+
+            return locale;
+        }
+    }
+    Locale::default()
 }
 
 /// Abstract operation `ResolveLocale ( availableLocales, requestedLocales, options, relevantExtensionKeys, localeData )`
@@ -409,7 +452,11 @@ fn best_fit_supported_locales<M: KeyedDataMarker>(
     requested_locales: &[Locale],
     provider: &impl DataProvider<M>,
 ) -> Vec<Locale> {
-    lookup_supported_locales(requested_locales, provider)
+    requested_locales
+        .iter()
+        .cloned()
+        .filter(|loc| best_locale_for_provider(loc.id.clone(), provider).is_some())
+        .collect()
 }
 
 /// Abstract operation [`SupportedLocales ( availableLocales, requestedLocales, options )`][spec]
@@ -477,11 +524,10 @@ pub(in crate::builtins::intl) fn validate_extension<M: KeyedDataMarker>(
 
 #[cfg(test)]
 mod tests {
-    use std::rc::Rc;
-
     use icu_locid::{langid, locale, Locale};
     use icu_plurals::provider::CardinalV1Marker;
     use icu_provider::AsDeserializingBufferProvider;
+    use icu_provider_adapters::fallback::LocaleFallbackProvider;
 
     use crate::{
         builtins::intl::locale::utils::{
@@ -492,7 +538,7 @@ mod tests {
 
     #[test]
     fn best_avail_loc() {
-        let provider = icu_testdata::buffer();
+        let provider = boa_icu_provider::blob();
         let provider = provider.as_deserializing();
 
         assert_eq!(
@@ -513,7 +559,9 @@ mod tests {
 
     #[test]
     fn lookup_match() {
-        let icu = Icu::new(BoaProvider::Buffer(Rc::new(icu_testdata::buffer()))).unwrap();
+        let provider =
+            LocaleFallbackProvider::try_new_with_buffer_provider(boa_icu_provider::blob()).unwrap();
+        let icu = Icu::new(BoaProvider::Buffer(Box::new(provider))).unwrap();
 
         // requested: []
 

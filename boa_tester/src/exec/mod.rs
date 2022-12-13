@@ -7,12 +7,18 @@ use super::{
 };
 use crate::read::ErrorType;
 use boa_engine::{
-    builtins::JsArgs, object::FunctionBuilder, property::Attribute, Context, JsNativeErrorKind,
-    JsResult, JsValue,
+    builtins::JsArgs,
+    context::{BoaProvider, ContextBuilder},
+    object::FunctionBuilder,
+    property::Attribute,
+    Context, JsNativeErrorKind, JsResult, JsValue,
 };
 use boa_gc::{Finalize, Gc, GcCell, Trace};
 use boa_parser::Parser;
 use colored::Colorize;
+use icu_provider_adapters::fallback::LocaleFallbackProvider;
+use icu_provider_blob::BlobDataProvider;
+use once_cell::sync::Lazy;
 use rayon::prelude::*;
 use std::borrow::Cow;
 
@@ -129,6 +135,7 @@ impl Test {
 
     /// Runs the test once, in strict or non-strict mode
     fn run_once(&self, harness: &Harness, strict: bool, verbose: u8) -> TestResult {
+        static LOCALE_DATA: Lazy<BlobDataProvider> = Lazy::new(boa_icu_provider::blob);
         if self.ignored {
             if verbose > 1 {
                 println!(
@@ -163,7 +170,13 @@ impl Test {
 
         let result = std::panic::catch_unwind(|| match self.expected_outcome {
             Outcome::Positive => {
-                let mut context = Context::default();
+                let mut context = ContextBuilder::default()
+                    .icu_provider(BoaProvider::Buffer(Box::new(
+                        LocaleFallbackProvider::try_new_with_buffer_provider(LOCALE_DATA.clone())
+                            .expect("default locale data should be valid"),
+                    )))
+                    .expect("default locale data should be valid")
+                    .build();
                 let async_result = AsyncResult::default();
 
                 if let Err(e) = self.set_up_env(harness, &mut context, async_result.clone()) {

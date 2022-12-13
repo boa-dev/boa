@@ -12,6 +12,7 @@ members = [
     "boa_wasm",
     "boa_examples",
     "boa_macros",
+    "boa_icu_provider",
 ]
 
 [workspace.package]
@@ -32,6 +33,7 @@ boa_unicode = { version = "0.16.0", path = "boa_unicode" }
 boa_macros = { version = "0.16.0", path = "boa_macros" }
 boa_ast = { version = "0.16.0", path = "boa_ast" }
 boa_parser = { version = "0.16.0", path = "boa_parser" }
+boa_icu_provider = { version = "0.16.0", path = "boa_icu_provider" }
 
 [workspace.metadata.workspaces]
 allow_branch = "main"

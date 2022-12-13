@@ -1,4 +1,4 @@
-use std::{fmt::Debug, rc::Rc};
+use std::fmt::Debug;
 
 use icu_collator::{Collator, CollatorError, CollatorOptions};
 use icu_list::{ListError, ListFormatter, ListLength};
@@ -15,16 +15,14 @@ use crate::builtins::intl::list_format::ListFormatType;
 
 /// ICU4X data provider used in boa.
 ///
-/// Providers can be either [`BufferProvider`]s or [`AnyProvider`]s, and both are stored in an [`Rc`]
-/// to make it possible to cheapily share ICU data between contexts.
+/// Providers can be either [`BufferProvider`]s or [`AnyProvider`]s.
 ///
 /// The [`icu_provider`] documentation has more information about data providers.
-#[derive(Clone)]
 pub enum BoaProvider {
     /// A [`BufferProvider`] data provider.
-    Buffer(Rc<dyn BufferProvider>),
+    Buffer(Box<dyn BufferProvider>),
     /// An [`AnyProvider] data provider.
-    Any(Rc<dyn AnyProvider>),
+    Any(Box<dyn AnyProvider>),
 }
 
 impl Debug for BoaProvider {
