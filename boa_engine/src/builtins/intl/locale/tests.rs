@@ -12,7 +12,7 @@ use icu_provider_adapters::fallback::LocaleFallbackProvider;
 
 use crate::{
     builtins::intl::{
-        locale::{default_locale, resolve_locale},
+        locale::{default_locale, resolve_locale, best_locale_for_provider},
         options::{IntlOptions, LocaleMatcher},
         Service,
     },
@@ -106,7 +106,13 @@ fn locale_resolution() {
     };
 
     let locale = resolve_locale::<TestService, _>(&[], &mut options, &icu);
-    assert_eq!(locale, default);
+    let best = best_locale_for_provider::<<TestService as Service<BoaProvider>>::LangMarker>(
+        default.id.clone(),
+        icu.provider(),
+    ).unwrap();
+    let mut best = Locale::from(best);
+    best.extensions = locale.extensions.clone();
+    assert_eq!(locale, best);
 
     // requested: [es-ES]
     let mut options = IntlOptions {
