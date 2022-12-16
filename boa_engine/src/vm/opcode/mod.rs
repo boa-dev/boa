@@ -439,7 +439,7 @@ generate_impl! {
         ///
         /// Operands:
         ///
-        /// Stack: lhs, rhs **=>** (lhs << rhs)
+        /// Stack: lhs, rhs **=>** `(lhs << rhs)`
         ShiftLeft,
 
         /// Binary `>>>` operator.
@@ -530,14 +530,14 @@ generate_impl! {
         ///
         /// Operands:
         ///
-        /// Stack: lhs, rhs **=>** (lhs < rhs)
+        /// Stack: lhs, rhs **=>** `(lhs < rhs)`
         LessThan,
 
         /// Binary `<=` operator.
         ///
         /// Operands:
         ///
-        /// Stack: lhs, rhs **=>** (lhs <= rhs)
+        /// Stack: lhs, rhs **=>** `(lhs <= rhs)`
         LessThanOrEq,
 
         /// Binary `instanceof` operator.
@@ -1418,7 +1418,7 @@ generate_impl! {
         ///
         /// Operands:
         ///
-        /// Stack: received **=>** Option<value>, skip_0, skip_1
+        /// Stack: received **=>** `Option<value>`, skip_0, skip_1
         AsyncGeneratorNext,
 
         /// Delegates the current generator function another generator.
@@ -1448,7 +1448,7 @@ generate_impl! {
         ///
         /// Stack: **=>**
         // Safety: Must be last in the list since, we use this for range checking
-        // in TryFrom<u8> impl.
+        // in `TryFrom<u8>` impl.
         Nop,
     }
 }

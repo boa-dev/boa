@@ -65,9 +65,9 @@ pub(in crate::parser) use {
 ///  - The `$name` identifier is the name of the `TargetExpression` struct that the parser will be implemented for.
 ///  - The `$lower` identifier is the name of the `InnerExpression` struct according to the pattern above.
 ///
-/// A list of punctuators (operands between the <TargetExpression> and <InnerExpression>) are passed as the third parameter.
+/// A list of punctuators (operands between the `TargetExpression` and `InnerExpression`) are passed as the third parameter.
 ///
-/// The fifth parameter is an Option<InputElement> which sets the goal symbol to set before parsing (or None to leave it as is).
+/// The fifth parameter is an `Option<InputElement>` which sets the goal symbol to set before parsing (or None to leave it as is).
 macro_rules! expression {
     ($name:ident, $lower:ident, [$( $op:path ),*], [$( $low_param:ident ),*], $goal:expr ) => {
         impl<R> TokenParser<R> for $name
