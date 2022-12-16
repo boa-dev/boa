@@ -175,7 +175,7 @@ impl SubGraph {
                 self.label.as_ref()
             }
         ));
-        result.push_str(&format!("  direction {}\n", rankdir));
+        result.push_str(&format!("  direction {rankdir}\n"));
 
         result.push_str(&format!("  {prefix}_{}_start{{Start}}\n", self.label));
         result.push_str(&format!(
@@ -302,7 +302,7 @@ impl Graph {
             Direction::LeftToRight => "LR",
             Direction::RightToLeft => "RL",
         };
-        result += &format!("graph {}\n", rankdir);
+        result += &format!("graph {rankdir}\n");
 
         for subgraph in &self.subgraphs {
             subgraph.mermaid_format(&mut result, "");
