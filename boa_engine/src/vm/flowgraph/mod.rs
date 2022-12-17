@@ -92,7 +92,7 @@ impl CodeBlock {
                     pc += size_of::<u32>();
                     let operand_str = self.literals[operand as usize].display().to_string();
                     let operand_str = operand_str.escape_debug();
-                    let label = format!("{opcode_str} {}", operand_str);
+                    let label = format!("{opcode_str} {operand_str}");
 
                     graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
                     graph.add_edge(previous_pc, pc, None, Color::None, EdgeStyle::Line);

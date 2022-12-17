@@ -33,10 +33,10 @@ impl Color {
     #[must_use]
     pub fn hsv_to_rgb(h: f64, s: f64, v: f64) -> Self {
         let h_i = (h * 6.0) as i64;
-        let f = h * 6.0 - h_i as f64;
+        let f = h.mul_add(6.0, -h_i as f64);
         let p = v * (1.0 - s);
-        let q = v * (1.0 - f * s);
-        let t = v * (1.0 - (1.0 - f) * s);
+        let q = v * f.mul_add(-s, 1.0);
+        let t = v * (1.0 - f).mul_add(-s, 1.0);
 
         let (r, g, b) = match h_i {
             0 => (v, t, p),

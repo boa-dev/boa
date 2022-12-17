@@ -272,7 +272,7 @@ fn main() -> Result<(), io::Error> {
                 flowgraph.unwrap_or(FlowgraphFormat::Graphviz),
                 args.flowgraph_direction,
             ) {
-                Ok(v) => println!("{}", v),
+                Ok(v) => println!("{v}"),
                 Err(v) => eprintln!("Uncaught {v}"),
             }
         } else {
@@ -328,7 +328,7 @@ fn main() -> Result<(), io::Error> {
                             flowgraph.unwrap_or(FlowgraphFormat::Graphviz),
                             args.flowgraph_direction,
                         ) {
-                            Ok(v) => println!("{}", v),
+                            Ok(v) => println!("{v}"),
                             Err(v) => eprintln!("Uncaught {v}"),
                         }
                     } else {

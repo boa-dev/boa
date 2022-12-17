@@ -2091,7 +2091,7 @@ fn bigger_switch_example() {
             "#,
         );
 
-        assert_eq!(&exec(&scenario), val);
+        assert_eq!(&exec(scenario), val);
     }
 }
 

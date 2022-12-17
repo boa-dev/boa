@@ -160,7 +160,7 @@ where
 {
     context
         .eval(src.as_ref())
-        .map_or_else(|e| format!("Uncaught {}", e), |v| v.display().to_string())
+        .map_or_else(|e| format!("Uncaught {e}"), |v| v.display().to_string())
 }
 
 /// Execute the code using an existing Context.
