@@ -1,5 +1,4 @@
-//! Boa's **boa_icu_provider** crate contains the default data provider used by its `Intl`
-//! implementation.
+//! Boa's **`boa_icu_provider`** exports the default data provider used by its `Intl` implementation.
 //!
 //! # Crate Overview
 //! This crate exports the function [`blob`], which contains an extensive dataset of locale data to

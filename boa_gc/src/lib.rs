@@ -1,4 +1,4 @@
-//! Boa's **boa_gc** crate implements a garbage collector.
+//! Boa's **`boa_gc`** crate implements a garbage collector.
 //!
 //! # Crate Overview
 //! **boa_gc** is a mark-sweep garbage collector that implements a Trace and Finalize trait
@@ -13,11 +13,12 @@
 //! # Boa Crates
 //!  - **boa_ast** - Boa's ECMAScript Abstract Syntax Tree.
 //!  - **boa_engine** - Boa's implementation of ECMAScript builtin objects and execution.
-//!  - **boa_gc** - Boa's garbage collector
-//!  - **boa_interner** - Boa's string interner
-//!  - **boa_parser** - Boa's lexer and parser
-//!  - **boa_profiler** - Boa's code profiler
-//!  - **boa_unicode** - Boa's Unicode identifier
+//!  - **boa_gc** - Boa's garbage collector.
+//!  - **boa_interner** - Boa's string interner.
+//!  - **boa_parser** - Boa's lexer and parser.
+//!  - **boa_profiler** - Boa's code profiler.
+//!  - **boa_unicode** - Boa's Unicode identifier.
+//!  - **boa_icu_provider** - Boa's ICU4X data provider.
 //!
 //! [boa-conformance]: https://boa-dev.github.io/boa/test262/
 //! [boa-web]: https://boa-dev.github.io/

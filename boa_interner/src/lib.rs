@@ -1,4 +1,4 @@
-//! Boa's **boa_interner** is a string interner for compiler performance.
+//! Boa's **`boa_interner`** is a string interner for compiler performance.
 //!
 //! # Crate Overview
 //! The idea behind using a string interner is that in most of the code, strings such as
@@ -18,11 +18,12 @@
 //! # Boa Crates
 //!  - **boa_ast** - Boa's ECMAScript Abstract Syntax Tree.
 //!  - **boa_engine** - Boa's implementation of ECMAScript builtin objects and execution.
-//!  - **boa_gc** - Boa's garbage collector
-//!  - **boa_interner** - Boa's string interner
-//!  - **boa_parser** - Boa's lexer and parser
-//!  - **boa_profiler** - Boa's code profiler
-//!  - **boa_unicode** - Boa's Unicode identifier
+//!  - **boa_gc** - Boa's garbage collector.
+//!  - **boa_interner** - Boa's string interner.
+//!  - **boa_parser** - Boa's lexer and parser.
+//!  - **boa_profiler** - Boa's code profiler.
+//!  - **boa_unicode** - Boa's Unicode identifier.
+//!  - **boa_icu_provider** - Boa's ICU4X data provider.
 //!
 //! [boa-conformance]: https://boa-dev.github.io/boa/test262/
 //! [boa-web]: https://boa-dev.github.io/

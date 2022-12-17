@@ -1,4 +1,4 @@
-//! Boa's **boa_ast** crate implements an ECMAScript abstract syntax tree.
+//! Boa's **`boa_ast`** crate implements an ECMAScript abstract syntax tree.
 //!
 //! # Crate Overview
 //! **boa_ast** contains representations of [**Parse Nodes**][grammar] as defined by the ECMAScript
@@ -19,11 +19,12 @@
 //! # Boa Crates
 //!  - **boa_ast** - Boa's ECMAScript Abstract Syntax Tree.
 //!  - **boa_engine** - Boa's implementation of ECMAScript builtin objects and execution.
-//!  - **boa_gc** - Boa's garbage collector
-//!  - **boa_interner** - Boa's string interner
-//!  - **boa_parser** - Boa's lexer and parser
-//!  - **boa_profiler** - Boa's code profiler
-//!  - **boa_unicode** - Boa's Unicode identifier
+//!  - **boa_gc** - Boa's garbage collector.
+//!  - **boa_interner** - Boa's string interner.
+//!  - **boa_parser** - Boa's lexer and parser.
+//!  - **boa_profiler** - Boa's code profiler.
+//!  - **boa_unicode** - Boa's Unicode identifier.
+//!  - **boa_icu_provider** - Boa's ICU4X data provider.
 //!
 //! [grammar]: https://tc39.es/ecma262/#sec-syntactic-grammar
 //! [early]: https://tc39.es/ecma262/#sec-static-semantic-rules

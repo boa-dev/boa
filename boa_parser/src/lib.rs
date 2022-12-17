@@ -1,4 +1,4 @@
-//! Boa's **boa_parser** crate is a parser targeting the latest [ECMAScript language specification][spec].
+//! Boa's **`boa_parser`** crate is a parser targeting the latest [ECMAScript language specification][spec].
 //!
 //! # Crate Overview
 //! This crate contains implementations of a [`Lexer`] and a [`Parser`] for the **ECMAScript**
@@ -14,11 +14,12 @@
 //! # Boa Crates
 //!  - **boa_ast** - Boa's ECMAScript Abstract Syntax Tree.
 //!  - **boa_engine** - Boa's implementation of ECMAScript builtin objects and execution.
-//!  - **boa_gc** - Boa's garbage collector
-//!  - **boa_interner** - Boa's string interner
-//!  - **boa_parser** - Boa's lexer and parser
-//!  - **boa_profiler** - Boa's code profiler
-//!  - **boa_unicode** - Boa's Unicode identifier
+//!  - **boa_gc** - Boa's garbage collector.
+//!  - **boa_interner** - Boa's string interner.
+//!  - **boa_parser** - Boa's lexer and parser.
+//!  - **boa_profiler** - Boa's code profiler.
+//!  - **boa_unicode** - Boa's Unicode identifier.
+//!  - **boa_icu_provider** - Boa's ICU4X data provider.
 //!
 //! [spec]: https://tc39.es/ecma262
 //! [lex]: https://tc39.es/ecma262/#sec-ecmascript-language-lexical-grammar
