@@ -11,6 +11,7 @@ use crate::{
     Context, JsNativeError, JsResult, JsValue,
 };
 
+use icu_collator::provider::CollationMetadataV1Marker;
 use icu_locid::{
     extensions::unicode::{Key, Value},
     subtags::Variants,
@@ -178,7 +179,13 @@ pub(crate) fn best_available_locale<M: KeyedDataMarker>(
             // the fallback algorithm, even if the used locale is exactly the same as the required
             // locale.
             match req.metadata.locale {
-                Some(loc) if loc == candidate => return Some(candidate.into_locale().id),
+                Some(loc)
+                    if loc == candidate
+                // TODO: ugly hack to accept locales that fallback to "und" in the collator service
+                || (loc.is_empty() && M::KEY.path() == CollationMetadataV1Marker::KEY.path()) =>
+                {
+                    return Some(candidate.into_locale().id)
+                }
                 None => return Some(candidate.into_locale().id),
                 _ => {}
             }
@@ -233,7 +240,14 @@ pub(crate) fn best_locale_for_provider<M: KeyedDataMarker>(
     response
         .metadata
         .locale
-        .map(|dl| dl.into_locale().id)
+        .map(|dl| {
+            // TODO: ugly hack to accept locales that fallback to "und" in the collator service
+            if M::KEY.path() == CollationMetadataV1Marker::KEY.path() && dl.is_empty() {
+                candidate.clone()
+            } else {
+                dl.into_locale().id
+            }
+        })
         .or(Some(candidate))
         .filter(|loc| loc != &LanguageIdentifier::UND)
 }

@@ -14,12 +14,12 @@ pub(crate) enum Sensitivity {
 
 impl Sensitivity {
     /// Converts the sensitivity option to the equivalent ICU4X collator options.
-    pub(crate) const fn to_collator_options(self) -> (Strength, Option<CaseLevel>) {
+    pub(crate) const fn to_collator_options(self) -> (Strength, CaseLevel) {
         match self {
-            Sensitivity::Base => (Strength::Primary, None),
-            Sensitivity::Accent => (Strength::Secondary, None),
-            Sensitivity::Case => (Strength::Primary, Some(CaseLevel::On)),
-            Sensitivity::Variant => (Strength::Tertiary, None),
+            Sensitivity::Base => (Strength::Primary, CaseLevel::Off),
+            Sensitivity::Accent => (Strength::Secondary, CaseLevel::Off),
+            Sensitivity::Case => (Strength::Primary, CaseLevel::On),
+            Sensitivity::Variant => (Strength::Tertiary, CaseLevel::On),
         }
     }
 }

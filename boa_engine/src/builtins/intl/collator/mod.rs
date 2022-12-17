@@ -94,8 +94,16 @@ where
             .collation
             .take()
             .filter(|co| validate_extension(locale.id.clone(), key!("co"), co, provider))
-            .or_else(|| locale.extensions.unicode.keywords.get(&key!("co")).cloned())
-            .filter(|co| validate_extension(locale.id.clone(), key!("co"), co, provider));
+            .or_else(|| {
+                locale
+                    .extensions
+                    .unicode
+                    .keywords
+                    .get(&key!("co"))
+                    .cloned()
+                    .filter(|co| validate_extension(locale.id.clone(), key!("co"), co, provider))
+            })
+            .filter(|co| co != &value!("search"));
 
         let numeric =
             options.numeric.or_else(
@@ -251,8 +259,21 @@ impl Collator {
 
         // 18. Let relevantExtensionKeys be %Collator%.[[RelevantExtensionKeys]].
         // 19. Let r be ResolveLocale(%Collator%.[[AvailableLocales]], requestedLocales, opt, relevantExtensionKeys, localeData).
-        let locale =
+        let mut locale =
             resolve_locale::<Self, _>(&requested_locales, &mut intl_options, context.icu());
+
+        let collator_locale = {
+            // `collator_locale` needs to be different from the resolved locale because ECMA402 doesn't
+            // define `search` as a resolvable extension of a locale, so we need to add that extension
+            // only to the locale passed to the collator.
+            let mut col_loc = DataLocale::from(&locale);
+            if usage == Usage::Search {
+                intl_options.service_options.collation = None;
+                locale.extensions.unicode.keywords.remove(key!("co"));
+                col_loc.set_unicode_ext(key!("co"), value!("search"));
+            }
+            col_loc
+        };
 
         // 20. Set collator.[[Locale]] to r.[[locale]].
 
@@ -282,32 +303,25 @@ impl Collator {
             //         i. Let dataLocale be r.[[dataLocale]].
             //         ii. Let dataLocaleData be localeData.[[<dataLocale>]].
             //         iii. Let sensitivity be dataLocaleData.[[sensitivity]].
-            // For now, `Collator` always uses `Strength::Tertiary` as the default.
-            .unwrap_or(Sensitivity::Variant);
+            .or_else(|| (usage == Usage::Sort).then_some(Sensitivity::Variant));
 
         // 29. Let ignorePunctuation be ? GetOption(options, "ignorePunctuation", boolean, empty, false).
         // 30. Set collator.[[IgnorePunctuation]] to ignorePunctuation.
         let ignore_punctuation =
             get_option::<bool>(&options, "ignorePunctuation", false, context)?.unwrap_or_default();
 
-        let (strength, case_level) = sensitivity.to_collator_options();
+        let (strength, case_level) = sensitivity.map(Sensitivity::to_collator_options).unzip();
 
-        // TODO: change to use `unzip` when 1.66 releases.
-        let (alternate_handling, max_variable) = if ignore_punctuation {
-            (
-                Some(AlternateHandling::Shifted),
-                Some(MaxVariable::Punctuation),
-            )
-        } else {
-            (None, None)
-        };
+        let (alternate_handling, max_variable) = ignore_punctuation
+            .then_some((AlternateHandling::Shifted, MaxVariable::Punctuation))
+            .unzip();
 
         let collator = context
             .icu()
             .provider()
-            .try_new_collator(&DataLocale::from(&locale), {
+            .try_new_collator(&collator_locale, {
                 let mut options = icu_collator::CollatorOptions::new();
-                options.strength = Some(strength);
+                options.strength = strength;
                 options.case_level = case_level;
                 options.case_first = case_first;
                 options.numeric = Some(if numeric { Numeric::On } else { Numeric::Off });
@@ -327,7 +341,7 @@ impl Collator {
                 numeric,
                 case_first,
                 usage,
-                sensitivity,
+                sensitivity: sensitivity.unwrap_or(Sensitivity::Variant),
                 ignore_punctuation,
                 collator,
                 bound_compare: None,
