@@ -11,6 +11,9 @@ pub use icu::BoaProvider;
 use intrinsics::{IntrinsicObjects, Intrinsics};
 use std::collections::VecDeque;
 
+#[cfg(not(feature = "intl"))]
+pub use std::marker::PhantomData;
+
 #[cfg(feature = "console")]
 use crate::builtins::console::Console;
 use crate::{
@@ -72,7 +75,7 @@ use boa_profiler::Profiler;
 ///
 /// assert_eq!(value.as_number(), Some(12.0))
 /// ```
-pub struct Context {
+pub struct Context<'icu> {
     /// realm holds both the global object and the environment
     pub(crate) realm: Realm,
 
@@ -88,7 +91,10 @@ pub struct Context {
 
     /// ICU related utilities
     #[cfg(feature = "intl")]
-    icu: icu::Icu<BoaProvider>,
+    icu: icu::Icu<'icu>,
+
+    #[cfg(not(feature = "intl"))]
+    icu: PhantomData<&'icu ()>,
 
     /// Number of instructions remaining before a forced exit
     #[cfg(feature = "fuzz")]
@@ -101,7 +107,7 @@ pub struct Context {
     pub(crate) kept_alive: Vec<JsObject>,
 }
 
-impl std::fmt::Debug for Context {
+impl std::fmt::Debug for Context<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let mut debug = f.debug_struct("Context");
 
@@ -124,7 +130,7 @@ impl std::fmt::Debug for Context {
     }
 }
 
-impl Default for Context {
+impl Default for Context<'_> {
     fn default() -> Self {
         ContextBuilder::default().build()
     }
@@ -132,11 +138,11 @@ impl Default for Context {
 
 // ==== Public API ====
 
-impl Context {
+impl Context<'_> {
     /// Create a new [`ContextBuilder`] to specify the [`Interner`] and/or
     /// the icu data provider.
     #[must_use]
-    pub fn builder() -> ContextBuilder {
+    pub fn builder() -> ContextBuilder<'static> {
         ContextBuilder::default()
     }
 
@@ -364,7 +370,7 @@ impl Context {
     /// why we need to restrict the set of accepted closures.
     pub fn register_global_closure<F>(&mut self, name: &str, length: usize, body: F) -> JsResult<()>
     where
-        F: Fn(&JsValue, &[JsValue], &mut Self) -> JsResult<JsValue> + Copy + 'static,
+        F: Fn(&JsValue, &[JsValue], &mut Context<'_>) -> JsResult<JsValue> + Copy + 'static,
     {
         let function = FunctionBuilder::closure(self, body)
             .name(name)
@@ -472,7 +478,7 @@ impl Context {
 
 // ==== Private API ====
 
-impl Context {
+impl<'icu> Context<'icu> {
     /// A helper function for getting an immutable reference to the `console` object.
     #[cfg(feature = "console")]
     pub(crate) const fn console(&self) -> &Console {
@@ -516,7 +522,7 @@ impl Context {
 
     /// Get the ICU related utilities
     #[cfg(feature = "intl")]
-    pub(crate) const fn icu(&self) -> &icu::Icu<BoaProvider> {
+    pub(crate) const fn icu(&self) -> &icu::Icu<'icu> {
         &self.icu
     }
 
@@ -548,15 +554,17 @@ impl Context {
     doc = "The required data in a valid provider is specified in [`BoaProvider`]"
 )]
 #[derive(Default, Debug)]
-pub struct ContextBuilder {
+pub struct ContextBuilder<'icu> {
     interner: Option<Interner>,
     #[cfg(feature = "intl")]
-    icu: Option<icu::Icu<BoaProvider>>,
+    icu: Option<icu::Icu<'icu>>,
+    #[cfg(not(feature = "intl"))]
+    icu: PhantomData<&'icu ()>,
     #[cfg(feature = "fuzz")]
     instructions_remaining: usize,
 }
 
-impl ContextBuilder {
+impl<'a> ContextBuilder<'a> {
     /// Initializes the context [`Interner`] to the provided interner.
     ///
     /// This is useful when you want to initialize an [`Interner`] with
@@ -573,11 +581,13 @@ impl ContextBuilder {
     /// This function is only available if the `intl` feature is enabled.
     #[cfg(feature = "intl")]
     pub fn icu_provider(
-        mut self,
-        provider: BoaProvider,
-    ) -> Result<Self, icu_locid_transform::LocaleTransformError> {
-        self.icu = Some(icu::Icu::new(provider)?);
-        Ok(self)
+        self,
+        provider: BoaProvider<'_>,
+    ) -> Result<ContextBuilder<'_>, icu_locid_transform::LocaleTransformError> {
+        Ok(ContextBuilder {
+            icu: Some(icu::Icu::new(provider)?),
+            ..self
+        })
     }
 
     /// Specifies the number of instructions remaining to the [`Context`].
@@ -600,7 +610,7 @@ impl ContextBuilder {
     /// Builds a new [`Context`] with the provided parameters, and defaults
     /// all missing parameters to their default values.
     #[must_use]
-    pub fn build(self) -> Context {
+    pub fn build(self) -> Context<'a> {
         let intrinsics = Intrinsics::default();
         let mut context = Context {
             realm: Realm::create(intrinsics.constructors().object().prototype().into()),
@@ -616,13 +626,11 @@ impl ContextBuilder {
             },
             #[cfg(feature = "intl")]
             icu: self.icu.unwrap_or_else(|| {
-                use icu_provider_adapters::fallback::LocaleFallbackProvider;
-                let provider = BoaProvider::Buffer(Box::new(
-                    LocaleFallbackProvider::try_new_with_buffer_provider(boa_icu_provider::blob())
-                        .expect("boa_icu_provider should return a valid provider"),
-                ));
+                let provider = BoaProvider::Buffer(boa_icu_provider::blob());
                 icu::Icu::new(provider).expect("Failed to initialize default icu data.")
             }),
+            #[cfg(not(feature = "intl"))]
+            icu: PhantomData,
             #[cfg(feature = "fuzz")]
             instructions_remaining: self.instructions_remaining,
             promise_job_queue: VecDeque::new(),

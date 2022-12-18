@@ -490,7 +490,7 @@ pub(crate) fn create_function_object(
     r#async: bool,
     arrow: bool,
     prototype: Option<JsObject>,
-    context: &mut Context,
+    context: &mut Context<'_>,
 ) -> JsObject {
     let _timer = Profiler::global().start_event("JsVmFunction::new", "vm");
 
@@ -595,7 +595,7 @@ pub(crate) fn create_function_object(
 pub(crate) fn create_generator_function_object(
     code: Gc<CodeBlock>,
     r#async: bool,
-    context: &mut Context,
+    context: &mut Context<'_>,
 ) -> JsObject {
     let function_prototype = if r#async {
         context
@@ -687,7 +687,7 @@ impl JsObject {
         &self,
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context,
+        context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         let this_function_object = self.clone();
 
@@ -1264,7 +1264,7 @@ impl JsObject {
         &self,
         args: &[JsValue],
         this_target: &JsValue,
-        context: &mut Context,
+        context: &mut Context<'_>,
     ) -> JsResult<Self> {
         let this_function_object = self.clone();
 
@@ -1511,7 +1511,7 @@ impl JsObject {
 pub(crate) fn initialize_instance_elements(
     target: &JsObject,
     constructor: &JsObject,
-    context: &mut Context,
+    context: &mut Context<'_>,
 ) -> JsResult<()> {
     let constructor_borrow = constructor.borrow();
     let constructor_function = constructor_borrow

@@ -840,7 +840,7 @@ impl BindingLocator {
     /// Helper method to throws an error if the binding access is illegal.
     pub(crate) fn throw_mutate_immutable(
         &self,
-        context: &mut Context,
+        context: &mut Context<'_>,
     ) -> Result<(), JsNativeError> {
         if self.mutate_immutable {
             Err(JsNativeError::typ().with_message(format!(

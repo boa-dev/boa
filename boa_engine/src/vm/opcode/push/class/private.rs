@@ -15,7 +15,7 @@ impl Operation for PushClassPrivateMethod {
     const NAME: &'static str = "PushClassPrivateMethod";
     const INSTRUCTION: &'static str = "INST - PushClassPrivateMethod";
 
-    fn execute(context: &mut Context) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         let index = context.vm.read::<u32>();
         let name = context.vm.frame().code.names[index as usize];
         let method = context.vm.pop();
@@ -43,7 +43,7 @@ impl Operation for PushClassPrivateGetter {
     const NAME: &'static str = "PushClassPrivateGetter";
     const INSTRUCTION: &'static str = "INST - PushClassPrivateGetter";
 
-    fn execute(context: &mut Context) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         let index = context.vm.read::<u32>();
         let name = context.vm.frame().code.names[index as usize];
         let getter = context.vm.pop();
@@ -77,7 +77,7 @@ impl Operation for PushClassPrivateSetter {
     const NAME: &'static str = "PushClassPrivateSetter";
     const INSTRUCTION: &'static str = "INST - PushClassPrivateSetter";
 
-    fn execute(context: &mut Context) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         let index = context.vm.read::<u32>();
         let name = context.vm.frame().code.names[index as usize];
         let setter = context.vm.pop();

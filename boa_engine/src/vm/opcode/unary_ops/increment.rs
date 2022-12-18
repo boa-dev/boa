@@ -15,7 +15,7 @@ impl Operation for Inc {
     const NAME: &'static str = "Inc";
     const INSTRUCTION: &'static str = "INST - Inc";
 
-    fn execute(context: &mut Context) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         let value = context.vm.pop();
         match value.to_numeric(context)? {
             Numeric::Number(number) => context.vm.push(number + 1f64),
@@ -38,7 +38,7 @@ impl Operation for IncPost {
     const NAME: &'static str = "IncPost";
     const INSTRUCTION: &'static str = "INST - IncPost";
 
-    fn execute(context: &mut Context) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         let value = context.vm.pop();
         let value = value.to_numeric(context)?;
         match value {

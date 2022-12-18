@@ -16,7 +16,7 @@ impl Operation for This {
     const NAME: &'static str = "This";
     const INSTRUCTION: &'static str = "INST - This";
 
-    fn execute(context: &mut Context) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         let env = context.realm.environments.get_this_environment();
         match env {
             EnvironmentSlots::Function(env) => {
@@ -42,7 +42,7 @@ impl Operation for Super {
     const NAME: &'static str = "Super";
     const INSTRUCTION: &'static str = "INST - Super";
 
-    fn execute(context: &mut Context) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         let home = {
             let env = context
                 .realm
@@ -84,7 +84,7 @@ impl Operation for SuperCall {
     const NAME: &'static str = "SuperCall";
     const INSTRUCTION: &'static str = "INST - SuperCall";
 
-    fn execute(context: &mut Context) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         let argument_count = context.vm.read::<u32>();
         let mut arguments = Vec::with_capacity(argument_count as usize);
         for _ in 0..argument_count {
@@ -150,7 +150,7 @@ impl Operation for SuperCallSpread {
     const NAME: &'static str = "SuperCallWithRest";
     const INSTRUCTION: &'static str = "INST - SuperCallWithRest";
 
-    fn execute(context: &mut Context) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         // Get the arguments that are stored as an array object on the stack.
         let arguments_array = context.vm.pop();
         let arguments_array_object = arguments_array
@@ -221,7 +221,7 @@ impl Operation for SuperCallDerived {
     const NAME: &'static str = "SuperCallDerived";
     const INSTRUCTION: &'static str = "INST - SuperCallDerived";
 
-    fn execute(context: &mut Context) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         let argument_count = context.vm.frame().arg_count;
         let mut arguments = Vec::with_capacity(argument_count);
         for _ in 0..argument_count {

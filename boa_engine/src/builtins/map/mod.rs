@@ -39,7 +39,7 @@ pub(crate) struct Map;
 impl BuiltIn for Map {
     const NAME: &'static str = "Map";
 
-    fn init(context: &mut Context) -> Option<JsValue> {
+    fn init(context: &mut Context<'_>) -> Option<JsValue> {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
         let get_species = FunctionBuilder::native(context, Self::get_species)
@@ -118,7 +118,7 @@ impl Map {
     pub(crate) fn constructor(
         new_target: &JsValue,
         args: &[JsValue],
-        context: &mut Context,
+        context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. If NewTarget is undefined, throw a TypeError exception.
         if new_target.is_undefined() {
@@ -157,7 +157,7 @@ impl Map {
     /// [spec]: https://tc39.es/ecma262/#sec-get-map-@@species
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/@@species
     #[allow(clippy::unnecessary_wraps)]
-    fn get_species(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+    fn get_species(this: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
         // 1. Return the this value.
         Ok(this.clone())
     }
@@ -175,7 +175,7 @@ impl Map {
     pub(crate) fn entries(
         this: &JsValue,
         _: &[JsValue],
-        context: &mut Context,
+        context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let M be the this value.
         // 2. Return ? CreateMapIterator(M, key+value).
@@ -192,7 +192,11 @@ impl Map {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-map.prototype.keys
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/keys
-    pub(crate) fn keys(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    pub(crate) fn keys(
+        this: &JsValue,
+        _: &[JsValue],
+        context: &mut Context<'_>,
+    ) -> JsResult<JsValue> {
         // 1. Let M be the this value.
         // 2. Return ? CreateMapIterator(M, key).
         MapIterator::create_map_iterator(this, PropertyNameKind::Key, context)
@@ -208,7 +212,7 @@ impl Map {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-map.prototype.set
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/set
-    pub(crate) fn set(this: &JsValue, args: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+    pub(crate) fn set(this: &JsValue, args: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
         let key = args.get_or_undefined(0);
         let value = args.get_or_undefined(1);
 
@@ -255,7 +259,11 @@ impl Map {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-get-map.prototype.size
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/size
-    pub(crate) fn get_size(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+    pub(crate) fn get_size(
+        this: &JsValue,
+        _: &[JsValue],
+        _: &mut Context<'_>,
+    ) -> JsResult<JsValue> {
         // 1. Let M be the this value.
         if let Some(object) = this.as_object() {
             // 2. Perform ? RequireInternalSlot(M, [[MapData]]).
@@ -284,7 +292,11 @@ impl Map {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-map.prototype.delete
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/delete
-    pub(crate) fn delete(this: &JsValue, args: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+    pub(crate) fn delete(
+        this: &JsValue,
+        args: &[JsValue],
+        _: &mut Context<'_>,
+    ) -> JsResult<JsValue> {
         let key = args.get_or_undefined(0);
 
         // 1. Let M be the this value.
@@ -315,7 +327,7 @@ impl Map {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-map.prototype.get
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/get
-    pub(crate) fn get(this: &JsValue, args: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+    pub(crate) fn get(this: &JsValue, args: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
         const JS_ZERO: &JsValue = &JsValue::Rational(0f64);
 
         let key = args.get_or_undefined(0);
@@ -357,7 +369,7 @@ impl Map {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-map.prototype.clear
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/clear
-    pub(crate) fn clear(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+    pub(crate) fn clear(this: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
         // 1. Let M be the this value.
         // 2. Perform ? RequireInternalSlot(M, [[MapData]]).
         if let Some(object) = this.as_object() {
@@ -387,7 +399,7 @@ impl Map {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-map.prototype.has
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/has
-    pub(crate) fn has(this: &JsValue, args: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+    pub(crate) fn has(this: &JsValue, args: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
         const JS_ZERO: &JsValue = &JsValue::Rational(0f64);
 
         let key = args.get_or_undefined(0);
@@ -432,7 +444,7 @@ impl Map {
     pub(crate) fn for_each(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context,
+        context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let M be the this value.
         // 2. Perform ? RequireInternalSlot(M, [[MapData]]).
@@ -503,7 +515,7 @@ impl Map {
     pub(crate) fn values(
         this: &JsValue,
         _: &[JsValue],
-        context: &mut Context,
+        context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let M be the this value.
         // 2. Return ? CreateMapIterator(M, value).
@@ -523,7 +535,7 @@ pub(crate) fn add_entries_from_iterable(
     target: &JsObject,
     iterable: &JsValue,
     adder: &JsValue,
-    context: &mut Context,
+    context: &mut Context<'_>,
 ) -> JsResult<JsValue> {
     // 1. If IsCallable(adder) is false, throw a TypeError exception.
     let adder = adder.as_callable().ok_or_else(|| {

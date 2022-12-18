@@ -14,7 +14,7 @@ impl Operation for PushDeclarativeEnvironment {
     const NAME: &'static str = "PushDeclarativeEnvironment";
     const INSTRUCTION: &'static str = "INST - PushDeclarativeEnvironment";
 
-    fn execute(context: &mut Context) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         let num_bindings = context.vm.read::<u32>();
         let compile_environments_index = context.vm.read::<u32>();
         let compile_environment = context.vm.frame().code.compile_environments
@@ -41,7 +41,7 @@ impl Operation for PushFunctionEnvironment {
     const NAME: &'static str = "PushFunctionEnvironment";
     const INSTRUCTION: &'static str = "INST - PushFunctionEnvironment";
 
-    fn execute(context: &mut Context) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         let num_bindings = context.vm.read::<u32>();
         let compile_environments_index = context.vm.read::<u32>();
         let compile_environment = context.vm.frame().code.compile_environments

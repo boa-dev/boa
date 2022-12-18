@@ -116,12 +116,12 @@ pub(crate) trait BuiltIn {
     ///
     /// A return value of `None` indicates that the value must not be added as a global attribute
     /// for the global object.
-    fn init(context: &mut Context) -> Option<JsValue>;
+    fn init(context: &mut Context<'_>) -> Option<JsValue>;
 }
 
 /// Utility function that checks if a type implements `BuiltIn` before initializing it as a global
 /// built-in.
-fn init_builtin<B: BuiltIn>(context: &mut Context) {
+fn init_builtin<B: BuiltIn>(context: &mut Context<'_>) {
     if let Some(value) = B::init(context) {
         let property = PropertyDescriptor::builder()
             .value(value)
@@ -136,7 +136,7 @@ fn init_builtin<B: BuiltIn>(context: &mut Context) {
 }
 
 /// Initializes built-in objects and functions
-pub fn init(context: &mut Context) {
+pub fn init(context: &mut Context<'_>) {
     macro_rules! globals {
         ($( $builtin:ty ),*) => {
             $(init_builtin::<$builtin>(context)

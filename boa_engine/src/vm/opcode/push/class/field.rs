@@ -15,7 +15,7 @@ impl Operation for PushClassField {
     const NAME: &'static str = "PushClassField";
     const INSTRUCTION: &'static str = "INST - PushClassField";
 
-    fn execute(context: &mut Context) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         let field_function_value = context.vm.pop();
         let field_name_value = context.vm.pop();
         let class_value = context.vm.pop();
@@ -55,7 +55,7 @@ impl Operation for PushClassFieldPrivate {
     const NAME: &'static str = "PushClassFieldPrivate";
     const INSTRUCTION: &'static str = "INST - PushClassFieldPrivate";
 
-    fn execute(context: &mut Context) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         let index = context.vm.read::<u32>();
         let name = context.vm.frame().code.names[index as usize];
         let field_function_value = context.vm.pop();

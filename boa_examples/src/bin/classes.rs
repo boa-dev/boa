@@ -30,7 +30,7 @@ struct Person {
 // or any function that matches the required signature.
 impl Person {
     /// Says hello if `this` is a `Person`
-    fn say_hello(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+    fn say_hello(this: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
         // We check if this is an object.
         if let Some(object) = this.as_object() {
             // If it is we downcast the type to type `Person`.
@@ -63,7 +63,7 @@ impl Class for Person {
     const LENGTH: usize = 2;
 
     // This is what is called when we construct a `Person` with the expression `new Person()`.
-    fn constructor(_this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<Self> {
+    fn constructor(_this: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> JsResult<Self> {
         // We get the first argument. If it is unavailable we default to `undefined`,
         // and then we call `to_string()`.
         //

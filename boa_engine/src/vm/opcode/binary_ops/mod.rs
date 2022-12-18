@@ -21,7 +21,7 @@ impl Operation for NotEq {
     const NAME: &'static str = "NotEq";
     const INSTRUCTION: &'static str = "INST - NotEq";
 
-    fn execute(context: &mut Context) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         let rhs = context.vm.pop();
         let lhs = context.vm.pop();
         let value = !lhs.equals(&rhs, context)?;
@@ -41,7 +41,7 @@ impl Operation for StrictEq {
     const NAME: &'static str = "StrictEq";
     const INSTRUCTION: &'static str = "INST - StrictEq";
 
-    fn execute(context: &mut Context) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         let rhs = context.vm.pop();
         let lhs = context.vm.pop();
         context.vm.push(lhs.strict_equals(&rhs));
@@ -60,7 +60,7 @@ impl Operation for StrictNotEq {
     const NAME: &'static str = "StrictNotEq";
     const INSTRUCTION: &'static str = "INST - StrictNotEq";
 
-    fn execute(context: &mut Context) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         let rhs = context.vm.pop();
         let lhs = context.vm.pop();
         context.vm.push(!lhs.strict_equals(&rhs));
@@ -79,7 +79,7 @@ impl Operation for In {
     const NAME: &'static str = "In";
     const INSTRUCTION: &'static str = "INST - In";
 
-    fn execute(context: &mut Context) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         let rhs = context.vm.pop();
         let lhs = context.vm.pop();
 
@@ -109,7 +109,7 @@ impl Operation for InstanceOf {
     const NAME: &'static str = "InstanceOf";
     const INSTRUCTION: &'static str = "INST - InstanceOf";
 
-    fn execute(context: &mut Context) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         let target = context.vm.pop();
         let v = context.vm.pop();
         let value = v.instance_of(&target, context)?;

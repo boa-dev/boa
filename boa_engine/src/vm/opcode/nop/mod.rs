@@ -14,7 +14,7 @@ impl Operation for Nop {
     const NAME: &'static str = "Nop";
     const INSTRUCTION: &'static str = "INST - Nop";
 
-    fn execute(_context: &mut Context) -> JsResult<ShouldExit> {
+    fn execute(_context: &mut Context<'_>) -> JsResult<ShouldExit> {
         Ok(ShouldExit::False)
     }
 }

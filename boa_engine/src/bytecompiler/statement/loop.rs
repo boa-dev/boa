@@ -14,7 +14,7 @@ use crate::{
     JsResult,
 };
 
-impl ByteCompiler<'_> {
+impl ByteCompiler<'_, '_> {
     pub(crate) fn compile_for_loop(
         &mut self,
         for_loop: &ForLoop,

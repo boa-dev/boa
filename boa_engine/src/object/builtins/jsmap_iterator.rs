@@ -29,7 +29,7 @@ impl JsMapIterator {
     }
 
     /// Advances the `JsMapIterator` and gets the next result in the `JsMap`
-    pub fn next(&self, context: &mut Context) -> JsResult<JsValue> {
+    pub fn next(&self, context: &mut Context<'_>) -> JsResult<JsValue> {
         MapIterator::next(&self.inner.clone().into(), &[], context)
     }
 }

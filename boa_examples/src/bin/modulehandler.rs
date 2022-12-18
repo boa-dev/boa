@@ -32,7 +32,7 @@ fn main() {
 }
 
 // Custom implementation that mimics the 'require' module loader
-fn require(_: &JsValue, args: &[JsValue], ctx: &mut Context) -> JsResult<JsValue> {
+fn require(_: &JsValue, args: &[JsValue], ctx: &mut Context<'_>) -> JsResult<JsValue> {
     let arg = args.get(0).unwrap();
 
     // BUG: Dev branch seems to be passing string arguments along with quotes

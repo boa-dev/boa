@@ -14,7 +14,7 @@ impl Operation for LoopStart {
     const NAME: &'static str = "LoopStart";
     const INSTRUCTION: &'static str = "INST - LoopStart";
 
-    fn execute(context: &mut Context) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         context.vm.frame_mut().loop_env_stack.push(0);
         context.vm.frame_mut().try_env_stack_loop_inc();
         Ok(ShouldExit::False)
@@ -32,7 +32,7 @@ impl Operation for LoopContinue {
     const NAME: &'static str = "LoopContinue";
     const INSTRUCTION: &'static str = "INST - LoopContinue";
 
-    fn execute(context: &mut Context) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         let env_num = context
             .vm
             .frame_mut()
@@ -59,7 +59,7 @@ impl Operation for LoopEnd {
     const NAME: &'static str = "LoopEnd";
     const INSTRUCTION: &'static str = "INST - LoopEnd";
 
-    fn execute(context: &mut Context) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         let env_num = context
             .vm
             .frame_mut()

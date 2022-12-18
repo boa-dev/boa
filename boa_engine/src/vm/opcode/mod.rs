@@ -146,11 +146,11 @@ macro_rules! generate_impl {
                 Self::INSTRUCTIONS[self as usize]
             }
 
-            const EXECUTE_FNS: &[fn(&mut Context) -> JsResult<ShouldExit>] = &[
+            const EXECUTE_FNS: &[fn(&mut Context<'_>) -> JsResult<ShouldExit>] = &[
                 $($Variant::execute),*
             ];
 
-            pub(super) fn execute(self, context: &mut Context) -> JsResult<ShouldExit> {
+            pub(super) fn execute(self, context: &mut Context<'_>) -> JsResult<ShouldExit> {
                 Self::EXECUTE_FNS[self as usize](context)
             }
         }
@@ -167,7 +167,7 @@ pub(crate) trait Operation {
     const NAME: &'static str;
     const INSTRUCTION: &'static str;
 
-    fn execute(context: &mut Context) -> JsResult<ShouldExit>;
+    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit>;
 }
 
 generate_impl! {

@@ -82,7 +82,7 @@ impl FunctionCompiler {
         mut self,
         parameters: &FormalParameterList,
         body: &StatementList,
-        context: &mut Context,
+        context: &mut Context<'_>,
     ) -> JsResult<Gc<CodeBlock>> {
         self.strict = self.strict || body.strict();
 

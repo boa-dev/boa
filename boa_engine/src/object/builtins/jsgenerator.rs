@@ -17,7 +17,7 @@ pub struct JsGenerator {
 impl JsGenerator {
     /// Create a new `JsGenerator` object
     #[inline]
-    pub fn new(context: &mut Context) -> Self {
+    pub fn new(context: &mut Context<'_>) -> Self {
         let prototype = context.intrinsics().constructors().generator().prototype();
 
         let generator = JsObject::from_proto_and_data(
@@ -46,7 +46,7 @@ impl JsGenerator {
     /// Calls `Generator.prototype.next()`
     ///
     /// This method returns an object with the properties `done` and `value`
-    pub fn next<T>(&self, value: T, context: &mut Context) -> JsResult<JsValue>
+    pub fn next<T>(&self, value: T, context: &mut Context<'_>) -> JsResult<JsValue>
     where
         T: Into<JsValue>,
     {
@@ -56,7 +56,7 @@ impl JsGenerator {
     /// Calls `Generator.prototype.return()`
     ///
     /// This method returns the given value and finishes the generator
-    pub fn r#return<T>(&self, value: T, context: &mut Context) -> JsResult<JsValue>
+    pub fn r#return<T>(&self, value: T, context: &mut Context<'_>) -> JsResult<JsValue>
     where
         T: Into<JsValue>,
     {
@@ -67,7 +67,7 @@ impl JsGenerator {
     ///
     /// This method resumes the execution of a generator by throwing an error and returning an
     /// an object with the properties `done` and `value`
-    pub fn throw<T>(&self, value: T, context: &mut Context) -> JsResult<JsValue>
+    pub fn throw<T>(&self, value: T, context: &mut Context<'_>) -> JsResult<JsValue>
     where
         T: Into<JsValue>,
     {

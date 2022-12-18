@@ -22,7 +22,7 @@ impl Operation for PushClassPrototype {
     const NAME: &'static str = "PushClassPrototype";
     const INSTRUCTION: &'static str = "INST - PushClassPrototype";
 
-    fn execute(context: &mut Context) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         let superclass = context.vm.pop();
 
         if let Some(superclass) = superclass.as_constructor() {

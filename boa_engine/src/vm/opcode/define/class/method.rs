@@ -15,7 +15,7 @@ impl Operation for DefineClassMethodByName {
     const NAME: &'static str = "DefineClassMethodByName";
     const INSTRUCTION: &'static str = "INST - DefineClassMethodByName";
 
-    fn execute(context: &mut Context) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         let index = context.vm.read::<u32>();
         let value = context.vm.pop();
         let object = context.vm.pop();
@@ -58,7 +58,7 @@ impl Operation for DefineClassMethodByValue {
     const NAME: &'static str = "DefineClassMethodByName";
     const INSTRUCTION: &'static str = "INST - DefineClassMethodByName";
 
-    fn execute(context: &mut Context) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         let value = context.vm.pop();
         let key = context.vm.pop();
         let object = context.vm.pop();

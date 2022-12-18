@@ -27,7 +27,7 @@ pub(super) trait OptionType: Sized {
     /// steps instead of returning a pure string, number or boolean.
     ///
     /// [spec]: https://tc39.es/ecma402/#sec-getoption
-    fn from_value(value: JsValue, context: &mut Context) -> JsResult<Self>;
+    fn from_value(value: JsValue, context: &mut Context<'_>) -> JsResult<Self>;
 }
 
 pub(super) trait OptionTypeParsable: FromStr {}
@@ -36,7 +36,7 @@ impl<T: OptionTypeParsable> OptionType for T
 where
     T::Err: Display,
 {
-    fn from_value(value: JsValue, context: &mut Context) -> JsResult<Self> {
+    fn from_value(value: JsValue, context: &mut Context<'_>) -> JsResult<Self> {
         value
             .to_string(context)?
             .to_std_string_escaped()
@@ -46,7 +46,7 @@ where
 }
 
 impl OptionType for bool {
-    fn from_value(value: JsValue, _: &mut Context) -> JsResult<Self> {
+    fn from_value(value: JsValue, _: &mut Context<'_>) -> JsResult<Self> {
         // 5. If type is "boolean", then
         //      a. Set value to ! ToBoolean(value).
         Ok(value.to_boolean())
@@ -54,7 +54,7 @@ impl OptionType for bool {
 }
 
 impl OptionType for JsString {
-    fn from_value(value: JsValue, context: &mut Context) -> JsResult<Self> {
+    fn from_value(value: JsValue, context: &mut Context<'_>) -> JsResult<Self> {
         // 6. If type is "string", then
         //      a. Set value to ? ToString(value).
         value.to_string(context)
@@ -92,7 +92,7 @@ impl FromStr for LocaleMatcher {
 impl OptionTypeParsable for LocaleMatcher {}
 
 impl OptionType for CaseFirst {
-    fn from_value(value: JsValue, context: &mut Context) -> JsResult<Self> {
+    fn from_value(value: JsValue, context: &mut Context<'_>) -> JsResult<Self> {
         match value.to_string(context)?.to_std_string_escaped().as_str() {
             "upper" => Ok(CaseFirst::UpperFirst),
             "lower" => Ok(CaseFirst::LowerFirst),
@@ -122,7 +122,7 @@ pub(super) fn get_option<T: OptionType>(
     options: &JsObject,
     property: &str,
     required: bool,
-    context: &mut Context,
+    context: &mut Context<'_>,
 ) -> JsResult<Option<T>> {
     // 1. Let value be ? Get(options, property).
     let value = options.get(property, context)?;
@@ -161,7 +161,7 @@ pub(super) fn get_number_option(
     minimum: f64,
     maximum: f64,
     fallback: Option<f64>,
-    context: &mut Context,
+    context: &mut Context<'_>,
 ) -> JsResult<Option<f64>> {
     // 1. Assert: Type(options) is Object.
     // 2. Let value be ? Get(options, property).
@@ -183,7 +183,7 @@ pub(super) fn default_number_option(
     minimum: f64,
     maximum: f64,
     fallback: Option<f64>,
-    context: &mut Context,
+    context: &mut Context<'_>,
 ) -> JsResult<Option<f64>> {
     // 1. If value is undefined, return fallback.
     if value.is_undefined() {
@@ -239,7 +239,7 @@ pub(super) fn get_options_object(options: &JsValue) -> JsResult<JsObject> {
 /// [spec]: https://tc39.es/ecma402/#sec-coerceoptionstoobject
 pub(super) fn coerce_options_to_object(
     options: &JsValue,
-    context: &mut Context,
+    context: &mut Context<'_>,
 ) -> JsResult<JsObject> {
     // If options is undefined, then
     if options.is_undefined() {

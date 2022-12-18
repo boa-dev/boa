@@ -12,7 +12,7 @@ mod r#continue;
 mod r#loop;
 mod r#try;
 
-impl ByteCompiler<'_> {
+impl ByteCompiler<'_, '_> {
     pub(crate) fn compile_if(&mut self, node: &If, configurable_globals: bool) -> JsResult<()> {
         self.compile_expr(node.cond(), true)?;
         let jelse = self.jump_if_false();

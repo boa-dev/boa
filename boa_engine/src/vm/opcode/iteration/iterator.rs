@@ -15,7 +15,7 @@ impl Operation for IteratorNext {
     const NAME: &'static str = "IteratorNext";
     const INSTRUCTION: &'static str = "INST - IteratorNext";
 
-    fn execute(context: &mut Context) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         let done = context
             .vm
             .pop()
@@ -53,7 +53,7 @@ impl Operation for IteratorClose {
     const NAME: &'static str = "IteratorClose";
     const INSTRUCTION: &'static str = "INST - IteratorClose";
 
-    fn execute(context: &mut Context) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         let done = context
             .vm
             .pop()
@@ -81,7 +81,7 @@ impl Operation for IteratorToArray {
     const NAME: &'static str = "IteratorToArray";
     const INSTRUCTION: &'static str = "INST - IteratorToArray";
 
-    fn execute(context: &mut Context) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         let done = context
             .vm
             .pop()

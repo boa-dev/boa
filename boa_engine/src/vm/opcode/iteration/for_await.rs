@@ -16,7 +16,7 @@ impl Operation for ForAwaitOfLoopIterate {
     const NAME: &'static str = "ForAwaitOfLoopIterate";
     const INSTRUCTION: &'static str = "INST - ForAwaitOfLoopIterate";
 
-    fn execute(context: &mut Context) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         let _done = context
             .vm
             .pop()
@@ -46,7 +46,7 @@ impl Operation for ForAwaitOfLoopNext {
     const NAME: &'static str = "ForAwaitOfLoopNext";
     const INSTRUCTION: &'static str = "INST - ForAwaitOfLoopNext";
 
-    fn execute(context: &mut Context) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         let address = context.vm.read::<u32>();
 
         let next_result = context.vm.pop();

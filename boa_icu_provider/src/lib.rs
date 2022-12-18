@@ -72,22 +72,22 @@ pub fn data_root() -> std::path::PathBuf {
     std::path::PathBuf::from(std::env!("CARGO_MANIFEST_DIR")).join("data")
 }
 
+use icu_provider_adapters::fallback::LocaleFallbackProvider;
 use icu_provider_blob::BlobDataProvider;
+use once_cell::sync::Lazy;
 
-/// Gets a data provider that is stored as a Postcard blob.
-///
-/// This provider does NOT execute locale fallback. Use `LocaleFallbackProvider` from
-/// the `icu_provider_adapters` crate for this functionality.
-///
-/// # Note
-///
-/// The returned provider internally uses [`Arc`][std::sync::Arc] to share the data between instances,
-/// so it is preferrable to clone instead of calling `buffer()` multiple times.
+/// Gets a data provider that is stored as a static Postcard blob.
 #[must_use]
-pub fn blob() -> BlobDataProvider {
-    BlobDataProvider::try_new_from_static_blob(include_bytes!(concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/data/icudata.postcard"
-    )))
-    .expect("The statically compiled data file should be valid.")
+pub fn blob() -> &'static LocaleFallbackProvider<BlobDataProvider> {
+    static PROVIDER: Lazy<LocaleFallbackProvider<BlobDataProvider>> = Lazy::new(|| {
+        let blob = BlobDataProvider::try_new_from_static_blob(include_bytes!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/data/icudata.postcard"
+        )))
+        .expect("The statically compiled data file should be valid.");
+        LocaleFallbackProvider::try_new_with_buffer_provider(blob)
+            .expect("The statically compiled data file should be valid.")
+    });
+
+    &PROVIDER
 }

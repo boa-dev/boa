@@ -35,7 +35,7 @@ impl JsValue {
     /// #
     /// # assert_eq!(json, value.to_json(&mut context).unwrap());
     /// ```
-    pub fn from_json(json: &Value, context: &mut Context) -> JsResult<Self> {
+    pub fn from_json(json: &Value, context: &mut Context<'_>) -> JsResult<Self> {
         /// Biggest possible integer, as i64.
         const MAX_INT: i64 = i32::MAX as i64;
 
@@ -109,7 +109,7 @@ impl JsValue {
     /// # Panics
     ///
     /// Panics if the `JsValue` is `Undefined`.
-    pub fn to_json(&self, context: &mut Context) -> JsResult<Value> {
+    pub fn to_json(&self, context: &mut Context<'_>) -> JsResult<Value> {
         match self {
             Self::Null => Ok(Value::Null),
             Self::Undefined => todo!("undefined to JSON"),

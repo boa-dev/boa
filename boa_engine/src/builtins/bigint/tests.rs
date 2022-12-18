@@ -395,7 +395,7 @@ fn as_uint_n_errors() {
     assert_throws(&mut context, "BigInt.asUintN(0n, 0n)", "TypeError");
 }
 
-fn assert_throws(context: &mut Context, src: &str, error_type: &str) {
+fn assert_throws(context: &mut Context<'_>, src: &str, error_type: &str) {
     let result = forward(context, src);
     assert!(result.contains(error_type));
 }

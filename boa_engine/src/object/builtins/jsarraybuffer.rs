@@ -37,7 +37,7 @@ impl JsArrayBuffer {
     /// # }
     /// ```
     #[inline]
-    pub fn new(byte_length: usize, context: &mut Context) -> JsResult<Self> {
+    pub fn new(byte_length: usize, context: &mut Context<'_>) -> JsResult<Self> {
         let inner = ArrayBuffer::allocate(
             &context
                 .intrinsics()
@@ -75,7 +75,7 @@ impl JsArrayBuffer {
     /// # Ok(())
     /// # }
     /// ```
-    pub fn from_byte_block(byte_block: Vec<u8>, context: &mut Context) -> JsResult<Self> {
+    pub fn from_byte_block(byte_block: Vec<u8>, context: &mut Context<'_>) -> JsResult<Self> {
         let byte_length = byte_block.len();
 
         let constructor = context
@@ -148,7 +148,7 @@ impl JsArrayBuffer {
     /// # }
     ///  ```
     #[inline]
-    pub fn byte_length(&self, context: &mut Context) -> usize {
+    pub fn byte_length(&self, context: &mut Context<'_>) -> usize {
         ArrayBuffer::get_byte_length(&self.inner.clone().into(), &[], context)
             .expect("it should not throw")
             .as_number()

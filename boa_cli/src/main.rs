@@ -187,7 +187,7 @@ enum FlowgraphDirection {
 ///
 /// Returns a error of type String with a message,
 /// if the token stream has a parsing error.
-fn parse_tokens<S>(src: S, context: &mut Context) -> Result<StatementList, String>
+fn parse_tokens<S>(src: S, context: &mut Context<'_>) -> Result<StatementList, String>
 where
     S: AsRef<[u8]>,
 {
@@ -201,7 +201,7 @@ where
 ///
 /// Returns a error of type String with a error message,
 /// if the source has a syntax or parsing error.
-fn dump<S>(src: S, args: &Opt, context: &mut Context) -> Result<(), String>
+fn dump<S>(src: S, args: &Opt, context: &mut Context<'_>) -> Result<(), String>
 where
     S: AsRef<[u8]>,
 {
@@ -226,7 +226,7 @@ where
 }
 
 fn generate_flowgraph(
-    context: &mut Context,
+    context: &mut Context<'_>,
     src: &[u8],
     format: FlowgraphFormat,
     direction: Option<FlowgraphDirection>,

@@ -34,7 +34,7 @@ impl BuiltIn for Eval {
         .union(Attribute::NON_ENUMERABLE)
         .union(Attribute::WRITABLE);
 
-    fn init(context: &mut Context) -> Option<JsValue> {
+    fn init(context: &mut Context<'_>) -> Option<JsValue> {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
         let object = FunctionBuilder::native(context, Self::eval)
@@ -54,7 +54,7 @@ impl Eval {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-eval-x
-    fn eval(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    fn eval(_: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue> {
         // 1. Return ? PerformEval(x, false, false).
         Self::perform_eval(args.get_or_undefined(0), false, false, context)
     }
@@ -69,7 +69,7 @@ impl Eval {
         x: &JsValue,
         direct: bool,
         mut strict: bool,
-        context: &mut Context,
+        context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         bitflags::bitflags! {
             /// Flags used to throw early errors on invalid `eval` calls.
@@ -91,7 +91,7 @@ impl Eval {
         }
 
         /// Restores the environment after calling `eval` or after throwing an error.
-        fn restore_environment(context: &mut Context, action: EnvStackAction) {
+        fn restore_environment(context: &mut Context<'_>, action: EnvStackAction) {
             match action {
                 EnvStackAction::Truncate(size) => {
                     context.realm.environments.truncate(size);

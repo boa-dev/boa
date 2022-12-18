@@ -14,7 +14,7 @@ impl Operation for PushNewTarget {
     const NAME: &'static str = "PushNewTarget";
     const INSTRUCTION: &'static str = "INST - PushNewTarget";
 
-    fn execute(context: &mut Context) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         if let Some(env) = context
             .realm
             .environments

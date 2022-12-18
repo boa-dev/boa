@@ -128,7 +128,7 @@ impl PromiseCapability {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-newpromisecapability
-    pub(crate) fn new(c: &JsValue, context: &mut Context) -> JsResult<Self> {
+    pub(crate) fn new(c: &JsValue, context: &mut Context<'_>) -> JsResult<Self> {
         #[derive(Debug, Clone, Trace, Finalize)]
         struct RejectResolve {
             reject: JsValue,
@@ -251,7 +251,7 @@ impl BuiltIn for Promise {
         .union(Attribute::NON_ENUMERABLE)
         .union(Attribute::CONFIGURABLE);
 
-    fn init(context: &mut Context) -> Option<JsValue> {
+    fn init(context: &mut Context<'_>) -> Option<JsValue> {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
         let get_species = FunctionBuilder::native(context, Self::get_species)
@@ -316,7 +316,7 @@ impl Promise {
     fn constructor(
         new_target: &JsValue,
         args: &[JsValue],
-        context: &mut Context,
+        context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. If NewTarget is undefined, throw a TypeError exception.
         if new_target.is_undefined() {
@@ -386,7 +386,7 @@ impl Promise {
     pub(crate) fn all(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context,
+        context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let C be the this value.
         let c = this;
@@ -448,7 +448,7 @@ impl Promise {
         constructor: &JsObject,
         result_capability: &PromiseCapability,
         promise_resolve: &JsObject,
-        context: &mut Context,
+        context: &mut Context<'_>,
     ) -> JsResult<JsObject> {
         #[derive(Debug, Trace, Finalize)]
         struct ResolveElementCaptures {
@@ -627,7 +627,7 @@ impl Promise {
     pub(crate) fn all_settled(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context,
+        context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let C be the this value.
         let c = this;
@@ -689,7 +689,7 @@ impl Promise {
         constructor: &JsObject,
         result_capability: &PromiseCapability,
         promise_resolve: &JsObject,
-        context: &mut Context,
+        context: &mut Context<'_>,
     ) -> JsResult<JsObject> {
         #[derive(Debug, Trace, Finalize)]
         struct ResolveRejectElementCaptures {
@@ -966,7 +966,7 @@ impl Promise {
     pub(crate) fn any(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context,
+        context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let C be the this value.
         let c = this;
@@ -1028,7 +1028,7 @@ impl Promise {
         constructor: &JsObject,
         result_capability: &PromiseCapability,
         promise_resolve: &JsObject,
-        context: &mut Context,
+        context: &mut Context<'_>,
     ) -> JsResult<JsObject> {
         #[derive(Debug, Trace, Finalize)]
         struct RejectElementCaptures {
@@ -1240,7 +1240,7 @@ impl Promise {
     /// [spec]: https://tc39.es/ecma262/#sec-createresolvingfunctions
     fn create_resolving_functions(
         promise: &JsObject,
-        context: &mut Context,
+        context: &mut Context<'_>,
     ) -> ResolvingFunctionsRecord {
         #[derive(Debug, Trace, Finalize)]
         struct RejectResolveCaptures {
@@ -1442,7 +1442,7 @@ impl Promise {
     /// # Panics
     ///
     /// Panics if `Promise` is not pending.
-    fn fulfill_promise(&mut self, value: &JsValue, context: &mut Context) {
+    fn fulfill_promise(&mut self, value: &JsValue, context: &mut Context<'_>) {
         // 1. Assert: The value of promise.[[PromiseState]] is pending.
         assert!(
             matches!(self.promise_state, PromiseState::Pending),
@@ -1482,7 +1482,7 @@ impl Promise {
     /// # Panics
     ///
     /// Panics if `Promise` is not pending.
-    pub fn reject_promise(&mut self, reason: &JsValue, context: &mut Context) {
+    pub fn reject_promise(&mut self, reason: &JsValue, context: &mut Context<'_>) {
         // 1. Assert: The value of promise.[[PromiseState]] is pending.
         assert!(
             matches!(self.promise_state, PromiseState::Pending),
@@ -1530,7 +1530,7 @@ impl Promise {
     fn trigger_promise_reactions(
         reactions: &[ReactionRecord],
         argument: &JsValue,
-        context: &mut Context,
+        context: &mut Context<'_>,
     ) {
         // 1. For each element reaction of reactions, do
         for reaction in reactions {
@@ -1556,7 +1556,7 @@ impl Promise {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-promise.race
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/race
-    pub fn race(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    pub fn race(this: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue> {
         let iterable = args.get_or_undefined(0);
 
         // 1. Let C be the this value.
@@ -1621,7 +1621,7 @@ impl Promise {
         constructor: &JsValue,
         result_capability: &PromiseCapability,
         promise_resolve: &JsObject,
-        context: &mut Context,
+        context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Repeat,
         loop {
@@ -1679,7 +1679,11 @@ impl Promise {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-promise.reject
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/reject
-    pub fn reject(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    pub fn reject(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context<'_>,
+    ) -> JsResult<JsValue> {
         let r = args.get_or_undefined(0);
 
         // 1. Let C be the this value.
@@ -1706,7 +1710,11 @@ impl Promise {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-promise.resolve
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/resolve
-    pub fn resolve(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    pub fn resolve(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context<'_>,
+    ) -> JsResult<JsValue> {
         let x = args.get_or_undefined(0);
 
         // 1. Let C be the this value.
@@ -1734,7 +1742,7 @@ impl Promise {
     /// [spec]: https://tc39.es/ecma262/#sec-get-promise-@@species
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/@@species
     #[allow(clippy::unnecessary_wraps)]
-    fn get_species(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+    fn get_species(this: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
         // 1. Return the this value.
         Ok(this.clone())
     }
@@ -1747,7 +1755,7 @@ impl Promise {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-promise.prototype.catch
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/catch
-    pub fn catch(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    pub fn catch(this: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue> {
         let on_rejected = args.get_or_undefined(0);
 
         // 1. Let promise be the this value.
@@ -1768,7 +1776,11 @@ impl Promise {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-promise.prototype.finally
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/finally
-    pub fn finally(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    pub fn finally(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context<'_>,
+    ) -> JsResult<JsValue> {
         // 1. Let promise be the this value.
         let promise = this;
 
@@ -1914,7 +1926,7 @@ impl Promise {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-promise.prototype.then
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/then
-    pub fn then(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    pub fn then(this: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue> {
         // 1. Let promise be the this value.
         let promise = this;
 
@@ -1957,7 +1969,7 @@ impl Promise {
         on_fulfilled: &JsValue,
         on_rejected: &JsValue,
         result_capability: Option<PromiseCapability>,
-        context: &mut Context,
+        context: &mut Context<'_>,
     ) -> JsValue {
         // 1. Assert: IsPromise(promise) is true.
 
@@ -2067,7 +2079,7 @@ impl Promise {
     pub(crate) fn promise_resolve(
         c: JsObject,
         x: JsValue,
-        context: &mut Context,
+        context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. If IsPromise(x) is true, then
         if let Some(x) = x.as_promise() {
@@ -2103,7 +2115,7 @@ impl Promise {
     /// [spec]: https://tc39.es/ecma262/#sec-getpromiseresolve
     fn get_promise_resolve(
         promise_constructor: &JsObject,
-        context: &mut Context,
+        context: &mut Context<'_>,
     ) -> JsResult<JsObject> {
         // 1. Let promiseResolve be ? Get(promiseConstructor, "resolve").
         let promise_resolve = promise_constructor.get("resolve", context)?;

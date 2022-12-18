@@ -37,7 +37,7 @@ impl JsValue {
     /// This method is executed when doing abstract equality comparisons with the `==` operator.
     ///  For more information, check <https://tc39.es/ecma262/#sec-abstract-equality-comparison>
     #[allow(clippy::float_cmp)]
-    pub fn equals(&self, other: &Self, context: &mut Context) -> JsResult<bool> {
+    pub fn equals(&self, other: &Self, context: &mut Context<'_>) -> JsResult<bool> {
         // 1. If Type(x) is the same as Type(y), then
         //     a. Return the result of performing Strict Equality Comparison x === y.
         if self.get_type() == other.get_type() {

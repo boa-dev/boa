@@ -8,7 +8,7 @@ use icu_locid::{
     extensions::unicode::Value, extensions_unicode_key as key, extensions_unicode_value as value,
     Locale,
 };
-use icu_provider::{DataLocale, DataProvider};
+use icu_provider::DataLocale;
 use tap::{Conv, Pipe};
 
 use crate::{
@@ -81,19 +81,18 @@ pub(in crate::builtins::intl) struct CollatorLocaleOptions {
     case_first: Option<CaseFirst>,
 }
 
-impl<P> Service<P> for Collator
-where
-    P: DataProvider<CollationMetadataV1Marker>,
-{
+impl Service for Collator {
     type LangMarker = CollationMetadataV1Marker;
 
     type LocaleOptions = CollatorLocaleOptions;
 
-    fn resolve(locale: &mut Locale, options: &mut Self::LocaleOptions, provider: &P) {
+    fn resolve(locale: &mut Locale, options: &mut Self::LocaleOptions, provider: BoaProvider<'_>) {
         let collation = options
             .collation
             .take()
-            .filter(|co| validate_extension(locale.id.clone(), key!("co"), co, provider))
+            .filter(|co| {
+                validate_extension::<Self::LangMarker>(locale.id.clone(), key!("co"), co, &provider)
+            })
             .or_else(|| {
                 locale
                     .extensions
@@ -101,7 +100,14 @@ where
                     .keywords
                     .get(&key!("co"))
                     .cloned()
-                    .filter(|co| validate_extension(locale.id.clone(), key!("co"), co, provider))
+                    .filter(|co| {
+                        validate_extension::<Self::LangMarker>(
+                            locale.id.clone(),
+                            key!("co"),
+                            co,
+                            &provider,
+                        )
+                    })
             })
             .filter(|co| co != &value!("search"));
 
@@ -151,7 +157,7 @@ where
 impl BuiltIn for Collator {
     const NAME: &'static str = "Collator";
 
-    fn init(context: &mut Context) -> Option<JsValue> {
+    fn init(context: &mut Context<'_>) -> Option<JsValue> {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
         let compare = FunctionBuilder::native(context, Self::compare)
@@ -195,7 +201,7 @@ impl Collator {
     pub(crate) fn constructor(
         new_target: &JsValue,
         args: &[JsValue],
-        context: &mut Context,
+        context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. If NewTarget is undefined, let newTarget be the active function object, else let newTarget be NewTarget.
         // 2. Let internalSlotsList be « [[InitializedCollator]], [[Locale]], [[Usage]], [[Sensitivity]], [[IgnorePunctuation]], [[Collation]], [[BoundCompare]] ».
@@ -260,7 +266,7 @@ impl Collator {
         // 18. Let relevantExtensionKeys be %Collator%.[[RelevantExtensionKeys]].
         // 19. Let r be ResolveLocale(%Collator%.[[AvailableLocales]], requestedLocales, opt, relevantExtensionKeys, localeData).
         let mut locale =
-            resolve_locale::<Self, _>(&requested_locales, &mut intl_options, context.icu());
+            resolve_locale::<Self>(&requested_locales, &mut intl_options, context.icu());
 
         let collator_locale = {
             // `collator_locale` needs to be different from the resolved locale because ECMA402 doesn't
@@ -365,7 +371,7 @@ impl Collator {
     fn supported_locales_of(
         _: &JsValue,
         args: &[JsValue],
-        context: &mut Context,
+        context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         let locales = args.get_or_undefined(0);
         let options = args.get_or_undefined(1);
@@ -375,12 +381,8 @@ impl Collator {
         let requested_locales = canonicalize_locale_list(locales, context)?;
 
         // 3. Return ? SupportedLocales(availableLocales, requestedLocales, options).
-        supported_locales::<<Self as Service<BoaProvider>>::LangMarker>(
-            &requested_locales,
-            options,
-            context,
-        )
-        .map(JsValue::from)
+        supported_locales::<<Self as Service>::LangMarker>(&requested_locales, options, context)
+            .map(JsValue::from)
     }
 
     /// [`get Intl.Collator.prototype.compare`][spec].
@@ -392,7 +394,7 @@ impl Collator {
     ///
     /// [spec]: https://tc39.es/ecma402/#sec-intl.collator.prototype.compare
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/Collator/compare
-    fn compare(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    fn compare(this: &JsValue, _: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue> {
         // 1. Let collator be the this value.
         // 2. Perform ? RequireInternalSlot(collator, [[InitializedCollator]]).
         let this = this.as_object().ok_or_else(|| {
@@ -461,7 +463,11 @@ impl Collator {
     ///
     /// [spec]: https://tc39.es/ecma402/#sec-intl.collator.prototype.resolvedoptions
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/Collator/resolvedOptions
-    fn resolved_options(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    fn resolved_options(
+        this: &JsValue,
+        _: &[JsValue],
+        context: &mut Context<'_>,
+    ) -> JsResult<JsValue> {
         // 1. Let collator be the this value.
         // 2. Perform ? RequireInternalSlot(collator, [[InitializedCollator]]).
         let collator = this.as_object().map(JsObject::borrow).ok_or_else(|| {

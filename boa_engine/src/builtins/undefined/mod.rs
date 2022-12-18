@@ -26,7 +26,7 @@ impl BuiltIn for Undefined {
         .union(Attribute::NON_ENUMERABLE)
         .union(Attribute::PERMANENT);
 
-    fn init(_: &mut Context) -> Option<JsValue> {
+    fn init(_: &mut Context<'_>) -> Option<JsValue> {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
         Some(JsValue::undefined())

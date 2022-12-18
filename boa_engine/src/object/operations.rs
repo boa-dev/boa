@@ -52,7 +52,7 @@ impl JsObject {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-isextensible-o
     #[inline]
-    pub fn is_extensible(&self, context: &mut Context) -> JsResult<bool> {
+    pub fn is_extensible(&self, context: &mut Context<'_>) -> JsResult<bool> {
         // 1. Return ? O.[[IsExtensible]]().
         self.__is_extensible__(context)
     }
@@ -63,7 +63,7 @@ impl JsObject {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-get-o-p
-    pub fn get<K>(&self, key: K, context: &mut Context) -> JsResult<JsValue>
+    pub fn get<K>(&self, key: K, context: &mut Context<'_>) -> JsResult<JsValue>
     where
         K: Into<PropertyKey>,
     {
@@ -79,7 +79,13 @@ impl JsObject {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-set-o-p-v-throw
-    pub fn set<K, V>(&self, key: K, value: V, throw: bool, context: &mut Context) -> JsResult<bool>
+    pub fn set<K, V>(
+        &self,
+        key: K,
+        value: V,
+        throw: bool,
+        context: &mut Context<'_>,
+    ) -> JsResult<bool>
     where
         K: Into<PropertyKey>,
         V: Into<JsValue>,
@@ -110,7 +116,7 @@ impl JsObject {
         &self,
         key: K,
         value: V,
-        context: &mut Context,
+        context: &mut Context<'_>,
     ) -> JsResult<bool>
     where
         K: Into<PropertyKey>,
@@ -140,7 +146,7 @@ impl JsObject {
         &self,
         key: K,
         value: V,
-        context: &mut Context,
+        context: &mut Context<'_>,
     ) -> JsResult<bool>
     where
         K: Into<PropertyKey>,
@@ -171,7 +177,7 @@ impl JsObject {
         &self,
         key: K,
         value: V,
-        context: &mut Context,
+        context: &mut Context<'_>,
     ) where
         K: Into<PropertyKey>,
         V: Into<JsValue>,
@@ -208,7 +214,7 @@ impl JsObject {
         &self,
         key: K,
         desc: P,
-        context: &mut Context,
+        context: &mut Context<'_>,
     ) -> JsResult<bool>
     where
         K: Into<PropertyKey>,
@@ -235,7 +241,7 @@ impl JsObject {
     /// - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-deletepropertyorthrow
-    pub fn delete_property_or_throw<K>(&self, key: K, context: &mut Context) -> JsResult<bool>
+    pub fn delete_property_or_throw<K>(&self, key: K, context: &mut Context<'_>) -> JsResult<bool>
     where
         K: Into<PropertyKey>,
     {
@@ -260,7 +266,7 @@ impl JsObject {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-hasproperty
-    pub fn has_property<K>(&self, key: K, context: &mut Context) -> JsResult<bool>
+    pub fn has_property<K>(&self, key: K, context: &mut Context<'_>) -> JsResult<bool>
     where
         K: Into<PropertyKey>,
     {
@@ -276,7 +282,7 @@ impl JsObject {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-hasownproperty
-    pub fn has_own_property<K>(&self, key: K, context: &mut Context) -> JsResult<bool>
+    pub fn has_own_property<K>(&self, key: K, context: &mut Context<'_>) -> JsResult<bool>
     where
         K: Into<PropertyKey>,
     {
@@ -303,7 +309,7 @@ impl JsObject {
         &self,
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context,
+        context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. If argumentsList is not present, set argumentsList to a new empty List.
         // 2. If IsCallable(F) is false, throw a TypeError exception.
@@ -332,7 +338,7 @@ impl JsObject {
         &self,
         args: &[JsValue],
         new_target: Option<&Self>,
-        context: &mut Context,
+        context: &mut Context<'_>,
     ) -> JsResult<Self> {
         // 1. If newTarget is not present, set newTarget to F.
         let new_target = new_target.unwrap_or(self);
@@ -350,7 +356,7 @@ impl JsObject {
     pub fn set_integrity_level(
         &self,
         level: IntegrityLevel,
-        context: &mut Context,
+        context: &mut Context<'_>,
     ) -> JsResult<bool> {
         // 1. Assert: Type(O) is Object.
         // 2. Assert: level is either sealed or frozen.
@@ -419,7 +425,7 @@ impl JsObject {
     pub fn test_integrity_level(
         &self,
         level: IntegrityLevel,
-        context: &mut Context,
+        context: &mut Context<'_>,
     ) -> JsResult<bool> {
         // 1. Assert: Type(O) is Object.
         // 2. Assert: level is either sealed or frozen.
@@ -464,7 +470,7 @@ impl JsObject {
     /// Returns the value of the "length" property of an array-like object.
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-lengthofarraylike
-    pub(crate) fn length_of_array_like(&self, context: &mut Context) -> JsResult<u64> {
+    pub(crate) fn length_of_array_like(&self, context: &mut Context<'_>) -> JsResult<u64> {
         // 1. Assert: Type(obj) is Object.
         // 2. Return ℝ(? ToLength(? Get(obj, "length"))).
         self.get("length", context)?.to_length(context)
@@ -484,7 +490,7 @@ impl JsObject {
     pub(crate) fn species_constructor<F>(
         &self,
         default_constructor: F,
-        context: &mut Context,
+        context: &mut Context<'_>,
     ) -> JsResult<Self>
     where
         F: FnOnce(&StandardConstructors) -> &StandardConstructor,
@@ -532,7 +538,7 @@ impl JsObject {
     pub(crate) fn enumerable_own_property_names(
         &self,
         kind: PropertyNameKind,
-        context: &mut Context,
+        context: &mut Context<'_>,
     ) -> JsResult<Vec<JsValue>> {
         // 1. Assert: Type(O) is Object.
         // 2. Let ownKeys be ? O.[[OwnPropertyKeys]]().
@@ -593,7 +599,7 @@ impl JsObject {
     /// - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-getmethod
-    pub(crate) fn get_method<K>(&self, key: K, context: &mut Context) -> JsResult<Option<Self>>
+    pub(crate) fn get_method<K>(&self, key: K, context: &mut Context<'_>) -> JsResult<Option<Self>>
     where
         K: Into<PropertyKey>,
     {
@@ -676,7 +682,7 @@ impl JsValue {
     /// - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-getv
-    pub(crate) fn get_v<K>(&self, key: K, context: &mut Context) -> JsResult<Self>
+    pub(crate) fn get_v<K>(&self, key: K, context: &mut Context<'_>) -> JsResult<Self>
     where
         K: Into<PropertyKey>,
     {
@@ -695,7 +701,11 @@ impl JsValue {
     /// - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-getmethod
-    pub(crate) fn get_method<K>(&self, key: K, context: &mut Context) -> JsResult<Option<JsObject>>
+    pub(crate) fn get_method<K>(
+        &self,
+        key: K,
+        context: &mut Context<'_>,
+    ) -> JsResult<Option<JsObject>>
     where
         K: Into<PropertyKey>,
     {
@@ -714,7 +724,7 @@ impl JsValue {
     pub(crate) fn create_list_from_array_like(
         &self,
         element_types: &[Type],
-        context: &mut Context,
+        context: &mut Context<'_>,
     ) -> JsResult<Vec<Self>> {
         // 1. If elementTypes is not present, set elementTypes to « Undefined, Null, Boolean, String, Symbol, Number, BigInt, Object ».
         let types = if element_types.is_empty() {
@@ -779,7 +789,7 @@ impl JsValue {
         &self,
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context,
+        context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         self.as_callable()
             .ok_or_else(|| {
@@ -799,7 +809,12 @@ impl JsValue {
     /// - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-invoke
-    pub(crate) fn invoke<K>(&self, key: K, args: &[Self], context: &mut Context) -> JsResult<Self>
+    pub(crate) fn invoke<K>(
+        &self,
+        key: K,
+        args: &[Self],
+        context: &mut Context<'_>,
+    ) -> JsResult<Self>
     where
         K: Into<PropertyKey>,
     {
@@ -820,7 +835,7 @@ impl JsValue {
     pub fn ordinary_has_instance(
         function: &Self,
         object: &Self,
-        context: &mut Context,
+        context: &mut Context<'_>,
     ) -> JsResult<bool> {
         // 1. If IsCallable(C) is false, return false.
         let Some(function) = function.as_callable() else {

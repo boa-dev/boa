@@ -60,7 +60,7 @@ impl RegExpStringIterator {
         string: JsString,
         global: bool,
         unicode: bool,
-        context: &mut Context,
+        context: &mut Context<'_>,
     ) -> JsValue {
         // TODO: Implement this with closures and generators.
         //       For now all values of the closure are stored in RegExpStringIterator and the actual closure execution is in `.next()`.
@@ -92,7 +92,7 @@ impl RegExpStringIterator {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%regexpstringiteratorprototype%.next
-    pub fn next(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    pub fn next(this: &JsValue, _: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue> {
         let mut iterator = this.as_object().map(JsObject::borrow_mut);
         let iterator = iterator
             .as_mut()
@@ -164,7 +164,7 @@ impl RegExpStringIterator {
     /// [spec]: https://tc39.es/ecma262/#sec-%arrayiteratorprototype%-object
     pub(crate) fn create_prototype(
         iterator_prototype: JsObject,
-        context: &mut Context,
+        context: &mut Context<'_>,
     ) -> JsObject {
         let _timer = Profiler::global().start_event("RegExp String Iterator", "init");
 

@@ -12,7 +12,7 @@ repository.workspace = true
 rust-version.workspace = true
 
 [dependencies]
-boa_engine = { workspace = true, features = ["deser", "console", "flowgraph", "intl"] }
+boa_engine = { workspace = true, features = ["deser", "console", "flowgraph"] }
 boa_ast = { workspace = true, features = ["serde"]}
 boa_parser.workspace = true
 rustyline = "10.0.0"
@@ -22,6 +22,10 @@ serde_json = "1.0.91"
 colored = "2.0.0"
 regex = "1.7.0"
 phf = { version = "0.11.1", features = ["macros"] }
+
+[features]
+default = ["intl"]
+intl = ["boa_engine/intl"]
 
 [target.x86_64-unknown-linux-gnu.dependencies]
 jemallocator = "0.5.0"

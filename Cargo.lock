@@ -211,7 +211,6 @@ dependencies = [
  "icu_locid_transform",
  "icu_plurals",
  "icu_provider",
- "icu_provider_adapters",
  "indexmap",
  "jemallocator",
  "num-bigint",
@@ -258,8 +257,10 @@ version = "0.16.0"
 dependencies = [
  "icu_datagen",
  "icu_provider",
+ "icu_provider_adapters",
  "icu_provider_blob",
  "log",
+ "once_cell",
  "simple_logger",
 ]
 
@@ -324,8 +325,6 @@ dependencies = [
  "color-eyre",
  "colored",
  "fxhash",
- "icu_provider_adapters",
- "icu_provider_blob",
  "once_cell",
  "rayon",
  "regex",

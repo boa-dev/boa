@@ -14,7 +14,7 @@ impl Operation for GetGenerator {
     const NAME: &'static str = "GetGenerator";
     const INSTRUCTION: &'static str = "INST - GetGenerator";
 
-    fn execute(context: &mut Context) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         let index = context.vm.read::<u32>();
         let code = context.vm.frame().code.functions[index as usize].clone();
         let function = create_generator_function_object(code, false, context);
@@ -34,7 +34,7 @@ impl Operation for GetGeneratorAsync {
     const NAME: &'static str = "GetGeneratorAsync";
     const INSTRUCTION: &'static str = "INST - GetGeneratorAsync";
 
-    fn execute(context: &mut Context) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         let index = context.vm.read::<u32>();
         let code = context.vm.frame().code.functions[index as usize].clone();
         let function = create_generator_function_object(code, true, context);

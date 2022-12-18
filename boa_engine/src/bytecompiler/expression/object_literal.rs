@@ -9,7 +9,7 @@ use crate::{
     vm::Opcode,
     JsNativeError, JsResult,
 };
-impl ByteCompiler<'_> {
+impl ByteCompiler<'_, '_> {
     pub(crate) fn compile_object_literal(
         &mut self,
         object: &ObjectLiteral,

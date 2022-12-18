@@ -34,7 +34,7 @@ pub(crate) static INTEGER_INDEXED_EXOTIC_INTERNAL_METHODS: InternalObjectMethods
 pub(crate) fn integer_indexed_exotic_get_own_property(
     obj: &JsObject,
     key: &PropertyKey,
-    context: &mut Context,
+    context: &mut Context<'_>,
 ) -> JsResult<Option<PropertyDescriptor>> {
     // 1. If Type(P) is String, then
     // a. Let numericIndex be ! CanonicalNumericIndexString(P).
@@ -68,7 +68,7 @@ pub(crate) fn integer_indexed_exotic_get_own_property(
 pub(crate) fn integer_indexed_exotic_has_property(
     obj: &JsObject,
     key: &PropertyKey,
-    context: &mut Context,
+    context: &mut Context<'_>,
 ) -> JsResult<bool> {
     // 1. If Type(P) is String, then
     // a. Let numericIndex be ! CanonicalNumericIndexString(P).
@@ -91,7 +91,7 @@ pub(crate) fn integer_indexed_exotic_define_own_property(
     obj: &JsObject,
     key: PropertyKey,
     desc: PropertyDescriptor,
-    context: &mut Context,
+    context: &mut Context<'_>,
 ) -> JsResult<bool> {
     // 1. If Type(P) is String, then
     // a. Let numericIndex be ! CanonicalNumericIndexString(P).
@@ -136,7 +136,7 @@ pub(crate) fn integer_indexed_exotic_get(
     obj: &JsObject,
     key: &PropertyKey,
     receiver: JsValue,
-    context: &mut Context,
+    context: &mut Context<'_>,
 ) -> JsResult<JsValue> {
     // 1. If Type(P) is String, then
     // a. Let numericIndex be ! CanonicalNumericIndexString(P).
@@ -161,7 +161,7 @@ pub(crate) fn integer_indexed_exotic_set(
     key: PropertyKey,
     value: JsValue,
     receiver: JsValue,
-    context: &mut Context,
+    context: &mut Context<'_>,
 ) -> JsResult<bool> {
     // 1. If Type(P) is String, then
     // a. Let numericIndex be ! CanonicalNumericIndexString(P).
@@ -187,7 +187,7 @@ pub(crate) fn integer_indexed_exotic_set(
 pub(crate) fn integer_indexed_exotic_delete(
     obj: &JsObject,
     key: &PropertyKey,
-    context: &mut Context,
+    context: &mut Context<'_>,
 ) -> JsResult<bool> {
     // 1. If Type(P) is String, then
     // a. Let numericIndex be ! CanonicalNumericIndexString(P).
@@ -210,7 +210,7 @@ pub(crate) fn integer_indexed_exotic_delete(
 #[allow(clippy::unnecessary_wraps)]
 pub(crate) fn integer_indexed_exotic_own_property_keys(
     obj: &JsObject,
-    _context: &mut Context,
+    _context: &mut Context<'_>,
 ) -> JsResult<Vec<PropertyKey>> {
     let obj = obj.borrow();
     let inner = obj.as_typed_array().expect(
@@ -328,7 +328,7 @@ fn integer_indexed_element_set(
     obj: &JsObject,
     index: usize,
     value: &JsValue,
-    context: &mut Context,
+    context: &mut Context<'_>,
 ) -> JsResult<()> {
     let obj_borrow = obj.borrow();
     let inner = obj_borrow.as_typed_array().expect(

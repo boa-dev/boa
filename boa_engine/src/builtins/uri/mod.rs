@@ -30,7 +30,7 @@ pub(crate) struct Uri;
 impl BuiltIn for Uri {
     const NAME: &'static str = "Uri";
 
-    fn init(context: &mut Context) -> Option<JsValue> {
+    fn init(context: &mut Context<'_>) -> Option<JsValue> {
         let decode_uri = FunctionBuilder::native(context, Self::decode_uri)
             .name("decodeURI")
             .length(1)
@@ -100,7 +100,7 @@ impl Uri {
     pub(crate) fn decode_uri(
         _: &JsValue,
         args: &[JsValue],
-        context: &mut Context,
+        context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         let encoded_uri = args.get_or_undefined(0);
 
@@ -129,7 +129,7 @@ impl Uri {
     pub(crate) fn decode_uri_component(
         _: &JsValue,
         args: &[JsValue],
-        context: &mut Context,
+        context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         let encoded_uri_component = args.get_or_undefined(0);
 
@@ -161,7 +161,7 @@ impl Uri {
     pub(crate) fn encode_uri(
         _: &JsValue,
         args: &[JsValue],
-        context: &mut Context,
+        context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         let uri = args.get_or_undefined(0);
 
@@ -190,7 +190,7 @@ impl Uri {
     pub(crate) fn encode_uri_component(
         _: &JsValue,
         args: &[JsValue],
-        context: &mut Context,
+        context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         let uri_component = args.get_or_undefined(0);
 

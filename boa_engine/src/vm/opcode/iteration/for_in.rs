@@ -17,7 +17,7 @@ impl Operation for ForInLoopInitIterator {
     const NAME: &'static str = "ForInLoopInitIterator";
     const INSTRUCTION: &'static str = "INST - ForInLoopInitIterator";
 
-    fn execute(context: &mut Context) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         let address = context.vm.read::<u32>();
 
         let object = context.vm.pop();
@@ -53,7 +53,7 @@ impl Operation for ForInLoopNext {
     const NAME: &'static str = "ForInLoopInitIterator";
     const INSTRUCTION: &'static str = "INST - ForInLoopInitIterator";
 
-    fn execute(context: &mut Context) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         let address = context.vm.read::<u32>();
 
         let done = context

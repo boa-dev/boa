@@ -16,7 +16,7 @@ impl Operation for AssignPrivateField {
     const NAME: &'static str = "AssignPrivateField";
     const INSTRUCTION: &'static str = "INST - AssignPrivateField";
 
-    fn execute(context: &mut Context) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         let index = context.vm.read::<u32>();
         let name = context.vm.frame().code.names[index as usize];
         let value = context.vm.pop();
@@ -73,7 +73,7 @@ impl Operation for SetPrivateField {
     const NAME: &'static str = "SetPrivateValue";
     const INSTRUCTION: &'static str = "INST - SetPrivateValue";
 
-    fn execute(context: &mut Context) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         let index = context.vm.read::<u32>();
         let name = context.vm.frame().code.names[index as usize];
         let value = context.vm.pop();
@@ -111,7 +111,7 @@ impl Operation for SetPrivateMethod {
     const NAME: &'static str = "SetPrivateMethod";
     const INSTRUCTION: &'static str = "INST - SetPrivateMethod";
 
-    fn execute(context: &mut Context) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         let index = context.vm.read::<u32>();
         let name = context.vm.frame().code.names[index as usize];
         let value = context.vm.pop();
@@ -141,7 +141,7 @@ impl Operation for SetPrivateSetter {
     const NAME: &'static str = "SetPrivateSetter";
     const INSTRUCTION: &'static str = "INST - SetPrivateSetter";
 
-    fn execute(context: &mut Context) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         let index = context.vm.read::<u32>();
         let name = context.vm.frame().code.names[index as usize];
         let value = context.vm.pop();
@@ -170,7 +170,7 @@ impl Operation for SetPrivateGetter {
     const NAME: &'static str = "SetPrivateGetter";
     const INSTRUCTION: &'static str = "INST - SetPrivateGetter";
 
-    fn execute(context: &mut Context) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         let index = context.vm.read::<u32>();
         let name = context.vm.frame().code.names[index as usize];
         let value = context.vm.pop();

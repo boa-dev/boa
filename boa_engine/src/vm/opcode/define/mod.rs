@@ -21,7 +21,7 @@ impl Operation for DefVar {
     const NAME: &'static str = "DefVar";
     const INSTRUCTION: &'static str = "INST - DefVar";
 
-    fn execute(context: &mut Context) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         let index = context.vm.read::<u32>();
         let binding_locator = context.vm.frame().code.bindings[index as usize];
 
@@ -60,7 +60,7 @@ impl Operation for DefInitVar {
     const NAME: &'static str = "DefInitVar";
     const INSTRUCTION: &'static str = "INST - DefInitVar";
 
-    fn execute(context: &mut Context) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         let index = context.vm.read::<u32>();
         let value = context.vm.pop();
         let binding_locator = context.vm.frame().code.bindings[index as usize];
@@ -98,7 +98,7 @@ impl Operation for DefLet {
     const NAME: &'static str = "DefLet";
     const INSTRUCTION: &'static str = "INST - DefLet";
 
-    fn execute(context: &mut Context) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         let index = context.vm.read::<u32>();
         let binding_locator = context.vm.frame().code.bindings[index as usize];
         context.realm.environments.put_value(
@@ -123,7 +123,7 @@ macro_rules! implement_declaritives {
             const NAME: &'static str = stringify!($name);
             const INSTRUCTION: &'static str = stringify!("INST - " + $name);
 
-            fn execute(context: &mut Context) -> JsResult<ShouldExit> {
+            fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
                 let index = context.vm.read::<u32>();
                 let value = context.vm.pop();
                 let binding_locator = context.vm.frame().code.bindings[index as usize];

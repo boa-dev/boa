@@ -54,7 +54,7 @@ impl ArrayIterator {
     pub(crate) fn create_array_iterator(
         array: JsObject,
         kind: PropertyNameKind,
-        context: &Context,
+        context: &Context<'_>,
     ) -> JsValue {
         let array_iterator = JsObject::from_proto_and_data(
             context
@@ -75,7 +75,11 @@ impl ArrayIterator {
     ///  - [ECMA reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%arrayiteratorprototype%.next
-    pub(crate) fn next(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    pub(crate) fn next(
+        this: &JsValue,
+        _: &[JsValue],
+        context: &mut Context<'_>,
+    ) -> JsResult<JsValue> {
         let mut array_iterator = this.as_object().map(JsObject::borrow_mut);
         let array_iterator = array_iterator
             .as_mut()
@@ -135,7 +139,7 @@ impl ArrayIterator {
     /// [spec]: https://tc39.es/ecma262/#sec-%arrayiteratorprototype%-object
     pub(crate) fn create_prototype(
         iterator_prototype: JsObject,
-        context: &mut Context,
+        context: &mut Context<'_>,
     ) -> JsObject {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 

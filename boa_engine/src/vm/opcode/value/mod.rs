@@ -15,7 +15,7 @@ impl Operation for ValueNotNullOrUndefined {
     const NAME: &'static str = "ValueNotNullOrUndefined";
     const INSTRUCTION: &'static str = "INST - ValueNotNullOrUndefined";
 
-    fn execute(context: &mut Context) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         let value = context.vm.pop();
         if value.is_null() {
             return Err(JsNativeError::typ()

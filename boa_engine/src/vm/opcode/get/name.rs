@@ -16,7 +16,7 @@ impl Operation for GetName {
     const NAME: &'static str = "GetName";
     const INSTRUCTION: &'static str = "INST - GetName";
 
-    fn execute(context: &mut Context) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         let index = context.vm.read::<u32>();
         let binding_locator = context.vm.frame().code.bindings[index as usize];
         binding_locator.throw_mutate_immutable(context)?;
@@ -90,7 +90,7 @@ impl Operation for GetNameOrUndefined {
     const NAME: &'static str = "GetNameOrUndefined";
     const INSTRUCTION: &'static str = "INST - GetNameOrUndefined";
 
-    fn execute(context: &mut Context) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         let index = context.vm.read::<u32>();
         let binding_locator = context.vm.frame().code.bindings[index as usize];
         binding_locator.throw_mutate_immutable(context)?;

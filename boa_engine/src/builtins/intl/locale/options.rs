@@ -1,9 +1,9 @@
 use icu_locid::extensions::unicode::Value;
 
-use crate::{builtins::intl::options::OptionType, JsNativeError};
+use crate::{builtins::intl::options::OptionType, Context, JsNativeError};
 
 impl OptionType for Value {
-    fn from_value(value: crate::JsValue, context: &mut crate::Context) -> crate::JsResult<Self> {
+    fn from_value(value: crate::JsValue, context: &mut Context<'_>) -> crate::JsResult<Self> {
         let val = value
             .to_string(context)?
             .to_std_string_escaped()

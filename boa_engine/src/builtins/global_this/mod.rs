@@ -22,7 +22,7 @@ pub(crate) struct GlobalThis;
 impl BuiltIn for GlobalThis {
     const NAME: &'static str = "globalThis";
 
-    fn init(context: &mut Context) -> Option<JsValue> {
+    fn init(context: &mut Context<'_>) -> Option<JsValue> {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
         Some(context.global_object().clone().into())

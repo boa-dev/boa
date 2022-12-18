@@ -58,7 +58,7 @@ pub struct Generator {
 impl BuiltIn for Generator {
     const NAME: &'static str = "Generator";
 
-    fn init(context: &mut Context) -> Option<JsValue> {
+    fn init(context: &mut Context<'_>) -> Option<JsValue> {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
         let iterator_prototype = context
@@ -116,7 +116,7 @@ impl Generator {
     pub(crate) fn constructor(
         _: &JsValue,
         _: &[JsValue],
-        context: &mut Context,
+        context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         let prototype = context.intrinsics().constructors().generator().prototype();
 
@@ -145,7 +145,7 @@ impl Generator {
     pub(crate) fn next(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context,
+        context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Return ? GeneratorResume(this value, value, empty).
         this.as_object().map_or_else(
@@ -171,7 +171,7 @@ impl Generator {
     pub(crate) fn r#return(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context,
+        context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let g be the this value.
         // 2. Let C be Completion { [[Type]]: return, [[Value]]: value, [[Target]]: empty }.
@@ -193,7 +193,7 @@ impl Generator {
     pub(crate) fn throw(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context,
+        context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let g be the this value.
         // 2. Let C be ThrowCompletion(exception).
@@ -214,7 +214,7 @@ impl Generator {
     pub(crate) fn generator_resume(
         generator_obj: &JsObject,
         value: &JsValue,
-        context: &mut Context,
+        context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let state be ? GeneratorValidate(generator, generatorBrand).
         let mut generator_obj_mut = generator_obj.borrow_mut();
@@ -319,7 +319,7 @@ impl Generator {
     pub(crate) fn generator_resume_abrupt(
         this: &JsValue,
         abrupt_completion: JsResult<JsValue>,
-        context: &mut Context,
+        context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let state be ? GeneratorValidate(generator, generatorBrand).
         let generator_obj = this.as_object().ok_or_else(|| {

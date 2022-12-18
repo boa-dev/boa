@@ -6,7 +6,7 @@ use crate::{
     JsResult,
 };
 
-impl ByteCompiler<'_> {
+impl ByteCompiler<'_, '_> {
     pub(crate) fn compile_try(
         &mut self,
         t: &Try,

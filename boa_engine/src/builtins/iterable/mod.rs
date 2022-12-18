@@ -51,7 +51,7 @@ pub struct IteratorPrototypes {
 }
 
 impl IteratorPrototypes {
-    pub(crate) fn init(context: &mut Context) -> Self {
+    pub(crate) fn init(context: &mut Context<'_>) -> Self {
         let _timer = Profiler::global().start_event("IteratorPrototypes::init", "init");
 
         let iterator_prototype = create_iterator_prototype(context);
@@ -131,7 +131,7 @@ impl IteratorPrototypes {
 /// `CreateIterResultObject( value, done )`
 ///
 /// Generates an object supporting the `IteratorResult` interface.
-pub fn create_iter_result_object(value: JsValue, done: bool, context: &mut Context) -> JsValue {
+pub fn create_iter_result_object(value: JsValue, done: bool, context: &mut Context<'_>) -> JsValue {
     let _timer = Profiler::global().start_event("create_iter_result_object", "init");
 
     // 1. Assert: Type(done) is Boolean.
@@ -167,7 +167,7 @@ impl JsValue {
     /// [spec]: https://tc39.es/ecma262/#sec-getiterator
     pub fn get_iterator(
         &self,
-        context: &mut Context,
+        context: &mut Context<'_>,
         hint: Option<IteratorHint>,
         method: Option<JsObject>,
     ) -> JsResult<IteratorRecord> {
@@ -236,7 +236,7 @@ impl JsValue {
 ///  - [ECMA reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-%iteratorprototype%-object
-fn create_iterator_prototype(context: &mut Context) -> JsObject {
+fn create_iterator_prototype(context: &mut Context<'_>) -> JsObject {
     let _timer = Profiler::global().start_event("Iterator Prototype", "init");
 
     let symbol_iterator = WellKnownSymbols::iterator();
@@ -272,7 +272,7 @@ impl IteratorResult {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-iteratorcomplete
     #[inline]
-    pub fn complete(&self, context: &mut Context) -> JsResult<bool> {
+    pub fn complete(&self, context: &mut Context<'_>) -> JsResult<bool> {
         // 1. Return ToBoolean(? Get(iterResult, "done")).
         Ok(self.object.get("done", context)?.to_boolean())
     }
@@ -288,7 +288,7 @@ impl IteratorResult {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-iteratorvalue
     #[inline]
-    pub fn value(&self, context: &mut Context) -> JsResult<JsValue> {
+    pub fn value(&self, context: &mut Context<'_>) -> JsResult<JsValue> {
         // 1. Return ? Get(iterResult, "value").
         self.object.get("value", context)
     }
@@ -365,7 +365,7 @@ impl IteratorRecord {
     pub(crate) fn next(
         &self,
         value: Option<JsValue>,
-        context: &mut Context,
+        context: &mut Context<'_>,
     ) -> JsResult<IteratorResult> {
         let _timer = Profiler::global().start_event("IteratorRecord::next", "iterator");
 
@@ -409,7 +409,7 @@ impl IteratorRecord {
     ///  - [ECMA reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-iteratorstep
-    pub(crate) fn step(&self, context: &mut Context) -> JsResult<Option<IteratorResult>> {
+    pub(crate) fn step(&self, context: &mut Context<'_>) -> JsResult<Option<IteratorResult>> {
         let _timer = Profiler::global().start_event("IteratorRecord::step", "iterator");
 
         // 1. Let result be ? IteratorNext(iteratorRecord).
@@ -441,7 +441,7 @@ impl IteratorRecord {
     pub(crate) fn close(
         &self,
         completion: JsResult<JsValue>,
-        context: &mut Context,
+        context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         let _timer = Profiler::global().start_event("IteratorRecord::close", "iterator");
 
@@ -501,7 +501,7 @@ impl IteratorRecord {
 ///
 ///  [spec]: https://tc39.es/ecma262/#sec-iterabletolist
 pub(crate) fn iterable_to_list(
-    context: &mut Context,
+    context: &mut Context<'_>,
     items: &JsValue,
     method: Option<JsObject>,
 ) -> JsResult<Vec<JsValue>> {
@@ -560,7 +560,7 @@ pub(crate) use if_abrupt_close_iterator;
 ///  - [ECMA reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-asynciteratorprototype
-fn create_async_iterator_prototype(context: &mut Context) -> JsObject {
+fn create_async_iterator_prototype(context: &mut Context<'_>) -> JsObject {
     let _timer = Profiler::global().start_event("AsyncIteratorPrototype", "init");
 
     let symbol_iterator = WellKnownSymbols::async_iterator();

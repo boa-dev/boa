@@ -64,7 +64,7 @@ mod tests;
 /// - The second argument represents a list of all arguments passed to the function.
 ///
 /// - The last argument is the [`Context`] of the engine.
-pub type NativeFunctionSignature = fn(&JsValue, &[JsValue], &mut Context) -> JsResult<JsValue>;
+pub type NativeFunctionSignature = fn(&JsValue, &[JsValue], &mut Context<'_>) -> JsResult<JsValue>;
 
 // Allows restricting closures to only `Copy` ones.
 // Used the sealed pattern to disallow external implementations
@@ -85,12 +85,15 @@ impl<T: Copy> DynCopy for T {}
 /// be callable from Javascript, but most of the time the compiler
 /// is smart enough to correctly infer the types.
 pub trait ClosureFunctionSignature:
-    Fn(&JsValue, &[JsValue], Captures, &mut Context) -> JsResult<JsValue> + DynCopy + DynClone + 'static
+    Fn(&JsValue, &[JsValue], Captures, &mut Context<'_>) -> JsResult<JsValue>
+    + DynCopy
+    + DynClone
+    + 'static
 {
 }
 
 impl<T> ClosureFunctionSignature for T where
-    T: Fn(&JsValue, &[JsValue], Captures, &mut Context) -> JsResult<JsValue> + Copy + 'static
+    T: Fn(&JsValue, &[JsValue], Captures, &mut Context<'_>) -> JsResult<JsValue> + Copy + 'static
 {
 }
 
@@ -488,7 +491,7 @@ pub(crate) fn make_builtin_fn<N>(
     name: N,
     parent: &JsObject,
     length: usize,
-    interpreter: &Context,
+    interpreter: &Context<'_>,
 ) where
     N: Into<String>,
 {
@@ -544,7 +547,7 @@ impl BuiltInFunctionObject {
     fn constructor(
         new_target: &JsValue,
         args: &[JsValue],
-        context: &mut Context,
+        context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         Self::create_dynamic_function(new_target, args, false, false, context).map(Into::into)
     }
@@ -560,7 +563,7 @@ impl BuiltInFunctionObject {
         args: &[JsValue],
         r#async: bool,
         generator: bool,
-        context: &mut Context,
+        context: &mut Context<'_>,
     ) -> JsResult<JsObject> {
         let default = if r#async && generator {
             StandardConstructors::async_generator_function
@@ -740,7 +743,7 @@ impl BuiltInFunctionObject {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-function.prototype.apply
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/apply
-    fn apply(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    fn apply(this: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue> {
         // 1. Let func be the this value.
         // 2. If IsCallable(func) is false, throw a TypeError exception.
         let func = this.as_callable().ok_or_else(|| {
@@ -780,7 +783,7 @@ impl BuiltInFunctionObject {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-function.prototype.bind
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_objects/Function/bind
-    fn bind(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    fn bind(this: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue> {
         // 1. Let Target be the this value.
         // 2. If IsCallable(Target) is false, throw a TypeError exception.
         let target = this.as_callable().ok_or_else(|| {
@@ -860,7 +863,7 @@ impl BuiltInFunctionObject {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-function.prototype.call
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/call
-    fn call(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    fn call(this: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue> {
         // 1. Let func be the this value.
         // 2. If IsCallable(func) is false, throw a TypeError exception.
         let func = this.as_callable().ok_or_else(|| {
@@ -876,7 +879,7 @@ impl BuiltInFunctionObject {
     }
 
     #[allow(clippy::wrong_self_convention)]
-    fn to_string(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    fn to_string(this: &JsValue, _: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue> {
         let object = this.as_object().map(JsObject::borrow);
         let function = object
             .as_deref()
@@ -923,14 +926,18 @@ impl BuiltInFunctionObject {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-function.prototype-@@hasinstance
-    fn has_instance(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    fn has_instance(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context<'_>,
+    ) -> JsResult<JsValue> {
         // 1. Let F be the this value.
         // 2. Return ? OrdinaryHasInstance(F, V).
         Ok(JsValue::ordinary_has_instance(this, args.get_or_undefined(0), context)?.into())
     }
 
     #[allow(clippy::unnecessary_wraps)]
-    fn prototype(_: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+    fn prototype(_: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
         Ok(JsValue::undefined())
     }
 }
@@ -938,7 +945,7 @@ impl BuiltInFunctionObject {
 impl BuiltIn for BuiltInFunctionObject {
     const NAME: &'static str = "Function";
 
-    fn init(context: &mut Context) -> Option<JsValue> {
+    fn init(context: &mut Context<'_>) -> Option<JsValue> {
         let _timer = Profiler::global().start_event("function", "init");
 
         let function_prototype = context.intrinsics().constructors().function().prototype();
@@ -1002,7 +1009,7 @@ fn set_function_name(
     function: &JsObject,
     name: &PropertyKey,
     prefix: Option<JsString>,
-    context: &mut Context,
+    context: &mut Context<'_>,
 ) {
     // 1. Assert: F is an extensible object that does not have a "name" own property.
     // 2. If Type(name) is Symbol, then
@@ -1070,7 +1077,7 @@ impl BoundFunction {
         target_function: JsObject,
         this: JsValue,
         args: Vec<JsValue>,
-        context: &mut Context,
+        context: &mut Context<'_>,
     ) -> JsResult<JsObject> {
         // 1. Let proto be ? targetFunction.[[GetPrototypeOf]]().
         let proto = target_function.__get_prototype_of__(context)?;
