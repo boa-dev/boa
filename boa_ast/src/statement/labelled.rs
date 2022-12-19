@@ -107,8 +107,8 @@ impl Labelled {
         &self.item
     }
 
-    #[inline]
     /// Gets the label name.
+    #[inline]
     #[must_use]
     pub const fn label(&self) -> Sym {
         self.label
