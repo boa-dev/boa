@@ -157,12 +157,12 @@ impl<T: Class> ClassConstructor for T {
 
 /// Class builder which allows adding methods and static methods to the class.
 #[derive(Debug)]
-pub struct ClassBuilder<'context, 'icu> {
-    builder: ConstructorBuilder<'context, 'icu>,
+pub struct ClassBuilder<'ctx, 'icu> {
+    builder: ConstructorBuilder<'ctx, 'icu>,
 }
 
-impl<'context, 'icu> ClassBuilder<'context, 'icu> {
-    pub(crate) fn new<T>(context: &'context mut Context<'icu>) -> Self
+impl<'ctx, 'icu> ClassBuilder<'ctx, 'icu> {
+    pub(crate) fn new<T>(context: &'ctx mut Context<'icu>) -> Self
     where
         T: ClassConstructor,
     {
@@ -288,5 +288,11 @@ impl<'context, 'icu> ClassBuilder<'context, 'icu> {
     {
         self.builder.static_property_descriptor(key, property);
         self
+    }
+
+    /// Return the current context.
+    #[inline]
+    pub fn context(&mut self) -> &mut Context<'icu> {
+        self.builder.context()
     }
 }

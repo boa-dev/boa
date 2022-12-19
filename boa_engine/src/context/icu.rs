@@ -29,8 +29,8 @@ pub enum BoaProvider<'a> {
 impl Debug for BoaProvider<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::Buffer(_) => f.debug_tuple("Buffer").field(&"_").finish(),
-            Self::Any(_) => f.debug_tuple("Any").field(&"_").finish(),
+            Self::Buffer(_) => f.debug_tuple("Buffer").field(&"..").finish(),
+            Self::Any(_) => f.debug_tuple("Any").field(&"..").finish(),
         }
     }
 }

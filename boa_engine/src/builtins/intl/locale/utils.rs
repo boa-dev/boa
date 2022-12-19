@@ -485,10 +485,10 @@ fn best_fit_supported_locales<M: KeyedDataMarker>(
 /// availableLocales has a matching locale
 ///
 /// [spec]: https://tc39.es/ecma402/#sec-supportedlocales
-pub(in crate::builtins::intl) fn supported_locales<'context, 'icu: 'context, M: KeyedDataMarker>(
+pub(in crate::builtins::intl) fn supported_locales<'ctx, 'icu: 'ctx, M: KeyedDataMarker>(
     requested_locales: &[Locale],
     options: &JsValue,
-    context: &'context mut Context<'icu>,
+    context: &'ctx mut Context<'icu>,
 ) -> JsResult<JsObject>
 where
     BoaProvider<'icu>: DataProvider<M>,
