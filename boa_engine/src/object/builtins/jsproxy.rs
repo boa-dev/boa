@@ -79,6 +79,7 @@ pub struct JsRevocableProxy {
 impl JsRevocableProxy {
     /// Disables the traps of the internal `proxy` object, essentially
     /// making it unusable and throwing `TypeError`s for all the traps.
+    #[inline]
     pub fn revoke(self, context: &mut Context) -> JsResult<()> {
         self.revoker.call(&JsValue::undefined(), &[], context)?;
         Ok(())
@@ -161,6 +162,7 @@ impl std::fmt::Debug for JsProxyBuilder {
 
 impl JsProxyBuilder {
     /// Create a new `ProxyBuilder` with every trap set to `undefined`.
+    #[inline]
     pub fn new(target: JsObject) -> Self {
         Self {
             target,
@@ -192,6 +194,7 @@ impl JsProxyBuilder {
     /// when trying to call the proxy, which will throw a type error.
     ///
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy/Proxy/apply
+    #[inline]
     pub fn apply(mut self, apply: NativeFunctionSignature) -> Self {
         self.apply = Some(apply);
         self
@@ -209,6 +212,7 @@ impl JsProxyBuilder {
     /// when trying to construct an object using the proxy, which will throw a type error.
     ///
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy/Proxy/construct
+    #[inline]
     pub fn construct(mut self, construct: NativeFunctionSignature) -> Self {
         self.construct = Some(construct);
         self
@@ -221,6 +225,7 @@ impl JsProxyBuilder {
     /// - [MDN documentation][mdn]
     ///
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy/Proxy/defineProperty
+    #[inline]
     pub fn define_property(mut self, define_property: NativeFunctionSignature) -> Self {
         self.define_property = Some(define_property);
         self
@@ -233,6 +238,7 @@ impl JsProxyBuilder {
     /// - [MDN documentation][mdn]
     ///
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy/Proxy/deleteProperty
+    #[inline]
     pub fn delete_property(mut self, delete_property: NativeFunctionSignature) -> Self {
         self.delete_property = Some(delete_property);
         self
@@ -245,6 +251,7 @@ impl JsProxyBuilder {
     /// - [MDN documentation][mdn]
     ///
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy/Proxy/get
+    #[inline]
     pub fn get(mut self, get: NativeFunctionSignature) -> Self {
         self.get = Some(get);
         self
@@ -257,6 +264,7 @@ impl JsProxyBuilder {
     /// - [MDN documentation][mdn]
     ///
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy/Proxy/getOwnPropertyDescriptor
+    #[inline]
     pub fn get_own_property_descriptor(
         mut self,
         get_own_property_descriptor: NativeFunctionSignature,
@@ -272,6 +280,7 @@ impl JsProxyBuilder {
     /// - [MDN documentation][mdn]
     ///
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy/Proxy/getPrototypeOf
+    #[inline]
     pub fn get_prototype_of(mut self, get_prototype_of: NativeFunctionSignature) -> Self {
         self.get_prototype_of = Some(get_prototype_of);
         self
@@ -284,6 +293,7 @@ impl JsProxyBuilder {
     /// - [MDN documentation][mdn]
     ///
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy/Proxy/has
+    #[inline]
     pub fn has(mut self, has: NativeFunctionSignature) -> Self {
         self.has = Some(has);
         self
@@ -296,6 +306,7 @@ impl JsProxyBuilder {
     /// - [MDN documentation][mdn]
     ///
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy/Proxy/isExtensible
+    #[inline]
     pub fn is_extensible(mut self, is_extensible: NativeFunctionSignature) -> Self {
         self.is_extensible = Some(is_extensible);
         self
@@ -308,6 +319,7 @@ impl JsProxyBuilder {
     /// - [MDN documentation][mdn]
     ///
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy/Proxy/ownKeys
+    #[inline]
     pub fn own_keys(mut self, own_keys: NativeFunctionSignature) -> Self {
         self.own_keys = Some(own_keys);
         self
@@ -320,6 +332,7 @@ impl JsProxyBuilder {
     /// - [MDN documentation][mdn]
     ///
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy/Proxy/preventExtensions
+    #[inline]
     pub fn prevent_extensions(mut self, prevent_extensions: NativeFunctionSignature) -> Self {
         self.prevent_extensions = Some(prevent_extensions);
         self
@@ -332,6 +345,7 @@ impl JsProxyBuilder {
     /// - [MDN documentation][mdn]
     ///
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy/Proxy/set
+    #[inline]
     pub fn set(mut self, set: NativeFunctionSignature) -> Self {
         self.set = Some(set);
         self
@@ -344,6 +358,7 @@ impl JsProxyBuilder {
     /// - [MDN documentation][mdn]
     ///
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy/Proxy/setPrototypeOf
+    #[inline]
     pub fn set_prototype_of(mut self, set_prototype_of: NativeFunctionSignature) -> Self {
         self.set_prototype_of = Some(set_prototype_of);
         self

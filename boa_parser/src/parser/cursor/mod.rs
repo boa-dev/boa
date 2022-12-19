@@ -41,7 +41,7 @@ where
     R: Read,
 {
     /// Creates a new cursor with the given reader.
-    #[inline]
+
     pub(super) fn new(reader: R) -> Self {
         Self {
             buffered_lexer: Lexer::new(reader).into(),
@@ -51,12 +51,10 @@ where
         }
     }
 
-    #[inline]
     pub(super) fn set_goal(&mut self, elm: InputElement) {
         self.buffered_lexer.set_goal(elm);
     }
 
-    #[inline]
     pub(super) fn lex_regex(
         &mut self,
         start: Position,
@@ -65,7 +63,6 @@ where
         self.buffered_lexer.lex_regex(start, interner)
     }
 
-    #[inline]
     pub(super) fn lex_template(
         &mut self,
         start: Position,
@@ -75,7 +72,7 @@ where
     }
 
     /// Advances the cursor and returns the next token.
-    #[inline]
+
     pub(super) fn next(&mut self, interner: &mut Interner) -> ParseResult<Option<Token>> {
         self.buffered_lexer.next(true, interner)
     }
@@ -85,7 +82,7 @@ where
     /// # Panics
     ///
     /// This function will panic if there is no further token in the cursor.
-    #[inline]
+
     #[track_caller]
     pub(super) fn advance(&mut self, interner: &mut Interner) {
         self.next(interner)
@@ -95,7 +92,7 @@ where
     /// Peeks a future token, without consuming it or advancing the cursor.
     ///
     /// You can skip some tokens with the `skip_n` option.
-    #[inline]
+
     pub(super) fn peek(
         &mut self,
         skip_n: usize,
@@ -105,50 +102,50 @@ where
     }
 
     /// Gets the current strict mode for the cursor.
-    #[inline]
+
     pub(super) const fn strict_mode(&self) -> bool {
         self.buffered_lexer.strict_mode()
     }
 
     /// Sets the strict mode to strict or non-strict.
-    #[inline]
+
     pub(super) fn set_strict_mode(&mut self, strict_mode: bool) {
         self.buffered_lexer.set_strict_mode(strict_mode);
     }
 
     /// Returns if the cursor is currently in an arrow function declaration.
-    #[inline]
+
     pub(super) const fn arrow(&self) -> bool {
         self.arrow
     }
 
     /// Set if the cursor is currently in a arrow function declaration.
-    #[inline]
+
     pub(super) fn set_arrow(&mut self, arrow: bool) {
         self.arrow = arrow;
     }
 
     /// Returns if the cursor is currently used in `JSON.parse`.
-    #[inline]
+
     pub(super) const fn json_parse(&self) -> bool {
         self.json_parse
     }
 
     /// Set if the cursor is currently used in `JSON.parse`.
-    #[inline]
+
     pub(super) fn set_json_parse(&mut self, json_parse: bool) {
         self.json_parse = json_parse;
     }
 
     /// Push a new private environment.
-    #[inline]
+
     pub(super) fn push_private_environment(&mut self) {
         let new = FxHashMap::default();
         self.private_environments_stack.push(new);
     }
 
     /// Push a used private identifier.
-    #[inline]
+
     pub(super) fn push_used_private_identifier(
         &mut self,
         identifier: Sym,
@@ -172,7 +169,7 @@ where
     ///
     /// This function takes the private element names of the current class.
     /// If a used private identifier is not declared, this throws a syntax error.
-    #[inline]
+
     pub(super) fn pop_private_environment(
         &mut self,
         identifiers: &FxHashMap<Sym, PrivateElement>,
@@ -197,7 +194,7 @@ where
     }
 
     /// Returns an error if the next token is not of kind `kind`.
-    #[inline]
+
     pub(super) fn expect<K>(
         &mut self,
         kind: K,
@@ -227,7 +224,7 @@ where
     /// It will automatically insert a semicolon if needed, as specified in the [spec][spec].
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-automatic-semicolon-insertion
-    #[inline]
+
     pub(super) fn peek_semicolon(
         &mut self,
         interner: &mut Interner,
@@ -247,7 +244,7 @@ where
     /// It will automatically insert a semicolon if needed, as specified in the [spec][spec].
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-automatic-semicolon-insertion
-    #[inline]
+
     pub(super) fn expect_semicolon(
         &mut self,
         context: &'static str,
@@ -277,7 +274,7 @@ where
     ///
     /// This is just syntatic sugar for a `.peek(skip_n)` call followed by a check that the result
     /// is not a line terminator or `None`.
-    #[inline]
+
     pub(super) fn peek_expect_no_lineterminator(
         &mut self,
         skip_n: usize,
@@ -301,7 +298,7 @@ where
     }
 
     /// Check if the peeked token is a line terminator.
-    #[inline]
+
     pub(super) fn peek_is_line_terminator(
         &mut self,
         skip_n: usize,
@@ -319,7 +316,7 @@ where
     /// When the next token is a `kind` token, get the token, otherwise return `None`.
     ///
     /// No next token also returns None.
-    #[inline]
+
     pub(super) fn next_if<K>(
         &mut self,
         kind: K,

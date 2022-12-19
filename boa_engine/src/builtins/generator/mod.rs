@@ -265,7 +265,7 @@ impl Generator {
         std::mem::swap(&mut context.vm.stack, &mut generator_context.stack);
         context.vm.push_frame(generator_context.call_frame.clone());
         if !first_execution {
-            context.vm.push(value);
+            context.vm.push(value.clone());
         }
 
         context.vm.frame_mut().generator_resume_kind = GeneratorResumeKind::Normal;

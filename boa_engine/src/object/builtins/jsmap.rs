@@ -115,7 +115,7 @@ impl JsMap {
     /// # Ok(())
     /// # }
     /// ```
-    #[inline]
+
     pub fn from_js_iterable(iterable: &JsValue, context: &mut Context) -> JsResult<Self> {
         // Create a new map object.
         let map = Self::create_map(context);
@@ -226,7 +226,7 @@ impl JsMap {
     /// # Ok(())
     /// # }
     /// ```
-    #[inline]
+
     pub fn set<K, V>(&self, key: K, value: V, context: &mut Context) -> JsResult<JsValue>
     where
         K: Into<JsValue>,
@@ -287,7 +287,7 @@ impl JsMap {
     /// # Ok(())
     /// # }
     /// ```
-    #[inline]
+
     pub fn delete<T>(&self, key: T, context: &mut Context) -> JsResult<JsValue>
     where
         T: Into<JsValue>,
@@ -315,7 +315,7 @@ impl JsMap {
     /// # Ok(())
     /// # }
     /// ```
-    #[inline]
+
     pub fn get<T>(&self, key: T, context: &mut Context) -> JsResult<JsValue>
     where
         T: Into<JsValue>,
@@ -369,7 +369,7 @@ impl JsMap {
     /// # Ok(())
     /// # }
     /// ```
-    #[inline]
+
     pub fn has<T>(&self, key: T, context: &mut Context) -> JsResult<JsValue>
     where
         T: Into<JsValue>,

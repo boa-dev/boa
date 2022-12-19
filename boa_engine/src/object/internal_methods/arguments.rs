@@ -22,7 +22,7 @@ pub(crate) static ARGUMENTS_EXOTIC_INTERNAL_METHODS: InternalObjectMethods =
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-arguments-exotic-objects-getownproperty-p
-#[inline]
+
 pub(crate) fn arguments_exotic_get_own_property(
     obj: &JsObject,
     key: &PropertyKey,
@@ -98,7 +98,7 @@ pub(crate) fn arguments_exotic_define_own_property(
         {
             if let Some((_, value)) = &mapped {
                 PropertyDescriptor::builder()
-                    .value(value)
+                    .value(value.clone())
                     .writable(false)
                     .maybe_enumerable(desc.enumerable())
                     .maybe_configurable(desc.configurable())

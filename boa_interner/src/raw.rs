@@ -36,7 +36,7 @@ impl<Char> Default for RawInterner<Char> {
 
 impl<Char> RawInterner<Char> {
     /// Creates a new `RawInterner` with the specified capacity.
-    #[inline]
+
     pub(super) fn with_capacity(capacity: usize) -> Self {
         Self {
             symbol_cache: FxHashMap::default(),
@@ -47,13 +47,13 @@ impl<Char> RawInterner<Char> {
     }
 
     /// Returns the number of strings interned by the interner.
-    #[inline]
+
     pub(super) fn len(&self) -> usize {
         self.spans.len()
     }
 
     /// Returns `true` if the interner contains no interned strings.
-    #[inline]
+
     pub(super) fn is_empty(&self) -> bool {
         self.spans.is_empty()
     }
@@ -105,7 +105,7 @@ where
     }
 
     /// Returns the string for the given index if any.
-    #[inline]
+
     pub(super) fn index(&self, index: usize) -> Option<&[Char]> {
         self.spans.get(index).map(|ptr|
             // SAFETY: We always ensure the stored `InternedStr`s always

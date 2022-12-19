@@ -39,6 +39,7 @@ pub struct Unary {
 
 impl Unary {
     /// Creates a new `UnaryOp` AST Expression.
+    #[inline]
     #[must_use]
     pub fn new(op: UnaryOp, target: Expression) -> Self {
         Self {

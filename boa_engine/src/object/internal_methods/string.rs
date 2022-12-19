@@ -26,7 +26,7 @@ pub(crate) static STRING_EXOTIC_INTERNAL_METHODS: InternalObjectMethods = Intern
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-string-exotic-objects-getownproperty-p
-#[inline]
+
 pub(crate) fn string_exotic_get_own_property(
     obj: &JsObject,
     key: &PropertyKey,
@@ -51,7 +51,7 @@ pub(crate) fn string_exotic_get_own_property(
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-string-exotic-objects-defineownproperty-p-desc
-#[inline]
+
 pub(crate) fn string_exotic_define_own_property(
     obj: &JsObject,
     key: PropertyKey,
@@ -84,7 +84,7 @@ pub(crate) fn string_exotic_define_own_property(
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-string-exotic-objects-ownpropertykeys
-#[inline]
+
 #[allow(clippy::unnecessary_wraps)]
 pub(crate) fn string_exotic_own_property_keys(
     obj: &JsObject,
@@ -149,7 +149,7 @@ pub(crate) fn string_exotic_own_property_keys(
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-stringgetownproperty
 #[allow(clippy::float_cmp)]
-#[inline]
+
 fn string_get_own_property(obj: &JsObject, key: &PropertyKey) -> Option<PropertyDescriptor> {
     // 1. Assert: S is an Object that has a [[StringData]] internal slot.
     // 2. Assert: IsPropertyKey(P) is true.

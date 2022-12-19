@@ -41,7 +41,6 @@ fn create_realm(_this: &JsValue, _: &[JsValue], _context: &mut Context) -> JsRes
 ///
 /// Implements the `DetachArrayBuffer` abstract operation.
 fn detach_array_buffer(_this: &JsValue, args: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-    #[inline]
     fn type_err() -> JsNativeError {
         JsNativeError::typ().with_message("The provided object was not an ArrayBuffer")
     }

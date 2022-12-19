@@ -530,7 +530,6 @@ impl Number {
     }
 
     // https://golang.org/src/math/nextafter.go
-    #[inline]
     fn next_after(x: f64, y: f64) -> f64 {
         if x.is_nan() || y.is_nan() {
             f64::NAN
@@ -1085,7 +1084,6 @@ impl Number {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-isinteger
-    #[inline]
     pub(crate) fn is_integer(val: &JsValue) -> bool {
         match val {
             JsValue::Integer(_) => true,
@@ -1095,7 +1093,6 @@ impl Number {
     }
 
     /// Checks if the float argument is an integer.
-    #[inline]
     #[allow(clippy::float_cmp)]
     pub(crate) fn is_float_integer(number: f64) -> bool {
         number.is_finite() && number.abs().floor() == number.abs()
@@ -1105,7 +1102,6 @@ impl Number {
     /// x (a Number) and y (a Number). It performs the following steps when called:
     ///
     /// <https://tc39.es/ecma262/#sec-numeric-types-number-equal>
-    #[inline]
     #[allow(clippy::float_cmp)]
     pub(crate) fn equal(x: f64, y: f64) -> bool {
         x == y
@@ -1127,7 +1123,6 @@ impl Number {
     /// x (a Number) and y (a Number). It performs the following steps when called:
     ///
     /// <https://tc39.es/ecma262/#sec-numeric-types-number-sameValueZero>
-    #[inline]
     #[allow(clippy::float_cmp)]
     pub(crate) fn same_value_zero(x: f64, y: f64) -> bool {
         if x.is_nan() && y.is_nan() {
@@ -1137,7 +1132,6 @@ impl Number {
         x == y
     }
 
-    #[inline]
     #[allow(clippy::float_cmp)]
     pub(crate) fn less_than(x: f64, y: f64) -> AbstractRelation {
         if x.is_nan() || y.is_nan() {
@@ -1161,7 +1155,6 @@ impl Number {
         (x < y).into()
     }
 
-    #[inline]
     pub(crate) fn not(x: f64) -> i32 {
         let x = f64_to_int32(x);
         !x

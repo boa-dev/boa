@@ -36,7 +36,6 @@ impl<R> From<Lexer<R>> for BufferedLexer<R>
 where
     R: Read,
 {
-    #[inline]
     fn from(lexer: Lexer<R>) -> Self {
         Self {
             lexer,
@@ -61,7 +60,6 @@ impl<R> From<R> for BufferedLexer<R>
 where
     R: Read,
 {
-    #[inline]
     fn from(reader: R) -> Self {
         Lexer::new(reader).into()
     }
@@ -72,14 +70,14 @@ where
     R: Read,
 {
     /// Sets the goal symbol for the lexer.
-    #[inline]
+
     pub(super) fn set_goal(&mut self, elm: InputElement) {
         let _timer = Profiler::global().start_event("cursor::set_goal()", "Parsing");
         self.lexer.set_goal(elm);
     }
 
     /// Lexes the next tokens as a regex assuming that the starting '/' has already been consumed.
-    #[inline]
+
     pub(super) fn lex_regex(
         &mut self,
         start: Position,
@@ -104,12 +102,10 @@ where
             .map_err(Error::from)
     }
 
-    #[inline]
     pub(super) const fn strict_mode(&self) -> bool {
         self.lexer.strict_mode()
     }
 
-    #[inline]
     pub(super) fn set_strict_mode(&mut self, strict_mode: bool) {
         self.lexer.set_strict_mode(strict_mode);
     }

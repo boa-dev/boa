@@ -40,7 +40,7 @@ impl JsSet {
     /// Returns the Set object with added value.
     ///
     /// Same as JavaScript's `set.add(value)`.
-    #[inline]
+
     pub fn add<T>(&self, value: T, context: &mut Context) -> JsResult<JsValue>
     where
         T: Into<JsValue>,
@@ -71,7 +71,7 @@ impl JsSet {
     /// successfully removed or not.
     ///
     /// Same as JavaScript's `set.delete(value)`.
-    #[inline]
+
     pub fn delete<T>(&self, value: T, context: &mut Context) -> JsResult<bool>
     where
         T: Into<JsValue>,
@@ -87,7 +87,7 @@ impl JsSet {
     /// with the given value in the Set object or not.
     ///
     /// Same as JavaScript's `set.has(value)`.
-    #[inline]
+
     pub fn has<T>(&self, value: T, context: &mut Context) -> JsResult<bool>
     where
         T: Into<JsValue>,
@@ -156,7 +156,7 @@ impl JsSet {
     }
 
     /// Utility: Creates a `JsSet` from a `<IntoIterator<Item = JsValue>` convertible object.
-    #[inline]
+
     pub fn from_iter<I>(elements: I, context: &mut Context) -> Self
     where
         I: IntoIterator<Item = JsValue>,

@@ -814,7 +814,7 @@ impl JsObject {
                 };
 
                 for arg in args.iter().rev() {
-                    context.vm.push(arg);
+                    context.vm.push(arg.clone());
                 }
 
                 let param_count = code.params.as_ref().len();
@@ -934,7 +934,7 @@ impl JsObject {
                 };
 
                 for arg in args.iter().rev() {
-                    context.vm.push(arg);
+                    context.vm.push(arg.clone());
                 }
 
                 let param_count = code.params.as_ref().len();
@@ -1427,7 +1427,7 @@ impl JsObject {
                 };
 
                 for arg in args.iter().rev() {
-                    context.vm.push(arg);
+                    context.vm.push(arg.clone());
                 }
 
                 let param_count = code.params.as_ref().len();

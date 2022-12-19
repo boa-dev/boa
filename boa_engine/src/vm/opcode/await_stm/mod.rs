@@ -43,7 +43,7 @@ impl Operation for Await {
                 context.vm.push_frame(frame.clone());
 
                 context.vm.frame_mut().generator_resume_kind = GeneratorResumeKind::Normal;
-                context.vm.push(args.get_or_undefined(0));
+                context.vm.push(args.get_or_undefined(0).clone());
                 context.run()?;
 
                 *frame = context
@@ -82,7 +82,7 @@ impl Operation for Await {
                 context.vm.push_frame(frame.clone());
 
                 context.vm.frame_mut().generator_resume_kind = GeneratorResumeKind::Throw;
-                context.vm.push(args.get_or_undefined(0));
+                context.vm.push(args.get_or_undefined(0).clone());
                 context.run()?;
 
                 *frame = context

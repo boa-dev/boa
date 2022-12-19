@@ -38,6 +38,7 @@ pub struct Assign {
 
 impl Assign {
     /// Creates an `Assign` AST Expression.
+    #[inline]
     #[must_use]
     pub fn new(op: AssignOp, lhs: AssignTarget, rhs: Expression) -> Self {
         Self {

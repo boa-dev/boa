@@ -34,7 +34,7 @@ pub struct JsObject {
 
 impl JsObject {
     /// Create a new `JsObject` from an internal `Object`.
-    #[inline]
+
     fn from_object(object: Object) -> Self {
         Self {
             inner: Gc::new(GcCell::new(object)),
@@ -52,7 +52,7 @@ impl JsObject {
     ///
     /// Create a `JsObject` and automatically set its internal methods and
     /// internal slots from the `data` provided.
-    #[inline]
+
     pub fn from_proto_and_data<O: Into<Option<Self>>>(prototype: O, data: ObjectData) -> Self {
         Self::from_object(Object {
             data,
@@ -198,7 +198,7 @@ impl JsObject {
     /// # Panics
     ///
     /// Panics if the object is currently mutably borrowed.
-    #[inline]
+
     #[track_caller]
     pub fn is<T>(&self) -> bool
     where
@@ -213,7 +213,7 @@ impl JsObject {
     /// # Panics
     ///
     /// Panics if the object is currently mutably borrowed.
-    #[inline]
+
     #[track_caller]
     pub fn downcast_ref<T>(&self) -> Option<Ref<'_, T>>
     where
@@ -235,7 +235,7 @@ impl JsObject {
     /// # Panics
     ///
     /// Panics if the object is currently borrowed.
-    #[inline]
+
     #[track_caller]
     pub fn downcast_mut<T>(&mut self) -> Option<RefMut<'_, Object, T>>
     where
@@ -268,7 +268,7 @@ impl JsObject {
     /// # Panics
     ///
     /// Panics if the object is currently mutably borrowed.
-    #[inline]
+
     pub(crate) fn extensible(&self) -> bool {
         self.borrow().extensible
     }
@@ -607,7 +607,7 @@ Cannot both specify accessors and a value or writable attribute",
     ///  - [ECMAScript][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-copydataproperties
-    #[inline]
+
     pub fn copy_data_properties<K>(
         &self,
         source: &JsValue,
@@ -672,7 +672,6 @@ Cannot both specify accessors and a value or writable attribute",
         Ok(())
     }
 
-    #[inline]
     pub(crate) fn get_property(&self, key: &PropertyKey) -> Option<PropertyDescriptor> {
         let mut obj = Some(self.clone());
 
@@ -686,7 +685,7 @@ Cannot both specify accessors and a value or writable attribute",
     }
 
     /// Helper function for property insertion.
-    #[inline]
+
     #[track_caller]
     pub(crate) fn insert<K, P>(&self, key: K, property: P) -> Option<PropertyDescriptor>
     where
@@ -700,7 +699,7 @@ Cannot both specify accessors and a value or writable attribute",
     ///
     /// If a field was already in the object with the same name that a `Some` is returned
     /// with that field, otherwise None is returned.
-    #[inline]
+
     pub fn insert_property<K, P>(&self, key: K, property: P) -> Option<PropertyDescriptor>
     where
         K: Into<PropertyKey>,

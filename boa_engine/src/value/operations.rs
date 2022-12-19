@@ -11,7 +11,7 @@ use crate::{
 
 impl JsValue {
     /// Perform the binary `+` operator on the value and return the result.
-    #[inline]
+
     pub fn add(&self, other: &Self, context: &mut Context) -> JsResult<Self> {
         Ok(match (self, other) {
             // Fast path:
@@ -52,7 +52,7 @@ impl JsValue {
     }
 
     /// Perform the binary `-` operator on the value and return the result.
-    #[inline]
+
     pub fn sub(&self, other: &Self, context: &mut Context) -> JsResult<Self> {
         Ok(match (self, other) {
             // Fast path:
@@ -79,7 +79,7 @@ impl JsValue {
     }
 
     /// Perform the binary `*` operator on the value and return the result.
-    #[inline]
+
     pub fn mul(&self, other: &Self, context: &mut Context) -> JsResult<Self> {
         Ok(match (self, other) {
             // Fast path:
@@ -106,7 +106,7 @@ impl JsValue {
     }
 
     /// Perform the binary `/` operator on the value and return the result.
-    #[inline]
+
     pub fn div(&self, other: &Self, context: &mut Context) -> JsResult<Self> {
         Ok(match (self, other) {
             // Fast path:
@@ -148,7 +148,7 @@ impl JsValue {
     }
 
     /// Perform the binary `%` operator on the value and return the result.
-    #[inline]
+
     pub fn rem(&self, other: &Self, context: &mut Context) -> JsResult<Self> {
         Ok(match (self, other) {
             // Fast path:
@@ -200,7 +200,7 @@ impl JsValue {
     }
 
     /// Perform the binary `**` operator on the value and return the result.
-    #[inline]
+
     pub fn pow(&self, other: &Self, context: &mut Context) -> JsResult<Self> {
         Ok(match (self, other) {
             // Fast path:
@@ -228,7 +228,7 @@ impl JsValue {
     }
 
     /// Perform the binary `&` operator on the value and return the result.
-    #[inline]
+
     pub fn bitand(&self, other: &Self, context: &mut Context) -> JsResult<Self> {
         Ok(match (self, other) {
             // Fast path:
@@ -259,7 +259,7 @@ impl JsValue {
     }
 
     /// Perform the binary `|` operator on the value and return the result.
-    #[inline]
+
     pub fn bitor(&self, other: &Self, context: &mut Context) -> JsResult<Self> {
         Ok(match (self, other) {
             // Fast path:
@@ -290,7 +290,7 @@ impl JsValue {
     }
 
     /// Perform the binary `^` operator on the value and return the result.
-    #[inline]
+
     pub fn bitxor(&self, other: &Self, context: &mut Context) -> JsResult<Self> {
         Ok(match (self, other) {
             // Fast path:
@@ -321,7 +321,7 @@ impl JsValue {
     }
 
     /// Perform the binary `<<` operator on the value and return the result.
-    #[inline]
+
     pub fn shl(&self, other: &Self, context: &mut Context) -> JsResult<Self> {
         Ok(match (self, other) {
             // Fast path:
@@ -354,7 +354,7 @@ impl JsValue {
     }
 
     /// Perform the binary `>>` operator on the value and return the result.
-    #[inline]
+
     pub fn shr(&self, other: &Self, context: &mut Context) -> JsResult<Self> {
         Ok(match (self, other) {
             // Fast path:
@@ -387,7 +387,7 @@ impl JsValue {
     }
 
     /// Perform the binary `>>>` operator on the value and return the result.
-    #[inline]
+
     pub fn ushr(&self, other: &Self, context: &mut Context) -> JsResult<Self> {
         Ok(match (self, other) {
             // Fast path:
@@ -427,7 +427,7 @@ impl JsValue {
     /// - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-instanceofoperator
-    #[inline]
+
     pub fn instance_of(&self, target: &Self, context: &mut Context) -> JsResult<bool> {
         // 1. If Type(target) is not Object, throw a TypeError exception.
         if !target.is_object() {
@@ -462,7 +462,7 @@ impl JsValue {
     }
 
     /// Returns the negated value.
-    #[inline]
+
     pub fn neg(&self, context: &mut Context) -> JsResult<Self> {
         Ok(match *self {
             Self::Symbol(_) | Self::Undefined => Self::new(f64::NAN),

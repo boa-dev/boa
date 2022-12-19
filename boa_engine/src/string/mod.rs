@@ -215,7 +215,7 @@ impl TaggedJsString {
     ///
     /// `inner` must point to a valid instance of [`RawJsString`], which should be deallocated only
     /// by [`JsString`].
-    #[inline]
+
     const unsafe fn new_heap(inner: NonNull<RawJsString>) -> Self {
         Self(inner)
     }
@@ -226,7 +226,7 @@ impl TaggedJsString {
     /// # Safety
     ///
     /// `idx` must be a valid index on [`COMMON_STRINGS`].
-    #[inline]
+
     const unsafe fn new_static(idx: usize) -> Self {
         // SAFETY:
         // The operation `(idx << 1) | 1` sets the least significant bit to 1, meaning any pointer
@@ -235,7 +235,7 @@ impl TaggedJsString {
     }
 
     /// Checks if [`TaggedJsString`] contains an index for [`COMMON_STRINGS`].
-    #[inline]
+
     fn is_static(self) -> bool {
         (self.0.as_ptr() as usize) & 1 == 1
     }
@@ -246,7 +246,7 @@ impl TaggedJsString {
     /// # Safety
     ///
     /// `self` must be a heap allocated [`RawJsString`].
-    #[inline]
+
     const unsafe fn get_heap_unchecked(self) -> NonNull<RawJsString> {
         self.0
     }
@@ -258,7 +258,7 @@ impl TaggedJsString {
     ///
     /// `self` must not be a pointer to a heap allocated [`RawJsString`], and it must be a valid
     /// index inside [`COMMON_STRINGS`].
-    #[inline]
+
     unsafe fn get_static_unchecked(self) -> &'static [u16] {
         // SAFETY:
         // The caller must ensure `self` is a valid index inside `COMMON_STRINGS`.
@@ -546,7 +546,7 @@ impl JsString {
 
     /// Returns the inner pointer data, unwrapping its tagged data if the pointer contains a static
     /// index for [`COMMON_STRINGS`].
-    #[inline]
+
     fn ptr(&self) -> JsStringPtrKind {
         // Check the first bit to 1.
         if self.ptr.is_static() {
@@ -693,7 +693,6 @@ impl Default for JsString {
 }
 
 impl Drop for JsString {
-    #[inline]
     fn drop(&mut self) {
         if let JsStringPtrKind::Heap(raw) = self.ptr() {
             // SAFETY: The reference count of `JsString` guarantees that `raw` is always valid.
@@ -799,7 +798,6 @@ impl From<String> for JsString {
 }
 
 impl<const N: usize> From<&[u16; N]> for JsString {
-    #[inline]
     fn from(s: &[u16; N]) -> Self {
         Self::from(&s[..])
     }
@@ -953,7 +951,7 @@ mod tests {
 
     impl JsString {
         /// Gets the number of `JsString`s which point to this allocation.
-        #[inline]
+
         fn refcount(&self) -> Option<usize> {
             match self.ptr() {
                 JsStringPtrKind::Heap(inner) => {

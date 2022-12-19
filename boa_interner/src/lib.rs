@@ -371,7 +371,7 @@ impl Interner {
     }
 
     /// Returns the string for the given symbol if any.
-    #[inline]
+
     #[must_use]
     pub fn resolve(&self, symbol: Sym) -> Option<JSInternedStrRef<'_, '_>> {
         let index = symbol.get() - 1;

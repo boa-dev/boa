@@ -58,7 +58,6 @@ impl NumericKind {
     }
 }
 
-#[inline]
 fn take_signed_integer<R>(
     buf: &mut Vec<u8>,
     cursor: &mut Cursor<R>,
@@ -157,7 +156,7 @@ where
 ///  - [ECMAScript Specification][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-literals-numeric-literals
-#[inline]
+
 fn check_after_numeric_literal<R>(cursor: &mut Cursor<R>) -> Result<(), Error>
 where
     R: Read,

@@ -24,7 +24,6 @@ pub struct JsBigInt {
 
 impl JsBigInt {
     /// Create a new [`JsBigInt`].
-    #[inline]
     #[must_use]
     pub fn new<T: Into<Self>>(value: T) -> Self {
         value.into()
@@ -289,7 +288,6 @@ impl JsBigInt {
         Self::new(!x.as_inner())
     }
 
-    #[inline]
     pub(crate) fn as_inner(&self) -> &RawBigInt {
         &self.inner
     }

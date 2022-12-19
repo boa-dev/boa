@@ -54,7 +54,6 @@ pub(crate) trait UTF16CodeUnitsBuffer {
 }
 
 impl UTF16CodeUnitsBuffer for Vec<u16> {
-    #[inline]
     fn push_code_point(&mut self, mut code_point: u32) {
         if let Ok(cp) = code_point.try_into() {
             self.push(cp);
@@ -72,7 +71,6 @@ impl UTF16CodeUnitsBuffer for Vec<u16> {
         self.push(cu2);
     }
 
-    #[inline]
     fn to_string_lossy(&self) -> String {
         String::from_utf16_lossy(self.as_slice())
     }
@@ -107,7 +105,7 @@ impl StringLiteral {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#prod-LineTerminator
-    #[inline]
+
     pub(super) const fn is_line_terminator(ch: u32) -> bool {
         matches!(
             ch,
@@ -115,7 +113,6 @@ impl StringLiteral {
         )
     }
 
-    #[inline]
     fn take_string_characters<R>(
         cursor: &mut Cursor<R>,
         start_pos: Position,
@@ -163,7 +160,6 @@ impl StringLiteral {
         Ok((buf, Span::new(start_pos, cursor.pos())))
     }
 
-    #[inline]
     pub(super) fn take_escape_sequence_or_line_continuation<R>(
         cursor: &mut Cursor<R>,
         start_pos: Position,
@@ -250,7 +246,6 @@ impl StringLiteral {
         Ok(escape_value)
     }
 
-    #[inline]
     pub(super) fn take_unicode_escape_sequence<R>(
         cursor: &mut Cursor<R>,
         start_pos: Position,
@@ -299,7 +294,6 @@ impl StringLiteral {
         }
     }
 
-    #[inline]
     fn take_hex_escape_sequence<R>(
         cursor: &mut Cursor<R>,
         start_pos: Position,
@@ -317,7 +311,6 @@ impl StringLiteral {
         Ok(u32::from(code_point))
     }
 
-    #[inline]
     fn take_legacy_octal_escape_sequence<R>(
         cursor: &mut Cursor<R>,
         init_byte: u8,

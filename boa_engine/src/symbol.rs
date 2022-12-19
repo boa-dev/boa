@@ -360,7 +360,6 @@ impl Ord for JsSymbol {
 }
 
 impl Hash for JsSymbol {
-    #[inline]
     fn hash<H: Hasher>(&self, state: &mut H) {
         self.inner.hash.hash(state);
     }

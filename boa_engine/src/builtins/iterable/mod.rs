@@ -131,7 +131,6 @@ impl IteratorPrototypes {
 /// `CreateIterResultObject( value, done )`
 ///
 /// Generates an object supporting the `IteratorResult` interface.
-#[inline]
 pub fn create_iter_result_object(value: JsValue, done: bool, context: &mut Context) -> JsValue {
     let _timer = Profiler::global().start_event("create_iter_result_object", "init");
 
@@ -166,7 +165,6 @@ impl JsValue {
     ///  - [ECMA reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-getiterator
-    #[inline]
     pub fn get_iterator(
         &self,
         context: &mut Context,
@@ -235,7 +233,6 @@ impl JsValue {
 ///  - [ECMA reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-%iteratorprototype%-object
-#[inline]
 fn create_iterator_prototype(context: &mut Context) -> JsObject {
     let _timer = Profiler::global().start_event("Iterator Prototype", "init");
 
@@ -333,25 +330,21 @@ impl IteratorRecord {
     }
 
     /// Get the `[[Iterator]]` field of the `IteratorRecord`.
-    #[inline]
     pub(crate) const fn iterator(&self) -> &JsObject {
         &self.iterator
     }
 
     /// Get the `[[NextMethod]]` field of the `IteratorRecord`.
-    #[inline]
     pub(crate) const fn next_method(&self) -> &JsValue {
         &self.next_method
     }
 
     /// Get the `[[Done]]` field of the `IteratorRecord`.
-    #[inline]
     pub(crate) const fn done(&self) -> bool {
         self.done
     }
 
     /// Sets the `[[Done]]` field of the `IteratorRecord`.
-    #[inline]
     pub(crate) fn set_done(&mut self, done: bool) {
         self.done = done;
     }
@@ -366,7 +359,6 @@ impl IteratorRecord {
     ///  - [ECMA reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-iteratornext
-    #[inline]
     pub(crate) fn next(
         &self,
         value: Option<JsValue>,
@@ -443,7 +435,6 @@ impl IteratorRecord {
     ///  - [ECMA reference][spec]
     ///
     ///  [spec]: https://tc39.es/ecma262/#sec-iteratorclose
-    #[inline]
     pub(crate) fn close(
         &self,
         completion: JsResult<JsValue>,
@@ -571,7 +562,6 @@ pub(crate) use if_abrupt_close_iterator;
 ///  - [ECMA reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-asynciteratorprototype
-#[inline]
 fn create_async_iterator_prototype(context: &mut Context) -> JsObject {
     let _timer = Profiler::global().start_event("AsyncIteratorPrototype", "init");
 

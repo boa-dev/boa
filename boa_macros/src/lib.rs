@@ -96,7 +96,7 @@ fn derive_trace(mut s: Structure<'_>) -> proc_macro2::TokenStream {
             #[inline]
             unsafe fn trace(&self) {
                 #[allow(dead_code)]
-                #[inline]
+
                 fn mark<T: ::boa_gc::Trace + ?Sized>(it: &T) {
                     unsafe {
                         ::boa_gc::Trace::trace(it);
@@ -107,7 +107,7 @@ fn derive_trace(mut s: Structure<'_>) -> proc_macro2::TokenStream {
             #[inline]
             unsafe fn weak_trace(&self) {
                 #[allow(dead_code, unreachable_code)]
-                #[inline]
+
                 fn mark<T: ::boa_gc::Trace + ?Sized>(it: &T) {
                     unsafe {
                         ::boa_gc::Trace::weak_trace(it)
@@ -118,7 +118,7 @@ fn derive_trace(mut s: Structure<'_>) -> proc_macro2::TokenStream {
             #[inline]
             unsafe fn root(&self) {
                 #[allow(dead_code)]
-                #[inline]
+
                 fn mark<T: ::boa_gc::Trace + ?Sized>(it: &T) {
                     unsafe {
                         ::boa_gc::Trace::root(it);
@@ -129,7 +129,7 @@ fn derive_trace(mut s: Structure<'_>) -> proc_macro2::TokenStream {
             #[inline]
             unsafe fn unroot(&self) {
                 #[allow(dead_code)]
-                #[inline]
+
                 fn mark<T: ::boa_gc::Trace + ?Sized>(it: &T) {
                     unsafe {
                         ::boa_gc::Trace::unroot(it);
@@ -141,7 +141,7 @@ fn derive_trace(mut s: Structure<'_>) -> proc_macro2::TokenStream {
             fn run_finalizer(&self) {
                 ::boa_gc::Finalize::finalize(self);
                 #[allow(dead_code)]
-                #[inline]
+
                 fn mark<T: ::boa_gc::Trace + ?Sized>(it: &T) {
                     unsafe {
                         ::boa_gc::Trace::run_finalizer(it);

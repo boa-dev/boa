@@ -39,7 +39,7 @@ pub struct Edge {
 
 impl Edge {
     /// Construct a new edge.
-    #[inline]
+
     pub(super) const fn new(
         from: usize,
         to: usize,

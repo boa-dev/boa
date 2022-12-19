@@ -289,7 +289,6 @@ impl<T> From<T> for ObjectLiteral
 where
     T: Into<Box<[PropertyDefinition]>>,
 {
-    #[inline]
     fn from(props: T) -> Self {
         Self {
             properties: props.into(),

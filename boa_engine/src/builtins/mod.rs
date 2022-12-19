@@ -121,7 +121,6 @@ pub(crate) trait BuiltIn {
 
 /// Utility function that checks if a type implements `BuiltIn` before initializing it as a global
 /// built-in.
-#[inline]
 fn init_builtin<B: BuiltIn>(context: &mut Context) {
     if let Some(value) = B::init(context) {
         let property = PropertyDescriptor::builder()
@@ -137,7 +136,6 @@ fn init_builtin<B: BuiltIn>(context: &mut Context) {
 }
 
 /// Initializes built-in objects and functions
-#[inline]
 pub fn init(context: &mut Context) {
     macro_rules! globals {
         ($( $builtin:ty ),*) => {

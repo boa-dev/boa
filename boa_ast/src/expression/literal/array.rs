@@ -165,7 +165,6 @@ impl<T> From<T> for ArrayLiteral
 where
     T: Into<Box<[Option<Expression>]>>,
 {
-    #[inline]
     fn from(decl: T) -> Self {
         Self {
             arr: decl.into(),

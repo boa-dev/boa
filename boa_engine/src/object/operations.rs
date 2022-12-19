@@ -63,7 +63,7 @@ impl JsObject {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-get-o-p
-    #[inline]
+
     pub fn get<K>(&self, key: K, context: &mut Context) -> JsResult<JsValue>
     where
         K: Into<PropertyKey>,
@@ -80,7 +80,7 @@ impl JsObject {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-set-o-p-v-throw
-    #[inline]
+
     pub fn set<K, V>(&self, key: K, value: V, throw: bool, context: &mut Context) -> JsResult<bool>
     where
         K: Into<PropertyKey>,
@@ -206,7 +206,7 @@ impl JsObject {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-definepropertyorthrow
-    #[inline]
+
     pub fn define_property_or_throw<K, P>(
         &self,
         key: K,
@@ -238,7 +238,7 @@ impl JsObject {
     /// - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-deletepropertyorthrow
-    #[inline]
+
     pub fn delete_property_or_throw<K>(&self, key: K, context: &mut Context) -> JsResult<bool>
     where
         K: Into<PropertyKey>,
@@ -264,7 +264,7 @@ impl JsObject {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-hasproperty
-    #[inline]
+
     pub fn has_property<K>(&self, key: K, context: &mut Context) -> JsResult<bool>
     where
         K: Into<PropertyKey>,
@@ -281,7 +281,7 @@ impl JsObject {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-hasownproperty
-    #[inline]
+
     pub fn has_own_property<K>(&self, key: K, context: &mut Context) -> JsResult<bool>
     where
         K: Into<PropertyKey>,
@@ -353,7 +353,7 @@ impl JsObject {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-setintegritylevel
-    #[inline]
+
     pub fn set_integrity_level(
         &self,
         level: IntegrityLevel,
@@ -423,7 +423,7 @@ impl JsObject {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-testintegritylevel
-    #[inline]
+
     pub fn test_integrity_level(
         &self,
         level: IntegrityLevel,
@@ -467,7 +467,6 @@ impl JsObject {
         Ok(true)
     }
 
-    #[inline]
     pub(crate) fn length_of_array_like(&self, context: &mut Context) -> JsResult<u64> {
         // 1. Assert: Type(obj) is Object.
         // 2. Return ℝ(? ToLength(? Get(obj, "length"))).
@@ -680,7 +679,7 @@ impl JsValue {
     /// - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-getv
-    #[inline]
+
     pub(crate) fn get_v<K>(&self, key: K, context: &mut Context) -> JsResult<Self>
     where
         K: Into<PropertyKey>,
@@ -700,7 +699,7 @@ impl JsValue {
     /// - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-getmethod
-    #[inline]
+
     pub(crate) fn get_method<K>(&self, key: K, context: &mut Context) -> JsResult<Option<JsObject>>
     where
         K: Into<PropertyKey>,

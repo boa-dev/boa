@@ -105,7 +105,6 @@ macro_rules! custom_trace {
     ($this:ident, $body:expr) => {
         #[inline]
         unsafe fn trace(&self) {
-            #[inline]
             fn mark<T: $crate::Trace + ?Sized>(it: &T) {
                 // SAFETY: The implementor must ensure that `trace` is correctly implemented.
                 unsafe {
@@ -117,7 +116,6 @@ macro_rules! custom_trace {
         }
         #[inline]
         unsafe fn weak_trace(&self) {
-            #[inline]
             fn mark<T: $crate::Trace + ?Sized>(it: &T) {
                 // SAFETY: The implementor must ensure that `weak_trace` is correctly implemented.
                 unsafe {
@@ -129,7 +127,6 @@ macro_rules! custom_trace {
         }
         #[inline]
         unsafe fn root(&self) {
-            #[inline]
             fn mark<T: $crate::Trace + ?Sized>(it: &T) {
                 // SAFETY: The implementor must ensure that `root` is correctly implemented.
                 unsafe {
@@ -141,7 +138,6 @@ macro_rules! custom_trace {
         }
         #[inline]
         unsafe fn unroot(&self) {
-            #[inline]
             fn mark<T: $crate::Trace + ?Sized>(it: &T) {
                 // SAFETY: The implementor must ensure that `unroot` is correctly implemented.
                 unsafe {
@@ -153,7 +149,6 @@ macro_rules! custom_trace {
         }
         #[inline]
         fn run_finalizer(&self) {
-            #[inline]
             fn mark<T: $crate::Trace + ?Sized>(it: &T) {
                 $crate::Trace::run_finalizer(it);
             }

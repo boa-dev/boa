@@ -91,6 +91,7 @@ pub struct Labelled {
 
 impl Labelled {
     /// Creates a new `Labelled` statement.
+    #[inline]
     #[must_use]
     pub fn new(item: LabelledItem, label: Sym) -> Self {
         Self {
@@ -100,11 +101,13 @@ impl Labelled {
     }
 
     /// Gets the labelled item.
+    #[inline]
     #[must_use]
     pub const fn item(&self) -> &LabelledItem {
         &self.item
     }
 
+    #[inline]
     /// Gets the label name.
     #[must_use]
     pub const fn label(&self) -> Sym {

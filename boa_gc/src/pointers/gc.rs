@@ -105,7 +105,6 @@ impl<T: Trace + ?Sized> Gc<T> {
         }
     }
 
-    #[inline]
     pub(crate) fn inner_ptr(&self) -> NonNull<GcBox<T>> {
         assert!(finalizer_safe());
         // SAFETY: inner_ptr must be a live GcBox. Calling this on a dropped GcBox
@@ -113,7 +112,6 @@ impl<T: Trace + ?Sized> Gc<T> {
         unsafe { clear_root_bit(self.inner_ptr.get()) }
     }
 
-    #[inline]
     fn inner(&self) -> &GcBox<T> {
         // SAFETY: Please see Gc::inner_ptr()
         unsafe { self.inner_ptr().as_ref() }
@@ -125,7 +123,6 @@ impl<T: Trace + ?Sized> Finalize for Gc<T> {}
 // SAFETY: `Gc` maintains it's own rootedness and implements all methods of
 // Trace. It is not possible to root an already rooted `Gc` and vice versa.
 unsafe impl<T: Trace + ?Sized> Trace for Gc<T> {
-    #[inline]
     unsafe fn trace(&self) {
         // SAFETY: Inner must be live and allocated GcBox.
         unsafe {
@@ -133,12 +130,10 @@ unsafe impl<T: Trace + ?Sized> Trace for Gc<T> {
         }
     }
 
-    #[inline]
     unsafe fn weak_trace(&self) {
         self.inner().weak_trace_inner();
     }
 
-    #[inline]
     unsafe fn root(&self) {
         assert!(!self.rooted(), "Can't double-root a Gc<T>");
         // Try to get inner before modifying our state. Inner may be
@@ -148,7 +143,6 @@ unsafe impl<T: Trace + ?Sized> Trace for Gc<T> {
         self.set_root();
     }
 
-    #[inline]
     unsafe fn unroot(&self) {
         assert!(self.rooted(), "Can't double-unroot a Gc<T>");
         // Try to get inner before modifying our state. Inner may be
@@ -158,14 +152,12 @@ unsafe impl<T: Trace + ?Sized> Trace for Gc<T> {
         self.clear_root();
     }
 
-    #[inline]
     fn run_finalizer(&self) {
         Finalize::finalize(self);
     }
 }
 
 impl<T: Trace + ?Sized> Clone for Gc<T> {
-    #[inline]
     fn clone(&self) -> Self {
         Self::from_ptr(self.inner_ptr())
     }
@@ -174,14 +166,12 @@ impl<T: Trace + ?Sized> Clone for Gc<T> {
 impl<T: Trace + ?Sized> Deref for Gc<T> {
     type Target = T;
 
-    #[inline]
     fn deref(&self) -> &T {
         self.inner().value()
     }
 }
 
 impl<T: Trace + ?Sized> Drop for Gc<T> {
-    #[inline]
     fn drop(&mut self) {
         // If this pointer was a root, we should unroot it.
         if self.rooted() {
@@ -191,7 +181,6 @@ impl<T: Trace + ?Sized> Drop for Gc<T> {
 }
 
 impl<T: Trace + Default> Default for Gc<T> {
-    #[inline]
     fn default() -> Self {
         Self::new(Default::default())
     }
@@ -236,7 +225,6 @@ impl<T: Trace + ?Sized + PartialOrd> PartialOrd for Gc<T> {
 }
 
 impl<T: Trace + ?Sized + Ord> Ord for Gc<T> {
-    #[inline]
     fn cmp(&self, other: &Self) -> Ordering {
         (**self).cmp(&**other)
     }

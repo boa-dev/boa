@@ -63,7 +63,7 @@ impl Default for IndexedProperties {
 
 impl IndexedProperties {
     /// Get a property descriptor if it exists.
-    #[inline]
+
     fn get(&self, key: u32) -> Option<PropertyDescriptor> {
         match self {
             Self::Sparse(ref map) => map.get(&key).cloned(),
@@ -79,7 +79,7 @@ impl IndexedProperties {
     }
 
     /// Helper function for converting from a dense storage type to sparse storage type.
-    #[inline]
+
     fn convert_dense_to_sparse(vec: &mut Vec<JsValue>) -> FxHashMap<u32, PropertyDescriptor> {
         let data = std::mem::take(vec);
 
@@ -100,7 +100,7 @@ impl IndexedProperties {
     }
 
     /// Inserts a property descriptor with the specified key.
-    #[inline]
+
     fn insert(&mut self, key: u32, property: PropertyDescriptor) -> Option<PropertyDescriptor> {
         let vec = match self {
             Self::Sparse(map) => return map.insert(key, property),
@@ -152,7 +152,7 @@ impl IndexedProperties {
     }
 
     /// Inserts a property descriptor with the specified key.
-    #[inline]
+
     fn remove(&mut self, key: u32) -> Option<PropertyDescriptor> {
         let vec = match self {
             Self::Sparse(map) => return map.remove(&key),
@@ -418,12 +418,10 @@ impl PropertyMap {
         }
     }
 
-    #[inline]
     pub(crate) const fn string_property_map(&self) -> &GlobalPropertyMap {
         &self.string_properties.0
     }
 
-    #[inline]
     pub(crate) fn string_property_map_mut(&mut self) -> &mut GlobalPropertyMap {
         &mut self.string_properties.0
     }
@@ -596,7 +594,6 @@ pub enum IndexProperties<'a> {
 impl Iterator for IndexProperties<'_> {
     type Item = (u32, PropertyDescriptor);
 
-    #[inline]
     fn next(&mut self) -> Option<Self::Item> {
         match self {
             Self::Dense(vec) => vec.next().map(|(index, value)| {
@@ -690,7 +687,6 @@ pub enum IndexPropertyValues<'a> {
 impl Iterator for IndexPropertyValues<'_> {
     type Item = PropertyDescriptor;
 
-    #[inline]
     fn next(&mut self) -> Option<Self::Item> {
         match self {
             Self::Dense(vec) => vec.next().map(|value| {

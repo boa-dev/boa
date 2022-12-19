@@ -52,7 +52,6 @@ where
 struct AllowYield(bool);
 
 impl From<bool> for AllowYield {
-    #[inline]
     fn from(allow: bool) -> Self {
         Self(allow)
     }
@@ -63,7 +62,6 @@ impl From<bool> for AllowYield {
 struct AllowAwait(bool);
 
 impl From<bool> for AllowAwait {
-    #[inline]
     fn from(allow: bool) -> Self {
         Self(allow)
     }
@@ -74,7 +72,6 @@ impl From<bool> for AllowAwait {
 struct AllowIn(bool);
 
 impl From<bool> for AllowIn {
-    #[inline]
     fn from(allow: bool) -> Self {
         Self(allow)
     }
@@ -85,7 +82,6 @@ impl From<bool> for AllowIn {
 struct AllowReturn(bool);
 
 impl From<bool> for AllowReturn {
-    #[inline]
     fn from(allow: bool) -> Self {
         Self(allow)
     }
@@ -96,7 +92,6 @@ impl From<bool> for AllowReturn {
 struct AllowDefault(bool);
 
 impl From<bool> for AllowDefault {
-    #[inline]
     fn from(allow: bool) -> Self {
         Self(allow)
     }
@@ -119,7 +114,7 @@ pub struct Parser<R> {
 
 impl<R> Parser<R> {
     /// Create a new `Parser` with a reader as the input to parse.
-    #[inline]
+
     pub fn new(reader: R) -> Self
     where
         R: Read,
@@ -130,7 +125,7 @@ impl<R> Parser<R> {
     }
 
     /// Set the parser strict mode to true.
-    #[inline]
+
     pub fn set_strict(&mut self)
     where
         R: Read,
@@ -139,7 +134,7 @@ impl<R> Parser<R> {
     }
 
     /// Set the parser strict mode to true.
-    #[inline]
+
     pub fn set_json_parse(&mut self)
     where
         R: Read,
@@ -155,7 +150,7 @@ impl<R> Parser<R> {
     /// Will return `Err` on any parsing error, including invalid reads of the bytes being parsed.
     ///
     /// [spec]: https://tc39.es/ecma262/#prod-Script
-    #[inline]
+
     pub fn parse_all(&mut self, interner: &mut Interner) -> ParseResult<StatementList>
     where
         R: Read,
@@ -172,7 +167,7 @@ impl<R> Parser<R> {
     /// Will return `Err` on any parsing error, including invalid reads of the bytes being parsed.
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-performeval
-    #[inline]
+
     pub fn parse_eval(
         &mut self,
         direct: bool,
@@ -191,7 +186,7 @@ impl<R> Parser<R> {
     /// Will return `Err` on any parsing error, including invalid reads of the bytes being parsed.
     ///
     /// [spec]: https://tc39.es/ecma262/#prod-FunctionBody
-    #[inline]
+
     pub fn parse_function_body(
         &mut self,
         interner: &mut Interner,
@@ -211,7 +206,7 @@ impl<R> Parser<R> {
     /// Will return `Err` on any parsing error, including invalid reads of the bytes being parsed.
     ///
     /// [spec]: https://tc39.es/ecma262/#prod-FormalParameterList
-    #[inline]
+
     pub fn parse_formal_parameters(
         &mut self,
         interner: &mut Interner,
@@ -352,7 +347,7 @@ where
 }
 
 /// Helper to check if any parameter names are declared in the given list.
-#[inline]
+
 fn name_in_lexically_declared_names(
     bound_names: &[Identifier],
     lexical_names: &[Identifier],
@@ -376,7 +371,6 @@ trait OrAbrupt<T> {
 }
 
 impl<T> OrAbrupt<T> for ParseResult<Option<T>> {
-    #[inline]
     fn or_abrupt(self) -> ParseResult<T> {
         self?.ok_or(Error::AbruptEnd)
     }

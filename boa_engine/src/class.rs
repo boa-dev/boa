@@ -158,7 +158,6 @@ pub struct ClassBuilder<'context> {
 }
 
 impl<'context> ClassBuilder<'context> {
-    #[inline]
     pub(crate) fn new<T>(context: &'context mut Context) -> Self
     where
         T: ClassConstructor,
@@ -169,7 +168,6 @@ impl<'context> ClassBuilder<'context> {
         Self { builder }
     }
 
-    #[inline]
     pub(crate) fn build(mut self) -> JsFunction {
         JsFunction::from_object_unchecked(self.builder.build().into())
     }
@@ -177,7 +175,6 @@ impl<'context> ClassBuilder<'context> {
     /// Add a method to the class.
     ///
     /// It is added to `prototype`.
-    #[inline]
     pub fn method<N>(
         &mut self,
         name: N,
@@ -194,7 +191,6 @@ impl<'context> ClassBuilder<'context> {
     /// Add a static method to the class.
     ///
     /// It is added to class object itself.
-    #[inline]
     pub fn static_method<N>(
         &mut self,
         name: N,
@@ -211,7 +207,6 @@ impl<'context> ClassBuilder<'context> {
     /// Add a data property to the class, with the specified attribute.
     ///
     /// It is added to `prototype`.
-    #[inline]
     pub fn property<K, V>(&mut self, key: K, value: V, attribute: Attribute) -> &mut Self
     where
         K: Into<PropertyKey>,
@@ -224,7 +219,6 @@ impl<'context> ClassBuilder<'context> {
     /// Add a static data property to the class, with the specified attribute.
     ///
     /// It is added to class object itself.
-    #[inline]
     pub fn static_property<K, V>(&mut self, key: K, value: V, attribute: Attribute) -> &mut Self
     where
         K: Into<PropertyKey>,
@@ -237,7 +231,6 @@ impl<'context> ClassBuilder<'context> {
     /// Add an accessor property to the class, with the specified attribute.
     ///
     /// It is added to `prototype`.
-    #[inline]
     pub fn accessor<K>(
         &mut self,
         key: K,
@@ -255,7 +248,6 @@ impl<'context> ClassBuilder<'context> {
     /// Add a static accessor property to the class, with the specified attribute.
     ///
     /// It is added to class object itself.
-    #[inline]
     pub fn static_accessor<K>(
         &mut self,
         key: K,
@@ -273,7 +265,6 @@ impl<'context> ClassBuilder<'context> {
     /// Add a property descriptor to the class, with the specified attribute.
     ///
     /// It is added to `prototype`.
-    #[inline]
     pub fn property_descriptor<K, P>(&mut self, key: K, property: P) -> &mut Self
     where
         K: Into<PropertyKey>,
@@ -286,7 +277,6 @@ impl<'context> ClassBuilder<'context> {
     /// Add a static property descriptor to the class, with the specified attribute.
     ///
     /// It is added to class object itself.
-    #[inline]
     pub fn static_property_descriptor<K, P>(&mut self, key: K, property: P) -> &mut Self
     where
         K: Into<PropertyKey>,

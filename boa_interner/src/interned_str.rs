@@ -26,7 +26,7 @@ impl<Char> InternedStr<Char> {
     ///
     /// Not maintaining the invariants specified on the struct definition
     /// could cause Undefined Behaviour.
-    #[inline]
+
     pub(super) const unsafe fn new(ptr: NonNull<[Char]>) -> Self {
         Self { ptr }
     }
@@ -37,7 +37,7 @@ impl<Char> InternedStr<Char> {
     ///
     /// Not maintaining the invariants specified on the struct definition
     /// could cause Undefined Behaviour.
-    #[inline]
+
     pub(super) unsafe fn as_ref(&self) -> &[Char] {
         // SAFETY:
         // The caller must ensure `ptr` is still valid throughout the

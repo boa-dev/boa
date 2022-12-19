@@ -111,7 +111,7 @@ pub(crate) fn proxy_exotic_get_prototype_of(
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-proxy-object-internal-methods-and-internal-slots-setprototypeof-v
-#[inline]
+
 pub(crate) fn proxy_exotic_set_prototype_of(
     obj: &JsObject,
     val: JsPrototype,
@@ -176,7 +176,7 @@ pub(crate) fn proxy_exotic_set_prototype_of(
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-proxy-object-internal-methods-and-internal-slots-isextensible
-#[inline]
+
 pub(crate) fn proxy_exotic_is_extensible(obj: &JsObject, context: &mut Context) -> JsResult<bool> {
     // 1. Let handler be O.[[ProxyHandler]].
     // 2. If handler is null, throw a TypeError exception.
@@ -220,7 +220,7 @@ pub(crate) fn proxy_exotic_is_extensible(obj: &JsObject, context: &mut Context) 
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-proxy-object-internal-methods-and-internal-slots-preventextensions
-#[inline]
+
 pub(crate) fn proxy_exotic_prevent_extensions(
     obj: &JsObject,
     context: &mut Context,
@@ -266,7 +266,7 @@ pub(crate) fn proxy_exotic_prevent_extensions(
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-proxy-object-internal-methods-and-internal-slots-getownproperty-p
-#[inline]
+
 pub(crate) fn proxy_exotic_get_own_property(
     obj: &JsObject,
     key: &PropertyKey,
@@ -390,7 +390,7 @@ pub(crate) fn proxy_exotic_get_own_property(
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-proxy-object-internal-methods-and-internal-slots-defineownproperty-p-desc
-#[inline]
+
 pub(crate) fn proxy_exotic_define_own_property(
     obj: &JsObject,
     key: PropertyKey,
@@ -503,7 +503,7 @@ pub(crate) fn proxy_exotic_define_own_property(
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-proxy-object-internal-methods-and-internal-slots-hasproperty-p
-#[inline]
+
 pub(crate) fn proxy_exotic_has_property(
     obj: &JsObject,
     key: &PropertyKey,
@@ -569,7 +569,7 @@ pub(crate) fn proxy_exotic_has_property(
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-proxy-object-internal-methods-and-internal-slots-get-p-receiver
-#[inline]
+
 pub(crate) fn proxy_exotic_get(
     obj: &JsObject,
     key: &PropertyKey,
@@ -638,7 +638,7 @@ pub(crate) fn proxy_exotic_get(
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-proxy-object-internal-methods-and-internal-slots-set-p-v-receiver
-#[inline]
+
 pub(crate) fn proxy_exotic_set(
     obj: &JsObject,
     key: PropertyKey,
@@ -722,7 +722,7 @@ pub(crate) fn proxy_exotic_set(
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-proxy-object-internal-methods-and-internal-slots-delete-p
-#[inline]
+
 pub(crate) fn proxy_exotic_delete(
     obj: &JsObject,
     key: &PropertyKey,
@@ -790,7 +790,7 @@ pub(crate) fn proxy_exotic_delete(
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-proxy-object-internal-methods-and-internal-slots-ownpropertykeys
-#[inline]
+
 pub(crate) fn proxy_exotic_own_property_keys(
     obj: &JsObject,
     context: &mut Context,

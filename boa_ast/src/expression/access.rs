@@ -151,7 +151,6 @@ impl SimplePropertyAccess {
     }
 
     /// Creates a `PropertyAccess` AST Expression.
-    #[inline]
     pub fn new<F>(target: Expression, field: F) -> Self
     where
         F: Into<PropertyAccessField>,

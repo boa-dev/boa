@@ -25,7 +25,6 @@ pub(crate) struct FunctionCompiler {
 
 impl FunctionCompiler {
     /// Create a new `FunctionCompiler`.
-    #[inline]
     pub(crate) const fn new() -> Self {
         Self {
             name: Sym::EMPTY_STRING,
@@ -38,7 +37,6 @@ impl FunctionCompiler {
     }
 
     /// Set the name of the function.
-    #[inline]
     pub(crate) fn name<N>(mut self, name: N) -> Self
     where
         N: Into<Option<Sym>>,
@@ -51,34 +49,29 @@ impl FunctionCompiler {
     }
 
     /// Indicate if the function is an arrow function.
-    #[inline]
     pub(crate) const fn arrow(mut self, arrow: bool) -> Self {
         self.arrow = arrow;
         self
     }
     /// Indicate if the function is a generator function.
-    #[inline]
     pub(crate) const fn generator(mut self, generator: bool) -> Self {
         self.generator = generator;
         self
     }
 
     /// Indicate if the function is an async function.
-    #[inline]
     pub(crate) const fn r#async(mut self, r#async: bool) -> Self {
         self.r#async = r#async;
         self
     }
 
     /// Indicate if the function is in a strict context.
-    #[inline]
     pub(crate) const fn strict(mut self, strict: bool) -> Self {
         self.strict = strict;
         self
     }
 
     /// Indicate if the function has a binding identifier.
-    #[inline]
     pub(crate) const fn has_binding_identifier(mut self, has_binding_identifier: bool) -> Self {
         self.has_binding_identifier = has_binding_identifier;
         self

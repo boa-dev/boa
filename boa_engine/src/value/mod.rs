@@ -91,7 +91,7 @@ unsafe impl Trace for JsValue {
 
 impl JsValue {
     /// Create a new [`JsValue`].
-    #[inline]
+
     pub fn new<T>(value: T) -> Self
     where
         T: Into<Self>,
@@ -197,6 +197,7 @@ impl JsValue {
     }
 
     /// Returns the symbol if the value is a symbol, otherwise `None`.
+    #[inline]
     pub fn as_symbol(&self) -> Option<JsSymbol> {
         match self {
             Self::Symbol(symbol) => Some(symbol.clone()),
@@ -229,7 +230,7 @@ impl JsValue {
     }
 
     /// Returns true if the value is integer.
-    #[inline]
+
     #[allow(clippy::float_cmp)]
     pub fn is_integer(&self) -> bool {
         // If it can fit in a i32 and the truncated version is

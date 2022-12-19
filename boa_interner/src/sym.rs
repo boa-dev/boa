@@ -111,7 +111,7 @@ impl Sym {
     pub const NAME: Self = unsafe { Self::new_unchecked(30) };
 
     /// Creates a new [`Sym`] from the provided `value`, or returns `None` if `index` is zero.
-    #[inline]
+
     pub(super) fn new(value: usize) -> Option<Self> {
         NonZeroUsize::new(value).map(|value| Self { value })
     }
@@ -121,7 +121,7 @@ impl Sym {
     /// # Safety
     ///
     /// `value` must not be zero.
-    #[inline]
+
     pub(super) const unsafe fn new_unchecked(value: usize) -> Self {
         Self {
             value:

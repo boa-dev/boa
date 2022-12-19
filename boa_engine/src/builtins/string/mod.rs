@@ -40,7 +40,6 @@ pub(crate) enum Placement {
 }
 
 /// Helper function to check if a `char` is trimmable.
-#[inline]
 pub(crate) const fn is_trimmable_whitespace(c: char) -> bool {
     // The rust implementation of `trim` does not regard the same characters whitespace as ecma standard does
     //
@@ -383,7 +382,6 @@ impl String {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.tostring
     #[allow(clippy::wrong_self_convention)]
-    #[inline]
     pub(crate) fn to_string(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Return ? thisStringValue(this value).
         Ok(Self::this_string_value(this)?.into())
@@ -1050,7 +1048,7 @@ impl String {
             // d. If replacer is not undefined, then
             if let Some(replacer) = replacer {
                 // i. Return ? Call(replacer, searchValue, « O, replaceValue »).
-                return replacer.call(search_value, &[o.into(), replace_value.clone()], context);
+                return replacer.call(search_value, &[o.clone(), replace_value.clone()], context);
             }
         }
 

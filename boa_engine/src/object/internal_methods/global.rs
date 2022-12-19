@@ -36,7 +36,7 @@ pub(crate) static GLOBAL_INTERNAL_METHODS: InternalObjectMethods = InternalObjec
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-ordinarygetprototypeof
-#[inline]
+
 #[allow(clippy::unnecessary_wraps)]
 pub(crate) fn global_get_prototype_of(
     _: &JsObject,
@@ -52,7 +52,7 @@ pub(crate) fn global_get_prototype_of(
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-ordinarysetprototypeof
-#[inline]
+
 #[allow(clippy::unnecessary_wraps)]
 pub(crate) fn global_set_prototype_of(
     _: &JsObject,
@@ -112,7 +112,7 @@ pub(crate) fn global_set_prototype_of(
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-ordinarygetownproperty
-#[inline]
+
 #[allow(clippy::unnecessary_wraps)]
 pub(crate) fn global_get_own_property(
     _obj: &JsObject,
@@ -143,7 +143,7 @@ pub(crate) fn global_get_own_property(
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-ordinaryisextensible
-#[inline]
+
 #[allow(clippy::unnecessary_wraps)]
 pub(crate) fn global_is_extensible(_obj: &JsObject, context: &mut Context) -> JsResult<bool> {
     // 1. Return O.[[Extensible]].
@@ -156,7 +156,7 @@ pub(crate) fn global_is_extensible(_obj: &JsObject, context: &mut Context) -> Js
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-ordinarypreventextensions
-#[inline]
+
 #[allow(clippy::unnecessary_wraps)]
 pub(crate) fn global_prevent_extensions(_obj: &JsObject, context: &mut Context) -> JsResult<bool> {
     // 1. Set O.[[Extensible]] to false.
@@ -172,7 +172,7 @@ pub(crate) fn global_prevent_extensions(_obj: &JsObject, context: &mut Context) 
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-ordinarydefineownproperty
-#[inline]
+
 #[allow(clippy::needless_pass_by_value)]
 pub(crate) fn global_define_own_property(
     obj: &JsObject,
@@ -199,7 +199,7 @@ pub(crate) fn global_define_own_property(
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-ordinaryhasproperty
-#[inline]
+
 #[allow(clippy::unnecessary_wraps)]
 pub(crate) fn global_has_property(
     _obj: &JsObject,
@@ -229,7 +229,7 @@ pub(crate) fn global_has_property(
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-ordinaryget
-#[inline]
+
 #[allow(clippy::needless_pass_by_value)]
 pub(crate) fn global_get(
     obj: &JsObject,
@@ -276,7 +276,7 @@ pub(crate) fn global_get(
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-ordinaryset
-#[inline]
+
 #[allow(clippy::needless_pass_by_value)]
 pub(crate) fn global_set(
     _obj: &JsObject,
@@ -288,7 +288,6 @@ pub(crate) fn global_set(
     global_set_no_receiver(&key, value, context)
 }
 
-#[inline]
 pub(crate) fn global_set_no_receiver(
     key: &PropertyKey,
     value: JsValue,
@@ -386,7 +385,7 @@ pub(crate) fn global_set_no_receiver(
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-ordinarydelete
-#[inline]
+
 #[allow(clippy::unnecessary_wraps, clippy::needless_pass_by_value)]
 pub(crate) fn global_delete(
     _obj: &JsObject,
@@ -402,7 +401,7 @@ pub(crate) fn global_delete(
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-ordinarydelete
-#[inline]
+
 #[allow(clippy::unnecessary_wraps)]
 pub(crate) fn global_delete_no_receiver(
     key: &PropertyKey,
@@ -432,7 +431,7 @@ pub(crate) fn global_delete_no_receiver(
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-ordinaryownpropertykeys
-#[inline]
+
 #[allow(clippy::unnecessary_wraps)]
 pub(crate) fn global_own_property_keys(
     _: &JsObject,
@@ -487,7 +486,7 @@ pub(crate) fn global_own_property_keys(
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-validateandapplypropertydescriptor
-#[inline]
+
 pub(crate) fn validate_and_apply_property_descriptor(
     key: &PropertyKey,
     extensible: bool,

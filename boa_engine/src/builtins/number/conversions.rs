@@ -1,7 +1,6 @@
 /// Converts a 64-bit floating point number to an `i32` according to the [`ToInt32`][ToInt32] algorithm.
 ///
 /// [ToInt32]: https://tc39.es/ecma262/#sec-toint32
-#[inline]
 #[allow(clippy::float_cmp)]
 pub(crate) fn f64_to_int32(number: f64) -> i32 {
     const SIGN_MASK: u64 = 0x8000_0000_0000_0000;
@@ -14,12 +13,10 @@ pub(crate) fn f64_to_int32(number: f64) -> i32 {
     const EXPONENT_BIAS: i32 = 0x3FF + PHYSICAL_SIGNIFICAND_SIZE;
     const DENORMAL_EXPONENT: i32 = -EXPONENT_BIAS + 1;
 
-    #[inline]
     fn is_denormal(number: f64) -> bool {
         (number.to_bits() & EXPONENT_MASK) == 0
     }
 
-    #[inline]
     fn exponent(number: f64) -> i32 {
         if is_denormal(number) {
             return DENORMAL_EXPONENT;
@@ -31,7 +28,6 @@ pub(crate) fn f64_to_int32(number: f64) -> i32 {
         biased_e - EXPONENT_BIAS
     }
 
-    #[inline]
     fn significand(number: f64) -> u64 {
         let d64 = number.to_bits();
         let significand = d64 & SIGNIFICAND_MASK;
@@ -43,7 +39,6 @@ pub(crate) fn f64_to_int32(number: f64) -> i32 {
         }
     }
 
-    #[inline]
     fn sign(number: f64) -> i64 {
         if (number.to_bits() & SIGN_MASK) == 0 {
             1
@@ -80,7 +75,6 @@ pub(crate) fn f64_to_int32(number: f64) -> i32 {
 /// Converts a 64-bit floating point number to an `u32` according to the [`ToUint32`][ToUint32] algorithm.
 ///
 /// [ToUint32]: https://tc39.es/ecma262/#sec-touint32
-#[inline]
 pub(crate) fn f64_to_uint32(number: f64) -> u32 {
     f64_to_int32(number) as u32
 }
