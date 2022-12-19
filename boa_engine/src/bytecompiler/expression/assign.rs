@@ -6,23 +6,27 @@ use crate::{
     JsResult,
 };
 
+
+impl ByteCompiler<'_> {
+
+
 pub(crate) fn compile_assign(
-    byte_compiler: &mut ByteCompiler<'_>,
+    &mut self,
     assign: &Assign,
     use_expr: bool,
 ) -> JsResult<()> {
     if assign.op() == AssignOp::Assign {
         match Access::from_assign_target(assign.lhs()) {
-            Ok(access) => byte_compiler.access_set(access, use_expr, |compiler, _| {
+            Ok(access) => self.access_set(access, use_expr, |compiler, _| {
                 compiler.compile_expr(assign.rhs(), true)?;
                 Ok(())
             })?,
             Err(pattern) => {
-                byte_compiler.compile_expr(assign.rhs(), true)?;
+                self.compile_expr(assign.rhs(), true)?;
                 if use_expr {
-                    byte_compiler.emit_opcode(Opcode::Dup);
+                    self.emit_opcode(Opcode::Dup);
                 }
-                byte_compiler.compile_declaration_pattern(pattern, BindingOpcode::SetName)?;
+                self.compile_declaration_pattern(pattern, BindingOpcode::SetName)?;
             }
         }
     } else {
@@ -67,20 +71,20 @@ pub(crate) fn compile_assign(
             AssignOp::Shr => Opcode::ShiftRight,
             AssignOp::Ushr => Opcode::UnsignedShiftRight,
             AssignOp::BoolAnd => {
-                shortcircuit_operator_compilation(byte_compiler, Opcode::LogicalAnd)?;
+                shortcircuit_operator_compilation(self, Opcode::LogicalAnd)?;
                 return Ok(());
             }
             AssignOp::BoolOr => {
-                shortcircuit_operator_compilation(byte_compiler, Opcode::LogicalOr)?;
+                shortcircuit_operator_compilation(self, Opcode::LogicalOr)?;
                 return Ok(());
             }
             AssignOp::Coalesce => {
-                shortcircuit_operator_compilation(byte_compiler, Opcode::Coalesce)?;
+                shortcircuit_operator_compilation(self, Opcode::Coalesce)?;
                 return Ok(());
             }
         };
 
-        byte_compiler.access_set(access, use_expr, |compiler, _| {
+        self.access_set(access, use_expr, |compiler, _| {
             compiler.access_get(access, true)?;
             compiler.compile_expr(assign.rhs(), true)?;
             compiler.emit(opcode, &[]);
@@ -89,4 +93,6 @@ pub(crate) fn compile_assign(
     }
 
     Ok(())
+}
+
 }

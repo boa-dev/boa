@@ -913,7 +913,7 @@ impl<'b> ByteCompiler<'b> {
     /// Compile an [`Expression`].
     #[inline]
     pub fn compile_expr(&mut self, expr: &Expression, use_expr: bool) -> JsResult<()> {
-        expression::compile_expr_impl(self, expr, use_expr)
+        self.compile_expr_impl(expr, use_expr)
     }
 
     /// Compile a property access expression, prepending `this` to the property value in the stack.
@@ -1220,36 +1220,36 @@ impl<'b> ByteCompiler<'b> {
     ) -> JsResult<()> {
         match node {
             Statement::Var(var) => self.compile_var_decl(var)?,
-            Statement::If(node) => statement::compile_if(self, node, configurable_globals)?,
+            Statement::If(node) => self.compile_if(node, configurable_globals)?,
             Statement::ForLoop(for_loop) => {
-                statement::compile_for_loop(self, for_loop, None, configurable_globals)?;
+                self.compile_for_loop(for_loop, None, configurable_globals)?;
             }
             Statement::ForInLoop(for_in_loop) => {
-                statement::compile_for_in_loop(self, for_in_loop, None, configurable_globals)?;
+                self.compile_for_in_loop(for_in_loop, None, configurable_globals)?;
             }
             Statement::ForOfLoop(for_of_loop) => {
-                statement::compile_for_of_loop(self, for_of_loop, None, configurable_globals)?;
+                self.compile_for_of_loop(for_of_loop, None, configurable_globals)?;
             }
             Statement::WhileLoop(while_loop) => {
-                statement::compile_while_loop(self, while_loop, None, configurable_globals)?;
+                self.compile_while_loop(while_loop, None, configurable_globals)?;
             }
             Statement::DoWhileLoop(do_while_loop) => {
-                statement::compile_do_while_loop(self, do_while_loop, None, configurable_globals)?;
+                self.compile_do_while_loop(do_while_loop, None, configurable_globals)?;
             }
             Statement::Block(block) => {
-                statement::compile_block(self, block, None, use_expr, configurable_globals)?;
+                self.compile_block(block, None, use_expr, configurable_globals)?;
             }
             Statement::Labelled(labelled) => {
-                statement::compile_labeled(self, labelled, use_expr, configurable_globals)?;
+                self.compile_labelled(labelled, use_expr, configurable_globals)?;
             }
-            Statement::Continue(node) => statement::compile_continue(self, *node)?,
-            Statement::Break(node) => statement::compile_break(self, *node)?,
+            Statement::Continue(node) => self.compile_continue(*node)?,
+            Statement::Break(node) => self.compile_break(*node)?,
             Statement::Throw(throw) => {
                 self.compile_expr(throw.target(), true)?;
                 self.emit(Opcode::Throw, &[]);
             }
             Statement::Switch(switch) => {
-                statement::compile_switch(self, switch, configurable_globals)?;
+                self.compile_switch(switch, configurable_globals)?;
             }
             Statement::Return(ret) => {
                 if let Some(expr) = ret.target() {
@@ -1259,7 +1259,7 @@ impl<'b> ByteCompiler<'b> {
                 }
                 self.emit(Opcode::Return, &[]);
             }
-            Statement::Try(t) => statement::compile_try(self, t, use_expr, configurable_globals)?,
+            Statement::Try(t) => self.compile_try(t, use_expr, configurable_globals)?,
             Statement::Empty => {}
             Statement::Expression(expr) => self.compile_expr(expr, use_expr)?,
         }
@@ -1413,7 +1413,7 @@ impl<'b> ByteCompiler<'b> {
         pattern: &Pattern,
         def: BindingOpcode,
     ) -> JsResult<()> {
-        declaration::compile_declaration_pattern_impl(self, pattern, def)
+        self.compile_declaration_pattern_impl(pattern, def)
     }
 
     pub(crate) fn create_decls(&mut self, stmt_list: &StatementList, configurable_globals: bool) {
@@ -1594,6 +1594,6 @@ impl<'b> ByteCompiler<'b> {
     }
 
     fn class(&mut self, class: &Class, expression: bool) -> JsResult<()> {
-        class::compile_class(self, class, expression)
+        self.compile_class(class, expression)
     }
 }

@@ -18,323 +18,300 @@ mod binary;
 mod object_literal;
 mod unary;
 
-use assign::compile_assign;
-use binary::compile_binary;
 use boa_interner::Sym;
-use object_literal::compile_object_literal;
-use unary::compile_unary;
 
 use super::{Access, Callable, NodeKind};
-
-fn compile_literal(byte_compiler: &mut ByteCompiler<'_>, lit: &AstLiteral, use_expr: bool) {
-    match lit {
-        AstLiteral::String(v) => byte_compiler.emit_push_literal(Literal::String(
-            byte_compiler
-                .interner()
-                .resolve_expect(*v)
-                .into_common(false),
-        )),
-        AstLiteral::Int(v) => byte_compiler.emit_push_integer(*v),
-        AstLiteral::Num(v) => byte_compiler.emit_push_rational(*v),
-        AstLiteral::BigInt(v) => {
-            byte_compiler.emit_push_literal(Literal::BigInt(v.clone().into()));
-        }
-        AstLiteral::Bool(true) => byte_compiler.emit(Opcode::PushTrue, &[]),
-        AstLiteral::Bool(false) => byte_compiler.emit(Opcode::PushFalse, &[]),
-        AstLiteral::Null => byte_compiler.emit(Opcode::PushNull, &[]),
-        AstLiteral::Undefined => byte_compiler.emit(Opcode::PushUndefined, &[]),
-    }
-
-    if !use_expr {
-        byte_compiler.emit(Opcode::Pop, &[]);
-    }
-}
-
-fn compile_conditional(
-    byte_compiler: &mut ByteCompiler<'_>,
-    op: &Conditional,
-    use_expr: bool,
-) -> JsResult<()> {
-    byte_compiler.compile_expr(op.condition(), true)?;
-    let jelse = byte_compiler.jump_if_false();
-    byte_compiler.compile_expr(op.if_true(), true)?;
-    let exit = byte_compiler.jump();
-    byte_compiler.patch_jump(jelse);
-    byte_compiler.compile_expr(op.if_false(), true)?;
-    byte_compiler.patch_jump(exit);
-
-    if !use_expr {
-        byte_compiler.emit(Opcode::Pop, &[]);
-    };
-
-    Ok(())
-}
-
-fn compile_template_literal(
-    byte_compiler: &mut ByteCompiler<'_>,
-    template_literal: &TemplateLiteral,
-    use_expr: bool,
-) -> JsResult<()> {
-    for element in template_literal.elements() {
-        match element {
-            TemplateElement::String(s) => byte_compiler.emit_push_literal(Literal::String(
-                byte_compiler
-                    .interner()
-                    .resolve_expect(*s)
-                    .into_common(false),
+impl ByteCompiler<'_> {
+    fn compile_literal(&mut self, lit: &AstLiteral, use_expr: bool) {
+        match lit {
+            AstLiteral::String(v) => self.emit_push_literal(Literal::String(
+                self.interner().resolve_expect(*v).into_common(false),
             )),
-            TemplateElement::Expr(expr) => {
-                byte_compiler.compile_expr(expr, true)?;
+            AstLiteral::Int(v) => self.emit_push_integer(*v),
+            AstLiteral::Num(v) => self.emit_push_rational(*v),
+            AstLiteral::BigInt(v) => {
+                self.emit_push_literal(Literal::BigInt(v.clone().into()));
+            }
+            AstLiteral::Bool(true) => self.emit(Opcode::PushTrue, &[]),
+            AstLiteral::Bool(false) => self.emit(Opcode::PushFalse, &[]),
+            AstLiteral::Null => self.emit(Opcode::PushNull, &[]),
+            AstLiteral::Undefined => self.emit(Opcode::PushUndefined, &[]),
+        }
+
+        if !use_expr {
+            self.emit(Opcode::Pop, &[]);
+        }
+    }
+
+    fn compile_conditional(&mut self, op: &Conditional, use_expr: bool) -> JsResult<()> {
+        self.compile_expr(op.condition(), true)?;
+        let jelse = self.jump_if_false();
+        self.compile_expr(op.if_true(), true)?;
+        let exit = self.jump();
+        self.patch_jump(jelse);
+        self.compile_expr(op.if_false(), true)?;
+        self.patch_jump(exit);
+
+        if !use_expr {
+            self.emit(Opcode::Pop, &[]);
+        };
+
+        Ok(())
+    }
+
+    fn compile_template_literal(
+        &mut self,
+        template_literal: &TemplateLiteral,
+        use_expr: bool,
+    ) -> JsResult<()> {
+        for element in template_literal.elements() {
+            match element {
+                TemplateElement::String(s) => self.emit_push_literal(Literal::String(
+                    self.interner().resolve_expect(*s).into_common(false),
+                )),
+                TemplateElement::Expr(expr) => {
+                    self.compile_expr(expr, true)?;
+                }
             }
         }
+
+        self.emit(
+            Opcode::ConcatToString,
+            &[template_literal.elements().len() as u32],
+        );
+
+        if !use_expr {
+            self.emit(Opcode::Pop, &[]);
+        }
+
+        Ok(())
     }
 
-    byte_compiler.emit(
-        Opcode::ConcatToString,
-        &[template_literal.elements().len() as u32],
-    );
+    pub(crate) fn compile_expr_impl(&mut self, expr: &Expression, use_expr: bool) -> JsResult<()> {
+        match expr {
+            Expression::Literal(lit) => self.compile_literal(lit, use_expr),
+            Expression::Unary(unary) => self.compile_unary(unary, use_expr)?,
+            Expression::Binary(binary) => self.compile_binary(binary, use_expr)?,
+            Expression::Assign(assign) => self.compile_assign(assign, use_expr)?,
+            Expression::ObjectLiteral(object) => {
+                self.compile_object_literal(object, use_expr)?;
+            }
+            Expression::Identifier(name) => {
+                self.access_get(Access::Variable { name: *name }, use_expr)?;
+            }
+            Expression::PropertyAccess(access) => {
+                self.access_get(Access::Property { access }, use_expr)?;
+            }
+            Expression::Conditional(op) => self.compile_conditional(op, use_expr)?,
+            Expression::ArrayLiteral(array) => {
+                self.emit_opcode(Opcode::PushNewArray);
+                self.emit_opcode(Opcode::PopOnReturnAdd);
 
-    if !use_expr {
-        byte_compiler.emit(Opcode::Pop, &[]);
-    }
-
-    Ok(())
-}
-
-pub(crate) fn compile_expr_impl(
-    byte_compiler: &mut ByteCompiler<'_>,
-    expr: &Expression,
-    use_expr: bool,
-) -> JsResult<()> {
-    match expr {
-        Expression::Literal(lit) => compile_literal(byte_compiler, lit, use_expr),
-        Expression::Unary(unary) => compile_unary(byte_compiler, unary, use_expr)?,
-        Expression::Binary(binary) => compile_binary(byte_compiler, binary, use_expr)?,
-        Expression::Assign(assign) => compile_assign(byte_compiler, assign, use_expr)?,
-        Expression::ObjectLiteral(object) => {
-            compile_object_literal(byte_compiler, object, use_expr)?;
-        }
-        Expression::Identifier(name) => {
-            byte_compiler.access_get(Access::Variable { name: *name }, use_expr)?;
-        }
-        Expression::PropertyAccess(access) => {
-            byte_compiler.access_get(Access::Property { access }, use_expr)?;
-        }
-        Expression::Conditional(op) => compile_conditional(byte_compiler, op, use_expr)?,
-        Expression::ArrayLiteral(array) => {
-            byte_compiler.emit_opcode(Opcode::PushNewArray);
-            byte_compiler.emit_opcode(Opcode::PopOnReturnAdd);
-
-            for element in array.as_ref() {
-                if let Some(element) = element {
-                    byte_compiler.compile_expr(element, true)?;
-                    if let Expression::Spread(_) = element {
-                        byte_compiler.emit_opcode(Opcode::InitIterator);
-                        byte_compiler.emit_opcode(Opcode::PushIteratorToArray);
+                for element in array.as_ref() {
+                    if let Some(element) = element {
+                        self.compile_expr(element, true)?;
+                        if let Expression::Spread(_) = element {
+                            self.emit_opcode(Opcode::InitIterator);
+                            self.emit_opcode(Opcode::PushIteratorToArray);
+                        } else {
+                            self.emit_opcode(Opcode::PushValueToArray);
+                        }
                     } else {
-                        byte_compiler.emit_opcode(Opcode::PushValueToArray);
-                    }
-                } else {
-                    byte_compiler.emit_opcode(Opcode::PushElisionToArray);
-                }
-            }
-
-            byte_compiler.emit_opcode(Opcode::PopOnReturnSub);
-            if !use_expr {
-                byte_compiler.emit(Opcode::Pop, &[]);
-            }
-        }
-        Expression::This => {
-            byte_compiler.access_get(Access::This, use_expr)?;
-        }
-        Expression::Spread(spread) => byte_compiler.compile_expr(spread.target(), true)?,
-        Expression::Function(function) => {
-            byte_compiler.function(function.into(), NodeKind::Expression, use_expr)?;
-        }
-        Expression::ArrowFunction(function) => {
-            byte_compiler.function(function.into(), NodeKind::Expression, use_expr)?;
-        }
-        Expression::AsyncArrowFunction(function) => {
-            byte_compiler.function(function.into(), NodeKind::Expression, use_expr)?;
-        }
-        Expression::Generator(function) => {
-            byte_compiler.function(function.into(), NodeKind::Expression, use_expr)?;
-        }
-        Expression::AsyncFunction(function) => {
-            byte_compiler.function(function.into(), NodeKind::Expression, use_expr)?;
-        }
-        Expression::AsyncGenerator(function) => {
-            byte_compiler.function(function.into(), NodeKind::Expression, use_expr)?;
-        }
-        Expression::Call(call) => byte_compiler.call(Callable::Call(call), use_expr)?,
-        Expression::New(new) => byte_compiler.call(Callable::New(new), use_expr)?,
-        Expression::TemplateLiteral(template_literal) => {
-            compile_template_literal(byte_compiler, template_literal, use_expr)?;
-        }
-        Expression::Await(expr) => {
-            byte_compiler.compile_expr(expr.target(), true)?;
-            byte_compiler.emit_opcode(Opcode::Await);
-            byte_compiler.emit_opcode(Opcode::GeneratorNext);
-            if !use_expr {
-                byte_compiler.emit_opcode(Opcode::Pop);
-            }
-        }
-        Expression::Yield(r#yield) => {
-            if let Some(expr) = r#yield.target() {
-                byte_compiler.compile_expr(expr, true)?;
-            } else {
-                byte_compiler.emit_opcode(Opcode::PushUndefined);
-            }
-
-            if r#yield.delegate() {
-                if byte_compiler.in_async_generator {
-                    byte_compiler.emit_opcode(Opcode::InitIteratorAsync);
-                } else {
-                    byte_compiler.emit_opcode(Opcode::InitIterator);
-                }
-                byte_compiler.emit_opcode(Opcode::PushUndefined);
-                let start_address = byte_compiler.next_opcode_location();
-                let start = byte_compiler.emit_opcode_with_operand(Opcode::GeneratorNextDelegate);
-                byte_compiler.emit(Opcode::Jump, &[start_address]);
-                byte_compiler.patch_jump(start);
-            } else if byte_compiler.in_async_generator {
-                byte_compiler.emit_opcode(Opcode::Await);
-                byte_compiler.emit_opcode(Opcode::AsyncGeneratorNext);
-                let jump_return = byte_compiler.emit_opcode_with_operand(Opcode::JumpIfFalse);
-                let jump = byte_compiler.emit_opcode_with_operand(Opcode::JumpIfFalse);
-                byte_compiler.emit_opcode(Opcode::Yield);
-                byte_compiler.emit_opcode(Opcode::GeneratorNext);
-                byte_compiler.patch_jump(jump);
-                byte_compiler.emit_opcode(Opcode::Await);
-                byte_compiler.emit_opcode(Opcode::GeneratorNext);
-                byte_compiler.patch_jump(jump_return);
-            } else {
-                byte_compiler.emit_opcode(Opcode::Yield);
-                byte_compiler.emit_opcode(Opcode::GeneratorNext);
-            }
-
-            if !use_expr {
-                byte_compiler.emit_opcode(Opcode::Pop);
-            }
-        }
-        Expression::TaggedTemplate(template) => {
-            match template.tag() {
-                Expression::PropertyAccess(PropertyAccess::Simple(access)) => {
-                    byte_compiler.compile_expr(access.target(), true)?;
-                    byte_compiler.emit(Opcode::Dup, &[]);
-                    match access.field() {
-                        PropertyAccessField::Const(field) => {
-                            let index = byte_compiler.get_or_insert_name((*field).into());
-                            byte_compiler.emit(Opcode::GetPropertyByName, &[index]);
-                        }
-                        PropertyAccessField::Expr(field) => {
-                            byte_compiler.compile_expr(field, true)?;
-                            byte_compiler.emit(Opcode::GetPropertyByValue, &[]);
-                        }
+                        self.emit_opcode(Opcode::PushElisionToArray);
                     }
                 }
-                Expression::PropertyAccess(PropertyAccess::Private(access)) => {
-                    byte_compiler.compile_expr(access.target(), true)?;
-                    byte_compiler.emit(Opcode::Dup, &[]);
-                    let index = byte_compiler.get_or_insert_name(access.field().into());
-                    byte_compiler.emit(Opcode::GetPrivateField, &[index]);
-                }
-                expr => {
-                    byte_compiler.compile_expr(expr, true)?;
-                    byte_compiler.emit_opcode(Opcode::This);
-                    byte_compiler.emit_opcode(Opcode::Swap);
+
+                self.emit_opcode(Opcode::PopOnReturnSub);
+                if !use_expr {
+                    self.emit(Opcode::Pop, &[]);
                 }
             }
+            Expression::This => {
+                self.access_get(Access::This, use_expr)?;
+            }
+            Expression::Spread(spread) => self.compile_expr(spread.target(), true)?,
+            Expression::Function(function) => {
+                self.function(function.into(), NodeKind::Expression, use_expr)?;
+            }
+            Expression::ArrowFunction(function) => {
+                self.function(function.into(), NodeKind::Expression, use_expr)?;
+            }
+            Expression::AsyncArrowFunction(function) => {
+                self.function(function.into(), NodeKind::Expression, use_expr)?;
+            }
+            Expression::Generator(function) => {
+                self.function(function.into(), NodeKind::Expression, use_expr)?;
+            }
+            Expression::AsyncFunction(function) => {
+                self.function(function.into(), NodeKind::Expression, use_expr)?;
+            }
+            Expression::AsyncGenerator(function) => {
+                self.function(function.into(), NodeKind::Expression, use_expr)?;
+            }
+            Expression::Call(call) => self.call(Callable::Call(call), use_expr)?,
+            Expression::New(new) => self.call(Callable::New(new), use_expr)?,
+            Expression::TemplateLiteral(template_literal) => {
+                self.compile_template_literal(template_literal, use_expr)?;
+            }
+            Expression::Await(expr) => {
+                self.compile_expr(expr.target(), true)?;
+                self.emit_opcode(Opcode::Await);
+                self.emit_opcode(Opcode::GeneratorNext);
+                if !use_expr {
+                    self.emit_opcode(Opcode::Pop);
+                }
+            }
+            Expression::Yield(r#yield) => {
+                if let Some(expr) = r#yield.target() {
+                    self.compile_expr(expr, true)?;
+                } else {
+                    self.emit_opcode(Opcode::PushUndefined);
+                }
 
-            byte_compiler.emit_opcode(Opcode::PushNewArray);
-            for cooked in template.cookeds() {
-                if let Some(cooked) = cooked {
-                    byte_compiler.emit_push_literal(Literal::String(
-                        byte_compiler
-                            .interner()
-                            .resolve_expect(*cooked)
-                            .into_common(false),
+                if r#yield.delegate() {
+                    if self.in_async_generator {
+                        self.emit_opcode(Opcode::InitIteratorAsync);
+                    } else {
+                        self.emit_opcode(Opcode::InitIterator);
+                    }
+                    self.emit_opcode(Opcode::PushUndefined);
+                    let start_address = self.next_opcode_location();
+                    let start = self.emit_opcode_with_operand(Opcode::GeneratorNextDelegate);
+                    self.emit(Opcode::Jump, &[start_address]);
+                    self.patch_jump(start);
+                } else if self.in_async_generator {
+                    self.emit_opcode(Opcode::Await);
+                    self.emit_opcode(Opcode::AsyncGeneratorNext);
+                    let jump_return = self.emit_opcode_with_operand(Opcode::JumpIfFalse);
+                    let jump = self.emit_opcode_with_operand(Opcode::JumpIfFalse);
+                    self.emit_opcode(Opcode::Yield);
+                    self.emit_opcode(Opcode::GeneratorNext);
+                    self.patch_jump(jump);
+                    self.emit_opcode(Opcode::Await);
+                    self.emit_opcode(Opcode::GeneratorNext);
+                    self.patch_jump(jump_return);
+                } else {
+                    self.emit_opcode(Opcode::Yield);
+                    self.emit_opcode(Opcode::GeneratorNext);
+                }
+
+                if !use_expr {
+                    self.emit_opcode(Opcode::Pop);
+                }
+            }
+            Expression::TaggedTemplate(template) => {
+                match template.tag() {
+                    Expression::PropertyAccess(PropertyAccess::Simple(access)) => {
+                        self.compile_expr(access.target(), true)?;
+                        self.emit(Opcode::Dup, &[]);
+                        match access.field() {
+                            PropertyAccessField::Const(field) => {
+                                let index = self.get_or_insert_name((*field).into());
+                                self.emit(Opcode::GetPropertyByName, &[index]);
+                            }
+                            PropertyAccessField::Expr(field) => {
+                                self.compile_expr(field, true)?;
+                                self.emit(Opcode::GetPropertyByValue, &[]);
+                            }
+                        }
+                    }
+                    Expression::PropertyAccess(PropertyAccess::Private(access)) => {
+                        self.compile_expr(access.target(), true)?;
+                        self.emit(Opcode::Dup, &[]);
+                        let index = self.get_or_insert_name(access.field().into());
+                        self.emit(Opcode::GetPrivateField, &[index]);
+                    }
+                    expr => {
+                        self.compile_expr(expr, true)?;
+                        self.emit_opcode(Opcode::This);
+                        self.emit_opcode(Opcode::Swap);
+                    }
+                }
+
+                self.emit_opcode(Opcode::PushNewArray);
+                for cooked in template.cookeds() {
+                    if let Some(cooked) = cooked {
+                        self.emit_push_literal(Literal::String(
+                            self.interner().resolve_expect(*cooked).into_common(false),
+                        ));
+                    } else {
+                        self.emit_opcode(Opcode::PushUndefined);
+                    }
+                    self.emit_opcode(Opcode::PushValueToArray);
+                }
+                self.emit_opcode(Opcode::Dup);
+
+                self.emit_opcode(Opcode::PushNewArray);
+                for raw in template.raws() {
+                    self.emit_push_literal(Literal::String(
+                        self.interner().resolve_expect(*raw).into_common(false),
                     ));
-                } else {
-                    byte_compiler.emit_opcode(Opcode::PushUndefined);
+                    self.emit_opcode(Opcode::PushValueToArray);
                 }
-                byte_compiler.emit_opcode(Opcode::PushValueToArray);
+
+                let index = self.get_or_insert_name(Sym::RAW.into());
+                self.emit(Opcode::SetPropertyByName, &[index]);
+                self.emit(Opcode::Pop, &[]);
+
+                for expr in template.exprs() {
+                    self.compile_expr(expr, true)?;
+                }
+
+                self.emit(Opcode::Call, &[(template.exprs().len() + 1) as u32]);
             }
-            byte_compiler.emit_opcode(Opcode::Dup);
+            Expression::Class(class) => self.class(class, true)?,
+            Expression::SuperCall(super_call) => {
+                let contains_spread = super_call
+                    .arguments()
+                    .iter()
+                    .any(|arg| matches!(arg, Expression::Spread(_)));
 
-            byte_compiler.emit_opcode(Opcode::PushNewArray);
-            for raw in template.raws() {
-                byte_compiler.emit_push_literal(Literal::String(
-                    byte_compiler
-                        .interner()
-                        .resolve_expect(*raw)
-                        .into_common(false),
-                ));
-                byte_compiler.emit_opcode(Opcode::PushValueToArray);
-            }
-
-            let index = byte_compiler.get_or_insert_name(Sym::RAW.into());
-            byte_compiler.emit(Opcode::SetPropertyByName, &[index]);
-            byte_compiler.emit(Opcode::Pop, &[]);
-
-            for expr in template.exprs() {
-                byte_compiler.compile_expr(expr, true)?;
-            }
-
-            byte_compiler.emit(Opcode::Call, &[(template.exprs().len() + 1) as u32]);
-        }
-        Expression::Class(class) => byte_compiler.class(class, true)?,
-        Expression::SuperCall(super_call) => {
-            let contains_spread = super_call
-                .arguments()
-                .iter()
-                .any(|arg| matches!(arg, Expression::Spread(_)));
-
-            if contains_spread {
-                byte_compiler.emit_opcode(Opcode::PushNewArray);
-                for arg in super_call.arguments() {
-                    byte_compiler.compile_expr(arg, true)?;
-                    if let Expression::Spread(_) = arg {
-                        byte_compiler.emit_opcode(Opcode::InitIterator);
-                        byte_compiler.emit_opcode(Opcode::PushIteratorToArray);
-                    } else {
-                        byte_compiler.emit_opcode(Opcode::PushValueToArray);
+                if contains_spread {
+                    self.emit_opcode(Opcode::PushNewArray);
+                    for arg in super_call.arguments() {
+                        self.compile_expr(arg, true)?;
+                        if let Expression::Spread(_) = arg {
+                            self.emit_opcode(Opcode::InitIterator);
+                            self.emit_opcode(Opcode::PushIteratorToArray);
+                        } else {
+                            self.emit_opcode(Opcode::PushValueToArray);
+                        }
+                    }
+                } else {
+                    for arg in super_call.arguments() {
+                        self.compile_expr(arg, true)?;
                     }
                 }
-            } else {
-                for arg in super_call.arguments() {
-                    byte_compiler.compile_expr(arg, true)?;
+
+                if contains_spread {
+                    self.emit_opcode(Opcode::SuperCallSpread);
+                } else {
+                    self.emit(Opcode::SuperCall, &[super_call.arguments().len() as u32]);
+                }
+
+                if !use_expr {
+                    self.emit_opcode(Opcode::Pop);
                 }
             }
-
-            if contains_spread {
-                byte_compiler.emit_opcode(Opcode::SuperCallSpread);
-            } else {
-                byte_compiler.emit(Opcode::SuperCall, &[super_call.arguments().len() as u32]);
+            Expression::NewTarget => {
+                if use_expr {
+                    self.emit_opcode(Opcode::PushNewTarget);
+                }
             }
+            Expression::Optional(opt) => {
+                self.compile_optional_preserve_this(opt)?;
 
-            if !use_expr {
-                byte_compiler.emit_opcode(Opcode::Pop);
+                self.emit_opcode(Opcode::Swap);
+                self.emit_opcode(Opcode::Pop);
+
+                if !use_expr {
+                    self.emit_opcode(Opcode::Pop);
+                }
             }
+            // TODO: try to remove this variant somehow
+            Expression::FormalParameterList(_) => unreachable!(),
         }
-        Expression::NewTarget => {
-            if use_expr {
-                byte_compiler.emit_opcode(Opcode::PushNewTarget);
-            }
-        }
-        Expression::Optional(opt) => {
-            byte_compiler.compile_optional_preserve_this(opt)?;
 
-            byte_compiler.emit_opcode(Opcode::Swap);
-            byte_compiler.emit_opcode(Opcode::Pop);
-
-            if !use_expr {
-                byte_compiler.emit_opcode(Opcode::Pop);
-            }
-        }
-        // TODO: try to remove this variant somehow
-        Expression::FormalParameterList(_) => unreachable!(),
+        Ok(())
     }
-
-    Ok(())
 }
