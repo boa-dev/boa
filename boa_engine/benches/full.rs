@@ -1,7 +1,8 @@
 //! Benchmarks of the whole execution engine in Boa.
 
 use boa_engine::{realm::Realm, Context};
-use criterion::{black_box, criterion_group, criterion_main, Criterion};
+use criterion::{criterion_group, criterion_main, Criterion};
+use std::hint::black_box;
 
 #[cfg(all(target_arch = "x86_64", target_os = "linux", target_env = "gnu"))]
 #[cfg_attr(
