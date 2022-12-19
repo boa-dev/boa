@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"mod":[["assign",""],["binary",""],["object_literal",""],["unary",""]]};
