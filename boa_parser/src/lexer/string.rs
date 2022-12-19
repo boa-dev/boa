@@ -105,7 +105,6 @@ impl StringLiteral {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#prod-LineTerminator
-
     pub(super) const fn is_line_terminator(ch: u32) -> bool {
         matches!(
             ch,

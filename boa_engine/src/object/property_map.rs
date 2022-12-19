@@ -63,7 +63,6 @@ impl Default for IndexedProperties {
 
 impl IndexedProperties {
     /// Get a property descriptor if it exists.
-
     fn get(&self, key: u32) -> Option<PropertyDescriptor> {
         match self {
             Self::Sparse(ref map) => map.get(&key).cloned(),
@@ -79,7 +78,6 @@ impl IndexedProperties {
     }
 
     /// Helper function for converting from a dense storage type to sparse storage type.
-
     fn convert_dense_to_sparse(vec: &mut Vec<JsValue>) -> FxHashMap<u32, PropertyDescriptor> {
         let data = std::mem::take(vec);
 
@@ -100,7 +98,6 @@ impl IndexedProperties {
     }
 
     /// Inserts a property descriptor with the specified key.
-
     fn insert(&mut self, key: u32, property: PropertyDescriptor) -> Option<PropertyDescriptor> {
         let vec = match self {
             Self::Sparse(map) => return map.insert(key, property),
@@ -152,7 +149,6 @@ impl IndexedProperties {
     }
 
     /// Inserts a property descriptor with the specified key.
-
     fn remove(&mut self, key: u32) -> Option<PropertyDescriptor> {
         let vec = match self {
             Self::Sparse(map) => return map.remove(&key),

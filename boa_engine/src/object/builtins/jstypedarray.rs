@@ -50,7 +50,6 @@ impl JsTypedArray {
     }
 
     /// Calls `TypedArray.prototype.at()`.
-
     pub fn at<T>(&self, index: T, context: &mut Context) -> JsResult<JsValue>
     where
         T: Into<i64>,
@@ -77,7 +76,6 @@ impl JsTypedArray {
     }
 
     /// Calls `TypedArray.prototype.fill()`.
-
     pub fn fill<T>(
         &self,
         value: T,
@@ -249,7 +247,6 @@ impl JsTypedArray {
     }
 
     /// Calls `TypedArray.prototype.indexOf()`.
-
     pub fn index_of<T>(
         &self,
         search_element: T,
@@ -276,7 +273,6 @@ impl JsTypedArray {
     }
 
     /// Calls `TypedArray.prototype.lastIndexOf()`.
-
     pub fn last_index_of<T>(
         &self,
         search_element: T,
@@ -351,7 +347,6 @@ macro_rules! JsTypedArrayType {
 
         impl $name {
             /// Create the typed array from a [`JsArrayBuffer`].
-
             pub fn from_array_buffer(
                 array_buffer: JsArrayBuffer,
                 context: &mut Context,
@@ -379,7 +374,6 @@ macro_rules! JsTypedArrayType {
             }
 
             /// Create the typed array from an iterator.
-
             pub fn from_iter<I>(elements: I, context: &mut Context) -> JsResult<Self>
             where
                 I: IntoIterator<Item = $element>,

@@ -114,7 +114,6 @@ pub struct Parser<R> {
 
 impl<R> Parser<R> {
     /// Create a new `Parser` with a reader as the input to parse.
-
     pub fn new(reader: R) -> Self
     where
         R: Read,
@@ -125,7 +124,6 @@ impl<R> Parser<R> {
     }
 
     /// Set the parser strict mode to true.
-
     pub fn set_strict(&mut self)
     where
         R: Read,
@@ -150,7 +148,6 @@ impl<R> Parser<R> {
     /// Will return `Err` on any parsing error, including invalid reads of the bytes being parsed.
     ///
     /// [spec]: https://tc39.es/ecma262/#prod-Script
-
     pub fn parse_all(&mut self, interner: &mut Interner) -> ParseResult<StatementList>
     where
         R: Read,
@@ -167,7 +164,6 @@ impl<R> Parser<R> {
     /// Will return `Err` on any parsing error, including invalid reads of the bytes being parsed.
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-performeval
-
     pub fn parse_eval(
         &mut self,
         direct: bool,
@@ -186,7 +182,6 @@ impl<R> Parser<R> {
     /// Will return `Err` on any parsing error, including invalid reads of the bytes being parsed.
     ///
     /// [spec]: https://tc39.es/ecma262/#prod-FunctionBody
-
     pub fn parse_function_body(
         &mut self,
         interner: &mut Interner,
@@ -206,7 +201,6 @@ impl<R> Parser<R> {
     /// Will return `Err` on any parsing error, including invalid reads of the bytes being parsed.
     ///
     /// [spec]: https://tc39.es/ecma262/#prod-FormalParameterList
-
     pub fn parse_formal_parameters(
         &mut self,
         interner: &mut Interner,
@@ -347,7 +341,6 @@ where
 }
 
 /// Helper to check if any parameter names are declared in the given list.
-
 fn name_in_lexically_declared_names(
     bound_names: &[Identifier],
     lexical_names: &[Identifier],

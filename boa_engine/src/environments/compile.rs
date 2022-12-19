@@ -31,7 +31,6 @@ pub(crate) struct CompileTimeEnvironment {
 
 impl CompileTimeEnvironment {
     /// Crate a new global compile time environment.
-
     pub(crate) fn new_global() -> Self {
         Self {
             outer: None,
@@ -42,7 +41,6 @@ impl CompileTimeEnvironment {
     }
 
     /// Check if environment has a lexical binding with the given name.
-
     pub(crate) fn has_lex_binding(&self, name: Identifier) -> bool {
         self.bindings
             .get(&name)
@@ -50,19 +48,16 @@ impl CompileTimeEnvironment {
     }
 
     /// Returns the number of bindings in this environment.
-
     pub(crate) fn num_bindings(&self) -> usize {
         self.bindings.len()
     }
 
     /// Check if the environment is a function environment.
-
     pub(crate) const fn is_function(&self) -> bool {
         self.function_scope
     }
 
     /// Get the locator for a binding name.
-
     pub(crate) fn get_binding(&self, name: Identifier) -> Option<BindingLocator> {
         self.bindings
             .get(&name)
@@ -70,7 +65,6 @@ impl CompileTimeEnvironment {
     }
 
     /// Get the locator for a binding name in this and all outer environments.
-
     pub(crate) fn get_binding_recursive(&self, name: Identifier) -> BindingLocator {
         if let Some(binding) = self.bindings.get(&name) {
             BindingLocator::declarative(name, self.environment_index, binding.index)
@@ -82,7 +76,6 @@ impl CompileTimeEnvironment {
     }
 
     /// Check if a binding name exists in this and all outer environments.
-
     pub(crate) fn has_binding_recursive(&self, name: Identifier) -> bool {
         if self.bindings.contains_key(&name) {
             true
@@ -96,7 +89,6 @@ impl CompileTimeEnvironment {
     /// Create a mutable binding.
     ///
     /// If the binding is a function scope binding and this is a declarative environment, try the outer environment.
-
     pub(crate) fn create_mutable_binding(
         &mut self,
         name: Identifier,
@@ -142,7 +134,6 @@ impl CompileTimeEnvironment {
     }
 
     /// Crate an immutable binding.
-
     pub(crate) fn create_immutable_binding(&mut self, name: Identifier, strict: bool) {
         let binding_index = self.bindings.len();
         self.bindings.insert(
@@ -157,7 +148,6 @@ impl CompileTimeEnvironment {
     }
 
     /// Return the binding locator for a mutable binding with the given binding name and scope.
-
     pub(crate) fn initialize_mutable_binding(
         &self,
         name: Identifier,
@@ -189,14 +179,12 @@ impl CompileTimeEnvironment {
     /// # Panics
     ///
     /// Panics if the binding is not in the current environment.
-
     pub(crate) fn initialize_immutable_binding(&self, name: Identifier) -> BindingLocator {
         let binding = self.bindings.get(&name).expect("binding must exist");
         BindingLocator::declarative(name, self.environment_index, binding.index)
     }
 
     /// Return the binding locator for a mutable binding.
-
     pub(crate) fn set_mutable_binding_recursive(&self, name: Identifier) -> BindingLocator {
         match self.bindings.get(&name) {
             Some(binding) if binding.mutable => {
@@ -216,7 +204,6 @@ impl Context {
     /// Push either a new declarative or function environment on the compile time environment stack.
     ///
     /// Note: This function only works at bytecode compile time!
-
     pub(crate) fn push_compile_time_environment(&mut self, function_scope: bool) {
         let environment_index = self.realm.compile_env.borrow().environment_index + 1;
         let outer = self.realm.compile_env.clone();
@@ -236,7 +223,6 @@ impl Context {
     /// # Panics
     ///
     /// Panics if there are no more environments that can be pop'ed.
-
     pub(crate) fn pop_compile_time_environment(
         &mut self,
     ) -> (usize, Gc<GcCell<CompileTimeEnvironment>>) {
@@ -260,7 +246,6 @@ impl Context {
     /// # Panics
     ///
     /// Panics if there are no environments on the compile time environment stack.
-
     pub(crate) fn get_binding_number(&self) -> usize {
         self.realm.compile_env.borrow().num_bindings()
     }
@@ -268,7 +253,6 @@ impl Context {
     /// Get the binding locator of the binding at bytecode compile time.
     ///
     /// Note: This function only works at bytecode compile time!
-
     pub(crate) fn get_binding_value(&self, name: Identifier) -> BindingLocator {
         self.realm.compile_env.borrow().get_binding_recursive(name)
     }
@@ -277,7 +261,6 @@ impl Context {
     /// This does not include bindings on the global object.
     ///
     /// Note: This function only works at bytecode compile time!
-
     pub(crate) fn has_binding(&self, name: Identifier) -> bool {
         self.realm.compile_env.borrow().has_binding_recursive(name)
     }
@@ -290,7 +273,6 @@ impl Context {
     /// # Panics
     ///
     /// Panics if the global environment is not function scoped.
-
     pub(crate) fn create_mutable_binding(
         &mut self,
         name: Identifier,
@@ -329,7 +311,6 @@ impl Context {
     /// Initialize a mutable binding at bytecode compile time and return it's binding locator.
     ///
     /// Note: This function only works at bytecode compile time!
-
     pub(crate) fn initialize_mutable_binding(
         &self,
         name: Identifier,
@@ -349,7 +330,6 @@ impl Context {
     /// # Panics
     ///
     /// Panics if the global environment does not exist.
-
     pub(crate) fn create_immutable_binding(&mut self, name: Identifier, strict: bool) {
         self.realm
             .compile_env
@@ -364,7 +344,6 @@ impl Context {
     /// # Panics
     ///
     /// Panics if the global environment does not exist or a the binding was not created on the current environment.
-
     pub(crate) fn initialize_immutable_binding(&self, name: Identifier) -> BindingLocator {
         self.realm
             .compile_env
@@ -375,7 +354,6 @@ impl Context {
     /// Return the binding locator for a set operation on an existing binding.
     ///
     /// Note: This function only works at bytecode compile time!
-
     pub(crate) fn set_mutable_binding(&self, name: Identifier) -> BindingLocator {
         self.realm
             .compile_env

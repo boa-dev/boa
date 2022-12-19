@@ -257,7 +257,6 @@ impl<'b> ByteCompiler<'b> {
     }
 
     /// Push a compile time environment to the current `CodeBlock` and return it's index.
-
     fn push_compile_environment(
         &mut self,
         environment: Gc<GcCell<CompileTimeEnvironment>>,
@@ -446,7 +445,6 @@ impl<'b> ByteCompiler<'b> {
 
     /// Emit an opcode with a dummy operand.
     /// Return the `Label` of the operand.
-
     fn emit_opcode_with_operand(&mut self, opcode: Opcode) -> Label {
         let index = self.next_opcode_location();
         self.emit(opcode, &[Self::DUMMY_ADDRESS]);
@@ -455,7 +453,6 @@ impl<'b> ByteCompiler<'b> {
 
     /// Emit an opcode with two dummy operands.
     /// Return the `Label`s of the two operands.
-
     fn emit_opcode_with_two_operands(&mut self, opcode: Opcode) -> (Label, Label) {
         let index = self.next_opcode_location();
         self.emit(opcode, &[Self::DUMMY_ADDRESS, Self::DUMMY_ADDRESS]);
@@ -828,7 +825,6 @@ impl<'b> ByteCompiler<'b> {
     }
 
     /// Compile a [`StatementList`].
-
     pub fn compile_statement_list(
         &mut self,
         list: &StatementList,
@@ -845,7 +841,6 @@ impl<'b> ByteCompiler<'b> {
     }
 
     /// Compile a statement list in a new declarative environment.
-
     pub(crate) fn compile_statement_list_with_new_declarative(
         &mut self,
         list: &StatementList,
@@ -1137,7 +1132,6 @@ impl<'b> ByteCompiler<'b> {
     }
 
     /// Compile a [`StatementListItem`].
-
     fn compile_stmt_list_item(
         &mut self,
         item: &StatementListItem,
@@ -1153,7 +1147,6 @@ impl<'b> ByteCompiler<'b> {
     }
 
     /// Compile a [`Declaration`].
-
     pub fn compile_decl(&mut self, decl: &Declaration) -> JsResult<()> {
         match decl {
             Declaration::Function(function) => {
@@ -1174,7 +1167,6 @@ impl<'b> ByteCompiler<'b> {
     }
 
     /// Compiles a [`Statement`]
-
     pub fn compile_stmt(
         &mut self,
         node: &Statement,

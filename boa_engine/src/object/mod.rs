@@ -1499,7 +1499,6 @@ impl Object {
     /// [More information][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-invariants-of-the-essential-internal-methods
-
     #[track_caller]
     pub fn set_prototype<O: Into<JsPrototype>>(&mut self, prototype: O) -> bool {
         let prototype = prototype.into();
@@ -1586,7 +1585,6 @@ impl Object {
     }
 
     /// Return `true` if it is a native object and the native type is `T`.
-
     pub fn is<T>(&self) -> bool
     where
         T: NativeObject,
@@ -1602,7 +1600,6 @@ impl Object {
 
     /// Downcast a reference to the object,
     /// if the object is type native object type `T`.
-
     pub fn downcast_ref<T>(&self) -> Option<&T>
     where
         T: NativeObject,
@@ -1618,7 +1615,6 @@ impl Object {
 
     /// Downcast a mutable reference to the object,
     /// if the object is type native object type `T`.
-
     pub fn downcast_mut<T>(&mut self) -> Option<&mut T>
     where
         T: NativeObject,
@@ -1647,7 +1643,6 @@ impl Object {
     ///
     /// If a field was already in the object with the same name, then a `Some` is returned
     /// with that field's value, otherwise, `None` is returned.
-
     pub(crate) fn insert<K, P>(&mut self, key: K, property: P) -> Option<PropertyDescriptor>
     where
         K: Into<PropertyKey>,
@@ -1675,7 +1670,6 @@ impl Object {
     }
 
     /// Set a private setter.
-
     pub(crate) fn set_private_element_setter(&mut self, name: Sym, setter: JsObject) {
         match self.private_elements.get_mut(&name) {
             Some(PrivateElement::Accessor {
@@ -1697,7 +1691,6 @@ impl Object {
     }
 
     /// Set a private getter.
-
     pub(crate) fn set_private_element_getter(&mut self, name: Sym, getter: JsObject) {
         match self.private_elements.get_mut(&name) {
             Some(PrivateElement::Accessor {
@@ -1810,7 +1803,6 @@ impl<'context> FunctionBuilder<'context> {
     }
 
     /// Create a new `FunctionBuilder` for creating a closure function.
-
     pub fn closure<F>(context: &'context mut Context, function: F) -> Self
     where
         F: Fn(&JsValue, &[JsValue], &mut Context) -> JsResult<JsValue> + Copy + 'static,
@@ -1833,7 +1825,6 @@ impl<'context> FunctionBuilder<'context> {
     ///
     /// You can only move variables that implement `Debug + Any + Trace + Clone`.
     /// In other words, only `NativeObject + Clone` objects are movable.
-
     pub fn closure_with_captures<F, C>(
         context: &'context mut Context,
         function: F,
@@ -1865,7 +1856,6 @@ impl<'context> FunctionBuilder<'context> {
     /// Specify the name property of object function object.
     ///
     /// The default is `""` (empty string).
-
     #[must_use]
     pub fn name<N>(mut self, name: N) -> Self
     where
@@ -1890,7 +1880,6 @@ impl<'context> FunctionBuilder<'context> {
     /// Specify whether the object function object can be called with `new` keyword.
     ///
     /// The default is `false`.
-
     #[must_use]
     pub fn constructor(mut self, yes: bool) -> Self {
         match self.function {
@@ -1915,7 +1904,6 @@ impl<'context> FunctionBuilder<'context> {
     }
 
     /// Build the function object.
-
     pub fn build(self) -> JsFunction {
         let function = JsObject::from_proto_and_data(
             self.context
@@ -1993,7 +1981,6 @@ impl<'context> ObjectInitializer<'context> {
     }
 
     /// Add a function to the object.
-
     pub fn function<B>(
         &mut self,
         function: NativeFunctionSignature,
@@ -2022,7 +2009,6 @@ impl<'context> ObjectInitializer<'context> {
     }
 
     /// Add a property to the object.
-
     pub fn property<K, V>(&mut self, key: K, value: V, attribute: Attribute) -> &mut Self
     where
         K: Into<PropertyKey>,
@@ -2114,7 +2100,6 @@ impl<'context> ConstructorBuilder<'context> {
     }
 
     /// Add new method to the constructors prototype.
-
     pub fn method<B>(
         &mut self,
         function: NativeFunctionSignature,
@@ -2143,7 +2128,6 @@ impl<'context> ConstructorBuilder<'context> {
     }
 
     /// Add new static method to the constructors object itself.
-
     pub fn static_method<B>(
         &mut self,
         function: NativeFunctionSignature,
@@ -2172,7 +2156,6 @@ impl<'context> ConstructorBuilder<'context> {
     }
 
     /// Add new data property to the constructor's prototype.
-
     pub fn property<K, V>(&mut self, key: K, value: V, attribute: Attribute) -> &mut Self
     where
         K: Into<PropertyKey>,
@@ -2188,7 +2171,6 @@ impl<'context> ConstructorBuilder<'context> {
     }
 
     /// Add new static data property to the constructor object itself.
-
     pub fn static_property<K, V>(&mut self, key: K, value: V, attribute: Attribute) -> &mut Self
     where
         K: Into<PropertyKey>,
@@ -2204,7 +2186,6 @@ impl<'context> ConstructorBuilder<'context> {
     }
 
     /// Add new accessor property to the constructor's prototype.
-
     pub fn accessor<K>(
         &mut self,
         key: K,
@@ -2225,7 +2206,6 @@ impl<'context> ConstructorBuilder<'context> {
     }
 
     /// Add new static accessor property to the constructor object itself.
-
     pub fn static_accessor<K>(
         &mut self,
         key: K,
@@ -2246,7 +2226,6 @@ impl<'context> ConstructorBuilder<'context> {
     }
 
     /// Add new property to the constructor's prototype.
-
     pub fn property_descriptor<K, P>(&mut self, key: K, property: P) -> &mut Self
     where
         K: Into<PropertyKey>,
@@ -2258,7 +2237,6 @@ impl<'context> ConstructorBuilder<'context> {
     }
 
     /// Add new static property to the constructor object itself.
-
     pub fn static_property_descriptor<K, P>(&mut self, key: K, property: P) -> &mut Self
     where
         K: Into<PropertyKey>,
@@ -2281,7 +2259,6 @@ impl<'context> ConstructorBuilder<'context> {
     /// Specify the name of the constructor function.
     ///
     /// Default is `"[object]"`
-
     pub fn name<N>(&mut self, name: N) -> &mut Self
     where
         N: AsRef<str>,
@@ -2312,7 +2289,6 @@ impl<'context> ConstructorBuilder<'context> {
     /// inherit from.
     ///
     /// Default is `Object.prototype`
-
     pub fn inherit<O: Into<JsPrototype>>(&mut self, prototype: O) -> &mut Self {
         self.inherit = Some(prototype.into());
         self
@@ -2321,7 +2297,6 @@ impl<'context> ConstructorBuilder<'context> {
     /// Specify the `[[Prototype]]` internal field of this constructor.
     ///
     /// Default is `Function.prototype`
-
     pub fn custom_prototype<O: Into<JsPrototype>>(&mut self, prototype: O) -> &mut Self {
         self.custom_prototype = Some(prototype.into());
         self

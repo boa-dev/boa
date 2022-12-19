@@ -190,7 +190,6 @@ impl DeclarativeEnvironment {
     /// # Panics
     ///
     /// Panics if the binding value is out of range or not initialized.
-
     pub(crate) fn get(&self, index: usize) -> JsValue {
         self.bindings
             .borrow()
@@ -205,7 +204,6 @@ impl DeclarativeEnvironment {
     /// # Panics
     ///
     /// Panics if the binding value is out of range or not initialized.
-
     pub(crate) fn set(&self, index: usize, value: JsValue) {
         let mut bindings = self.bindings.borrow_mut();
         let binding = bindings
@@ -227,7 +225,6 @@ pub struct DeclarativeEnvironmentStack {
 
 impl DeclarativeEnvironmentStack {
     /// Create a new environment stack with the most outer declarative environment.
-
     pub(crate) fn new(global_compile_environment: Gc<GcCell<CompileTimeEnvironment>>) -> Self {
         Self {
             stack: vec![Gc::new(DeclarativeEnvironment {
@@ -304,7 +301,6 @@ impl DeclarativeEnvironmentStack {
     /// # Panics
     ///
     /// Panics if no environment exists on the stack.
-
     pub(crate) fn set_global_binding_number(&mut self, binding_number: usize) {
         let environment = self
             .stack
@@ -328,7 +324,6 @@ impl DeclarativeEnvironmentStack {
     /// # Panics
     ///
     /// Panics if no environment exists on the stack.
-
     pub(crate) fn get_this_environment(&self) -> &EnvironmentSlots {
         for env in self.stack.iter().rev() {
             if let Some(slots) = &env.slots {
@@ -351,7 +346,6 @@ impl DeclarativeEnvironmentStack {
     /// # Panics
     ///
     /// Panics if no environment exists on the stack.
-
     pub(crate) fn push_declarative(
         &mut self,
         num_bindings: usize,
@@ -381,7 +375,6 @@ impl DeclarativeEnvironmentStack {
     /// # Panics
     ///
     /// Panics if no environment exists on the stack.
-
     pub(crate) fn push_function(
         &mut self,
         num_bindings: usize,
@@ -448,7 +441,6 @@ impl DeclarativeEnvironmentStack {
     }
 
     /// Pop environment from the environments stack.
-
     pub(crate) fn pop(&mut self) -> Gc<DeclarativeEnvironment> {
         debug_assert!(self.stack.len() > 1);
         self.stack
@@ -461,7 +453,6 @@ impl DeclarativeEnvironmentStack {
     /// # Panics
     ///
     /// Panics if no environment exists on the stack.
-
     pub(crate) fn current_function_slots(&self) -> &EnvironmentSlots {
         for env in self.stack.iter().rev() {
             if let Some(slots) = &env.slots {
@@ -477,7 +468,6 @@ impl DeclarativeEnvironmentStack {
     /// # Panics
     ///
     /// Panics if no environment exists on the stack.
-
     pub(crate) fn current(&mut self) -> Gc<DeclarativeEnvironment> {
         self.stack
             .last()
@@ -503,7 +493,6 @@ impl DeclarativeEnvironmentStack {
     /// # Panics
     ///
     /// Panics if no environment exists on the stack.
-
     pub(crate) fn poison_current(&mut self) {
         self.stack
             .last()
@@ -513,7 +502,6 @@ impl DeclarativeEnvironmentStack {
     }
 
     /// Mark that there may be added binding in all environments.
-
     pub(crate) fn poison_all(&mut self) {
         for env in &mut self.stack {
             if env.poisoned.get() {
@@ -528,7 +516,6 @@ impl DeclarativeEnvironmentStack {
     /// # Panics
     ///
     /// Panics if the environment or binding index are out of range.
-
     pub(crate) fn get_value_optional(
         &self,
         mut environment_index: usize,
@@ -569,7 +556,6 @@ impl DeclarativeEnvironmentStack {
     ///
     /// This only considers function environments that are poisoned.
     /// All other bindings are accessed via indices.
-
     pub(crate) fn get_value_if_global_poisoned(&self, name: Identifier) -> Option<JsValue> {
         for env in self.stack.iter().rev() {
             if !env.poisoned.get() {
@@ -598,7 +584,6 @@ impl DeclarativeEnvironmentStack {
     /// # Panics
     ///
     /// Panics if the environment or binding index are out of range.
-
     pub(crate) fn put_value(
         &mut self,
         environment_index: usize,
@@ -623,7 +608,6 @@ impl DeclarativeEnvironmentStack {
     /// # Panics
     ///
     /// Panics if the environment or binding index are out of range.
-
     pub(crate) fn put_value_if_initialized(
         &mut self,
         mut environment_index: usize,
@@ -673,7 +657,6 @@ impl DeclarativeEnvironmentStack {
     /// # Panics
     ///
     /// Panics if the environment or binding index are out of range.
-
     pub(crate) fn put_value_if_uninitialized(
         &mut self,
         environment_index: usize,
@@ -702,7 +685,6 @@ impl DeclarativeEnvironmentStack {
     /// # Panics
     ///
     /// Panics if the environment or binding index are out of range.
-
     pub(crate) fn put_value_if_global_poisoned(
         &mut self,
         name: Identifier,
@@ -742,7 +724,6 @@ impl DeclarativeEnvironmentStack {
     /// # Panics
     ///
     /// Panics if the environment or binding index are out of range.
-
     pub(crate) fn is_only_global_property(&mut self, name: Identifier) -> bool {
         for env in self
             .stack
@@ -779,7 +760,6 @@ pub(crate) struct BindingLocator {
 
 impl BindingLocator {
     /// Creates a new declarative binding locator that has knows indices.
-
     pub(in crate::environments) const fn declarative(
         name: Identifier,
         environment_index: usize,
@@ -796,7 +776,6 @@ impl BindingLocator {
     }
 
     /// Creates a binding locator that indicates that the binding is on the global object.
-
     pub(in crate::environments) const fn global(name: Identifier) -> Self {
         Self {
             name,
@@ -810,7 +789,6 @@ impl BindingLocator {
 
     /// Creates a binding locator that indicates that it was attempted to mutate an immutable binding.
     /// At runtime this should always produce a type error.
-
     pub(in crate::environments) const fn mutate_immutable(name: Identifier) -> Self {
         Self {
             name,
@@ -823,7 +801,6 @@ impl BindingLocator {
     }
 
     /// Creates a binding locator that indicates that any action is silently ignored.
-
     pub(in crate::environments) const fn silent(name: Identifier) -> Self {
         Self {
             name,
@@ -836,37 +813,31 @@ impl BindingLocator {
     }
 
     /// Returns the name of the binding.
-
     pub(crate) const fn name(&self) -> Identifier {
         self.name
     }
 
     /// Returns if the binding is located on the global object.
-
     pub(crate) const fn is_global(&self) -> bool {
         self.global
     }
 
     /// Returns the environment index of the binding.
-
     pub(crate) const fn environment_index(&self) -> usize {
         self.environment_index
     }
 
     /// Returns the binding index of the binding.
-
     pub(crate) const fn binding_index(&self) -> usize {
         self.binding_index
     }
 
     /// Returns if the binding is a silent operation.
-
     pub(crate) const fn is_silent(&self) -> bool {
         self.silent
     }
 
     /// Helper method to throws an error if the binding access is illegal.
-
     pub(crate) fn throw_mutate_immutable(
         &self,
         context: &mut Context,

@@ -13,13 +13,11 @@ pub(super) struct Cursor<R> {
 
 impl<R> Cursor<R> {
     /// Gets the current position of the cursor in the source code.
-
     pub(super) const fn pos(&self) -> Position {
         self.pos
     }
 
     /// Advances the position to the next column.
-
     pub(super) fn next_column(&mut self) {
         let current_line = self.pos.line_number();
         let next_column = self.pos.column_number() + 1;
@@ -27,7 +25,6 @@ impl<R> Cursor<R> {
     }
 
     /// Advances the position to the next line.
-
     fn next_line(&mut self) {
         let next_line = self.pos.line_number() + 1;
         self.pos = Position::new(next_line, 1);
@@ -49,7 +46,6 @@ where
     R: Read,
 {
     /// Creates a new Lexer cursor.
-
     pub(super) fn new(inner: R) -> Self {
         Self {
             iter: InnerIter::new(inner.bytes()),
@@ -59,7 +55,6 @@ where
     }
 
     /// Creates a new Lexer cursor with an initial position.
-
     pub(super) fn with_position(inner: R, pos: Position) -> Self {
         Self {
             iter: InnerIter::new(inner.bytes()),
@@ -69,7 +64,6 @@ where
     }
 
     /// Peeks the next byte.
-
     pub(super) fn peek(&mut self) -> Result<Option<u8>, Error> {
         let _timer = Profiler::global().start_event("cursor::peek()", "Lexing");
 
@@ -77,7 +71,6 @@ where
     }
 
     /// Peeks the next n bytes, the maximum number of peeked bytes is 4 (n <= 4).
-
     pub(super) fn peek_n(&mut self, n: u8) -> Result<&[u8], Error> {
         let _timer = Profiler::global().start_event("cursor::peek_n()", "Lexing");
 
@@ -85,15 +78,13 @@ where
     }
 
     /// Peeks the next UTF-8 character in u32 code point.
-
     pub(super) fn peek_char(&mut self) -> Result<Option<u32>, Error> {
         let _timer = Profiler::global().start_event("cursor::peek_char()", "Lexing");
 
         self.iter.peek_char()
     }
 
-    /// Compares the byte passed in to the next byte, if they match true is returned and the buffer is incremented
-
+    /// Compares the byte passed in to the next byte, if they match true is returned and the buffer is incremented.
     pub(super) fn next_is(&mut self, byte: u8) -> io::Result<bool> {
         let _timer = Profiler::global().start_event("cursor::next_is()", "Lexing");
 
@@ -111,7 +102,6 @@ where
     /// Otherwise returns the result from the predicate on the ascii in char
     ///
     /// The buffer is not incremented.
-
     pub(super) fn next_is_ascii_pred<F>(&mut self, pred: &F) -> io::Result<bool>
     where
         F: Fn(char) -> bool,
@@ -130,7 +120,6 @@ where
     ///
     /// The buffer is not incremented.
     #[allow(dead_code)]
-
     pub(super) fn next_is_char_pred<F>(&mut self, pred: &F) -> io::Result<bool>
     where
         F: Fn(u32) -> bool,
@@ -215,7 +204,6 @@ where
     ///
     /// This expects for the buffer to be fully filled. If it's not, it will fail with an
     /// `UnexpectedEof` I/O error.
-
     pub(super) fn fill_bytes(&mut self, buf: &mut [u8]) -> io::Result<()> {
         let _timer = Profiler::global().start_event("cursor::fill_bytes()", "Lexing");
 
@@ -223,7 +211,6 @@ where
     }
 
     /// Retrieves the next byte.
-
     pub(crate) fn next_byte(&mut self) -> Result<Option<u8>, Error> {
         let _timer = Profiler::global().start_event("cursor::next_byte()", "Lexing");
 
@@ -257,7 +244,6 @@ where
     }
 
     /// Retrieves the next UTF-8 character.
-
     pub(crate) fn next_char(&mut self) -> Result<Option<u32>, Error> {
         let _timer = Profiler::global().start_event("cursor::next_char()", "Lexing");
 
@@ -294,7 +280,6 @@ struct InnerIter<R> {
 
 impl<R> InnerIter<R> {
     /// Creates a new inner iterator.
-
     const fn new(iter: Bytes<R>) -> Self {
         Self {
             iter,
@@ -313,7 +298,6 @@ where
     ///
     /// This expects for the buffer to be fully filled. If it's not, it will fail with an
     /// `UnexpectedEof` I/O error.
-
     fn fill_bytes(&mut self, buf: &mut [u8]) -> io::Result<()> {
         for byte in buf.iter_mut() {
             *byte = self.next_byte()?.ok_or_else(|| {
@@ -327,7 +311,6 @@ where
     }
 
     /// Increments the iter by n bytes.
-
     fn increment(&mut self, n: u32) -> Result<(), Error> {
         for _ in 0..n {
             if (self.next_byte()?).is_none() {
@@ -338,7 +321,6 @@ where
     }
 
     /// Peeks the next byte.
-
     pub(super) fn peek_byte(&mut self) -> Result<Option<u8>, Error> {
         if self.num_peeked_bytes > 0 {
             let byte = self.peeked_bytes[0];
@@ -356,7 +338,6 @@ where
     }
 
     /// Peeks the next n bytes, the maximum number of peeked bytes is 4 (n <= 4).
-
     pub(super) fn peek_n_bytes(&mut self, n: u8) -> Result<&[u8], Error> {
         while self.num_peeked_bytes < n && self.num_peeked_bytes < 4 {
             match self.iter.next().transpose()? {
@@ -371,7 +352,6 @@ where
     }
 
     /// Peeks the next unchecked character in u32 code point.
-
     pub(super) fn peek_char(&mut self) -> Result<Option<u32>, Error> {
         if let Some(ch) = self.peeked_char {
             Ok(ch)
@@ -421,7 +401,6 @@ where
     }
 
     /// Retrieves the next byte
-
     fn next_byte(&mut self) -> io::Result<Option<u8>> {
         self.peeked_char = None;
         if self.num_peeked_bytes > 0 {
@@ -435,7 +414,6 @@ where
     }
 
     /// Retrieves the next unchecked char in u32 code point.
-
     fn next_char(&mut self) -> io::Result<Option<u32>> {
         if let Some(ch) = self.peeked_char.take() {
             if let Some(c) = ch {
@@ -481,20 +459,17 @@ const CONT_MASK: u8 = 0b0011_1111;
 /// Returns the initial codepoint accumulator for the first byte.
 /// The first byte is special, only want bottom 5 bits for width 2, 4 bits
 /// for width 3, and 3 bits for width 4.
-
 fn utf8_first_byte(byte: u8, width: u32) -> u32 {
     u32::from(byte & (0x7F >> width))
 }
 
 /// Returns the value of `ch` updated with continuation byte `byte`.
-
 fn utf8_acc_cont_byte(ch: u32, byte: u8) -> u32 {
     (ch << 6) | u32::from(byte & CONT_MASK)
 }
 
 /// Checks whether the byte is a UTF-8 first byte (i.e., ascii byte or starts with the
 /// bits `11`).
-
 const fn utf8_is_first_byte(byte: u8) -> bool {
     byte <= 0x7F || (byte >> 6) == 0x11
 }

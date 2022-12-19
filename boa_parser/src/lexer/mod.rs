@@ -89,13 +89,11 @@ impl<R> Lexer<R> {
     }
 
     /// Sets the goal symbol for the lexer.
-
     pub(crate) fn set_goal(&mut self, elm: InputElement) {
         self.goal_symbol = elm;
     }
 
     /// Gets the goal symbol the lexer is currently using.
-
     pub(crate) const fn get_goal(&self) -> InputElement {
         self.goal_symbol
     }
@@ -111,7 +109,6 @@ impl<R> Lexer<R> {
     }
 
     /// Creates a new lexer.
-
     pub fn new(reader: R) -> Self
     where
         R: Read,

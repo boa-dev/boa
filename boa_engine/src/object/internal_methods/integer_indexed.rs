@@ -31,7 +31,6 @@ pub(crate) static INTEGER_INDEXED_EXOTIC_INTERNAL_METHODS: InternalObjectMethods
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-integer-indexed-exotic-objects-getownproperty-p
-
 pub(crate) fn integer_indexed_exotic_get_own_property(
     obj: &JsObject,
     key: &PropertyKey,
@@ -66,7 +65,6 @@ pub(crate) fn integer_indexed_exotic_get_own_property(
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-integer-indexed-exotic-objects-hasproperty-p
-
 pub(crate) fn integer_indexed_exotic_has_property(
     obj: &JsObject,
     key: &PropertyKey,
@@ -89,7 +87,6 @@ pub(crate) fn integer_indexed_exotic_has_property(
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-integer-indexed-exotic-objects-defineownproperty-p-desc
-
 pub(crate) fn integer_indexed_exotic_define_own_property(
     obj: &JsObject,
     key: PropertyKey,
@@ -135,7 +132,6 @@ pub(crate) fn integer_indexed_exotic_define_own_property(
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-integer-indexed-exotic-objects-get-p-receiver
-
 pub(crate) fn integer_indexed_exotic_get(
     obj: &JsObject,
     key: &PropertyKey,
@@ -160,7 +156,6 @@ pub(crate) fn integer_indexed_exotic_get(
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-integer-indexed-exotic-objects-set-p-v-receiver
-
 pub(crate) fn integer_indexed_exotic_set(
     obj: &JsObject,
     key: PropertyKey,
@@ -189,7 +184,6 @@ pub(crate) fn integer_indexed_exotic_set(
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-integer-indexed-exotic-objects-delete-p
-
 pub(crate) fn integer_indexed_exotic_delete(
     obj: &JsObject,
     key: &PropertyKey,
@@ -213,7 +207,6 @@ pub(crate) fn integer_indexed_exotic_delete(
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-integer-indexed-exotic-objects-ownpropertykeys
-
 #[allow(clippy::unnecessary_wraps)]
 pub(crate) fn integer_indexed_exotic_own_property_keys(
     obj: &JsObject,

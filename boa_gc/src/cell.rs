@@ -35,7 +35,6 @@ pub(crate) const BORROWFLAG_INIT: BorrowFlag = BorrowFlag(ROOT);
 
 impl BorrowFlag {
     /// Check the current `BorrowState` of `BorrowFlag`.
-
     pub(crate) const fn borrowed(self) -> BorrowState {
         match self.0 & !ROOT {
             UNUSED => BorrowState::Unused,
@@ -45,20 +44,17 @@ impl BorrowFlag {
     }
 
     /// Check whether the borrow bit is flagged.
-
     pub(crate) const fn rooted(self) -> bool {
         self.0 & ROOT > 0
     }
 
     /// Set the `BorrowFlag`'s state to writing.
-
     pub(crate) const fn set_writing(self) -> Self {
         // Set every bit other than the root bit, which is preserved
         Self(self.0 | WRITING)
     }
 
     /// Remove the root flag on `BorrowFlag`
-
     pub(crate) const fn set_unused(self) -> Self {
         // Clear every bit other than the root bit, which is preserved
         Self(self.0 & ROOT)
@@ -69,7 +65,6 @@ impl BorrowFlag {
     /// # Panic
     ///  - This method will panic if the current `BorrowState` is writing.
     ///  - This method will panic after incrementing if the borrow count overflows.
-
     pub(crate) fn add_reading(self) -> Self {
         assert!(self.borrowed() != BorrowState::Writing);
         // Add 1 to the integer starting at the second binary digit. As our
@@ -91,7 +86,6 @@ impl BorrowFlag {
     ///
     /// # Panic
     ///  - This method will panic if the current `BorrowState` is not reading.
-
     pub(crate) fn sub_reading(self) -> Self {
         assert!(self.borrowed() == BorrowState::Reading);
         // Subtract 1 from the integer starting at the second binary digit. As
@@ -104,7 +98,6 @@ impl BorrowFlag {
     }
 
     /// Set the root flag on the `BorrowFlag`.
-
     pub(crate) fn set_rooted(self, rooted: bool) -> Self {
         // Preserve the non-root bits
         Self((self.0 & !ROOT) | (usize::from(rooted)))
@@ -131,7 +124,6 @@ pub struct GcCell<T: ?Sized + 'static> {
 
 impl<T: Trace> GcCell<T> {
     /// Creates a new `GcCell` containing `value`.
-
     pub const fn new(value: T) -> Self {
         Self {
             flags: Cell::new(BORROWFLAG_INIT),
@@ -140,7 +132,6 @@ impl<T: Trace> GcCell<T> {
     }
 
     /// Consumes the `GcCell`, returning the wrapped value.
-
     pub fn into_inner(self) -> T {
         self.cell.into_inner()
     }
@@ -155,7 +146,6 @@ impl<T: Trace + ?Sized> GcCell<T> {
     /// # Panics
     ///
     /// Panics if the value is currently mutably borrowed.
-
     pub fn borrow(&self) -> GcCellRef<'_, T> {
         match self.try_borrow() {
             Ok(value) => value,
@@ -171,7 +161,6 @@ impl<T: Trace + ?Sized> GcCell<T> {
     /// # Panics
     ///
     /// Panics if the value is currently borrowed.
-
     pub fn borrow_mut(&self) -> GcCellRefMut<'_, T> {
         match self.try_borrow_mut() {
             Ok(value) => value,
@@ -328,7 +317,6 @@ impl<'a, T: ?Sized> GcCellRef<'a, T> {
     /// `GcCellRef::clone(...)`. A `Clone` implementation or a method
     /// would interfere with the use of `c.borrow().clone()` to clone
     /// the contents of a `GcCell`.
-
     #[allow(clippy::should_implement_trait)]
     #[must_use]
     pub fn clone(orig: &GcCellRef<'a, T>) -> GcCellRef<'a, T> {
@@ -346,7 +334,6 @@ impl<'a, T: ?Sized> GcCellRef<'a, T> {
     /// This is an associated function that needs to be used as `GcCellRef::map(...)`.
     /// A method would interfere with methods of the same name on the contents
     /// of a `GcCellRef` used through `Deref`.
-
     pub fn map<U, F>(orig: Self, f: F) -> GcCellRef<'a, U>
     where
         U: ?Sized,
@@ -370,7 +357,6 @@ impl<'a, T: ?Sized> GcCellRef<'a, T> {
     ///
     /// This is an associated function that needs to be used as `GcCellRef::map_split(...)`.
     /// A method would interfere with methods of the same name on the contents of a `GcCellRef` used through `Deref`.
-
     pub fn map_split<U, V, F>(orig: Self, f: F) -> (GcCellRef<'a, U>, GcCellRef<'a, V>)
     where
         U: ?Sized,
@@ -442,7 +428,6 @@ impl<'a, T: Trace + ?Sized, U: ?Sized> GcCellRefMut<'a, T, U> {
     /// This is an associated function that needs to be used as
     /// `GcCellRefMut::map(...)`. A method would interfere with methods of the same
     /// name on the contents of a `GcCell` used through `Deref`.
-
     pub fn map<V, F>(orig: Self, f: F) -> GcCellRefMut<'a, T, V>
     where
         V: ?Sized,

@@ -43,7 +43,6 @@ pub struct Vm {
 
 impl Vm {
     /// Push a value on the stack.
-
     pub(crate) fn push<T>(&mut self, value: T)
     where
         T: Into<JsValue>,
@@ -56,14 +55,12 @@ impl Vm {
     /// # Panics
     ///
     /// If there is nothing to pop, then this will panic.
-
     #[track_caller]
     pub(crate) fn pop(&mut self) -> JsValue {
         self.stack.pop().expect("stack was empty")
     }
 
     #[track_caller]
-
     pub(crate) fn read<T: Readable>(&mut self) -> T {
         let value = self.frame().code.read::<T>(self.frame().pc);
         self.frame_mut().pc += size_of::<T>();
@@ -75,7 +72,6 @@ impl Vm {
     /// # Panics
     ///
     /// If there is no frame, then this will panic.
-
     pub(crate) fn frame(&self) -> &CallFrame {
         self.frames.last().expect("no frame found")
     }
@@ -85,7 +81,6 @@ impl Vm {
     /// # Panics
     ///
     /// If there is no frame, then this will panic.
-
     pub(crate) fn frame_mut(&mut self) -> &mut CallFrame {
         self.frames.last_mut().expect("no frame found")
     }

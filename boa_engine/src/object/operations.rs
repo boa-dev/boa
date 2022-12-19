@@ -63,7 +63,6 @@ impl JsObject {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-get-o-p
-
     pub fn get<K>(&self, key: K, context: &mut Context) -> JsResult<JsValue>
     where
         K: Into<PropertyKey>,
@@ -80,7 +79,6 @@ impl JsObject {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-set-o-p-v-throw
-
     pub fn set<K, V>(&self, key: K, value: V, throw: bool, context: &mut Context) -> JsResult<bool>
     where
         K: Into<PropertyKey>,
@@ -206,7 +204,6 @@ impl JsObject {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-definepropertyorthrow
-
     pub fn define_property_or_throw<K, P>(
         &self,
         key: K,
@@ -238,7 +235,6 @@ impl JsObject {
     /// - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-deletepropertyorthrow
-
     pub fn delete_property_or_throw<K>(&self, key: K, context: &mut Context) -> JsResult<bool>
     where
         K: Into<PropertyKey>,
@@ -264,7 +260,6 @@ impl JsObject {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-hasproperty
-
     pub fn has_property<K>(&self, key: K, context: &mut Context) -> JsResult<bool>
     where
         K: Into<PropertyKey>,
@@ -281,7 +276,6 @@ impl JsObject {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-hasownproperty
-
     pub fn has_own_property<K>(&self, key: K, context: &mut Context) -> JsResult<bool>
     where
         K: Into<PropertyKey>,
@@ -353,7 +347,6 @@ impl JsObject {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-setintegritylevel
-
     pub fn set_integrity_level(
         &self,
         level: IntegrityLevel,
@@ -423,7 +416,6 @@ impl JsObject {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-testintegritylevel
-
     pub fn test_integrity_level(
         &self,
         level: IntegrityLevel,
@@ -679,7 +671,6 @@ impl JsValue {
     /// - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-getv
-
     pub(crate) fn get_v<K>(&self, key: K, context: &mut Context) -> JsResult<Self>
     where
         K: Into<PropertyKey>,
@@ -699,7 +690,6 @@ impl JsValue {
     /// - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-getmethod
-
     pub(crate) fn get_method<K>(&self, key: K, context: &mut Context) -> JsResult<Option<JsObject>>
     where
         K: Into<PropertyKey>,

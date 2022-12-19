@@ -28,7 +28,6 @@ pub(crate) static BOUND_CONSTRUCTOR_EXOTIC_INTERNAL_METHODS: InternalObjectMetho
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-bound-function-exotic-objects-call-thisargument-argumentslist
 #[track_caller]
-
 fn bound_function_exotic_call(
     obj: &JsObject,
     _: &JsValue,
@@ -64,7 +63,6 @@ fn bound_function_exotic_call(
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-bound-function-exotic-objects-construct-argumentslist-newtarget
 #[track_caller]
-
 fn bound_function_exotic_construct(
     obj: &JsObject,
     arguments_list: &[JsValue],

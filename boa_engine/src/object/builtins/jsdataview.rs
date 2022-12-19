@@ -38,7 +38,6 @@ pub struct JsDataView {
 
 impl JsDataView {
     /// Create a new `JsDataView` object from an existing `JsArrayBuffer`.
-
     pub fn from_js_array_buffer(
         array_buffer: &JsArrayBuffer,
         offset: Option<u64>,

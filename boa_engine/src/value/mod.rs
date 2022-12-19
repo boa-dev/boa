@@ -91,7 +91,6 @@ unsafe impl Trace for JsValue {
 
 impl JsValue {
     /// Create a new [`JsValue`].
-
     pub fn new<T>(value: T) -> Self
     where
         T: Into<Self>,
@@ -230,7 +229,6 @@ impl JsValue {
     }
 
     /// Returns true if the value is integer.
-
     #[allow(clippy::float_cmp)]
     pub fn is_integer(&self) -> bool {
         // If it can fit in a i32 and the truncated version is

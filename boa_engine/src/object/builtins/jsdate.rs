@@ -241,7 +241,6 @@ impl JsDate {
     /// the UNIX epoch and the given date.
     ///
     /// Same as JavaScript's `Date.prototype.setDate()`.
-
     pub fn set_date<T>(&self, value: T, context: &mut Context) -> JsResult<JsValue>
     where
         T: Into<JsValue>,
@@ -278,7 +277,6 @@ impl JsDate {
     /// the UNIX epoch and updated date.
     ///
     /// Same as JavaScript's `Date.prototype.setMilliseconds()`.
-
     pub fn set_milliseconds<T>(&self, value: T, context: &mut Context) -> JsResult<JsValue>
     where
         T: Into<JsValue>,
@@ -327,7 +325,6 @@ impl JsDate {
     /// the UNIX epoch and the updated date.
     ///
     /// Same as JavaScript's `Date.prototype.setTime()`.
-
     pub fn set_time<T>(&self, value: T, context: &mut Context) -> JsResult<JsValue>
     where
         T: Into<JsValue>,
@@ -342,7 +339,6 @@ impl JsDate {
     /// the UNIX epoch and the updated date.
     ///
     /// Same as JavaScript's `Date.prototype.setUTCDate()`.
-
     pub fn set_utc_date<T>(&self, value: T, context: &mut Context) -> JsResult<JsValue>
     where
         T: Into<JsValue>,
@@ -383,7 +379,6 @@ impl JsDate {
     /// the UNIX epoch and the updated date.
     ///
     /// Same as JavaScript's `Date.prototype.setUTCMilliseconds()`.
-
     pub fn set_utc_milliseconds<T>(&self, value: T, context: &mut Context) -> JsResult<JsValue>
     where
         T: Into<JsValue>,
@@ -528,7 +523,6 @@ impl JsDate {
     }
 
     /// Utility create a `Date` object from RFC3339 string
-
     pub fn new_from_parse(value: &JsValue, context: &mut Context) -> JsResult<Self> {
         let prototype = context.intrinsics().constructors().date().prototype();
         let string = value

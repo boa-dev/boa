@@ -70,14 +70,12 @@ where
     R: Read,
 {
     /// Sets the goal symbol for the lexer.
-
     pub(super) fn set_goal(&mut self, elm: InputElement) {
         let _timer = Profiler::global().start_event("cursor::set_goal()", "Parsing");
         self.lexer.set_goal(elm);
     }
 
     /// Lexes the next tokens as a regex assuming that the starting '/' has already been consumed.
-
     pub(super) fn lex_regex(
         &mut self,
         start: Position,

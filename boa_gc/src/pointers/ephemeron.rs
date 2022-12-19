@@ -69,7 +69,6 @@ unsafe impl<K: Trace, V: Trace> Trace for Ephemeron<K, V> {
     unsafe fn trace(&self) {}
 
     // Push this Ephemeron's pointer onto the EphemeronQueue
-
     unsafe fn weak_trace(&self) {
         EPHEMERON_QUEUE.with(|q| {
             let mut queue = q.take().expect("queue is initialized by weak_trace");

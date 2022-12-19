@@ -22,7 +22,6 @@ pub(super) struct Identifier {
 
 impl Identifier {
     /// Creates a new identifier/keyword lexer.
-
     pub(super) const fn new(init: char) -> Self {
         Self { init }
     }
@@ -33,7 +32,6 @@ impl Identifier {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-names-and-keywords
-
     pub(super) fn is_identifier_start(ch: u32) -> bool {
         matches!(ch, 0x0024 /* $ */ | 0x005F /* _ */)
             || char::try_from(ch).map_or(false, char::is_id_start)
@@ -45,7 +43,6 @@ impl Identifier {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-names-and-keywords
-
     fn is_identifier_part(ch: u32) -> bool {
         matches!(
             ch,

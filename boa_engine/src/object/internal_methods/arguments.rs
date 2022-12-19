@@ -22,7 +22,6 @@ pub(crate) static ARGUMENTS_EXOTIC_INTERNAL_METHODS: InternalObjectMethods =
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-arguments-exotic-objects-getownproperty-p
-
 pub(crate) fn arguments_exotic_get_own_property(
     obj: &JsObject,
     key: &PropertyKey,

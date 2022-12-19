@@ -94,7 +94,6 @@ impl SubGraph {
     }
 
     /// Format into the graphviz format.
-
     fn graphviz_format(&self, result: &mut String, prefix: &str) {
         result.push_str(&format!("\tsubgraph cluster_{prefix}_{} {{\n", self.label));
         result.push_str("\t\tstyle = filled;\n");
@@ -158,7 +157,6 @@ impl SubGraph {
     }
 
     /// Format into the mermaid format.
-
     fn mermaid_format(&self, result: &mut String, prefix: &str) {
         let rankdir = match self.direction {
             Direction::TopToBottom => "TB",
@@ -269,7 +267,6 @@ impl Graph {
     }
 
     /// Output the graph into the graphviz format.
-
     #[must_use]
     pub fn to_graphviz_format(&self) -> String {
         let mut result = String::new();
@@ -292,7 +289,6 @@ impl Graph {
     }
 
     /// Output the graph into the mermaid format.
-
     #[must_use]
     pub fn to_mermaid_format(&self) -> String {
         let mut result = String::new();
