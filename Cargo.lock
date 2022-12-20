@@ -225,6 +225,7 @@ version = "0.16.0"
 dependencies = [
  "measureme",
  "once_cell",
+ "rustc-hash",
 ]
 
 [[package]]

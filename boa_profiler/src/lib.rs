@@ -80,9 +80,15 @@
 use std::fmt::{self, Debug};
 
 #[cfg(feature = "profiler")]
-use measureme::{EventId, Profiler as MeasuremeProfiler, TimingGuard};
+use measureme::{EventId, Profiler as MeasuremeProfiler, StringId, TimingGuard};
 #[cfg(feature = "profiler")]
 use once_cell::sync::OnceCell;
+#[cfg(feature = "profiler")]
+use rustc_hash::FxHashMap;
+#[cfg(feature = "profiler")]
+use std::collections::hash_map::Entry;
+#[cfg(feature = "profiler")]
+use std::sync::RwLock;
 #[cfg(feature = "profiler")]
 use std::{
     path::Path,
@@ -93,6 +99,7 @@ use std::{
 #[cfg(feature = "profiler")]
 pub struct Profiler {
     profiler: MeasuremeProfiler,
+    string_cache: RwLock<FxHashMap<String, StringId>>,
 }
 
 /// This static instance must never be public, and its only access must be done through the
@@ -105,17 +112,38 @@ static mut INSTANCE: OnceCell<Profiler> = OnceCell::new();
 impl Profiler {
     /// Start a new profiled event.
     pub fn start_event(&self, label: &str, category: &str) -> TimingGuard<'_> {
-        let kind = self.profiler.alloc_string(category);
-        let id = EventId::from_label(self.profiler.alloc_string(label));
+        let kind = self.get_or_alloc_string(category);
+        let id = EventId::from_label(self.get_or_alloc_string(label));
         let thread_id = Self::thread_id_to_u32(current().id());
         self.profiler
             .start_recording_interval_event(kind, id, thread_id)
     }
 
+    fn get_or_alloc_string(&self, s: &str) -> StringId {
+        {
+            // Check the cache only with the read lock first.
+            let cache = self.string_cache.read().unwrap();
+            if let Some(id) = cache.get(s) {
+                return *id;
+            }
+        }
+        let mut cache = self.string_cache.write().unwrap();
+        match cache.entry(s.into()) {
+            Entry::Occupied(entry) => *entry.get(),
+            Entry::Vacant(entry) => {
+                let id = self.profiler.alloc_string(s);
+                *entry.insert(id)
+            }
+        }
+    }
+
     fn default() -> Self {
         let profiler =
             MeasuremeProfiler::new(Path::new("./my_trace")).expect("must be able to create file");
-        Self { profiler }
+        Self {
+            profiler,
+            string_cache: RwLock::new(FxHashMap::default()),
+        }
     }
 
     /// Return the global instance of the profiler.
