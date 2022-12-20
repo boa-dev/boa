@@ -58,7 +58,7 @@ once_cell = "1.16.0"
 tap = "1.0.1"
 sptr = "0.3.2"
 static_assertions = "1.1.0"
-thiserror = "1.0.37"
+thiserror = "1.0.38"
 icu_locale_canonicalizer = { version = "0.6.0", features = ["serde"], optional = true }
 icu_locid = { version = "0.6.0", features = ["serde"], optional = true }
 icu_datetime = { version = "0.6.0", features = ["serde"], optional = true }
