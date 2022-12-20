@@ -24,7 +24,7 @@
 //! [boa-web]: https://boa-dev.github.io/
 //! [boa-playground]: https://boa-dev.github.io/boa/playground/
 
-#![cfg_attr(not(test), forbid(clippy::unwrap_used))]
+#![cfg_attr(not(any(test, feature = "profiler")), forbid(clippy::unwrap_used))]
 #![warn(missing_docs, clippy::dbg_macro)]
 #![deny(
     // rustc lint groups https://doc.rust-lang.org/rustc/lints/groups.html
@@ -128,7 +128,8 @@ impl Profiler {
             }
         }
         let mut cache = self.string_cache.write().unwrap();
-        match cache.entry(s.into()) {
+        let entry = cache.entry(s.into());
+        match entry {
             Entry::Occupied(entry) => *entry.get(),
             Entry::Vacant(entry) => {
                 let id = self.profiler.alloc_string(s);
