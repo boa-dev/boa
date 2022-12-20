@@ -362,28 +362,6 @@
 <span id="361">361</span>
 <span id="362">362</span>
 <span id="363">363</span>
-<span id="364">364</span>
-<span id="365">365</span>
-<span id="366">366</span>
-<span id="367">367</span>
-<span id="368">368</span>
-<span id="369">369</span>
-<span id="370">370</span>
-<span id="371">371</span>
-<span id="372">372</span>
-<span id="373">373</span>
-<span id="374">374</span>
-<span id="375">375</span>
-<span id="376">376</span>
-<span id="377">377</span>
-<span id="378">378</span>
-<span id="379">379</span>
-<span id="380">380</span>
-<span id="381">381</span>
-<span id="382">382</span>
-<span id="383">383</span>
-<span id="384">384</span>
-<span id="385">385</span>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     environments::runtime::BindingLocator, property::PropertyDescriptor, Context, JsString, JsValue,
 };
@@ -417,7 +395,6 @@
 
 <span class="kw">impl </span>CompileTimeEnvironment {
     <span class="doccomment">/// Crate a new global compile time environment.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new_global() -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             outer: <span class="prelude-val">None</span>,
@@ -428,7 +405,6 @@
     }
 
     <span class="doccomment">/// Check if environment has a lexical binding with the given name.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>has_lex_binding(<span class="kw-2">&amp;</span><span class="self">self</span>, name: Identifier) -&gt; bool {
         <span class="self">self</span>.bindings
             .get(<span class="kw-2">&amp;</span>name)
@@ -436,19 +412,16 @@
     }
 
     <span class="doccomment">/// Returns the number of bindings in this environment.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>num_bindings(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
         <span class="self">self</span>.bindings.len()
     }
 
     <span class="doccomment">/// Check if the environment is a function environment.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>is_function(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.function_scope
     }
 
     <span class="doccomment">/// Get the locator for a binding name.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_binding(<span class="kw-2">&amp;</span><span class="self">self</span>, name: Identifier) -&gt; <span class="prelude-ty">Option</span>&lt;BindingLocator&gt; {
         <span class="self">self</span>.bindings
             .get(<span class="kw-2">&amp;</span>name)
@@ -456,7 +429,6 @@
     }
 
     <span class="doccomment">/// Get the locator for a binding name in this and all outer environments.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_binding_recursive(<span class="kw-2">&amp;</span><span class="self">self</span>, name: Identifier) -&gt; BindingLocator {
         <span class="kw">if let </span><span class="prelude-val">Some</span>(binding) = <span class="self">self</span>.bindings.get(<span class="kw-2">&amp;</span>name) {
             BindingLocator::declarative(name, <span class="self">self</span>.environment_index, binding.index)
@@ -468,7 +440,6 @@
     }
 
     <span class="doccomment">/// Check if a binding name exists in this and all outer environments.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>has_binding_recursive(<span class="kw-2">&amp;</span><span class="self">self</span>, name: Identifier) -&gt; bool {
         <span class="kw">if </span><span class="self">self</span>.bindings.contains_key(<span class="kw-2">&amp;</span>name) {
             <span class="bool-val">true
@@ -482,7 +453,6 @@
     <span class="doccomment">/// Create a mutable binding.
     ///
     /// If the binding is a function scope binding and this is a declarative environment, try the outer environment.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>create_mutable_binding(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         name: Identifier,
@@ -528,7 +498,6 @@
     }
 
     <span class="doccomment">/// Crate an immutable binding.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>create_immutable_binding(<span class="kw-2">&amp;mut </span><span class="self">self</span>, name: Identifier, strict: bool) {
         <span class="kw">let </span>binding_index = <span class="self">self</span>.bindings.len();
         <span class="self">self</span>.bindings.insert(
@@ -543,7 +512,6 @@
     }
 
     <span class="doccomment">/// Return the binding locator for a mutable binding with the given binding name and scope.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>initialize_mutable_binding(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         name: Identifier,
@@ -575,14 +543,12 @@
     /// # Panics
     ///
     /// Panics if the binding is not in the current environment.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>initialize_immutable_binding(<span class="kw-2">&amp;</span><span class="self">self</span>, name: Identifier) -&gt; BindingLocator {
         <span class="kw">let </span>binding = <span class="self">self</span>.bindings.get(<span class="kw-2">&amp;</span>name).expect(<span class="string">&quot;binding must exist&quot;</span>);
         BindingLocator::declarative(name, <span class="self">self</span>.environment_index, binding.index)
     }
 
     <span class="doccomment">/// Return the binding locator for a mutable binding.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_mutable_binding_recursive(<span class="kw-2">&amp;</span><span class="self">self</span>, name: Identifier) -&gt; BindingLocator {
         <span class="kw">match </span><span class="self">self</span>.bindings.get(<span class="kw-2">&amp;</span>name) {
             <span class="prelude-val">Some</span>(binding) <span class="kw">if </span>binding.mutable =&gt; {
@@ -602,7 +568,6 @@
     <span class="doccomment">/// Push either a new declarative or function environment on the compile time environment stack.
     ///
     /// Note: This function only works at bytecode compile time!
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>push_compile_time_environment(<span class="kw-2">&amp;mut </span><span class="self">self</span>, function_scope: bool) {
         <span class="kw">let </span>environment_index = <span class="self">self</span>.realm.compile_env.borrow().environment_index + <span class="number">1</span>;
         <span class="kw">let </span>outer = <span class="self">self</span>.realm.compile_env.clone();
@@ -622,7 +587,6 @@
     /// # Panics
     ///
     /// Panics if there are no more environments that can be pop&#39;ed.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>pop_compile_time_environment(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
     ) -&gt; (usize, Gc&lt;GcCell&lt;CompileTimeEnvironment&gt;&gt;) {
@@ -646,7 +610,6 @@
     /// # Panics
     ///
     /// Panics if there are no environments on the compile time environment stack.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_binding_number(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
         <span class="self">self</span>.realm.compile_env.borrow().num_bindings()
     }
@@ -654,7 +617,6 @@
     <span class="doccomment">/// Get the binding locator of the binding at bytecode compile time.
     ///
     /// Note: This function only works at bytecode compile time!
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_binding_value(<span class="kw-2">&amp;</span><span class="self">self</span>, name: Identifier) -&gt; BindingLocator {
         <span class="self">self</span>.realm.compile_env.borrow().get_binding_recursive(name)
     }
@@ -663,7 +625,6 @@
     /// This does not include bindings on the global object.
     ///
     /// Note: This function only works at bytecode compile time!
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>has_binding(<span class="kw-2">&amp;</span><span class="self">self</span>, name: Identifier) -&gt; bool {
         <span class="self">self</span>.realm.compile_env.borrow().has_binding_recursive(name)
     }
@@ -676,7 +637,6 @@
     /// # Panics
     ///
     /// Panics if the global environment is not function scoped.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>create_mutable_binding(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         name: Identifier,
@@ -715,7 +675,6 @@
     <span class="doccomment">/// Initialize a mutable binding at bytecode compile time and return it&#39;s binding locator.
     ///
     /// Note: This function only works at bytecode compile time!
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>initialize_mutable_binding(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         name: Identifier,
@@ -735,7 +694,6 @@
     /// # Panics
     ///
     /// Panics if the global environment does not exist.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>create_immutable_binding(<span class="kw-2">&amp;mut </span><span class="self">self</span>, name: Identifier, strict: bool) {
         <span class="self">self</span>.realm
             .compile_env
@@ -750,7 +708,6 @@
     /// # Panics
     ///
     /// Panics if the global environment does not exist or a the binding was not created on the current environment.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>initialize_immutable_binding(<span class="kw-2">&amp;</span><span class="self">self</span>, name: Identifier) -&gt; BindingLocator {
         <span class="self">self</span>.realm
             .compile_env
@@ -761,7 +718,6 @@
     <span class="doccomment">/// Return the binding locator for a set operation on an existing binding.
     ///
     /// Note: This function only works at bytecode compile time!
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_mutable_binding(<span class="kw-2">&amp;</span><span class="self">self</span>, name: Identifier) -&gt; BindingLocator {
         <span class="self">self</span>.realm
             .compile_env

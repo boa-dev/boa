@@ -1182,13 +1182,6 @@
 <span id="1181">1181</span>
 <span id="1182">1182</span>
 <span id="1183">1183</span>
-<span id="1184">1184</span>
-<span id="1185">1185</span>
-<span id="1186">1186</span>
-<span id="1187">1187</span>
-<span id="1188">1188</span>
-<span id="1189">1189</span>
-<span id="1190">1190</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `Number` object.
 //!
 //! The `Number` ECMAScript object is a wrapper object allowing you to work with numerical values.
@@ -1721,7 +1714,6 @@
     }
 
     <span class="comment">// https://golang.org/src/math/nextafter.go
-    </span><span class="attribute">#[inline]
     </span><span class="kw">fn </span>next_after(x: f64, y: f64) -&gt; f64 {
         <span class="kw">if </span>x.is_nan() || y.is_nan() {
             f64::NAN
@@ -2276,7 +2268,6 @@
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-isinteger
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_integer(val: <span class="kw-2">&amp;</span>JsValue) -&gt; bool {
         <span class="kw">match </span>val {
             JsValue::Integer(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
@@ -2286,8 +2277,7 @@
     }
 
     <span class="doccomment">/// Checks if the float argument is an integer.
-    </span><span class="attribute">#[inline]
-    #[allow(clippy::float_cmp)]
+    </span><span class="attribute">#[allow(clippy::float_cmp)]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_float_integer(number: f64) -&gt; bool {
         number.is_finite() &amp;&amp; number.abs().floor() == number.abs()
     }
@@ -2296,8 +2286,7 @@
     /// x (a Number) and y (a Number). It performs the following steps when called:
     ///
     /// &lt;https://tc39.es/ecma262/#sec-numeric-types-number-equal&gt;
-    </span><span class="attribute">#[inline]
-    #[allow(clippy::float_cmp)]
+    </span><span class="attribute">#[allow(clippy::float_cmp)]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>equal(x: f64, y: f64) -&gt; bool {
         x == y
     }
@@ -2318,8 +2307,7 @@
     /// x (a Number) and y (a Number). It performs the following steps when called:
     ///
     /// &lt;https://tc39.es/ecma262/#sec-numeric-types-number-sameValueZero&gt;
-    </span><span class="attribute">#[inline]
-    #[allow(clippy::float_cmp)]
+    </span><span class="attribute">#[allow(clippy::float_cmp)]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>same_value_zero(x: f64, y: f64) -&gt; bool {
         <span class="kw">if </span>x.is_nan() &amp;&amp; y.is_nan() {
             <span class="kw">return </span><span class="bool-val">true</span>;
@@ -2328,8 +2316,7 @@
         x == y
     }
 
-    <span class="attribute">#[inline]
-    #[allow(clippy::float_cmp)]
+    <span class="attribute">#[allow(clippy::float_cmp)]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>less_than(x: f64, y: f64) -&gt; AbstractRelation {
         <span class="kw">if </span>x.is_nan() || y.is_nan() {
             <span class="kw">return </span>AbstractRelation::Undefined;
@@ -2352,8 +2339,7 @@
         (x &lt; y).into()
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>not(x: f64) -&gt; i32 {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>not(x: f64) -&gt; i32 {
         <span class="kw">let </span>x = f64_to_int32(x);
         !x
     }

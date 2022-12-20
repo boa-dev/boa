@@ -186,10 +186,6 @@
 <span id="185">185</span>
 <span id="186">186</span>
 <span id="187">187</span>
-<span id="188">188</span>
-<span id="189">189</span>
-<span id="190">190</span>
-<span id="191">191</span>
 </pre><pre class="rust"><code><span class="doccomment">//! A Rust API wrapper for the `Set` Builtin ECMAScript Object
 </span><span class="kw">use </span>std::ops::Deref;
 
@@ -232,7 +228,6 @@
     /// Returns the Set object with added value.
     ///
     /// Same as JavaScript&#39;s `set.add(value)`.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>add&lt;T&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, value: T, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt;
     <span class="kw">where
         </span>T: Into&lt;JsValue&gt;,
@@ -263,7 +258,6 @@
     /// successfully removed or not.
     ///
     /// Same as JavaScript&#39;s `set.delete(value)`.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>delete&lt;T&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, value: T, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;bool&gt;
     <span class="kw">where
         </span>T: Into&lt;JsValue&gt;,
@@ -279,7 +273,6 @@
     /// with the given value in the Set object or not.
     ///
     /// Same as JavaScript&#39;s `set.has(value)`.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>has&lt;T&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, value: T, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;bool&gt;
     <span class="kw">where
         </span>T: Into&lt;JsValue&gt;,
@@ -348,7 +341,6 @@
     }
 
     <span class="doccomment">/// Utility: Creates a `JsSet` from a `&lt;IntoIterator&lt;Item = JsValue&gt;` convertible object.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>from_iter&lt;I&gt;(elements: I, context: <span class="kw-2">&amp;mut </span>Context) -&gt; <span class="self">Self
     </span><span class="kw">where
         </span>I: IntoIterator&lt;Item = JsValue&gt;,

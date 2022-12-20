@@ -2385,7 +2385,7 @@
                 };
 
                 <span class="kw">for </span>arg <span class="kw">in </span>args.iter().rev() {
-                    context.vm.push(arg);
+                    context.vm.push(arg.clone());
                 }
 
                 <span class="kw">let </span>param_count = code.params.as_ref().len();
@@ -2505,7 +2505,7 @@
                 };
 
                 <span class="kw">for </span>arg <span class="kw">in </span>args.iter().rev() {
-                    context.vm.push(arg);
+                    context.vm.push(arg.clone());
                 }
 
                 <span class="kw">let </span>param_count = code.params.as_ref().len();
@@ -2998,7 +2998,7 @@
                 };
 
                 <span class="kw">for </span>arg <span class="kw">in </span>args.iter().rev() {
-                    context.vm.push(arg);
+                    context.vm.push(arg.clone());
                 }
 
                 <span class="kw">let </span>param_count = code.params.as_ref().len();

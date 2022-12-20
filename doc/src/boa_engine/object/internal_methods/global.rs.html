@@ -615,20 +615,6 @@
 <span id="614">614</span>
 <span id="615">615</span>
 <span id="616">616</span>
-<span id="617">617</span>
-<span id="618">618</span>
-<span id="619">619</span>
-<span id="620">620</span>
-<span id="621">621</span>
-<span id="622">622</span>
-<span id="623">623</span>
-<span id="624">624</span>
-<span id="625">625</span>
-<span id="626">626</span>
-<span id="627">627</span>
-<span id="628">628</span>
-<span id="629">629</span>
-<span id="630">630</span>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     object::{
         internal_methods::ordinary_get_prototype_of, InternalObjectMethods, JsObject, JsPrototype,
@@ -667,8 +653,7 @@
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-ordinarygetprototypeof
-</span><span class="attribute">#[inline]
-#[allow(clippy::unnecessary_wraps)]
+</span><span class="attribute">#[allow(clippy::unnecessary_wraps)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>global_get_prototype_of(
     <span class="kw">_</span>: <span class="kw-2">&amp;</span>JsObject,
     context: <span class="kw-2">&amp;mut </span>Context,
@@ -683,8 +668,7 @@
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-ordinarysetprototypeof
-</span><span class="attribute">#[inline]
-#[allow(clippy::unnecessary_wraps)]
+</span><span class="attribute">#[allow(clippy::unnecessary_wraps)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>global_set_prototype_of(
     <span class="kw">_</span>: <span class="kw-2">&amp;</span>JsObject,
     val: JsPrototype,
@@ -743,8 +727,7 @@
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-ordinarygetownproperty
-</span><span class="attribute">#[inline]
-#[allow(clippy::unnecessary_wraps)]
+</span><span class="attribute">#[allow(clippy::unnecessary_wraps)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>global_get_own_property(
     _obj: <span class="kw-2">&amp;</span>JsObject,
     key: <span class="kw-2">&amp;</span>PropertyKey,
@@ -774,8 +757,7 @@
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-ordinaryisextensible
-</span><span class="attribute">#[inline]
-#[allow(clippy::unnecessary_wraps)]
+</span><span class="attribute">#[allow(clippy::unnecessary_wraps)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>global_is_extensible(_obj: <span class="kw-2">&amp;</span>JsObject, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;bool&gt; {
     <span class="comment">// 1. Return O.[[Extensible]].
     </span><span class="prelude-val">Ok</span>(context.realm.global_extensible)
@@ -787,8 +769,7 @@
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-ordinarypreventextensions
-</span><span class="attribute">#[inline]
-#[allow(clippy::unnecessary_wraps)]
+</span><span class="attribute">#[allow(clippy::unnecessary_wraps)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>global_prevent_extensions(_obj: <span class="kw-2">&amp;</span>JsObject, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;bool&gt; {
     <span class="comment">// 1. Set O.[[Extensible]] to false.
     </span>context.realm.global_extensible = <span class="bool-val">false</span>;
@@ -803,8 +784,7 @@
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-ordinarydefineownproperty
-</span><span class="attribute">#[inline]
-#[allow(clippy::needless_pass_by_value)]
+</span><span class="attribute">#[allow(clippy::needless_pass_by_value)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>global_define_own_property(
     obj: <span class="kw-2">&amp;</span>JsObject,
     key: PropertyKey,
@@ -830,8 +810,7 @@
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-ordinaryhasproperty
-</span><span class="attribute">#[inline]
-#[allow(clippy::unnecessary_wraps)]
+</span><span class="attribute">#[allow(clippy::unnecessary_wraps)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>global_has_property(
     _obj: <span class="kw-2">&amp;</span>JsObject,
     key: <span class="kw-2">&amp;</span>PropertyKey,
@@ -860,8 +839,7 @@
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-ordinaryget
-</span><span class="attribute">#[inline]
-#[allow(clippy::needless_pass_by_value)]
+</span><span class="attribute">#[allow(clippy::needless_pass_by_value)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>global_get(
     obj: <span class="kw-2">&amp;</span>JsObject,
     key: <span class="kw-2">&amp;</span>PropertyKey,
@@ -907,8 +885,7 @@
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-ordinaryset
-</span><span class="attribute">#[inline]
-#[allow(clippy::needless_pass_by_value)]
+</span><span class="attribute">#[allow(clippy::needless_pass_by_value)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>global_set(
     _obj: <span class="kw-2">&amp;</span>JsObject,
     key: PropertyKey,
@@ -919,8 +896,7 @@
     global_set_no_receiver(<span class="kw-2">&amp;</span>key, value, context)
 }
 
-<span class="attribute">#[inline]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>global_set_no_receiver(
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>global_set_no_receiver(
     key: <span class="kw-2">&amp;</span>PropertyKey,
     value: JsValue,
     context: <span class="kw-2">&amp;mut </span>Context,
@@ -1017,8 +993,7 @@
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-ordinarydelete
-</span><span class="attribute">#[inline]
-#[allow(clippy::unnecessary_wraps, clippy::needless_pass_by_value)]
+</span><span class="attribute">#[allow(clippy::unnecessary_wraps, clippy::needless_pass_by_value)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>global_delete(
     _obj: <span class="kw-2">&amp;</span>JsObject,
     key: <span class="kw-2">&amp;</span>PropertyKey,
@@ -1033,8 +1008,7 @@
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-ordinarydelete
-</span><span class="attribute">#[inline]
-#[allow(clippy::unnecessary_wraps)]
+</span><span class="attribute">#[allow(clippy::unnecessary_wraps)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>global_delete_no_receiver(
     key: <span class="kw-2">&amp;</span>PropertyKey,
     context: <span class="kw-2">&amp;mut </span>Context,
@@ -1063,8 +1037,7 @@
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-ordinaryownpropertykeys
-</span><span class="attribute">#[inline]
-#[allow(clippy::unnecessary_wraps)]
+</span><span class="attribute">#[allow(clippy::unnecessary_wraps)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>global_own_property_keys(
     <span class="kw">_</span>: <span class="kw-2">&amp;</span>JsObject,
     context: <span class="kw-2">&amp;mut </span>Context,
@@ -1118,7 +1091,6 @@
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-validateandapplypropertydescriptor
-</span><span class="attribute">#[inline]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>validate_and_apply_property_descriptor(
     key: <span class="kw-2">&amp;</span>PropertyKey,
     extensible: bool,

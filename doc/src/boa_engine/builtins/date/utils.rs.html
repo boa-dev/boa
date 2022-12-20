@@ -198,7 +198,6 @@
 <span id="197">197</span>
 <span id="198">198</span>
 <span id="199">199</span>
-<span id="200">200</span>
 </pre><pre class="rust"><code><span class="kw">use </span>chrono::{Datelike, Local, NaiveDateTime, TimeZone, Timelike};
 
 <span class="kw">use </span><span class="kw">crate</span>::value::IntegerOrNan;
@@ -315,7 +314,6 @@
 /// Otherwise, returns `None`.
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-timeclip
-</span><span class="attribute">#[inline]
 </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>time_clip(time: i64) -&gt; <span class="prelude-ty">Option</span>&lt;i64&gt; {
     <span class="comment">// 1. If time is not finite, return NaN.
     // 2. If abs(ℝ(time)) &gt; 8.64 × 10^15, return NaN.

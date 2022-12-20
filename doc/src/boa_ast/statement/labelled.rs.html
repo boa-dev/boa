@@ -150,6 +150,9 @@
 <span id="149">149</span>
 <span id="150">150</span>
 <span id="151">151</span>
+<span id="152">152</span>
+<span id="153">153</span>
+<span id="154">154</span>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     function::Function,
     try_break,
@@ -243,7 +246,8 @@
 
 <span class="kw">impl </span>Labelled {
     <span class="doccomment">/// Creates a new `Labelled` statement.
-    </span><span class="attribute">#[must_use]
+    </span><span class="attribute">#[inline]
+    #[must_use]
     </span><span class="kw">pub fn </span>new(item: LabelledItem, label: Sym) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             item: Box::new(item),
@@ -252,13 +256,15 @@
     }
 
     <span class="doccomment">/// Gets the labelled item.
-    </span><span class="attribute">#[must_use]
+    </span><span class="attribute">#[inline]
+    #[must_use]
     </span><span class="kw">pub const fn </span>item(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>LabelledItem {
         <span class="kw-2">&amp;</span><span class="self">self</span>.item
     }
 
     <span class="doccomment">/// Gets the label name.
-    </span><span class="attribute">#[must_use]
+    </span><span class="attribute">#[inline]
+    #[must_use]
     </span><span class="kw">pub const fn </span>label(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Sym {
         <span class="self">self</span>.label
     }

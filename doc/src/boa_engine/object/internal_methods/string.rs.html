@@ -182,10 +182,6 @@
 <span id="181">181</span>
 <span id="182">182</span>
 <span id="183">183</span>
-<span id="184">184</span>
-<span id="185">185</span>
-<span id="186">186</span>
-<span id="187">187</span>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     js_string,
     object::JsObject,
@@ -214,7 +210,6 @@
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-string-exotic-objects-getownproperty-p
-</span><span class="attribute">#[inline]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>string_exotic_get_own_property(
     obj: <span class="kw-2">&amp;</span>JsObject,
     key: <span class="kw-2">&amp;</span>PropertyKey,
@@ -239,7 +234,6 @@
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-string-exotic-objects-defineownproperty-p-desc
-</span><span class="attribute">#[inline]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>string_exotic_define_own_property(
     obj: <span class="kw-2">&amp;</span>JsObject,
     key: PropertyKey,
@@ -272,8 +266,7 @@
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-string-exotic-objects-ownpropertykeys
-</span><span class="attribute">#[inline]
-#[allow(clippy::unnecessary_wraps)]
+</span><span class="attribute">#[allow(clippy::unnecessary_wraps)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>string_exotic_own_property_keys(
     obj: <span class="kw-2">&amp;</span>JsObject,
     _context: <span class="kw-2">&amp;mut </span>Context,
@@ -337,7 +330,6 @@
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-stringgetownproperty
 </span><span class="attribute">#[allow(clippy::float_cmp)]
-#[inline]
 </span><span class="kw">fn </span>string_get_own_property(obj: <span class="kw-2">&amp;</span>JsObject, key: <span class="kw-2">&amp;</span>PropertyKey) -&gt; <span class="prelude-ty">Option</span>&lt;PropertyDescriptor&gt; {
     <span class="comment">// 1. Assert: S is an Object that has a [[StringData]] internal slot.
     // 2. Assert: IsPropertyKey(P) is true.

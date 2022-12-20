@@ -432,13 +432,6 @@
 <span id="431">431</span>
 <span id="432">432</span>
 <span id="433">433</span>
-<span id="434">434</span>
-<span id="435">435</span>
-<span id="436">436</span>
-<span id="437">437</span>
-<span id="438">438</span>
-<span id="439">439</span>
-<span id="440">440</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s ECMAScript Virtual Machine
 //!
 //! The Virtual Machine (VM) handles generating instructions, then executing them.
@@ -484,7 +477,6 @@
 
 <span class="kw">impl </span>Vm {
     <span class="doccomment">/// Push a value on the stack.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>push&lt;T&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: T)
     <span class="kw">where
         </span>T: Into&lt;JsValue&gt;,
@@ -497,14 +489,12 @@
     /// # Panics
     ///
     /// If there is nothing to pop, then this will panic.
-    </span><span class="attribute">#[inline]
-    #[track_caller]
+    </span><span class="attribute">#[track_caller]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>pop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; JsValue {
         <span class="self">self</span>.stack.pop().expect(<span class="string">&quot;stack was empty&quot;</span>)
     }
 
     <span class="attribute">#[track_caller]
-    #[inline]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>read&lt;T: Readable&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; T {
         <span class="kw">let </span>value = <span class="self">self</span>.frame().code.read::&lt;T&gt;(<span class="self">self</span>.frame().pc);
         <span class="self">self</span>.frame_mut().pc += size_of::&lt;T&gt;();
@@ -516,7 +506,6 @@
     /// # Panics
     ///
     /// If there is no frame, then this will panic.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>frame(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>CallFrame {
         <span class="self">self</span>.frames.last().expect(<span class="string">&quot;no frame found&quot;</span>)
     }
@@ -526,18 +515,15 @@
     /// # Panics
     ///
     /// If there is no frame, then this will panic.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>frame_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>CallFrame {
         <span class="self">self</span>.frames.last_mut().expect(<span class="string">&quot;no frame found&quot;</span>)
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>push_frame(<span class="kw-2">&amp;mut </span><span class="self">self</span>, frame: CallFrame) {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>push_frame(<span class="kw-2">&amp;mut </span><span class="self">self</span>, frame: CallFrame) {
         <span class="self">self</span>.frames.push(frame);
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>pop_frame(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;CallFrame&gt; {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>pop_frame(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;CallFrame&gt; {
         <span class="self">self</span>.frames.pop()
     }
 }

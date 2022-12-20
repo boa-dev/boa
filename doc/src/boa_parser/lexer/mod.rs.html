@@ -340,11 +340,6 @@
 <span id="339">339</span>
 <span id="340">340</span>
 <span id="341">341</span>
-<span id="342">342</span>
-<span id="343">343</span>
-<span id="344">344</span>
-<span id="345">345</span>
-<span id="346">346</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s lexical analyzer(Lexer) for ECMAScript source code.
 //!
 //! The Lexer splits its input source code into a sequence of input elements called tokens,
@@ -436,31 +431,26 @@
     }
 
     <span class="doccomment">/// Sets the goal symbol for the lexer.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_goal(<span class="kw-2">&amp;mut </span><span class="self">self</span>, elm: InputElement) {
         <span class="self">self</span>.goal_symbol = elm;
     }
 
     <span class="doccomment">/// Gets the goal symbol the lexer is currently using.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>get_goal(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; InputElement {
         <span class="self">self</span>.goal_symbol
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="doccomment">/// Returns if strict mode is currently active.
+    <span class="doccomment">/// Returns if strict mode is currently active.
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">const fn </span>strict_mode(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.cursor.strict_mode()
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="doccomment">/// Sets the current strict mode.
+    <span class="doccomment">/// Sets the current strict mode.
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>set_strict_mode(<span class="kw-2">&amp;mut </span><span class="self">self</span>, strict_mode: bool) {
         <span class="self">self</span>.cursor.set_strict_mode(strict_mode);
     }
 
     <span class="doccomment">/// Creates a new lexer.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>new(reader: R) -&gt; <span class="self">Self
     </span><span class="kw">where
         </span>R: Read,

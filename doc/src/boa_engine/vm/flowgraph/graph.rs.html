@@ -308,10 +308,6 @@
 <span id="307">307</span>
 <span id="308">308</span>
 <span id="309">309</span>
-<span id="310">310</span>
-<span id="311">311</span>
-<span id="312">312</span>
-<span id="313">313</span>
 </pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::vm::flowgraph::{Color, Edge, EdgeStyle, EdgeType, Node, NodeShape};
 
 <span class="doccomment">/// This represents the direction of flow in the flowgraph.
@@ -408,7 +404,6 @@
     }
 
     <span class="doccomment">/// Format into the graphviz format.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">fn </span>graphviz_format(<span class="kw-2">&amp;</span><span class="self">self</span>, result: <span class="kw-2">&amp;mut </span>String, prefix: <span class="kw-2">&amp;</span>str) {
         result.push_str(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;\tsubgraph cluster_{prefix}_{} {{\n&quot;</span>, <span class="self">self</span>.label));
         result.push_str(<span class="string">&quot;\t\tstyle = filled;\n&quot;</span>);
@@ -472,7 +467,6 @@
     }
 
     <span class="doccomment">/// Format into the mermaid format.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">fn </span>mermaid_format(<span class="kw-2">&amp;</span><span class="self">self</span>, result: <span class="kw-2">&amp;mut </span>String, prefix: <span class="kw-2">&amp;</span>str) {
         <span class="kw">let </span>rankdir = <span class="kw">match </span><span class="self">self</span>.direction {
             Direction::TopToBottom =&gt; <span class="string">&quot;TB&quot;</span>,
@@ -583,8 +577,7 @@
     }
 
     <span class="doccomment">/// Output the graph into the graphviz format.
-    </span><span class="attribute">#[inline]
-    #[must_use]
+    </span><span class="attribute">#[must_use]
     </span><span class="kw">pub fn </span>to_graphviz_format(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; String {
         <span class="kw">let </span><span class="kw-2">mut </span>result = String::new();
         result += <span class="string">&quot;digraph {\n&quot;</span>;
@@ -606,8 +599,7 @@
     }
 
     <span class="doccomment">/// Output the graph into the mermaid format.
-    </span><span class="attribute">#[inline]
-    #[must_use]
+    </span><span class="attribute">#[must_use]
     </span><span class="kw">pub fn </span>to_mermaid_format(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; String {
         <span class="kw">let </span><span class="kw-2">mut </span>result = String::new();
         <span class="kw">let </span>rankdir = <span class="kw">match </span><span class="self">self</span>.direction {

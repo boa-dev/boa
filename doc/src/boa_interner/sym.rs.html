@@ -203,8 +203,6 @@
 <span id="202">202</span>
 <span id="203">203</span>
 <span id="204">204</span>
-<span id="205">205</span>
-<span id="206">206</span>
 </pre><pre class="rust"><code><span class="kw">use </span>boa_macros::utf16;
 <span class="kw">use </span>indexmap::IndexSet;
 <span class="kw">use </span>once_cell::sync::Lazy;
@@ -318,7 +316,6 @@
     </span><span class="kw">pub const </span>NAME: <span class="self">Self </span>= <span class="kw">unsafe </span>{ <span class="self">Self</span>::new_unchecked(<span class="number">30</span>) };
 
     <span class="doccomment">/// Creates a new [`Sym`] from the provided `value`, or returns `None` if `index` is zero.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new(value: usize) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
         NonZeroUsize::new(value).map(|value| <span class="self">Self </span>{ value })
     }
@@ -328,7 +325,6 @@
     /// # Safety
     ///
     /// `value` must not be zero.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">const unsafe fn </span>new_unchecked(value: usize) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             value:

@@ -41,7 +41,7 @@
     <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;ShouldExit&gt; {
         <span class="kw">let </span>value = context.vm.pop();
         <span class="kw">let </span>value = value.require_object_coercible()<span class="question-mark">?</span>;
-        context.vm.push(value);
+        context.vm.push(value.clone());
         <span class="prelude-val">Ok</span>(ShouldExit::False)
     }
 }

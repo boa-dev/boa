@@ -163,7 +163,7 @@
                 context.vm.push_frame(frame.clone());
 
                 context.vm.frame_mut().generator_resume_kind = GeneratorResumeKind::Normal;
-                context.vm.push(args.get_or_undefined(<span class="number">0</span>));
+                context.vm.push(args.get_or_undefined(<span class="number">0</span>).clone());
                 context.run()<span class="question-mark">?</span>;
 
                 <span class="kw-2">*</span>frame = context
@@ -202,7 +202,7 @@
                 context.vm.push_frame(frame.clone());
 
                 context.vm.frame_mut().generator_resume_kind = GeneratorResumeKind::Throw;
-                context.vm.push(args.get_or_undefined(<span class="number">0</span>));
+                context.vm.push(args.get_or_undefined(<span class="number">0</span>).clone());
                 context.run()<span class="question-mark">?</span>;
 
                 <span class="kw-2">*</span>frame = context

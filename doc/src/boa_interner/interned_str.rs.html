@@ -79,8 +79,6 @@
 <span id="78">78</span>
 <span id="79">79</span>
 <span id="80">80</span>
-<span id="81">81</span>
-<span id="82">82</span>
 </pre><pre class="rust"><code><span class="kw">use </span>std::{hash::Hash, ptr::NonNull};
 
 <span class="doccomment">/// Wrapper for an interned str pointer, required to
@@ -109,7 +107,6 @@
     ///
     /// Not maintaining the invariants specified on the struct definition
     /// could cause Undefined Behaviour.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">const unsafe fn </span>new(ptr: NonNull&lt;[Char]&gt;) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{ ptr }
     }
@@ -120,7 +117,6 @@
     ///
     /// Not maintaining the invariants specified on the struct definition
     /// could cause Undefined Behaviour.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">unsafe fn </span>as_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[Char] {
         <span class="comment">// SAFETY:
         // The caller must ensure `ptr` is still valid throughout the

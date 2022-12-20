@@ -97,8 +97,6 @@
 <span id="96">96</span>
 <span id="97">97</span>
 <span id="98">98</span>
-<span id="99">99</span>
-<span id="100">100</span>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{object::JsObject, Context, JsResult, JsValue};
 
 <span class="kw">use super</span>::{InternalObjectMethods, ORDINARY_INTERNAL_METHODS};
@@ -129,7 +127,6 @@
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-bound-function-exotic-objects-call-thisargument-argumentslist
 </span><span class="attribute">#[track_caller]
-#[inline]
 </span><span class="kw">fn </span>bound_function_exotic_call(
     obj: <span class="kw-2">&amp;</span>JsObject,
     <span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue,
@@ -165,7 +162,6 @@
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-bound-function-exotic-objects-construct-argumentslist-newtarget
 </span><span class="attribute">#[track_caller]
-#[inline]
 </span><span class="kw">fn </span>bound_function_exotic_construct(
     obj: <span class="kw-2">&amp;</span>JsObject,
     arguments_list: <span class="kw-2">&amp;</span>[JsValue],

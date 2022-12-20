@@ -318,28 +318,6 @@
 <span id="317">317</span>
 <span id="318">318</span>
 <span id="319">319</span>
-<span id="320">320</span>
-<span id="321">321</span>
-<span id="322">322</span>
-<span id="323">323</span>
-<span id="324">324</span>
-<span id="325">325</span>
-<span id="326">326</span>
-<span id="327">327</span>
-<span id="328">328</span>
-<span id="329">329</span>
-<span id="330">330</span>
-<span id="331">331</span>
-<span id="332">332</span>
-<span id="333">333</span>
-<span id="334">334</span>
-<span id="335">335</span>
-<span id="336">336</span>
-<span id="337">337</span>
-<span id="338">338</span>
-<span id="339">339</span>
-<span id="340">340</span>
-<span id="341">341</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Cursor implementation for the parser.
 </span><span class="kw">mod </span>buffered_lexer;
 
@@ -383,7 +361,6 @@
     </span>R: Read,
 {
     <span class="doccomment">/// Creates a new cursor with the given reader.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new(reader: R) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             buffered_lexer: Lexer::new(reader).into(),
@@ -393,13 +370,11 @@
         }
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>set_goal(<span class="kw-2">&amp;mut </span><span class="self">self</span>, elm: InputElement) {
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>set_goal(<span class="kw-2">&amp;mut </span><span class="self">self</span>, elm: InputElement) {
         <span class="self">self</span>.buffered_lexer.set_goal(elm);
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>lex_regex(
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>lex_regex(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         start: Position,
         interner: <span class="kw-2">&amp;mut </span>Interner,
@@ -407,8 +382,7 @@
         <span class="self">self</span>.buffered_lexer.lex_regex(start, interner)
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>lex_template(
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>lex_template(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         start: Position,
         interner: <span class="kw-2">&amp;mut </span>Interner,
@@ -417,7 +391,6 @@
     }
 
     <span class="doccomment">/// Advances the cursor and returns the next token.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>, interner: <span class="kw-2">&amp;mut </span>Interner) -&gt; ParseResult&lt;<span class="prelude-ty">Option</span>&lt;Token&gt;&gt; {
         <span class="self">self</span>.buffered_lexer.next(<span class="bool-val">true</span>, interner)
     }
@@ -427,8 +400,7 @@
     /// # Panics
     ///
     /// This function will panic if there is no further token in the cursor.
-    </span><span class="attribute">#[inline]
-    #[track_caller]
+    </span><span class="attribute">#[track_caller]
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>advance(<span class="kw-2">&amp;mut </span><span class="self">self</span>, interner: <span class="kw-2">&amp;mut </span>Interner) {
         <span class="self">self</span>.next(interner)
             .expect(<span class="string">&quot;tried to advance cursor, but the buffer was empty&quot;</span>);
@@ -437,7 +409,6 @@
     <span class="doccomment">/// Peeks a future token, without consuming it or advancing the cursor.
     ///
     /// You can skip some tokens with the `skip_n` option.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>peek(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         skip_n: usize,
@@ -447,50 +418,42 @@
     }
 
     <span class="doccomment">/// Gets the current strict mode for the cursor.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">const fn </span>strict_mode(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.buffered_lexer.strict_mode()
     }
 
     <span class="doccomment">/// Sets the strict mode to strict or non-strict.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>set_strict_mode(<span class="kw-2">&amp;mut </span><span class="self">self</span>, strict_mode: bool) {
         <span class="self">self</span>.buffered_lexer.set_strict_mode(strict_mode);
     }
 
     <span class="doccomment">/// Returns if the cursor is currently in an arrow function declaration.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">const fn </span>arrow(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.arrow
     }
 
     <span class="doccomment">/// Set if the cursor is currently in a arrow function declaration.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>set_arrow(<span class="kw-2">&amp;mut </span><span class="self">self</span>, arrow: bool) {
         <span class="self">self</span>.arrow = arrow;
     }
 
     <span class="doccomment">/// Returns if the cursor is currently used in `JSON.parse`.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">const fn </span>json_parse(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.json_parse
     }
 
     <span class="doccomment">/// Set if the cursor is currently used in `JSON.parse`.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>set_json_parse(<span class="kw-2">&amp;mut </span><span class="self">self</span>, json_parse: bool) {
         <span class="self">self</span>.json_parse = json_parse;
     }
 
     <span class="doccomment">/// Push a new private environment.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>push_private_environment(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="kw">let </span>new = FxHashMap::default();
         <span class="self">self</span>.private_environments_stack.push(new);
     }
 
     <span class="doccomment">/// Push a used private identifier.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>push_used_private_identifier(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         identifier: Sym,
@@ -514,7 +477,6 @@
     ///
     /// This function takes the private element names of the current class.
     /// If a used private identifier is not declared, this throws a syntax error.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>pop_private_environment(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         identifiers: <span class="kw-2">&amp;</span>FxHashMap&lt;Sym, PrivateElement&gt;,
@@ -539,7 +501,6 @@
     }
 
     <span class="doccomment">/// Returns an error if the next token is not of kind `kind`.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>expect&lt;K&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         kind: K,
@@ -569,7 +530,6 @@
     /// It will automatically insert a semicolon if needed, as specified in the [spec][spec].
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-automatic-semicolon-insertion
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>peek_semicolon(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         interner: <span class="kw-2">&amp;mut </span>Interner,
@@ -589,7 +549,6 @@
     /// It will automatically insert a semicolon if needed, as specified in the [spec][spec].
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-automatic-semicolon-insertion
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>expect_semicolon(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
@@ -619,7 +578,6 @@
     ///
     /// This is just syntatic sugar for a `.peek(skip_n)` call followed by a check that the result
     /// is not a line terminator or `None`.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>peek_expect_no_lineterminator(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         skip_n: usize,
@@ -643,7 +601,6 @@
     }
 
     <span class="doccomment">/// Check if the peeked token is a line terminator.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>peek_is_line_terminator(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         skip_n: usize,
@@ -661,7 +618,6 @@
     /// When the next token is a `kind` token, get the token, otherwise return `None`.
     ///
     /// No next token also returns None.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>next_if&lt;K&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         kind: K,

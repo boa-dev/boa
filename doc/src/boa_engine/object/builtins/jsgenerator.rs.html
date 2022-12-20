@@ -100,9 +100,6 @@
 <span id="99">99</span>
 <span id="100">100</span>
 <span id="101">101</span>
-<span id="102">102</span>
-<span id="103">103</span>
-<span id="104">104</span>
 </pre><pre class="rust"><code><span class="doccomment">//! A Rust API wrapper for Boa&#39;s `Generator` Builtin ECMAScript Object
 </span><span class="kw">use crate</span>::{
     builtins::generator::{Generator, GeneratorState},
@@ -151,7 +148,6 @@
     <span class="doccomment">/// Calls `Generator.prototype.next()`
     ///
     /// This method returns an object with the properties `done` and `value`
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>next&lt;T&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, value: T, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt;
     <span class="kw">where
         </span>T: Into&lt;JsValue&gt;,
@@ -162,7 +158,6 @@
     <span class="doccomment">/// Calls `Generator.prototype.return()`
     ///
     /// This method returns the given value and finishes the generator
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>r#return&lt;T&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, value: T, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt;
     <span class="kw">where
         </span>T: Into&lt;JsValue&gt;,
@@ -174,7 +169,6 @@
     ///
     /// This method resumes the execution of a generator by throwing an error and returning an
     /// an object with the properties `done` and `value`
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>throw&lt;T&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, value: T, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt;
     <span class="kw">where
         </span>T: Into&lt;JsValue&gt;,

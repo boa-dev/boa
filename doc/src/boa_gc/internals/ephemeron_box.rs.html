@@ -114,20 +114,6 @@
 <span id="113">113</span>
 <span id="114">114</span>
 <span id="115">115</span>
-<span id="116">116</span>
-<span id="117">117</span>
-<span id="118">118</span>
-<span id="119">119</span>
-<span id="120">120</span>
-<span id="121">121</span>
-<span id="122">122</span>
-<span id="123">123</span>
-<span id="124">124</span>
-<span id="125">125</span>
-<span id="126">126</span>
-<span id="127">127</span>
-<span id="128">128</span>
-<span id="129">129</span>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{finalizer_safe, trace::Trace, Finalize, Gc, GcBox};
 <span class="kw">use </span>std::{cell::Cell, ptr::NonNull};
 
@@ -148,7 +134,6 @@
 
 <span class="kw">impl</span>&lt;K: Trace + <span class="question-mark">?</span>Sized, V: Trace + <span class="question-mark">?</span>Sized&gt; EphemeronBox&lt;K, V&gt; {
     <span class="doccomment">/// Checks if the key pointer is marked by Trace
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_marked(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.inner_key().map_or(<span class="bool-val">false</span>, GcBox::is_marked)
     }
@@ -156,14 +141,12 @@
     <span class="doccomment">/// Returns some pointer to the `key`&#39;s `GcBox` or None
     /// # Panics
     /// This method will panic if called while the garbage collector is dropping.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>inner_key_ptr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">*mut </span>GcBox&lt;K&gt;&gt; {
         <span class="macro">assert!</span>(finalizer_safe());
         <span class="self">self</span>.key.get().map(NonNull::as_ptr)
     }
 
     <span class="doccomment">/// Returns some reference to `key`&#39;s `GcBox` or None
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>inner_key(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>GcBox&lt;K&gt;&gt; {
         <span class="comment">// SAFETY: This is safe as `EphemeronBox::inner_key_ptr()` will
         // fetch either a live `GcBox` or None. The value of `key` is set
@@ -173,19 +156,16 @@
     }
 
     <span class="doccomment">/// Returns a reference to the value of `key`&#39;s `GcBox`
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>key(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>K&gt; {
         <span class="self">self</span>.inner_key().map(GcBox::value)
     }
 
     <span class="doccomment">/// Returns a reference to `value`
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>value(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>V {
         <span class="kw-2">&amp;</span><span class="self">self</span>.value
     }
 
     <span class="doccomment">/// Calls [`Trace::weak_trace()`][crate::Trace] on key
-    </span><span class="attribute">#[inline]
     </span><span class="kw">fn </span>weak_trace_key(<span class="kw-2">&amp;</span><span class="self">self</span>) {
         <span class="kw">if let </span><span class="prelude-val">Some</span>(key) = <span class="self">self</span>.inner_key() {
             key.weak_trace_inner();
@@ -193,7 +173,6 @@
     }
 
     <span class="doccomment">/// Calls [`Trace::weak_trace()`][crate::Trace] on value
-    </span><span class="attribute">#[inline]
     </span><span class="kw">fn </span>weak_trace_value(<span class="kw-2">&amp;</span><span class="self">self</span>) {
         <span class="comment">// SAFETY: Value is a sized element that must implement trace. The
         // operation is safe as EphemeronBox owns value and `Trace::weak_trace`
@@ -208,8 +187,7 @@
 // and therefore so has the `GcBox` that `key`stores the pointer to, then we set `key`
 // to None to guarantee that we do not access freed memory.
 </span><span class="kw">impl</span>&lt;K: Trace + <span class="question-mark">?</span>Sized, V: Trace + <span class="question-mark">?</span>Sized&gt; Finalize <span class="kw">for </span>EphemeronBox&lt;K, V&gt; {
-    <span class="attribute">#[inline]
-    </span><span class="kw">fn </span>finalize(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+    <span class="kw">fn </span>finalize(<span class="kw-2">&amp;</span><span class="self">self</span>) {
         <span class="self">self</span>.key.set(<span class="prelude-val">None</span>);
     }
 }
@@ -218,20 +196,17 @@
 // to determine whether the key field is stored and `Trace::weak_trace` which continues the `Trace::weak_trace()`
 // into `key` and `value`.
 </span><span class="kw">unsafe impl</span>&lt;K: Trace + <span class="question-mark">?</span>Sized, V: Trace + <span class="question-mark">?</span>Sized&gt; Trace <span class="kw">for </span>EphemeronBox&lt;K, V&gt; {
-    <span class="attribute">#[inline]
-    </span><span class="kw">unsafe fn </span>trace(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+    <span class="kw">unsafe fn </span>trace(<span class="kw-2">&amp;</span><span class="self">self</span>) {
         <span class="comment">/* An ephemeron is never traced with Phase One Trace */
     </span>}
 
     <span class="doccomment">/// Checks if the `key`&#39;s `GcBox` has been marked by `Trace::trace()` or `Trace::weak_trace`.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">fn </span>is_marked_ephemeron(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.is_marked()
     }
 
     <span class="doccomment">/// Checks if this `EphemeronBox` has already been determined reachable. If so, continue to trace
     /// value in `key` and `value`.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">unsafe fn </span>weak_trace(<span class="kw-2">&amp;</span><span class="self">self</span>) {
         <span class="kw">if </span><span class="self">self</span>.is_marked() {
             <span class="self">self</span>.weak_trace_key();
@@ -240,11 +215,9 @@
     }
 
     <span class="comment">// EphemeronBox does not implement root.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">unsafe fn </span>root(<span class="kw-2">&amp;</span><span class="self">self</span>) {}
 
     <span class="comment">// EphemeronBox does not implement unroot
-    </span><span class="attribute">#[inline]
     </span><span class="kw">unsafe fn </span>unroot(<span class="kw-2">&amp;</span><span class="self">self</span>) {}
 
     <span class="comment">// An `EphemeronBox`&#39;s key is set to None once it has been finalized.
@@ -252,7 +225,6 @@
     // NOTE: while it is possible for the `key`&#39;s pointer value to be
     // resurrected, we should still consider the finalize the ephemeron
     // box and set the `key` to None.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">fn </span>run_finalizer(<span class="kw-2">&amp;</span><span class="self">self</span>) {
         Finalize::finalize(<span class="self">self</span>);
     }

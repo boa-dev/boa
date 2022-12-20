@@ -79,7 +79,7 @@
             <span class="kw">let </span>object_borrow_mut = object.borrow();
             <span class="kw">if let </span><span class="prelude-val">Some</span>(element) = object_borrow_mut.get_private_element(name.sym()) {
                 <span class="kw">match </span>element {
-                    PrivateElement::Field(value) =&gt; context.vm.push(value),
+                    PrivateElement::Field(value) =&gt; context.vm.push(value.clone()),
                     PrivateElement::Method(method) =&gt; context.vm.push(method.clone()),
                     PrivateElement::Accessor {
                         getter: <span class="prelude-val">Some</span>(getter),

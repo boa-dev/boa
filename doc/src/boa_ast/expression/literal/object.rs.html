@@ -325,7 +325,6 @@
 <span id="324">324</span>
 <span id="325">325</span>
 <span id="326">326</span>
-<span id="327">327</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Object Expression.
 
 </span><span class="kw">use crate</span>::{
@@ -617,8 +616,7 @@
 <span class="kw">where
     </span>T: Into&lt;Box&lt;[PropertyDefinition]&gt;&gt;,
 {
-    <span class="attribute">#[inline]
-    </span><span class="kw">fn </span>from(props: T) -&gt; <span class="self">Self </span>{
+    <span class="kw">fn </span>from(props: T) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             properties: props.into(),
         }

@@ -2305,8 +2305,6 @@
 <span id="2304">2304</span>
 <span id="2305">2305</span>
 <span id="2306">2306</span>
-<span id="2307">2307</span>
-<span id="2308">2308</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `String` object.
 //!
 //! The `String` global object is a constructor for strings or a sequence of characters.
@@ -2349,7 +2347,6 @@
 }
 
 <span class="doccomment">/// Helper function to check if a `char` is trimmable.
-</span><span class="attribute">#[inline]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>is_trimmable_whitespace(c: char) -&gt; bool {
     <span class="comment">// The rust implementation of `trim` does not regard the same characters whitespace as ecma standard does
     //
@@ -2692,7 +2689,6 @@
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.tostring
     </span><span class="attribute">#[allow(clippy::wrong_self_convention)]
-    #[inline]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>to_string(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Return ? thisStringValue(this value).
         </span><span class="prelude-val">Ok</span>(<span class="self">Self</span>::this_string_value(this)<span class="question-mark">?</span>.into())
@@ -3359,7 +3355,7 @@
             <span class="comment">// d. If replacer is not undefined, then
             </span><span class="kw">if let </span><span class="prelude-val">Some</span>(replacer) = replacer {
                 <span class="comment">// i. Return ? Call(replacer, searchValue, « O, replaceValue »).
-                </span><span class="kw">return </span>replacer.call(search_value, <span class="kw-2">&amp;</span>[o.into(), replace_value.clone()], context);
+                </span><span class="kw">return </span>replacer.call(search_value, <span class="kw-2">&amp;</span>[o.clone(), replace_value.clone()], context);
             }
         }
 

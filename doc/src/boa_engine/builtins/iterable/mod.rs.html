@@ -576,16 +576,6 @@
 <span id="575">575</span>
 <span id="576">576</span>
 <span id="577">577</span>
-<span id="578">578</span>
-<span id="579">579</span>
-<span id="580">580</span>
-<span id="581">581</span>
-<span id="582">582</span>
-<span id="583">583</span>
-<span id="584">584</span>
-<span id="585">585</span>
-<span id="586">586</span>
-<span id="587">587</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s `IteratorRecord` and iterator prototype objects.
 
 </span><span class="kw">mod </span>async_from_sync_iterator;
@@ -719,7 +709,6 @@
 <span class="doccomment">/// `CreateIterResultObject( value, done )`
 ///
 /// Generates an object supporting the `IteratorResult` interface.
-</span><span class="attribute">#[inline]
 </span><span class="kw">pub fn </span>create_iter_result_object(value: JsValue, done: bool, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsValue {
     <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;create_iter_result_object&quot;</span>, <span class="string">&quot;init&quot;</span>);
 
@@ -754,7 +743,6 @@
     ///  - [ECMA reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-getiterator
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>get_iterator(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         context: <span class="kw-2">&amp;mut </span>Context,
@@ -823,7 +811,6 @@
 ///  - [ECMA reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-%iteratorprototype%-object
-</span><span class="attribute">#[inline]
 </span><span class="kw">fn </span>create_iterator_prototype(context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsObject {
     <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Iterator Prototype&quot;</span>, <span class="string">&quot;init&quot;</span>);
 
@@ -921,25 +908,21 @@
     }
 
     <span class="doccomment">/// Get the `[[Iterator]]` field of the `IteratorRecord`.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>iterator(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>JsObject {
         <span class="kw-2">&amp;</span><span class="self">self</span>.iterator
     }
 
     <span class="doccomment">/// Get the `[[NextMethod]]` field of the `IteratorRecord`.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>next_method(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>JsValue {
         <span class="kw-2">&amp;</span><span class="self">self</span>.next_method
     }
 
     <span class="doccomment">/// Get the `[[Done]]` field of the `IteratorRecord`.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>done(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.done
     }
 
     <span class="doccomment">/// Sets the `[[Done]]` field of the `IteratorRecord`.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_done(<span class="kw-2">&amp;mut </span><span class="self">self</span>, done: bool) {
         <span class="self">self</span>.done = done;
     }
@@ -954,7 +937,6 @@
     ///  - [ECMA reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-iteratornext
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>next(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         value: <span class="prelude-ty">Option</span>&lt;JsValue&gt;,
@@ -1031,7 +1013,6 @@
     ///  - [ECMA reference][spec]
     ///
     ///  [spec]: https://tc39.es/ecma262/#sec-iteratorclose
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>close(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         completion: JsResult&lt;JsValue&gt;,
@@ -1159,7 +1140,6 @@
 ///  - [ECMA reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-asynciteratorprototype
-</span><span class="attribute">#[inline]
 </span><span class="kw">fn </span>create_async_iterator_prototype(context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsObject {
     <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;AsyncIteratorPrototype&quot;</span>, <span class="string">&quot;init&quot;</span>);
 

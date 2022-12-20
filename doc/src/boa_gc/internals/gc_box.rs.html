@@ -184,21 +184,6 @@
 <span id="183">183</span>
 <span id="184">184</span>
 <span id="185">185</span>
-<span id="186">186</span>
-<span id="187">187</span>
-<span id="188">188</span>
-<span id="189">189</span>
-<span id="190">190</span>
-<span id="191">191</span>
-<span id="192">192</span>
-<span id="193">193</span>
-<span id="194">194</span>
-<span id="195">195</span>
-<span id="196">196</span>
-<span id="197">197</span>
-<span id="198">198</span>
-<span id="199">199</span>
-<span id="200">200</span>
 </pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::Trace;
 <span class="kw">use </span>std::{
     cell::Cell,
@@ -229,7 +214,6 @@
 
 <span class="kw">impl </span>GcBoxHeader {
     <span class="doccomment">/// Creates a new `GcBoxHeader` with a root of 1 and next set to None.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new() -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             roots: Cell::new(<span class="number">1</span>),
@@ -238,7 +222,6 @@
     }
 
     <span class="doccomment">/// Creates a new `GcBoxHeader` with the Weak bit at 1 and roots of 1.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new_weak() -&gt; <span class="self">Self </span>{
         <span class="comment">// Set weak_flag
         </span><span class="self">Self </span>{
@@ -248,13 +231,11 @@
     }
 
     <span class="doccomment">/// Returns the `GcBoxHeader`&#39;s current root count
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>roots(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
         <span class="self">self</span>.roots.get() &amp; ROOTS_MASK
     }
 
     <span class="doccomment">/// Increments `GcBoxHeader`&#39;s root count.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>inc_roots(<span class="kw-2">&amp;</span><span class="self">self</span>) {
         <span class="kw">let </span>roots = <span class="self">self</span>.roots.get();
 
@@ -267,7 +248,6 @@
     }
 
     <span class="doccomment">/// Decreases `GcBoxHeader`&#39;s current root count.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>dec_roots(<span class="kw-2">&amp;</span><span class="self">self</span>) {
         <span class="comment">// Underflow check as a stop gap for current issue when dropping.
         </span><span class="kw">if </span><span class="self">self</span>.roots.get() &gt; <span class="number">0 </span>{
@@ -276,25 +256,21 @@
     }
 
     <span class="doccomment">/// Returns a bool for whether `GcBoxHeader`&#39;s mark bit is 1.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_marked(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.roots.get() &amp; MARK_MASK != <span class="number">0
     </span>}
 
     <span class="doccomment">/// Sets `GcBoxHeader`&#39;s mark bit to 1.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>mark(<span class="kw-2">&amp;</span><span class="self">self</span>) {
         <span class="self">self</span>.roots.set(<span class="self">self</span>.roots.get() | MARK_MASK);
     }
 
     <span class="doccomment">/// Sets `GcBoxHeader`&#39;s mark bit to 0.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>unmark(<span class="kw-2">&amp;</span><span class="self">self</span>) {
         <span class="self">self</span>.roots.set(<span class="self">self</span>.roots.get() &amp; !MARK_MASK);
     }
 
     <span class="doccomment">/// Returns a bool for whether the `GcBoxHeader`&#39;s weak bit is 1.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_ephemeron(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.roots.get() &amp; WEAK_MASK != <span class="number">0
     </span>}
@@ -344,7 +320,6 @@
     }
 
     <span class="doccomment">/// Marks this `GcBox` and marks through its data.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">unsafe fn </span>trace_inner(<span class="kw-2">&amp;</span><span class="self">self</span>) {
         <span class="kw">if </span>!<span class="self">self</span>.header.is_marked() &amp;&amp; !<span class="self">self</span>.header.is_ephemeron() {
             <span class="self">self</span>.header.mark();
@@ -359,7 +334,6 @@
     }
 
     <span class="doccomment">/// Trace inner data and search for ephemerons to add to the ephemeron queue.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>weak_trace_inner(<span class="kw-2">&amp;</span><span class="self">self</span>) {
         <span class="kw">if </span>!<span class="self">self</span>.header.is_marked() &amp;&amp; !<span class="self">self</span>.header.is_ephemeron() {
             <span class="self">self</span>.header.mark();
@@ -374,7 +348,6 @@
     <span class="doccomment">/// Increases the root count on this `GcBox`.
     ///
     /// Roots prevent the `GcBox` from being destroyed by the garbage collector.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>root_inner(<span class="kw-2">&amp;</span><span class="self">self</span>) {
         <span class="self">self</span>.header.inc_roots();
     }
@@ -382,19 +355,16 @@
     <span class="doccomment">/// Decreases the root count on this `GcBox`.
     ///
     /// Roots prevent the `GcBox` from being destroyed by the garbage collector.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>unroot_inner(<span class="kw-2">&amp;</span><span class="self">self</span>) {
         <span class="self">self</span>.header.dec_roots();
     }
 
     <span class="doccomment">/// Returns a reference to the `GcBox`&#39;s value.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>value(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>T {
         <span class="kw-2">&amp;</span><span class="self">self</span>.value
     }
 
     <span class="doccomment">/// Returns a bool for whether the header is marked.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_marked(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.header.is_marked()
     }

@@ -876,7 +876,6 @@
 <span id="875">875</span>
 <span id="876">876</span>
 <span id="877">877</span>
-<span id="878">878</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `JSON` object.
 //!
 //! The `JSON` object contains methods for parsing [JavaScript Object Notation (JSON)][spec]
@@ -946,8 +945,7 @@
     I::Item: Clone,
 {
     <span class="kw">type </span>Item = I::Item;
-    <span class="attribute">#[inline]
-    </span><span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
+    <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
         <span class="kw">if </span><span class="self">self</span>.peek.is_some() {
             <span class="self">self</span>.peek.take()
         } <span class="kw">else </span>{

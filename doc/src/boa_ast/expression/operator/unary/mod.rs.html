@@ -100,6 +100,7 @@
 <span id="99">99</span>
 <span id="100">100</span>
 <span id="101">101</span>
+<span id="102">102</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Unary expression nodes.
 //!
 //! A Binary expression comprises any operation applied to a single expression. Some examples include:
@@ -141,7 +142,8 @@
 
 <span class="kw">impl </span>Unary {
     <span class="doccomment">/// Creates a new `UnaryOp` AST Expression.
-    </span><span class="attribute">#[must_use]
+    </span><span class="attribute">#[inline]
+    #[must_use]
     </span><span class="kw">pub fn </span>new(op: UnaryOp, target: Expression) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             op,

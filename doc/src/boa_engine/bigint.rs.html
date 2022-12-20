@@ -464,8 +464,6 @@
 <span id="463">463</span>
 <span id="464">464</span>
 <span id="465">465</span>
-<span id="466">466</span>
-<span id="467">467</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s bigint primitive type.
 
 </span><span class="kw">use crate</span>::{builtins::Number, error::JsNativeError, JsResult};
@@ -492,8 +490,7 @@
 
 <span class="kw">impl </span>JsBigInt {
     <span class="doccomment">/// Create a new [`JsBigInt`].
-    </span><span class="attribute">#[inline]
-    #[must_use]
+    </span><span class="attribute">#[must_use]
     </span><span class="kw">pub fn </span>new&lt;T: Into&lt;<span class="self">Self</span>&gt;&gt;(value: T) -&gt; <span class="self">Self </span>{
         value.into()
     }
@@ -757,8 +754,7 @@
         <span class="self">Self</span>::new(!x.as_inner())
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>as_inner(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>RawBigInt {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>as_inner(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>RawBigInt {
         <span class="kw-2">&amp;</span><span class="self">self</span>.inner
     }
 }

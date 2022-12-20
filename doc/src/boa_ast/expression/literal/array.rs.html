@@ -222,7 +222,6 @@
 <span id="221">221</span>
 <span id="222">222</span>
 <span id="223">223</span>
-<span id="224">224</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Array declaration Expression.
 
 </span><span class="kw">use </span><span class="kw">crate</span>::expression::operator::assign::AssignTarget;
@@ -390,8 +389,7 @@
 <span class="kw">where
     </span>T: Into&lt;Box&lt;[<span class="prelude-ty">Option</span>&lt;Expression&gt;]&gt;&gt;,
 {
-    <span class="attribute">#[inline]
-    </span><span class="kw">fn </span>from(decl: T) -&gt; <span class="self">Self </span>{
+    <span class="kw">fn </span>from(decl: T) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             arr: decl.into(),
             has_trailing_comma_spread: <span class="bool-val">false</span>,

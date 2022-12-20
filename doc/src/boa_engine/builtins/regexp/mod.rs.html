@@ -1688,7 +1688,6 @@
 <span id="1687">1687</span>
 <span id="1688">1688</span>
 <span id="1689">1689</span>
-<span id="1690">1690</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `RegExp` object.
 //!
 //! The `RegExp` object is used for matching text with a pattern.
@@ -2049,8 +2048,7 @@
         </span><span class="prelude-val">Ok</span>(this.clone())
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">fn </span>regexp_has_flag(this: <span class="kw-2">&amp;</span>JsValue, flag: u8, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+    <span class="kw">fn </span>regexp_has_flag(this: <span class="kw-2">&amp;</span>JsValue, flag: u8, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="kw">if let </span><span class="prelude-val">Some</span>(object) = this.as_object() {
             <span class="kw">if let </span><span class="prelude-val">Some</span>(regexp) = object.borrow().as_regexp() {
                 <span class="kw">return </span><span class="prelude-val">Ok</span>(JsValue::new(<span class="kw">match </span>flag {

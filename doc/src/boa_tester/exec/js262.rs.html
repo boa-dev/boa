@@ -102,7 +102,6 @@
 <span id="101">101</span>
 <span id="102">102</span>
 <span id="103">103</span>
-<span id="104">104</span>
 </pre><pre class="rust"><code><span class="kw">use </span>boa_engine::{
     builtins::JsArgs,
     object::{JsObject, ObjectInitializer},
@@ -146,8 +145,7 @@
 ///
 /// Implements the `DetachArrayBuffer` abstract operation.
 </span><span class="kw">fn </span>detach_array_buffer(_this: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
-    <span class="attribute">#[inline]
-    </span><span class="kw">fn </span>type_err() -&gt; JsNativeError {
+    <span class="kw">fn </span>type_err() -&gt; JsNativeError {
         JsNativeError::typ().with_message(<span class="string">&quot;The provided object was not an ArrayBuffer&quot;</span>)
     }
 

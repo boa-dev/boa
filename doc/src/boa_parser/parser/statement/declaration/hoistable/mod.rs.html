@@ -223,7 +223,6 @@
 <span id="222">222</span>
 <span id="223">223</span>
 <span id="224">224</span>
-<span id="225">225</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Hoistable declaration parsing.
 //!
 //! More information:
@@ -364,7 +363,6 @@
 }
 
 <span class="comment">// This is a helper function to not duplicate code in the individual callable declaration parsers.
-</span><span class="attribute">#[inline]
 </span><span class="kw">fn </span>parse_callable_declaration&lt;R: Read, C: CallableDeclaration&gt;(
     c: <span class="kw-2">&amp;</span>C,
     cursor: <span class="kw-2">&amp;mut </span>Cursor&lt;R&gt;,

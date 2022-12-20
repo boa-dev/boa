@@ -446,11 +446,6 @@
 <span id="445">445</span>
 <span id="446">446</span>
 <span id="447">447</span>
-<span id="448">448</span>
-<span id="449">449</span>
-<span id="450">450</span>
-<span id="451">451</span>
-<span id="452">452</span>
 </pre><pre class="rust"><code><span class="kw">use </span>std::{
     borrow::{Cow, ToOwned},
     collections::{BTreeMap, BTreeSet, BinaryHeap, HashMap, HashSet, LinkedList, VecDeque},
@@ -558,8 +553,7 @@
     (<span class="macro-nonterminal">$this</span>:ident, <span class="macro-nonterminal">$body</span>:expr) =&gt; {
         <span class="attribute">#[inline]
         </span><span class="kw">unsafe fn </span>trace(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-            <span class="attribute">#[inline]
-            </span><span class="kw">fn </span>mark&lt;T: <span class="macro-nonterminal">$crate::Trace </span>+ <span class="question-mark">?</span>Sized&gt;(it: <span class="kw-2">&amp;</span>T) {
+            <span class="kw">fn </span>mark&lt;T: <span class="macro-nonterminal">$crate::Trace </span>+ <span class="question-mark">?</span>Sized&gt;(it: <span class="kw-2">&amp;</span>T) {
                 <span class="comment">// SAFETY: The implementor must ensure that `trace` is correctly implemented.
                 </span><span class="kw">unsafe </span>{
                     <span class="macro-nonterminal">$crate::Trace::trace</span>(it);
@@ -570,8 +564,7 @@
         </span>}
         <span class="attribute">#[inline]
         </span><span class="kw">unsafe fn </span>weak_trace(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-            <span class="attribute">#[inline]
-            </span><span class="kw">fn </span>mark&lt;T: <span class="macro-nonterminal">$crate::Trace </span>+ <span class="question-mark">?</span>Sized&gt;(it: <span class="kw-2">&amp;</span>T) {
+            <span class="kw">fn </span>mark&lt;T: <span class="macro-nonterminal">$crate::Trace </span>+ <span class="question-mark">?</span>Sized&gt;(it: <span class="kw-2">&amp;</span>T) {
                 <span class="comment">// SAFETY: The implementor must ensure that `weak_trace` is correctly implemented.
                 </span><span class="kw">unsafe </span>{
                     <span class="macro-nonterminal">$crate::Trace::weak_trace</span>(it);
@@ -582,8 +575,7 @@
         </span>}
         <span class="attribute">#[inline]
         </span><span class="kw">unsafe fn </span>root(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-            <span class="attribute">#[inline]
-            </span><span class="kw">fn </span>mark&lt;T: <span class="macro-nonterminal">$crate::Trace </span>+ <span class="question-mark">?</span>Sized&gt;(it: <span class="kw-2">&amp;</span>T) {
+            <span class="kw">fn </span>mark&lt;T: <span class="macro-nonterminal">$crate::Trace </span>+ <span class="question-mark">?</span>Sized&gt;(it: <span class="kw-2">&amp;</span>T) {
                 <span class="comment">// SAFETY: The implementor must ensure that `root` is correctly implemented.
                 </span><span class="kw">unsafe </span>{
                     <span class="macro-nonterminal">$crate::Trace::root</span>(it);
@@ -594,8 +586,7 @@
         </span>}
         <span class="attribute">#[inline]
         </span><span class="kw">unsafe fn </span>unroot(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-            <span class="attribute">#[inline]
-            </span><span class="kw">fn </span>mark&lt;T: <span class="macro-nonterminal">$crate::Trace </span>+ <span class="question-mark">?</span>Sized&gt;(it: <span class="kw-2">&amp;</span>T) {
+            <span class="kw">fn </span>mark&lt;T: <span class="macro-nonterminal">$crate::Trace </span>+ <span class="question-mark">?</span>Sized&gt;(it: <span class="kw-2">&amp;</span>T) {
                 <span class="comment">// SAFETY: The implementor must ensure that `unroot` is correctly implemented.
                 </span><span class="kw">unsafe </span>{
                     <span class="macro-nonterminal">$crate::Trace::unroot</span>(it);
@@ -606,8 +597,7 @@
         </span>}
         <span class="attribute">#[inline]
         </span><span class="kw">fn </span>run_finalizer(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-            <span class="attribute">#[inline]
-            </span><span class="kw">fn </span>mark&lt;T: <span class="macro-nonterminal">$crate::Trace </span>+ <span class="question-mark">?</span>Sized&gt;(it: <span class="kw-2">&amp;</span>T) {
+            <span class="kw">fn </span>mark&lt;T: <span class="macro-nonterminal">$crate::Trace </span>+ <span class="question-mark">?</span>Sized&gt;(it: <span class="kw-2">&amp;</span>T) {
                 <span class="macro-nonterminal">$crate::Trace::run_finalizer</span>(it);
             }
             <span class="macro-nonterminal">$crate::Finalize::finalize</span>(<span class="self">self</span>);

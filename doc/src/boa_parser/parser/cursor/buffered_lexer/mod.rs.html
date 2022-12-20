@@ -249,12 +249,6 @@
 <span id="248">248</span>
 <span id="249">249</span>
 <span id="250">250</span>
-<span id="251">251</span>
-<span id="252">252</span>
-<span id="253">253</span>
-<span id="254">254</span>
-<span id="255">255</span>
-<span id="256">256</span>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     lexer::{InputElement, Lexer, Token, TokenKind},
     parser::ParseResult,
@@ -293,8 +287,7 @@
 <span class="kw">where
     </span>R: Read,
 {
-    <span class="attribute">#[inline]
-    </span><span class="kw">fn </span>from(lexer: Lexer&lt;R&gt;) -&gt; <span class="self">Self </span>{
+    <span class="kw">fn </span>from(lexer: Lexer&lt;R&gt;) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             lexer,
             peeked: [
@@ -318,8 +311,7 @@
 <span class="kw">where
     </span>R: Read,
 {
-    <span class="attribute">#[inline]
-    </span><span class="kw">fn </span>from(reader: R) -&gt; <span class="self">Self </span>{
+    <span class="kw">fn </span>from(reader: R) -&gt; <span class="self">Self </span>{
         Lexer::new(reader).into()
     }
 }
@@ -329,14 +321,12 @@
     </span>R: Read,
 {
     <span class="doccomment">/// Sets the goal symbol for the lexer.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>set_goal(<span class="kw-2">&amp;mut </span><span class="self">self</span>, elm: InputElement) {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;cursor::set_goal()&quot;</span>, <span class="string">&quot;Parsing&quot;</span>);
         <span class="self">self</span>.lexer.set_goal(elm);
     }
 
     <span class="doccomment">/// Lexes the next tokens as a regex assuming that the starting &#39;/&#39; has already been consumed.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>lex_regex(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         start: Position,
@@ -361,13 +351,11 @@
             .map_err(Error::from)
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">const fn </span>strict_mode(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">const fn </span>strict_mode(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.lexer.strict_mode()
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>set_strict_mode(<span class="kw-2">&amp;mut </span><span class="self">self</span>, strict_mode: bool) {
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>set_strict_mode(<span class="kw-2">&amp;mut </span><span class="self">self</span>, strict_mode: bool) {
         <span class="self">self</span>.lexer.set_strict_mode(strict_mode);
     }
 

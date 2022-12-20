@@ -84,7 +84,6 @@
 <span id="83">83</span>
 <span id="84">84</span>
 <span id="85">85</span>
-<span id="86">86</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Block AST node.
 
 </span><span class="kw">use crate</span>::{
@@ -130,8 +129,7 @@
 <span class="kw">where
     </span>T: Into&lt;StatementList&gt;,
 {
-    <span class="attribute">#[inline]
-    </span><span class="kw">fn </span>from(list: T) -&gt; <span class="self">Self </span>{
+    <span class="kw">fn </span>from(list: T) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             statements: list.into(),
         }

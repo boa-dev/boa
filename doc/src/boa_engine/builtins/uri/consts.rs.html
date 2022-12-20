@@ -106,9 +106,6 @@
 <span id="105">105</span>
 <span id="106">106</span>
 <span id="107">107</span>
-<span id="108">108</span>
-<span id="109">109</span>
-<span id="110">110</span>
 </pre><pre class="rust"><code><span class="doccomment">//! URI handling function constants
 //!
 //! This module contains a few constants used to handle decoding and encoding for URI handling
@@ -188,7 +185,6 @@
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-uriUnescaped
-</span><span class="attribute">#[inline]
 </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>is_uri_unescaped(code_point: u16) -&gt; bool {
     URI_ALPHA_LOWER.contains(<span class="kw-2">&amp;</span>code_point)
         || URI_ALPHA_UPPER.contains(<span class="kw-2">&amp;</span>code_point)
@@ -202,7 +198,6 @@
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-uriReserved
-</span><span class="attribute">#[inline]
 </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>is_uri_reserved_or_number_sign(code_point: u16) -&gt; bool {
     code_point == NUMBER_SIGN || URI_RESERVED.contains(<span class="kw-2">&amp;</span>code_point)
 }
@@ -215,7 +210,6 @@
 ///
 /// [uri_reserved]: https://tc39.es/ecma262/#prod-uriReserved
 /// [uri_unescaped]: https://tc39.es/ecma262/#prod-uriUnescaped
-</span><span class="attribute">#[inline]
 </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>is_uri_reserved_or_uri_unescaped_or_number_sign(code_point: u16) -&gt; bool {
     code_point == NUMBER_SIGN || is_uri_unescaped(code_point) || URI_RESERVED.contains(<span class="kw-2">&amp;</span>code_point)
 }

@@ -799,14 +799,6 @@
 <span id="798">798</span>
 <span id="799">799</span>
 <span id="800">800</span>
-<span id="801">801</span>
-<span id="802">802</span>
-<span id="803">803</span>
-<span id="804">804</span>
-<span id="805">805</span>
-<span id="806">806</span>
-<span id="807">807</span>
-<span id="808">808</span>
 </pre><pre class="rust"><code><span class="kw">use super</span>::{PropertyDescriptor, PropertyKey};
 <span class="kw">use crate</span>::{property::PropertyDescriptorBuilder, JsString, JsSymbol, JsValue};
 <span class="kw">use </span>boa_gc::{custom_trace, Finalize, Trace};
@@ -872,7 +864,6 @@
 
 <span class="kw">impl </span>IndexedProperties {
     <span class="doccomment">/// Get a property descriptor if it exists.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>, key: u32) -&gt; <span class="prelude-ty">Option</span>&lt;PropertyDescriptor&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::Sparse(<span class="kw-2">ref </span>map) =&gt; map.get(<span class="kw-2">&amp;</span>key).cloned(),
@@ -888,7 +879,6 @@
     }
 
     <span class="doccomment">/// Helper function for converting from a dense storage type to sparse storage type.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">fn </span>convert_dense_to_sparse(vec: <span class="kw-2">&amp;mut </span>Vec&lt;JsValue&gt;) -&gt; FxHashMap&lt;u32, PropertyDescriptor&gt; {
         <span class="kw">let </span>data = std::mem::take(vec);
 
@@ -909,7 +899,6 @@
     }
 
     <span class="doccomment">/// Inserts a property descriptor with the specified key.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">fn </span>insert(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: u32, property: PropertyDescriptor) -&gt; <span class="prelude-ty">Option</span>&lt;PropertyDescriptor&gt; {
         <span class="kw">let </span>vec = <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::Sparse(map) =&gt; <span class="kw">return </span>map.insert(key, property),
@@ -961,7 +950,6 @@
     }
 
     <span class="doccomment">/// Inserts a property descriptor with the specified key.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">fn </span>remove(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: u32) -&gt; <span class="prelude-ty">Option</span>&lt;PropertyDescriptor&gt; {
         <span class="kw">let </span>vec = <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::Sparse(map) =&gt; <span class="kw">return </span>map.remove(<span class="kw-2">&amp;</span>key),
@@ -1227,13 +1215,11 @@
         }
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>string_property_map(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>GlobalPropertyMap {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>string_property_map(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>GlobalPropertyMap {
         <span class="kw-2">&amp;</span><span class="self">self</span>.string_properties.<span class="number">0
     </span>}
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>string_property_map_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>GlobalPropertyMap {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>string_property_map_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>GlobalPropertyMap {
         <span class="kw-2">&amp;mut </span><span class="self">self</span>.string_properties.<span class="number">0
     </span>}
 }
@@ -1405,8 +1391,7 @@
 <span class="kw">impl </span>Iterator <span class="kw">for </span>IndexProperties&lt;<span class="lifetime">&#39;_</span>&gt; {
     <span class="kw">type </span>Item = (u32, PropertyDescriptor);
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
+    <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::Dense(vec) =&gt; vec.next().map(|(index, value)| {
                 (
@@ -1499,8 +1484,7 @@
 <span class="kw">impl </span>Iterator <span class="kw">for </span>IndexPropertyValues&lt;<span class="lifetime">&#39;_</span>&gt; {
     <span class="kw">type </span>Item = PropertyDescriptor;
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
+    <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::Dense(vec) =&gt; vec.next().map(|value| {
                 PropertyDescriptorBuilder::new()

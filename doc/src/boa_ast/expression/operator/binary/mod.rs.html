@@ -109,6 +109,7 @@
 <span id="108">108</span>
 <span id="109">109</span>
 <span id="110">110</span>
+<span id="111">111</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Binary expression nodes.
 //!
 //! A Binary expression comprises any operation between two expressions (excluding assignments),
@@ -152,7 +153,8 @@
 
 <span class="kw">impl </span>Binary {
     <span class="doccomment">/// Creates a `BinOp` AST Expression.
-    </span><span class="attribute">#[must_use]
+    </span><span class="attribute">#[inline]
+    #[must_use]
     </span><span class="kw">pub fn </span>new(op: BinaryOp, lhs: Expression, rhs: Expression) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             op,

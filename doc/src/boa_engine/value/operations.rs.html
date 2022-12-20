@@ -658,20 +658,6 @@
 <span id="657">657</span>
 <span id="658">658</span>
 <span id="659">659</span>
-<span id="660">660</span>
-<span id="661">661</span>
-<span id="662">662</span>
-<span id="663">663</span>
-<span id="664">664</span>
-<span id="665">665</span>
-<span id="666">666</span>
-<span id="667">667</span>
-<span id="668">668</span>
-<span id="669">669</span>
-<span id="670">670</span>
-<span id="671">671</span>
-<span id="672">672</span>
-<span id="673">673</span>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     builtins::{
         number::{f64_to_int32, f64_to_uint32},
@@ -685,7 +671,6 @@
 
 <span class="kw">impl </span>JsValue {
     <span class="doccomment">/// Perform the binary `+` operator on the value and return the result.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>add(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
         <span class="prelude-val">Ok</span>(<span class="kw">match </span>(<span class="self">self</span>, other) {
             <span class="comment">// Fast path:
@@ -726,7 +711,6 @@
     }
 
     <span class="doccomment">/// Perform the binary `-` operator on the value and return the result.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>sub(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
         <span class="prelude-val">Ok</span>(<span class="kw">match </span>(<span class="self">self</span>, other) {
             <span class="comment">// Fast path:
@@ -753,7 +737,6 @@
     }
 
     <span class="doccomment">/// Perform the binary `*` operator on the value and return the result.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>mul(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
         <span class="prelude-val">Ok</span>(<span class="kw">match </span>(<span class="self">self</span>, other) {
             <span class="comment">// Fast path:
@@ -780,7 +763,6 @@
     }
 
     <span class="doccomment">/// Perform the binary `/` operator on the value and return the result.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>div(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
         <span class="prelude-val">Ok</span>(<span class="kw">match </span>(<span class="self">self</span>, other) {
             <span class="comment">// Fast path:
@@ -822,7 +804,6 @@
     }
 
     <span class="doccomment">/// Perform the binary `%` operator on the value and return the result.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>rem(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
         <span class="prelude-val">Ok</span>(<span class="kw">match </span>(<span class="self">self</span>, other) {
             <span class="comment">// Fast path:
@@ -874,7 +855,6 @@
     }
 
     <span class="doccomment">/// Perform the binary `**` operator on the value and return the result.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>pow(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
         <span class="prelude-val">Ok</span>(<span class="kw">match </span>(<span class="self">self</span>, other) {
             <span class="comment">// Fast path:
@@ -902,7 +882,6 @@
     }
 
     <span class="doccomment">/// Perform the binary `&amp;` operator on the value and return the result.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>bitand(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
         <span class="prelude-val">Ok</span>(<span class="kw">match </span>(<span class="self">self</span>, other) {
             <span class="comment">// Fast path:
@@ -933,7 +912,6 @@
     }
 
     <span class="doccomment">/// Perform the binary `|` operator on the value and return the result.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>bitor(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
         <span class="prelude-val">Ok</span>(<span class="kw">match </span>(<span class="self">self</span>, other) {
             <span class="comment">// Fast path:
@@ -964,7 +942,6 @@
     }
 
     <span class="doccomment">/// Perform the binary `^` operator on the value and return the result.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>bitxor(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
         <span class="prelude-val">Ok</span>(<span class="kw">match </span>(<span class="self">self</span>, other) {
             <span class="comment">// Fast path:
@@ -995,7 +972,6 @@
     }
 
     <span class="doccomment">/// Perform the binary `&lt;&lt;` operator on the value and return the result.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>shl(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
         <span class="prelude-val">Ok</span>(<span class="kw">match </span>(<span class="self">self</span>, other) {
             <span class="comment">// Fast path:
@@ -1028,7 +1004,6 @@
     }
 
     <span class="doccomment">/// Perform the binary `&gt;&gt;` operator on the value and return the result.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>shr(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
         <span class="prelude-val">Ok</span>(<span class="kw">match </span>(<span class="self">self</span>, other) {
             <span class="comment">// Fast path:
@@ -1061,7 +1036,6 @@
     }
 
     <span class="doccomment">/// Perform the binary `&gt;&gt;&gt;` operator on the value and return the result.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>ushr(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
         <span class="prelude-val">Ok</span>(<span class="kw">match </span>(<span class="self">self</span>, other) {
             <span class="comment">// Fast path:
@@ -1101,7 +1075,6 @@
     /// - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-instanceofoperator
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>instance_of(<span class="kw-2">&amp;</span><span class="self">self</span>, target: <span class="kw-2">&amp;</span><span class="self">Self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;bool&gt; {
         <span class="comment">// 1. If Type(target) is not Object, throw a TypeError exception.
         </span><span class="kw">if </span>!target.is_object() {
@@ -1136,7 +1109,6 @@
     }
 
     <span class="doccomment">/// Returns the negated value.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>neg(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
         <span class="prelude-val">Ok</span>(<span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
             <span class="self">Self</span>::Symbol(<span class="kw">_</span>) | <span class="self">Self</span>::Undefined =&gt; <span class="self">Self</span>::new(f64::NAN),

@@ -45,9 +45,6 @@
 <span id="44">44</span>
 <span id="45">45</span>
 <span id="46">46</span>
-<span id="47">47</span>
-<span id="48">48</span>
-<span id="49">49</span>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{Ephemeron, Finalize, Gc, Trace};
 
 <span class="doccomment">/// A weak reference to a [`Gc`].
@@ -70,22 +67,19 @@
 }
 
 <span class="kw">impl</span>&lt;T: Trace + <span class="question-mark">?</span>Sized&gt; WeakGc&lt;T&gt; {
-    <span class="attribute">#[inline]
-    </span><span class="doccomment">/// Gets the value of this weak pointer, or `None` if the value was already garbage collected.
+    <span class="doccomment">/// Gets the value of this weak pointer, or `None` if the value was already garbage collected.
     </span><span class="kw">pub fn </span>value(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>T&gt; {
         <span class="self">self</span>.inner.key()
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="doccomment">/// Upgrade returns a `Gc` pointer for the internal value if valid, or None if the value was already garbage collected.
+    <span class="doccomment">/// Upgrade returns a `Gc` pointer for the internal value if valid, or None if the value was already garbage collected.
     </span><span class="kw">pub fn </span>upgrade(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Gc&lt;T&gt;&gt; {
         <span class="self">self</span>.inner.upgrade_key()
     }
 }
 
 <span class="kw">impl</span>&lt;T: Trace + <span class="question-mark">?</span>Sized&gt; Clone <span class="kw">for </span>WeakGc&lt;T&gt; {
-    <span class="attribute">#[inline]
-    </span><span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
+    <span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             inner: <span class="self">self</span>.inner.clone(),
         }

@@ -136,10 +136,6 @@
 <span id="135">135</span>
 <span id="136">136</span>
 <span id="137">137</span>
-<span id="138">138</span>
-<span id="139">139</span>
-<span id="140">140</span>
-<span id="141">141</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements lexing for identifiers (foo, myvar, etc.) used in ECMAScript.
 
 </span><span class="kw">use </span><span class="kw">crate</span>::lexer::{Cursor, Error, StringLiteral, Token, TokenKind, Tokenizer};
@@ -164,7 +160,6 @@
 
 <span class="kw">impl </span>Identifier {
     <span class="doccomment">/// Creates a new identifier/keyword lexer.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">const fn </span>new(init: char) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{ init }
     }
@@ -175,7 +170,6 @@
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-names-and-keywords
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>is_identifier_start(ch: u32) -&gt; bool {
         <span class="macro">matches!</span>(ch, <span class="number">0x0024 </span><span class="comment">/* $ */ </span>| <span class="number">0x005F </span><span class="comment">/* _ */</span>)
             || char::try_from(ch).map_or(<span class="bool-val">false</span>, char::is_id_start)
@@ -187,7 +181,6 @@
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-names-and-keywords
-    </span><span class="attribute">#[inline]
     </span><span class="kw">fn </span>is_identifier_part(ch: u32) -&gt; bool {
         <span class="macro">matches!</span>(
             ch,
@@ -224,8 +217,7 @@
 }
 
 <span class="kw">impl </span>Identifier {
-    <span class="attribute">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>take_identifier_name&lt;R&gt;(
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>take_identifier_name&lt;R&gt;(
         cursor: <span class="kw-2">&amp;mut </span>Cursor&lt;R&gt;,
         start_pos: Position,
         init: char,

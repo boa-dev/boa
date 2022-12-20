@@ -3568,9 +3568,6 @@
 <span id="3567">3567</span>
 <span id="3568">3568</span>
 <span id="3569">3569</span>
-<span id="3570">3570</span>
-<span id="3571">3571</span>
-<span id="3572">3572</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `TypedArray` objects.
 //!
 //! A `TypedArray` object describes an array-like view of an underlying binary data buffer.
@@ -4102,7 +4099,7 @@
             <span class="comment">// a. Let kValue be items[k].
             // b. Let Pk be ! ToString(𝔽(k)).
             // c. Perform ? Set(newObj, Pk, kValue, true).
-            </span>new_obj.set(k, k_value, <span class="bool-val">true</span>, context)<span class="question-mark">?</span>;
+            </span>new_obj.set(k, k_value.clone(), <span class="bool-val">true</span>, context)<span class="question-mark">?</span>;
         }
 
         <span class="comment">// 7. Return newObj.
@@ -7075,7 +7072,6 @@
     <span class="doccomment">/// Gets the element size of the given typed array name, as per the [spec].
     ///
     /// [spec]: https://tc39.es/ecma262/#table-the-typedarray-constructors
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>element_size(<span class="self">self</span>) -&gt; u64 {
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::Int8 | <span class="self">Self</span>::Uint8 | <span class="self">Self</span>::Uint8Clamped =&gt; <span class="number">1</span>,
@@ -7086,7 +7082,6 @@
     }
 
     <span class="doccomment">/// Gets the content type of this typed array name.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>content_type(<span class="self">self</span>) -&gt; ContentType {
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::BigInt64 | <span class="self">Self</span>::BigUint64 =&gt; ContentType::BigInt,
@@ -7095,7 +7090,6 @@
     }
 
     <span class="doccomment">/// Gets the name of this typed array name.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::Int8 =&gt; <span class="string">&quot;Int8Array&quot;</span>,

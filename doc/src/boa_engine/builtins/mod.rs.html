@@ -226,8 +226,6 @@
 <span id="225">225</span>
 <span id="226">226</span>
 <span id="227">227</span>
-<span id="228">228</span>
-<span id="229">229</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s ECMAScript built-in object implementations, e.g. Object, String, Math, Array, etc.
 //!
 //! This module also contains a JavaScript Console implementation.
@@ -351,7 +349,6 @@
 
 <span class="doccomment">/// Utility function that checks if a type implements `BuiltIn` before initializing it as a global
 /// built-in.
-</span><span class="attribute">#[inline]
 </span><span class="kw">fn </span>init_builtin&lt;B: BuiltIn&gt;(context: <span class="kw-2">&amp;mut </span>Context) {
     <span class="kw">if let </span><span class="prelude-val">Some</span>(value) = B::init(context) {
         <span class="kw">let </span>property = PropertyDescriptor::builder()
@@ -367,7 +364,6 @@
 }
 
 <span class="doccomment">/// Initializes built-in objects and functions
-</span><span class="attribute">#[inline]
 </span><span class="kw">pub fn </span>init(context: <span class="kw-2">&amp;mut </span>Context) {
     <span class="macro">macro_rules! </span>globals {
         ($( <span class="macro-nonterminal">$builtin</span>:ty ),<span class="kw-2">*</span>) =&gt; {

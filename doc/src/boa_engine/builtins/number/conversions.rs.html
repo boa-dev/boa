@@ -79,17 +79,10 @@
 <span id="78">78</span>
 <span id="79">79</span>
 <span id="80">80</span>
-<span id="81">81</span>
-<span id="82">82</span>
-<span id="83">83</span>
-<span id="84">84</span>
-<span id="85">85</span>
-<span id="86">86</span>
 </pre><pre class="rust"><code><span class="doccomment">/// Converts a 64-bit floating point number to an `i32` according to the [`ToInt32`][ToInt32] algorithm.
 ///
 /// [ToInt32]: https://tc39.es/ecma262/#sec-toint32
-</span><span class="attribute">#[inline]
-#[allow(clippy::float_cmp)]
+</span><span class="attribute">#[allow(clippy::float_cmp)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>f64_to_int32(number: f64) -&gt; i32 {
     <span class="kw">const </span>SIGN_MASK: u64 = <span class="number">0x8000_0000_0000_0000</span>;
     <span class="kw">const </span>EXPONENT_MASK: u64 = <span class="number">0x7FF0_0000_0000_0000</span>;
@@ -101,13 +94,11 @@
     <span class="kw">const </span>EXPONENT_BIAS: i32 = <span class="number">0x3FF </span>+ PHYSICAL_SIGNIFICAND_SIZE;
     <span class="kw">const </span>DENORMAL_EXPONENT: i32 = -EXPONENT_BIAS + <span class="number">1</span>;
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">fn </span>is_denormal(number: f64) -&gt; bool {
+    <span class="kw">fn </span>is_denormal(number: f64) -&gt; bool {
         (number.to_bits() &amp; EXPONENT_MASK) == <span class="number">0
     </span>}
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">fn </span>exponent(number: f64) -&gt; i32 {
+    <span class="kw">fn </span>exponent(number: f64) -&gt; i32 {
         <span class="kw">if </span>is_denormal(number) {
             <span class="kw">return </span>DENORMAL_EXPONENT;
         }
@@ -118,8 +109,7 @@
         biased_e - EXPONENT_BIAS
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">fn </span>significand(number: f64) -&gt; u64 {
+    <span class="kw">fn </span>significand(number: f64) -&gt; u64 {
         <span class="kw">let </span>d64 = number.to_bits();
         <span class="kw">let </span>significand = d64 &amp; SIGNIFICAND_MASK;
 
@@ -130,8 +120,7 @@
         }
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">fn </span>sign(number: f64) -&gt; i64 {
+    <span class="kw">fn </span>sign(number: f64) -&gt; i64 {
         <span class="kw">if </span>(number.to_bits() &amp; SIGN_MASK) == <span class="number">0 </span>{
             <span class="number">1
         </span>} <span class="kw">else </span>{
@@ -167,7 +156,6 @@
 <span class="doccomment">/// Converts a 64-bit floating point number to an `u32` according to the [`ToUint32`][ToUint32] algorithm.
 ///
 /// [ToUint32]: https://tc39.es/ecma262/#sec-touint32
-</span><span class="attribute">#[inline]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>f64_to_uint32(number: f64) -&gt; u32 {
     f64_to_int32(number) <span class="kw">as </span>u32
 }

@@ -293,16 +293,6 @@
 <span id="292">292</span>
 <span id="293">293</span>
 <span id="294">294</span>
-<span id="295">295</span>
-<span id="296">296</span>
-<span id="297">297</span>
-<span id="298">298</span>
-<span id="299">299</span>
-<span id="300">300</span>
-<span id="301">301</span>
-<span id="302">302</span>
-<span id="303">303</span>
-<span id="304">304</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Traits and structs for implementing native classes.
 //!
 //! Native classes are implemented through the [`Class`][class-trait] trait.
@@ -463,8 +453,7 @@
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;context</span>&gt; ClassBuilder&lt;<span class="lifetime">&#39;context</span>&gt; {
-    <span class="attribute">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new&lt;T&gt;(context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;context </span><span class="kw-2">mut </span>Context) -&gt; <span class="self">Self
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new&lt;T&gt;(context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;context </span><span class="kw-2">mut </span>Context) -&gt; <span class="self">Self
     </span><span class="kw">where
         </span>T: ClassConstructor,
     {
@@ -474,15 +463,13 @@
         <span class="self">Self </span>{ builder }
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>build(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; JsFunction {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>build(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; JsFunction {
         JsFunction::from_object_unchecked(<span class="self">self</span>.builder.build().into())
     }
 
     <span class="doccomment">/// Add a method to the class.
     ///
     /// It is added to `prototype`.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>method&lt;N&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         name: N,
@@ -499,7 +486,6 @@
     <span class="doccomment">/// Add a static method to the class.
     ///
     /// It is added to class object itself.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>static_method&lt;N&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         name: N,
@@ -516,7 +502,6 @@
     <span class="doccomment">/// Add a data property to the class, with the specified attribute.
     ///
     /// It is added to `prototype`.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>property&lt;K, V&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: K, value: V, attribute: Attribute) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self
     </span><span class="kw">where
         </span>K: Into&lt;PropertyKey&gt;,
@@ -529,7 +514,6 @@
     <span class="doccomment">/// Add a static data property to the class, with the specified attribute.
     ///
     /// It is added to class object itself.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>static_property&lt;K, V&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: K, value: V, attribute: Attribute) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self
     </span><span class="kw">where
         </span>K: Into&lt;PropertyKey&gt;,
@@ -542,7 +526,6 @@
     <span class="doccomment">/// Add an accessor property to the class, with the specified attribute.
     ///
     /// It is added to `prototype`.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>accessor&lt;K&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         key: K,
@@ -560,7 +543,6 @@
     <span class="doccomment">/// Add a static accessor property to the class, with the specified attribute.
     ///
     /// It is added to class object itself.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>static_accessor&lt;K&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         key: K,
@@ -578,7 +560,6 @@
     <span class="doccomment">/// Add a property descriptor to the class, with the specified attribute.
     ///
     /// It is added to `prototype`.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>property_descriptor&lt;K, P&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: K, property: P) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self
     </span><span class="kw">where
         </span>K: Into&lt;PropertyKey&gt;,
@@ -591,7 +572,6 @@
     <span class="doccomment">/// Add a static property descriptor to the class, with the specified attribute.
     ///
     /// It is added to class object itself.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>static_property_descriptor&lt;K, P&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: K, property: P) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self
     </span><span class="kw">where
         </span>K: Into&lt;PropertyKey&gt;,

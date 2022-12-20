@@ -343,14 +343,6 @@
 <span id="342">342</span>
 <span id="343">343</span>
 <span id="344">344</span>
-<span id="345">345</span>
-<span id="346">346</span>
-<span id="347">347</span>
-<span id="348">348</span>
-<span id="349">349</span>
-<span id="350">350</span>
-<span id="351">351</span>
-<span id="352">352</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s lexing for ECMAScript string literals.
 
 </span><span class="kw">use </span><span class="kw">crate</span>::lexer::{Cursor, Error, Token, TokenKind, Tokenizer};
@@ -407,8 +399,7 @@
 }
 
 <span class="kw">impl </span>UTF16CodeUnitsBuffer <span class="kw">for </span>Vec&lt;u16&gt; {
-    <span class="attribute">#[inline]
-    </span><span class="kw">fn </span>push_code_point(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw-2">mut </span>code_point: u32) {
+    <span class="kw">fn </span>push_code_point(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw-2">mut </span>code_point: u32) {
         <span class="kw">if let </span><span class="prelude-val">Ok</span>(cp) = code_point.try_into() {
             <span class="self">self</span>.push(cp);
             <span class="kw">return</span>;
@@ -425,8 +416,7 @@
         <span class="self">self</span>.push(cu2);
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">fn </span>to_string_lossy(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; String {
+    <span class="kw">fn </span>to_string_lossy(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; String {
         String::from_utf16_lossy(<span class="self">self</span>.as_slice())
     }
 }
@@ -460,7 +450,6 @@
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#prod-LineTerminator
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">const fn </span>is_line_terminator(ch: u32) -&gt; bool {
         <span class="macro">matches!</span>(
             ch,
@@ -468,8 +457,7 @@
         </span>)
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">fn </span>take_string_characters&lt;R&gt;(
+    <span class="kw">fn </span>take_string_characters&lt;R&gt;(
         cursor: <span class="kw-2">&amp;mut </span>Cursor&lt;R&gt;,
         start_pos: Position,
         terminator: StringTerminator,
@@ -516,8 +504,7 @@
         <span class="prelude-val">Ok</span>((buf, Span::new(start_pos, cursor.pos())))
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>take_escape_sequence_or_line_continuation&lt;R&gt;(
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>take_escape_sequence_or_line_continuation&lt;R&gt;(
         cursor: <span class="kw-2">&amp;mut </span>Cursor&lt;R&gt;,
         start_pos: Position,
         is_strict_mode: bool,
@@ -603,8 +590,7 @@
         <span class="prelude-val">Ok</span>(escape_value)
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>take_unicode_escape_sequence&lt;R&gt;(
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>take_unicode_escape_sequence&lt;R&gt;(
         cursor: <span class="kw-2">&amp;mut </span>Cursor&lt;R&gt;,
         start_pos: Position,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;u32, Error&gt;
@@ -652,8 +638,7 @@
         }
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">fn </span>take_hex_escape_sequence&lt;R&gt;(
+    <span class="kw">fn </span>take_hex_escape_sequence&lt;R&gt;(
         cursor: <span class="kw-2">&amp;mut </span>Cursor&lt;R&gt;,
         start_pos: Position,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;u32, Error&gt;
@@ -670,8 +655,7 @@
         <span class="prelude-val">Ok</span>(u32::from(code_point))
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">fn </span>take_legacy_octal_escape_sequence&lt;R&gt;(
+    <span class="kw">fn </span>take_legacy_octal_escape_sequence&lt;R&gt;(
         cursor: <span class="kw-2">&amp;mut </span>Cursor&lt;R&gt;,
         init_byte: u8,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;u32, Error&gt;

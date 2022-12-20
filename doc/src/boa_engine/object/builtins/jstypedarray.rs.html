@@ -444,12 +444,6 @@
 <span id="443">443</span>
 <span id="444">444</span>
 <span id="445">445</span>
-<span id="446">446</span>
-<span id="447">447</span>
-<span id="448">448</span>
-<span id="449">449</span>
-<span id="450">450</span>
-<span id="451">451</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Rust API wrappers for the `TypedArray` Builtin ECMAScript Objects
 </span><span class="kw">use crate</span>::{
     builtins::typed_array::TypedArray,
@@ -502,7 +496,6 @@
     }
 
     <span class="doccomment">/// Calls `TypedArray.prototype.at()`.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>at&lt;T&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, index: T, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt;
     <span class="kw">where
         </span>T: Into&lt;i64&gt;,
@@ -529,7 +522,6 @@
     }
 
     <span class="doccomment">/// Calls `TypedArray.prototype.fill()`.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>fill&lt;T&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         value: T,
@@ -701,7 +693,6 @@
     }
 
     <span class="doccomment">/// Calls `TypedArray.prototype.indexOf()`.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>index_of&lt;T&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         search_element: T,
@@ -728,7 +719,6 @@
     }
 
     <span class="doccomment">/// Calls `TypedArray.prototype.lastIndexOf()`.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>last_index_of&lt;T&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         search_element: T,
@@ -803,7 +793,6 @@
 
         <span class="kw">impl </span><span class="macro-nonterminal">$name </span>{
             <span class="doccomment">/// Create the typed array from a [`JsArrayBuffer`].
-            </span><span class="attribute">#[inline]
             </span><span class="kw">pub fn </span>from_array_buffer(
                 array_buffer: JsArrayBuffer,
                 context: <span class="kw-2">&amp;mut </span>Context,
@@ -831,7 +820,6 @@
             }
 
             <span class="doccomment">/// Create the typed array from an iterator.
-            </span><span class="attribute">#[inline]
             </span><span class="kw">pub fn </span>from_iter&lt;I&gt;(elements: I, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="self">Self</span>&gt;
             <span class="kw">where
                 </span>I: IntoIterator&lt;Item = <span class="macro-nonterminal">$element</span>&gt;,

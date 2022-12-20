@@ -2112,6 +2112,14 @@
 <span id="2111">2111</span>
 <span id="2112">2112</span>
 <span id="2113">2113</span>
+<span id="2114">2114</span>
+<span id="2115">2115</span>
+<span id="2116">2116</span>
+<span id="2117">2117</span>
+<span id="2118">2118</span>
+<span id="2119">2119</span>
+<span id="2120">2120</span>
+<span id="2121">2121</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `Promise` object.
 
 </span><span class="attribute">#[cfg(test)]
@@ -2930,8 +2938,12 @@
                         .expect(<span class="string">&quot;cannot fail per spec&quot;</span>);
 
                     <span class="comment">// 11. Perform ! CreateDataPropertyOrThrow(obj, &quot;value&quot;, x).
-                    </span>obj.create_data_property_or_throw(<span class="string">&quot;value&quot;</span>, args.get_or_undefined(<span class="number">0</span>), context)
-                        .expect(<span class="string">&quot;cannot fail per spec&quot;</span>);
+                    </span>obj.create_data_property_or_throw(
+                        <span class="string">&quot;value&quot;</span>,
+                        args.get_or_undefined(<span class="number">0</span>).clone(),
+                        context,
+                    )
+                    .expect(<span class="string">&quot;cannot fail per spec&quot;</span>);
 
                     <span class="comment">// 12. Set values[index] to obj.
                     </span>captures.values.borrow_mut()[captures.index] = obj.into();
@@ -3010,8 +3022,12 @@
                         .expect(<span class="string">&quot;cannot fail per spec&quot;</span>);
 
                     <span class="comment">// 11. Perform ! CreateDataPropertyOrThrow(obj, &quot;reason&quot;, x).
-                    </span>obj.create_data_property_or_throw(<span class="string">&quot;reason&quot;</span>, args.get_or_undefined(<span class="number">0</span>), context)
-                        .expect(<span class="string">&quot;cannot fail per spec&quot;</span>);
+                    </span>obj.create_data_property_or_throw(
+                        <span class="string">&quot;reason&quot;</span>,
+                        args.get_or_undefined(<span class="number">0</span>).clone(),
+                        context,
+                    )
+                    .expect(<span class="string">&quot;cannot fail per spec&quot;</span>);
 
                     <span class="comment">// 12. Set values[index] to obj.
                     </span>captures.values.borrow_mut()[captures.index] = obj.into();

@@ -1549,55 +1549,6 @@
 <span id="1548">1548</span>
 <span id="1549">1549</span>
 <span id="1550">1550</span>
-<span id="1551">1551</span>
-<span id="1552">1552</span>
-<span id="1553">1553</span>
-<span id="1554">1554</span>
-<span id="1555">1555</span>
-<span id="1556">1556</span>
-<span id="1557">1557</span>
-<span id="1558">1558</span>
-<span id="1559">1559</span>
-<span id="1560">1560</span>
-<span id="1561">1561</span>
-<span id="1562">1562</span>
-<span id="1563">1563</span>
-<span id="1564">1564</span>
-<span id="1565">1565</span>
-<span id="1566">1566</span>
-<span id="1567">1567</span>
-<span id="1568">1568</span>
-<span id="1569">1569</span>
-<span id="1570">1570</span>
-<span id="1571">1571</span>
-<span id="1572">1572</span>
-<span id="1573">1573</span>
-<span id="1574">1574</span>
-<span id="1575">1575</span>
-<span id="1576">1576</span>
-<span id="1577">1577</span>
-<span id="1578">1578</span>
-<span id="1579">1579</span>
-<span id="1580">1580</span>
-<span id="1581">1581</span>
-<span id="1582">1582</span>
-<span id="1583">1583</span>
-<span id="1584">1584</span>
-<span id="1585">1585</span>
-<span id="1586">1586</span>
-<span id="1587">1587</span>
-<span id="1588">1588</span>
-<span id="1589">1589</span>
-<span id="1590">1590</span>
-<span id="1591">1591</span>
-<span id="1592">1592</span>
-<span id="1593">1593</span>
-<span id="1594">1594</span>
-<span id="1595">1595</span>
-<span id="1596">1596</span>
-<span id="1597">1597</span>
-<span id="1598">1598</span>
-<span id="1599">1599</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module contains the bytecode compiler.
 
 </span><span class="kw">mod </span>class;
@@ -1663,21 +1614,18 @@
 }
 
 <span class="kw">impl </span>FunctionSpec&lt;<span class="lifetime">&#39;_</span>&gt; {
-    <span class="attribute">#[inline]
-    </span><span class="kw">const fn </span>is_arrow(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+    <span class="kw">const fn </span>is_arrow(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="macro">matches!</span>(<span class="self">self</span>.kind, FunctionKind::Arrow | FunctionKind::AsyncArrow)
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">const fn </span>is_async(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+    <span class="kw">const fn </span>is_async(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="macro">matches!</span>(
             <span class="self">self</span>.kind,
             FunctionKind::Async | FunctionKind::AsyncGenerator | FunctionKind::AsyncArrow
         )
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">const fn </span>is_generator(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+    <span class="kw">const fn </span>is_generator(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="macro">matches!</span>(
             <span class="self">self</span>.kind,
             FunctionKind::Generator | FunctionKind::AsyncGenerator
@@ -1855,13 +1803,11 @@
         }
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">fn </span>interner(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Interner {
+    <span class="kw">fn </span>interner(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Interner {
         <span class="self">self</span>.context.interner()
     }
 
     <span class="doccomment">/// Push a compile time environment to the current `CodeBlock` and return it&#39;s index.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">fn </span>push_compile_environment(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         environment: Gc&lt;GcCell&lt;CompileTimeEnvironment&gt;&gt;,
@@ -1871,8 +1817,7 @@
         index
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">fn </span>get_or_insert_literal(<span class="kw-2">&amp;mut </span><span class="self">self</span>, literal: Literal) -&gt; u32 {
+    <span class="kw">fn </span>get_or_insert_literal(<span class="kw-2">&amp;mut </span><span class="self">self</span>, literal: Literal) -&gt; u32 {
         <span class="kw">if let </span><span class="prelude-val">Some</span>(index) = <span class="self">self</span>.literals_map.get(<span class="kw-2">&amp;</span>literal) {
             <span class="kw">return </span><span class="kw-2">*</span>index;
         }
@@ -1888,8 +1833,7 @@
         index
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">fn </span>get_or_insert_name(<span class="kw-2">&amp;mut </span><span class="self">self</span>, name: Identifier) -&gt; u32 {
+    <span class="kw">fn </span>get_or_insert_name(<span class="kw-2">&amp;mut </span><span class="self">self</span>, name: Identifier) -&gt; u32 {
         <span class="kw">if let </span><span class="prelude-val">Some</span>(index) = <span class="self">self</span>.names_map.get(<span class="kw-2">&amp;</span>name) {
             <span class="kw">return </span><span class="kw-2">*</span>index;
         }
@@ -1900,8 +1844,7 @@
         index
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">fn </span>get_or_insert_binding(<span class="kw-2">&amp;mut </span><span class="self">self</span>, binding: BindingLocator) -&gt; u32 {
+    <span class="kw">fn </span>get_or_insert_binding(<span class="kw-2">&amp;mut </span><span class="self">self</span>, binding: BindingLocator) -&gt; u32 {
         <span class="kw">if let </span><span class="prelude-val">Some</span>(index) = <span class="self">self</span>.bindings_map.get(<span class="kw-2">&amp;</span>binding) {
             <span class="kw">return </span><span class="kw-2">*</span>index;
         }
@@ -1912,8 +1855,7 @@
         index
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">fn </span>emit_binding(<span class="kw-2">&amp;mut </span><span class="self">self</span>, opcode: BindingOpcode, name: Identifier) {
+    <span class="kw">fn </span>emit_binding(<span class="kw-2">&amp;mut </span><span class="self">self</span>, opcode: BindingOpcode, name: Identifier) {
         <span class="kw">match </span>opcode {
             BindingOpcode::Var =&gt; {
                 <span class="kw">let </span>binding = <span class="self">self</span>.context.initialize_mutable_binding(name, <span class="bool-val">true</span>);
@@ -1957,47 +1899,39 @@
         }
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">fn </span>next_opcode_location(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; u32 {
+    <span class="kw">fn </span>next_opcode_location(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; u32 {
         <span class="macro">assert!</span>(<span class="self">self</span>.code_block.code.len() &lt; u32::MAX <span class="kw">as </span>usize);
         <span class="self">self</span>.code_block.code.len() <span class="kw">as </span>u32
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">fn </span>emit(<span class="kw-2">&amp;mut </span><span class="self">self</span>, opcode: Opcode, operands: <span class="kw-2">&amp;</span>[u32]) {
+    <span class="kw">fn </span>emit(<span class="kw-2">&amp;mut </span><span class="self">self</span>, opcode: Opcode, operands: <span class="kw-2">&amp;</span>[u32]) {
         <span class="self">self</span>.emit_opcode(opcode);
         <span class="kw">for </span>operand <span class="kw">in </span>operands {
             <span class="self">self</span>.emit_u32(<span class="kw-2">*</span>operand);
         }
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">fn </span>emit_u64(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: u64) {
+    <span class="kw">fn </span>emit_u64(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: u64) {
         <span class="self">self</span>.code_block.code.extend(value.to_ne_bytes());
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">fn </span>emit_u32(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: u32) {
+    <span class="kw">fn </span>emit_u32(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: u32) {
         <span class="self">self</span>.code_block.code.extend(value.to_ne_bytes());
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">fn </span>emit_u16(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: u16) {
+    <span class="kw">fn </span>emit_u16(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: u16) {
         <span class="self">self</span>.code_block.code.extend(value.to_ne_bytes());
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">fn </span>emit_opcode(<span class="kw-2">&amp;mut </span><span class="self">self</span>, opcode: Opcode) {
+    <span class="kw">fn </span>emit_opcode(<span class="kw-2">&amp;mut </span><span class="self">self</span>, opcode: Opcode) {
         <span class="self">self</span>.emit_u8(opcode <span class="kw">as </span>u8);
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">fn </span>emit_u8(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: u8) {
+    <span class="kw">fn </span>emit_u8(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: u8) {
         <span class="self">self</span>.code_block.code.push(value);
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">fn </span>emit_push_integer(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: i32) {
+    <span class="kw">fn </span>emit_push_integer(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: i32) {
         <span class="kw">match </span>value {
             <span class="number">0 </span>=&gt; <span class="self">self</span>.emit_opcode(Opcode::PushZero),
             <span class="number">1 </span>=&gt; <span class="self">self</span>.emit_opcode(Opcode::PushOne),
@@ -2013,14 +1947,12 @@
         }
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">fn </span>emit_push_literal(<span class="kw-2">&amp;mut </span><span class="self">self</span>, literal: Literal) {
+    <span class="kw">fn </span>emit_push_literal(<span class="kw-2">&amp;mut </span><span class="self">self</span>, literal: Literal) {
         <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_literal(literal);
         <span class="self">self</span>.emit(Opcode::PushLiteral, <span class="kw-2">&amp;</span>[index]);
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">fn </span>emit_push_rational(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: f64) {
+    <span class="kw">fn </span>emit_push_rational(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: f64) {
         <span class="kw">if </span>value.is_nan() {
             <span class="kw">return </span><span class="self">self</span>.emit_opcode(Opcode::PushNaN);
         }
@@ -2042,23 +1974,20 @@
         }
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">fn </span>jump(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; Label {
+    <span class="kw">fn </span>jump(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; Label {
         <span class="kw">let </span>index = <span class="self">self</span>.next_opcode_location();
         <span class="self">self</span>.emit(Opcode::Jump, <span class="kw-2">&amp;</span>[<span class="self">Self</span>::DUMMY_ADDRESS]);
         Label { index }
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">fn </span>jump_if_false(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; Label {
+    <span class="kw">fn </span>jump_if_false(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; Label {
         <span class="kw">let </span>index = <span class="self">self</span>.next_opcode_location();
         <span class="self">self</span>.emit(Opcode::JumpIfFalse, <span class="kw-2">&amp;</span>[<span class="self">Self</span>::DUMMY_ADDRESS]);
 
         Label { index }
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">fn </span>jump_if_null_or_undefined(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; Label {
+    <span class="kw">fn </span>jump_if_null_or_undefined(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; Label {
         <span class="kw">let </span>index = <span class="self">self</span>.next_opcode_location();
         <span class="self">self</span>.emit(Opcode::JumpIfNullOrUndefined, <span class="kw-2">&amp;</span>[<span class="self">Self</span>::DUMMY_ADDRESS]);
 
@@ -2067,7 +1996,6 @@
 
     <span class="doccomment">/// Emit an opcode with a dummy operand.
     /// Return the `Label` of the operand.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">fn </span>emit_opcode_with_operand(<span class="kw-2">&amp;mut </span><span class="self">self</span>, opcode: Opcode) -&gt; Label {
         <span class="kw">let </span>index = <span class="self">self</span>.next_opcode_location();
         <span class="self">self</span>.emit(opcode, <span class="kw-2">&amp;</span>[<span class="self">Self</span>::DUMMY_ADDRESS]);
@@ -2076,15 +2004,13 @@
 
     <span class="doccomment">/// Emit an opcode with two dummy operands.
     /// Return the `Label`s of the two operands.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">fn </span>emit_opcode_with_two_operands(<span class="kw-2">&amp;mut </span><span class="self">self</span>, opcode: Opcode) -&gt; (Label, Label) {
         <span class="kw">let </span>index = <span class="self">self</span>.next_opcode_location();
         <span class="self">self</span>.emit(opcode, <span class="kw-2">&amp;</span>[<span class="self">Self</span>::DUMMY_ADDRESS, <span class="self">Self</span>::DUMMY_ADDRESS]);
         (Label { index }, Label { index: index + <span class="number">4 </span>})
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">fn </span>patch_jump_with_target(<span class="kw-2">&amp;mut </span><span class="self">self</span>, label: Label, target: u32) {
+    <span class="kw">fn </span>patch_jump_with_target(<span class="kw-2">&amp;mut </span><span class="self">self</span>, label: Label, target: u32) {
         <span class="kw">let </span>Label { index } = label;
 
         <span class="kw">let </span>index = index <span class="kw">as </span>usize;
@@ -2096,14 +2022,12 @@
         <span class="self">self</span>.code_block.code[index + <span class="number">4</span>] = bytes[<span class="number">3</span>];
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">fn </span>patch_jump(<span class="kw-2">&amp;mut </span><span class="self">self</span>, label: Label) {
+    <span class="kw">fn </span>patch_jump(<span class="kw-2">&amp;mut </span><span class="self">self</span>, label: Label) {
         <span class="kw">let </span>target = <span class="self">self</span>.next_opcode_location();
         <span class="self">self</span>.patch_jump_with_target(label, target);
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">fn </span>push_loop_control_info(<span class="kw-2">&amp;mut </span><span class="self">self</span>, label: <span class="prelude-ty">Option</span>&lt;Sym&gt;, start_address: u32) {
+    <span class="kw">fn </span>push_loop_control_info(<span class="kw-2">&amp;mut </span><span class="self">self</span>, label: <span class="prelude-ty">Option</span>&lt;Sym&gt;, start_address: u32) {
         <span class="self">self</span>.jump_info.push(JumpControlInfo {
             label,
             start_address,
@@ -2117,8 +2041,7 @@
         });
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">fn </span>push_loop_control_info_for_of_in_loop(<span class="kw-2">&amp;mut </span><span class="self">self</span>, label: <span class="prelude-ty">Option</span>&lt;Sym&gt;, start_address: u32) {
+    <span class="kw">fn </span>push_loop_control_info_for_of_in_loop(<span class="kw-2">&amp;mut </span><span class="self">self</span>, label: <span class="prelude-ty">Option</span>&lt;Sym&gt;, start_address: u32) {
         <span class="self">self</span>.jump_info.push(JumpControlInfo {
             label,
             start_address,
@@ -2132,8 +2055,7 @@
         });
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">fn </span>pop_loop_control_info(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+    <span class="kw">fn </span>pop_loop_control_info(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="kw">let </span>loop_info = <span class="self">self</span>.jump_info.pop().expect(<span class="string">&quot;no jump information found&quot;</span>);
 
         <span class="macro">assert!</span>(loop_info.kind == JumpControlInfoKind::Loop);
@@ -2147,8 +2069,7 @@
         }
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">fn </span>push_switch_control_info(<span class="kw-2">&amp;mut </span><span class="self">self</span>, label: <span class="prelude-ty">Option</span>&lt;Sym&gt;, start_address: u32) {
+    <span class="kw">fn </span>push_switch_control_info(<span class="kw-2">&amp;mut </span><span class="self">self</span>, label: <span class="prelude-ty">Option</span>&lt;Sym&gt;, start_address: u32) {
         <span class="self">self</span>.jump_info.push(JumpControlInfo {
             label,
             start_address,
@@ -2162,8 +2083,7 @@
         });
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">fn </span>pop_switch_control_info(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+    <span class="kw">fn </span>pop_switch_control_info(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="kw">let </span>info = <span class="self">self</span>.jump_info.pop().expect(<span class="string">&quot;no jump information found&quot;</span>);
 
         <span class="macro">assert!</span>(info.kind == JumpControlInfoKind::Switch);
@@ -2173,8 +2093,7 @@
         }
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">fn </span>push_try_control_info(<span class="kw-2">&amp;mut </span><span class="self">self</span>, has_finally: bool) {
+    <span class="kw">fn </span>push_try_control_info(<span class="kw-2">&amp;mut </span><span class="self">self</span>, has_finally: bool) {
         <span class="kw">if </span>!<span class="self">self</span>.jump_info.is_empty() {
             <span class="kw">let </span>start_address = <span class="self">self
                 </span>.jump_info
@@ -2196,8 +2115,7 @@
         }
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">fn </span>push_try_control_info_catch_start(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+    <span class="kw">fn </span>push_try_control_info_catch_start(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="kw">if </span>!<span class="self">self</span>.jump_info.is_empty() {
             <span class="kw">let </span><span class="kw-2">mut </span>info = <span class="self">self
                 </span>.jump_info
@@ -2208,8 +2126,7 @@
         }
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">fn </span>push_try_control_info_finally_start(<span class="kw-2">&amp;mut </span><span class="self">self</span>, start: Label) {
+    <span class="kw">fn </span>push_try_control_info_finally_start(<span class="kw-2">&amp;mut </span><span class="self">self</span>, start: Label) {
         <span class="kw">if </span>!<span class="self">self</span>.jump_info.is_empty() {
             <span class="kw">let </span><span class="kw-2">mut </span>info = <span class="self">self
                 </span>.jump_info
@@ -2220,8 +2137,7 @@
         }
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">fn </span>pop_try_control_info(<span class="kw-2">&amp;mut </span><span class="self">self</span>, finally_start_address: <span class="prelude-ty">Option</span>&lt;u32&gt;) {
+    <span class="kw">fn </span>pop_try_control_info(<span class="kw-2">&amp;mut </span><span class="self">self</span>, finally_start_address: <span class="prelude-ty">Option</span>&lt;u32&gt;) {
         <span class="kw">if </span>!<span class="self">self</span>.jump_info.is_empty() {
             <span class="kw">let </span><span class="kw-2">mut </span>info = <span class="self">self</span>.jump_info.pop().expect(<span class="string">&quot;no jump information found&quot;</span>);
 
@@ -2259,8 +2175,7 @@
         }
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">fn </span>push_labelled_block_control_info(<span class="kw-2">&amp;mut </span><span class="self">self</span>, label: Sym, start_address: u32) {
+    <span class="kw">fn </span>push_labelled_block_control_info(<span class="kw-2">&amp;mut </span><span class="self">self</span>, label: Sym, start_address: u32) {
         <span class="self">self</span>.jump_info.push(JumpControlInfo {
             label: <span class="prelude-val">Some</span>(label),
             start_address,
@@ -2274,8 +2189,7 @@
         });
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">fn </span>pop_labelled_block_control_info(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+    <span class="kw">fn </span>pop_labelled_block_control_info(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="kw">let </span>info = <span class="self">self</span>.jump_info.pop().expect(<span class="string">&quot;no jump information found&quot;</span>);
 
         <span class="macro">assert!</span>(info.kind == JumpControlInfoKind::LabelledBlock);
@@ -2289,8 +2203,7 @@
         }
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">fn </span>access_get(<span class="kw-2">&amp;mut </span><span class="self">self</span>, access: Access&lt;<span class="lifetime">&#39;_</span>&gt;, use_expr: bool) -&gt; JsResult&lt;()&gt; {
+    <span class="kw">fn </span>access_get(<span class="kw-2">&amp;mut </span><span class="self">self</span>, access: Access&lt;<span class="lifetime">&#39;_</span>&gt;, use_expr: bool) -&gt; JsResult&lt;()&gt; {
         <span class="kw">match </span>access {
             Access::Variable { name } =&gt; {
                 <span class="kw">let </span>binding = <span class="self">self</span>.context.get_binding_value(name);
@@ -2353,8 +2266,7 @@
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">fn </span>access_set&lt;F, R&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, access: Access&lt;<span class="lifetime">&#39;_</span>&gt;, use_expr: bool, expr_fn: F) -&gt; JsResult&lt;R&gt;
+    <span class="kw">fn </span>access_set&lt;F, R&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, access: Access&lt;<span class="lifetime">&#39;_</span>&gt;, use_expr: bool, expr_fn: F) -&gt; JsResult&lt;R&gt;
     <span class="kw">where
         </span>F: FnOnce(<span class="kw-2">&amp;mut </span>ByteCompiler&lt;<span class="lifetime">&#39;_</span>&gt;, u8) -&gt; JsResult&lt;R&gt;,
     {
@@ -2430,8 +2342,7 @@
         }
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">fn </span>access_delete(<span class="kw-2">&amp;mut </span><span class="self">self</span>, access: Access&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;()&gt; {
+    <span class="kw">fn </span>access_delete(<span class="kw-2">&amp;mut </span><span class="self">self</span>, access: Access&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;()&gt; {
         <span class="kw">match </span>access {
             Access::Property { access } =&gt; <span class="kw">match </span>access {
                 PropertyAccess::Simple(access) =&gt; <span class="kw">match </span>access.field() {
@@ -2465,7 +2376,6 @@
     }
 
     <span class="doccomment">/// Compile a [`StatementList`].
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>compile_statement_list(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         list: <span class="kw-2">&amp;</span>StatementList,
@@ -2482,7 +2392,6 @@
     }
 
     <span class="doccomment">/// Compile a statement list in a new declarative environment.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>compile_statement_list_with_new_declarative(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         list: <span class="kw-2">&amp;</span>StatementList,
@@ -2774,7 +2683,6 @@
     }
 
     <span class="doccomment">/// Compile a [`StatementListItem`].
-    </span><span class="attribute">#[inline]
     </span><span class="kw">fn </span>compile_stmt_list_item(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         item: <span class="kw-2">&amp;</span>StatementListItem,
@@ -2790,7 +2698,6 @@
     }
 
     <span class="doccomment">/// Compile a [`Declaration`].
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>compile_decl(<span class="kw-2">&amp;mut </span><span class="self">self</span>, decl: <span class="kw-2">&amp;</span>Declaration) -&gt; JsResult&lt;()&gt; {
         <span class="kw">match </span>decl {
             Declaration::Function(function) =&gt; {
@@ -2811,7 +2718,6 @@
     }
 
     <span class="doccomment">/// Compiles a [`Statement`]
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>compile_stmt(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         node: <span class="kw-2">&amp;</span>Statement,
@@ -3007,8 +2913,7 @@
         <span class="self">self</span>.code_block
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">fn </span>compile_declaration_pattern(
+    <span class="kw">fn </span>compile_declaration_pattern(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         pattern: <span class="kw-2">&amp;</span>Pattern,
         def: BindingOpcode,
@@ -3101,8 +3006,7 @@
         has_identifier_argument
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>create_decls_from_decl(
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>create_decls_from_decl(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         declaration: <span class="kw-2">&amp;</span>Declaration,
         configurable_globals: bool,
@@ -3147,8 +3051,7 @@
         }
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>create_decls_from_stmt(
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>create_decls_from_stmt(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         statement: <span class="kw-2">&amp;</span>Statement,
         configurable_globals: bool,
@@ -3177,8 +3080,7 @@
         }
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>create_decls_from_stmt_list_item(
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>create_decls_from_stmt_list_item(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         item: <span class="kw-2">&amp;</span>StatementListItem,
         configurable_globals: bool,

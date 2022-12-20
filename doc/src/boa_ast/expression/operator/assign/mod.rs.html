@@ -189,6 +189,7 @@
 <span id="188">188</span>
 <span id="189">189</span>
 <span id="190">190</span>
+<span id="191">191</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Assignment expression nodes, as defined by the [spec].
 //!
 //! An [assignment operator][mdn] assigns a value to its left operand based on the value of its right
@@ -229,7 +230,8 @@
 
 <span class="kw">impl </span>Assign {
     <span class="doccomment">/// Creates an `Assign` AST Expression.
-    </span><span class="attribute">#[must_use]
+    </span><span class="attribute">#[inline]
+    #[must_use]
     </span><span class="kw">pub fn </span>new(op: AssignOp, lhs: AssignTarget, rhs: Expression) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             op,

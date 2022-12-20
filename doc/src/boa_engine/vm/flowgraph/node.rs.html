@@ -36,7 +36,6 @@
 <span id="35">35</span>
 <span id="36">36</span>
 <span id="37">37</span>
-<span id="38">38</span>
 </pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::vm::flowgraph::Color;
 
 <span class="doccomment">/// Reperesents the shape of a node in the flowgraph.
@@ -65,7 +64,6 @@
 
 <span class="kw">impl </span>Node {
     <span class="doccomment">/// Construct a new node.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new(location: usize, shape: NodeShape, label: Box&lt;str&gt;, color: Color) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             location,

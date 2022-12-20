@@ -3108,7 +3108,7 @@
             </span><span class="kw">let </span>int_len = <span class="kw">if </span>!len.is_number() {
                 <span class="comment">// i. Perform ! CreateDataPropertyOrThrow(array, &quot;0&quot;, len).
                 </span>array
-                    .create_data_property_or_throw(<span class="number">0</span>, len, context)
+                    .create_data_property_or_throw(<span class="number">0</span>, len.clone(), context)
                     .expect(<span class="string">&quot;this CreateDataPropertyOrThrow call must not fail&quot;</span>);
                 <span class="comment">// ii. Let intLen be 1𝔽.
                 </span><span class="number">1
@@ -3537,7 +3537,7 @@
             <span class="comment">// a. Let kValue be items[k].
             // b. Let Pk be ! ToString(𝔽(k)).
             // c. Perform ? CreateDataPropertyOrThrow(A, Pk, kValue).
-            </span>a.create_data_property_or_throw(k, value, context)<span class="question-mark">?</span>;
+            </span>a.create_data_property_or_throw(k, value.clone(), context)<span class="question-mark">?</span>;
             <span class="comment">// d. Set k to k + 1.
         </span>}
 
@@ -3656,7 +3656,7 @@
                         .into());
                 }
                 <span class="comment">// iii. Perform ? CreateDataPropertyOrThrow(A, ! ToString(𝔽(n)), E).
-                </span>arr.create_data_property_or_throw(n, item, context)<span class="question-mark">?</span>;
+                </span>arr.create_data_property_or_throw(n, item.clone(), context)<span class="question-mark">?</span>;
                 <span class="comment">// iv. Set n to n + 1.
                 </span>n += <span class="number">1</span>;
             }
@@ -4079,7 +4079,7 @@
             // e. For each element E of items, do
             </span><span class="kw">for </span>(j, e) <span class="kw">in </span>args.iter().enumerate() {
                 <span class="comment">// i. Perform ? Set(O, ! ToString(j), E, true).
-                </span>o.set(j, e, <span class="bool-val">true</span>, context)<span class="question-mark">?</span>;
+                </span>o.set(j, e.clone(), <span class="bool-val">true</span>, context)<span class="question-mark">?</span>;
                 <span class="comment">// ii. Set j to j + 1𝔽.
             </span>}
         }
@@ -5131,7 +5131,7 @@
                 .map(|(i, val)| (i <span class="kw">as </span>u64 + actual_start, val))
             {
                 <span class="comment">// a. Perform ? Set(O, ! ToString(𝔽(k)), E, true).
-                </span>o.set(k, item, <span class="bool-val">true</span>, context)<span class="question-mark">?</span>;
+                </span>o.set(k, item.clone(), <span class="bool-val">true</span>, context)<span class="question-mark">?</span>;
                 <span class="comment">// b. Set k to k + 1.
             </span>}
         }

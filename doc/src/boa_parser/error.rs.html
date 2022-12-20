@@ -204,13 +204,6 @@
 <span id="203">203</span>
 <span id="204">204</span>
 <span id="205">205</span>
-<span id="206">206</span>
-<span id="207">207</span>
-<span id="208">208</span>
-<span id="209">209</span>
-<span id="210">210</span>
-<span id="211">211</span>
-<span id="212">212</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Error and result implementation for the parser.
 
 </span><span class="kw">use </span><span class="kw">crate</span>::lexer::Error <span class="kw">as </span>LexError;
@@ -225,8 +218,7 @@
 }
 
 <span class="kw">impl</span>&lt;T&gt; ErrorContext <span class="kw">for </span>ParseResult&lt;T&gt; {
-    <span class="attribute">#[inline]
-    </span><span class="kw">fn </span>context(<span class="self">self</span>, context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str) -&gt; <span class="self">Self </span>{
+    <span class="kw">fn </span>context(<span class="self">self</span>, context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.map_err(|e| e.context(context))
     }
 }
@@ -302,7 +294,6 @@
     }
 
     <span class="doccomment">/// Creates an `Expected` parsing error.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>expected&lt;E, F&gt;(expected: E, found: F, span: Span, context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str) -&gt; <span class="self">Self
     </span><span class="kw">where
         </span>E: Into&lt;Box&lt;[String]&gt;&gt;,
@@ -317,7 +308,6 @@
     }
 
     <span class="doccomment">/// Creates an `Expected` parsing error.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>unexpected&lt;F, C&gt;(found: F, span: Span, message: C) -&gt; <span class="self">Self
     </span><span class="kw">where
         </span>F: Into&lt;Box&lt;str&gt;&gt;,
@@ -331,13 +321,11 @@
     }
 
     <span class="doccomment">/// Creates a &quot;general&quot; parsing error.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>general(message: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str, position: Position) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::General { message, position }
     }
 
     <span class="doccomment">/// Creates a &quot;general&quot; parsing error with the specific error message for a wrong function declaration in non-strict mode.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>wrong_function_declaration_non_strict(position: Position) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::General {
             message: <span class="string">&quot;In non-strict mode code, functions can only be declared at top level, inside a block, or as the body of an if statement.&quot;</span>,
@@ -346,7 +334,6 @@
     }
 
     <span class="doccomment">/// Creates a &quot;general&quot; parsing error with the specific error message for a wrong function declaration with label.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>wrong_labelled_function_declaration(position: Position) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::General {
             message: <span class="string">&quot;Labelled functions can only be declared at top level or inside a block&quot;</span>,
@@ -355,7 +342,6 @@
     }
 
     <span class="doccomment">/// Creates a parsing error from a lexing error.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>lex(e: LexError) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::Lex { err: e }
     }

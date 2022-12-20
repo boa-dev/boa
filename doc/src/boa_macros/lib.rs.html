@@ -178,11 +178,6 @@
 <span id="177">177</span>
 <span id="178">178</span>
 <span id="179">179</span>
-<span id="180">180</span>
-<span id="181">181</span>
-<span id="182">182</span>
-<span id="183">183</span>
-<span id="184">184</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Macros for the Boa JavaScript engine.
 
 </span><span class="attribute">#![doc(
@@ -281,7 +276,6 @@
             <span class="attribute">#[inline]
             </span><span class="kw">unsafe fn </span>trace(<span class="kw-2">&amp;</span><span class="self">self</span>) {
                 <span class="attribute">#[allow(dead_code)]
-                #[inline]
                 </span><span class="kw">fn </span>mark&lt;T: ::boa_gc::Trace + <span class="question-mark">?</span>Sized&gt;(it: <span class="kw-2">&amp;</span>T) {
                     <span class="kw">unsafe </span>{
                         ::boa_gc::Trace::trace(it);
@@ -292,7 +286,6 @@
             <span class="attribute">#[inline]
             </span><span class="kw">unsafe fn </span>weak_trace(<span class="kw-2">&amp;</span><span class="self">self</span>) {
                 <span class="attribute">#[allow(dead_code, unreachable_code)]
-                #[inline]
                 </span><span class="kw">fn </span>mark&lt;T: ::boa_gc::Trace + <span class="question-mark">?</span>Sized&gt;(it: <span class="kw-2">&amp;</span>T) {
                     <span class="kw">unsafe </span>{
                         ::boa_gc::Trace::weak_trace(it)
@@ -303,7 +296,6 @@
             <span class="attribute">#[inline]
             </span><span class="kw">unsafe fn </span>root(<span class="kw-2">&amp;</span><span class="self">self</span>) {
                 <span class="attribute">#[allow(dead_code)]
-                #[inline]
                 </span><span class="kw">fn </span>mark&lt;T: ::boa_gc::Trace + <span class="question-mark">?</span>Sized&gt;(it: <span class="kw-2">&amp;</span>T) {
                     <span class="kw">unsafe </span>{
                         ::boa_gc::Trace::root(it);
@@ -314,7 +306,6 @@
             <span class="attribute">#[inline]
             </span><span class="kw">unsafe fn </span>unroot(<span class="kw-2">&amp;</span><span class="self">self</span>) {
                 <span class="attribute">#[allow(dead_code)]
-                #[inline]
                 </span><span class="kw">fn </span>mark&lt;T: ::boa_gc::Trace + <span class="question-mark">?</span>Sized&gt;(it: <span class="kw-2">&amp;</span>T) {
                     <span class="kw">unsafe </span>{
                         ::boa_gc::Trace::unroot(it);
@@ -326,7 +317,6 @@
             </span><span class="kw">fn </span>run_finalizer(<span class="kw-2">&amp;</span><span class="self">self</span>) {
                 ::boa_gc::Finalize::finalize(<span class="self">self</span>);
                 <span class="attribute">#[allow(dead_code)]
-                #[inline]
                 </span><span class="kw">fn </span>mark&lt;T: ::boa_gc::Trace + <span class="question-mark">?</span>Sized&gt;(it: <span class="kw-2">&amp;</span>T) {
                     <span class="kw">unsafe </span>{
                         ::boa_gc::Trace::run_finalizer(it);

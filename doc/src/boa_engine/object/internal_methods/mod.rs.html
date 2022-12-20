@@ -936,33 +936,6 @@
 <span id="935">935</span>
 <span id="936">936</span>
 <span id="937">937</span>
-<span id="938">938</span>
-<span id="939">939</span>
-<span id="940">940</span>
-<span id="941">941</span>
-<span id="942">942</span>
-<span id="943">943</span>
-<span id="944">944</span>
-<span id="945">945</span>
-<span id="946">946</span>
-<span id="947">947</span>
-<span id="948">948</span>
-<span id="949">949</span>
-<span id="950">950</span>
-<span id="951">951</span>
-<span id="952">952</span>
-<span id="953">953</span>
-<span id="954">954</span>
-<span id="955">955</span>
-<span id="956">956</span>
-<span id="957">957</span>
-<span id="958">958</span>
-<span id="959">959</span>
-<span id="960">960</span>
-<span id="961">961</span>
-<span id="962">962</span>
-<span id="963">963</span>
-<span id="964">964</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module defines the object internal methods.
 //!
 //! More information:
@@ -998,8 +971,7 @@
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-getprototypeof
-    </span><span class="attribute">#[inline]
-    #[track_caller]
+    </span><span class="attribute">#[track_caller]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>__get_prototype_of__(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsPrototype&gt; {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Object::__get_prototype_of__&quot;</span>, <span class="string">&quot;object&quot;</span>);
         <span class="kw">let </span>func = <span class="self">self</span>.borrow().data.internal_methods.__get_prototype_of__;
@@ -1014,7 +986,6 @@
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-setprototypeof-v
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>__set_prototype_of__(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         val: JsPrototype,
@@ -1033,7 +1004,6 @@
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-isextensible
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>__is_extensible__(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;bool&gt; {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Object::__is_extensible__&quot;</span>, <span class="string">&quot;object&quot;</span>);
         <span class="kw">let </span>func = <span class="self">self</span>.borrow().data.internal_methods.__is_extensible__;
@@ -1048,7 +1018,6 @@
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-preventextensions
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>__prevent_extensions__(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;bool&gt; {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Object::__prevent_extensions__&quot;</span>, <span class="string">&quot;object&quot;</span>);
         <span class="kw">let </span>func = <span class="self">self</span>.borrow().data.internal_methods.__prevent_extensions__;
@@ -1063,7 +1032,6 @@
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-getownproperty-p
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>__get_own_property__(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         key: <span class="kw-2">&amp;</span>PropertyKey,
@@ -1082,7 +1050,6 @@
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-defineownproperty-p-desc
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>__define_own_property__(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         key: PropertyKey,
@@ -1102,7 +1069,6 @@
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-hasproperty-p
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>__has_property__(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         key: <span class="kw-2">&amp;</span>PropertyKey,
@@ -1121,7 +1087,6 @@
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-get-p-receiver
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>__get__(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         key: <span class="kw-2">&amp;</span>PropertyKey,
@@ -1141,7 +1106,6 @@
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-set-p-v-receiver
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>__set__(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         key: PropertyKey,
@@ -1162,7 +1126,6 @@
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-delete-p
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>__delete__(<span class="kw-2">&amp;</span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>PropertyKey, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;bool&gt; {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Object::__delete__&quot;</span>, <span class="string">&quot;object&quot;</span>);
         <span class="kw">let </span>func = <span class="self">self</span>.borrow().data.internal_methods.__delete__;
@@ -1177,8 +1140,7 @@
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-ownpropertykeys
-    </span><span class="attribute">#[inline]
-    #[track_caller]
+    </span><span class="attribute">#[track_caller]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>__own_property_keys__(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         context: <span class="kw-2">&amp;mut </span>Context,
@@ -1196,8 +1158,7 @@
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-ecmascript-function-objects-call-thisargument-argumentslist
-    </span><span class="attribute">#[inline]
-    #[track_caller]
+    </span><span class="attribute">#[track_caller]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>__call__(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         this: <span class="kw-2">&amp;</span>JsValue,
@@ -1219,8 +1180,7 @@
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-ecmascript-function-objects-construct-argumentslist-newtarget
-    </span><span class="attribute">#[inline]
-    #[track_caller]
+    </span><span class="attribute">#[track_caller]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>__construct__(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         args: <span class="kw-2">&amp;</span>[JsValue],
@@ -1298,8 +1258,7 @@
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-ordinarygetprototypeof
-</span><span class="attribute">#[inline]
-#[allow(clippy::unnecessary_wraps)]
+</span><span class="attribute">#[allow(clippy::unnecessary_wraps)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>ordinary_get_prototype_of(
     obj: <span class="kw-2">&amp;</span>JsObject,
     _context: <span class="kw-2">&amp;mut </span>Context,
@@ -1316,8 +1275,7 @@
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-ordinarysetprototypeof
-</span><span class="attribute">#[inline]
-#[allow(clippy::unnecessary_wraps)]
+</span><span class="attribute">#[allow(clippy::unnecessary_wraps)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>ordinary_set_prototype_of(
     obj: <span class="kw-2">&amp;</span>JsObject,
     val: JsPrototype,
@@ -1376,8 +1334,7 @@
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-ordinaryisextensible
-</span><span class="attribute">#[inline]
-#[allow(clippy::unnecessary_wraps)]
+</span><span class="attribute">#[allow(clippy::unnecessary_wraps)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>ordinary_is_extensible(obj: <span class="kw-2">&amp;</span>JsObject, _context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;bool&gt; {
     <span class="comment">// 1. Return O.[[Extensible]].
     </span><span class="prelude-val">Ok</span>(obj.borrow().extensible)
@@ -1389,8 +1346,7 @@
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-ordinarypreventextensions
-</span><span class="attribute">#[inline]
-#[allow(clippy::unnecessary_wraps)]
+</span><span class="attribute">#[allow(clippy::unnecessary_wraps)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>ordinary_prevent_extensions(
     obj: <span class="kw-2">&amp;</span>JsObject,
     _context: <span class="kw-2">&amp;mut </span>Context,
@@ -1408,8 +1364,7 @@
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-ordinarygetownproperty
-</span><span class="attribute">#[inline]
-#[allow(clippy::unnecessary_wraps)]
+</span><span class="attribute">#[allow(clippy::unnecessary_wraps)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>ordinary_get_own_property(
     obj: <span class="kw-2">&amp;</span>JsObject,
     key: <span class="kw-2">&amp;</span>PropertyKey,
@@ -1439,7 +1394,6 @@
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-ordinarydefineownproperty
-</span><span class="attribute">#[inline]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>ordinary_define_own_property(
     obj: <span class="kw-2">&amp;</span>JsObject,
     key: PropertyKey,
@@ -1468,7 +1422,6 @@
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-ordinaryhasproperty
-</span><span class="attribute">#[inline]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>ordinary_has_property(
     obj: <span class="kw-2">&amp;</span>JsObject,
     key: <span class="kw-2">&amp;</span>PropertyKey,
@@ -1498,7 +1451,6 @@
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-ordinaryget
-</span><span class="attribute">#[inline]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>ordinary_get(
     obj: <span class="kw-2">&amp;</span>JsObject,
     key: <span class="kw-2">&amp;</span>PropertyKey,
@@ -1544,7 +1496,6 @@
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-ordinaryset
-</span><span class="attribute">#[inline]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>ordinary_set(
     obj: <span class="kw-2">&amp;</span>JsObject,
     key: PropertyKey,
@@ -1647,7 +1598,6 @@
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-ordinarydelete
-</span><span class="attribute">#[inline]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>ordinary_delete(
     obj: <span class="kw-2">&amp;</span>JsObject,
     key: <span class="kw-2">&amp;</span>PropertyKey,
@@ -1679,8 +1629,7 @@
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-ordinaryownpropertykeys
-</span><span class="attribute">#[inline]
-#[allow(clippy::unnecessary_wraps)]
+</span><span class="attribute">#[allow(clippy::unnecessary_wraps)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>ordinary_own_property_keys(
     obj: <span class="kw-2">&amp;</span>JsObject,
     _context: <span class="kw-2">&amp;mut </span>Context,
@@ -1729,7 +1678,6 @@
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-iscompatiblepropertydescriptor
-</span><span class="attribute">#[inline]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_compatible_property_descriptor(
     extensible: bool,
     desc: PropertyDescriptor,
@@ -1748,7 +1696,6 @@
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-validateandapplypropertydescriptor
-</span><span class="attribute">#[inline]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>validate_and_apply_property_descriptor(
     obj_and_key: <span class="prelude-ty">Option</span>&lt;(<span class="kw-2">&amp;</span>JsObject, PropertyKey)&gt;,
     extensible: bool,
@@ -1900,8 +1847,7 @@
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-getprototypefromconstructor
-</span><span class="attribute">#[inline]
-#[track_caller]
+</span><span class="attribute">#[track_caller]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_prototype_from_constructor&lt;F&gt;(
     constructor: <span class="kw-2">&amp;</span>JsValue,
     default: F,

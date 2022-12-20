@@ -53,7 +53,6 @@
 <span id="52">52</span>
 <span id="53">53</span>
 <span id="54">54</span>
-<span id="55">55</span>
 </pre><pre class="rust"><code><span class="doccomment">//! A Rust API wrapper for Boa&#39;s `Function` Builtin ECMAScript Object
 </span><span class="kw">use crate</span>::{
     object::{JsObject, JsObjectType},
@@ -69,8 +68,7 @@
 }
 
 <span class="kw">impl </span>JsFunction {
-    <span class="attribute">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>from_object_unchecked(object: JsObject) -&gt; <span class="self">Self </span>{
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>from_object_unchecked(object: JsObject) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{ inner: object }
     }
 

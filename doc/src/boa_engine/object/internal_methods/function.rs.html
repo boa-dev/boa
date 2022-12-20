@@ -57,8 +57,6 @@
 <span id="56">56</span>
 <span id="57">57</span>
 <span id="58">58</span>
-<span id="59">59</span>
-<span id="60">60</span>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     object::{
         internal_methods::{InternalObjectMethods, ORDINARY_INTERNAL_METHODS},
@@ -93,7 +91,6 @@
 </span><span class="comment">// &lt;https://tc39.es/ecma262/#sec-prepareforordinarycall&gt;
 // &lt;https://tc39.es/ecma262/#sec-ecmascript-function-objects-call-thisargument-argumentslist&gt;
 </span><span class="attribute">#[track_caller]
-#[inline]
 </span><span class="kw">fn </span>function_call(
     obj: <span class="kw-2">&amp;</span>JsObject,
     this: <span class="kw-2">&amp;</span>JsValue,
@@ -110,7 +107,6 @@
 /// Panics if the object is currently mutably borrowed.
 </span><span class="comment">// &lt;https://tc39.es/ecma262/#sec-ecmascript-function-objects-construct-argumentslist-newtarget&gt;
 </span><span class="attribute">#[track_caller]
-#[inline]
 </span><span class="kw">fn </span>function_construct(
     obj: <span class="kw-2">&amp;</span>JsObject,
     args: <span class="kw-2">&amp;</span>[JsValue],

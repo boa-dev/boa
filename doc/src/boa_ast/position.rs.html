@@ -301,7 +301,6 @@
 <span id="300">300</span>
 <span id="301">301</span>
 <span id="302">302</span>
-<span id="303">303</span>
 </pre><pre class="rust"><code><span class="kw">use </span>std::{cmp::Ordering, fmt, num::NonZeroU32};
 
 <span class="doccomment">/// A position in the ECMAScript source code.
@@ -395,7 +394,6 @@
     }
 
     <span class="doccomment">/// Checks if this span inclusively contains another span or position.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>contains&lt;S&gt;(<span class="self">self</span>, other: S) -&gt; bool
     <span class="kw">where
         </span>S: Into&lt;<span class="self">Self</span>&gt;,

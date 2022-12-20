@@ -287,8 +287,6 @@
 <span id="286">286</span>
 <span id="287">287</span>
 <span id="288">288</span>
-<span id="289">289</span>
-<span id="290">290</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `BigInt` object.
 //!
 //! `BigInt` is a built-in object that provides a way to represent whole numbers larger
@@ -401,7 +399,6 @@
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-numbertobigint
-    </span><span class="attribute">#[inline]
     </span><span class="kw">fn </span>number_to_bigint(number: f64) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. If IsIntegralNumber(number) is false, throw a RangeError exception.
         </span><span class="kw">if </span>number.is_nan() || number.is_infinite() || number.fract() != <span class="number">0.0 </span>{
@@ -424,7 +421,6 @@
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-thisbigintvalue
-    </span><span class="attribute">#[inline]
     </span><span class="kw">fn </span>this_bigint_value(value: <span class="kw-2">&amp;</span>JsValue) -&gt; JsResult&lt;JsBigInt&gt; {
         value
             <span class="comment">// 1. If Type(value) is BigInt, return value.

@@ -368,20 +368,6 @@
 <span id="367">367</span>
 <span id="368">368</span>
 <span id="369">369</span>
-<span id="370">370</span>
-<span id="371">371</span>
-<span id="372">372</span>
-<span id="373">373</span>
-<span id="374">374</span>
-<span id="375">375</span>
-<span id="376">376</span>
-<span id="377">377</span>
-<span id="378">378</span>
-<span id="379">379</span>
-<span id="380">380</span>
-<span id="381">381</span>
-<span id="382">382</span>
-<span id="383">383</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa parser implementation.
 
 </span><span class="kw">mod </span>cursor;
@@ -436,8 +422,7 @@
 </span><span class="kw">struct </span>AllowYield(bool);
 
 <span class="kw">impl </span>From&lt;bool&gt; <span class="kw">for </span>AllowYield {
-    <span class="attribute">#[inline]
-    </span><span class="kw">fn </span>from(allow: bool) -&gt; <span class="self">Self </span>{
+    <span class="kw">fn </span>from(allow: bool) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>(allow)
     }
 }
@@ -447,8 +432,7 @@
 </span><span class="kw">struct </span>AllowAwait(bool);
 
 <span class="kw">impl </span>From&lt;bool&gt; <span class="kw">for </span>AllowAwait {
-    <span class="attribute">#[inline]
-    </span><span class="kw">fn </span>from(allow: bool) -&gt; <span class="self">Self </span>{
+    <span class="kw">fn </span>from(allow: bool) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>(allow)
     }
 }
@@ -458,8 +442,7 @@
 </span><span class="kw">struct </span>AllowIn(bool);
 
 <span class="kw">impl </span>From&lt;bool&gt; <span class="kw">for </span>AllowIn {
-    <span class="attribute">#[inline]
-    </span><span class="kw">fn </span>from(allow: bool) -&gt; <span class="self">Self </span>{
+    <span class="kw">fn </span>from(allow: bool) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>(allow)
     }
 }
@@ -469,8 +452,7 @@
 </span><span class="kw">struct </span>AllowReturn(bool);
 
 <span class="kw">impl </span>From&lt;bool&gt; <span class="kw">for </span>AllowReturn {
-    <span class="attribute">#[inline]
-    </span><span class="kw">fn </span>from(allow: bool) -&gt; <span class="self">Self </span>{
+    <span class="kw">fn </span>from(allow: bool) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>(allow)
     }
 }
@@ -480,8 +462,7 @@
 </span><span class="kw">struct </span>AllowDefault(bool);
 
 <span class="kw">impl </span>From&lt;bool&gt; <span class="kw">for </span>AllowDefault {
-    <span class="attribute">#[inline]
-    </span><span class="kw">fn </span>from(allow: bool) -&gt; <span class="self">Self </span>{
+    <span class="kw">fn </span>from(allow: bool) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>(allow)
     }
 }
@@ -503,7 +484,6 @@
 
 <span class="kw">impl</span>&lt;R&gt; Parser&lt;R&gt; {
     <span class="doccomment">/// Create a new `Parser` with a reader as the input to parse.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>new(reader: R) -&gt; <span class="self">Self
     </span><span class="kw">where
         </span>R: Read,
@@ -514,7 +494,6 @@
     }
 
     <span class="doccomment">/// Set the parser strict mode to true.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>set_strict(<span class="kw-2">&amp;mut </span><span class="self">self</span>)
     <span class="kw">where
         </span>R: Read,
@@ -523,7 +502,6 @@
     }
 
     <span class="doccomment">/// Set the parser strict mode to true.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>set_json_parse(<span class="kw-2">&amp;mut </span><span class="self">self</span>)
     <span class="kw">where
         </span>R: Read,
@@ -539,7 +517,6 @@
     /// Will return `Err` on any parsing error, including invalid reads of the bytes being parsed.
     ///
     /// [spec]: https://tc39.es/ecma262/#prod-Script
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>parse_all(<span class="kw-2">&amp;mut </span><span class="self">self</span>, interner: <span class="kw-2">&amp;mut </span>Interner) -&gt; ParseResult&lt;StatementList&gt;
     <span class="kw">where
         </span>R: Read,
@@ -556,7 +533,6 @@
     /// Will return `Err` on any parsing error, including invalid reads of the bytes being parsed.
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-performeval
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>parse_eval(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         direct: bool,
@@ -575,7 +551,6 @@
     /// Will return `Err` on any parsing error, including invalid reads of the bytes being parsed.
     ///
     /// [spec]: https://tc39.es/ecma262/#prod-FunctionBody
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>parse_function_body(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         interner: <span class="kw-2">&amp;mut </span>Interner,
@@ -595,7 +570,6 @@
     /// Will return `Err` on any parsing error, including invalid reads of the bytes being parsed.
     ///
     /// [spec]: https://tc39.es/ecma262/#prod-FormalParameterList
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>parse_formal_parameters(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         interner: <span class="kw-2">&amp;mut </span>Interner,
@@ -736,7 +710,6 @@
 }
 
 <span class="doccomment">/// Helper to check if any parameter names are declared in the given list.
-</span><span class="attribute">#[inline]
 </span><span class="kw">fn </span>name_in_lexically_declared_names(
     bound_names: <span class="kw-2">&amp;</span>[Identifier],
     lexical_names: <span class="kw-2">&amp;</span>[Identifier],
@@ -760,8 +733,7 @@
 }
 
 <span class="kw">impl</span>&lt;T&gt; OrAbrupt&lt;T&gt; <span class="kw">for </span>ParseResult&lt;<span class="prelude-ty">Option</span>&lt;T&gt;&gt; {
-    <span class="attribute">#[inline]
-    </span><span class="kw">fn </span>or_abrupt(<span class="self">self</span>) -&gt; ParseResult&lt;T&gt; {
+    <span class="kw">fn </span>or_abrupt(<span class="self">self</span>) -&gt; ParseResult&lt;T&gt; {
         <span class="self">self</span><span class="question-mark">?</span>.ok_or(Error::AbruptEnd)
     }
 }

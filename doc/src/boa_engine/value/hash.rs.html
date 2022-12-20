@@ -50,7 +50,6 @@
 <span id="49">49</span>
 <span id="50">50</span>
 <span id="51">51</span>
-<span id="52">52</span>
 </pre><pre class="rust"><code><span class="kw">use </span><span class="kw">super</span>::JsValue;
 <span class="kw">use </span><span class="kw">crate</span>::builtins::Number;
 <span class="kw">use </span>std::hash::{Hash, Hasher};
@@ -82,8 +81,7 @@
 <span class="kw">impl </span>Eq <span class="kw">for </span>RationalHashable {}
 
 <span class="kw">impl </span>Hash <span class="kw">for </span>RationalHashable {
-    <span class="attribute">#[inline]
-    </span><span class="kw">fn </span>hash&lt;H: Hasher&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, state: <span class="kw-2">&amp;mut </span>H) {
+    <span class="kw">fn </span>hash&lt;H: Hasher&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, state: <span class="kw-2">&amp;mut </span>H) {
         <span class="self">self</span>.<span class="number">0</span>.to_bits().hash(state);
     }
 }

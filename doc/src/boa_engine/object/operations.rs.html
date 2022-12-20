@@ -835,17 +835,6 @@
 <span id="834">834</span>
 <span id="835">835</span>
 <span id="836">836</span>
-<span id="837">837</span>
-<span id="838">838</span>
-<span id="839">839</span>
-<span id="840">840</span>
-<span id="841">841</span>
-<span id="842">842</span>
-<span id="843">843</span>
-<span id="844">844</span>
-<span id="845">845</span>
-<span id="846">846</span>
-<span id="847">847</span>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     builtins::Array,
     context::intrinsics::{StandardConstructor, StandardConstructors},
@@ -911,7 +900,6 @@
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-get-o-p
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>get&lt;K&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, key: K, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt;
     <span class="kw">where
         </span>K: Into&lt;PropertyKey&gt;,
@@ -928,7 +916,6 @@
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-set-o-p-v-throw
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>set&lt;K, V&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, key: K, value: V, throw: bool, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;bool&gt;
     <span class="kw">where
         </span>K: Into&lt;PropertyKey&gt;,
@@ -1054,7 +1041,6 @@
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-definepropertyorthrow
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>define_property_or_throw&lt;K, P&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         key: K,
@@ -1086,7 +1072,6 @@
     /// - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-deletepropertyorthrow
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>delete_property_or_throw&lt;K&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, key: K, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;bool&gt;
     <span class="kw">where
         </span>K: Into&lt;PropertyKey&gt;,
@@ -1112,7 +1097,6 @@
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-hasproperty
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>has_property&lt;K&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, key: K, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;bool&gt;
     <span class="kw">where
         </span>K: Into&lt;PropertyKey&gt;,
@@ -1129,7 +1113,6 @@
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-hasownproperty
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>has_own_property&lt;K&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, key: K, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;bool&gt;
     <span class="kw">where
         </span>K: Into&lt;PropertyKey&gt;,
@@ -1201,7 +1184,6 @@
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-setintegritylevel
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>set_integrity_level(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         level: IntegrityLevel,
@@ -1271,7 +1253,6 @@
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-testintegritylevel
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>test_integrity_level(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         level: IntegrityLevel,
@@ -1315,8 +1296,7 @@
         </span><span class="prelude-val">Ok</span>(<span class="bool-val">true</span>)
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>length_of_array_like(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;u64&gt; {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>length_of_array_like(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;u64&gt; {
         <span class="comment">// 1. Assert: Type(obj) is Object.
         // 2. Return ℝ(? ToLength(? Get(obj, &quot;length&quot;))).
         </span><span class="self">self</span>.get(<span class="string">&quot;length&quot;</span>, context)<span class="question-mark">?</span>.to_length(context)
@@ -1528,7 +1508,6 @@
     /// - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-getv
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_v&lt;K&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, key: K, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="self">Self</span>&gt;
     <span class="kw">where
         </span>K: Into&lt;PropertyKey&gt;,
@@ -1548,7 +1527,6 @@
     /// - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-getmethod
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_method&lt;K&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, key: K, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="prelude-ty">Option</span>&lt;JsObject&gt;&gt;
     <span class="kw">where
         </span>K: Into&lt;PropertyKey&gt;,

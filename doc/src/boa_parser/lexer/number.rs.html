@@ -414,8 +414,6 @@
 <span id="413">413</span>
 <span id="414">414</span>
 <span id="415">415</span>
-<span id="416">416</span>
-<span id="417">417</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements lexing for number literals (123, 787) used in ECMAScript.
 
 </span><span class="kw">use </span><span class="kw">crate</span>::lexer::{token::Numeric, Cursor, Error, Token, TokenKind, Tokenizer};
@@ -476,8 +474,7 @@
     }
 }
 
-<span class="attribute">#[inline]
-</span><span class="kw">fn </span>take_signed_integer&lt;R&gt;(
+<span class="kw">fn </span>take_signed_integer&lt;R&gt;(
     buf: <span class="kw-2">&amp;mut </span>Vec&lt;u8&gt;,
     cursor: <span class="kw-2">&amp;mut </span>Cursor&lt;R&gt;,
     kind: NumericKind,
@@ -575,7 +572,6 @@
 ///  - [ECMAScript Specification][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-literals-numeric-literals
-</span><span class="attribute">#[inline]
 </span><span class="kw">fn </span>check_after_numeric_literal&lt;R&gt;(cursor: <span class="kw-2">&amp;mut </span>Cursor&lt;R&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt;
 <span class="kw">where
     </span>R: Read,

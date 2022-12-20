@@ -1130,7 +1130,6 @@
 <span id="1129">1129</span>
 <span id="1130">1130</span>
 <span id="1131">1131</span>
-<span id="1132">1132</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s ECMAScript Value implementation.
 //!
 //! Javascript values, utility methods and conversion between Javascript values and Rust values.
@@ -1224,7 +1223,6 @@
 
 <span class="kw">impl </span>JsValue {
     <span class="doccomment">/// Create a new [`JsValue`].
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>new&lt;T&gt;(value: T) -&gt; <span class="self">Self
     </span><span class="kw">where
         </span>T: Into&lt;<span class="self">Self</span>&gt;,
@@ -1330,6 +1328,7 @@
     }
 
     <span class="doccomment">/// Returns the symbol if the value is a symbol, otherwise `None`.
+    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>as_symbol(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;JsSymbol&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::Symbol(symbol) =&gt; <span class="prelude-val">Some</span>(symbol.clone()),
@@ -1362,8 +1361,7 @@
     }
 
     <span class="doccomment">/// Returns true if the value is integer.
-    </span><span class="attribute">#[inline]
-    #[allow(clippy::float_cmp)]
+    </span><span class="attribute">#[allow(clippy::float_cmp)]
     </span><span class="kw">pub fn </span>is_integer(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="comment">// If it can fit in a i32 and the truncated version is
         // equal to the original then it is an integer.

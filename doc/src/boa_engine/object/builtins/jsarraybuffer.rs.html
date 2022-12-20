@@ -222,7 +222,6 @@
 <span id="221">221</span>
 <span id="222">222</span>
 <span id="223">223</span>
-<span id="224">224</span>
 </pre><pre class="rust"><code><span class="doccomment">//! A Rust API wrapper for Boa&#39;s `ArrayBuffer` Builtin ECMAScript Object
 </span><span class="kw">use crate</span>::{
     builtins::array_buffer::ArrayBuffer,
@@ -300,7 +299,6 @@
     /// # Ok(())
     /// # }
     /// ```
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>from_byte_block(byte_block: Vec&lt;u8&gt;, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
         <span class="kw">let </span>byte_length = byte_block.len();
 

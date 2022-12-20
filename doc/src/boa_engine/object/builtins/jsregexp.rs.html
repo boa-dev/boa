@@ -280,9 +280,6 @@
 <span id="279">279</span>
 <span id="280">280</span>
 <span id="281">281</span>
-<span id="282">282</span>
-<span id="283">283</span>
-<span id="284">284</span>
 </pre><pre class="rust"><code><span class="doccomment">//! A Rust API wrapper for Boa&#39;s `RegExp` Builtin ECMAScript Object
 </span><span class="kw">use crate</span>::{
     builtins::RegExp,
@@ -341,7 +338,6 @@
     /// # Ok(())
     /// # }
     /// ```
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>new&lt;S&gt;(pattern: S, flags: S, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="self">Self</span>&gt;
     <span class="kw">where
         </span>S: Into&lt;JsValue&gt;,
@@ -488,7 +484,6 @@
     /// # Ok(())
     /// # }
     /// ```
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>test&lt;S&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, search_string: S, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;bool&gt;
     <span class="kw">where
         </span>S: Into&lt;JsValue&gt;,
@@ -500,7 +495,6 @@
     <span class="doccomment">/// Executes a search for a match in a specified string
     ///
     /// Returns a `JsArray` containing matched value and updates the `lastIndex` property, or `None`
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>exec&lt;S&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, search_string: S, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="prelude-ty">Option</span>&lt;JsArray&gt;&gt;
     <span class="kw">where
         </span>S: Into&lt;JsValue&gt;,

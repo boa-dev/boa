@@ -70,7 +70,6 @@
 <span id="69">69</span>
 <span id="70">70</span>
 <span id="71">71</span>
-<span id="72">72</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Await expression Expression.
 
 </span><span class="kw">use </span>core::ops::ControlFlow;
@@ -108,8 +107,7 @@
 <span class="kw">where
     </span>T: Into&lt;Box&lt;Expression&gt;&gt;,
 {
-    <span class="attribute">#[inline]
-    </span><span class="kw">fn </span>from(e: T) -&gt; <span class="self">Self </span>{
+    <span class="kw">fn </span>from(e: T) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{ target: e.into() }
     }
 }

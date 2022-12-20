@@ -1080,15 +1080,6 @@
 <span id="1079">1079</span>
 <span id="1080">1080</span>
 <span id="1081">1081</span>
-<span id="1082">1082</span>
-<span id="1083">1083</span>
-<span id="1084">1084</span>
-<span id="1085">1085</span>
-<span id="1086">1086</span>
-<span id="1087">1087</span>
-<span id="1088">1088</span>
-<span id="1089">1089</span>
-<span id="1090">1090</span>
 </pre><pre class="rust"><code><span class="doccomment">//! A UTF-16–encoded, reference counted, immutable string.
 //!
 //! This module contains the [`JsString`] type, the [`js_string`][crate::js_string] macro and the
@@ -1306,7 +1297,6 @@
     ///
     /// `inner` must point to a valid instance of [`RawJsString`], which should be deallocated only
     /// by [`JsString`].
-    </span><span class="attribute">#[inline]
     </span><span class="kw">const unsafe fn </span>new_heap(inner: NonNull&lt;RawJsString&gt;) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>(inner)
     }
@@ -1317,7 +1307,6 @@
     /// # Safety
     ///
     /// `idx` must be a valid index on [`COMMON_STRINGS`].
-    </span><span class="attribute">#[inline]
     </span><span class="kw">const unsafe fn </span>new_static(idx: usize) -&gt; <span class="self">Self </span>{
         <span class="comment">// SAFETY:
         // The operation `(idx &lt;&lt; 1) | 1` sets the least significant bit to 1, meaning any pointer
@@ -1326,7 +1315,6 @@
     }
 
     <span class="doccomment">/// Checks if [`TaggedJsString`] contains an index for [`COMMON_STRINGS`].
-    </span><span class="attribute">#[inline]
     </span><span class="kw">fn </span>is_static(<span class="self">self</span>) -&gt; bool {
         (<span class="self">self</span>.<span class="number">0</span>.as_ptr() <span class="kw">as </span>usize) &amp; <span class="number">1 </span>== <span class="number">1
     </span>}
@@ -1337,7 +1325,6 @@
     /// # Safety
     ///
     /// `self` must be a heap allocated [`RawJsString`].
-    </span><span class="attribute">#[inline]
     </span><span class="kw">const unsafe fn </span>get_heap_unchecked(<span class="self">self</span>) -&gt; NonNull&lt;RawJsString&gt; {
         <span class="self">self</span>.<span class="number">0
     </span>}
@@ -1349,7 +1336,6 @@
     ///
     /// `self` must not be a pointer to a heap allocated [`RawJsString`], and it must be a valid
     /// index inside [`COMMON_STRINGS`].
-    </span><span class="attribute">#[inline]
     </span><span class="kw">unsafe fn </span>get_static_unchecked(<span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[u16] {
         <span class="comment">// SAFETY:
         // The caller must ensure `self` is a valid index inside `COMMON_STRINGS`.
@@ -1637,7 +1623,6 @@
 
     <span class="doccomment">/// Returns the inner pointer data, unwrapping its tagged data if the pointer contains a static
     /// index for [`COMMON_STRINGS`].
-    </span><span class="attribute">#[inline]
     </span><span class="kw">fn </span>ptr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsStringPtrKind {
         <span class="comment">// Check the first bit to 1.
         </span><span class="kw">if </span><span class="self">self</span>.ptr.is_static() {
@@ -1784,8 +1769,7 @@
 }
 
 <span class="kw">impl </span>Drop <span class="kw">for </span>JsString {
-    <span class="attribute">#[inline]
-    </span><span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+    <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="kw">if let </span>JsStringPtrKind::Heap(raw) = <span class="self">self</span>.ptr() {
             <span class="comment">// SAFETY: The reference count of `JsString` guarantees that `raw` is always valid.
             </span><span class="kw">let </span>inner = <span class="kw">unsafe </span>{ <span class="kw-2">&amp;mut *</span>raw.as_ptr() };
@@ -1890,8 +1874,7 @@
 }
 
 <span class="kw">impl</span>&lt;<span class="kw">const </span>N: usize&gt; From&lt;<span class="kw-2">&amp;</span>[u16; N]&gt; <span class="kw">for </span>JsString {
-    <span class="attribute">#[inline]
-    </span><span class="kw">fn </span>from(s: <span class="kw-2">&amp;</span>[u16; N]) -&gt; <span class="self">Self </span>{
+    <span class="kw">fn </span>from(s: <span class="kw-2">&amp;</span>[u16; N]) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::from(<span class="kw-2">&amp;</span>s[..])
     }
 }
@@ -2044,7 +2027,6 @@
 
     <span class="kw">impl </span>JsString {
         <span class="doccomment">/// Gets the number of `JsString`s which point to this allocation.
-        </span><span class="attribute">#[inline]
         </span><span class="kw">fn </span>refcount(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
             <span class="kw">match </span><span class="self">self</span>.ptr() {
                 JsStringPtrKind::Heap(inner) =&gt; {

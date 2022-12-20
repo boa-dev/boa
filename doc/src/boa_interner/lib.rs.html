@@ -460,7 +460,6 @@
 <span id="459">459</span>
 <span id="460">460</span>
 <span id="461">461</span>
-<span id="462">462</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s **boa_interner** is a string interner for compiler performance.
 //!
 //! # Crate Overview
@@ -834,8 +833,7 @@
     }
 
     <span class="doccomment">/// Returns the string for the given symbol if any.
-    </span><span class="attribute">#[inline]
-    #[must_use]
+    </span><span class="attribute">#[must_use]
     </span><span class="kw">pub fn </span>resolve(<span class="kw-2">&amp;</span><span class="self">self</span>, symbol: Sym) -&gt; <span class="prelude-ty">Option</span>&lt;JSInternedStrRef&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>&gt;&gt; {
         <span class="kw">let </span>index = symbol.get() - <span class="number">1</span>;
 

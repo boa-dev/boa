@@ -392,12 +392,6 @@
 <span id="391">391</span>
 <span id="392">392</span>
 <span id="393">393</span>
-<span id="394">394</span>
-<span id="395">395</span>
-<span id="396">396</span>
-<span id="397">397</span>
-<span id="398">398</span>
-<span id="399">399</span>
 </pre><pre class="rust"><code><span class="doccomment">//! A Rust API wrapper for Boa&#39;s `Array` Builtin ECMAScript Object
 </span><span class="kw">use crate</span>::{
     builtins::Array,
@@ -426,7 +420,6 @@
     }
 
     <span class="doccomment">/// Create an array from a `IntoIterator&lt;Item = JsValue&gt;` convertible object.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>from_iter&lt;I&gt;(elements: I, context: <span class="kw-2">&amp;mut </span>Context) -&gt; <span class="self">Self
     </span><span class="kw">where
         </span>I: IntoIterator&lt;Item = JsValue&gt;,
@@ -465,7 +458,6 @@
     }
 
     <span class="doccomment">/// Push an element to the array.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>push&lt;T&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, value: T, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt;
     <span class="kw">where
         </span>T: Into&lt;JsValue&gt;,
@@ -486,7 +478,6 @@
     }
 
     <span class="doccomment">/// Calls `Array.prototype.at()`.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>at&lt;T&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, index: T, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt;
     <span class="kw">where
         </span>T: Into&lt;i64&gt;,
@@ -540,7 +531,6 @@
     }
 
     <span class="doccomment">/// Calls `Array.prototype.fill()`.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>fill&lt;T&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         value: T,
@@ -564,7 +554,6 @@
     }
 
     <span class="doccomment">/// Calls `Array.prototype.indexOf()`.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>index_of&lt;T&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         search_element: T,
@@ -591,7 +580,6 @@
     }
 
     <span class="doccomment">/// Calls `Array.prototype.lastIndexOf()`.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>last_index_of&lt;T&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         search_element: T,

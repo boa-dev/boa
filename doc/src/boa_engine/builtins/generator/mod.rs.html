@@ -697,7 +697,7 @@
         std::mem::swap(<span class="kw-2">&amp;mut </span>context.vm.stack, <span class="kw-2">&amp;mut </span>generator_context.stack);
         context.vm.push_frame(generator_context.call_frame.clone());
         <span class="kw">if </span>!first_execution {
-            context.vm.push(value);
+            context.vm.push(value.clone());
         }
 
         context.vm.frame_mut().generator_resume_kind = GeneratorResumeKind::Normal;

@@ -117,6 +117,7 @@
 <span id="116">116</span>
 <span id="117">117</span>
 <span id="118">118</span>
+<span id="119">119</span>
 </pre><pre class="rust"><code><span class="doccomment">//! If statement
 
 </span><span class="kw">use crate</span>::{
@@ -175,7 +176,8 @@
     }
 
     <span class="doccomment">/// Creates an `If` AST node.
-    </span><span class="attribute">#[must_use]
+    </span><span class="attribute">#[inline]
+    #[must_use]
     </span><span class="kw">pub fn </span>new(condition: Expression, body: Statement, else_node: <span class="prelude-ty">Option</span>&lt;Statement&gt;) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             condition,

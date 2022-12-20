@@ -486,7 +486,6 @@
 <span id="485">485</span>
 <span id="486">486</span>
 <span id="487">487</span>
-<span id="488">488</span>
 </pre><pre class="rust"><code><span class="doccomment">//! A Rust API wrapper for Boa&#39;s `DataView` Builtin ECMAScript Object
 </span><span class="kw">use crate</span>::{
     builtins::DataView,
@@ -527,7 +526,6 @@
 
 <span class="kw">impl </span>JsDataView {
     <span class="doccomment">/// Create a new `JsDataView` object from an existing `JsArrayBuffer`.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>from_js_array_buffer(
         array_buffer: <span class="kw-2">&amp;</span>JsArrayBuffer,
         offset: <span class="prelude-ty">Option</span>&lt;u64&gt;,

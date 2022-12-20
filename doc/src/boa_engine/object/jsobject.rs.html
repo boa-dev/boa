@@ -886,16 +886,6 @@
 <span id="885">885</span>
 <span id="886">886</span>
 <span id="887">887</span>
-<span id="888">888</span>
-<span id="889">889</span>
-<span id="890">890</span>
-<span id="891">891</span>
-<span id="892">892</span>
-<span id="893">893</span>
-<span id="894">894</span>
-<span id="895">895</span>
-<span id="896">896</span>
-<span id="897">897</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the `JsObject` structure.
 //!
 //! The `JsObject` is a garbage collected Object.
@@ -932,7 +922,6 @@
 
 <span class="kw">impl </span>JsObject {
     <span class="doccomment">/// Create a new `JsObject` from an internal `Object`.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">fn </span>from_object(object: Object) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             inner: Gc::new(GcCell::new(object)),
@@ -950,7 +939,6 @@
     ///
     /// Create a `JsObject` and automatically set its internal methods and
     /// internal slots from the `data` provided.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>from_proto_and_data&lt;O: Into&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;&gt;&gt;(prototype: O, data: ObjectData) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::from_object(Object {
             data,
@@ -1096,8 +1084,7 @@
     /// # Panics
     ///
     /// Panics if the object is currently mutably borrowed.
-    </span><span class="attribute">#[inline]
-    #[track_caller]
+    </span><span class="attribute">#[track_caller]
     </span><span class="kw">pub fn </span>is&lt;T&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool
     <span class="kw">where
         </span>T: NativeObject,
@@ -1111,8 +1098,7 @@
     /// # Panics
     ///
     /// Panics if the object is currently mutably borrowed.
-    </span><span class="attribute">#[inline]
-    #[track_caller]
+    </span><span class="attribute">#[track_caller]
     </span><span class="kw">pub fn </span>downcast_ref&lt;T&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Ref&lt;<span class="lifetime">&#39;_</span>, T&gt;&gt;
     <span class="kw">where
         </span>T: NativeObject,
@@ -1133,8 +1119,7 @@
     /// # Panics
     ///
     /// Panics if the object is currently borrowed.
-    </span><span class="attribute">#[inline]
-    #[track_caller]
+    </span><span class="attribute">#[track_caller]
     </span><span class="kw">pub fn </span>downcast_mut&lt;T&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;RefMut&lt;<span class="lifetime">&#39;_</span>, Object, T&gt;&gt;
     <span class="kw">where
         </span>T: NativeObject,
@@ -1166,7 +1151,6 @@
     /// # Panics
     ///
     /// Panics if the object is currently mutably borrowed.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>extensible(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.borrow().extensible
     }
@@ -1505,7 +1489,6 @@ Cannot both specify accessors and a value or writable attribute&quot;</span>,
     ///  - [ECMAScript][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-copydataproperties
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>copy_data_properties&lt;K&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         source: <span class="kw-2">&amp;</span>JsValue,
@@ -1570,8 +1553,7 @@ Cannot both specify accessors and a value or writable attribute&quot;</span>,
         </span><span class="prelude-val">Ok</span>(())
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_property(<span class="kw-2">&amp;</span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>PropertyKey) -&gt; <span class="prelude-ty">Option</span>&lt;PropertyDescriptor&gt; {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_property(<span class="kw-2">&amp;</span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>PropertyKey) -&gt; <span class="prelude-ty">Option</span>&lt;PropertyDescriptor&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>obj = <span class="prelude-val">Some</span>(<span class="self">self</span>.clone());
 
         <span class="kw">while let </span><span class="prelude-val">Some</span>(o) = obj {
@@ -1584,8 +1566,7 @@ Cannot both specify accessors and a value or writable attribute&quot;</span>,
     </span>}
 
     <span class="doccomment">/// Helper function for property insertion.
-    </span><span class="attribute">#[inline]
-    #[track_caller]
+    </span><span class="attribute">#[track_caller]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>insert&lt;K, P&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, key: K, property: P) -&gt; <span class="prelude-ty">Option</span>&lt;PropertyDescriptor&gt;
     <span class="kw">where
         </span>K: Into&lt;PropertyKey&gt;,
@@ -1598,7 +1579,6 @@ Cannot both specify accessors and a value or writable attribute&quot;</span>,
     ///
     /// If a field was already in the object with the same name that a `Some` is returned
     /// with that field, otherwise None is returned.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>insert_property&lt;K, P&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, key: K, property: P) -&gt; <span class="prelude-ty">Option</span>&lt;PropertyDescriptor&gt;
     <span class="kw">where
         </span>K: Into&lt;PropertyKey&gt;,

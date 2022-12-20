@@ -189,10 +189,6 @@
 <span id="188">188</span>
 <span id="189">189</span>
 <span id="190">190</span>
-<span id="191">191</span>
-<span id="192">192</span>
-<span id="193">193</span>
-<span id="194">194</span>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{fixed_string::FixedString, interned_str::InternedStr};
 <span class="kw">use </span>rustc_hash::FxHashMap;
 <span class="kw">use </span>std::hash::Hash;
@@ -231,7 +227,6 @@
 
 <span class="kw">impl</span>&lt;Char&gt; RawInterner&lt;Char&gt; {
     <span class="doccomment">/// Creates a new `RawInterner` with the specified capacity.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>with_capacity(capacity: usize) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             symbol_cache: FxHashMap::default(),
@@ -242,13 +237,11 @@
     }
 
     <span class="doccomment">/// Returns the number of strings interned by the interner.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
         <span class="self">self</span>.spans.len()
     }
 
     <span class="doccomment">/// Returns `true` if the interner contains no interned strings.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.spans.is_empty()
     }
@@ -300,7 +293,6 @@
     }
 
     <span class="doccomment">/// Returns the string for the given index if any.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>index(<span class="kw-2">&amp;</span><span class="self">self</span>, index: usize) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>[Char]&gt; {
         <span class="self">self</span>.spans.get(index).map(|ptr|
             <span class="comment">// SAFETY: We always ensure the stored `InternedStr`s always

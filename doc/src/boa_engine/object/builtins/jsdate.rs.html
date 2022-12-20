@@ -564,12 +564,6 @@
 <span id="563">563</span>
 <span id="564">564</span>
 <span id="565">565</span>
-<span id="566">566</span>
-<span id="567">567</span>
-<span id="568">568</span>
-<span id="569">569</span>
-<span id="570">570</span>
-<span id="571">571</span>
 </pre><pre class="rust"><code><span class="doccomment">//! A Rust API wrapper for Boa&#39;s `Date` ECMAScript Builtin Object.
 </span><span class="kw">use </span>std::ops::Deref;
 
@@ -813,7 +807,6 @@
     /// the UNIX epoch and the given date.
     ///
     /// Same as JavaScript&#39;s `Date.prototype.setDate()`.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>set_date&lt;T&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, value: T, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt;
     <span class="kw">where
         </span>T: Into&lt;JsValue&gt;,
@@ -850,7 +843,6 @@
     /// the UNIX epoch and updated date.
     ///
     /// Same as JavaScript&#39;s `Date.prototype.setMilliseconds()`.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>set_milliseconds&lt;T&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, value: T, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt;
     <span class="kw">where
         </span>T: Into&lt;JsValue&gt;,
@@ -899,7 +891,6 @@
     /// the UNIX epoch and the updated date.
     ///
     /// Same as JavaScript&#39;s `Date.prototype.setTime()`.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>set_time&lt;T&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, value: T, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt;
     <span class="kw">where
         </span>T: Into&lt;JsValue&gt;,
@@ -914,7 +905,6 @@
     /// the UNIX epoch and the updated date.
     ///
     /// Same as JavaScript&#39;s `Date.prototype.setUTCDate()`.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>set_utc_date&lt;T&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, value: T, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt;
     <span class="kw">where
         </span>T: Into&lt;JsValue&gt;,
@@ -955,7 +945,6 @@
     /// the UNIX epoch and the updated date.
     ///
     /// Same as JavaScript&#39;s `Date.prototype.setUTCMilliseconds()`.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>set_utc_milliseconds&lt;T&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, value: T, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt;
     <span class="kw">where
         </span>T: Into&lt;JsValue&gt;,
@@ -1100,7 +1089,6 @@
     }
 
     <span class="doccomment">/// Utility create a `Date` object from RFC3339 string
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>new_from_parse(value: <span class="kw-2">&amp;</span>JsValue, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
         <span class="kw">let </span>prototype = context.intrinsics().constructors().date().prototype();
         <span class="kw">let </span>string = value

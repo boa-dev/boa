@@ -108,14 +108,6 @@
 <span id="107">107</span>
 <span id="108">108</span>
 <span id="109">109</span>
-<span id="110">110</span>
-<span id="111">111</span>
-<span id="112">112</span>
-<span id="113">113</span>
-<span id="114">114</span>
-<span id="115">115</span>
-<span id="116">116</span>
-<span id="117">117</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Async Generator Declaration parsing
 //!
 //! Implements `TokenParser` for `AsyncGeneratorDeclaration`on and outputs an `AsyncGeneratorDecl`
@@ -162,43 +154,35 @@
 }
 
 <span class="kw">impl </span>CallableDeclaration <span class="kw">for </span>AsyncGeneratorDeclaration {
-    <span class="attribute">#[inline]
-    </span><span class="kw">fn </span>error_context(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str {
+    <span class="kw">fn </span>error_context(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str {
         <span class="string">&quot;async generator declaration&quot;
     </span>}
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">fn </span>is_default(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+    <span class="kw">fn </span>is_default(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.is_default.<span class="number">0
     </span>}
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">fn </span>name_allow_yield(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+    <span class="kw">fn </span>name_allow_yield(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.allow_yield.<span class="number">0
     </span>}
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">fn </span>name_allow_await(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+    <span class="kw">fn </span>name_allow_await(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.allow_await.<span class="number">0
     </span>}
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">fn </span>parameters_allow_yield(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+    <span class="kw">fn </span>parameters_allow_yield(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="bool-val">true
     </span>}
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">fn </span>parameters_allow_await(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+    <span class="kw">fn </span>parameters_allow_await(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="bool-val">true
     </span>}
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">fn </span>body_allow_yield(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+    <span class="kw">fn </span>body_allow_yield(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="bool-val">true
     </span>}
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">fn </span>body_allow_await(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+    <span class="kw">fn </span>body_allow_await(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="bool-val">true
     </span>}
 }

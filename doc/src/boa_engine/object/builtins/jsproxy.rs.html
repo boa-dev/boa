@@ -480,6 +480,21 @@
 <span id="479">479</span>
 <span id="480">480</span>
 <span id="481">481</span>
+<span id="482">482</span>
+<span id="483">483</span>
+<span id="484">484</span>
+<span id="485">485</span>
+<span id="486">486</span>
+<span id="487">487</span>
+<span id="488">488</span>
+<span id="489">489</span>
+<span id="490">490</span>
+<span id="491">491</span>
+<span id="492">492</span>
+<span id="493">493</span>
+<span id="494">494</span>
+<span id="495">495</span>
+<span id="496">496</span>
 </pre><pre class="rust"><code><span class="doccomment">//! A Rust API wrapper for the `Proxy` Builtin ECMAScript Object
 </span><span class="kw">use </span>boa_gc::{Finalize, Trace};
 
@@ -561,6 +576,7 @@
 <span class="kw">impl </span>JsRevocableProxy {
     <span class="doccomment">/// Disables the traps of the internal `proxy` object, essentially
     /// making it unusable and throwing `TypeError`s for all the traps.
+    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>revoke(<span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;()&gt; {
         <span class="self">self</span>.revoker.call(<span class="kw-2">&amp;</span>JsValue::undefined(), <span class="kw-2">&amp;</span>[], context)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(())
@@ -643,6 +659,7 @@
 
 <span class="kw">impl </span>JsProxyBuilder {
     <span class="doccomment">/// Create a new `ProxyBuilder` with every trap set to `undefined`.
+    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>new(target: JsObject) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             target,
@@ -674,6 +691,7 @@
     /// when trying to call the proxy, which will throw a type error.
     ///
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy/Proxy/apply
+    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>apply(<span class="kw-2">mut </span><span class="self">self</span>, apply: NativeFunctionSignature) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.apply = <span class="prelude-val">Some</span>(apply);
         <span class="self">self
@@ -691,6 +709,7 @@
     /// when trying to construct an object using the proxy, which will throw a type error.
     ///
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy/Proxy/construct
+    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>construct(<span class="kw-2">mut </span><span class="self">self</span>, construct: NativeFunctionSignature) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.construct = <span class="prelude-val">Some</span>(construct);
         <span class="self">self
@@ -703,6 +722,7 @@
     /// - [MDN documentation][mdn]
     ///
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy/Proxy/defineProperty
+    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>define_property(<span class="kw-2">mut </span><span class="self">self</span>, define_property: NativeFunctionSignature) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.define_property = <span class="prelude-val">Some</span>(define_property);
         <span class="self">self
@@ -715,6 +735,7 @@
     /// - [MDN documentation][mdn]
     ///
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy/Proxy/deleteProperty
+    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>delete_property(<span class="kw-2">mut </span><span class="self">self</span>, delete_property: NativeFunctionSignature) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.delete_property = <span class="prelude-val">Some</span>(delete_property);
         <span class="self">self
@@ -727,6 +748,7 @@
     /// - [MDN documentation][mdn]
     ///
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy/Proxy/get
+    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>get(<span class="kw-2">mut </span><span class="self">self</span>, get: NativeFunctionSignature) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.get = <span class="prelude-val">Some</span>(get);
         <span class="self">self
@@ -739,6 +761,7 @@
     /// - [MDN documentation][mdn]
     ///
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy/Proxy/getOwnPropertyDescriptor
+    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>get_own_property_descriptor(
         <span class="kw-2">mut </span><span class="self">self</span>,
         get_own_property_descriptor: NativeFunctionSignature,
@@ -754,6 +777,7 @@
     /// - [MDN documentation][mdn]
     ///
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy/Proxy/getPrototypeOf
+    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>get_prototype_of(<span class="kw-2">mut </span><span class="self">self</span>, get_prototype_of: NativeFunctionSignature) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.get_prototype_of = <span class="prelude-val">Some</span>(get_prototype_of);
         <span class="self">self
@@ -766,6 +790,7 @@
     /// - [MDN documentation][mdn]
     ///
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy/Proxy/has
+    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>has(<span class="kw-2">mut </span><span class="self">self</span>, has: NativeFunctionSignature) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.has = <span class="prelude-val">Some</span>(has);
         <span class="self">self
@@ -778,6 +803,7 @@
     /// - [MDN documentation][mdn]
     ///
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy/Proxy/isExtensible
+    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>is_extensible(<span class="kw-2">mut </span><span class="self">self</span>, is_extensible: NativeFunctionSignature) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.is_extensible = <span class="prelude-val">Some</span>(is_extensible);
         <span class="self">self
@@ -790,6 +816,7 @@
     /// - [MDN documentation][mdn]
     ///
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy/Proxy/ownKeys
+    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>own_keys(<span class="kw-2">mut </span><span class="self">self</span>, own_keys: NativeFunctionSignature) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.own_keys = <span class="prelude-val">Some</span>(own_keys);
         <span class="self">self
@@ -802,6 +829,7 @@
     /// - [MDN documentation][mdn]
     ///
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy/Proxy/preventExtensions
+    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>prevent_extensions(<span class="kw-2">mut </span><span class="self">self</span>, prevent_extensions: NativeFunctionSignature) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.prevent_extensions = <span class="prelude-val">Some</span>(prevent_extensions);
         <span class="self">self
@@ -814,6 +842,7 @@
     /// - [MDN documentation][mdn]
     ///
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy/Proxy/set
+    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>set(<span class="kw-2">mut </span><span class="self">self</span>, set: NativeFunctionSignature) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.set = <span class="prelude-val">Some</span>(set);
         <span class="self">self
@@ -826,6 +855,7 @@
     /// - [MDN documentation][mdn]
     ///
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy/Proxy/setPrototypeOf
+    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>set_prototype_of(<span class="kw-2">mut </span><span class="self">self</span>, set_prototype_of: NativeFunctionSignature) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.set_prototype_of = <span class="prelude-val">Some</span>(set_prototype_of);
         <span class="self">self

@@ -559,7 +559,6 @@
 <span id="558">558</span>
 <span id="559">559</span>
 <span id="560">560</span>
-<span id="561">561</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Test262 test runner
 //!
 //! This crate will run the full ECMAScript test suite (Test262) and report compliance of the
@@ -943,7 +942,6 @@
 
 <span class="kw">impl </span>Test {
     <span class="doccomment">/// Creates a new test.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">fn </span>new&lt;N, C&gt;(name: N, content: C, metadata: MetaData) -&gt; <span class="self">Self
     </span><span class="kw">where
         </span>N: Into&lt;Box&lt;str&gt;&gt;,

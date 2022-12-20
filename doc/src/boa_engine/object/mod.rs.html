@@ -2394,35 +2394,6 @@
 <span id="2393">2393</span>
 <span id="2394">2394</span>
 <span id="2395">2395</span>
-<span id="2396">2396</span>
-<span id="2397">2397</span>
-<span id="2398">2398</span>
-<span id="2399">2399</span>
-<span id="2400">2400</span>
-<span id="2401">2401</span>
-<span id="2402">2402</span>
-<span id="2403">2403</span>
-<span id="2404">2404</span>
-<span id="2405">2405</span>
-<span id="2406">2406</span>
-<span id="2407">2407</span>
-<span id="2408">2408</span>
-<span id="2409">2409</span>
-<span id="2410">2410</span>
-<span id="2411">2411</span>
-<span id="2412">2412</span>
-<span id="2413">2413</span>
-<span id="2414">2414</span>
-<span id="2415">2415</span>
-<span id="2416">2416</span>
-<span id="2417">2417</span>
-<span id="2418">2418</span>
-<span id="2419">2419</span>
-<span id="2420">2420</span>
-<span id="2421">2421</span>
-<span id="2422">2422</span>
-<span id="2423">2423</span>
-<span id="2424">2424</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s representation of a JavaScript object and builtin object wrappers
 //!
 //! For the builtin object wrappers, please see [`object::builtins`][builtins] for implementors.
@@ -2529,13 +2500,11 @@
 }
 
 <span class="kw">impl</span>&lt;T: Any + Debug + Trace&gt; NativeObject <span class="kw">for </span>T {
-    <span class="attribute">#[inline]
-    </span><span class="kw">fn </span>as_any(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw">dyn </span>Any {
+    <span class="kw">fn </span>as_any(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw">dyn </span>Any {
         <span class="self">self
     </span>}
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">fn </span>as_mut_any(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any {
+    <span class="kw">fn </span>as_mut_any(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any {
         <span class="self">self
     </span>}
 }
@@ -3926,8 +3895,7 @@
     /// [More information][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-invariants-of-the-essential-internal-methods
-    </span><span class="attribute">#[inline]
-    #[track_caller]
+    </span><span class="attribute">#[track_caller]
     </span><span class="kw">pub fn </span>set_prototype&lt;O: Into&lt;JsPrototype&gt;&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, prototype: O) -&gt; bool {
         <span class="kw">let </span>prototype = prototype.into();
         <span class="kw">if </span><span class="self">self</span>.extensible {
@@ -4013,7 +3981,6 @@
     }
 
     <span class="doccomment">/// Return `true` if it is a native object and the native type is `T`.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>is&lt;T&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool
     <span class="kw">where
         </span>T: NativeObject,
@@ -4029,7 +3996,6 @@
 
     <span class="doccomment">/// Downcast a reference to the object,
     /// if the object is type native object type `T`.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>downcast_ref&lt;T&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>T&gt;
     <span class="kw">where
         </span>T: NativeObject,
@@ -4045,7 +4011,6 @@
 
     <span class="doccomment">/// Downcast a mutable reference to the object,
     /// if the object is type native object type `T`.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>downcast_mut&lt;T&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>T&gt;
     <span class="kw">where
         </span>T: NativeObject,
@@ -4074,7 +4039,6 @@
     ///
     /// If a field was already in the object with the same name, then a `Some` is returned
     /// with that field&#39;s value, otherwise, `None` is returned.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>insert&lt;K, P&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: K, property: P) -&gt; <span class="prelude-ty">Option</span>&lt;PropertyDescriptor&gt;
     <span class="kw">where
         </span>K: Into&lt;PropertyKey&gt;,
@@ -4102,7 +4066,6 @@
     }
 
     <span class="doccomment">/// Set a private setter.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_private_element_setter(<span class="kw-2">&amp;mut </span><span class="self">self</span>, name: Sym, setter: JsObject) {
         <span class="kw">match </span><span class="self">self</span>.private_elements.get_mut(<span class="kw-2">&amp;</span>name) {
             <span class="prelude-val">Some</span>(PrivateElement::Accessor {
@@ -4124,7 +4087,6 @@
     }
 
     <span class="doccomment">/// Set a private getter.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_private_element_getter(<span class="kw-2">&amp;mut </span><span class="self">self</span>, name: Sym, getter: JsObject) {
         <span class="kw">match </span><span class="self">self</span>.private_elements.get_mut(<span class="kw-2">&amp;</span>name) {
             <span class="prelude-val">Some</span>(PrivateElement::Accessor {
@@ -4204,8 +4166,7 @@
     </span>B: Into&lt;PropertyKey&gt;,
     N: AsRef&lt;str&gt;,
 {
-    <span class="attribute">#[inline]
-    </span><span class="kw">fn </span>from((binding, name): (B, N)) -&gt; <span class="self">Self </span>{
+    <span class="kw">fn </span>from((binding, name): (B, N)) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             binding: binding.into(),
             name: name.as_ref().into(),
@@ -4238,7 +4199,6 @@
     }
 
     <span class="doccomment">/// Create a new `FunctionBuilder` for creating a closure function.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>closure&lt;F&gt;(context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;context </span><span class="kw-2">mut </span>Context, function: F) -&gt; <span class="self">Self
     </span><span class="kw">where
         </span>F: Fn(<span class="kw-2">&amp;</span>JsValue, <span class="kw-2">&amp;</span>[JsValue], <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; + Copy + <span class="lifetime">&#39;static</span>,
@@ -4261,7 +4221,6 @@
     ///
     /// You can only move variables that implement `Debug + Any + Trace + Clone`.
     /// In other words, only `NativeObject + Clone` objects are movable.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>closure_with_captures&lt;F, C&gt;(
         context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;context </span><span class="kw-2">mut </span>Context,
         function: F,
@@ -4293,8 +4252,7 @@
     <span class="doccomment">/// Specify the name property of object function object.
     ///
     /// The default is `&quot;&quot;` (empty string).
-    </span><span class="attribute">#[inline]
-    #[must_use]
+    </span><span class="attribute">#[must_use]
     </span><span class="kw">pub fn </span>name&lt;N&gt;(<span class="kw-2">mut </span><span class="self">self</span>, name: N) -&gt; <span class="self">Self
     </span><span class="kw">where
         </span>N: Into&lt;JsString&gt;,
@@ -4318,8 +4276,7 @@
     <span class="doccomment">/// Specify whether the object function object can be called with `new` keyword.
     ///
     /// The default is `false`.
-    </span><span class="attribute">#[inline]
-    #[must_use]
+    </span><span class="attribute">#[must_use]
     </span><span class="kw">pub fn </span>constructor(<span class="kw-2">mut </span><span class="self">self</span>, yes: bool) -&gt; <span class="self">Self </span>{
         <span class="kw">match </span><span class="self">self</span>.function {
             Function::Native {
@@ -4343,7 +4300,6 @@
     </span>}
 
     <span class="doccomment">/// Build the function object.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>build(<span class="self">self</span>) -&gt; JsFunction {
         <span class="kw">let </span>function = JsObject::from_proto_and_data(
             <span class="self">self</span>.context
@@ -4421,7 +4377,6 @@
     }
 
     <span class="doccomment">/// Add a function to the object.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>function&lt;B&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         function: NativeFunctionSignature,
@@ -4450,7 +4405,6 @@
     </span>}
 
     <span class="doccomment">/// Add a property to the object.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>property&lt;K, V&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: K, value: V, attribute: Attribute) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self
     </span><span class="kw">where
         </span>K: Into&lt;PropertyKey&gt;,
@@ -4521,8 +4475,7 @@
         }
     }
 
-    <span class="attribute">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>with_standard_constructor(
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>with_standard_constructor(
         context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;context </span><span class="kw-2">mut </span>Context,
         function: NativeFunctionSignature,
         standard_constructor: StandardConstructor,
@@ -4543,7 +4496,6 @@
     }
 
     <span class="doccomment">/// Add new method to the constructors prototype.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>method&lt;B&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         function: NativeFunctionSignature,
@@ -4572,7 +4524,6 @@
     </span>}
 
     <span class="doccomment">/// Add new static method to the constructors object itself.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>static_method&lt;B&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         function: NativeFunctionSignature,
@@ -4601,7 +4552,6 @@
     </span>}
 
     <span class="doccomment">/// Add new data property to the constructor&#39;s prototype.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>property&lt;K, V&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: K, value: V, attribute: Attribute) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self
     </span><span class="kw">where
         </span>K: Into&lt;PropertyKey&gt;,
@@ -4617,7 +4567,6 @@
     </span>}
 
     <span class="doccomment">/// Add new static data property to the constructor object itself.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>static_property&lt;K, V&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: K, value: V, attribute: Attribute) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self
     </span><span class="kw">where
         </span>K: Into&lt;PropertyKey&gt;,
@@ -4633,7 +4582,6 @@
     </span>}
 
     <span class="doccomment">/// Add new accessor property to the constructor&#39;s prototype.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>accessor&lt;K&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         key: K,
@@ -4654,7 +4602,6 @@
     </span>}
 
     <span class="doccomment">/// Add new static accessor property to the constructor object itself.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>static_accessor&lt;K&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         key: K,
@@ -4675,7 +4622,6 @@
     </span>}
 
     <span class="doccomment">/// Add new property to the constructor&#39;s prototype.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>property_descriptor&lt;K, P&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: K, property: P) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self
     </span><span class="kw">where
         </span>K: Into&lt;PropertyKey&gt;,
@@ -4687,7 +4633,6 @@
     </span>}
 
     <span class="doccomment">/// Add new static property to the constructor object itself.
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>static_property_descriptor&lt;K, P&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: K, property: P) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self
     </span><span class="kw">where
         </span>K: Into&lt;PropertyKey&gt;,
@@ -4710,7 +4655,6 @@
     <span class="doccomment">/// Specify the name of the constructor function.
     ///
     /// Default is `&quot;[object]&quot;`
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>name&lt;N&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, name: N) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self
     </span><span class="kw">where
         </span>N: AsRef&lt;str&gt;,
@@ -4741,7 +4685,6 @@
     /// inherit from.
     ///
     /// Default is `Object.prototype`
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>inherit&lt;O: Into&lt;JsPrototype&gt;&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, prototype: O) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
         <span class="self">self</span>.inherit = <span class="prelude-val">Some</span>(prototype.into());
         <span class="self">self
@@ -4750,7 +4693,6 @@
     <span class="doccomment">/// Specify the `[[Prototype]]` internal field of this constructor.
     ///
     /// Default is `Function.prototype`
-    </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>custom_prototype&lt;O: Into&lt;JsPrototype&gt;&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, prototype: O) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
         <span class="self">self</span>.custom_prototype = <span class="prelude-val">Some</span>(prototype.into());
         <span class="self">self
