@@ -15,7 +15,7 @@ fuzz = ["arbitrary"]
 
 [dependencies]
 boa_macros.workspace = true
-serde = { version = "1.0.150", features = ["derive"], optional = true }
+serde = { version = "1.0.151", features = ["derive"], optional = true }
 phf = { version = "0.11.1", features = ["macros"] }
 rustc-hash = "1.1.0"
 static_assertions = "1.1.0"
