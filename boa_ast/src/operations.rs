@@ -320,9 +320,11 @@ impl<'ast, T: IdentList> Visitor<'ast> for BoundNamesVisitor<'_, T> {
         self.0.add(*node, false);
         ControlFlow::Continue(())
     }
+
     fn visit_expression(&mut self, _: &'ast Expression) -> ControlFlow<Self::BreakTy> {
         ControlFlow::Continue(())
     }
+
     // TODO: add "*default" for module default functions without name
     fn visit_function(&mut self, node: &'ast Function) -> ControlFlow<Self::BreakTy> {
         if let Some(ident) = node.name() {
@@ -330,24 +332,28 @@ impl<'ast, T: IdentList> Visitor<'ast> for BoundNamesVisitor<'_, T> {
         }
         ControlFlow::Continue(())
     }
+
     fn visit_generator(&mut self, node: &'ast Generator) -> ControlFlow<Self::BreakTy> {
         if let Some(ident) = node.name() {
             self.0.add(ident, false);
         }
         ControlFlow::Continue(())
     }
+
     fn visit_async_function(&mut self, node: &'ast AsyncFunction) -> ControlFlow<Self::BreakTy> {
         if let Some(ident) = node.name() {
             self.0.add(ident, false);
         }
         ControlFlow::Continue(())
     }
+
     fn visit_async_generator(&mut self, node: &'ast AsyncGenerator) -> ControlFlow<Self::BreakTy> {
         if let Some(ident) = node.name() {
             self.0.add(ident, false);
         }
         ControlFlow::Continue(())
     }
+
     fn visit_class(&mut self, node: &'ast Class) -> ControlFlow<Self::BreakTy> {
         if let Some(ident) = node.name() {
             self.0.add(ident, false);
@@ -474,41 +480,51 @@ struct VarDeclaredNamesVisitor<'a>(&'a mut FxHashSet<Identifier>);
 
 impl<'ast> Visitor<'ast> for VarDeclaredNamesVisitor<'_> {
     type BreakTy = Infallible;
+
     fn visit_expression(&mut self, _: &'ast Expression) -> ControlFlow<Self::BreakTy> {
         ControlFlow::Continue(())
     }
+
     fn visit_declaration(&mut self, _: &'ast Declaration) -> ControlFlow<Self::BreakTy> {
         ControlFlow::Continue(())
     }
+
     fn visit_var_declaration(&mut self, node: &'ast VarDeclaration) -> ControlFlow<Self::BreakTy> {
         BoundNamesVisitor(self.0).visit_var_declaration(node)
     }
+
     fn visit_labelled_item(&mut self, node: &'ast LabelledItem) -> ControlFlow<Self::BreakTy> {
         match node {
             LabelledItem::Function(_) => ControlFlow::Continue(()),
             LabelledItem::Statement(stmt) => stmt.visit_with(self),
         }
     }
+
     fn visit_function(&mut self, node: &'ast Function) -> ControlFlow<Self::BreakTy> {
         top_level_vars(node.body(), self.0);
         ControlFlow::Continue(())
     }
+
     fn visit_async_function(&mut self, node: &'ast AsyncFunction) -> ControlFlow<Self::BreakTy> {
         top_level_vars(node.body(), self.0);
         ControlFlow::Continue(())
     }
+
     fn visit_generator(&mut self, node: &'ast Generator) -> ControlFlow<Self::BreakTy> {
         top_level_vars(node.body(), self.0);
         ControlFlow::Continue(())
     }
+
     fn visit_async_generator(&mut self, node: &'ast AsyncGenerator) -> ControlFlow<Self::BreakTy> {
         top_level_vars(node.body(), self.0);
         ControlFlow::Continue(())
     }
+
     fn visit_arrow_function(&mut self, node: &'ast ArrowFunction) -> ControlFlow<Self::BreakTy> {
         top_level_vars(node.body(), self.0);
         ControlFlow::Continue(())
     }
+
     fn visit_async_arrow_function(
         &mut self,
         node: &'ast AsyncArrowFunction,
@@ -516,6 +532,7 @@ impl<'ast> Visitor<'ast> for VarDeclaredNamesVisitor<'_> {
         top_level_vars(node.body(), self.0);
         ControlFlow::Continue(())
     }
+
     fn visit_class_element(&mut self, node: &'ast ClassElement) -> ControlFlow<Self::BreakTy> {
         if let ClassElement::StaticBlock(stmts) = node {
             top_level_vars(stmts, self.0);

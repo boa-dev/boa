@@ -132,7 +132,6 @@ impl<R> Parser<R> {
     }
 
     /// Set the parser strict mode to true.
-
     pub fn set_json_parse(&mut self)
     where
         R: Read,
