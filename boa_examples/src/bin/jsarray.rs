@@ -1,6 +1,7 @@
 // This example shows how to manipulate a Javascript array using Rust code.
 
 use boa_engine::{
+    function::NativeCallable,
     object::{builtins::JsArray, FunctionBuilder},
     string::utf16,
     Context, JsResult, JsValue,
@@ -60,17 +61,23 @@ fn main() -> JsResult<()> {
     let joined_array = array.join(Some("::".into()), context)?;
     assert_eq!(&joined_array, utf16!("14::false::false::false::10"));
 
-    let filter_callback = FunctionBuilder::native(context, |_this, args, _context| {
-        Ok(args.get(0).cloned().unwrap_or_default().is_number().into())
-    })
+    let filter_callback = FunctionBuilder::new(
+        context,
+        NativeCallable::from_fn_ptr(|_this, args, _context| {
+            Ok(args.get(0).cloned().unwrap_or_default().is_number().into())
+        }),
+    )
     .build();
 
-    let map_callback = FunctionBuilder::native(context, |_this, args, context| {
-        args.get(0)
-            .cloned()
-            .unwrap_or_default()
-            .pow(&JsValue::new(2), context)
-    })
+    let map_callback = FunctionBuilder::new(
+        context,
+        NativeCallable::from_fn_ptr(|_this, args, context| {
+            args.get(0)
+                .cloned()
+                .unwrap_or_default()
+                .pow(&JsValue::new(2), context)
+        }),
+    )
     .build();
 
     let mut data = Vec::new();
@@ -88,12 +95,15 @@ fn main() -> JsResult<()> {
 
     assert_eq!(&chained_array.join(None, context)?, utf16!("196,1,2,3"));
 
-    let reduce_callback = FunctionBuilder::native(context, |_this, args, context| {
-        let accumulator = args.get(0).cloned().unwrap_or_default();
-        let value = args.get(1).cloned().unwrap_or_default();
+    let reduce_callback = FunctionBuilder::new(
+        context,
+        NativeCallable::from_fn_ptr(|_this, args, context| {
+            let accumulator = args.get(0).cloned().unwrap_or_default();
+            let value = args.get(1).cloned().unwrap_or_default();
 
-        accumulator.add(&value, context)
-    })
+            accumulator.add(&value, context)
+        }),
+    )
     .build();
 
     assert_eq!(

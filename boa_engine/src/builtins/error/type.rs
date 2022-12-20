@@ -19,6 +19,7 @@ use crate::{
     builtins::{function::Function, BuiltIn, JsArgs},
     context::intrinsics::StandardConstructors,
     error::JsNativeError,
+    function::NativeCallable,
     object::{
         internal_methods::get_prototype_from_constructor, ConstructorBuilder, JsObject, ObjectData,
     },
@@ -103,7 +104,7 @@ pub(crate) fn create_throw_type_error(context: &mut Context<'_>) -> JsObject {
     let function = JsObject::from_proto_and_data(
         context.intrinsics().constructors().function().prototype(),
         ObjectData::function(Function::Native {
-            function: throw_type_error,
+            function: NativeCallable::from_fn_ptr(throw_type_error),
             constructor: None,
         }),
     );

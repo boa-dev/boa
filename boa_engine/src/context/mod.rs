@@ -17,9 +17,10 @@ pub use std::marker::PhantomData;
 #[cfg(feature = "console")]
 use crate::builtins::console::Console;
 use crate::{
-    builtins::{self, function::NativeFunctionSignature},
+    builtins,
     bytecompiler::ByteCompiler,
     class::{Class, ClassBuilder},
+    function::NativeCallable,
     job::JobCallback,
     object::{FunctionBuilder, GlobalPropertyMap, JsObject},
     property::{Attribute, PropertyDescriptor, PropertyKey},
@@ -268,10 +269,7 @@ impl Context<'_> {
         );
     }
 
-    /// Register a global native function.
-    ///
-    /// This is more efficient that creating a closure function, since this does not allocate,
-    /// it is just a function pointer.
+    /// Register a global native callable.
     ///
     /// The function will be both `constructable` (call with `new <name>()`) and `callable` (call
     /// with `<name>()`).
@@ -281,18 +279,10 @@ impl Context<'_> {
     ///
     /// # Note
     ///
-    /// If you want to make a function only `constructable`, or wish to bind it differently
-    /// to the global object, you can create the function object with
-    /// [`FunctionBuilder`](crate::object::FunctionBuilder::native). And bind it to the global
-    /// object with [`Context::register_global_property`](Context::register_global_property)
-    /// method.
-    pub fn register_global_function(
-        &mut self,
-        name: &str,
-        length: usize,
-        body: NativeFunctionSignature,
-    ) {
-        let function = FunctionBuilder::native(self, body)
+    /// If you wish to only create the function object without binding it to the global object, you
+    /// can use the [`FunctionBuilder`] API.
+    pub fn register_global_callable(&mut self, name: &str, length: usize, body: NativeCallable) {
+        let function = FunctionBuilder::new(self, body)
             .name(name)
             .length(length)
             .constructor(true)
@@ -311,24 +301,20 @@ impl Context<'_> {
 
     /// Register a global native function that is not a constructor.
     ///
-    /// This is more efficient that creating a closure function, since this does not allocate,
-    /// it is just a function pointer.
-    ///
     /// The function will be bound to the global object with `writable`, `non-enumerable`
     /// and `configurable` attributes. The same as when you create a function in JavaScript.
     ///
     /// # Note
     ///
-    /// The difference to [`Context::register_global_function`](Context::register_global_function) is,
-    /// that the function will not be `constructable`.
-    /// Usage of the function as a constructor will produce a `TypeError`.
-    pub fn register_global_builtin_function(
+    /// The difference to [`Context::register_global_callable`] is, that the function will not be
+    /// `constructable`. Usage of the function as a constructor will produce a `TypeError`.
+    pub fn register_global_builtin_callable(
         &mut self,
         name: &str,
         length: usize,
-        body: NativeFunctionSignature,
+        body: NativeCallable,
     ) {
-        let function = FunctionBuilder::native(self, body)
+        let function = FunctionBuilder::new(self, body)
             .name(name)
             .length(length)
             .constructor(false)
@@ -343,51 +329,6 @@ impl Context<'_> {
                 .configurable(true)
                 .build(),
         );
-    }
-
-    /// Register a global closure function.
-    ///
-    /// The function will be both `constructable` (call with `new`).
-    ///
-    /// The function will be bound to the global object with `writable`, `non-enumerable`
-    /// and `configurable` attributes. The same as when you create a function in JavaScript.
-    ///
-    /// # Note #1
-    ///
-    /// If you want to make a function only `constructable`, or wish to bind it differently
-    /// to the global object, you can create the function object with
-    /// [`FunctionBuilder`](crate::object::FunctionBuilder::closure). And bind it to the global
-    /// object with [`Context::register_global_property`](Context::register_global_property)
-    /// method.
-    ///
-    /// # Note #2
-    ///
-    /// This function will only accept `Copy` closures, meaning you cannot
-    /// move `Clone` types, just `Copy` types. If you need to move `Clone` types
-    /// as captures, see [`FunctionBuilder::closure_with_captures`].
-    ///
-    /// See <https://github.com/boa-dev/boa/issues/1515> for an explanation on
-    /// why we need to restrict the set of accepted closures.
-    pub fn register_global_closure<F>(&mut self, name: &str, length: usize, body: F) -> JsResult<()>
-    where
-        F: Fn(&JsValue, &[JsValue], &mut Context<'_>) -> JsResult<JsValue> + Copy + 'static,
-    {
-        let function = FunctionBuilder::closure(self, body)
-            .name(name)
-            .length(length)
-            .constructor(true)
-            .build();
-
-        self.global_bindings_mut().insert(
-            name.into(),
-            PropertyDescriptor::builder()
-                .value(function)
-                .writable(true)
-                .enumerable(false)
-                .configurable(true)
-                .build(),
-        );
-        Ok(())
     }
 
     /// Register a global class of type `T`, where `T` implements `Class`.

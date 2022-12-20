@@ -62,8 +62,8 @@
 //! [class-trait]: ./trait.Class.html
 
 use crate::{
-    builtins::function::NativeFunctionSignature,
     error::JsNativeError,
+    function::NativeFunctionSignature,
     object::{ConstructorBuilder, JsFunction, JsObject, NativeObject, ObjectData, PROTOTYPE},
     property::{Attribute, PropertyDescriptor, PropertyKey},
     Context, JsResult, JsValue,

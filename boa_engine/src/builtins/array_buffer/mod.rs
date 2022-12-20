@@ -14,6 +14,7 @@ use crate::{
     builtins::{typed_array::TypedArrayKind, BuiltIn, JsArgs},
     context::intrinsics::StandardConstructors,
     error::JsNativeError,
+    function::NativeCallable,
     object::{
         internal_methods::get_prototype_from_constructor, ConstructorBuilder, FunctionBuilder,
         JsObject, ObjectData,
@@ -55,14 +56,16 @@ impl BuiltIn for ArrayBuffer {
 
         let flag_attributes = Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE;
 
-        let get_species = FunctionBuilder::native(context, Self::get_species)
-            .name("get [Symbol.species]")
-            .constructor(false)
-            .build();
+        let get_species =
+            FunctionBuilder::new(context, NativeCallable::from_fn_ptr(Self::get_species))
+                .name("get [Symbol.species]")
+                .constructor(false)
+                .build();
 
-        let get_byte_length = FunctionBuilder::native(context, Self::get_byte_length)
-            .name("get byteLength")
-            .build();
+        let get_byte_length =
+            FunctionBuilder::new(context, NativeCallable::from_fn_ptr(Self::get_byte_length))
+                .name("get byteLength")
+                .build();
 
         ConstructorBuilder::with_standard_constructor(
             context,

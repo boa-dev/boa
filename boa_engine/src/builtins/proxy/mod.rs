@@ -10,9 +10,12 @@
 //! [spec]: https://tc39.es/ecma262/#sec-proxy-objects
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy
 
+use std::cell::Cell;
+
 use crate::{
     builtins::{BuiltIn, JsArgs},
     error::JsNativeError,
+    function::NativeCallable,
     object::{ConstructorBuilder, FunctionBuilder, JsFunction, JsObject, ObjectData},
     Context, JsResult, JsValue,
 };
@@ -134,27 +137,29 @@ impl Proxy {
     pub(crate) fn revoker(proxy: JsObject, context: &mut Context<'_>) -> JsFunction {
         // 3. Let revoker be ! CreateBuiltinFunction(revokerClosure, 0, "", « [[RevocableProxy]] »).
         // 4. Set revoker.[[RevocableProxy]] to p.
-        FunctionBuilder::closure_with_captures(
+        FunctionBuilder::new(
             context,
-            |_, _, revocable_proxy, _| {
-                // a. Let F be the active function object.
-                // b. Let p be F.[[RevocableProxy]].
-                // d. Set F.[[RevocableProxy]] to null.
-                if let Some(p) = revocable_proxy.take() {
-                    // e. Assert: p is a Proxy object.
-                    // f. Set p.[[ProxyTarget]] to null.
-                    // g. Set p.[[ProxyHandler]] to null.
-                    p.borrow_mut()
-                        .as_proxy_mut()
-                        .expect("[[RevocableProxy]] must be a proxy object")
-                        .data = None;
-                }
+            NativeCallable::from_copy_closure_with_captures(
+                |_, _, revocable_proxy, _| {
+                    // a. Let F be the active function object.
+                    // b. Let p be F.[[RevocableProxy]].
+                    // d. Set F.[[RevocableProxy]] to null.
+                    if let Some(p) = revocable_proxy.take() {
+                        // e. Assert: p is a Proxy object.
+                        // f. Set p.[[ProxyTarget]] to null.
+                        // g. Set p.[[ProxyHandler]] to null.
+                        p.borrow_mut()
+                            .as_proxy_mut()
+                            .expect("[[RevocableProxy]] must be a proxy object")
+                            .data = None;
+                    }
 
-                // c. If p is null, return undefined.
-                // h. Return undefined.
-                Ok(JsValue::undefined())
-            },
-            Some(proxy),
+                    // c. If p is null, return undefined.
+                    // h. Return undefined.
+                    Ok(JsValue::undefined())
+                },
+                Cell::new(Some(proxy)),
+            ),
         )
         .build()
     }

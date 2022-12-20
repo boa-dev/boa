@@ -705,24 +705,15 @@ impl JsObject {
                 function,
                 constructor,
             } => {
-                let function = *function;
+                let function = function.clone();
                 let constructor = *constructor;
                 drop(object);
 
                 if constructor.is_some() {
-                    function(&JsValue::undefined(), args, context)
+                    function.call(&JsValue::undefined(), args, context)
                 } else {
-                    function(this, args, context)
+                    function.call(this, args, context)
                 }
-            }
-            Function::Closure {
-                function, captures, ..
-            } => {
-                let function = function.clone();
-                let captures = captures.clone();
-                drop(object);
-
-                (function)(this, args, captures, context)
             }
             Function::Ordinary {
                 code, environments, ..
@@ -1289,40 +1280,14 @@ impl JsObject {
                 constructor,
                 ..
             } => {
-                let function = *function;
+                let function = function.clone();
                 let constructor = *constructor;
                 drop(object);
 
-                match function(this_target, args, context)? {
+                match function.call(this_target, args, context)? {
                     JsValue::Object(ref o) => Ok(o.clone()),
                     val => {
                         if constructor.expect("hmm").is_base() || val.is_undefined() {
-                            create_this(context)
-                        } else {
-                            Err(JsNativeError::typ()
-                                .with_message(
-                                    "Derived constructor can only return an Object or undefined",
-                                )
-                                .into())
-                        }
-                    }
-                }
-            }
-            Function::Closure {
-                function,
-                captures,
-                constructor,
-                ..
-            } => {
-                let function = function.clone();
-                let captures = captures.clone();
-                let constructor = *constructor;
-                drop(object);
-
-                match (function)(this_target, args, captures, context)? {
-                    JsValue::Object(ref o) => Ok(o.clone()),
-                    val => {
-                        if constructor.expect("hmma").is_base() || val.is_undefined() {
                             create_this(context)
                         } else {
                             Err(JsNativeError::typ()

@@ -11,6 +11,7 @@ use crate::{
     builtins::{array_buffer::SharedMemoryOrder, typed_array::TypedArrayKind, BuiltIn, JsArgs},
     context::intrinsics::StandardConstructors,
     error::JsNativeError,
+    function::NativeCallable,
     object::{
         internal_methods::get_prototype_from_constructor, ConstructorBuilder, FunctionBuilder,
         JsObject, ObjectData,
@@ -37,17 +38,20 @@ impl BuiltIn for DataView {
     fn init(context: &mut Context<'_>) -> Option<JsValue> {
         let flag_attributes = Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE;
 
-        let get_buffer = FunctionBuilder::native(context, Self::get_buffer)
-            .name("get buffer")
-            .build();
+        let get_buffer =
+            FunctionBuilder::new(context, NativeCallable::from_fn_ptr(Self::get_buffer))
+                .name("get buffer")
+                .build();
 
-        let get_byte_length = FunctionBuilder::native(context, Self::get_byte_length)
-            .name("get byteLength")
-            .build();
+        let get_byte_length =
+            FunctionBuilder::new(context, NativeCallable::from_fn_ptr(Self::get_byte_length))
+                .name("get byteLength")
+                .build();
 
-        let get_byte_offset = FunctionBuilder::native(context, Self::get_byte_offset)
-            .name("get byteOffset")
-            .build();
+        let get_byte_offset =
+            FunctionBuilder::new(context, NativeCallable::from_fn_ptr(Self::get_byte_offset))
+                .name("get byteOffset")
+                .build();
 
         ConstructorBuilder::with_standard_constructor(
             context,

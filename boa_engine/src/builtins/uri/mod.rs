@@ -19,8 +19,8 @@ use self::consts::{
 
 use super::BuiltIn;
 use crate::{
-    builtins::JsArgs, js_string, object::FunctionBuilder, property::Attribute, string::CodePoint,
-    Context, JsNativeError, JsResult, JsString, JsValue,
+    builtins::JsArgs, function::NativeCallable, js_string, object::FunctionBuilder,
+    property::Attribute, string::CodePoint, Context, JsNativeError, JsResult, JsString, JsValue,
 };
 
 /// URI Handling Functions
@@ -31,11 +31,12 @@ impl BuiltIn for Uri {
     const NAME: &'static str = "Uri";
 
     fn init(context: &mut Context<'_>) -> Option<JsValue> {
-        let decode_uri = FunctionBuilder::native(context, Self::decode_uri)
-            .name("decodeURI")
-            .length(1)
-            .constructor(false)
-            .build();
+        let decode_uri =
+            FunctionBuilder::new(context, NativeCallable::from_fn_ptr(Self::decode_uri))
+                .name("decodeURI")
+                .length(1)
+                .constructor(false)
+                .build();
 
         context.register_global_property(
             "decodeURI",
@@ -43,11 +44,14 @@ impl BuiltIn for Uri {
             Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
         );
 
-        let decode_uri_component = FunctionBuilder::native(context, Self::decode_uri_component)
-            .name("decodeURIComponent")
-            .length(1)
-            .constructor(false)
-            .build();
+        let decode_uri_component = FunctionBuilder::new(
+            context,
+            NativeCallable::from_fn_ptr(Self::decode_uri_component),
+        )
+        .name("decodeURIComponent")
+        .length(1)
+        .constructor(false)
+        .build();
 
         context.register_global_property(
             "decodeURIComponent",
@@ -55,11 +59,12 @@ impl BuiltIn for Uri {
             Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
         );
 
-        let encode_uri = FunctionBuilder::native(context, Self::encode_uri)
-            .name("encodeURI")
-            .length(1)
-            .constructor(false)
-            .build();
+        let encode_uri =
+            FunctionBuilder::new(context, NativeCallable::from_fn_ptr(Self::encode_uri))
+                .name("encodeURI")
+                .length(1)
+                .constructor(false)
+                .build();
 
         context.register_global_property(
             "encodeURI",
@@ -67,11 +72,14 @@ impl BuiltIn for Uri {
             Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
         );
 
-        let encode_uri_component = FunctionBuilder::native(context, Self::encode_uri_component)
-            .name("encodeURIComponent")
-            .length(1)
-            .constructor(false)
-            .build();
+        let encode_uri_component = FunctionBuilder::new(
+            context,
+            NativeCallable::from_fn_ptr(Self::encode_uri_component),
+        )
+        .name("encodeURIComponent")
+        .length(1)
+        .constructor(false)
+        .build();
 
         context.register_global_property(
             "encodeURIComponent",

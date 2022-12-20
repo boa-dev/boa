@@ -20,6 +20,7 @@ use crate::{
     builtins::{map, BuiltIn, JsArgs},
     context::intrinsics::StandardConstructors,
     error::JsNativeError,
+    function::NativeCallable,
     js_string,
     object::{
         internal_methods::get_prototype_from_constructor, ConstructorBuilder, FunctionBuilder,
@@ -48,13 +49,19 @@ impl BuiltIn for Object {
     fn init(context: &mut Context<'_>) -> Option<JsValue> {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
-        let legacy_proto_getter = FunctionBuilder::native(context, Self::legacy_proto_getter)
-            .name("get __proto__")
-            .build();
+        let legacy_proto_getter = FunctionBuilder::new(
+            context,
+            NativeCallable::from_fn_ptr(Self::legacy_proto_getter),
+        )
+        .name("get __proto__")
+        .build();
 
-        let legacy_setter_proto = FunctionBuilder::native(context, Self::legacy_proto_setter)
-            .name("set __proto__")
-            .build();
+        let legacy_setter_proto = FunctionBuilder::new(
+            context,
+            NativeCallable::from_fn_ptr(Self::legacy_proto_setter),
+        )
+        .name("set __proto__")
+        .build();
 
         ConstructorBuilder::with_standard_constructor(
             context,
@@ -1268,22 +1275,24 @@ impl Object {
 
         // 4. Let closure be a new Abstract Closure with parameters (key, value) that captures
         // obj and performs the following steps when called:
-        let closure = FunctionBuilder::closure_with_captures(
+        let closure = FunctionBuilder::new(
             context,
-            |_, args, obj, context| {
-                let key = args.get_or_undefined(0);
-                let value = args.get_or_undefined(1);
+            NativeCallable::from_copy_closure_with_captures(
+                |_, args, obj, context| {
+                    let key = args.get_or_undefined(0);
+                    let value = args.get_or_undefined(1);
 
-                // a. Let propertyKey be ? ToPropertyKey(key).
-                let property_key = key.to_property_key(context)?;
+                    // a. Let propertyKey be ? ToPropertyKey(key).
+                    let property_key = key.to_property_key(context)?;
 
-                // b. Perform ! CreateDataPropertyOrThrow(obj, propertyKey, value).
-                obj.create_data_property_or_throw(property_key, value.clone(), context)?;
+                    // b. Perform ! CreateDataPropertyOrThrow(obj, propertyKey, value).
+                    obj.create_data_property_or_throw(property_key, value.clone(), context)?;
 
-                // c. Return undefined.
-                Ok(JsValue::undefined())
-            },
-            obj.clone(),
+                    // c. Return undefined.
+                    Ok(JsValue::undefined())
+                },
+                obj.clone(),
+            ),
         );
 
         // 5. Let adder be ! CreateBuiltinFunction(closure, 2, "", « »).

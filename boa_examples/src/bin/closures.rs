@@ -1,33 +1,40 @@
-// This example goes into the details on how to pass closures as functions
-// inside Rust and call them from Javascript.
+// This example goes into the details on how to pass closures as functions inside Rust and call them
+// from Javascript.
+
+use std::cell::{Cell, RefCell};
 
 use boa_engine::{
+    function::NativeCallable,
     js_string,
-    object::{FunctionBuilder, JsObject},
+    object::{builtins::JsArray, FunctionBuilder, JsObject},
     property::{Attribute, PropertyDescriptor},
     string::utf16,
-    Context, JsError, JsString, JsValue,
+    Context, JsError, JsNativeError, JsString, JsValue,
 };
-use boa_gc::{Finalize, Trace};
+use boa_gc::{Finalize, GcCell, Trace};
 
 fn main() -> Result<(), JsError> {
     // We create a new `Context` to create a new Javascript executor.
     let mut context = Context::default();
 
-    // We make some operations in Rust that return a `Copy` value that we want
-    // to pass to a Javascript function.
+    // We make some operations in Rust that return a `Copy` value that we want to pass to a Javascript
+    // function.
     let variable = 128 + 64 + 32 + 16 + 8 + 4 + 2 + 1;
 
     // We register a global closure function that has the name 'closure' with length 0.
-    context.register_global_closure("closure", 0, move |_, _, _| {
-        println!("Called `closure`");
-        // `variable` is captured from the main function.
-        println!("variable = {variable}");
-        println!();
+    context.register_global_callable(
+        "closure",
+        0,
+        NativeCallable::from_copy_closure(move |_, _, _| {
+            println!("Called `closure`");
+            // `variable` is captured from the main function.
+            println!("variable = {variable}");
+            println!();
 
-        // We return the moved variable as a `JsValue`.
-        Ok(JsValue::new(variable))
-    })?;
+            // We return the moved variable as a `JsValue`.
+            Ok(JsValue::new(variable))
+        }),
+    );
 
     assert_eq!(context.eval("closure()")?, 255.into());
 
@@ -59,34 +66,38 @@ fn main() -> Result<(), JsError> {
         object,
     };
 
-    // We can use `FunctionBuilder` to define a closure with additional
-    // captures.
-    let js_function = FunctionBuilder::closure_with_captures(
+    // We can use `FunctionBuilder` to define a closure with additional captures and custom property
+    // attributes.
+    let js_function = FunctionBuilder::new(
         &mut context,
-        |_, _, captures, context| {
-            println!("Called `createMessage`");
-            // We obtain the `name` property of `captures.object`
-            let name = captures.object.get("name", context)?;
+        NativeCallable::from_copy_closure_with_captures(
+            |_, _, captures, context| {
+                let mut captures = captures.borrow_mut();
+                let BigStruct { greeting, object } = &mut *captures;
+                println!("Called `createMessage`");
+                // We obtain the `name` property of `captures.object`
+                let name = object.get("name", context)?;
 
-            // We create a new message from our captured variable.
-            let message = js_string!(
-                utf16!("message from `"),
-                &name.to_string(context)?,
-                utf16!("`: "),
-                &captures.greeting
-            );
+                // We create a new message from our captured variable.
+                let message = js_string!(
+                    utf16!("message from `"),
+                    &name.to_string(context)?,
+                    utf16!("`: "),
+                    greeting
+                );
 
-            // We can also mutate the moved data inside the closure.
-            captures.greeting = js_string!(&captures.greeting, utf16!(" Hello!"));
+                // We can also mutate the moved data inside the closure.
+                captures.greeting = js_string!(greeting, utf16!(" Hello!"));
 
-            println!("{}", message.to_std_string_escaped());
-            println!();
+                println!("{}", message.to_std_string_escaped());
+                println!();
 
-            // We convert `message` into `JsValue` to be able to return it.
-            Ok(message.into())
-        },
-        // Here is where we move `clone_variable` into the closure.
-        clone_variable,
+                // We convert `message` into `JsValue` to be able to return it.
+                Ok(message.into())
+            },
+            // Here is where we move `clone_variable` into the closure.
+            GcCell::new(clone_variable),
+        ),
     )
     // And here we assign `createMessage` to the `name` property of the closure.
     .name("createMessage")
@@ -102,7 +113,7 @@ fn main() -> Result<(), JsError> {
         // We pass `js_function` as a property value.
         js_function,
         // We assign to the "createMessage" property the desired attributes.
-        Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+        Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
     );
 
     assert_eq!(
@@ -119,5 +130,65 @@ fn main() -> Result<(), JsError> {
     // We have moved `Clone` variables into a closure and executed that closure
     // inside Javascript!
 
+    // ADVANCED
+
+    // If we can ensure the captured variables are not traceable by the garbage collector,
+    // we can pass any static closure easily.
+
+    let index = Cell::new(0i32);
+    let numbers = RefCell::new(Vec::new());
+
+    // We register a global closure that is not `Copy`.
+    context.register_global_callable(
+        "enumerate",
+        0,
+        // Note that it is required to use `unsafe` code, since the compiler cannot verify that the
+        // types captured by the closure are not traceable.
+        unsafe {
+            NativeCallable::from_closure(move |_, _, context| {
+                println!("Called `enumerate`");
+                // `index` is captured from the main function.
+                println!("index = {}", index.get());
+                println!();
+
+                numbers.borrow_mut().push(index.get());
+                index.set(index.get() + 1);
+
+                // We return the moved variable as a `JsValue`.
+                Ok(
+                    JsArray::from_iter(
+                        numbers.borrow().iter().cloned().map(JsValue::from),
+                        context,
+                    )
+                    .into(),
+                )
+            })
+        },
+    );
+
+    // First call should return the array `[0]`.
+    let result = context.eval("enumerate()")?;
+    let object = result
+        .as_object()
+        .cloned()
+        .ok_or_else(|| JsNativeError::typ().with_message("not an array!"))?;
+    let array = JsArray::from_object(object)?;
+
+    assert_eq!(array.get(0, &mut context)?, JsValue::from(0i32));
+    assert_eq!(array.get(1, &mut context)?, JsValue::undefined());
+
+    // First call should return the array `[0, 1]`.
+    let result = context.eval("enumerate()")?;
+    let object = result
+        .as_object()
+        .cloned()
+        .ok_or_else(|| JsNativeError::typ().with_message("not an array!"))?;
+    let array = JsArray::from_object(object)?;
+
+    assert_eq!(array.get(0, &mut context)?, JsValue::from(0i32));
+    assert_eq!(array.get(1, &mut context)?, JsValue::from(1i32));
+    assert_eq!(array.get(2, &mut context)?, JsValue::undefined());
+
+    // We have moved non-traceable variables into a closure and executed that closure inside Javascript!
     Ok(())
 }

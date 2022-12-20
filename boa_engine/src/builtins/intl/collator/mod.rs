@@ -14,6 +14,7 @@ use tap::{Conv, Pipe};
 use crate::{
     builtins::{BuiltIn, JsArgs},
     context::{intrinsics::StandardConstructors, BoaProvider},
+    function::NativeCallable,
     object::{
         internal_methods::get_prototype_from_constructor, ConstructorBuilder, FunctionBuilder,
         JsFunction, JsObject, ObjectData,
@@ -160,7 +161,7 @@ impl BuiltIn for Collator {
     fn init(context: &mut Context<'_>) -> Option<JsValue> {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
-        let compare = FunctionBuilder::native(context, Self::compare)
+        let compare = FunctionBuilder::new(context, NativeCallable::from_fn_ptr(Self::compare))
             .name("get compare")
             .constructor(false)
             .build();
@@ -415,32 +416,34 @@ impl Collator {
         let bound_compare = if let Some(f) = collator.bound_compare.clone() {
             f
         } else {
-            let bound_compare = FunctionBuilder::closure_with_captures(
+            let bound_compare = FunctionBuilder::new(
                 context,
                 // 10.3.3.1. Collator Compare Functions
                 // https://tc39.es/ecma402/#sec-collator-compare-functions
-                |_, args, collator, context| {
-                    // 1. Let collator be F.[[Collator]].
-                    // 2. Assert: Type(collator) is Object and collator has an [[InitializedCollator]] internal slot.
-                    let collator = collator.borrow();
-                    let collator = collator
-                        .as_collator()
-                        .expect("checked above that the object was a collator object");
+                NativeCallable::from_copy_closure_with_captures(
+                    |_, args, collator, context| {
+                        // 1. Let collator be F.[[Collator]].
+                        // 2. Assert: Type(collator) is Object and collator has an [[InitializedCollator]] internal slot.
+                        let collator = collator.borrow();
+                        let collator = collator
+                            .as_collator()
+                            .expect("checked above that the object was a collator object");
 
-                    // 3. If x is not provided, let x be undefined.
-                    // 5. Let X be ? ToString(x).
-                    let x = args.get_or_undefined(0).to_string(context)?;
+                        // 3. If x is not provided, let x be undefined.
+                        // 5. Let X be ? ToString(x).
+                        let x = args.get_or_undefined(0).to_string(context)?;
 
-                    // 4. If y is not provided, let y be undefined.
-                    // 6. Let Y be ? ToString(y).
-                    let y = args.get_or_undefined(1).to_string(context)?;
+                        // 4. If y is not provided, let y be undefined.
+                        // 6. Let Y be ? ToString(y).
+                        let y = args.get_or_undefined(1).to_string(context)?;
 
-                    // 7. Return CompareStrings(collator, X, Y).
-                    let result = collator.collator.compare_utf16(&x, &y) as i32;
+                        // 7. Return CompareStrings(collator, X, Y).
+                        let result = collator.collator.compare_utf16(&x, &y) as i32;
 
-                    Ok(result.into())
-                },
-                collator_obj,
+                        Ok(result.into())
+                    },
+                    collator_obj,
+                ),
             )
             .length(2)
             .build();
