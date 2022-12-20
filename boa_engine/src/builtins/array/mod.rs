@@ -166,7 +166,7 @@ impl Array {
             let int_len = if !len.is_number() {
                 // i. Perform ! CreateDataPropertyOrThrow(array, "0", len).
                 array
-                    .create_data_property_or_throw(0, len, context)
+                    .create_data_property_or_throw(0, len.clone(), context)
                     .expect("this CreateDataPropertyOrThrow call must not fail");
                 // ii. Let intLen be 1𝔽.
                 1
@@ -595,7 +595,7 @@ impl Array {
             // a. Let kValue be items[k].
             // b. Let Pk be ! ToString(𝔽(k)).
             // c. Perform ? CreateDataPropertyOrThrow(A, Pk, kValue).
-            a.create_data_property_or_throw(k, value, context)?;
+            a.create_data_property_or_throw(k, value.clone(), context)?;
             // d. Set k to k + 1.
         }
 
@@ -714,7 +714,7 @@ impl Array {
                         .into());
                 }
                 // iii. Perform ? CreateDataPropertyOrThrow(A, ! ToString(𝔽(n)), E).
-                arr.create_data_property_or_throw(n, item, context)?;
+                arr.create_data_property_or_throw(n, item.clone(), context)?;
                 // iv. Set n to n + 1.
                 n += 1;
             }
@@ -1137,7 +1137,7 @@ impl Array {
             // e. For each element E of items, do
             for (j, e) in args.iter().enumerate() {
                 // i. Perform ? Set(O, ! ToString(j), E, true).
-                o.set(j, e, true, context)?;
+                o.set(j, e.clone(), true, context)?;
                 // ii. Set j to j + 1𝔽.
             }
         }
@@ -2189,7 +2189,7 @@ impl Array {
                 .map(|(i, val)| (i as u64 + actual_start, val))
             {
                 // a. Perform ? Set(O, ! ToString(𝔽(k)), E, true).
-                o.set(k, item, true, context)?;
+                o.set(k, item.clone(), true, context)?;
                 // b. Set k to k + 1.
             }
         }

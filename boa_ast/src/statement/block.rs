@@ -43,7 +43,6 @@ impl<T> From<T> for Block
 where
     T: Into<StatementList>,
 {
-    #[inline]
     fn from(list: T) -> Self {
         Self {
             statements: list.into(),

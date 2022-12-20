@@ -46,7 +46,6 @@ impl JsGenerator {
     /// Calls `Generator.prototype.next()`
     ///
     /// This method returns an object with the properties `done` and `value`
-    #[inline]
     pub fn next<T>(&self, value: T, context: &mut Context) -> JsResult<JsValue>
     where
         T: Into<JsValue>,
@@ -57,7 +56,6 @@ impl JsGenerator {
     /// Calls `Generator.prototype.return()`
     ///
     /// This method returns the given value and finishes the generator
-    #[inline]
     pub fn r#return<T>(&self, value: T, context: &mut Context) -> JsResult<JsValue>
     where
         T: Into<JsValue>,
@@ -69,7 +67,6 @@ impl JsGenerator {
     ///
     /// This method resumes the execution of a generator by throwing an error and returning an
     /// an object with the properties `done` and `value`
-    #[inline]
     pub fn throw<T>(&self, value: T, context: &mut Context) -> JsResult<JsValue>
     where
         T: Into<JsValue>,

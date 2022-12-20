@@ -113,7 +113,6 @@ impl Boolean {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-boolean.prototype.valueof
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean/valueOf
-    #[inline]
     pub(crate) fn value_of(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         Ok(JsValue::new(Self::this_boolean_value(this)?))
     }

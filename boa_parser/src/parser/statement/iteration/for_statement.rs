@@ -284,7 +284,6 @@ where
     }
 }
 
-#[inline]
 fn initializer_to_iterable_loop_initializer(
     initializer: ForLoopInitializer,
     position: Position,

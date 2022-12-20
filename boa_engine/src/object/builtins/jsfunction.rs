@@ -13,7 +13,6 @@ pub struct JsFunction {
 }
 
 impl JsFunction {
-    #[inline]
     pub(crate) fn from_object_unchecked(object: JsObject) -> Self {
         Self { inner: object }
     }

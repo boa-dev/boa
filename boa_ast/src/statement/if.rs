@@ -56,6 +56,7 @@ impl If {
     }
 
     /// Creates an `If` AST node.
+    #[inline]
     #[must_use]
     pub fn new(condition: Expression, body: Statement, else_node: Option<Statement>) -> Self {
         Self {

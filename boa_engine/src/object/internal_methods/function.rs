@@ -32,7 +32,6 @@ pub(crate) static CONSTRUCTOR_INTERNAL_METHODS: InternalObjectMethods = Internal
 // <https://tc39.es/ecma262/#sec-prepareforordinarycall>
 // <https://tc39.es/ecma262/#sec-ecmascript-function-objects-call-thisargument-argumentslist>
 #[track_caller]
-#[inline]
 fn function_call(
     obj: &JsObject,
     this: &JsValue,
@@ -49,7 +48,6 @@ fn function_call(
 /// Panics if the object is currently mutably borrowed.
 // <https://tc39.es/ecma262/#sec-ecmascript-function-objects-construct-argumentslist-newtarget>
 #[track_caller]
-#[inline]
 fn function_construct(
     obj: &JsObject,
     args: &[JsValue],

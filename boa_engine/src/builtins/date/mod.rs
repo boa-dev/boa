@@ -59,7 +59,6 @@ macro_rules! get_mut_date {
 /// Abstract operation [`thisTimeValue`][spec].
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-thistimevalue
-#[inline]
 pub(super) fn this_time_value(value: &JsValue) -> JsResult<Option<NaiveDateTime>> {
     Ok(value
         .as_object()
@@ -74,14 +73,12 @@ pub struct Date(Option<NaiveDateTime>);
 
 impl Date {
     /// Creates a new `Date`.
-    #[inline]
     pub(crate) const fn new(dt: Option<NaiveDateTime>) -> Self {
         Self(dt)
     }
 
     /// Converts the `Date` into a `JsValue`, mapping `None` to `NaN` and `Some(datetime)` to
     /// `JsValue::from(datetime.timestamp_millis())`.
-    #[inline]
     fn as_value(&self) -> JsValue {
         self.0
             .map_or_else(|| f64::NAN.into(), |dt| dt.timestamp_millis().into())
@@ -664,7 +661,6 @@ impl Date {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.gettimezoneoffset
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/getTimezoneOffset
-    #[inline]
     pub(crate) fn get_timezone_offset(
         this: &JsValue,
         _: &[JsValue],
@@ -1470,7 +1466,6 @@ impl Date {
     /// Converts the `Date` to a local `DateTime`.
     ///
     /// If the `Date` is invalid (i.e. NAN), this function will return `None`.
-    #[inline]
     pub(crate) fn to_local(self) -> Option<DateTime<Local>> {
         self.0.map(|utc| Local.from_utc_datetime(&utc))
     }

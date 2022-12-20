@@ -91,7 +91,6 @@ impl Span {
     }
 
     /// Checks if this span inclusively contains another span or position.
-    #[inline]
     pub fn contains<S>(self, other: S) -> bool
     where
         S: Into<Self>,

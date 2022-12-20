@@ -75,7 +75,6 @@ impl JsArrayBuffer {
     /// # Ok(())
     /// # }
     /// ```
-    #[inline]
     pub fn from_byte_block(byte_block: Vec<u8>, context: &mut Context) -> JsResult<Self> {
         let byte_length = byte_block.len();
 

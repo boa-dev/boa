@@ -35,7 +35,6 @@ impl<T> From<T> for Await
 where
     T: Into<Box<Expression>>,
 {
-    #[inline]
     fn from(e: T) -> Self {
         Self { target: e.into() }
     }

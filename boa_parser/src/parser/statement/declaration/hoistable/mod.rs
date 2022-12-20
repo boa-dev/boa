@@ -138,7 +138,6 @@ trait CallableDeclaration {
 }
 
 // This is a helper function to not duplicate code in the individual callable declaration parsers.
-#[inline]
 fn parse_callable_declaration<R: Read, C: CallableDeclaration>(
     c: &C,
     cursor: &mut Cursor<R>,

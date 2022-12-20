@@ -16,7 +16,6 @@ pub use node::*;
 
 impl CodeBlock {
     /// Output the [`CodeBlock`] VM instructions into a [`Graph`].
-    #[inline]
     pub fn to_graph(&self, interner: &Interner, graph: &mut SubGraph) {
         // Have to remove any invalid graph chars like `<` or `>`.
         let name = if self.name == Sym::MAIN {

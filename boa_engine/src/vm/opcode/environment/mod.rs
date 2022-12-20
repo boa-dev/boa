@@ -19,7 +19,9 @@ impl Operation for This {
     fn execute(context: &mut Context) -> JsResult<ShouldExit> {
         let env = context.realm.environments.get_this_environment();
         match env {
-            EnvironmentSlots::Function(env) => context.vm.push(env.borrow().get_this_binding()?),
+            EnvironmentSlots::Function(env) => {
+                context.vm.push(env.borrow().get_this_binding()?.clone());
+            }
             EnvironmentSlots::Global => {
                 let this = context.realm.global_object();
                 context.vm.push(this.clone());

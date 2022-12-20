@@ -381,7 +381,6 @@ struct Test {
 
 impl Test {
     /// Creates a new test.
-    #[inline]
     fn new<N, C>(name: N, content: C, metadata: MetaData) -> Self
     where
         N: Into<Box<str>>,

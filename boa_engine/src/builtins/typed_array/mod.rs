@@ -529,7 +529,7 @@ impl TypedArray {
             // a. Let kValue be items[k].
             // b. Let Pk be ! ToString(𝔽(k)).
             // c. Perform ? Set(newObj, Pk, kValue, true).
-            new_obj.set(k, k_value, true, context)?;
+            new_obj.set(k, k_value.clone(), true, context)?;
         }
 
         // 7. Return newObj.
@@ -3502,7 +3502,6 @@ impl TypedArrayKind {
     /// Gets the element size of the given typed array name, as per the [spec].
     ///
     /// [spec]: https://tc39.es/ecma262/#table-the-typedarray-constructors
-    #[inline]
     pub(crate) const fn element_size(self) -> u64 {
         match self {
             Self::Int8 | Self::Uint8 | Self::Uint8Clamped => 1,
@@ -3513,7 +3512,6 @@ impl TypedArrayKind {
     }
 
     /// Gets the content type of this typed array name.
-    #[inline]
     pub(crate) const fn content_type(self) -> ContentType {
         match self {
             Self::BigInt64 | Self::BigUint64 => ContentType::BigInt,
@@ -3522,7 +3520,6 @@ impl TypedArrayKind {
     }
 
     /// Gets the name of this typed array name.
-    #[inline]
     pub(crate) const fn name(&self) -> &str {
         match self {
             Self::Int8 => "Int8Array",

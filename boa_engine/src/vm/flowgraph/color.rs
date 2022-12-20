@@ -29,7 +29,6 @@ pub enum Color {
 impl Color {
     /// Function for converting HSV to RGB color format.
     #[allow(clippy::many_single_char_names)]
-    #[inline]
     #[must_use]
     pub fn hsv_to_rgb(h: f64, s: f64, v: f64) -> Self {
         let h_i = (h * 6.0) as i64;
@@ -76,7 +75,6 @@ impl Color {
 }
 
 impl Display for Color {
-    #[inline]
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Color::None => f.write_str(""),

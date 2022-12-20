@@ -48,18 +48,15 @@ impl Realm {
         }
     }
 
-    #[inline]
     pub(crate) const fn global_object(&self) -> &JsObject {
         &self.global_object
     }
 
-    #[inline]
     pub(crate) fn global_bindings_mut(&mut self) -> &mut GlobalPropertyMap {
         self.global_property_map.string_property_map_mut()
     }
 
     /// Set the number of bindings on the global environment.
-    #[inline]
     pub(crate) fn set_global_binding_number(&mut self) {
         let binding_number = self.compile_env.borrow().num_bindings();
         self.environments.set_global_binding_number(binding_number);

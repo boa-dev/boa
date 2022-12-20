@@ -29,7 +29,6 @@ impl PartialEq for RationalHashable {
 impl Eq for RationalHashable {}
 
 impl Hash for RationalHashable {
-    #[inline]
     fn hash<H: Hasher>(&self, state: &mut H) {
         self.0.to_bits().hash(state);
     }

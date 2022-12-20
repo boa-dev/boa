@@ -17,7 +17,7 @@ impl Operation for RequireObjectCoercible {
     fn execute(context: &mut Context) -> JsResult<ShouldExit> {
         let value = context.vm.pop();
         let value = value.require_object_coercible()?;
-        context.vm.push(value);
+        context.vm.push(value.clone());
         Ok(ShouldExit::False)
     }
 }

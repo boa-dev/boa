@@ -1,17 +1,9 @@
 use super::{JsBigInt, JsObject, JsString, JsSymbol, JsValue, Profiler};
 
-impl From<&Self> for JsValue {
-    #[inline]
-    fn from(value: &Self) -> Self {
-        value.clone()
-    }
-}
-
 impl<T> From<T> for JsValue
 where
     T: Into<JsString>,
 {
-    #[inline]
     fn from(value: T) -> Self {
         let _timer = Profiler::global().start_event("From<String>", "value");
 

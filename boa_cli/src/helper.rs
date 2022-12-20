@@ -41,7 +41,6 @@ pub(crate) struct RLHelper {
 }
 
 impl RLHelper {
-    #[inline]
     pub(crate) fn new() -> Self {
         Self {
             highlighter: LineHighlighter,

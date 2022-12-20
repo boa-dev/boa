@@ -114,7 +114,6 @@ pub(super) fn make_date(day: i64, time: i64) -> Option<i64> {
 /// Otherwise, returns `None`.
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-timeclip
-#[inline]
 pub(super) fn time_clip(time: i64) -> Option<i64> {
     // 1. If time is not finite, return NaN.
     // 2. If abs(ℝ(time)) > 8.64 × 10^15, return NaN.

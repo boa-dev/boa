@@ -26,7 +26,6 @@ impl JsArray {
     }
 
     /// Create an array from a `IntoIterator<Item = JsValue>` convertible object.
-    #[inline]
     pub fn from_iter<I>(elements: I, context: &mut Context) -> Self
     where
         I: IntoIterator<Item = JsValue>,
@@ -65,7 +64,6 @@ impl JsArray {
     }
 
     /// Push an element to the array.
-    #[inline]
     pub fn push<T>(&self, value: T, context: &mut Context) -> JsResult<JsValue>
     where
         T: Into<JsValue>,
@@ -86,7 +84,6 @@ impl JsArray {
     }
 
     /// Calls `Array.prototype.at()`.
-    #[inline]
     pub fn at<T>(&self, index: T, context: &mut Context) -> JsResult<JsValue>
     where
         T: Into<i64>,
@@ -140,7 +137,6 @@ impl JsArray {
     }
 
     /// Calls `Array.prototype.fill()`.
-    #[inline]
     pub fn fill<T>(
         &self,
         value: T,
@@ -164,7 +160,6 @@ impl JsArray {
     }
 
     /// Calls `Array.prototype.indexOf()`.
-    #[inline]
     pub fn index_of<T>(
         &self,
         search_element: T,
@@ -191,7 +186,6 @@ impl JsArray {
     }
 
     /// Calls `Array.prototype.lastIndexOf()`.
-    #[inline]
     pub fn last_index_of<T>(
         &self,
         search_element: T,

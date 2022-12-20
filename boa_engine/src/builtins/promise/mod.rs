@@ -816,8 +816,12 @@ impl Promise {
                         .expect("cannot fail per spec");
 
                     // 11. Perform ! CreateDataPropertyOrThrow(obj, "value", x).
-                    obj.create_data_property_or_throw("value", args.get_or_undefined(0), context)
-                        .expect("cannot fail per spec");
+                    obj.create_data_property_or_throw(
+                        "value",
+                        args.get_or_undefined(0).clone(),
+                        context,
+                    )
+                    .expect("cannot fail per spec");
 
                     // 12. Set values[index] to obj.
                     captures.values.borrow_mut()[captures.index] = obj.into();
@@ -896,8 +900,12 @@ impl Promise {
                         .expect("cannot fail per spec");
 
                     // 11. Perform ! CreateDataPropertyOrThrow(obj, "reason", x).
-                    obj.create_data_property_or_throw("reason", args.get_or_undefined(0), context)
-                        .expect("cannot fail per spec");
+                    obj.create_data_property_or_throw(
+                        "reason",
+                        args.get_or_undefined(0).clone(),
+                        context,
+                    )
+                    .expect("cannot fail per spec");
 
                     // 12. Set values[index] to obj.
                     captures.values.borrow_mut()[captures.index] = obj.into();

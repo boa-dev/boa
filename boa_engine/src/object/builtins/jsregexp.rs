@@ -56,7 +56,6 @@ impl JsRegExp {
     /// # Ok(())
     /// # }
     /// ```
-    #[inline]
     pub fn new<S>(pattern: S, flags: S, context: &mut Context) -> JsResult<Self>
     where
         S: Into<JsValue>,
@@ -203,7 +202,6 @@ impl JsRegExp {
     /// # Ok(())
     /// # }
     /// ```
-    #[inline]
     pub fn test<S>(&self, search_string: S, context: &mut Context) -> JsResult<bool>
     where
         S: Into<JsValue>,
@@ -215,7 +213,6 @@ impl JsRegExp {
     /// Executes a search for a match in a specified string
     ///
     /// Returns a `JsArray` containing matched value and updates the `lastIndex` property, or `None`
-    #[inline]
     pub fn exec<S>(&self, search_string: S, context: &mut Context) -> JsResult<Option<JsArray>>
     where
         S: Into<JsValue>,

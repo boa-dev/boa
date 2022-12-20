@@ -63,12 +63,10 @@ struct FunctionSpec<'a> {
 }
 
 impl FunctionSpec<'_> {
-    #[inline]
     const fn is_arrow(&self) -> bool {
         matches!(self.kind, FunctionKind::Arrow | FunctionKind::AsyncArrow)
     }
 
-    #[inline]
     const fn is_async(&self) -> bool {
         matches!(
             self.kind,
@@ -76,7 +74,6 @@ impl FunctionSpec<'_> {
         )
     }
 
-    #[inline]
     const fn is_generator(&self) -> bool {
         matches!(
             self.kind,
@@ -255,13 +252,11 @@ impl<'b> ByteCompiler<'b> {
         }
     }
 
-    #[inline]
     fn interner(&self) -> &Interner {
         self.context.interner()
     }
 
     /// Push a compile time environment to the current `CodeBlock` and return it's index.
-    #[inline]
     fn push_compile_environment(
         &mut self,
         environment: Gc<GcCell<CompileTimeEnvironment>>,
@@ -271,7 +266,6 @@ impl<'b> ByteCompiler<'b> {
         index
     }
 
-    #[inline]
     fn get_or_insert_literal(&mut self, literal: Literal) -> u32 {
         if let Some(index) = self.literals_map.get(&literal) {
             return *index;
@@ -288,7 +282,6 @@ impl<'b> ByteCompiler<'b> {
         index
     }
 
-    #[inline]
     fn get_or_insert_name(&mut self, name: Identifier) -> u32 {
         if let Some(index) = self.names_map.get(&name) {
             return *index;
@@ -300,7 +293,6 @@ impl<'b> ByteCompiler<'b> {
         index
     }
 
-    #[inline]
     fn get_or_insert_binding(&mut self, binding: BindingLocator) -> u32 {
         if let Some(index) = self.bindings_map.get(&binding) {
             return *index;
@@ -312,7 +304,6 @@ impl<'b> ByteCompiler<'b> {
         index
     }
 
-    #[inline]
     fn emit_binding(&mut self, opcode: BindingOpcode, name: Identifier) {
         match opcode {
             BindingOpcode::Var => {
@@ -357,13 +348,11 @@ impl<'b> ByteCompiler<'b> {
         }
     }
 
-    #[inline]
     fn next_opcode_location(&mut self) -> u32 {
         assert!(self.code_block.code.len() < u32::MAX as usize);
         self.code_block.code.len() as u32
     }
 
-    #[inline]
     fn emit(&mut self, opcode: Opcode, operands: &[u32]) {
         self.emit_opcode(opcode);
         for operand in operands {
@@ -371,32 +360,26 @@ impl<'b> ByteCompiler<'b> {
         }
     }
 
-    #[inline]
     fn emit_u64(&mut self, value: u64) {
         self.code_block.code.extend(value.to_ne_bytes());
     }
 
-    #[inline]
     fn emit_u32(&mut self, value: u32) {
         self.code_block.code.extend(value.to_ne_bytes());
     }
 
-    #[inline]
     fn emit_u16(&mut self, value: u16) {
         self.code_block.code.extend(value.to_ne_bytes());
     }
 
-    #[inline]
     fn emit_opcode(&mut self, opcode: Opcode) {
         self.emit_u8(opcode as u8);
     }
 
-    #[inline]
     fn emit_u8(&mut self, value: u8) {
         self.code_block.code.push(value);
     }
 
-    #[inline]
     fn emit_push_integer(&mut self, value: i32) {
         match value {
             0 => self.emit_opcode(Opcode::PushZero),
@@ -413,13 +396,11 @@ impl<'b> ByteCompiler<'b> {
         }
     }
 
-    #[inline]
     fn emit_push_literal(&mut self, literal: Literal) {
         let index = self.get_or_insert_literal(literal);
         self.emit(Opcode::PushLiteral, &[index]);
     }
 
-    #[inline]
     fn emit_push_rational(&mut self, value: f64) {
         if value.is_nan() {
             return self.emit_opcode(Opcode::PushNaN);
@@ -442,14 +423,12 @@ impl<'b> ByteCompiler<'b> {
         }
     }
 
-    #[inline]
     fn jump(&mut self) -> Label {
         let index = self.next_opcode_location();
         self.emit(Opcode::Jump, &[Self::DUMMY_ADDRESS]);
         Label { index }
     }
 
-    #[inline]
     fn jump_if_false(&mut self) -> Label {
         let index = self.next_opcode_location();
         self.emit(Opcode::JumpIfFalse, &[Self::DUMMY_ADDRESS]);
@@ -457,7 +436,6 @@ impl<'b> ByteCompiler<'b> {
         Label { index }
     }
 
-    #[inline]
     fn jump_if_null_or_undefined(&mut self) -> Label {
         let index = self.next_opcode_location();
         self.emit(Opcode::JumpIfNullOrUndefined, &[Self::DUMMY_ADDRESS]);
@@ -467,7 +445,6 @@ impl<'b> ByteCompiler<'b> {
 
     /// Emit an opcode with a dummy operand.
     /// Return the `Label` of the operand.
-    #[inline]
     fn emit_opcode_with_operand(&mut self, opcode: Opcode) -> Label {
         let index = self.next_opcode_location();
         self.emit(opcode, &[Self::DUMMY_ADDRESS]);
@@ -476,14 +453,12 @@ impl<'b> ByteCompiler<'b> {
 
     /// Emit an opcode with two dummy operands.
     /// Return the `Label`s of the two operands.
-    #[inline]
     fn emit_opcode_with_two_operands(&mut self, opcode: Opcode) -> (Label, Label) {
         let index = self.next_opcode_location();
         self.emit(opcode, &[Self::DUMMY_ADDRESS, Self::DUMMY_ADDRESS]);
         (Label { index }, Label { index: index + 4 })
     }
 
-    #[inline]
     fn patch_jump_with_target(&mut self, label: Label, target: u32) {
         let Label { index } = label;
 
@@ -496,13 +471,11 @@ impl<'b> ByteCompiler<'b> {
         self.code_block.code[index + 4] = bytes[3];
     }
 
-    #[inline]
     fn patch_jump(&mut self, label: Label) {
         let target = self.next_opcode_location();
         self.patch_jump_with_target(label, target);
     }
 
-    #[inline]
     fn push_loop_control_info(&mut self, label: Option<Sym>, start_address: u32) {
         self.jump_info.push(JumpControlInfo {
             label,
@@ -517,7 +490,6 @@ impl<'b> ByteCompiler<'b> {
         });
     }
 
-    #[inline]
     fn push_loop_control_info_for_of_in_loop(&mut self, label: Option<Sym>, start_address: u32) {
         self.jump_info.push(JumpControlInfo {
             label,
@@ -532,7 +504,6 @@ impl<'b> ByteCompiler<'b> {
         });
     }
 
-    #[inline]
     fn pop_loop_control_info(&mut self) {
         let loop_info = self.jump_info.pop().expect("no jump information found");
 
@@ -547,7 +518,6 @@ impl<'b> ByteCompiler<'b> {
         }
     }
 
-    #[inline]
     fn push_switch_control_info(&mut self, label: Option<Sym>, start_address: u32) {
         self.jump_info.push(JumpControlInfo {
             label,
@@ -562,7 +532,6 @@ impl<'b> ByteCompiler<'b> {
         });
     }
 
-    #[inline]
     fn pop_switch_control_info(&mut self) {
         let info = self.jump_info.pop().expect("no jump information found");
 
@@ -573,7 +542,6 @@ impl<'b> ByteCompiler<'b> {
         }
     }
 
-    #[inline]
     fn push_try_control_info(&mut self, has_finally: bool) {
         if !self.jump_info.is_empty() {
             let start_address = self
@@ -596,7 +564,6 @@ impl<'b> ByteCompiler<'b> {
         }
     }
 
-    #[inline]
     fn push_try_control_info_catch_start(&mut self) {
         if !self.jump_info.is_empty() {
             let mut info = self
@@ -608,7 +575,6 @@ impl<'b> ByteCompiler<'b> {
         }
     }
 
-    #[inline]
     fn push_try_control_info_finally_start(&mut self, start: Label) {
         if !self.jump_info.is_empty() {
             let mut info = self
@@ -620,7 +586,6 @@ impl<'b> ByteCompiler<'b> {
         }
     }
 
-    #[inline]
     fn pop_try_control_info(&mut self, finally_start_address: Option<u32>) {
         if !self.jump_info.is_empty() {
             let mut info = self.jump_info.pop().expect("no jump information found");
@@ -659,7 +624,6 @@ impl<'b> ByteCompiler<'b> {
         }
     }
 
-    #[inline]
     fn push_labelled_block_control_info(&mut self, label: Sym, start_address: u32) {
         self.jump_info.push(JumpControlInfo {
             label: Some(label),
@@ -674,7 +638,6 @@ impl<'b> ByteCompiler<'b> {
         });
     }
 
-    #[inline]
     fn pop_labelled_block_control_info(&mut self) {
         let info = self.jump_info.pop().expect("no jump information found");
 
@@ -689,7 +652,6 @@ impl<'b> ByteCompiler<'b> {
         }
     }
 
-    #[inline]
     fn access_get(&mut self, access: Access<'_>, use_expr: bool) -> JsResult<()> {
         match access {
             Access::Variable { name } => {
@@ -753,7 +715,6 @@ impl<'b> ByteCompiler<'b> {
         Ok(())
     }
 
-    #[inline]
     fn access_set<F, R>(&mut self, access: Access<'_>, use_expr: bool, expr_fn: F) -> JsResult<R>
     where
         F: FnOnce(&mut ByteCompiler<'_>, u8) -> JsResult<R>,
@@ -830,7 +791,6 @@ impl<'b> ByteCompiler<'b> {
         }
     }
 
-    #[inline]
     fn access_delete(&mut self, access: Access<'_>) -> JsResult<()> {
         match access {
             Access::Property { access } => match access {
@@ -865,7 +825,6 @@ impl<'b> ByteCompiler<'b> {
     }
 
     /// Compile a [`StatementList`].
-    #[inline]
     pub fn compile_statement_list(
         &mut self,
         list: &StatementList,
@@ -882,7 +841,6 @@ impl<'b> ByteCompiler<'b> {
     }
 
     /// Compile a statement list in a new declarative environment.
-    #[inline]
     pub(crate) fn compile_statement_list_with_new_declarative(
         &mut self,
         list: &StatementList,
@@ -1174,7 +1132,6 @@ impl<'b> ByteCompiler<'b> {
     }
 
     /// Compile a [`StatementListItem`].
-    #[inline]
     fn compile_stmt_list_item(
         &mut self,
         item: &StatementListItem,
@@ -1190,7 +1147,6 @@ impl<'b> ByteCompiler<'b> {
     }
 
     /// Compile a [`Declaration`].
-    #[inline]
     pub fn compile_decl(&mut self, decl: &Declaration) -> JsResult<()> {
         match decl {
             Declaration::Function(function) => {
@@ -1211,7 +1167,6 @@ impl<'b> ByteCompiler<'b> {
     }
 
     /// Compiles a [`Statement`]
-    #[inline]
     pub fn compile_stmt(
         &mut self,
         node: &Statement,
@@ -1407,7 +1362,6 @@ impl<'b> ByteCompiler<'b> {
         self.code_block
     }
 
-    #[inline]
     fn compile_declaration_pattern(
         &mut self,
         pattern: &Pattern,
@@ -1501,7 +1455,6 @@ impl<'b> ByteCompiler<'b> {
         has_identifier_argument
     }
 
-    #[inline]
     pub(crate) fn create_decls_from_decl(
         &mut self,
         declaration: &Declaration,
@@ -1547,7 +1500,6 @@ impl<'b> ByteCompiler<'b> {
         }
     }
 
-    #[inline]
     pub(crate) fn create_decls_from_stmt(
         &mut self,
         statement: &Statement,
@@ -1577,7 +1529,6 @@ impl<'b> ByteCompiler<'b> {
         }
     }
 
-    #[inline]
     pub(crate) fn create_decls_from_stmt_list_item(
         &mut self,
         item: &StatementListItem,

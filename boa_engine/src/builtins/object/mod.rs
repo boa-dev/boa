@@ -238,7 +238,7 @@ impl Object {
 
         // 3. Let desc be PropertyDescriptor { [[Get]]: getter, [[Enumerable]]: true, [[Configurable]]: true }.
         let desc = PropertyDescriptor::builder()
-            .get(getter)
+            .get(getter.clone())
             .enumerable(true)
             .configurable(true);
 
@@ -281,7 +281,7 @@ impl Object {
 
         // 3. Let desc be PropertyDescriptor { [[Set]]: setter, [[Enumerable]]: true, [[Configurable]]: true }.
         let desc = PropertyDescriptor::builder()
-            .set(setter)
+            .set(setter.clone())
             .enumerable(true)
             .configurable(true);
 
@@ -325,7 +325,7 @@ impl Object {
             if let Some(current_desc) = desc {
                 // i. If IsAccessorDescriptor(desc) is true, return desc.[[Get]].
                 return if current_desc.is_accessor_descriptor() {
-                    Ok(current_desc.expect_get().into())
+                    Ok(current_desc.expect_get().clone())
                 } else {
                     // ii. Return undefined.
                     Ok(JsValue::undefined())
@@ -369,7 +369,7 @@ impl Object {
             if let Some(current_desc) = desc {
                 // i. If IsAccessorDescriptor(desc) is true, return desc.[[Set]].
                 return if current_desc.is_accessor_descriptor() {
-                    Ok(current_desc.expect_set().into())
+                    Ok(current_desc.expect_set().clone())
                 } else {
                     // ii. Return undefined.
                     Ok(JsValue::undefined())
@@ -517,7 +517,7 @@ impl Object {
         // 4. If Desc has a [[Value]] field, then
         if let Some(value) = desc.value() {
             // a. Perform ! CreateDataPropertyOrThrow(obj, "value", Desc.[[Value]]).
-            obj.create_data_property_or_throw("value", value, context)
+            obj.create_data_property_or_throw("value", value.clone(), context)
                 .expect("CreateDataPropertyOrThrow cannot fail here");
         }
 
@@ -531,14 +531,14 @@ impl Object {
         // 6. If Desc has a [[Get]] field, then
         if let Some(get) = desc.get() {
             // a. Perform ! CreateDataPropertyOrThrow(obj, "get", Desc.[[Get]]).
-            obj.create_data_property_or_throw("get", get, context)
+            obj.create_data_property_or_throw("get", get.clone(), context)
                 .expect("CreateDataPropertyOrThrow cannot fail here");
         }
 
         // 7. If Desc has a [[Set]] field, then
         if let Some(set) = desc.set() {
             // a. Perform ! CreateDataPropertyOrThrow(obj, "set", Desc.[[Set]]).
-            obj.create_data_property_or_throw("set", set, context)
+            obj.create_data_property_or_throw("set", set.clone(), context)
                 .expect("CreateDataPropertyOrThrow cannot fail here");
         }
 
@@ -1256,7 +1256,7 @@ impl Object {
                 let property_key = key.to_property_key(context)?;
 
                 // b. Perform ! CreateDataPropertyOrThrow(obj, propertyKey, value).
-                obj.create_data_property_or_throw(property_key, value, context)?;
+                obj.create_data_property_or_throw(property_key, value.clone(), context)?;
 
                 // c. Return undefined.
                 Ok(JsValue::undefined())
@@ -1278,7 +1278,6 @@ impl Object {
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-object.defineproperties
-#[inline]
 fn object_define_properties(
     object: &JsObject,
     props: &JsValue,

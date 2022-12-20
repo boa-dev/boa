@@ -51,11 +51,10 @@ impl AsyncArrowFunction {
     }
 
     /// Sets the name of the function declaration.
-    //#[inline]
-    //#[must_use]
-    //pub fn set_name(&mut self, name: Option<Identifier>) {
-    //    self.name = name;
-    //}
+    #[inline]
+    pub fn set_name(&mut self, name: Option<Identifier>) {
+        self.name = name;
+    }
 
     /// Gets the list of parameters of the arrow function.
     #[inline]

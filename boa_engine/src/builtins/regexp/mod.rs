@@ -358,7 +358,6 @@ impl RegExp {
         Ok(this.clone())
     }
 
-    #[inline]
     fn regexp_has_flag(this: &JsValue, flag: u8, context: &mut Context) -> JsResult<JsValue> {
         if let Some(object) = this.as_object() {
             if let Some(regexp) = object.borrow().as_regexp() {

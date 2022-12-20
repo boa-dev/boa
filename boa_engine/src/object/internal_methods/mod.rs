@@ -33,7 +33,6 @@ impl JsObject {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-getprototypeof
-    #[inline]
     #[track_caller]
     pub(crate) fn __get_prototype_of__(&self, context: &mut Context) -> JsResult<JsPrototype> {
         let _timer = Profiler::global().start_event("Object::__get_prototype_of__", "object");
@@ -49,7 +48,6 @@ impl JsObject {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-setprototypeof-v
-    #[inline]
     pub(crate) fn __set_prototype_of__(
         &self,
         val: JsPrototype,
@@ -68,7 +66,6 @@ impl JsObject {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-isextensible
-    #[inline]
     pub(crate) fn __is_extensible__(&self, context: &mut Context) -> JsResult<bool> {
         let _timer = Profiler::global().start_event("Object::__is_extensible__", "object");
         let func = self.borrow().data.internal_methods.__is_extensible__;
@@ -83,7 +80,6 @@ impl JsObject {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-preventextensions
-    #[inline]
     pub(crate) fn __prevent_extensions__(&self, context: &mut Context) -> JsResult<bool> {
         let _timer = Profiler::global().start_event("Object::__prevent_extensions__", "object");
         let func = self.borrow().data.internal_methods.__prevent_extensions__;
@@ -98,7 +94,6 @@ impl JsObject {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-getownproperty-p
-    #[inline]
     pub(crate) fn __get_own_property__(
         &self,
         key: &PropertyKey,
@@ -117,7 +112,6 @@ impl JsObject {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-defineownproperty-p-desc
-    #[inline]
     pub(crate) fn __define_own_property__(
         &self,
         key: PropertyKey,
@@ -137,7 +131,6 @@ impl JsObject {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-hasproperty-p
-    #[inline]
     pub(crate) fn __has_property__(
         &self,
         key: &PropertyKey,
@@ -156,7 +149,6 @@ impl JsObject {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-get-p-receiver
-    #[inline]
     pub(crate) fn __get__(
         &self,
         key: &PropertyKey,
@@ -176,7 +168,6 @@ impl JsObject {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-set-p-v-receiver
-    #[inline]
     pub(crate) fn __set__(
         &self,
         key: PropertyKey,
@@ -197,7 +188,6 @@ impl JsObject {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-delete-p
-    #[inline]
     pub(crate) fn __delete__(&self, key: &PropertyKey, context: &mut Context) -> JsResult<bool> {
         let _timer = Profiler::global().start_event("Object::__delete__", "object");
         let func = self.borrow().data.internal_methods.__delete__;
@@ -212,7 +202,6 @@ impl JsObject {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-ownpropertykeys
-    #[inline]
     #[track_caller]
     pub(crate) fn __own_property_keys__(
         &self,
@@ -231,7 +220,6 @@ impl JsObject {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-ecmascript-function-objects-call-thisargument-argumentslist
-    #[inline]
     #[track_caller]
     pub(crate) fn __call__(
         &self,
@@ -254,7 +242,6 @@ impl JsObject {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-ecmascript-function-objects-construct-argumentslist-newtarget
-    #[inline]
     #[track_caller]
     pub(crate) fn __construct__(
         &self,
@@ -333,7 +320,6 @@ pub(crate) struct InternalObjectMethods {
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-ordinarygetprototypeof
-#[inline]
 #[allow(clippy::unnecessary_wraps)]
 pub(crate) fn ordinary_get_prototype_of(
     obj: &JsObject,
@@ -351,7 +337,6 @@ pub(crate) fn ordinary_get_prototype_of(
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-ordinarysetprototypeof
-#[inline]
 #[allow(clippy::unnecessary_wraps)]
 pub(crate) fn ordinary_set_prototype_of(
     obj: &JsObject,
@@ -411,7 +396,6 @@ pub(crate) fn ordinary_set_prototype_of(
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-ordinaryisextensible
-#[inline]
 #[allow(clippy::unnecessary_wraps)]
 pub(crate) fn ordinary_is_extensible(obj: &JsObject, _context: &mut Context) -> JsResult<bool> {
     // 1. Return O.[[Extensible]].
@@ -424,7 +408,6 @@ pub(crate) fn ordinary_is_extensible(obj: &JsObject, _context: &mut Context) -> 
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-ordinarypreventextensions
-#[inline]
 #[allow(clippy::unnecessary_wraps)]
 pub(crate) fn ordinary_prevent_extensions(
     obj: &JsObject,
@@ -443,7 +426,6 @@ pub(crate) fn ordinary_prevent_extensions(
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-ordinarygetownproperty
-#[inline]
 #[allow(clippy::unnecessary_wraps)]
 pub(crate) fn ordinary_get_own_property(
     obj: &JsObject,
@@ -474,7 +456,6 @@ pub(crate) fn ordinary_get_own_property(
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-ordinarydefineownproperty
-#[inline]
 pub(crate) fn ordinary_define_own_property(
     obj: &JsObject,
     key: PropertyKey,
@@ -503,7 +484,6 @@ pub(crate) fn ordinary_define_own_property(
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-ordinaryhasproperty
-#[inline]
 pub(crate) fn ordinary_has_property(
     obj: &JsObject,
     key: &PropertyKey,
@@ -533,7 +513,6 @@ pub(crate) fn ordinary_has_property(
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-ordinaryget
-#[inline]
 pub(crate) fn ordinary_get(
     obj: &JsObject,
     key: &PropertyKey,
@@ -579,7 +558,6 @@ pub(crate) fn ordinary_get(
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-ordinaryset
-#[inline]
 pub(crate) fn ordinary_set(
     obj: &JsObject,
     key: PropertyKey,
@@ -682,7 +660,6 @@ pub(crate) fn ordinary_set(
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-ordinarydelete
-#[inline]
 pub(crate) fn ordinary_delete(
     obj: &JsObject,
     key: &PropertyKey,
@@ -714,7 +691,6 @@ pub(crate) fn ordinary_delete(
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-ordinaryownpropertykeys
-#[inline]
 #[allow(clippy::unnecessary_wraps)]
 pub(crate) fn ordinary_own_property_keys(
     obj: &JsObject,
@@ -764,7 +740,6 @@ pub(crate) fn ordinary_own_property_keys(
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-iscompatiblepropertydescriptor
-#[inline]
 pub(crate) fn is_compatible_property_descriptor(
     extensible: bool,
     desc: PropertyDescriptor,
@@ -783,7 +758,6 @@ pub(crate) fn is_compatible_property_descriptor(
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-validateandapplypropertydescriptor
-#[inline]
 pub(crate) fn validate_and_apply_property_descriptor(
     obj_and_key: Option<(&JsObject, PropertyKey)>,
     extensible: bool,
@@ -935,7 +909,6 @@ pub(crate) fn validate_and_apply_property_descriptor(
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-getprototypefromconstructor
-#[inline]
 #[track_caller]
 pub(crate) fn get_prototype_from_constructor<F>(
     constructor: &JsValue,

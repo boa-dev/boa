@@ -12,7 +12,6 @@ pub(crate) trait ErrorContext {
 }
 
 impl<T> ErrorContext for ParseResult<T> {
-    #[inline]
     fn context(self, context: &'static str) -> Self {
         self.map_err(|e| e.context(context))
     }
@@ -89,7 +88,6 @@ impl Error {
     }
 
     /// Creates an `Expected` parsing error.
-    #[inline]
     pub(crate) fn expected<E, F>(expected: E, found: F, span: Span, context: &'static str) -> Self
     where
         E: Into<Box<[String]>>,
@@ -104,7 +102,6 @@ impl Error {
     }
 
     /// Creates an `Expected` parsing error.
-    #[inline]
     pub(crate) fn unexpected<F, C>(found: F, span: Span, message: C) -> Self
     where
         F: Into<Box<str>>,
@@ -118,13 +115,11 @@ impl Error {
     }
 
     /// Creates a "general" parsing error.
-    #[inline]
     pub(crate) const fn general(message: &'static str, position: Position) -> Self {
         Self::General { message, position }
     }
 
     /// Creates a "general" parsing error with the specific error message for a wrong function declaration in non-strict mode.
-    #[inline]
     pub(crate) const fn wrong_function_declaration_non_strict(position: Position) -> Self {
         Self::General {
             message: "In non-strict mode code, functions can only be declared at top level, inside a block, or as the body of an if statement.",
@@ -133,7 +128,6 @@ impl Error {
     }
 
     /// Creates a "general" parsing error with the specific error message for a wrong function declaration with label.
-    #[inline]
     pub(crate) const fn wrong_labelled_function_declaration(position: Position) -> Self {
         Self::General {
             message: "Labelled functions can only be declared at top level or inside a block",
@@ -142,7 +136,6 @@ impl Error {
     }
 
     /// Creates a parsing error from a lexing error.
-    #[inline]
     pub(crate) const fn lex(e: LexError) -> Self {
         Self::Lex { err: e }
     }

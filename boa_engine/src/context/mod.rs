@@ -142,13 +142,11 @@ impl Context {
 
     /// A helper function for getting a mutable reference to the `console` object.
     #[cfg(feature = "console")]
-    #[inline]
     pub(crate) fn console_mut(&mut self) -> &mut Console {
         &mut self.console
     }
 
     /// Sets up the default global objects within Global
-    #[inline]
     fn create_intrinsics(&mut self) {
         let _timer = Profiler::global().start_event("create_intrinsics", "interpreter");
         // Create intrinsics, add global objects here
@@ -188,7 +186,6 @@ impl Context {
     ///  - [ECMA reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-call
-    #[inline]
     pub(crate) fn call(
         &mut self,
         f: &JsValue,
@@ -214,13 +211,11 @@ impl Context {
     }
 
     /// Return a mutable reference to the global object string bindings.
-    #[inline]
     pub(crate) fn global_bindings_mut(&mut self) -> &mut GlobalPropertyMap {
         self.realm.global_bindings_mut()
     }
 
     /// Constructs a `Error` with the specified message.
-    #[inline]
     pub fn construct_error<M>(&mut self, message: M) -> JsValue
     where
         M: Into<JsString>,
@@ -256,7 +251,6 @@ impl Context {
     /// [`FunctionBuilder`](crate::object::FunctionBuilder::native). And bind it to the global
     /// object with [`Context::register_global_property`](Context::register_global_property)
     /// method.
-    #[inline]
     pub fn register_global_function(
         &mut self,
         name: &str,
@@ -293,7 +287,6 @@ impl Context {
     /// The difference to [`Context::register_global_function`](Context::register_global_function) is,
     /// that the function will not be `constructable`.
     /// Usage of the function as a constructor will produce a `TypeError`.
-    #[inline]
     pub fn register_global_builtin_function(
         &mut self,
         name: &str,
@@ -340,7 +333,6 @@ impl Context {
     ///
     /// See <https://github.com/boa-dev/boa/issues/1515> for an explanation on
     /// why we need to restrict the set of accepted closures.
-    #[inline]
     pub fn register_global_closure<F>(&mut self, name: &str, length: usize, body: F) -> JsResult<()>
     where
         F: Fn(&JsValue, &[JsValue], &mut Self) -> JsResult<JsValue> + Copy + 'static,
@@ -364,7 +356,6 @@ impl Context {
     }
 
     /// <https://tc39.es/ecma262/#sec-hasproperty>
-    #[inline]
     pub(crate) fn has_property(&mut self, obj: &JsValue, key: &PropertyKey) -> JsResult<bool> {
         obj.as_object()
             .map_or(Ok(false), |obj| obj.__has_property__(key, self))
@@ -383,7 +374,6 @@ impl Context {
     ///
     /// context.register_global_class::<MyClass>();
     /// ```
-    #[inline]
     pub fn register_global_class<T>(&mut self) -> JsResult<()>
     where
         T: Class,
@@ -423,7 +413,6 @@ impl Context {
     ///     .build();
     /// context.register_global_property("myObjectProperty", object, Attribute::all());
     /// ```
-    #[inline]
     pub fn register_global_property<K, V>(&mut self, key: K, value: V, attribute: Attribute)
     where
         K: Into<PropertyKey>,
@@ -472,7 +461,6 @@ impl Context {
     }
 
     /// Compile the AST into a `CodeBlock` ready to be executed by the VM.
-    #[inline]
     pub fn compile(&mut self, statement_list: &StatementList) -> JsResult<Gc<CodeBlock>> {
         let _timer = Profiler::global().start_event("Compilation", "Main");
         let mut compiler = ByteCompiler::new(Sym::MAIN, statement_list.strict(), false, self);
@@ -482,7 +470,6 @@ impl Context {
     }
 
     /// Compile the AST into a `CodeBlock` ready to be executed by the VM in a `JSON.parse` context.
-    #[inline]
     pub fn compile_json_parse(
         &mut self,
         statement_list: &StatementList,
@@ -495,7 +482,6 @@ impl Context {
     }
 
     /// Compile the AST into a `CodeBlock` with an additional declarative environment.
-    #[inline]
     pub(crate) fn compile_with_new_declarative(
         &mut self,
         statement_list: &StatementList,
@@ -513,7 +499,6 @@ impl Context {
     /// just a pointer copy. Therefore, if you'd like to execute the same `CodeBlock` multiple
     /// times, there is no need to re-compile it, and you can just call `clone()` on the
     /// `Gc<CodeBlock>` returned by the [`Self::compile()`] function.
-    #[inline]
     pub fn execute(&mut self, code_block: Gc<CodeBlock>) -> JsResult<JsValue> {
         let _timer = Profiler::global().start_event("Execution", "Main");
 
@@ -566,7 +551,6 @@ impl Context {
     }
 
     #[cfg(feature = "intl")]
-    #[inline]
     /// Get the ICU related utilities
     pub(crate) const fn icu(&self) -> &icu::Icu {
         &self.icu

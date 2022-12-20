@@ -89,31 +89,26 @@ impl<R> Lexer<R> {
     }
 
     /// Sets the goal symbol for the lexer.
-    #[inline]
     pub(crate) fn set_goal(&mut self, elm: InputElement) {
         self.goal_symbol = elm;
     }
 
     /// Gets the goal symbol the lexer is currently using.
-    #[inline]
     pub(crate) const fn get_goal(&self) -> InputElement {
         self.goal_symbol
     }
 
-    #[inline]
     /// Returns if strict mode is currently active.
     pub(super) const fn strict_mode(&self) -> bool {
         self.cursor.strict_mode()
     }
 
-    #[inline]
     /// Sets the current strict mode.
     pub(super) fn set_strict_mode(&mut self, strict_mode: bool) {
         self.cursor.set_strict_mode(strict_mode);
     }
 
     /// Creates a new lexer.
-    #[inline]
     pub fn new(reader: R) -> Self
     where
         R: Read,

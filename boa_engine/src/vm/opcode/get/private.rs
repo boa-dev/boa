@@ -24,7 +24,7 @@ impl Operation for GetPrivateField {
             let object_borrow_mut = object.borrow();
             if let Some(element) = object_borrow_mut.get_private_element(name.sym()) {
                 match element {
-                    PrivateElement::Field(value) => context.vm.push(value),
+                    PrivateElement::Field(value) => context.vm.push(value.clone()),
                     PrivateElement::Method(method) => context.vm.push(method.clone()),
                     PrivateElement::Accessor {
                         getter: Some(getter),

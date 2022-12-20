@@ -77,7 +77,6 @@ const NUMBER_SIGN: u16 = b'#' as u16;
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-uriUnescaped
-#[inline]
 pub(super) fn is_uri_unescaped(code_point: u16) -> bool {
     URI_ALPHA_LOWER.contains(&code_point)
         || URI_ALPHA_UPPER.contains(&code_point)
@@ -91,7 +90,6 @@ pub(super) fn is_uri_unescaped(code_point: u16) -> bool {
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-uriReserved
-#[inline]
 pub(super) fn is_uri_reserved_or_number_sign(code_point: u16) -> bool {
     code_point == NUMBER_SIGN || URI_RESERVED.contains(&code_point)
 }
@@ -104,7 +102,6 @@ pub(super) fn is_uri_reserved_or_number_sign(code_point: u16) -> bool {
 ///
 /// [uri_reserved]: https://tc39.es/ecma262/#prod-uriReserved
 /// [uri_unescaped]: https://tc39.es/ecma262/#prod-uriUnescaped
-#[inline]
 pub(super) fn is_uri_reserved_or_uri_unescaped_or_number_sign(code_point: u16) -> bool {
     code_point == NUMBER_SIGN || is_uri_unescaped(code_point) || URI_RESERVED.contains(&code_point)
 }

@@ -67,7 +67,6 @@ where
     I::Item: Clone,
 {
     type Item = I::Item;
-    #[inline]
     fn next(&mut self) -> Option<Self::Item> {
         if self.peek.is_some() {
             self.peek.take()

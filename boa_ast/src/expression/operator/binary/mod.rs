@@ -41,6 +41,7 @@ pub struct Binary {
 
 impl Binary {
     /// Creates a `BinOp` AST Expression.
+    #[inline]
     #[must_use]
     pub fn new(op: BinaryOp, lhs: Expression, rhs: Expression) -> Self {
         Self {

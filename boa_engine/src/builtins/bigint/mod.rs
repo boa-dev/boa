@@ -110,7 +110,6 @@ impl BigInt {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-numbertobigint
-    #[inline]
     fn number_to_bigint(number: f64) -> JsResult<JsValue> {
         // 1. If IsIntegralNumber(number) is false, throw a RangeError exception.
         if number.is_nan() || number.is_infinite() || number.fract() != 0.0 {
@@ -133,7 +132,6 @@ impl BigInt {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-thisbigintvalue
-    #[inline]
     fn this_bigint_value(value: &JsValue) -> JsResult<JsBigInt> {
         value
             // 1. If Type(value) is BigInt, return value.
