@@ -127,9 +127,7 @@ macro_rules! generate_impl {
             }
 
             const STR_MAP: &[&'static str] = &[
-                $(
-                    $Variant::NAME
-                ),*
+                $($Variant::NAME),*
             ];
 
             /// Name of this opcode.
@@ -139,9 +137,7 @@ macro_rules! generate_impl {
             }
 
             const INSTRUCTION_STR_MAP: &[&'static str] = &[
-                $(
-                    $Variant::INSTRUCTION
-                ),*
+                $($Variant::INSTRUCTION),*
             ];
 
             /// Name of the profiler event for this opcode.
@@ -151,9 +147,7 @@ macro_rules! generate_impl {
             }
 
             const EXECUTE_FN_MAP: &[fn(&mut Context) -> JsResult<ShouldExit>] = &[
-                $(
-                    $Variant::execute
-                ),*
+                $($Variant::execute),*
             ];
 
             pub(super) fn execute(self, context: &mut Context) -> JsResult<ShouldExit> {
