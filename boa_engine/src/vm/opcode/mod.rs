@@ -98,7 +98,7 @@ macro_rules! generate_impl {
         pub enum $Type:ident {
             $(
                 $(#[$inner:ident $($args:tt)*])*
-                $Variant:ident
+                $Variant:ident $(= $index:expr)*
             ),*
             $(,)?
         }
@@ -108,7 +108,7 @@ macro_rules! generate_impl {
         pub enum $Type {
             $(
                 $(#[$inner $($args)*])*
-                $Variant
+                $Variant $(= $index)*
             ),*
         }
 
@@ -126,32 +126,44 @@ macro_rules! generate_impl {
                 unsafe { std::mem::transmute(value) }
             }
 
+            const STR_MAP: [&'static str; 256] = {
+                let mut map = [""; 256];
+                $(
+                    map[Self::$Variant as usize] = $Variant::NAME;
+                )*
+                map
+            };
+
             /// Name of this opcode.
             #[must_use]
             pub const fn as_str(self) -> &'static str {
-                match self {
-                    $(
-                        Self::$Variant => $Variant::NAME
-                    ),*
-                }
+                Self::STR_MAP[self as usize]
             }
+
+            const INSTRUCTION_STR_MAP: [&'static str; 256] = {
+                let mut map = [""; 256];
+                $(
+                    map[Self::$Variant as usize] = $Variant::INSTRUCTION;
+                )*
+                map
+            };
 
             /// Name of the profiler event for this opcode.
             #[must_use]
             pub const fn as_instruction_str(self) -> &'static str {
-                match self {
-                    $(
-                        Self::$Variant => $Variant::INSTRUCTION
-                    ),*
-                }
+                Self::INSTRUCTION_STR_MAP[self as usize]
             }
 
+            const EXECUTE_FN_MAP: [&dyn Fn(&mut Context) -> JsResult<ShouldExit>; 256] = {
+                let mut map: [&dyn Fn(&mut Context) -> JsResult<ShouldExit>; 256]  = [&|_| { unreachable!(); }; 256];
+                $(
+                    map[$Type::$Variant as usize] = &$Variant::execute;
+                )*
+                map
+            };
+
             pub(super) fn execute(self, context: &mut Context) -> JsResult<ShouldExit> {
-                match self {
-                    $(
-                        Self::$Variant => $Variant::execute(context)
-                    ),*
-                }
+                Self::EXECUTE_FN_MAP[self as usize](context)
             }
         }
     };
@@ -179,7 +191,7 @@ generate_impl! {
         /// Operands:
         ///
         /// Stack: value **=>**
-        Pop,
+        Pop = 0,
 
         /// Pop the top value from the stack if the last try block has thrown a value.
         ///
