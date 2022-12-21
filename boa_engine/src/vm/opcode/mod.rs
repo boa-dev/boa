@@ -126,13 +126,11 @@ macro_rules! generate_impl {
                 unsafe { std::mem::transmute(value) }
             }
 
-            const STR_MAP: [&'static str; 256] = {
-                let mut map = [""; 256];
+            const STR_MAP: &[&'static str] = &[
                 $(
-                    map[Self::$Variant as usize] = $Variant::NAME;
-                )*
-                map
-            };
+                    $Variant::NAME
+                ),*
+            ];
 
             /// Name of this opcode.
             #[must_use]
@@ -140,13 +138,11 @@ macro_rules! generate_impl {
                 Self::STR_MAP[self as usize]
             }
 
-            const INSTRUCTION_STR_MAP: [&'static str; 256] = {
-                let mut map = [""; 256];
+            const INSTRUCTION_STR_MAP: &[&'static str] = &[
                 $(
-                    map[Self::$Variant as usize] = $Variant::INSTRUCTION;
-                )*
-                map
-            };
+                    $Variant::INSTRUCTION
+                ),*
+            ];
 
             /// Name of the profiler event for this opcode.
             #[must_use]
@@ -154,13 +150,11 @@ macro_rules! generate_impl {
                 Self::INSTRUCTION_STR_MAP[self as usize]
             }
 
-            const EXECUTE_FN_MAP: [&dyn Fn(&mut Context) -> JsResult<ShouldExit>; 256] = {
-                let mut map: [&dyn Fn(&mut Context) -> JsResult<ShouldExit>; 256]  = [&|_| { unreachable!(); }; 256];
+            const EXECUTE_FN_MAP: &[fn(&mut Context) -> JsResult<ShouldExit>] = &[
                 $(
-                    map[$Type::$Variant as usize] = &$Variant::execute;
-                )*
-                map
-            };
+                    $Variant::execute
+                ),*
+            ];
 
             pub(super) fn execute(self, context: &mut Context) -> JsResult<ShouldExit> {
                 Self::EXECUTE_FN_MAP[self as usize](context)
