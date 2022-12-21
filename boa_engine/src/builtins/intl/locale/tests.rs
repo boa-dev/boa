@@ -73,7 +73,7 @@ impl Service for TestService {
 
 #[test]
 fn locale_resolution() {
-    let provider = boa_icu_provider::blob();
+    let provider = boa_icu_provider::buffer();
     let icu = Icu::new(BoaProvider::Buffer(provider)).unwrap();
     let mut default = default_locale(icu.locale_canonicalizer());
     default

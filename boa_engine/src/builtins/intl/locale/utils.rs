@@ -557,7 +557,7 @@ mod tests {
 
     #[test]
     fn best_avail_loc() {
-        let provider = boa_icu_provider::blob();
+        let provider = boa_icu_provider::buffer();
         let provider = provider.as_deserializing();
 
         assert_eq!(
@@ -578,7 +578,7 @@ mod tests {
 
     #[test]
     fn lookup_match() {
-        let provider = boa_icu_provider::blob();
+        let provider = boa_icu_provider::buffer();
         let icu = Icu::new(BoaProvider::Buffer(provider)).unwrap();
 
         // requested: []

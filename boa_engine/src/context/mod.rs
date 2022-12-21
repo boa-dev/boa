@@ -626,7 +626,7 @@ impl<'a> ContextBuilder<'a> {
             },
             #[cfg(feature = "intl")]
             icu: self.icu.unwrap_or_else(|| {
-                let provider = BoaProvider::Buffer(boa_icu_provider::blob());
+                let provider = BoaProvider::Buffer(boa_icu_provider::buffer());
                 icu::Icu::new(provider).expect("Failed to initialize default icu data.")
             }),
             #[cfg(not(feature = "intl"))]

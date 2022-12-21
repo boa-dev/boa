@@ -170,7 +170,7 @@ impl Test {
                     #[cfg(feature = "intl")]
                     {
                         ContextBuilder::default()
-                            .icu_provider(BoaProvider::Buffer(boa_icu_provider::blob()))
+                            .icu_provider(BoaProvider::Buffer(boa_icu_provider::buffer()))
                             .expect("default locale data should be valid")
                             .build()
                     }
