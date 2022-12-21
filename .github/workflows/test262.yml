@@ -57,7 +57,6 @@ jobs:
           cd boa
           comment="$(./target/release/boa_tester compare ../gh-pages/test262/refs/heads/main/latest.json ../results/test262/pull/latest.json -m)"
           comment="${comment//'%'/'%25'}"
-          comment="${comment//$'\n'/'%0A'}"
           comment="${comment//$'\r'/'%0D'}"
           echo "comment=$comment" >> $GITHUB_OUTPUT
 
