@@ -506,8 +506,6 @@ pub(crate) fn create_function_object(
         context.intrinsics().constructors().function().prototype()
     };
 
-    let prototype = context.construct_object();
-
     let name_property = PropertyDescriptor::builder()
         .value(
             context
@@ -566,6 +564,7 @@ pub(crate) fn create_function_object(
         .configurable(true)
         .build();
 
+    let prototype = JsObject::new(context);
     prototype
         .define_property_or_throw(js_string!("constructor"), constructor_property, context)
         .expect("failed to define the constructor property of the function");

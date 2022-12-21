@@ -42,7 +42,7 @@ fn main() -> Result<(), JsError> {
     }
 
     // We create a new `JsObject` with some data
-    let object = context.construct_object();
+    let object = JsObject::new(&mut context);
     object.define_property_or_throw(
         "name",
         PropertyDescriptor::builder()

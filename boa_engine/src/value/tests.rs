@@ -24,7 +24,7 @@ fn undefined() {
 #[test]
 fn get_set_field() {
     let mut context = Context::default();
-    let obj = &context.construct_object();
+    let obj = &JsObject::new(&mut context);
     // Create string and convert it to a Value
     let s = JsValue::new("bar");
     obj.set("foo", s, false, &mut context).unwrap();
@@ -132,11 +132,11 @@ fn hash_rational() {
 #[test]
 #[allow(clippy::eq_op)]
 fn hash_object() {
-    let object1 = JsValue::new(JsObject::empty());
+    let object1 = JsValue::new(JsObject::with_null_proto());
     assert_eq!(object1, object1);
     assert_eq!(object1, object1.clone());
 
-    let object2 = JsValue::new(JsObject::empty());
+    let object2 = JsValue::new(JsObject::with_null_proto());
     assert_ne!(object1, object2);
 
     assert_eq!(hash_value(&object1), hash_value(&object1.clone()));

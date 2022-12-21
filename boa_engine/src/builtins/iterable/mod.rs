@@ -136,7 +136,7 @@ pub fn create_iter_result_object(value: JsValue, done: bool, context: &mut Conte
 
     // 1. Assert: Type(done) is Boolean.
     // 2. Let obj be ! OrdinaryObjectCreate(%Object.prototype%).
-    let obj = context.construct_object();
+    let obj = JsObject::new(context);
 
     // 3. Perform ! CreateDataPropertyOrThrow(obj, "value", value).
     obj.create_data_property_or_throw("value", value, context)
@@ -207,7 +207,7 @@ impl JsValue {
         };
 
         // 3. Let iterator be ? Call(method, obj).
-        let iterator = context.call(&method, self, &[])?;
+        let iterator = method.call(self, &[], context)?;
 
         // 4. If Type(iterator) is not Object, throw a TypeError exception.
         let iterator_obj = iterator

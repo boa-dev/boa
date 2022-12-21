@@ -3188,7 +3188,7 @@ impl TypedArray {
         }
 
         // 2. Let obj be ! IntegerIndexedObjectCreate(proto).
-        let obj = IntegerIndexed::create(proto, indexed, context);
+        let obj = JsObject::from_proto_and_data(proto, ObjectData::integer_indexed(indexed));
 
         // 9. Return obj.
         Ok(obj)

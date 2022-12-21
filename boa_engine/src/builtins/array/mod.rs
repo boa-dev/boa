@@ -2957,7 +2957,7 @@ impl Array {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/@@unscopables
     pub(crate) fn unscopables_intrinsic(context: &mut Context) -> JsObject {
         // 1. Let unscopableList be OrdinaryObjectCreate(null).
-        let unscopable_list = JsObject::empty();
+        let unscopable_list = JsObject::with_null_proto();
         // 2. Perform ! CreateDataPropertyOrThrow(unscopableList, "at", true).
         unscopable_list
             .create_data_property_or_throw("at", true, context)

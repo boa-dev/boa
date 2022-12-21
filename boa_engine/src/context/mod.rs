@@ -17,13 +17,12 @@ use crate::{
     builtins::{self, function::NativeFunctionSignature},
     bytecompiler::ByteCompiler,
     class::{Class, ClassBuilder},
-    error::JsNativeError,
     job::JobCallback,
-    object::{FunctionBuilder, GlobalPropertyMap, JsObject, ObjectData},
+    object::{FunctionBuilder, GlobalPropertyMap, JsObject},
     property::{Attribute, PropertyDescriptor, PropertyKey},
     realm::Realm,
     vm::{CallFrame, CodeBlock, FinallyReturn, GeneratorResumeKind, Vm},
-    JsResult, JsString, JsValue,
+    JsResult, JsValue,
 };
 
 use boa_ast::StatementList;
@@ -131,6 +130,8 @@ impl Default for Context {
     }
 }
 
+// ==== Public API ====
+
 impl Context {
     /// Create a new [`ContextBuilder`] to specify the [`Interner`] and/or
     /// the icu data provider.
@@ -139,44 +140,34 @@ impl Context {
         ContextBuilder::default()
     }
 
-    /// Gets the string interner.
-    #[inline]
-    pub const fn interner(&self) -> &Interner {
-        &self.interner
-    }
+    /// Evaluates the given code by compiling down to bytecode, then interpreting the bytecode into a value
+    ///
+    /// # Examples
+    /// ```
+    /// # use boa_engine::Context;
+    /// let mut context = Context::default();
+    ///
+    /// let value = context.eval("1 + 3").unwrap();
+    ///
+    /// assert!(value.is_number());
+    /// assert_eq!(value.as_number().unwrap(), 4.0);
+    /// ```
+    #[allow(clippy::unit_arg, clippy::drop_copy)]
+    pub fn eval<S>(&mut self, src: S) -> JsResult<JsValue>
+    where
+        S: AsRef<[u8]>,
+    {
+        let main_timer = Profiler::global().start_event("Evaluation", "Main");
 
-    /// Gets a mutable reference to the string interner.
-    #[inline]
-    pub fn interner_mut(&mut self) -> &mut Interner {
-        &mut self.interner
-    }
+        let statement_list = self.parse(src)?;
+        let code_block = self.compile(&statement_list)?;
+        let result = self.execute(code_block);
 
-    /// A helper function for getting an immutable reference to the `console` object.
-    #[cfg(feature = "console")]
-    pub(crate) const fn console(&self) -> &Console {
-        &self.console
-    }
+        // The main_timer needs to be dropped before the Profiler is.
+        drop(main_timer);
+        Profiler::global().drop();
 
-    /// A helper function for getting a mutable reference to the `console` object.
-    #[cfg(feature = "console")]
-    pub(crate) fn console_mut(&mut self) -> &mut Console {
-        &mut self.console
-    }
-
-    /// Sets up the default global objects within Global
-    fn create_intrinsics(&mut self) {
-        let _timer = Profiler::global().start_event("create_intrinsics", "interpreter");
-        // Create intrinsics, add global objects here
-        builtins::init(self);
-    }
-
-    /// Constructs an object with the `%Object.prototype%` prototype.
-    #[inline]
-    pub fn construct_object(&self) -> JsObject {
-        JsObject::from_proto_and_data(
-            self.intrinsics().constructors().object().prototype(),
-            ObjectData::ordinary(),
-        )
+        result
     }
 
     /// Parse the given source text.
@@ -184,70 +175,91 @@ impl Context {
     where
         S: AsRef<[u8]>,
     {
+        let _timer = Profiler::global().start_event("Parsing", "Main");
         let mut parser = Parser::new(src.as_ref());
         parser.parse_all(&mut self.interner)
     }
 
-    /// `Call ( F, V [ , argumentsList ] )`
-    ///
-    /// The abstract operation `Call` takes arguments `F` (an ECMAScript language value) and `V`
-    /// (an ECMAScript language value) and optional argument `argumentsList` (a `List` of
-    /// ECMAScript language values) and returns either a normal completion containing an ECMAScript
-    /// language value or a throw completion. It is used to call the `[[Call]]` internal method of
-    /// a function object. `F` is the function object, `V` is an ECMAScript language value that is
-    /// the `this` value of the `[[Call]]`, and `argumentsList` is the value passed to the
-    /// corresponding argument of the internal method. If `argumentsList` is not present, a new
-    /// empty `List` is used as its value.
-    ///
-    /// More information:
-    ///  - [ECMA reference][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-call
-    pub(crate) fn call(
-        &mut self,
-        f: &JsValue,
-        v: &JsValue,
-        arguments_list: &[JsValue],
-    ) -> JsResult<JsValue> {
-        // 1. If argumentsList is not present, set argumentsList to a new empty List.
-        // 2. If IsCallable(F) is false, throw a TypeError exception.
-        // 3. Return ? F.[[Call]](V, argumentsList).
-        f.as_callable()
-            .ok_or_else(|| {
-                JsNativeError::typ()
-                    .with_message("Value is not callable")
-                    .into()
-            })
-            .and_then(|f| f.call(v, arguments_list, self))
+    /// Compile the AST into a `CodeBlock` ready to be executed by the VM.
+    pub fn compile(&mut self, statement_list: &StatementList) -> JsResult<Gc<CodeBlock>> {
+        let _timer = Profiler::global().start_event("Compilation", "Main");
+        let mut compiler = ByteCompiler::new(Sym::MAIN, statement_list.strict(), false, self);
+        compiler.create_decls(statement_list, false);
+        compiler.compile_statement_list(statement_list, true, false)?;
+        Ok(Gc::new(compiler.finish()))
     }
 
-    /// Return the global object.
-    #[inline]
-    pub const fn global_object(&self) -> &JsObject {
-        self.realm.global_object()
+    /// Call the VM with a `CodeBlock` and return the result.
+    ///
+    /// Since this function receives a `Gc<CodeBlock>`, cloning the code is very cheap, since it's
+    /// just a pointer copy. Therefore, if you'd like to execute the same `CodeBlock` multiple
+    /// times, there is no need to re-compile it, and you can just call `clone()` on the
+    /// `Gc<CodeBlock>` returned by the [`Self::compile()`] function.
+    pub fn execute(&mut self, code_block: Gc<CodeBlock>) -> JsResult<JsValue> {
+        let _timer = Profiler::global().start_event("Execution", "Main");
+
+        self.vm.push_frame(CallFrame {
+            code: code_block,
+            pc: 0,
+            catch: Vec::new(),
+            finally_return: FinallyReturn::None,
+            finally_jump: Vec::new(),
+            pop_on_return: 0,
+            loop_env_stack: Vec::from([0]),
+            try_env_stack: Vec::from([crate::vm::TryStackEntry {
+                num_env: 0,
+                num_loop_stack_entries: 0,
+            }]),
+            param_count: 0,
+            arg_count: 0,
+            generator_resume_kind: GeneratorResumeKind::Normal,
+            thrown: false,
+            async_generator: None,
+        });
+
+        self.realm.set_global_binding_number();
+        let result = self.run();
+        self.vm.pop_frame();
+        self.clear_kept_objects();
+        self.run_queued_jobs()?;
+        let (result, _) = result?;
+        Ok(result)
     }
 
-    /// Return a mutable reference to the global object string bindings.
-    pub(crate) fn global_bindings_mut(&mut self) -> &mut GlobalPropertyMap {
-        self.realm.global_bindings_mut()
-    }
-
-    /// Constructs a `Error` with the specified message.
-    pub fn construct_error<M>(&mut self, message: M) -> JsValue
+    /// Register a global property.
+    ///
+    /// # Example
+    /// ```
+    /// use boa_engine::{
+    ///     object::ObjectInitializer,
+    ///     property::{Attribute, PropertyDescriptor},
+    ///     Context,
+    /// };
+    ///
+    /// let mut context = Context::default();
+    ///
+    /// context.register_global_property("myPrimitiveProperty", 10, Attribute::all());
+    ///
+    /// let object = ObjectInitializer::new(&mut context)
+    ///     .property("x", 0, Attribute::all())
+    ///     .property("y", 1, Attribute::all())
+    ///     .build();
+    /// context.register_global_property("myObjectProperty", object, Attribute::all());
+    /// ```
+    pub fn register_global_property<K, V>(&mut self, key: K, value: V, attribute: Attribute)
     where
-        M: Into<JsString>,
+        K: Into<PropertyKey>,
+        V: Into<JsValue>,
     {
-        crate::builtins::error::Error::constructor(
-            &self
-                .intrinsics()
-                .constructors()
-                .error()
-                .constructor()
-                .into(),
-            &[message.into().into()],
-            self,
-        )
-        .expect("Into<String> used as message")
+        self.realm.global_property_map.insert(
+            &key.into(),
+            PropertyDescriptor::builder()
+                .value(value)
+                .writable(attribute.writable())
+                .enumerable(attribute.enumerable())
+                .configurable(attribute.configurable())
+                .build(),
+        );
     }
 
     /// Register a global native function.
@@ -372,12 +384,6 @@ impl Context {
         Ok(())
     }
 
-    /// <https://tc39.es/ecma262/#sec-hasproperty>
-    pub(crate) fn has_property(&mut self, obj: &JsValue, key: &PropertyKey) -> JsResult<bool> {
-        obj.as_object()
-            .map_or(Ok(false), |obj| obj.__has_property__(key, self))
-    }
-
     /// Register a global class of type `T`, where `T` implements `Class`.
     ///
     /// # Example
@@ -410,150 +416,22 @@ impl Context {
         Ok(())
     }
 
-    /// Register a global property.
-    ///
-    /// # Example
-    /// ```
-    /// use boa_engine::{
-    ///     object::ObjectInitializer,
-    ///     property::{Attribute, PropertyDescriptor},
-    ///     Context,
-    /// };
-    ///
-    /// let mut context = Context::default();
-    ///
-    /// context.register_global_property("myPrimitiveProperty", 10, Attribute::all());
-    ///
-    /// let object = ObjectInitializer::new(&mut context)
-    ///     .property("x", 0, Attribute::all())
-    ///     .property("y", 1, Attribute::all())
-    ///     .build();
-    /// context.register_global_property("myObjectProperty", object, Attribute::all());
-    /// ```
-    pub fn register_global_property<K, V>(&mut self, key: K, value: V, attribute: Attribute)
-    where
-        K: Into<PropertyKey>,
-        V: Into<JsValue>,
-    {
-        self.realm.global_property_map.insert(
-            &key.into(),
-            PropertyDescriptor::builder()
-                .value(value)
-                .writable(attribute.writable())
-                .enumerable(attribute.enumerable())
-                .configurable(attribute.configurable())
-                .build(),
-        );
+    /// Gets the string interner.
+    #[inline]
+    pub const fn interner(&self) -> &Interner {
+        &self.interner
     }
 
-    /// Evaluates the given code by compiling down to bytecode, then interpreting the bytecode into a value
-    ///
-    /// # Examples
-    /// ```
-    /// # use boa_engine::Context;
-    /// let mut context = Context::default();
-    ///
-    /// let value = context.eval("1 + 3").unwrap();
-    ///
-    /// assert!(value.is_number());
-    /// assert_eq!(value.as_number().unwrap(), 4.0);
-    /// ```
-    #[allow(clippy::unit_arg, clippy::drop_copy)]
-    pub fn eval<S>(&mut self, src: S) -> JsResult<JsValue>
-    where
-        S: AsRef<[u8]>,
-    {
-        let main_timer = Profiler::global().start_event("Evaluation", "Main");
-
-        let statement_list = Parser::new(src.as_ref()).parse_all(&mut self.interner)?;
-
-        let code_block = self.compile(&statement_list)?;
-        let result = self.execute(code_block);
-
-        // The main_timer needs to be dropped before the Profiler is.
-        drop(main_timer);
-        Profiler::global().drop();
-
-        result
+    /// Gets a mutable reference to the string interner.
+    #[inline]
+    pub fn interner_mut(&mut self) -> &mut Interner {
+        &mut self.interner
     }
 
-    /// Compile the AST into a `CodeBlock` ready to be executed by the VM.
-    pub fn compile(&mut self, statement_list: &StatementList) -> JsResult<Gc<CodeBlock>> {
-        let _timer = Profiler::global().start_event("Compilation", "Main");
-        let mut compiler = ByteCompiler::new(Sym::MAIN, statement_list.strict(), false, self);
-        compiler.create_decls(statement_list, false);
-        compiler.compile_statement_list(statement_list, true, false)?;
-        Ok(Gc::new(compiler.finish()))
-    }
-
-    /// Compile the AST into a `CodeBlock` ready to be executed by the VM in a `JSON.parse` context.
-    pub fn compile_json_parse(
-        &mut self,
-        statement_list: &StatementList,
-    ) -> JsResult<Gc<CodeBlock>> {
-        let _timer = Profiler::global().start_event("Compilation", "Main");
-        let mut compiler = ByteCompiler::new(Sym::MAIN, statement_list.strict(), true, self);
-        compiler.create_decls(statement_list, false);
-        compiler.compile_statement_list(statement_list, true, false)?;
-        Ok(Gc::new(compiler.finish()))
-    }
-
-    /// Compile the AST into a `CodeBlock` with an additional declarative environment.
-    pub(crate) fn compile_with_new_declarative(
-        &mut self,
-        statement_list: &StatementList,
-        strict: bool,
-    ) -> JsResult<Gc<CodeBlock>> {
-        let _timer = Profiler::global().start_event("Compilation", "Main");
-        let mut compiler = ByteCompiler::new(Sym::MAIN, statement_list.strict(), false, self);
-        compiler.compile_statement_list_with_new_declarative(statement_list, true, strict)?;
-        Ok(Gc::new(compiler.finish()))
-    }
-
-    /// Call the VM with a `CodeBlock` and return the result.
-    ///
-    /// Since this function receives a `Gc<CodeBlock>`, cloning the code is very cheap, since it's
-    /// just a pointer copy. Therefore, if you'd like to execute the same `CodeBlock` multiple
-    /// times, there is no need to re-compile it, and you can just call `clone()` on the
-    /// `Gc<CodeBlock>` returned by the [`Self::compile()`] function.
-    pub fn execute(&mut self, code_block: Gc<CodeBlock>) -> JsResult<JsValue> {
-        let _timer = Profiler::global().start_event("Execution", "Main");
-
-        self.vm.push_frame(CallFrame {
-            code: code_block,
-            pc: 0,
-            catch: Vec::new(),
-            finally_return: FinallyReturn::None,
-            finally_jump: Vec::new(),
-            pop_on_return: 0,
-            loop_env_stack: Vec::from([0]),
-            try_env_stack: Vec::from([crate::vm::TryStackEntry {
-                num_env: 0,
-                num_loop_stack_entries: 0,
-            }]),
-            param_count: 0,
-            arg_count: 0,
-            generator_resume_kind: GeneratorResumeKind::Normal,
-            thrown: false,
-            async_generator: None,
-        });
-
-        self.realm.set_global_binding_number();
-        let result = self.run();
-        self.vm.pop_frame();
-        self.clear_kept_objects();
-        self.run_queued_jobs()?;
-        let (result, _) = result?;
-        Ok(result)
-    }
-
-    /// Runs all the jobs in the job queue.
-    fn run_queued_jobs(&mut self) -> JsResult<()> {
-        while let Some(job) = self.promise_job_queue.pop_front() {
-            job.call_job_callback(&JsValue::Undefined, &[], self)?;
-            self.clear_kept_objects();
-        }
-        Ok(())
+    /// Return the global object.
+    #[inline]
+    pub const fn global_object(&self) -> &JsObject {
+        self.realm.global_object()
     }
 
     /// Return the intrinsic constructors and objects.
@@ -565,12 +443,6 @@ impl Context {
     /// Set the value of trace on the context
     pub fn set_trace(&mut self, trace: bool) {
         self.vm.trace = trace;
-    }
-
-    #[cfg(feature = "intl")]
-    /// Get the ICU related utilities
-    pub(crate) const fn icu(&self) -> &icu::Icu<BoaProvider> {
-        &self.icu
     }
 
     /// More information:
@@ -595,6 +467,73 @@ impl Context {
     /// [weak]: https://tc39.es/ecma262/multipage/managing-memory.html#sec-weak-ref-objects
     pub fn clear_kept_objects(&mut self) {
         self.kept_alive.clear();
+    }
+}
+
+// ==== Private API ====
+
+impl Context {
+    /// A helper function for getting an immutable reference to the `console` object.
+    #[cfg(feature = "console")]
+    pub(crate) const fn console(&self) -> &Console {
+        &self.console
+    }
+
+    /// A helper function for getting a mutable reference to the `console` object.
+    #[cfg(feature = "console")]
+    pub(crate) fn console_mut(&mut self) -> &mut Console {
+        &mut self.console
+    }
+
+    /// Return a mutable reference to the global object string bindings.
+    pub(crate) fn global_bindings_mut(&mut self) -> &mut GlobalPropertyMap {
+        self.realm.global_bindings_mut()
+    }
+
+    /// Compile the AST into a `CodeBlock` ready to be executed by the VM in a `JSON.parse` context.
+    pub(crate) fn compile_json_parse(
+        &mut self,
+        statement_list: &StatementList,
+    ) -> JsResult<Gc<CodeBlock>> {
+        let _timer = Profiler::global().start_event("Compilation", "Main");
+        let mut compiler = ByteCompiler::new(Sym::MAIN, statement_list.strict(), true, self);
+        compiler.create_decls(statement_list, false);
+        compiler.compile_statement_list(statement_list, true, false)?;
+        Ok(Gc::new(compiler.finish()))
+    }
+
+    /// Compile the AST into a `CodeBlock` with an additional declarative environment.
+    pub(crate) fn compile_with_new_declarative(
+        &mut self,
+        statement_list: &StatementList,
+        strict: bool,
+    ) -> JsResult<Gc<CodeBlock>> {
+        let _timer = Profiler::global().start_event("Compilation", "Main");
+        let mut compiler = ByteCompiler::new(Sym::MAIN, statement_list.strict(), false, self);
+        compiler.compile_statement_list_with_new_declarative(statement_list, true, strict)?;
+        Ok(Gc::new(compiler.finish()))
+    }
+
+    /// Get the ICU related utilities
+    #[cfg(feature = "intl")]
+    pub(crate) const fn icu(&self) -> &icu::Icu<BoaProvider> {
+        &self.icu
+    }
+
+    /// Sets up the default global objects within Global
+    fn create_intrinsics(&mut self) {
+        let _timer = Profiler::global().start_event("create_intrinsics", "interpreter");
+        // Create intrinsics, add global objects here
+        builtins::init(self);
+    }
+
+    /// Runs all the jobs in the job queue.
+    fn run_queued_jobs(&mut self) -> JsResult<()> {
+        while let Some(job) = self.promise_job_queue.pop_front() {
+            job.call_job_callback(&JsValue::Undefined, &[], self)?;
+            self.clear_kept_objects();
+        }
+        Ok(())
     }
 }
 /// Builder for the [`Context`] type.

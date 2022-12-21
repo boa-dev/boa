@@ -1,7 +1,7 @@
 use crate::{
     error::JsNativeError,
     forward, forward_val, js_string,
-    object::FunctionBuilder,
+    object::{FunctionBuilder, JsObject},
     property::{Attribute, PropertyDescriptor},
     string::utf16,
     Context, JsNativeErrorKind,
@@ -230,7 +230,8 @@ fn closure_capture_clone() {
     let mut context = Context::default();
 
     let string = js_string!("Hello");
-    let object = context.construct_object();
+    let object = JsObject::new(&mut context);
+
     object
         .define_property_or_throw(
             "key",

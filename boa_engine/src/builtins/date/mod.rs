@@ -1234,7 +1234,7 @@ impl Date {
 
         // 4. Return ? Invoke(O, "toISOString").
         let func = o.get("toISOString", context)?;
-        context.call(&func, &o.into(), &[])
+        func.call(this, &[], context)
     }
 
     /// [`Date.prototype.toLocaleDateString()`][spec].

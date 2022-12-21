@@ -8,11 +8,7 @@
 //!
 //! [spec]: https://tc39.es/ecma262/#sec-integer-indexed-exotic-objects
 
-use crate::{
-    builtins::typed_array::TypedArrayKind,
-    object::{JsObject, ObjectData},
-    Context,
-};
+use crate::{builtins::typed_array::TypedArrayKind, object::JsObject};
 use boa_gc::{Finalize, Trace};
 
 /// Type of the array content.
@@ -48,37 +44,6 @@ impl IntegerIndexed {
             byte_length,
             array_length,
         }
-    }
-
-    /// `IntegerIndexedObjectCreate ( prototype )`
-    ///
-    /// Create a new `JsObject` from a prototype and a `IntegerIndexedObject`
-    ///
-    /// More information:
-    ///  - [ECMAScript reference][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-integerindexedobjectcreate
-    pub(super) fn create(prototype: JsObject, data: Self, context: &Context) -> JsObject {
-        // 1. Let internalSlotsList be « [[Prototype]], [[Extensible]], [[ViewedArrayBuffer]],
-        //    [[TypedArrayName]], [[ContentType]], [[ByteLength]], [[ByteOffset]],
-        //    [[ArrayLength]] ».
-        // 2. Let A be ! MakeBasicObject(internalSlotsList).
-        let a = context.construct_object();
-
-        // 3. Set A.[[GetOwnProperty]] as specified in 10.4.5.1.
-        // 4. Set A.[[HasProperty]] as specified in 10.4.5.2.
-        // 5. Set A.[[DefineOwnProperty]] as specified in 10.4.5.3.
-        // 6. Set A.[[Get]] as specified in 10.4.5.4.
-        // 7. Set A.[[Set]] as specified in 10.4.5.5.
-        // 8. Set A.[[Delete]] as specified in 10.4.5.6.
-        // 9. Set A.[[OwnPropertyKeys]] as specified in 10.4.5.7.
-        a.borrow_mut().data = ObjectData::integer_indexed(data);
-
-        // 10. Set A.[[Prototype]] to prototype.
-        a.set_prototype(prototype.into());
-
-        // 11. Return A.
-        a
     }
 
     /// Abstract operation `IsDetachedBuffer ( arrayBuffer )`.

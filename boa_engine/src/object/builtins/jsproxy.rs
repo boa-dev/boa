@@ -371,7 +371,7 @@ impl JsProxyBuilder {
     /// inside Rust code.
     #[must_use]
     pub fn build(self, context: &mut Context) -> JsProxy {
-        let handler = context.construct_object();
+        let handler = JsObject::new(context);
 
         if let Some(apply) = self.apply {
             let f = FunctionBuilder::native(context, apply).length(3).build();

@@ -42,8 +42,8 @@ pub struct StandardConstructor {
 impl Default for StandardConstructor {
     fn default() -> Self {
         Self {
-            constructor: JsObject::empty(),
-            prototype: JsObject::empty(),
+            constructor: JsObject::with_null_proto(),
+            prototype: JsObject::with_null_proto(),
         }
     }
 }
@@ -52,7 +52,7 @@ impl StandardConstructor {
     /// Build a constructor with a defined prototype.
     fn with_prototype(prototype: JsObject) -> Self {
         Self {
-            constructor: JsObject::empty(),
+            constructor: JsObject::with_null_proto(),
             prototype,
         }
     }

@@ -33,32 +33,50 @@ pub struct JsObject {
 }
 
 impl JsObject {
-    /// Create a new `JsObject` from an internal `Object`.
-    fn from_object(object: Object) -> Self {
-        Self {
-            inner: Gc::new(GcCell::new(object)),
-        }
-    }
-
-    /// Create a new empty `JsObject`, with `prototype` set to `JsValue::Null`
-    /// and `data` set to `ObjectData::ordinary`
-    #[must_use]
-    pub fn empty() -> Self {
-        Self::from_object(Object::default())
-    }
-
-    /// The more general form of `OrdinaryObjectCreate` and `MakeBasicObject`.
+    /// Creates a new ordinary object with its prototype set to the `Object` prototype.
     ///
-    /// Create a `JsObject` and automatically set its internal methods and
-    /// internal slots from the `data` provided.
+    /// In spec jargon, this is equivalent to calling the
+    /// [`OrdinaryObjectCreate(%Object.prototype%)`][call] operation.
+    ///
+    /// [call]: https://tc39.es/ecma262/#sec-ordinaryobjectcreate
+    #[inline]
+    #[must_use]
+    pub fn new(context: &mut Context) -> Self {
+        Self::from_proto_and_data(
+            context.intrinsics().constructors().object().prototype(),
+            ObjectData::ordinary(),
+        )
+    }
+
+    /// Creates a new ordinary object, with its prototype set to null.
+    ///
+    /// In spec jargon, this is equivalent to calling the [`OrdinaryObjectCreate(null)`][call]
+    /// operation.
+    ///
+    /// [call]: https://tc39.es/ecma262/#sec-ordinaryobjectcreate
+    #[inline]
+    #[must_use]
+    pub fn with_null_proto() -> Self {
+        Self::from_proto_and_data(None, ObjectData::ordinary())
+    }
+
+    /// Creates a new object with the provided prototype and object data.
+    ///
+    /// This is the same as calling the [`OrdinaryObjectCreate`] operation, with the difference that
+    /// the `additionalInternalSlotsList` parameter is automatically set by the [`ObjectData`]
+    /// provided.
+    ///
+    /// [`OrdinaryObjectCreate`]: https://tc39.es/ecma262/#sec-ordinaryobjectcreate
     pub fn from_proto_and_data<O: Into<Option<Self>>>(prototype: O, data: ObjectData) -> Self {
-        Self::from_object(Object {
-            data,
-            prototype: prototype.into(),
-            extensible: true,
-            properties: PropertyMap::default(),
-            private_elements: FxHashMap::default(),
-        })
+        Self {
+            inner: Gc::new(GcCell::new(Object {
+                data,
+                prototype: prototype.into(),
+                extensible: true,
+                properties: PropertyMap::default(),
+                private_elements: FxHashMap::default(),
+            })),
+        }
     }
 
     /// Immutably borrows the `Object`.
