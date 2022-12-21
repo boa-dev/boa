@@ -24,7 +24,7 @@
 //! [boa-web]: https://boa-dev.github.io/
 //! [boa-playground]: https://boa-dev.github.io/boa/playground/
 
-#![cfg_attr(not(any(test, feature = "profiler")), forbid(clippy::unwrap_used))]
+#![cfg_attr(not(test), forbid(clippy::unwrap_used))]
 #![warn(missing_docs, clippy::dbg_macro)]
 #![deny(
     // rustc lint groups https://doc.rust-lang.org/rustc/lints/groups.html
@@ -122,12 +122,18 @@ impl Profiler {
     fn get_or_alloc_string(&self, s: &str) -> StringId {
         {
             // Check the cache only with the read lock first.
-            let cache = self.string_cache.read().unwrap();
+            let cache = self
+                .string_cache
+                .read()
+                .expect("Some writer panicked while holding an exclusive lock.");
             if let Some(id) = cache.get(s) {
                 return *id;
             }
         }
-        let mut cache = self.string_cache.write().unwrap();
+        let mut cache = self
+            .string_cache
+            .write()
+            .expect("Some writer panicked while holding an exclusive lock.");
         let entry = cache.entry(s.into());
         match entry {
             Entry::Occupied(entry) => *entry.get(),
