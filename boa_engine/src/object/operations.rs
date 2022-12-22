@@ -768,9 +768,9 @@ impl JsValue {
     ///
     /// # Note
     ///
-    /// It is almost always better to try to obtain an object first with [`JsValue::as_object`],
-    /// then calling [`JsObject::call`], since that allows reusing the unwrapped object for other
-    /// operations. This method is only an utility function for when the spec directly uses `Call`
+    /// It is almost always better to try to obtain a callable object first with [`JsValue::as_callable`],
+    /// then calling [`JsObject::call`], since that allows reusing the unwrapped function for other
+    /// operations. This method is only an utility method for when the spec directly uses `Call`
     /// without using the value as a proper object.
     ///
     /// [call]: https://tc39.es/ecma262/#sec-call
