@@ -122,10 +122,10 @@ impl Intl {
     }
 }
 
-// Making `provider: &BoaProvider` instead of a type parameter `P` makes it so that we need
-// to copy-paste the bounds of `impl<M> DataProvider<M> for BoaProvider` every time we need
-// to use `provider`. The type parameter solves this by delegating simpler bounds to every
-// implementor of `Service`.
+/// A service component that is part of the `Intl` API.
+///
+/// This needs to be implemented for every `Intl` service in order to use the functions
+/// defined in `locale::utils`, such as locale resolution and selection.
 trait Service {
     /// The data marker used by [`resolve_locale`][locale::resolve_locale] to decide
     /// which locales are supported by this service.
