@@ -1119,7 +1119,7 @@ impl String {
                 // iii. Let replacement be ! GetSubstitution(searchString, string, p, captures, undefined, replaceValue).
                 Err(ref replace_str) => get_substitution(
                     &search_string,
-                    replace_str,
+                    &string,
                     p,
                     &[],
                     &JsValue::undefined(),
