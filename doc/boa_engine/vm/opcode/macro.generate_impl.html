@@ -5,7 +5,7 @@
         <span class="kw">pub enum </span><span class="macro-nonterminal">$Type</span>:ident {
             $(
                 $(<span class="attribute">#[<span class="macro-nonterminal">$inner</span>:ident $(<span class="macro-nonterminal">$args</span>:tt)<span class="kw-2">*</span>]</span>)*
-                <span class="macro-nonterminal">$Variant</span>:ident
+                <span class="macro-nonterminal">$Variant</span>:ident $(= <span class="macro-nonterminal">$index</span>:expr)*
             ),*
             $(,)<span class="question-mark">?
         </span>}

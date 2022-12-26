@@ -1596,7 +1596,7 @@
         <span class="kw">pub enum </span><span class="macro-nonterminal">$Type</span>:ident {
             $(
                 $(<span class="attribute">#[<span class="macro-nonterminal">$inner</span>:ident $(<span class="macro-nonterminal">$args</span>:tt)<span class="kw-2">*</span>]</span>)*
-                <span class="macro-nonterminal">$Variant</span>:ident
+                <span class="macro-nonterminal">$Variant</span>:ident $(= <span class="macro-nonterminal">$index</span>:expr)*
             ),*
             $(,)<span class="question-mark">?
         </span>}
@@ -1606,8 +1606,8 @@
         <span class="kw">pub enum </span><span class="macro-nonterminal">$Type </span>{
             $(
                 $(<span class="attribute">#[<span class="macro-nonterminal">$inner </span>$(<span class="macro-nonterminal">$args</span>)<span class="kw-2">*</span>]</span>)*
-                <span class="macro-nonterminal">$Variant
-            </span>),*
+                <span class="macro-nonterminal">$Variant </span>$(= <span class="macro-nonterminal">$index</span>)*
+            ),*
         }
 
         <span class="kw">impl </span><span class="macro-nonterminal">$Type </span>{
@@ -1624,32 +1624,32 @@
                 </span><span class="kw">unsafe </span>{ std::mem::transmute(value) }
             }
 
+            <span class="kw">const </span>NAMES: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str] = <span class="kw-2">&amp;</span>[
+                $(<span class="macro-nonterminal">$Variant::NAME</span>),*
+            ];
+
             <span class="doccomment">/// Name of this opcode.
             </span><span class="attribute">#[must_use]
             </span><span class="kw">pub const fn </span>as_str(<span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str {
-                <span class="kw">match </span><span class="self">self </span>{
-                    $(
-                        <span class="self">Self</span>::<span class="macro-nonterminal">$Variant </span>=&gt; <span class="macro-nonterminal">$Variant::NAME
-                    </span>),*
-                }
+                <span class="self">Self</span>::NAMES[<span class="self">self </span><span class="kw">as </span>usize]
             }
+
+            <span class="kw">const </span>INSTRUCTIONS: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str] = <span class="kw-2">&amp;</span>[
+                $(<span class="macro-nonterminal">$Variant::INSTRUCTION</span>),*
+            ];
 
             <span class="doccomment">/// Name of the profiler event for this opcode.
             </span><span class="attribute">#[must_use]
             </span><span class="kw">pub const fn </span>as_instruction_str(<span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str {
-                <span class="kw">match </span><span class="self">self </span>{
-                    $(
-                        <span class="self">Self</span>::<span class="macro-nonterminal">$Variant </span>=&gt; <span class="macro-nonterminal">$Variant::INSTRUCTION
-                    </span>),*
-                }
+                <span class="self">Self</span>::INSTRUCTIONS[<span class="self">self </span><span class="kw">as </span>usize]
             }
 
+            <span class="kw">const </span>EXECUTE_FNS: <span class="kw-2">&amp;</span>[<span class="kw">fn</span>(<span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;ShouldExit&gt;] = <span class="kw-2">&amp;</span>[
+                $(<span class="macro-nonterminal">$Variant::execute</span>),*
+            ];
+
             <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>execute(<span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;ShouldExit&gt; {
-                <span class="kw">match </span><span class="self">self </span>{
-                    $(
-                        <span class="self">Self</span>::<span class="macro-nonterminal">$Variant </span>=&gt; <span class="macro-nonterminal">$Variant::execute</span>(context)
-                    ),*
-                }
+                <span class="self">Self</span>::EXECUTE_FNS[<span class="self">self </span><span class="kw">as </span>usize](context)
             }
         }
     };
@@ -1677,7 +1677,7 @@
         /// Operands:
         ///
         /// Stack: value **=&gt;**
-        </span>Pop,
+        </span>Pop = <span class="number">0</span>,
 
         <span class="doccomment">/// Pop the top value from the stack if the last try block has thrown a value.
         ///
