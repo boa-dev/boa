@@ -22,7 +22,7 @@ use crate::builtins::intl::list_format::ListFormatType;
 pub enum BoaProvider<'a> {
     /// A [`BufferProvider`] data provider.
     Buffer(&'a dyn BufferProvider),
-    /// An [`AnyProvider] data provider.
+    /// An [`AnyProvider`] data provider.
     Any(&'a dyn AnyProvider),
 }
 
