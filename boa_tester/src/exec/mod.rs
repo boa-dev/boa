@@ -16,9 +16,6 @@ use colored::Colorize;
 use rayon::prelude::*;
 use std::borrow::Cow;
 
-#[cfg(feature = "intl")]
-use boa_engine::context::{BoaProvider, ContextBuilder};
-
 impl TestSuite {
     /// Runs the test suite.
     pub(crate) fn run(&self, harness: &Harness, verbose: u8, parallel: bool) -> SuiteResult {
@@ -166,19 +163,7 @@ impl Test {
 
         let result = std::panic::catch_unwind(|| match self.expected_outcome {
             Outcome::Positive => {
-                let mut context = {
-                    #[cfg(feature = "intl")]
-                    {
-                        ContextBuilder::default()
-                            .icu_provider(BoaProvider::Buffer(boa_icu_provider::buffer()))
-                            .expect("default locale data should be valid")
-                            .build()
-                    }
-                    #[cfg(not(feature = "intl"))]
-                    {
-                        Context::default()
-                    }
-                };
+                let mut context = Context::default();
                 let async_result = AsyncResult::default();
 
                 if let Err(e) = self.set_up_env(harness, &mut context, async_result.clone()) {

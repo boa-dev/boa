@@ -1327,7 +1327,7 @@ impl String {
             // Default to common comparison if the user doesn't have `Intl` enabled.
             #[cfg(not(feature = "intl"))]
             {
-                s.cmp(&that_value) as i8;
+                s.cmp(&that_value) as i8
             }
         };
 

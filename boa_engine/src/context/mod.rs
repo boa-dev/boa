@@ -478,7 +478,7 @@ impl Context<'_> {
 
 // ==== Private API ====
 
-impl<'icu> Context<'icu> {
+impl Context<'_> {
     /// A helper function for getting an immutable reference to the `console` object.
     #[cfg(feature = "console")]
     pub(crate) const fn console(&self) -> &Console {
@@ -520,12 +520,6 @@ impl<'icu> Context<'icu> {
         Ok(Gc::new(compiler.finish()))
     }
 
-    /// Get the ICU related utilities
-    #[cfg(feature = "intl")]
-    pub(crate) const fn icu(&self) -> &icu::Icu<'icu> {
-        &self.icu
-    }
-
     /// Sets up the default global objects within Global
     fn create_intrinsics(&mut self) {
         let _timer = Profiler::global().start_event("create_intrinsics", "interpreter");
@@ -542,6 +536,15 @@ impl<'icu> Context<'icu> {
         Ok(())
     }
 }
+
+#[cfg(feature = "intl")]
+impl<'icu> Context<'icu> {
+    /// Get the ICU related utilities
+    pub(crate) const fn icu(&self) -> &icu::Icu<'icu> {
+        &self.icu
+    }
+}
+
 /// Builder for the [`Context`] type.
 ///
 /// This builder allows custom initialization of the [`Interner`] within
@@ -579,6 +582,16 @@ impl<'a> ContextBuilder<'a> {
     /// Provides an icu data provider to the [`Context`].
     ///
     /// This function is only available if the `intl` feature is enabled.
+    ///
+    /// # Errors
+    ///
+    /// This returns `Err` if the provided provider doesn't have the required locale information
+    /// to construct both a [`LocaleCanonicalizer`] and a [`LocaleExpander`]. Note that this doesn't
+    /// mean that the provider will successfully construct all `Intl` services; that check is made
+    /// until the creation of an instance of a service.
+    ///
+    /// [`LocaleCanonicalizer`]: icu_locid_transform::LocaleCanonicalizer
+    /// [`LocaleExpander`]: icu_locid_transform::LocaleExpander
     #[cfg(feature = "intl")]
     pub fn icu_provider(
         self,

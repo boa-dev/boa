@@ -71,10 +71,12 @@ jobs:
       - uses: Swatinem/rust-cache@v2
         with:
           key: misc
-      - name: Lint (rustfmt)
+      - name: Format (rustfmt)
         run: cargo fmt --all --check
-      - name: Lint (clippy)
+      - name: Lint (All features)
         run: cargo clippy --all-features --all-targets
+      - name: Lint (No features)
+        run: cargo clippy --no-default-features --all-targets
       - name: Generate documentation
         run: cargo doc -v --document-private-items --all-features
       - name: Build

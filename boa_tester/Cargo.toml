@@ -15,7 +15,6 @@ rust-version.workspace = true
 boa_engine.workspace = true 
 boa_gc.workspace = true
 boa_parser.workspace = true
-boa_icu_provider = { workspace = true, optional = true }
 clap = { version = "4.0.32", features = ["derive"] }
 serde = { version = "1.0.152", features = ["derive"] }
 serde_yaml = "0.9.16"
@@ -31,4 +30,4 @@ color-eyre = "0.6.2"
 
 [features]
 default = ["intl"]
-intl = ["boa_engine/intl", "dep:boa_icu_provider"]
+intl = ["boa_engine/intl"]
