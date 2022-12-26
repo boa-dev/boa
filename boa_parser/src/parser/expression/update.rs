@@ -72,11 +72,28 @@ where
                 cursor
                     .next(interner)?
                     .expect("Punctuator::Inc token disappeared");
-
+                
                 let target = UnaryExpression::new(self.name, self.allow_yield, self.allow_await)
                     .parse(cursor, interner)?;
-
-                if cursor.strict_mode() {
+                let strict = cursor.strict_mode();
+                // https://tc39.es/ecma262/#sec-update-expressions-static-semantics-early-errors
+                let ok = match &target {
+                    Expression::Identifier(_) if !strict => true,
+                    Expression::Identifier(ident)
+                        if ![Sym::EVAL, Sym::ARGUMENTS].contains(&ident.sym()) =>
+                    {
+                        true
+                    }
+                    Expression::PropertyAccess(_) => true,
+                    _ => false,
+                };
+                if !ok {
+                    return Err(Error::lex(LexError::Syntax(
+                        "Invalid left-hand side in assignment".into(),
+                        position,
+                    )));
+                }
+                if strict {
                     if let Expression::Identifier(ident) = target {
                         check_strict_arguments_or_eval(ident, position)?;
                     }
@@ -91,8 +108,26 @@ where
 
                 let target = UnaryExpression::new(self.name, self.allow_yield, self.allow_await)
                     .parse(cursor, interner)?;
-
-                if cursor.strict_mode() {
+                let strict = cursor.strict_mode();
+                // https://tc39.es/ecma262/#sec-update-expressions-static-semantics-early-errors
+                let ok = match &target {
+                    Expression::Identifier(_) if !strict => true,
+                    Expression::Identifier(ident)
+                        if ![Sym::EVAL, Sym::ARGUMENTS].contains(&ident.sym()) =>
+                    {
+                        true
+                    }
+                    Expression::PropertyAccess(_) => true,
+                    _ => false,
+                };
+                
+                if !ok {
+                    return Err(Error::lex(LexError::Syntax(
+                        "Invalid left-hand side in assignment".into(),
+                        position,
+                    )));
+                }
+                if strict {
                     if let Expression::Identifier(ident) = target {
                         check_strict_arguments_or_eval(ident, position)?;
                     }
